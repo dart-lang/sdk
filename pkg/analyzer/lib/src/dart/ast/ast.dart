@@ -24733,6 +24733,251 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 }
 
+/// The explicit instantiation of a function value using written type arguments.
+///
+/// The [operand] retains its generic function type, and this expression has the
+/// instantiated function type. A callable object's implicit `call` tear-off is
+/// represented by an [ImplicitCallTearOff] operand.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionInstantiation implements Expression {
+  /// The function value being instantiated.
+  Expression get operand;
+
+  /// The written type arguments.
+  TypeArgumentList get typeArguments;
+
+  /// The effective type arguments used to instantiate [operand].
+  ///
+  /// For valid code, these are the resolved types of [typeArguments]. If the
+  /// number of written arguments is incorrect, resolution reports an error and
+  /// uses `dynamic` for every type parameter so that analysis can continue with
+  /// an instantiated function type. For example, `f<int>` for a function with
+  /// two type parameters has effective arguments `[dynamic, dynamic]`, while
+  /// [typeArguments] still contains only the written `int`.
+  ///
+  /// Null if no function instantiation was resolved, for example because
+  /// [operand] does not have a function type.
+  List<DartType>? get typeArgumentTypes;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('typeArguments'),
+  ],
+)
+final class FunctionInstantiationImpl extends ExpressionImpl
+    implements FunctionInstantiation {
+  @generated
+  ExpressionImpl _operand;
+
+  @generated
+  TypeArgumentListImpl _typeArguments;
+
+  @override
+  List<TypeImpl>? typeArgumentTypes;
+
+  ExpressionImpl? _v1Projection;
+
+  @generated
+  FunctionInstantiationImpl({
+    required ExpressionImpl operand,
+    required TypeArgumentListImpl typeArguments,
+  }) : _operand = operand,
+       _typeArguments = typeArguments {
+    _becomeParentOf2(operand);
+    _becomeParentOf2(typeArguments);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operand.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return typeArguments.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Rebuilds the V1 view when a child changes')
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    _invalidateV1Projection();
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  TypeArgumentListImpl get typeArguments => _typeArguments;
+
+  @DoNotGenerate(reason: 'Rebuilds the V1 view when a child changes')
+  set typeArguments(TypeArgumentListImpl typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+    _invalidateV1Projection();
+  }
+
+  ExpressionImpl get v1Projection {
+    return _v1Projection ??= _createV1Projection();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('FunctionInstantiation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
+    ..addNode('typeArguments', typeArguments);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('FunctionInstantiation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFunctionInstantiation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return identical(operand, child);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'typeArguments'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitFunctionInstantiation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('FunctionInstantiation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+    typeArguments.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+    if (visitTypeArguments != null) {
+      visitTypeArguments(typeArguments);
+    } else {
+      typeArguments.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('FunctionInstantiation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+      return typeArguments;
+    }
+    return null;
+  }
+
+  ExpressionImpl _createV1Projection() {
+    if (operand case ImplicitCallTearOffImpl tearOff) {
+      return ImplicitCallReferenceImpl.v1Projection(
+        origin: this,
+        operand: tearOff.operand,
+        element: tearOff.element,
+        typeArguments: typeArguments,
+        typeArgumentTypes: typeArgumentTypes ?? const [],
+      );
+    }
+    return FunctionReferenceImpl.v1ProjectionFromInstantiation(this);
+  }
+
+  void _invalidateV1Projection() {
+    var previousProjection = _v1Projection;
+    if (previousProjection != null) {
+      _v1Projection = null;
+      v1Projection._parent = previousProjection._parent;
+      previousProjection._parent = null;
+    }
+  }
+}
+
 /// A tear-off of `call` through the core `Function` interface.
 ///
 /// The core `Function` interface exposes `call` without selecting a declaration
@@ -24935,7 +25180,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   List<TypeImpl>? typeArgumentTypes;
 
-  ImplicitFunctionInstantiationImpl? _v1ProjectionOrigin;
+  ExpressionImpl? _v1ProjectionOrigin;
 
   @generated
   FunctionReferenceImpl({
@@ -24954,6 +25199,16 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
       typeArgumentTypes = origin.typeArgumentTypes,
       _v1ProjectionOrigin = origin {
     _becomeParentOf1(function);
+  }
+
+  FunctionReferenceImpl.v1ProjectionFromInstantiation(
+    FunctionInstantiationImpl origin,
+  ) : _function2 = origin.operand,
+      _typeArguments = origin.typeArguments,
+      typeArgumentTypes = origin.typeArgumentTypes,
+      _v1ProjectionOrigin = origin {
+    _becomeParentOf1(function);
+    _becomeParentOf1(typeArguments);
   }
 
   @generated
@@ -25101,6 +25356,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _checkV2View();
     resolver.visitFunctionReference(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -28517,10 +28775,12 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     required ExpressionImpl operand,
     required this.element,
     required this.typeArgumentTypes,
+    TypeArgumentListImpl? typeArguments,
   }) : _expression2 = operand,
-       _typeArguments = null,
+       _typeArguments = typeArguments,
        _v1ProjectionOrigin = origin {
     _becomeParentOf1(expression);
+    _becomeParentOf1(typeArguments);
   }
 
   @generated
@@ -28670,6 +28930,9 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     resolver.visitImplicitCallReference(this, contextType: contextType);
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
+
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -28746,9 +29009,10 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
 /// The implicit tear-off of a callable object's `call` method.
 ///
-/// This node is inserted during resolution when a context requires a function
-/// value. Its [operand] retains the callable object's type, and this expression
-/// has the selected method's function type, before any function instantiation.
+/// This node is inserted during resolution when a context or written function
+/// instantiation requires a function value. Its [operand] retains the callable
+/// object's type, and this expression has the selected method's function type,
+/// before any function instantiation.
 /// It introduces no source tokens.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -55327,6 +55591,14 @@ enum V1Projection {
     // Some V1 forms fold instantiation into the operand. Both V2 nodes then
     // project to the same V1 expression, including when queried independently.
     var parent = node._parent2;
+    if (parent is FunctionInstantiationImpl &&
+        identical(parent.operand, node) &&
+        node is ImplicitCallTearOffImpl) {
+      return createIfAbsent ? parent.v1Projection : parent._v1Projection;
+    }
+    if (node is FunctionInstantiationImpl) {
+      return createIfAbsent ? node.v1Projection : node._v1Projection;
+    }
     if (parent is ImplicitFunctionInstantiationImpl &&
         identical(parent.operand, node) &&
         (parent.useLegacyV1Projection ||

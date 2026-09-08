@@ -273,6 +273,12 @@ class _Collector {
       return;
     }
 
+    if (node is FunctionInstantiation) {
+      _typeArgumentList(node.typeArguments);
+      collect(node.operand);
+      return;
+    }
+
     if (node is FunctionReference) {
       _typeArgumentList(node.typeArguments);
       collect(node.function2);

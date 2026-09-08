@@ -38,70 +38,21 @@ class FunctionReferenceResolver {
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(FunctionReferenceImpl node) {
-    var function = node.function2;
-    node.typeArguments?.accept2(_resolver);
-
-    if (function is SimpleIdentifierImpl) {
-      _resolveSimpleIdentifierFunction(node, function);
-    } else if (function is PrefixedIdentifierImpl) {
-      _resolvePrefixedIdentifierFunction(node, function);
-    } else if (function is ReceiverPropertyExtractionImpl) {
-      _resolveReceiverPropertyExtractionFunction(node, function);
-    } else if (function is PropertyAccessImpl) {
-      _resolvePropertyAccessFunction(node, function);
-    } else if (function is ConstructorTearOffImpl) {
-      var typeArguments = node.typeArguments;
-      if (typeArguments != null) {
-        // Something like `List.filled<int>`.
-        _resolver.analyzeExpression(function, _resolver.operations.unknownType);
-        _resolver.popRewrite();
-        var typeReference = function.typeReference;
-        var className = switch (typeReference.importPrefix) {
-          var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
-          _ => typeReference.name.lexeme,
-        };
-        _diagnosticReporter.report(
-          diag.wrongNumberOfTypeArgumentsConstructor
-              .withArguments(
-                className: className,
-                constructorName: function.selector.name2.lexeme,
-              )
-              .at(typeArguments),
-        );
-        var constructorElement = function.element;
-        _resolve(
-          node: node,
-          rawType: function.staticType,
-          target: constructorElement == null
-              ? null
-              : InvocationTargetConstructorElement(
-                  constructorElement,
-                  constructorElement.type,
-                ),
-        );
-      }
-    } else {
-      // TODO(srawlins): Handle `function` being a [SuperExpression].
-
-      _resolver.analyzeExpression(function, _resolver.operations.unknownType);
-      function = _resolver.popRewrite()!;
-      var functionType = function.staticType;
-      if (functionType == null) {
-        _resolveDisallowedExpression(node, functionType);
-      } else if (functionType is FunctionTypeImpl) {
-        _resolve(
-          node: node,
-          rawType: functionType,
-          target: InvocationTargetFunctionTypedExpression(functionType),
-        );
-      } else {
-        var callMethod = _getCallMethod(node, function.staticType);
-        if (callMethod is MethodElement) {
-          _resolveAsImplicitCallReference(node, callMethod);
-          return;
-        } else {
-          _resolveDisallowedExpression(node, functionType);
-        }
+    _resolveReference(node);
+    // Type literals and constructor forms have already been rewritten. The
+    // remaining written selector applies type arguments to a function value,
+    // including invalid operands retained for diagnostics.
+    if (identical(_resolver.peekRewrite(), node)) {
+      if (node.typeArguments case var typeArguments?) {
+        var instantiation = FunctionInstantiationImpl(
+          operand: _functionOperand(node),
+          typeArguments: typeArguments,
+        )..typeArgumentTypes = node.typeArgumentTypes;
+        instantiation.setPseudoExpressionStaticType(node.staticType);
+        _resolver.replaceExpression(node, instantiation);
+        _resolver.flowAnalysis.transferExpressionInfo(node, instantiation);
+        _resolver.flowAnalysis.transferTestData(node, instantiation);
+        _resolver.inferenceHelper.transferTestData(node, instantiation);
       }
     }
   }
@@ -127,6 +78,47 @@ class FunctionReferenceResolver {
           .map((typeAnnotation) => typeAnnotation.typeOrThrow)
           .toList();
     }
+  }
+
+  /// Name lookup above also classifies type and constructor syntax. Once it
+  /// has selected a value, retain that lookup in a canonical name expression
+  /// without resolving the name a second time.
+  ExpressionImpl _functionOperand(FunctionReferenceImpl node) {
+    var operand = node.function2;
+    if (operand is! SimpleIdentifierImpl) {
+      return operand;
+    }
+    var element = operand.element;
+    var type = operand.staticType ?? InvalidTypeImpl.instance;
+    NamedReadResolutionImpl resolution;
+    switch (element) {
+      case InternalVariableElement():
+        resolution = VariableReadResolutionImpl(element: element, type: type);
+      case InternalGetterElement():
+        resolution = GetterInvocationResolutionImpl(
+          element: element,
+          type: type,
+        );
+      case InternalExecutableElement():
+        resolution = ExecutableTearOffResolutionImpl(element: element);
+      default:
+        resolution = InvalidNamedReadResolutionImpl(
+          candidates: [?element],
+          recovery: null,
+          type: InvalidTypeImpl.instance,
+        );
+    }
+    var expression = UnqualifiedNameExpressionImpl(name: operand.token)
+      ..scopeLookupResult = operand.scopeLookupResult
+      ..resolution = resolution;
+    expression.setPseudoExpressionStaticType(type);
+    // The identifier was resolved as syntax during classification, so it has
+    // no expression visit to rewrite in the inference log.
+    node.function2 = expression;
+    _resolver.flowAnalysis.transferExpressionInfo(operand, expression);
+    _resolver.flowAnalysis.transferTestData(operand, expression);
+    _resolver.inferenceHelper.transferTestData(operand, expression);
+    return expression;
   }
 
   ExecutableElement? _getCallMethod(
@@ -265,7 +257,7 @@ class FunctionReferenceResolver {
     }
   }
 
-  void _resolveAsImplicitCallReference(
+  void _resolveCallableInstantiation(
     FunctionReferenceImpl node,
     MethodElement callMethod,
   ) {
@@ -278,15 +270,18 @@ class FunctionReferenceResolver {
       callMethodType.typeParameters,
       target: InvocationTargetExecutableElement(callMethod),
     );
-    var callReference = ImplicitCallReferenceImpl(
-      expression2: node.function2,
+    var tearOff = ImplicitCallTearOffImpl(
+      operand: _functionOperand(node),
       element: callMethod,
-      typeArguments: node.typeArguments,
-      typeArgumentTypes: typeArgumentTypes,
     );
-    _resolver.replaceExpression(node, callReference);
+    tearOff.setPseudoExpressionStaticType(callMethodType);
+    var instantiation = FunctionInstantiationImpl(
+      operand: tearOff,
+      typeArguments: node.typeArguments!,
+    )..typeArgumentTypes = typeArgumentTypes;
+    _resolver.replaceExpression(node, instantiation);
     var instantiatedType = callMethodType.instantiate(typeArgumentTypes);
-    callReference.recordStaticType(instantiatedType, resolver: _resolver);
+    instantiation.recordStaticType(instantiatedType, resolver: _resolver);
   }
 
   void _resolveConstructorTearOff(FunctionReferenceImpl node) {
@@ -446,7 +441,7 @@ class FunctionReferenceResolver {
 
     var callMethod = _getCallMethod(node, propertyType);
     if (callMethod is MethodElement) {
-      _resolveAsImplicitCallReference(node, callMethod);
+      _resolveCallableInstantiation(node, callMethod);
       return;
     }
 
@@ -483,7 +478,7 @@ class FunctionReferenceResolver {
     _resolver.popRewrite();
     var callMethod = _getCallMethod(node, function.staticType);
     if (callMethod is MethodElement) {
-      _resolveAsImplicitCallReference(node, callMethod);
+      _resolveCallableInstantiation(node, callMethod);
       return;
     }
     var target = function.realTarget2;
@@ -650,7 +645,7 @@ class FunctionReferenceResolver {
 
     var callMethod = _getCallMethod(node, functionType);
     if (callMethod is MethodElement) {
-      _resolveAsImplicitCallReference(node, callMethod);
+      _resolveCallableInstantiation(node, callMethod);
       return;
     }
 
@@ -658,6 +653,75 @@ class FunctionReferenceResolver {
       diag.disallowedTypeInstantiationExpression.at(function.name),
     );
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+  }
+
+  void _resolveReference(FunctionReferenceImpl node) {
+    var function = node.function2;
+    node.typeArguments?.accept2(_resolver);
+
+    if (function is SimpleIdentifierImpl) {
+      _resolveSimpleIdentifierFunction(node, function);
+    } else if (function is PrefixedIdentifierImpl) {
+      _resolvePrefixedIdentifierFunction(node, function);
+    } else if (function is ReceiverPropertyExtractionImpl) {
+      _resolveReceiverPropertyExtractionFunction(node, function);
+    } else if (function is PropertyAccessImpl) {
+      _resolvePropertyAccessFunction(node, function);
+    } else if (function is ConstructorTearOffImpl) {
+      var typeArguments = node.typeArguments;
+      if (typeArguments != null) {
+        // Something like `List.filled<int>`.
+        _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+        _resolver.popRewrite();
+        var typeReference = function.typeReference;
+        var className = switch (typeReference.importPrefix) {
+          var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+          _ => typeReference.name.lexeme,
+        };
+        _diagnosticReporter.report(
+          diag.wrongNumberOfTypeArgumentsConstructor
+              .withArguments(
+                className: className,
+                constructorName: function.selector.name2.lexeme,
+              )
+              .at(typeArguments),
+        );
+        var constructorElement = function.element;
+        _resolve(
+          node: node,
+          rawType: function.staticType,
+          target: constructorElement == null
+              ? null
+              : InvocationTargetConstructorElement(
+                  constructorElement,
+                  constructorElement.type,
+                ),
+        );
+      }
+    } else {
+      // TODO(srawlins): Handle `function` being a [SuperExpression].
+
+      _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+      function = _resolver.popRewrite()!;
+      var functionType = function.staticType;
+      if (functionType == null) {
+        _resolveDisallowedExpression(node, functionType);
+      } else if (functionType is FunctionTypeImpl) {
+        _resolve(
+          node: node,
+          rawType: functionType,
+          target: InvocationTargetFunctionTypedExpression(functionType),
+        );
+      } else {
+        var callMethod = _getCallMethod(node, function.staticType);
+        if (callMethod is MethodElement) {
+          _resolveCallableInstantiation(node, callMethod);
+          return;
+        } else {
+          _resolveDisallowedExpression(node, functionType);
+        }
+      }
+    }
   }
 
   void _resolveSimpleIdentifierFunction(
@@ -793,7 +857,7 @@ class FunctionReferenceResolver {
       function.setPseudoExpressionStaticType(variable.type);
       var callMethod = _getCallMethod(node, variable.type);
       if (callMethod is MethodElement) {
-        _resolveAsImplicitCallReference(node, callMethod);
+        _resolveCallableInstantiation(node, callMethod);
         return;
       }
       _resolve(
@@ -816,7 +880,7 @@ class FunctionReferenceResolver {
       function.setPseudoExpressionStaticType(element.type);
       var callMethod = _getCallMethod(node, element.type);
       if (callMethod is MethodElement) {
-        _resolveAsImplicitCallReference(node, callMethod);
+        _resolveCallableInstantiation(node, callMethod);
         return;
       }
       _resolve(

@@ -787,6 +787,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);

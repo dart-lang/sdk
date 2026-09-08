@@ -298,6 +298,19 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    super.visitFunctionInstantiation(node);
+    if (node.inConstantContext || node.inConstantExpression) {
+      for (var typeArgument in node.typeArguments.arguments) {
+        _checkForConstWithTypeParameters(
+          typeArgument,
+          diag.constWithTypeParametersFunctionTearoff,
+        );
+      }
+    }
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     super.visitFunctionReference(node);
     if (node.inConstantContext || node.inConstantExpression) {

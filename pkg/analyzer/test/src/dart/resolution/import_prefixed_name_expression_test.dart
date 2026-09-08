@@ -324,9 +324,33 @@ void f() {
   p.id<int>;
 }
 ''');
-    assertResolvedNodeText(result.findNode.functionReference('p.id'), r'''
-FunctionReference
-  function2: PrefixedIdentifier
+    assertResolvedNodeText(result.findNode.functionInstantiation('p.id'), r'''
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: id
+      element: package:test/a.dart::@function::id
+      staticType: T Function<T>(T)
+    element: package:test/a.dart::@function::id
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p

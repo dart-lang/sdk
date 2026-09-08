@@ -572,7 +572,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', (result) => result.findNode.functionReference('id<int>'));
+''', (result) => result.findNode.functionInstantiation('id<int>'));
   }
 
   test_functionReference_explicitTypeArguments_nonConst() async {
@@ -586,7 +586,7 @@ class A {
 
 X id<X>(X x) => x;
 ''',
-      (result) => result.findNode.functionReference('id<self.A>'),
+      (result) => result.findNode.functionInstantiation('id<self.A>'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }

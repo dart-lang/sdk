@@ -983,53 +983,25 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitFunctionInstantiation(
+    covariant FunctionInstantiationImpl node,
+  ) {
+    return _evaluateFunctionInstantiation(node.operand, node.typeArguments);
+  }
+
+  @override
   Constant visitFunctionReference(covariant FunctionReferenceImpl node) {
+    if (node.typeArguments case var typeArguments?) {
+      return _evaluateFunctionInstantiation(node.function2, typeArguments);
+    }
     var functionResult = evaluateConstant(node.function2);
     if (functionResult is! DartObjectImpl) {
       return functionResult;
     }
-
-    var typeArgumentList = node.typeArguments;
-    if (typeArgumentList == null) {
-      return _instantiateFunctionType(
-        node,
-        node.typeArgumentTypes,
-        functionResult,
-      );
-    }
-
-    var typeArguments = <TypeImpl>[];
-    for (var typeArgument in typeArgumentList.arguments) {
-      var typeArgumentConstant = evaluateConstant(typeArgument);
-      switch (typeArgumentConstant) {
-        case InvalidConstant(locatableDiagnostic: diag.constTypeParameter):
-          // If there's a type parameter error in the evaluated constant, we
-          // convert the message to a more specific function reference error.
-          return InvalidConstant.forEntity(
-            entity: typeArgument,
-            locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
-          );
-        case InvalidConstant():
-          return typeArgumentConstant;
-        case DartObjectImpl():
-          var typeArgumentType = typeArgumentConstant.toTypeValue();
-          if (typeArgumentType == null) {
-            return InvalidConstant.forEntity(
-              entity: typeArgument,
-              locatableDiagnostic: diag.invalidConstant,
-            );
-          }
-          // TODO(srawlins): Test type alias types (`typedef i = int`) used as
-          // type arguments. Possibly change implementation based on
-          // canonicalization rules.
-          typeArguments.add(typeArgumentType);
-      }
-    }
-    return _dartObjectComputer.typeInstantiate(
+    return _instantiateFunctionType(
+      node,
+      node.typeArgumentTypes,
       functionResult,
-      typeArguments,
-      node.function2,
-      typeArgumentList,
     );
   }
 
@@ -1979,6 +1951,49 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     return result;
   }
 
+  Constant _evaluateFunctionInstantiation(
+    ExpressionImpl operand,
+    TypeArgumentListImpl typeArgumentList,
+  ) {
+    var functionResult = evaluateConstant(operand);
+    if (functionResult is! DartObjectImpl) {
+      return functionResult;
+    }
+    var typeArguments = <TypeImpl>[];
+    for (var typeArgument in typeArgumentList.arguments) {
+      var typeArgumentConstant = evaluateConstant(typeArgument);
+      switch (typeArgumentConstant) {
+        case InvalidConstant(locatableDiagnostic: diag.constTypeParameter):
+          // A type parameter in an instantiation has a more specific error
+          // than the ordinary constant type-argument diagnostic.
+          return InvalidConstant.forEntity(
+            entity: typeArgument,
+            locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
+          );
+        case InvalidConstant():
+          return typeArgumentConstant;
+        case DartObjectImpl():
+          var typeArgumentType = typeArgumentConstant.toTypeValue();
+          if (typeArgumentType == null) {
+            return InvalidConstant.forEntity(
+              entity: typeArgument,
+              locatableDiagnostic: diag.invalidConstant,
+            );
+          }
+          // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+          // type arguments. Possibly change implementation based on
+          // canonicalization rules.
+          typeArguments.add(typeArgumentType);
+      }
+    }
+    return _dartObjectComputer.typeInstantiate(
+      functionResult,
+      typeArguments,
+      operand,
+      typeArgumentList,
+    );
+  }
+
   DartObjectImpl _evaluateIntegerLiteral(
     IntegerLiteral node, {
     required bool negated,
@@ -2925,6 +2940,14 @@ class DartObjectComputer {
         if (node is SimpleIdentifier) {
           if (node.element case ExecutableElement e) {
             target = InvocationTargetExecutableElement(e);
+          }
+        } else if (node is UnqualifiedNameExpression) {
+          if (node.resolution case NamedReadResolutionWithElement(
+            :var element,
+          )) {
+            if (element is ExecutableElement) {
+              target = InvocationTargetExecutableElement(element);
+            }
           }
         }
         target ??= InvocationTargetFunctionTypedExpression(rawType);

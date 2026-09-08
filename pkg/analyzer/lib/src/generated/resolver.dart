@@ -3656,6 +3656,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitFunctionInstantiation(
+    covariant FunctionInstantiationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    checkUnreachableNode(node);
+    analyzeExpression(node.operand, operations.unknownType);
+    popRewrite();
+    node.typeArguments.accept2(this);
+  }
+
+  @override
   void visitFunctionReference(
     covariant FunctionReferenceImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,

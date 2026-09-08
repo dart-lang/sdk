@@ -759,6 +759,18 @@ class AstBinaryReader {
     );
   }
 
+  FunctionInstantiation _readFunctionInstantiation() {
+    var operand = _readNode() as ExpressionImpl;
+    var typeArguments = _readNode() as TypeArgumentListImpl;
+    var node = FunctionInstantiationImpl(
+      operand: operand,
+      typeArguments: typeArguments,
+    );
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    _readExpressionResolution(node);
+    return node;
+  }
+
   FunctionReference _readFunctionReference() {
     var function = _readNode() as ExpressionImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
@@ -1397,6 +1409,8 @@ class AstBinaryReader {
         return _readCallInvocation();
       case AstNodeTag.FunctionReference:
         return _readFunctionReference();
+      case AstNodeTag.FunctionInstantiation:
+        return _readFunctionInstantiation();
       case AstNodeTag.GenericFunctionType:
         return _readGenericFunctionType();
       case AstNodeTag.RegularFormalParameter:
