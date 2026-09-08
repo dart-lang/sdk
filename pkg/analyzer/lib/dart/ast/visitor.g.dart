@@ -2588,6 +2588,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitImportDirective(ImportDirective node) {
     node.visitChildren2(this);
@@ -2599,6 +2606,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4245,6 +4259,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImplicitCallReference(ImplicitCallReference node) => null;
 
+  @experimental
+  @override
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) =>
+      null;
+
   @override
   R? visitImportDirective(ImportDirective node) => null;
 
@@ -4253,6 +4272,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) => null;
+
+  @experimental
+  @override
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) =>
+      null;
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => null;
@@ -5605,6 +5629,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImplicitCallReference(ImplicitCallReference node) => _throw(node);
 
+  @experimental
+  @override
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) =>
+      _throw(node);
+
   @override
   R? visitImportDirective(ImportDirective node) => _throw(node);
 
@@ -5613,6 +5642,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) =>
+      _throw(node);
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => _throw(node);
@@ -8392,6 +8426,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImplicitFunctionInstantiation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitImportDirective(ImportDirective node) {
     stopwatch.start();
@@ -8407,6 +8450,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   ) {
     stopwatch.start();
     T? result = _baseVisitor.visitImportPrefixedFunctionInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImportPrefixedNameExpression(node);
     stopwatch.stop();
     return result;
   }
@@ -10339,6 +10391,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImplicitCallReference(ImplicitCallReference node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) =>
+      visitNode(node);
+
   @override
   R? visitImportDirective(ImportDirective node) => visitNode(node);
 
@@ -10347,6 +10404,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) =>
+      visitNode(node);
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);

@@ -210,14 +210,18 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: FunctionReference
-        function2: UnqualifiedNameExpression
+      fieldExpression2: ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
           name: f
           resolution: ExecutableTearOffResolution
             element: <testLibrary>::@function::f
             type: void Function<T>()
           staticType: void Function<T>()
-        function(v1): SimpleIdentifier
+        staticType: void Function()
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): FunctionReference
+        function: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
           staticType: void Function<T>()
@@ -240,14 +244,19 @@ final (void Function(), ) x = (f, );
 RecordLiteral
   leftParenthesis: (
   fields2
-    FunctionReference
-      function2: UnqualifiedNameExpression
+    ImplicitFunctionInstantiation
+      operand: UnqualifiedNameExpression
         name: f
         resolution: ExecutableTearOffResolution
           element: <testLibrary>::@function::f
           type: void Function<T>()
         staticType: void Function<T>()
-      function(v1): SimpleIdentifier
+      staticType: void Function()
+      typeArgumentTypes
+        dynamic
+  fields(v1)
+    FunctionReference
+      function: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
         staticType: void Function<T>()

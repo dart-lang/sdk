@@ -2123,6 +2123,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);

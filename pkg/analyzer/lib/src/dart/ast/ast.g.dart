@@ -659,12 +659,18 @@ abstract class AstVisitor2<R> {
 
   R? visitImplicitCallReference(ImplicitCallReference node);
 
+  @experimental
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node);
+
   R? visitImportDirective(ImportDirective node);
 
   @experimental
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   );
+
+  @experimental
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node);
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 

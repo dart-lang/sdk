@@ -309,6 +309,11 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
+  }
+
+  @override
   void visitLabel(Label node) {
     // We are visiting the "label" part of a named expression in a function
     // call (presumably a constructor call), e.g. "const C(label: ...)".  We

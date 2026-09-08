@@ -859,6 +859,19 @@ class AstBinaryReader {
     return node;
   }
 
+  ImplicitFunctionInstantiation _readImplicitFunctionInstantiation() {
+    var operand = _readNode() as ExpressionImpl;
+    var typeArgumentTypes = _reader.readOptionalTypeList()!;
+    var useLegacyV1Projection = _readByte() != 0;
+    var node = ImplicitFunctionInstantiationImpl(
+      operand: operand,
+      typeArgumentTypes: typeArgumentTypes,
+      useLegacyV1Projection: useLegacyV1Projection,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImportPrefixedFunctionInvocation _readImportPrefixedFunctionInvocation() {
     var importPrefix = _readNode() as ImportPrefixReferenceImpl;
     var name = _readStringReference();
@@ -873,6 +886,18 @@ class AstBinaryReader {
     node.staticInvokeType = _reader.readType();
     node.typeArgumentTypes = _reader.readOptionalTypeList();
     node.resolution = _reader.readOptionalObject(_readInvocationResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ImportPrefixedNameExpression _readImportPrefixedNameExpression() {
+    var importPrefix = _readNode() as ImportPrefixReferenceImpl;
+    var name = _readStringReference();
+    var node = ImportPrefixedNameExpressionImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);
     return node;
   }
@@ -1372,10 +1397,14 @@ class AstBinaryReader {
         return _readIfElement();
       case AstNodeTag.ImplicitCallReference:
         return _readImplicitCallReference();
+      case AstNodeTag.ImplicitFunctionInstantiation:
+        return _readImplicitFunctionInstantiation();
       case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
       case AstNodeTag.ImportPrefixedFunctionInvocation:
         return _readImportPrefixedFunctionInvocation();
+      case AstNodeTag.ImportPrefixedNameExpression:
+        return _readImportPrefixedNameExpression();
       case AstNodeTag.IndexExpression:
         return _readIndexExpression();
       case AstNodeTag.ReceiverIndexExpression:

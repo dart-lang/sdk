@@ -1879,6 +1879,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _runSubscriptions(node, _registry._forImplicitFunctionInstantiation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportDirective(ImportDirective node) {
     _runSubscriptions(node, _registry._forImportDirective);
@@ -1891,6 +1898,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     ImportPrefixedFunctionInvocation node,
   ) {
     _runSubscriptions(node, _registry._forImportPrefixedFunctionInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _runSubscriptions(node, _registry._forImportPrefixedNameExpression);
     node.visitChildren2(this);
   }
 
@@ -4649,10 +4663,16 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImplicitCallReference>> _forImplicitCallReference =
       [];
 
+  final List<_Subscription2<ImplicitFunctionInstantiation>>
+  _forImplicitFunctionInstantiation = [];
+
   final List<_Subscription2<ImportDirective>> _forImportDirective = [];
 
   final List<_Subscription2<ImportPrefixedFunctionInvocation>>
   _forImportPrefixedFunctionInvocation = [];
+
+  final List<_Subscription2<ImportPrefixedNameExpression>>
+  _forImportPrefixedNameExpression = [];
 
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
@@ -5740,6 +5760,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addImplicitFunctionInstantiation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImplicitFunctionInstantiation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forImportDirective.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5752,6 +5783,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forImportPrefixedFunctionInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addImportPrefixedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

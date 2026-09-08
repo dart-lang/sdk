@@ -243,6 +243,12 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _checkName(node.name.lexeme);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _checkName(node.name);
     super.visitSimpleIdentifier(node);

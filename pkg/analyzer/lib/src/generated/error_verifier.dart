@@ -1662,6 +1662,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _constArgumentsVerifier.checkNameExpression(node);
+    var ambiguousElement = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    _checkUseVerifier.checkNameExpression(node, node.resolution);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _checkForReferenceBeforeDeclaration(
       element: node.element,
@@ -8806,7 +8819,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   String? _getConstantName(Expression expression) {
     // TODO(brianwilkerson): Convert this to return the element representing the
     // constant.
-    if (expression is UnqualifiedNameExpression) {
+    if (expression is NameExpression) {
       return expression.name.lexeme;
     } else if (expression is SimpleIdentifier) {
       return expression.name;

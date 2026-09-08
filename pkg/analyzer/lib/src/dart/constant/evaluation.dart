@@ -989,32 +989,13 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return functionResult;
     }
 
-    // Report an error if any of the _inferred_ type argument types refer to a
-    // type parameter. If, however, `node.typeArguments` is not `null`, then
-    // any type parameters contained therein are reported as non-constant in
-    // [ConstantVerifier].
-    if (node.typeArguments == null) {
-      var typeArgumentTypes = node.typeArgumentTypes;
-      if (typeArgumentTypes != null) {
-        var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
-          if (type is TypeParameterType) {
-            return _lexicalTypeEnvironment?[type.element] ?? type;
-          } else {
-            return type;
-          }
-        });
-        if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
-          return InvalidConstant.forEntity(
-            entity: node,
-            locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
-          );
-        }
-      }
-    }
-
     var typeArgumentList = node.typeArguments;
     if (typeArgumentList == null) {
-      return _instantiateFunctionType(node, functionResult);
+      return _instantiateFunctionType(
+        node,
+        node.typeArgumentTypes,
+        functionResult,
+      );
     }
 
     var typeArguments = <TypeImpl>[];
@@ -1081,9 +1062,36 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitImplicitFunctionInstantiation(
+    covariant ImplicitFunctionInstantiationImpl node,
+  ) {
+    var value = evaluateConstant(node.operand);
+    if (value is! DartObjectImpl) {
+      return value;
+    }
+    return _instantiateFunctionType(node, node.typeArgumentTypes, value);
+  }
+
+  @override
   Constant visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) => _visitNamedFunctionInvocation(node);
+
+  @override
+  Constant visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) {
+    var identifier = node.prefixedIdentifier.identifier;
+    if (node.prefixedIdentifier.isDeferred) {
+      return _getDeferredLibraryError(node, identifier);
+    }
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: identifier,
+      element: node.resolution.elementOrRecovery,
+    );
+  }
 
   @override
   Constant visitIncrementOrDecrementExpression(
@@ -2271,24 +2279,36 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     );
   }
 
-  /// If the type of [value] is a generic [FunctionType], and [node] has type
-  /// argument types, returns [value] type-instantiated with those [node]'s
-  /// type argument types, otherwise returns [value].
-  DartObjectImpl _instantiateFunctionType(
-    FunctionReferenceImpl node,
+  /// Instantiates the generic function [value] with [typeArgumentTypes].
+  Constant _instantiateFunctionType(
+    ExpressionImpl node,
+    List<TypeImpl>? typeArgumentTypes,
     DartObjectImpl value,
   ) {
+    // Written type arguments are checked at their syntax. Inferred arguments
+    // have no syntax, so report non-constant types on the instantiation.
+    if (typeArgumentTypes != null) {
+      var instantiatedTypeArgumentTypes = typeArgumentTypes.map((type) {
+        if (type is TypeParameterType) {
+          return _lexicalTypeEnvironment?[type.element] ?? type;
+        }
+        return type;
+      });
+      if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
+        );
+      }
+    }
     var functionElement = value.toFunctionValue();
     if (functionElement is! InternalExecutableElement) {
       return value;
     }
-    var valueType = functionElement.type;
-    if (valueType.typeParameters.isNotEmpty) {
-      var typeArgumentTypes = node.typeArgumentTypes;
+    var valueType = value.type;
+    if (valueType is FunctionTypeImpl && valueType.typeParameters.isNotEmpty) {
       if (typeArgumentTypes != null && typeArgumentTypes.isNotEmpty) {
-        var instantiatedType = functionElement.type.instantiate(
-          typeArgumentTypes,
-        );
+        var instantiatedType = valueType.instantiate(typeArgumentTypes);
         var substitution = _substitution;
         if (substitution != null) {
           instantiatedType = substitution.mapFunctionType(instantiatedType);

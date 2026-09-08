@@ -376,7 +376,9 @@ import 'a.dart' as helper;
 main() {
   helper.hashCode;
 }''');
-    assertTypeDynamic(result.findNode.prefixed('helper.hashCode'));
+    assertTypeDynamic(
+      result.findNode.importPrefixedNameExpression('helper.hashCode'),
+    );
   }
 
   test_objectAccessInference_disabled_for_local_getter() async {

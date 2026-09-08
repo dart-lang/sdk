@@ -913,6 +913,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _visitNode(node.operand);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('import ');
@@ -934,6 +939,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.name);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
   }
 
   @override

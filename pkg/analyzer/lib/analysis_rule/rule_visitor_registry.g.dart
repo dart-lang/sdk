@@ -821,10 +821,22 @@ abstract class RuleVisitorRegistry2 {
 
   void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addImplicitFunctionInstantiation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addImportPrefixedNameExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

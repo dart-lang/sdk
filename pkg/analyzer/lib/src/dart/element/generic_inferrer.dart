@@ -652,7 +652,7 @@ class GenericInferrer {
         element: errorEntity.element,
         name: errorEntity.name,
       );
-    } else if (errorEntity is UnqualifiedNameExpression) {
+    } else if (errorEntity is NameExpression) {
       _reportNamedInferenceFailure(
         diagnosticReporter: diagnosticReporter,
         errorEntity: errorEntity,

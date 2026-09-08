@@ -254,6 +254,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _checkNamedRead(node.resolution, node, errorEntity: node.name);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitIndexExpression(node);

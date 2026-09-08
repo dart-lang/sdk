@@ -1735,7 +1735,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
           element,
         _ => null,
       };
-    } else if (expression is UnqualifiedNameExpression) {
+    } else if (expression is NameExpression) {
       element = expression.resolution.elementOrRecovery;
       // An executable name expression is a tear-off, not a value read from a
       // declaration carrying `doNotStore`.

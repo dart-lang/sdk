@@ -2101,7 +2101,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
     var referencedElement = switch (argument) {
       IdentifierImpl() => argument.element?.nonSynthetic,
-      UnqualifiedNameExpressionImpl(
+      NameExpressionImpl(
         resolution: NamedReadResolutionWithElementImpl(:var element),
       ) =>
         element.nonSynthetic,

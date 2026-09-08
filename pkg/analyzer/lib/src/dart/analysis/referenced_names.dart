@@ -369,6 +369,12 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitIncrementOrDecrementExpression(
     IncrementOrDecrementExpression node,
   ) {

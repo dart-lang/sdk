@@ -713,6 +713,12 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _recordNamedRead(node.name, node.resolution);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.element == element) {
       references.add(

@@ -3631,11 +3631,33 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a.f;
 ''');
 
-    var node = result.findNode.functionReference('b?.a.f');
-    assertResolvedNodeText(node, r'''FunctionReference
-  function2: PropertyAccess
+    var node = result.findNode.implicitFunctionInstantiation('b?.a.f');
+    assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: PropertyAccess
       target2: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@getter::a
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::A::@getter::f
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
         staticType: B?

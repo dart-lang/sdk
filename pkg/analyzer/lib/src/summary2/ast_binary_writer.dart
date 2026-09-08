@@ -538,6 +538,17 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImplicitFunctionInstantiation(
+    covariant ImplicitFunctionInstantiationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImplicitFunctionInstantiation);
+    _writeNode(node.operand);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeByte(node.useLegacyV1Projection ? 1 : 0);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {
@@ -549,6 +560,17 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeType(node.staticInvokeType);
     _sink.writeOptionalTypeList(node.typeArgumentTypes);
     _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImportPrefixedNameExpression);
+    _writeNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
 

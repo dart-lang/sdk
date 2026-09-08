@@ -2794,8 +2794,8 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      FunctionReference
-        function2: UnqualifiedNameExpression
+      ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
           name: g
           resolution: ExecutableTearOffResolution
             element: <testLibrary>::@function::g
@@ -2899,14 +2899,48 @@ MethodInvocation
           baseElement: s@null
           substitution: {S: num}
         staticType: num
-      FunctionReference
-        function2: UnqualifiedNameExpression
+      ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
           name: max
           resolution: ExecutableTearOffResolution
             element: <testLibrary>::@function::max
             type: T Function<T extends num>(T, T)
           staticType: T Function<T extends num>(T, T)
-        function(v1): SimpleIdentifier
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {S: num}
+        staticType: num Function(num, num)
+        typeArgumentTypes
+          num
+    arguments(v1)
+      AsExpression
+        expression: PrefixedIdentifier
+          prefix: SimpleIdentifier
+            token: values
+            element: <testLibrary>::@function::test::@formalParameter::values
+            staticType: Iterable<dynamic>
+          period: .
+          identifier: SimpleIdentifier
+            token: first
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::Iterable::@getter::first
+              substitution: {T: dynamic}
+            staticType: dynamic
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::Iterable::@getter::first
+            substitution: {T: dynamic}
+          staticType: dynamic
+        asOperator: as
+        type: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: s@null
+          substitution: {S: num}
+        staticType: num
+      FunctionReference
+        function: SimpleIdentifier
           token: max
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)

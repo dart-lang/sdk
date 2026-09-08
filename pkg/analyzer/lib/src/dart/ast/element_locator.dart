@@ -336,14 +336,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
   Element? visitCatchClauseParameter(CatchClauseParameter node) {
     return node.declaredFragment?.element;
   }
@@ -424,10 +416,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       element,
     _ => null,
   };
-
-  @override
-  Element? visitDotShorthandNameExpression(DotShorthandNameExpression node) =>
-      node.resolution.elementOrRecovery;
 
   @override
   Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
@@ -525,6 +513,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return switch (node) {
       IncrementOrDecrementExpression(:var element) => element,
       Identifier() => _visitIdentifier(node),
+      NameExpression(:var resolution) => resolution.elementOrRecovery,
       StringLiteral() => _visitStringLiteral(node),
       _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
     };
@@ -600,14 +589,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     ReceiverPropertyAssignmentTarget node,
   ) {
     if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
       return element;
     }
     return null;

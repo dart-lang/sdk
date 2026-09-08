@@ -110,16 +110,12 @@ library
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:90) (firstTokenOffset:85) (offset:90)
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
-                    FunctionReference
-                      function2: UnqualifiedNameExpression
+                    ImplicitFunctionInstantiation
+                      operand: UnqualifiedNameExpression
                         name: defaultF @93
                         resolution: ExecutableTearOffResolution
                           element: <testLibrary>::@function::defaultF
                           type: void Function<T>(T)
-                        staticType: void Function<T>(T)
-                      function(v1): SimpleIdentifier
-                        token: defaultF @93
-                        element: <testLibrary>::@function::defaultF
                         staticType: void Function<T>(T)
                       staticType: void Function(dynamic)
                       typeArgumentTypes

@@ -282,6 +282,12 @@ class AstRewriter {
       // `C.new = foo`; do not rewrite.
       return node;
     }
+    // An import-prefixed read/write occurrence still uses the legacy target
+    // shape until there is a canonical import-prefixed assignment target.
+    // Rewriting it as a read expression would lose the write resolution.
+    if (node.identifier.inSetterContext()) {
+      return node;
+    }
     var identifier = node.identifier;
     if (identifier.isSynthetic) {
       // This isn't a constructor tear-off.
@@ -336,6 +342,17 @@ class AstRewriter {
       }
     }
 
+    if (prefixElement is PrefixElement && _isTypeLiteralContext(parent, node)) {
+      var expression = ImportPrefixedNameExpressionImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: node.prefix.token,
+          period: node.period,
+        )..element = prefixElement,
+        name: node.identifier.token,
+      );
+      node.replaceWith(expression);
+      return expression;
+    }
     return node;
   }
 

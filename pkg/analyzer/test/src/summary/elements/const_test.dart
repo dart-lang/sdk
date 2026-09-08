@@ -1441,16 +1441,12 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            FunctionReference
-              function2: UnqualifiedNameExpression
+            ImplicitFunctionInstantiation
+              operand: UnqualifiedNameExpression
                 name: f @48
                 resolution: ExecutableTearOffResolution
                   element: <testLibrary>::@function::f
                   type: void Function<T>(T)
-                staticType: void Function<T>(T)
-              function(v1): SimpleIdentifier
-                token: f @48
-                element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
               staticType: void Function(int)
               typeArgumentTypes
@@ -1673,6 +1669,84 @@ library
           type: T
       returnType: void
 ''');
+  }
+
+  test_const_implicitFunctionInstantiation_constructor() async {
+    var library = await buildLibrary(r'''
+class C<T> {
+  C(T value);
+}
+const C<int> Function(int) f = C.new;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    staticType: C<T> Function<T>(T)
+  staticType: C<int> Function(int)
+  typeArgumentTypes
+    int
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: int}
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: int}
+  staticType: C<int> Function(int)
+''',
+    );
+  }
+
+  test_const_implicitFunctionInstantiation_legacy() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: constructor-tearoffs
+T id<T>(T value) => value;
+const int Function(int) f = id;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::id
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: SimpleIdentifier
+  token: id
+  element: <testLibrary>::@function::id
+  staticType: int Function(int)
+  tearOffTypeArgumentTypes
+    int
+''',
+    );
   }
 
   test_const_indexExpression() async {
@@ -7645,17 +7719,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @33
+            ImportPrefixedNameExpression
+              importPrefix: ImportPrefixReference
+                name: p @33
+                period: . @34
                 element: <testLibraryFragment>::@prefix::p
-                staticType: null
-              period: . @34
-              identifier: SimpleIdentifier
-                token: foo @35
+              name: foo @35
+              resolution: ExecutableTearOffResolution
                 element: package:test/a.dart::@function::foo
-                staticType: dynamic Function()
-              element: package:test/a.dart::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -7840,17 +7912,16 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryOperatorInvocation
-              leftOperand: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+              leftOperand: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: A @35
+                name: A @35
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::A
-                  staticType: int
-                element: package:test/a.dart::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @37
               rightOperand: IntegerLiteral

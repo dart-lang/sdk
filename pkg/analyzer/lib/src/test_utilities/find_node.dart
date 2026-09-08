@@ -92,6 +92,9 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
       _single();
 
+  ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
+      _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -164,6 +167,10 @@ class FindNode2 extends _FindNodeBase {
     String search,
   ) {
     return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
+  }
+
+  ImportPrefixedNameExpression importPrefixedNameExpression(String search) {
+    return _node(search, (node) => node is ImportPrefixedNameExpression);
   }
 
   IncrementOrDecrementExpression incrementOrDecrement(String search) {
@@ -416,6 +423,9 @@ abstract class _FindNodeBase {
   ImplementsClause get singleImplementsClause => _single();
 
   ImplicitCallReference get singleImplicitCallReference => _single();
+
+  ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
+      _single();
 
   ImportDirective get singleImportDirective => _single();
 
@@ -942,6 +952,10 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference implicitCallReference(String search) {
     return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  ImplicitFunctionInstantiation implicitFunctionInstantiation(String search) {
+    return _node(search, (n) => n is ImplicitFunctionInstantiation);
   }
 
   ImportDirective import(String search) {

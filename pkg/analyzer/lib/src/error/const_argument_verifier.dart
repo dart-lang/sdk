@@ -254,7 +254,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         case VariableElement():
           return element.isConst;
       }
-    } else if (expression is UnqualifiedNameExpression) {
+    } else if (expression is NameExpression) {
       var element = expression.resolution.elementOrRecovery;
       return switch (element) {
         GetterElement() => element.variable.isConst,
@@ -268,6 +268,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is ImplicitFunctionInstantiation) return true;
     if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
@@ -280,7 +281,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       if (node.element is TopLevelFunctionElement) return true;
       if (node.element is MethodElement) return true;
     }
-    if (node is UnqualifiedNameExpression) {
+    if (node is NameExpression) {
       return node.resolution is ExecutableTearOffResolution;
     }
     return false;

@@ -54,6 +54,10 @@ import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
+import 'implicit_function_instantiation_test.dart'
+    as implicit_function_instantiation;
+import 'import_prefixed_name_expression_test.dart'
+    as import_prefixed_name_expression;
 import 'index_expression_test.dart' as index_expression;
 import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
@@ -160,12 +164,14 @@ main() {
     function_expression.main();
     call_invocation.main();
     function_reference.main();
+    implicit_function_instantiation.main();
     function_type_alias.main();
     function_typed_formal_parameter.main();
     generic_function_type.main();
     generic_type_alias.main();
     if_element.main();
     if_statement.main();
+    import_prefixed_name_expression.main();
     index_expression.main();
     constructor_invocation.main();
     instance_member_inference_class.main();
