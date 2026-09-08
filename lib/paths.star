@@ -85,18 +85,22 @@ _WINDOWS_PATHS = [
 
 _IA32_PATHS = [
     ".*ia32.*",
+    "runtime/vm/compiler/.+",
 ]
 
 _ARM_PATHS = [
     ".*arm[^6].*",
+    "runtime/vm/compiler/.+",
 ]
 
 _ARM64_PATHS = [
     ".*arm64.*",
+    "runtime/vm/compiler/.+",
 ]
 
 _RISCV_PATHS = [
     ".*riscv.*",
+    "runtime/vm/compiler/.+",
 ]
 
 _IO_PATHS = [
