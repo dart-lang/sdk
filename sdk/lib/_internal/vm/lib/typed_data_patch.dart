@@ -4056,6 +4056,8 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_getAnyTrue")
   external bool get anyTrue;
 
+  bool get allTrue => flagX && flagY && flagZ && flagW;
+
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_shuffle")

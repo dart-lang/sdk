@@ -658,6 +658,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
 
   bool get anyTrue => _bits.anyTrue;
 
+  bool get allTrue => flagX && flagY && flagZ && flagW;
+
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(mask, 255, 'mask');
