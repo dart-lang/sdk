@@ -913,6 +913,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    node.operand.accept2(this);
+  }
+
+  @override
   void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
     _visitNode(node.operand);
   }

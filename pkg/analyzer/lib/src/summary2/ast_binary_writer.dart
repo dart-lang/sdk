@@ -538,6 +538,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    _sink.writeEnum(AstNodeTag.ImplicitCallTearOff);
+    _writeNode(node.operand);
+    _sink.writeElement(node.element);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImplicitFunctionInstantiation(
     covariant ImplicitFunctionInstantiationImpl node,
   ) {

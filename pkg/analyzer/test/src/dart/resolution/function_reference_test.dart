@@ -1410,16 +1410,20 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('a);');
+    var node = result.findNode.implicitCallTearOff('a);');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: a
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::a
       type: A
     staticType: A
-  expression(v1): SimpleIdentifier
+  correspondingParameter: <testLibrary>::@function::g::@formalParameter::f
+  element: <testLibrary>::@extensionType::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -5385,10 +5389,10 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c

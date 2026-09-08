@@ -1167,6 +1167,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    _sink.writeln('ImplicitCallTearOff');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
     _sink.writeln('ImplicitFunctionInstantiation');
     _sink.withIndent(() {

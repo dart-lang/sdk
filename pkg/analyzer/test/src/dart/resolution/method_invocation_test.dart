@@ -9615,10 +9615,10 @@ void g() {
 }
 ''');
 
-    var node = result.findNode.singleImplicitCallReference;
+    var node = result.findNode.singleImplicitCallTearOff;
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: ReceiverMethodInvocation
+ImplicitCallTearOff
+  operand: ReceiverMethodInvocation
     receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -9640,7 +9640,11 @@ ImplicitCallReference
       invokeType: C Function()
       type: C
     staticType: C
-  expression(v1): MethodInvocation
+  correspondingParameter: <testLibrary>::@function::f::@formalParameter::callback
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: MethodInvocation
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType

@@ -1881,6 +1881,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    _runSubscriptions(node, _registry._forImplicitCallTearOff);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
     _runSubscriptions(node, _registry._forImplicitFunctionInstantiation);
     node.visitChildren2(this);
@@ -4663,6 +4670,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImplicitCallReference>> _forImplicitCallReference =
       [];
 
+  final List<_Subscription2<ImplicitCallTearOff>> _forImplicitCallTearOff = [];
+
   final List<_Subscription2<ImplicitFunctionInstantiation>>
   _forImplicitFunctionInstantiation = [];
 
@@ -5757,6 +5766,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forImplicitCallReference.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forImplicitCallTearOff.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

@@ -324,15 +324,18 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: ImplicitCallReference
-        expression2: UnqualifiedNameExpression
+      fieldExpression2: ImplicitCallTearOff
+        operand: UnqualifiedNameExpression
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
             invokeType: A Function()
             type: A
           staticType: A
-        expression(v1): SimpleIdentifier
+        element: <testLibrary>::@class::A::@method::call
+        staticType: void Function()
+      fieldExpression(v1): ImplicitCallReference
+        expression: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: A
@@ -358,15 +361,19 @@ final (void Function(), ) x = (a, );
 RecordLiteral
   leftParenthesis: (
   fields2
-    ImplicitCallReference
-      expression2: UnqualifiedNameExpression
+    ImplicitCallTearOff
+      operand: UnqualifiedNameExpression
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
           invokeType: A Function()
           type: A
         staticType: A
-      expression(v1): SimpleIdentifier
+      element: <testLibrary>::@class::A::@method::call
+      staticType: void Function()
+  fields(v1)
+    ImplicitCallReference
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: A

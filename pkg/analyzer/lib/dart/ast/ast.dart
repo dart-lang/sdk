@@ -197,6 +197,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         IfStatement,
         ImplementsClause,
         ImplicitCallReference,
+        ImplicitCallTearOff,
         ImplicitFunctionInstantiation,
         ImportDirective,
         ImportPrefixedFunctionInvocation,

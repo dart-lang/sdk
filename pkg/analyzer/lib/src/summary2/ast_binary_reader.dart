@@ -859,6 +859,14 @@ class AstBinaryReader {
     return node;
   }
 
+  ImplicitCallTearOff _readImplicitCallTearOff() {
+    var operand = _readNode() as ExpressionImpl;
+    var element = _reader.readElement() as MethodElement;
+    var node = ImplicitCallTearOffImpl(operand: operand, element: element);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImplicitFunctionInstantiation _readImplicitFunctionInstantiation() {
     var operand = _readNode() as ExpressionImpl;
     var typeArgumentTypes = _reader.readOptionalTypeList()!;
@@ -1399,6 +1407,8 @@ class AstBinaryReader {
         return _readImplicitCallReference();
       case AstNodeTag.ImplicitFunctionInstantiation:
         return _readImplicitFunctionInstantiation();
+      case AstNodeTag.ImplicitCallTearOff:
+        return _readImplicitCallTearOff();
       case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
       case AstNodeTag.ImportPrefixedFunctionInvocation:

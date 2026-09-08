@@ -269,8 +269,8 @@ int Function(int) f(C c) => c;
       result.findNode.singleImplicitFunctionInstantiation,
       r'''
 ImplicitFunctionInstantiation
-  operand: ImplicitCallReference
-    expression2: UnqualifiedNameExpression
+  operand: ImplicitCallTearOff
+    operand: UnqualifiedNameExpression
       name: c
       resolution: VariableReadResolution
         element: <testLibrary>::@function::f::@formalParameter::c

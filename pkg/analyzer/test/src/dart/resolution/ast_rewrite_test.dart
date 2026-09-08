@@ -38,10 +38,10 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: DirectAssignment
+ImplicitCallTearOff
+  operand: DirectAssignment
     target: ReceiverIndexAssignmentTarget
       receiver: UnqualifiedNameExpression
         name: map
@@ -75,7 +75,10 @@ ImplicitCallReference
         substitution: {K: int, V: C}
       staticType: C
     staticType: C
-  expression(v1): AssignmentExpression
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: AssignmentExpression
     leftHandSide: IndexExpression
       target: SimpleIdentifier
         token: map
@@ -307,10 +310,10 @@ void Function(int) foo(C? c1, C c2) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c1 ?? c2');
+    var node = result.findNode.implicitCallTearOff('c1 ?? c2');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: IfNull
+ImplicitCallTearOff
+  operand: IfNull
     leftOperand: UnqualifiedNameExpression
       name: c1
       resolution: VariableReadResolution
@@ -325,7 +328,10 @@ ImplicitCallReference
         type: C
       staticType: C
     staticType: C
-  expression(v1): BinaryExpression
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c1
       element: <testLibrary>::@function::foo::@formalParameter::c1
@@ -355,16 +361,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c]');
+    var node = result.findNode.implicitCallTearOff('c]');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -386,16 +395,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallTearOff('c,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -417,16 +429,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallTearOff('c,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -449,16 +464,19 @@ List<void Function(int)> foo(C c1, C c2) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c2,');
+    var node = result.findNode.implicitCallTearOff('c2,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c2
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c2
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::foo::@formalParameter::c2
     staticType: C
@@ -476,10 +494,10 @@ abstract class C {
 void Function() f(C c) => (c)..m();
 ''');
 
-    var node = result.findNode.implicitCallReference('(c)');
+    var node = result.findNode.implicitCallTearOff('(c)');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: CascadeExpression
+ImplicitCallTearOff
+  operand: CascadeExpression
     target2: ParenthesizedExpression
       leftParenthesis: (
       expression2: UnqualifiedNameExpression
@@ -487,10 +505,6 @@ ImplicitCallReference
         resolution: VariableReadResolution
           element: <testLibrary>::@function::f::@formalParameter::c
           type: C
-        staticType: C
-      expression(v1): SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -507,6 +521,19 @@ ImplicitCallReference
             invokeType: void Function()
             type: void
           staticType: void
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: CascadeExpression
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
     cascadeSections
       MethodInvocation
         operator: ..
@@ -537,10 +564,25 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c.c;');
+    var node = result.findNode.implicitCallTearOff('c.c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PrefixedIdentifier
+ImplicitCallTearOff
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@class::C::@getter::c
+      staticType: C
+    element: <testLibrary>::@class::C::@getter::c
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -569,11 +611,33 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c.c.c');
+    var node = result.findNode.implicitCallTearOff('c.c.c');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PropertyAccess
+ImplicitCallTearOff
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        staticType: C
+      period: .
+      identifier: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@class::C::@getter::c
+        staticType: C
+      element: <testLibrary>::@class::C::@getter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@class::C::@getter::c
+      staticType: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
@@ -607,16 +671,19 @@ Set<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallTearOff('c}');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -636,16 +703,19 @@ Map<void Function(int), int> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c:');
+    var node = result.findNode.implicitCallTearOff('c:');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -665,16 +735,19 @@ Map<int, void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallTearOff('c}');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -694,16 +767,19 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -721,10 +797,10 @@ typedef B = A;
 Function f(B b) => b;
 ''');
 
-    var node = result.findNode.implicitCallReference('b;');
+    var node = result.findNode.implicitCallTearOff('b;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: b
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::b
@@ -732,7 +808,10 @@ ImplicitCallReference
         alias: <testLibrary>::@typeAlias::B
     staticType: A
       alias: <testLibrary>::@typeAlias::B
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: A
@@ -750,16 +829,19 @@ class A {
 Function f<X extends A>(X x) => x;
 ''');
 
-    var node = result.findNode.implicitCallReference('x;');
+    var node = result.findNode.implicitCallTearOff('x;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: x
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::x
       type: X
     staticType: X
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
@@ -776,16 +858,19 @@ class A {
 Function f<X extends A, Y extends X>(Y y) => y;
 ''');
 
-    var node = result.findNode.implicitCallReference('y;');
+    var node = result.findNode.implicitCallTearOff('y;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: UnqualifiedNameExpression
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
     name: y
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::y
       type: Y
     staticType: Y
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: Y
