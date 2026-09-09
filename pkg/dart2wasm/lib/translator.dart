@@ -2580,7 +2580,7 @@ class Translator with KernelNodes {
 
   w.Memory _findMemoryForMainModule(Procedure topLevelExternalMemoryGetter) {
     return _memories.putIfAbsent(topLevelExternalMemoryGetter, () {
-      final limits = MemoryLimits.readAnnotation(
+      final memoryType = WasmMemoryType.readAnnotation(
         this,
         topLevelExternalMemoryGetter,
       )!;
@@ -2597,15 +2597,15 @@ class Translator with KernelNodes {
         memory = mainModule.memories.import(
           import.moduleName,
           import.itemName,
-          false,
-          limits.minSize,
-          limits.maxSize,
+          memoryType.shared,
+          memoryType.minSize,
+          memoryType.maxSize,
         );
       } else {
         memory = mainModule.memories.define(
-          false,
-          limits.minSize,
-          limits.maxSize,
+          memoryType.shared,
+          memoryType.minSize,
+          memoryType.maxSize,
         );
       }
 
