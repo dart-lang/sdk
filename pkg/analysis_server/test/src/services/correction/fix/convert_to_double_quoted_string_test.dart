@@ -40,8 +40,10 @@ void f() {
 
 @reflectiveTest
 class ConvertToDoubleQuotedStringInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.prefer_double_quotes];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.prefer_double_quotes]);
     await resolveTestCode(r'''
 void f() {
   print('abc');

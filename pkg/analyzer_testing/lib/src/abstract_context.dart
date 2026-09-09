@@ -142,7 +142,7 @@ class AbstractContextTest
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
     List<String> includes = const [],
-    List<Feature> experimentalFeatures = const [],
+    List<Feature>? experimentalFeatures,
     List<String> legacyPlugins = const [],
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
@@ -155,7 +155,7 @@ class AbstractContextTest
     writeAnalysisOptionsFile(
       analysisOptionsContent(
         includes: includes,
-        experimentalFeatures: experimentalFeatures,
+        experimentalFeatures: experimentalFeatures ?? this.experimentalFeatures,
         legacyPlugins: legacyPlugins,
         propagateLinterExceptions: propagateLinterExceptions,
         rules: lints,

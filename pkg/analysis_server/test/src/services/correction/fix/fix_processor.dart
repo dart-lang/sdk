@@ -269,6 +269,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
 /// A base class defining support for writing fix-in-file processor tests.
 abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
+  /// The lint codes being tested.
+  ///
+  /// The list can be empty if the fix isn't associatd with any lints.
+  List<String> get lintCodes => [];
+
   void assertProduces(Fix fix, String expected) {
     var fileEdits = fix.change.edits;
     expect(fileEdits, hasLength(1));
@@ -320,6 +325,15 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
     var fixes = await _computeFixes(diagnostics.first);
     return fixes;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    var lintCodes = this.lintCodes;
+    if (lintCodes.isNotEmpty) {
+      createAnalysisOptionsFile(lints: lintCodes);
+    }
   }
 
   /// Computes fixes for the given [diagnostic] in [testUnit].
