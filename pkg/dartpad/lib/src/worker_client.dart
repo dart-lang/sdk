@@ -136,6 +136,11 @@ base class WorkerClient {
 final class Workspace {
   final WorkerClient _client;
   final int id;
+
+  /// Folder owned by this workspace.
+  ///
+  /// All relative paths given to methods on this class will be resolved
+  /// relative to [workspaceFolder].
   final Uri workspaceFolder;
 
   Workspace._(this._client, this.id, this.workspaceFolder);
@@ -148,14 +153,17 @@ final class Workspace {
     });
   }
 
+  /// Write [text] to file at [uri] in this workspace.
   Future<void> writeFileFromText(String uri, String text) =>
       _request('workspace/writeFileFromText', {'uri': uri, 'text': text});
 
+  /// Write [bytes] to file at [uri] in this workspace.
   Future<void> writeFileFromBytes(String uri, Uint8List bytes) => _request(
     'workspace/writeFileFromBytes',
     {'uri': uri, 'base64': base64.encode(bytes)},
   );
 
+  /// Read file at [uri] in this workspace as UTF-8 string.
   Future<String> readFileAsText(String uri) async {
     final result = await _request<Map>('workspace/readFileAsText', {
       'uri': uri,
@@ -163,6 +171,7 @@ final class Workspace {
     return result['text'] as String;
   }
 
+  /// Read file at [uri] in this workspace as bytes.
   Future<Uint8List> readFileAsBytes(String uri) async {
     final result = await _request<Map>('workspace/readFileAsBytes', {
       'uri': uri,
@@ -170,11 +179,13 @@ final class Workspace {
     return base64.decode(result['base64'] as String);
   }
 
+  /// Extract [tarArchive] into folder at [uri] in this workspace.
   Future<void> importTarArchive(String uri, Uint8List tarArchive) => _request(
     'workspace/importTarArchive',
     {'uri': uri, 'base64': base64.encode(tarArchive)},
   );
 
+  /// Export files from [uri] in this workspace to a tar-archive.
   Future<Uint8List> exportTarArchive(String uri) async {
     final result = await _request<Map>('workspace/exportTarArchive', {
       'uri': uri,
@@ -182,6 +193,7 @@ final class Workspace {
     return base64.decode(result['base64'] as String);
   }
 
+  /// Delete file or folder at [uri] in this workspace.
   Future<void> deleteFileSystemEntity(String uri) =>
       _request('workspace/deleteFileSystemEntity', {'uri': uri});
 
@@ -214,9 +226,15 @@ final class Workspace {
     }
   }
 
+  /// Create a folder at [uri] in this workspace.
   Future<void> createFolder(String uri) =>
       _request('workspace/createFolder', {'uri': uri});
 
+  /// List folder at [uri] in this workspace.
+  ///
+  /// Returns a list of entries on the form:
+  ///  * `path`, `path/to/file` relative to [uri] given.
+  ///  * `type`, `'file'` or `'folder'`.
   Future<List<({String path, String type})>> listDirectory({
     required String uri,
     bool recursive = false,
@@ -237,6 +255,20 @@ final class Workspace {
   WorkspaceWatcher watch(String uri) =>
       WorkspaceWatcher._(this, Uri.parse(uri));
 
+  /// Invoke a `dart pub` [command] with [args].
+  ///
+  /// The following commands are supported:
+  ///  * `get`,
+  ///  * `add`,
+  ///  * `downgrade`,
+  ///  * `outdated`,
+  ///  * `upgrade`,
+  ///  * `remove`, and,
+  ///  * `unpack`.
+  ///
+  /// Throws [PubCommandFailedException], if the command exited non-zero.
+  ///
+  /// Returns a `log` containing lines from stdout.
   Future<({String log})> pub({
     String uri = '',
     required String command,
@@ -250,6 +282,9 @@ final class Workspace {
     return (log: result['log'] as String);
   }
 
+  /// Start a language server talking the [LSP] protocol.
+  ///
+  /// [LSP]: https://microsoft.github.io/language-server-protocol/
   Future<LanguageServer> startLanguageServer() async {
     final result = await _request<Map>('workspace/startLanguageServer');
     final lsId = (result['languageServerId'] as num).toInt();
@@ -259,6 +294,16 @@ final class Workspace {
     return ls;
   }
 
+  /// Connect to a [SandboxedIframe] using a [MessagePort].
+  ///
+  /// A [SandboxedIframe] can only be connected to one [Workspace].
+  ///
+  /// Once connected, you get a [Sandbox] object for controlling compilation
+  /// and execution within the sandboxed iframe.
+  ///
+  /// You may pass [SandboxedIframe.port] directly, or use
+  /// [MessagePort.asBinaryChannel] / [MessagePort.fromBinaryChannel] to proxy
+  /// the message port over a different transport layer.
   Future<Sandbox> connectSandboxedIframe(MessagePort port) async {
     final result = await _request<Map>('workspace/connectSandbox', {
       'port': port,
@@ -268,6 +313,10 @@ final class Workspace {
     return _client._sandboxes[id] = Sandbox._(this, id, modes);
   }
 
+  /// Destroy this workspace and all resources held by it.
+  ///
+  /// While sandboxes are controlled through the worker, the [SandboxedIframe]
+  /// will have to be removed using [SandboxedIframe.close].
   Future<void> dispose() async {
     try {
       await _client._peer.request<void>('workspace/dispose', {
