@@ -139,7 +139,7 @@ final class DartPadRunMode {
   ///
   /// When [entrypointWrapperTemplate] is not `null` and the compiler is asked
   /// to compile `<entrypoint>` it will instead:
-  ///  * Create a virtual `<entrypoint>.virtual-bootstrap-wrapper.dart` file
+  ///  * Create a virtual `<entrypoint>.<mode>-wrapper.dart` file
   ///  * Write [entrypointWrapperTemplate] to this file.
   ///  * Replace occurences of `{{entrypoint}}` with `<entrypoint>`.
   ///  * Compile the virtual bootstrap wrapper file.

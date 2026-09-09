@@ -540,7 +540,7 @@ class _Workspace {
     final entrypointWrapperTemplate = mode.entrypointWrapperTemplate;
     if (entrypointWrapperTemplate != null) {
       final originalEntrypoint = entrypoint;
-      entrypoint = '$originalEntrypoint.virtual-bootstrap-wrapper.dart';
+      entrypoint = '$originalEntrypoint.${mode.mode}-wrapper.dart';
 
       final overlay = rp = OverlayResourceProvider(_rp);
       overlay.setOverlay(
