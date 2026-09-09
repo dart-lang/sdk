@@ -45,12 +45,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     newFile(testFile.path, testCode);
   }
 
-  int findOffset(String search) {
-    var offset = testCode.indexOf(search);
-    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
-    return offset;
-  }
-
   Future<ParsedUnitResult> getParsedUnit(File file) async {
     var path = file.path;
     var analysisContext = contextFor2(file);
