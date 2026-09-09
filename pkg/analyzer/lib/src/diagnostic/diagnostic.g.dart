@@ -3890,6 +3890,44 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly referenced type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicit = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicit,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
+      "{1}",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitWithMessage,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
 /// String name: the name of the member
 /// String details: message details
 const DiagnosticWithArguments<
@@ -19658,6 +19696,22 @@ LocatableDiagnostic _withArgumentsDeprecatedLintWithReplacement({
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicit({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicit, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitWithMessage, [
+    name,
+    details,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({

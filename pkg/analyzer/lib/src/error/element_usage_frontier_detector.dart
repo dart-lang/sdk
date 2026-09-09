@@ -144,7 +144,11 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   }
 
   @override
-  void checkUsage(Element? element, AstNode node) {
+  void checkUsage(
+    Element? element,
+    AstNode node, {
+    bool isImplicitTypeReference = false,
+  }) {
     bool allTrue = true;
     for (var inElementStack in _inElementStacksArbitrary) {
       if (!inElementStack.last) {
@@ -162,7 +166,11 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
     }
     if (allTrue) return;
 
-    super.checkUsage(element, node);
+    super.checkUsage(
+      element,
+      node,
+      isImplicitTypeReference: isImplicitTypeReference,
+    );
   }
 
   void popElement() {

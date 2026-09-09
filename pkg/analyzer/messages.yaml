@@ -23030,6 +23030,10 @@ HintCode:
       The analyzer produces this diagnostic when a deprecated library or class
       member is used in a different package.
 
+      A dot-shorthand expression can also implicitly reference a deprecated
+      type. In this case, the diagnostic identifies the implicitly referenced
+      type even though its name isn't written in the expression.
+
       #### Example
 
       If the method `m` in the class `C` is annotated with `@deprecated`, then
@@ -23045,6 +23049,23 @@ HintCode:
 
       The documentation for declarations that are annotated with `@deprecated`
       should indicate what code to use in place of the deprecated code.
+  deprecatedMemberUseImplicit:
+    type: hint
+    parameters:
+      String name: the name of the implicitly referenced type
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly referenced type '#name' is deprecated and shouldn't be used."
+    correctionMessage: Try replacing the use of the deprecated type with the replacement.
+    hasPublishedDocs: true
+  deprecatedMemberUseImplicitWithMessage:
+    type: hint
+    parameters:
+      String name: the name of the implicitly referenced type
+      String details: message details
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly referenced type '#name' is deprecated and shouldn't be used. #details"
+    correctionMessage: Try replacing the use of the deprecated type with the replacement.
+    hasPublishedDocs: true
   deprecatedMemberUseWithMessage:
     type: hint
     parameters:
