@@ -73,7 +73,7 @@ include: oth^er.yaml
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       code.position.offset,
       0,
     );
@@ -93,7 +93,7 @@ include: other.yaml
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       code.position.offset,
       0,
     );
@@ -197,7 +197,7 @@ linter:
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       0,
       content.length,
     );

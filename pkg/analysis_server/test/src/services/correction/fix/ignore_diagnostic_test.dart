@@ -81,7 +81,7 @@ analyzer:
     //  https://dart-review.googlesource.com/c/sdk/+/352220
     //
     // This deletes the file created by `super.setUp` method.
-    resourceProvider.getFile(analysisOptionsPath).delete();
+    deleteFile(analysisOptionsPath);
     await resolveTestCode('''
 void f() {
   var a = 1;

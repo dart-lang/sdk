@@ -43,10 +43,9 @@ class AbstractContextTest
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  /// The file system specific path for `analysis_options.yaml` in
-  /// [testPackageRootPath].
+  /// The file system path for `analysis_options.yaml` in [testPackageRootPath].
   String get analysisOptionsPath =>
-      convertPath('$testPackageRootPath/analysis_options.yaml');
+      '$testPackageRootPath/analysis_options.yaml';
 
   /// The [ByteStore] reused between tests.
   ByteStore get byteStore => _byteStore;
@@ -94,7 +93,7 @@ class AbstractContextTest
   String get testFileName => 'test.dart';
 
   /// The file system path of [testFile].
-  String get testFilePath => convertPath('$testPackageLibPath/$testFileName');
+  String get testFilePath => '$testPackageLibPath/$testFileName';
 
   /// The file system path of the `lib` directory of the package-under-test.
   String get testPackageLibPath => '$testPackageRootPath/lib';
@@ -112,9 +111,8 @@ class AbstractContextTest
   /// package's `test` directory.
   String get testPackageTestPath => '$testPackageRootPath/test';
 
-  /// The file system specific path for `pubspec.yaml` in [testPackageRootPath].
-  String get testPubspecPath =>
-      convertPath('$testPackageRootPath/pubspec.yaml');
+  /// The file system path for `pubspec.yaml` in [testPackageRootPath].
+  String get testPubspecPath => '$testPackageRootPath/pubspec.yaml';
 
   /// The file system path of the root of the workspace.
   String get workspaceRootPath => '/home';
@@ -196,14 +194,12 @@ class AbstractContextTest
   String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
 
   /// Resolves a Dart source file at [filePath].
-  ///
-  /// [filePath] must be converted for this file system.
   Future<ResolvedUnitResult> resolveFile(String filePath) async {
     var file = getFile(filePath);
     var analysisContext = contextFor2(file);
     await analysisContext.applyPendingFileChanges();
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(filePath) as ResolvedUnitResult;
+    return await session.getResolvedUnit(file.path) as ResolvedUnitResult;
   }
 
   /// Initializes the test environment before each test.
