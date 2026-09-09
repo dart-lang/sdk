@@ -2371,7 +2371,8 @@ ErrorPtr ProgramReloadContext::InvalidateSuspendStates(
   Error& error = Error::Handle(zone);
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  for (intptr_t i = 0, n = suspend_states.length(); i < n; ++i) {
+  for (intptr_t i = 0, n = suspend_states.length(); i < n; i++) {
+    HANDLESCOPE(thread);
     const SuspendState& suspend_state = *suspend_states[i];
     ASSERT(suspend_state.pc() != 0);
     code = suspend_state.GetCodeObject();
@@ -2475,8 +2476,8 @@ class FieldInvalidator {
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
     Thread* thread = Thread::Current();
-    HANDLESCOPE(thread);
-    for (intptr_t i = 0; i < instances.length(); i++) {
+    for (intptr_t i = 0, n = instances.length(); i < n; i++) {
+      HANDLESCOPE(thread);
       CheckInstance(*instances[i]);
     }
   }
