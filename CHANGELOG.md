@@ -25,6 +25,10 @@
   in each lane where the operands differ and `0` elsewhere.
 - Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
   non-zero.
+- Added the signed lane-wise ordered comparisons `Int32x4.lessThan`,
+  `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
+  `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
+  comparison holds and `0` elsewhere.
 
 #### `dart:js_interop`
 

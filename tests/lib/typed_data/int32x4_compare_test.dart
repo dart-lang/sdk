@@ -150,10 +150,51 @@ void testAnyTrueAndAllTrue() {
   Expect.isFalse(a.equal(Int32x4(1, 2, 3, 0)).allTrue);
 }
 
+void testComparisons() {
+  const lanes = [-2147483648, -1, 0, 1, 2147483647];
+  for (final p in lanes) {
+    for (final q in lanes) {
+      final a = Int32x4(p, p, p, p);
+      final b = Int32x4(q, q, q, q);
+
+      final lt = a.lessThan(b);
+      final le = a.lessThanOrEqual(b);
+      final gt = a.greaterThan(b);
+      final ge = a.greaterThanOrEqual(b);
+
+      final expLt = p < q ? -1 : 0;
+      final expLe = p <= q ? -1 : 0;
+      final expGt = p > q ? -1 : 0;
+      final expGe = p >= q ? -1 : 0;
+
+      Expect.equals(expLt, lt.x);
+      Expect.equals(expLt, lt.y);
+      Expect.equals(expLt, lt.z);
+      Expect.equals(expLt, lt.w);
+
+      Expect.equals(expLe, le.x);
+      Expect.equals(expLe, le.y);
+      Expect.equals(expLe, le.z);
+      Expect.equals(expLe, le.w);
+
+      Expect.equals(expGt, gt.x);
+      Expect.equals(expGt, gt.y);
+      Expect.equals(expGt, gt.z);
+      Expect.equals(expGt, gt.w);
+
+      Expect.equals(expGe, ge.x);
+      Expect.equals(expGe, ge.y);
+      Expect.equals(expGe, ge.z);
+      Expect.equals(expGe, ge.w);
+    }
+  }
+}
+
 void main() {
   for (int i = 0; i < 20; i++) {
     testEquality(true); // equal
     testEquality(false); // notEqual
     testAnyTrueAndAllTrue();
+    testComparisons();
   }
 }
