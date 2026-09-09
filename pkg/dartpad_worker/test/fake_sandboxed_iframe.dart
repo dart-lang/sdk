@@ -19,23 +19,18 @@ import 'package:test/test.dart';
 
 sealed class SandboxEvent {}
 
-/// Triggered by [Sandbox.runMain] or [Sandbox.runApp].
+/// Triggered by [Sandbox.run].
 final class LoadModuleEvent extends SandboxEvent {
   final String moduleName;
   final String code;
   LoadModuleEvent._({required this.moduleName, required this.code});
 }
 
-/// Triggered by [Sandbox.runMain].
-final class RunMainEvent extends SandboxEvent {
+/// Triggered by [Sandbox.run].
+final class RunEvent extends SandboxEvent {
   final String libraryUri;
-  RunMainEvent._({required this.libraryUri});
-}
-
-/// Triggered by [Sandbox.runApp].
-final class RunAppEvent extends SandboxEvent {
-  final String libraryUri;
-  RunAppEvent._({required this.libraryUri});
+  final String mode;
+  RunEvent._({required this.libraryUri, required this.mode});
 }
 
 /// Triggered by [Sandbox.hotReload].
@@ -94,15 +89,11 @@ final class FakeSandboxedIframe {
       return <String, dynamic>{};
     });
 
-    _peer.registerMethod('runMain', (Parameters params) {
-      final event = RunMainEvent._(libraryUri: params['libraryUri'].asString);
-      _addEvent(event);
-      return <String, dynamic>{};
-    });
+    _peer.registerMethod('run', (Parameters params) {
+      final mode = params['mode'].asString;
+      final libraryUri = params['libraryUri'].asString;
 
-    _peer.registerMethod('runApp', (Parameters params) {
-      final event = RunAppEvent._(libraryUri: params['libraryUri'].asString);
-      _addEvent(event);
+      _addEvent(RunEvent._(libraryUri: libraryUri, mode: mode));
       return <String, dynamic>{};
     });
 
@@ -214,12 +205,9 @@ extension LoadModuleEventChecks on Subject<LoadModuleEvent> {
   Subject<String> get code => has((e) => e.code, 'code');
 }
 
-extension RunMainEventChecks on Subject<RunMainEvent> {
+extension RunMainEventChecks on Subject<RunEvent> {
   Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
-}
-
-extension RunAppEventChecks on Subject<RunAppEvent> {
-  Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
+  Subject<String> get mode => has((e) => e.mode, 'mode');
 }
 
 extension HotReloadEventChecks on Subject<HotReloadEvent> {

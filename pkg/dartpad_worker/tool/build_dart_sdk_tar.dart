@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:args/args.dart';
+import 'package:dartpad/src/dartpad_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
@@ -42,6 +44,20 @@ Future<void> main(List<String> args) async {
 
   final tarSink = tarWritingSink(outputFile.openWrite());
 
+  // Synthesize a generic DartPadConfig with just the `console` mode.
+  final config = DartPadConfig(
+    dartSdkPath: '/sdk',
+    summaryModules: {},
+    modes: [DartPadRunMode(mode: 'console')],
+  );
+
+  tarSink.add(
+    TarEntry.data(
+      TarHeader(name: '.dartpad_config.json', mode: int.parse('644', radix: 8)),
+      utf8.encode(jsonEncode(config.toJson())),
+    ),
+  );
+
   for (final f in files) {
     final bytes = File.fromUri(sdkPath.resolve(f)).readAsBytesSync();
     tarSink.add(
@@ -53,7 +69,7 @@ Future<void> main(List<String> args) async {
   }
 
   await tarSink.close();
-  print('Wrote ${outputFile.path} (${files.length} files)');
+  print('Wrote ${outputFile.path} (${files.length + 1} files)');
 }
 
 List<String> _requiredFilesFromSdk(Uri sdkPath) {

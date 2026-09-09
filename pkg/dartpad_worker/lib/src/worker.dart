@@ -26,40 +26,39 @@ import 'tools/sandbox.dart';
 import 'util/message_port.dart';
 
 final class Worker {
-  final _rp = MemoryResourceProvider(context: p.posix);
-  var _config = DartPadConfig();
+  final ResourceProvider _rp;
+  final DartPadConfig _config;
   int _nextLanguageServerId = 1;
   int _nextWorkspaceId = 1;
   int _nextWatcherId = 1;
   int _nextSandboxId = 1;
 
-  Worker._();
+  Worker._(this._rp, this._config);
 
   static Future<Worker> create(
     Stream<List<int>> sdkTarStream, {
     String? pubHostedUrl,
   }) async {
-    final w = Worker._();
+    final rp = MemoryResourceProvider(context: p.posix);
+    await rp.getFolder('/').extractTarStream(sdkTarStream);
 
-    await w._rp.getFolder('/').extractTarStream(sdkTarStream);
-
-    final configFile = w._rp.getFile(DartPadConfig.defaultDartPadConfigPath);
-    if (configFile.exists) {
-      try {
-        w._config = DartPadConfig.fromJson(
-          jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
-        );
-      } catch (e) {
-        // TODO(jonasfj): Find a better way to propogate this error.
-        //                This is only relevant for people making their own
-        //                sdk.tar files. But it'd also make general debugging
-        //                easier. To report it better we might also want to
-        //                report progress updates while loading.
-        print('Error reading dartpad-config.json: $e');
-      }
+    final configFile = rp.getFile(DartPadConfig.defaultDartPadConfigPath);
+    if (!configFile.exists) {
+      throw const FormatException(
+        'sdk.tar must contain ${DartPadConfig.defaultDartPadConfigPath}',
+      );
     }
-    w._config = w._config.copyWith(pubHostedUrl: pubHostedUrl);
-    return w;
+    try {
+      final config = DartPadConfig.fromJson(
+        jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
+      ).copyWith(pubHostedUrl: pubHostedUrl);
+
+      return Worker._(rp, config);
+    } catch (e) {
+      throw FormatException(
+        'Error reading ${DartPadConfig.defaultDartPadConfigPath}: $e',
+      );
+    }
   }
 
   void session(StreamChannel<Object?> channel) {
@@ -142,12 +141,8 @@ class _Session {
       _forwardToWorkspace((ws) => ws._connectSandbox),
     );
     _rpc.registerMethod(
-      'workspace/sandbox/runMain',
-      _forwardToWorkspace((ws) => ws._sandboxRunMain),
-    );
-    _rpc.registerMethod(
-      'workspace/sandbox/runApp',
-      _forwardToWorkspace((ws) => ws._sandboxRunApp),
+      'workspace/sandbox/run',
+      _forwardToWorkspace((ws) => ws._sandboxRun),
     );
     _rpc.registerMethod(
       'workspace/sandbox/hotRestart',
@@ -529,7 +524,7 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  HotReloadCompiler _createCompiler(Uri path, {required bool withBootstrap}) {
+  HotReloadCompiler _createCompiler(Uri path, DartPadRunMode mode) {
     var entrypoint = _resolvePath(path);
 
     // Test if the file we're compiling exists.
@@ -542,15 +537,15 @@ class _Workspace {
     }
 
     var rp = _rp;
-    final bootstrapCodeTemplate = _worker._config.bootstrapCode;
-    if (withBootstrap && bootstrapCodeTemplate != null) {
+    final entrypointWrapperTemplate = mode.entrypointWrapperTemplate;
+    if (entrypointWrapperTemplate != null) {
       final originalEntrypoint = entrypoint;
       entrypoint = '$originalEntrypoint.virtual-bootstrap-wrapper.dart';
 
       final overlay = rp = OverlayResourceProvider(_rp);
       overlay.setOverlay(
         entrypoint,
-        content: bootstrapCodeTemplate.replaceAll(
+        content: entrypointWrapperTemplate.replaceAll(
           '{{entrypoint}}',
           // Convert to a `file:` URI so the Common Front End (CFE) treats the
           // import as an absolute file URI. Otherwise, entrypoints inside
@@ -579,8 +574,7 @@ class _Workspace {
     final sandboxId = _worker._nextSandboxId++;
     final sandbox = _sandboxes[sandboxId] = Sandbox(
       port: port,
-      createMainCompiler: (u) => _createCompiler(u, withBootstrap: false),
-      createAppCompiler: (u) => _createCompiler(u, withBootstrap: true),
+      createCompiler: _createCompiler,
       onClosed: () => _sandboxes.remove(sandboxId),
     );
     sandbox.onConsole.listen((e) {
@@ -612,7 +606,10 @@ class _Workspace {
         'data': e.data,
       });
     });
-    return {'sandboxId': sandboxId};
+    return {
+      'sandboxId': sandboxId,
+      'modes': _worker._config.modes.map((m) => m.mode).toList(),
+    };
   }
 
   Sandbox _getSandbox(Parameters params) {
@@ -627,17 +624,16 @@ class _Workspace {
     return s;
   }
 
-  Object? _sandboxRunMain(Parameters params) async {
+  Object? _sandboxRun(Parameters params) async {
     final s = _getSandbox(params);
     final path = _resolvePath(params['path'].asUri);
-    final result = await s.runMain(path);
-    return {'log': result.log};
-  }
+    final mode = params['mode'].asString;
+    final m = _worker._config.modes.where((m) => m.mode == mode).firstOrNull;
+    if (m == null) {
+      throw RpcException.invalidParams('Unsupported mode: "$mode"');
+    }
 
-  Object? _sandboxRunApp(Parameters params) async {
-    final s = _getSandbox(params);
-    final path = _resolvePath(params['path'].asUri);
-    final result = await s.runApp(path);
+    final result = await s.run(path, m);
     return {'log': result.log};
   }
 

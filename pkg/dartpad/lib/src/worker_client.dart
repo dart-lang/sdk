@@ -264,7 +264,8 @@ final class Workspace {
       'port': port,
     });
     final id = result['sandboxId'] as int;
-    return _client._sandboxes[id] = Sandbox._(this, id);
+    final modes = (result['modes'] as List).cast<String>();
+    return _client._sandboxes[id] = Sandbox._(this, id, modes);
   }
 
   Future<void> dispose() async {
@@ -451,13 +452,28 @@ extension on rpc.Peer {
 ///
 /// The [Sandbox] client object controls what is going on inside the `<iframe>`,
 /// communication is proxied by the [Workspace] it is connected to, and methods
-/// like [runMain] and [runApp] resolve paths given relative to the
+/// like [run] resolve paths given relative to the
 /// connected [Workspace].
 final class Sandbox {
   final Workspace _workspace;
   final int _id;
 
-  Sandbox._(this._workspace, this._id);
+  /// The available _run modes_ for this sandbox.
+  ///
+  /// {@template run_modes}
+  /// A [DartPadSdk] defines one or more _modes_ that code a run using.
+  ///
+  /// The [DartPadSdk] for **Dart** defines _run modes_:
+  ///  * `mode: 'console'` for running `main()` as a console app.
+  ///
+  /// The [DartPadSdk] for **Flutter** defines _run modes_:
+  ///  * `mode: 'console'` for running `main()` as a console app.
+  ///  * `mode: 'flutter'` for wrapping a `main()` that calls `runApp()` in a
+  ///    manner that configures the flutter engine.
+  /// {@endtemplate}
+  final List<String> modes;
+
+  Sandbox._(this._workspace, this._id, this.modes);
 
   final _consoleController = StreamController<String>.broadcast();
   final _errorController = StreamController<String>.broadcast();
@@ -484,26 +500,19 @@ final class Sandbox {
   Stream<({String kind, Map<String, Object?> data})> get extensionEvents =>
       _extensionEventController.stream;
 
-  /// Compiles and runs a Dart entrypoint in the sandbox without Flutter.
+  /// Compiles and runs a Dart entrypoint in the sandbox.
   ///
   /// The [path] should be relative to the workspace folder (e.g.,
-  /// `'bin/main.dart'`).
-  Future<({String log})> runMain(String path) async {
-    final result = await _workspace._request<Map>('workspace/sandbox/runMain', {
-      'sandboxId': _id,
-      'path': path,
-    });
-    return (log: result['log'] as String);
-  }
-
-  /// Compiles and runs a Flutter entrypoint in the sandbox.
+  /// `'bin/main.dart'` or `'lib/main.dart'`).
   ///
-  /// The [path] should be relative to the workspace folder (e.g.,
-  /// `'lib/main.dart'`).
-  Future<({String log})> runApp(String path) async {
-    final result = await _workspace._request<Map>('workspace/sandbox/runApp', {
+  /// The [mode] must be one of the supported [modes].
+  ///
+  /// {@macro run_modes}
+  Future<({String log})> run(String path, {required String mode}) async {
+    final result = await _workspace._request<Map>('workspace/sandbox/run', {
       'sandboxId': _id,
       'path': path,
+      'mode': mode,
     });
     return (log: result['log'] as String);
   }

@@ -17,14 +17,14 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    var result = await sandbox.runMain('bin/main.dart');
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty();
     await iframe.checkEvent(
       (it) => it.isA<LoadModuleEvent>().code
         ..contains('Hello Flutter')
         ..contains('MaterialApp'),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent((it) => it.isA<RunEvent>()..mode.equals('flutter'));
     await iframe.close();
   });
 
@@ -41,7 +41,7 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     await check(
-      sandbox.runMain('bin/main.dart'),
+      sandbox.run('bin/main.dart', mode: 'flutter'),
     ).throws<CompilationFailedException>(
       (e) => e.has((it) => it.message, 'message').contains("Expected ';'"),
     );
@@ -66,7 +66,7 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    var result = await sandbox.runMain('bin/main.dart');
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty();
     await iframe.checkEvent(
       (it) => it.isA<LoadModuleEvent>().code
@@ -74,7 +74,7 @@ void main() {
         ..contains('Hello World')
         ..contains('MaterialApp'),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent((it) => it.isA<RunEvent>());
     await iframe.close();
   });
 }

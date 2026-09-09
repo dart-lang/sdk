@@ -39,7 +39,7 @@ Future<void> main() async {
   // Print console output
   sandbox.console.forEach(print).ignore();
   // Run main.dart in the sanboxed iframe
-  await sandbox.runMain('main.dart');
+  await sandbox.run('main.dart', mode: 'console');
 
   // Cleanup
   await sandbox.close();

@@ -501,7 +501,10 @@ Terminates an active watcher.
 ```
 
 ### Method `workspace/connectSandbox`
-Connects a `MessagePort` from `sandbox.js` to the workspace, returning a `sandboxId` used to control the sandbox.
+Connects a `MessagePort` from `sandbox.js` to the workspace, returning
+a `sandboxId` used to control the sandbox and the available run modes.
+
+A _DartPad SDK_ defines its own modes, typical modes include `'console'`.
 
 **Params:**
 ```js
@@ -514,38 +517,22 @@ Connects a `MessagePort` from `sandbox.js` to the workspace, returning a `sandbo
 **Result:**
 ```js
 {
-  "sandboxId": 1
+  "sandboxId": 1,
+  "modes": ["console", "app"]
 }
 ```
 
-### Method `workspace/sandbox/runMain`
-Compiles and runs a Dart entrypoint in the sandbox without Flutter bootstrap.
+### Method `workspace/sandbox/run`
+Compiles and runs a Dart or Flutter entrypoint in the sandbox using the
+specified mode.
 
 **Params:**
 ```js
 {
   "workspaceId": 42,
   "sandboxId": 1,
-  "path": "bin/hello.dart"
-}
-```
-
-**Result:**
-```js
-{
-  "log": "<output log string>"
-}
-```
-
-### Method `workspace/sandbox/runApp`
-Compiles and runs a Flutter entrypoint in the sandbox with Flutter bootstrap.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "path": "lib/main.dart"
+  "path": "bin/hello.dart",
+  "mode": "console"
 }
 ```
 

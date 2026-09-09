@@ -11,12 +11,12 @@ import '../util/message_port.dart';
 import 'hot_reload_compiler.dart';
 import 'sandbox_client.dart';
 
-typedef CompilerFactory = FutureOr<HotReloadCompiler> Function(Uri path);
+typedef CompilerFactory =
+    FutureOr<HotReloadCompiler> Function(Uri path, DartPadRunMode mode);
 
 final class Sandbox {
   final SandboxClient _client;
-  final CompilerFactory _createMainCompiler;
-  final CompilerFactory _createAppCompiler;
+  final CompilerFactory _createCompiler;
   final _pool = Pool(1);
 
   HotReloadCompiler? _compiler;
@@ -24,11 +24,9 @@ final class Sandbox {
   Sandbox({
     required MessagePort port,
     required void Function() onClosed,
-    required CompilerFactory createMainCompiler,
-    required CompilerFactory createAppCompiler,
+    required CompilerFactory createCompiler,
   }) : _client = SandboxClient(port, onClosed),
-       _createMainCompiler = createMainCompiler,
-       _createAppCompiler = createAppCompiler;
+       _createCompiler = createCompiler;
 
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
 
@@ -39,42 +37,28 @@ final class Sandbox {
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _client.onExtensionEvent;
 
-  Future<({String log})> runMain(String target) async =>
+  Future<({String log})> run(String target, DartPadRunMode mode) async =>
       await _synced(() async {
         if (_compiler != null) {
           _compiler = null;
           await reset();
         }
-        final c = _compiler = await _createMainCompiler(Uri.parse(target));
+
+        final c = _compiler = await _createCompiler(Uri.parse(target), mode);
 
         final r = await c.compile();
 
         await _client.loadModule(code: r.code!);
-        await _client.runMain(Uri.parse(r.entrypointLibraryUri));
+        await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
 
         return (log: r.log);
       });
-
-  Future<({String log})> runApp(String target) async => await _synced(() async {
-    if (_compiler != null) {
-      _compiler = null;
-      await reset();
-    }
-    final c = _compiler = await _createAppCompiler(Uri.parse(target));
-
-    final r = await c.compile();
-
-    await _client.loadModule(code: r.code!);
-    await _client.runApp(Uri.parse(r.entrypointLibraryUri));
-
-    return (log: r.log);
-  });
 
   Future<({String log})> hotRestart() async => await _synced(() async {
     final c = _compiler;
     if (c == null) {
       throw InvalidSandboxStateException(
-        'runMain/runApp must be called before hotRestart()',
+        'run() must be called before hotRestart()',
       );
     }
 
@@ -88,7 +72,7 @@ final class Sandbox {
     final c = _compiler;
     if (c == null) {
       throw InvalidSandboxStateException(
-        'runMain/runApp must be called before hotReload()',
+        'run() must be called before hotReload()',
       );
     }
     final r = await c.compile();

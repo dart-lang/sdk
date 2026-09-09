@@ -16,8 +16,8 @@ with:
    * Proxy console output and _unhandled exceptions_ out of the iframe.
 
 To build a custom dartpad-like experience, you simply have to launch the worker,
-connect the _language server_ to your editor, compile code and tell the sandbox
-to run said code, while presenting console output to the user.
+connect the _language server_ to your editor, connect a sandboxed iframe and
+tell the sandbox what code to run, while presenting console output to the user.
 
 ## Assets
 
@@ -43,7 +43,6 @@ Future<void> main() async {
     'void main() => print("hello world");',
   );
 }
-
 ```
 
 ## Limitations
