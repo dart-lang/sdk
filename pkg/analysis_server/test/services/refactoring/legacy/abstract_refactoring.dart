@@ -169,7 +169,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return contextFor(file).driver;
+    return contextFor2(file).driver;
   }
 
   Future<void> indexTestUnit(

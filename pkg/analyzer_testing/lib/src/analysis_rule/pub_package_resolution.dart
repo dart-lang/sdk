@@ -4,23 +4,15 @@
 
 import 'dart:convert' show json;
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
-import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
-import 'package:analyzer_testing/configuration_files_mixin.dart';
-import 'package:analyzer_testing/experiments/experiments.dart';
-import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
@@ -223,21 +215,10 @@ class PackageBuilder {
   }
 }
 
-class PubPackageResolutionTest
-    with MockPackagesMixin, ResourceProviderMixin, ConfigurationFilesMixin {
-  /// The byte store that is reused between tests.
-  ///
-  /// This allows reusing all unlinked and linked summaries for SDK, so that
-  /// tests run much faster. However nothing is preserved between Dart VM runs,
-  /// so changes to the implementation are still fully verified.
-  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
-
-  final MemoryByteStore _byteStore = _sharedByteStore;
-
-  AnalysisContextCollectionImpl? _analysisContextCollection;
-
+class PubPackageResolutionTest extends AbstractContextTest {
   /// The test file being analyzed.
-  late File testFile = newFile(_testFilePath, '');
+  @override
+  late File testFile = newFile(testFilePath, '');
 
   /// The analysis result that is used in various `assertDiagnostics` methods.
   late ResolvedUnitResult result;
@@ -246,16 +227,8 @@ class PubPackageResolutionTest
   /// [PackageConfigFileBuilder].
   final Set<String> _packagesToAdd = {};
 
-  AnalysisContextCollection get contextCollection {
-    _createAnalysisContexts();
-    return _analysisContextCollection!;
-  }
-
   /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
-
-  /// The list of experimental language features to be enabled for these tests.
-  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
@@ -264,15 +237,6 @@ class PubPackageResolutionTest
     diag.unusedLocalVariable,
   ];
 
-  /// The path to the root of the external packages.
-  @override
-  String get packagesRootPath => '/packages';
-
-  Folder get sdkRoot => newFolder('/sdk');
-
-  /// The name of the test file.
-  String get testFileName => 'test.dart';
-
   /// The language version for the package-under-test.
   ///
   /// Used for writing out a package config file. A `null` value means no
@@ -280,23 +244,10 @@ class PubPackageResolutionTest
   @override
   String? get testPackageLanguageVersion => null;
 
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
-
-  @override
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
-  List<String> get _collectionIncludedPaths => [workspaceRootPath];
-
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get _diagnostics => result.diagnostics
       .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
       .toList();
-
-  String get _testFilePath => '$testPackageLibPath/$testFileName';
 
   /// Asserts that the number of diagnostics reported in [content] matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -426,21 +377,6 @@ class PubPackageResolutionTest
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
-  @Deprecated('Use "contextFor2"')
-  DriverBasedAnalysisContext contextFor(String path) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(path);
-    return _analysisContextCollection!.contextFor(convertedPath);
-  }
-
-  DriverBasedAnalysisContext contextFor2(File file) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(file.path);
-    return _analysisContextCollection!.contextFor(convertedPath);
-  }
-
   /// Text to display upon failure, which indicates possible corrections.
   @visibleForOverriding
   String correctionMessage(List<Diagnostic> diagnostics) {
@@ -535,15 +471,6 @@ class PubPackageResolutionTest
     return buffer.toString();
   }
 
-  @override
-  File newFile(String path, String content) {
-    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
-      throw StateError('Only dart files can be changed after analysis.');
-    }
-
-    return super.newFile(path, content);
-  }
-
   /// Registers a package named [name].
   ///
   /// The returned [PackageBuilder] can be used to add Dart source files in the
@@ -554,19 +481,10 @@ class PubPackageResolutionTest
     return PackageBuilder._(packagePath, this);
   }
 
-  /// Resolves a Dart source file at [filePath].
-  ///
-  /// [filePath] must be converted for this file system.
-  Future<ResolvedUnitResult> resolveFile(String filePath) async {
-    var file = resourceProvider.getFile(filePath);
-    var analysisContext = contextFor2(file);
-    var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(filePath) as ResolvedUnitResult;
-  }
-
   @mustCallSuper
+  @override
   void setUp() {
-    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+    super.setUp();
 
     // Check for any needlessly enabled experimental features.
     for (var feature in experimentalFeatures) {
@@ -579,14 +497,7 @@ class PubPackageResolutionTest
       }
     }
 
-    writeTestPackageConfig2();
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
-  }
-
-  @mustCallSuper
-  Future<void> tearDown() async {
-    await _analysisContextCollection?.dispose();
-    _analysisContextCollection = null;
   }
 
   /// Text to display upon failure, indicating that [unmatchedActual]
@@ -715,29 +626,12 @@ class PubPackageResolutionTest
     testFile.writeAsStringSync(content);
   }
 
-  /// Creates all analysis contexts in [_collectionIncludedPaths].
-  void _createAnalysisContexts() {
-    if (_analysisContextCollection != null) {
-      return;
-    }
-
-    _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: _byteStore,
-      declaredVariables: {},
-      enableIndex: true,
-      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      withFineDependencies: true,
-    );
-  }
-
   /// Resolves the file with the [filePath] into [result].
   Future<void> _resolveFile(String filePath) async {
     result = await resolveFile(convertPath(filePath));
   }
 
-  Future<void> _resolveTestFile() => _resolveFile(_testFilePath);
+  Future<void> _resolveTestFile() => _resolveFile(testFilePath);
 
   void _writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
