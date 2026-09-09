@@ -201,6 +201,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ImplicitCallTearOff,
         ImplicitFunctionInstantiation,
         ImportDirective,
+        ImportPrefixedAssignmentTarget,
         ImportPrefixedFunctionInvocation,
         ImportPrefixedNameExpression,
         ImportPrefixReference,

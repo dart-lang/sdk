@@ -892,6 +892,18 @@ class AstBinaryReader {
     return node;
   }
 
+  ImportPrefixedAssignmentTarget _readImportPrefixedAssignmentTarget() {
+    var importPrefix = _readNode() as ImportPrefixReferenceImpl;
+    var name = _readStringReference();
+    var node = ImportPrefixedAssignmentTargetImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
   ImportPrefixedFunctionInvocation _readImportPrefixedFunctionInvocation() {
     var importPrefix = _readNode() as ImportPrefixReferenceImpl;
     var name = _readStringReference();
@@ -1427,6 +1439,8 @@ class AstBinaryReader {
         return _readImportPrefixReference();
       case AstNodeTag.ImportPrefixedFunctionInvocation:
         return _readImportPrefixedFunctionInvocation();
+      case AstNodeTag.ImportPrefixedAssignmentTarget:
+        return _readImportPrefixedAssignmentTarget();
       case AstNodeTag.ImportPrefixedNameExpression:
         return _readImportPrefixedNameExpression();
       case AstNodeTag.IndexExpression:

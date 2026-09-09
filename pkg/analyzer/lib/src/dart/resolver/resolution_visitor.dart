@@ -204,6 +204,44 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
+    if (node.leftHandSide2 case PrefixedIdentifierImpl left) {
+      var target = _importPrefixedAssignmentTarget(
+        left.prefix.token,
+        left.period,
+        left.identifier.token,
+      );
+      if (target != null) {
+        AssignmentExpression2Impl replacement;
+        switch (node.operator.type) {
+          case TokenType.EQ:
+            replacement = DirectAssignmentImpl(
+              target: target,
+              operator: node.operator,
+              value: node.rightHandSide2,
+            );
+          case TokenType.QUESTION_QUESTION_EQ:
+            replacement = IfNullAssignmentImpl(
+              target: target,
+              operator: node.operator,
+              value: node.rightHandSide2,
+            );
+          default:
+            replacement = CompoundAssignmentImpl(
+              target: target,
+              operator: node.operator,
+              value: node.rightHandSide2,
+            );
+        }
+        node.replaceWith(replacement);
+        replacement.accept2(this);
+        return;
+      }
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitBlock(covariant BlockImpl node) {
     _scopeContext.withLocalScope((scope) {
       node.nameScope = scope;
@@ -788,6 +826,25 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
+  ) {
+    if (node.receiver case SimpleIdentifierImpl receiver
+        when node.operator.type == TokenType.PERIOD) {
+      var target = _importPrefixedAssignmentTarget(
+        receiver.token,
+        node.operator,
+        node.propertyName,
+      );
+      if (target != null) {
+        node.replaceWith(target);
+        return;
+      }
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitRecordTypeAnnotation(covariant RecordTypeAnnotationImpl node) {
     node.visitChildren2(this);
     _recordTypeResolver.resolve(node);
@@ -1076,6 +1133,20 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     } else {
       return NullabilitySuffix.none;
     }
+  }
+
+  ImportPrefixedAssignmentTargetImpl? _importPrefixedAssignmentTarget(
+    Token prefixName,
+    Token period,
+    Token name,
+  ) {
+    var element = nameScope.lookup(prefixName.lexeme).getter;
+    if (element is! PrefixElement) return null;
+    return ImportPrefixedAssignmentTargetImpl(
+      importPrefix: ImportPrefixReferenceImpl(name: prefixName, period: period)
+        ..element = element,
+      name: name,
+    );
   }
 
   AstNode? _lookupBreakOrContinueTarget(

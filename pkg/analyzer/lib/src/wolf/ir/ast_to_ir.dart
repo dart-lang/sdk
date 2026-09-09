@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CascadePropertyAssignmentTargetImpl,
         DotShorthandMethodInvocationImpl,
         GetterInvocationResolutionImpl,
+        ImportPrefixedAssignmentTargetImpl,
         ImportPrefixedFunctionInvocationImpl,
         ImportPrefixedNameExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
@@ -172,6 +173,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         ),
         ReceiverPropertyAssignmentTarget() => _receiverPropertyAssignmentTarget(
           target,
+        ),
+        ImportPrefixedAssignmentTarget() => throw UnimplementedError(
+          'Import-prefixed assignment target',
         ),
         UnqualifiedNameAssignmentTarget() => _unqualifiedNameAssignmentTarget(
           target,
@@ -495,6 +499,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
         lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case ImportPrefixedAssignmentTargetImpl():
+        throw UnimplementedError('Import-prefixed assignment target');
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -565,6 +571,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
         lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case ImportPrefixedAssignmentTargetImpl():
+        throw UnimplementedError('Import-prefixed assignment target');
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }
@@ -760,6 +768,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
         lValueTemplates = _receiverPropertyAssignmentTarget(target);
+      case ImportPrefixedAssignmentTargetImpl():
+        throw UnimplementedError('Import-prefixed assignment target');
       case UnqualifiedNameAssignmentTargetImpl():
         lValueTemplates = _unqualifiedNameAssignmentTarget(target);
     }

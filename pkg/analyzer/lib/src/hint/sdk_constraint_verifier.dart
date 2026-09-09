@@ -246,6 +246,17 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _checkNamedRead(node.read, node, errorEntity: node.name);
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      _checkSinceSdkVersion(element, node, errorEntity: node.name);
+    }
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {

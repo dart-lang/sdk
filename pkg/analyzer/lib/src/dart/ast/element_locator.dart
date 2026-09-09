@@ -457,6 +457,16 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      return element;
+    }
+    return node.read.elementOrRecovery;
+  }
+
+  @override
   Element? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {

@@ -836,6 +836,12 @@ abstract class RuleVisitorRegistry2 {
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addImportPrefixedAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addImportPrefixedFunctionInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

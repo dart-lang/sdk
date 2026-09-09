@@ -7114,6 +7114,36 @@ math.Random bar() => null;
 ''');
   }
 
+  test_searchReferences_ImportElement_withPrefix_assignmentTargets() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var result = await resolveTestCode('''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  p.x += 1;
+  p.x ??= 2;
+  ++p.x;
+  p.x--;
+}
+''');
+    var element = result.findElement.import('package:test/a.dart');
+    await assertLibraryImportReferencesText(element, r'''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  ^^
+  p.x += 1;
+  ^^
+  p.x ??= 2;
+  ^^
+  ++p.x;
+    ^^
+  p.x--;
+  ^^
+}
+''');
+  }
+
   test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
     var result = await resolveTestCode('''
 import 'dart:async' as p;
@@ -9753,6 +9783,55 @@ import 'test.dart' show foo;
 
 int get foo => 0;
 void set foo(_) {}
+''',
+    );
+  }
+
+  test_searchReferences_TopLevelVariableElement_importPrefixedWrites() async {
+    newFile(testFile.path, '''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+  p.value += 1;
+  p.value ??= 2;
+  ++p.value;
+  p.value--;
+}
+''');
+    var result = await resolveFileCode('$testPackageLibPath/a.dart', '''
+int? get value => 0;
+set value(num? value) {}
+''');
+    var variable = result.findElement.topVar('value');
+    await assertElementsReferencesText(
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+      },
+      r'''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+    ^^^^^ variable WRITE qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value += 1;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value ??= 2;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  ++p.value;
+      ^^^^^ variable READ_WRITE qualified
+      ^^^^^ getter INVOCATION qualified
+      ^^^^^ setter INVOCATION qualified
+  p.value--;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+}
 ''',
     );
   }

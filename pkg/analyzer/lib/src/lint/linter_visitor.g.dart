@@ -1908,6 +1908,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forImportPrefixedAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -4687,6 +4696,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ImportDirective>> _forImportDirective = [];
 
+  final List<_Subscription2<ImportPrefixedAssignmentTarget>>
+  _forImportPrefixedAssignmentTarget = [];
+
   final List<_Subscription2<ImportPrefixedFunctionInvocation>>
   _forImportPrefixedFunctionInvocation = [];
 
@@ -5810,6 +5822,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forImportDirective.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addImportPrefixedAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

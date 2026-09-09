@@ -702,6 +702,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
+      case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
@@ -1591,6 +1592,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
+      case ImportPrefixedAssignmentTargetImpl(:var read):
       case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
@@ -1658,6 +1660,24 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     _reportForMultipleCombinators(node);
     super.visitImportDirective(node);
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    var ambiguousElement = switch (node.read) {
+      InvalidNamedReadResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    ambiguousElement ??= switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    super.visitImportPrefixedAssignmentTarget(node);
   }
 
   @override
@@ -1739,6 +1759,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       IndexAssignmentTarget(:var read) => read?.type,
       PropertyAssignmentTarget(:var read) => read?.type,
       UnqualifiedNameAssignmentTarget(:var read) => read?.type,
+      ImportPrefixedAssignmentTarget(:var read) => read?.type,
       _ => null,
     };
     if (node.position == IncrementOrDecrementPosition.prefix &&

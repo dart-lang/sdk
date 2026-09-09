@@ -191,6 +191,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (write case InvalidNamedWriteResolution(:var candidates)) {
@@ -702,11 +703,13 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
+      ImportPrefixedAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
 

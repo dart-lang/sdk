@@ -57,6 +57,8 @@ import 'if_statement_test.dart' as if_statement;
 import 'implicit_call_tear_off_test.dart' as implicit_call_tear_off;
 import 'implicit_function_instantiation_test.dart'
     as implicit_function_instantiation;
+import 'import_prefixed_assignment_target_test.dart'
+    as import_prefixed_assignment_target;
 import 'import_prefixed_name_expression_test.dart'
     as import_prefixed_name_expression;
 import 'index_expression_test.dart' as index_expression;
@@ -173,6 +175,7 @@ main() {
     generic_type_alias.main();
     if_element.main();
     if_statement.main();
+    import_prefixed_assignment_target.main();
     import_prefixed_name_expression.main();
     index_expression.main();
     constructor_invocation.main();

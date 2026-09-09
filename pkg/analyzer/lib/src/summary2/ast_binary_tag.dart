@@ -122,6 +122,7 @@ enum AstNodeTag {
   ImplicitFunctionInstantiation,
   ImplicitCallTearOff,
   FunctionInstantiation,
+  ImportPrefixedAssignmentTarget,
 }
 
 enum DirectiveUriKind {

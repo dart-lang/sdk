@@ -1363,6 +1363,38 @@ main() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_top_level_setter_importPrefixed() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', '''
+int get foo => 0;
+set foo(int value) {}
+''');
+    var b = newFile('/workspace/dart/test/lib/b.dart', '''
+import 'a.dart' as p;
+void f() {
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  ++p.foo;
+  p.foo--;
+}
+''');
+    await resolveFile(b);
+    var element = await _findElement(
+      a.readAsStringSync().indexOf('foo(int'),
+      a,
+    );
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(b.path, [
+        CiderSearchInfo(CharacterLocation(3, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(4, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(6, 7), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(7, 5), 3, MatchKind.WRITE),
+      ]),
+    ]);
+  }
+
   test_findReferences_top_level_variable() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 const int C = 42;

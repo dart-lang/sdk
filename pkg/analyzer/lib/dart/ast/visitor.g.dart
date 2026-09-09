@@ -2617,6 +2617,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -4291,6 +4298,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node) =>
+      null;
+
+  @experimental
+  @override
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) => null;
@@ -5666,6 +5678,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -8493,6 +8510,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImportPrefixedAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -10454,6 +10480,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node) =>
+      visitNode(node);
 
   @experimental
   @override

@@ -252,6 +252,163 @@ library
 ''');
   }
 
+  test_const_assignmentExpression_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var library = await buildLibrary('''
+import 'a.dart' as p;
+const a = (p.x += 1);
+const b = (p.x = 2);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
+      prefixes
+        <testLibraryFragment>::@prefix::p
+          fragments: @19
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @32
+              expression2: CompoundAssignment
+                target: ImportPrefixedAssignmentTarget
+                  importPrefix: ImportPrefixReference
+                    name: p @33
+                    period: . @34
+                    element: <testLibraryFragment>::@prefix::p
+                  name: x @35
+                  read: GetterInvocationResolution
+                    element: package:test/a.dart::@getter::x
+                    invokeType: int Function()
+                    type: int
+                  write: SetterInvocationResolution
+                    element: package:test/a.dart::@setter::x
+                    acceptedType: int
+                operator: += @37
+                value: IntegerLiteral
+                  literal: 1 @40
+                  staticType: int
+                binaryOperator: add
+                element: dart:core::@class::num::@method::+
+                operatorResultType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @33
+                    element: <testLibraryFragment>::@prefix::p
+                    staticType: null
+                  period: . @34
+                  identifier: SimpleIdentifier
+                    token: x @35
+                    element: <null>
+                    staticType: null
+                  element: <null>
+                  staticType: null
+                operator: += @37
+                rightHandSide: IntegerLiteral
+                  literal: 1 @40
+                  staticType: int
+                readElement: package:test/a.dart::@getter::x
+                readType: int
+                writeElement: package:test/a.dart::@setter::x
+                writeType: int
+                element: dart:core::@class::num::@method::+
+                staticType: int
+              rightParenthesis: ) @41
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:50) (firstTokenOffset:50) (offset:50)
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            ParenthesizedExpression
+              leftParenthesis: ( @54
+              expression2: DirectAssignment
+                target: ImportPrefixedAssignmentTarget
+                  importPrefix: ImportPrefixReference
+                    name: p @55
+                    period: . @56
+                    element: <testLibraryFragment>::@prefix::p
+                  name: x @57
+                  read: <null>
+                  write: SetterInvocationResolution
+                    element: package:test/a.dart::@setter::x
+                    acceptedType: int
+                operator: = @59
+                value: IntegerLiteral
+                  literal: 2 @61
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: p @55
+                    element: <testLibraryFragment>::@prefix::p
+                    staticType: null
+                  period: . @56
+                  identifier: SimpleIdentifier
+                    token: x @57
+                    element: <null>
+                    staticType: null
+                  element: <null>
+                  staticType: null
+                operator: = @59
+                rightHandSide: IntegerLiteral
+                  literal: 2 @61
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: package:test/a.dart::@setter::x
+                writeType: int
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @62
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::b
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
   test_const_cascadeExpression() async {
     var library = await buildLibrary(r'''
 const a = 0
