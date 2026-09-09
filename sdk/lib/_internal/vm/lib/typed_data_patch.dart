@@ -4035,6 +4035,34 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_notEqual")
   external Int32x4 notEqual(Int32x4 other);
 
+  Int32x4 lessThan(Int32x4 other) => Int32x4(
+    x < other.x ? -1 : 0,
+    y < other.y ? -1 : 0,
+    z < other.z ? -1 : 0,
+    w < other.w ? -1 : 0,
+  );
+
+  Int32x4 lessThanOrEqual(Int32x4 other) => Int32x4(
+    x <= other.x ? -1 : 0,
+    y <= other.y ? -1 : 0,
+    z <= other.z ? -1 : 0,
+    w <= other.w ? -1 : 0,
+  );
+
+  Int32x4 greaterThan(Int32x4 other) => Int32x4(
+    x > other.x ? -1 : 0,
+    y > other.y ? -1 : 0,
+    z > other.z ? -1 : 0,
+    w > other.w ? -1 : 0,
+  );
+
+  Int32x4 greaterThanOrEqual(Int32x4 other) => Int32x4(
+    x >= other.x ? -1 : 0,
+    y >= other.y ? -1 : 0,
+    z >= other.z ? -1 : 0,
+    w >= other.w ? -1 : 0,
+  );
+
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;

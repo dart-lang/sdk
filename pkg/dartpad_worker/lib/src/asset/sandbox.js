@@ -14,6 +14,13 @@
     './ddc_module_loader.js',
     './dart_sdk.js',
   ];
+  // Execution modes
+  self.$dartpadRunModes = self.$dartpadRunModes || {
+    console: async (libraryUri, options) => {
+      self.dartDevEmbedder.runMain(libraryUri, options || {});
+      return { status: 'running' };
+    },
+  };
 
   // Port for JSON-RPC 2.0 communication with host.
   const { port1: remotePort, port2: rpcPort } = new MessageChannel();
@@ -291,8 +298,8 @@
     return {};
   };
 
-  rpcMethods.runMain = async (params) => {
-    const { libraryUri, options = {} } = params;
+  rpcMethods.run = async (params) => {
+    const { libraryUri, mode, options = {} } = params;
 
     if (!libraryUri) {
       throw new RpcError(
@@ -300,70 +307,33 @@
         errorCode.INVALID_PARAMS
       );
     }
-    if (!self.dartDevEmbedder) {
+    if (!mode) {
       throw new RpcError(
-        "dartDevEmbedder is not initialized.",
-        errorCode.SERVER_ERROR
-      );
-    }
-
-    try {
-      self.dartDevEmbedder.runMain(libraryUri, options);
-      return { status: 'running' };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    }
-  };
-
-  rpcMethods.runApp = async (params) => {
-    const { libraryUri, options = {} } = params;
-
-    if (!libraryUri) {
-      throw new RpcError(
-        "libraryUri is required to run code.",
+        "mode is required.",
         errorCode.INVALID_PARAMS
       );
     }
+    if (!self.$dartpadRunModes || !self.$dartpadRunModes[mode]) {
+      throw new RpcError(
+        `mode not found: ${mode}`,
+        errorCode.INVALID_PARAMS
+      );
+    }
+
     if (!self.dartDevEmbedder) {
       throw new RpcError(
         "dartDevEmbedder is not initialized.",
-        errorCode.SERVER_ERROR
+        errorCode.INVALID_SANDBOX_STATE
       );
     }
-    if (!self._flutter || !self._flutter.loader) {
-      throw new RpcError(
-        "flutter.js is not loaded!",
-        errorCode.SERVER_ERROR
-      );
-    }
-
-    const libraryUriJson = JSON.stringify(libraryUri);
-    const optionsJson = JSON.stringify(options);
-    const url = URL.createObjectURL(new Blob([`
-      try {
-        self.dartDevEmbedder.runMain(${libraryUriJson}, ${optionsJson});
-      } catch (e) {
-        console.error('runMain() inside runApp() failed: ', e.message || String(e));
-      }
-    `], { type: 'application/javascript' }));
 
     try {
-      const engineInitializer = await new Promise((resolve) => {
-        self._flutter.loader.loadEntrypoint({
-          entrypointUrl: url,
-          onEntrypointLoaded: resolve,
-        });
-      });
-
-      const appRunner = await engineInitializer.initializeEngine(
-        self.dartpadFlutterConfiguration,
-      );
-      await appRunner.runApp();
-      return { status: 'running' };
+      return await self.$dartpadRunModes[mode](libraryUri, options);
     } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    } finally {
-      URL.revokeObjectURL(url);
+      throw new RpcError(
+        e.message || String(e),
+        errorCode[e.name] || errorCode.EXECUTION_FAILED
+      );
     }
   };
 

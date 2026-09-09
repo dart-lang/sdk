@@ -43,6 +43,9 @@ class ContextBuilderImpl {
   /// Analysis options mappings shared by all contexts built by this builder.
   final AnalysisOptionsMap _optionsMap = AnalysisOptionsMap();
 
+  /// Folder-based SDKs shared by contexts using the same SDK folder.
+  final Map<Folder, FolderBasedDartSdk> _folderSdks = {};
+
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
@@ -259,9 +262,10 @@ class ContextBuilderImpl {
       return SummaryBasedDartSdk.forBundle(PackageBundleReader(bytes));
     }
 
-    var folderSdk = FolderBasedDartSdk(
+    var sdkFolder = resourceProvider.getFolder(sdkPath);
+    var folderSdk = _folderSdks[sdkFolder] ??= FolderBasedDartSdk(
       resourceProvider,
-      resourceProvider.getFolder(sdkPath),
+      sdkFolder,
     );
 
     {

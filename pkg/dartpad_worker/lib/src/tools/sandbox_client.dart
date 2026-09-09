@@ -123,17 +123,12 @@ final class SandboxClient {
     });
   }
 
-  /// Runs the application by calling `main()` in the target library.
-  Future<void> runMain(Uri libraryUri) async {
-    await _sendRequest<void>('runMain', {'libraryUri': libraryUri.toString()});
-  }
-
-  /// Run flutter app by calling `main()` from [libraryUri].
-  ///
-  /// This requires `flutter.js`, which is loaded when running with Flutter SDK.
-  /// You may expect [hotReload] to work after this, but [hotRestart] will not.
-  Future<void> runApp(Uri libraryUri) async {
-    await _sendRequest<void>('runApp', {'libraryUri': libraryUri.toString()});
+  /// Runs the application using the specified mode.
+  Future<void> run(Uri libraryUri, {required String mode}) async {
+    await _sendRequest<void>('run', {
+      'libraryUri': libraryUri.toString(),
+      'mode': mode,
+    });
   }
 
   /// Triggers a hot restart, resetting global state.

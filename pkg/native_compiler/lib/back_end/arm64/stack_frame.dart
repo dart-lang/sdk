@@ -110,8 +110,12 @@ final class Arm64StackFrame extends StackFrame {
         return 2; // 2 arguments for _AsyncStarStreamController.add/addStream call.
       case LoadInstanceField() when instr.checkInitialized:
         return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
+      case StoreInstanceField() when instr.checkNotInitialized:
+        return 2; // Result + 1 argument for LateFieldAlreadyInitializedError runtime call.
       case LoadStaticField() when instr.checkInitialized:
         return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
+      case StoreStaticField() when instr.checkNotInitialized:
+        return 2; // Result + 1 argument for LateFieldAlreadyInitializedError runtime call.
       case Throw(kind: .exception):
         return 2; // Result + 1 argument for Throw runtime call.
       case Throw(kind: .rethrowException):

@@ -21,7 +21,7 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     await ctx.checkConsole((m) => m.contains('Hello World'));
   });
@@ -43,7 +43,7 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     await check(errorFuture).completes((r) => r.contains('Error\n'));
   });
@@ -75,7 +75,7 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     await check(
       rejectionFuture,
@@ -99,7 +99,7 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     await check(eventFuture).completes((r) {
       r.kind.equals('my.custom.event');
@@ -126,7 +126,7 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     // Wait for registration!
     await ctx.checkConsole((m) => m.contains('extension registered'));

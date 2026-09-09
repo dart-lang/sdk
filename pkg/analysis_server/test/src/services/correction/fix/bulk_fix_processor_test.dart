@@ -36,7 +36,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -71,7 +71,7 @@ class B extends A {
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -100,7 +100,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -128,7 +128,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -183,7 +183,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(

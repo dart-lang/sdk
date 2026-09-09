@@ -14,12 +14,12 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    var result = await sandbox.runMain('main.dart');
+    var result = await sandbox.run('main.dart', mode: 'console');
     check(result.log).isEmpty();
     await iframe.checkEvent(
       (it) => it.isA<LoadModuleEvent>().code.contains('Hello World 1!'),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent((it) => it.isA<RunEvent>());
 
     // Update the main file and recompile!
     await ws.writeFileFromText(
@@ -56,12 +56,12 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    var result = await sandbox.runMain('bin/main.dart');
+    var result = await sandbox.run('bin/main.dart', mode: 'console');
     check(result.log).isEmpty();
     await iframe.checkEvent(
       (it) => it.isA<LoadModuleEvent>().code.contains('Hello 1!'),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent((it) => it.isA<RunEvent>());
 
     await ws.writeFileFromText('lib/sayhello.dart', '''
       void sayHello() => print('Hello 2!');
@@ -85,10 +85,10 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    var result = await sandbox.runMain('main.dart');
+    var result = await sandbox.run('main.dart', mode: 'console');
     check(result.log).isEmpty();
     await iframe.checkEvent((it) => it.isA<LoadModuleEvent>());
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent((it) => it.isA<RunEvent>());
 
     // Recompilation is rejected, because this cannot be hot-reloaded
     await ws.writeFileFromText(

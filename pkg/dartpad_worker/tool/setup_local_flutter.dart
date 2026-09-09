@@ -311,26 +311,15 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
 
   // Synthesize sandbox.js
   print('Synthesizing sandbox.js...');
-  File(p.join(ctx.flutterAssetDir, 'sandbox.js')).writeAsStringSync('''
-(function() {
-  const scriptUrl = document.currentScript?.src || self.location.href;
-
-  // Tell the Flutter engine where to find CanvasKit and assets
-  self.dartpadFlutterConfiguration = {
-    canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
-    assetBase: new URL('./', scriptUrl).href,
-  };
-
-  self.\$dartpadSandboxScripts = [
-    './ddc_module_loader.js',
-    './flutter.js',
-    './dart_sdk.js',
-    './flutter_web.js',
-  ];
-})();
-
-${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
-''');
+  final sandboxJsPatch = File(
+    p.join(ctx.projectRoot, 'lib', 'src', 'asset', 'sandbox_flutter_patch.js'),
+  ).readAsStringSync();
+  final sandboxJs = File(
+    p.join(ctx.dartDartPadSdk, 'sandbox.js'),
+  ).readAsStringSync();
+  File(
+    p.join(ctx.flutterAssetDir, 'sandbox.js'),
+  ).writeAsStringSync('$sandboxJsPatch\n$sandboxJs');
 
   // Copy worker from Dart DartPad SDK.
   print('Copying worker...');
@@ -418,7 +407,13 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
       summaryModules: {
         '/sdk/bin/cache/flutter_web_sdk/kernel/flutter_web.dill': 'flutter_web',
       },
-      bootstrapCode: ctx.bootstrapCode ?? kBootstrapFlutterCode,
+      modes: [
+        DartPadRunMode(mode: 'console'),
+        DartPadRunMode(
+          mode: 'flutter',
+          entrypointWrapperTemplate: ctx.bootstrapCode ?? kBootstrapFlutterCode,
+        ),
+      ],
       flutterSdkPath: '/sdk',
       trackCreationLocations: true,
     ),

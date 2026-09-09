@@ -5,7 +5,7 @@
     (field $#classId i32)
     (field $value f64))))
   (type $JSExternWrapper (sub $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $_externRef externref))))
   (memory $foo.mem (import "foo" "mem") 1)
   (global $.a (import "" "a") (ref extern))

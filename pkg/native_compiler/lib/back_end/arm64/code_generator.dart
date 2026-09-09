@@ -1009,30 +1009,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final valueReg = inputReg(instr, 1);
     final scratch1Reg = temporaryReg(instr, 0);
     final scratch2Reg = temporaryReg(instr, 1);
+    final field = instr.field;
+    final memoryOrder = objectLayout.getFieldMemoryOrder(field);
+    final fieldOffset = objectLayout.getFieldOffset(field);
+
     if (instr.checkNotInitialized) {
-      // TODO: not-initialized check for late final fields.
-      _asm.unimplemented(
-        'Unimplemented: code generation for StoreInstanceField.checkNotInitialized',
-      );
-      return;
+      assert(memoryOrder == .relaxed);
+      assert(field.isLate && field.isFinal);
+
+      _asm.ldr(scratch1Reg, _asm.fieldAddress(objectReg, fieldOffset));
+      _asm.loadFromPool(tempReg, SentinelConstant());
+      _asm.cmp(scratch1Reg, tempReg);
+
+      Label slowPath = addSlowPath(() {
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.loadFromPool(tempReg, field.astField);
+        _asm.stp(
+          tempReg,
+          nullReg, // Space for result.
+          RegOffsetAddress(stackPointerReg, 0),
+        );
+        _callRuntime(RuntimeEntry.LateFieldAlreadyInitializedError, 1);
+        _asm.breakpoint();
+      });
+
+      _asm.b(slowPath, .notEqual);
     }
-    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+
     switch (memoryOrder) {
       case .relaxed:
         // TODO: compressed pointers, unboxed fields
-        _asm.str(
-          valueReg,
-          _asm.fieldAddress(
-            objectReg,
-            objectLayout.getFieldOffset(instr.field),
-          ),
-        );
+        _asm.str(valueReg, _asm.fieldAddress(objectReg, fieldOffset));
       case .acquireRelease:
-        _asm.addImmediate(
-          tempReg,
-          objectReg,
-          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
-        );
+        _asm.addImmediate(tempReg, objectReg, fieldOffset - heapObjectTag);
         _asm.stlr(valueReg, tempReg);
     }
     if (!_canSkipWriteBarrier(instr.object, instr.value)) {
@@ -1170,16 +1179,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.loadFromPool(tempReg, SentinelConstant());
       _asm.cmp(scratch2Reg, tempReg);
 
-      final done = Label();
       Label slowPath = addSlowPath(() {
-        _asm.unimplemented(
-          'Unimplemented: already initialized late final field in StoreStaticField',
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.loadFromPool(tempReg, field.astField);
+        _asm.stp(
+          tempReg,
+          nullReg, // Space for result.
+          RegOffsetAddress(stackPointerReg, 0),
         );
-        _asm.b(done);
+        _callRuntime(RuntimeEntry.LateFieldAlreadyInitializedError, 1);
+        _asm.breakpoint();
       });
 
       _asm.b(slowPath, .notEqual);
-      _asm.bind(done);
     }
 
     if (isShared) {
@@ -1199,35 +1211,86 @@ final class Arm64CodeGenerator extends CodeGenerator {
     );
   }
 
+  Address _computeArrayElementAddress(
+    ArrayKind kind,
+    Register baseReg,
+    Definition index,
+    Register indexReg,
+    Register scratchReg,
+  ) {
+    final OperandSize sz = kind.elementSize(objectLayout);
+
+    var offset = 0;
+    if (kind.indirectElements) {
+      _asm.ldr(
+        scratchReg,
+        _asm.fieldAddress(baseReg, kind.dataFieldOffset(vmOffsets)!),
+      );
+      baseReg = scratchReg;
+    } else {
+      offset = kind.dataOffset(vmOffsets) - heapObjectTag;
+    }
+
+    if (index is Constant) {
+      if (kind.unscaledIndex) {
+        offset += index.value.intValue;
+      } else {
+        offset += index.value.intValue << sz.log2sizeInBytes;
+      }
+    } else {
+      if (offset == 0) {
+        return RegExtRegAddress(
+          baseReg,
+          indexReg,
+          .UXTX,
+          scaled: !kind.unscaledIndex,
+        );
+      }
+      _asm.add(
+        scratchReg,
+        baseReg,
+        kind.unscaledIndex
+            ? indexReg
+            : ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
+      );
+      baseReg = scratchReg;
+    }
+    return _asm.address(baseReg, offset, sz);
+  }
+
   @override
   void visitLoadArrayElement(LoadArrayElement instr) {
-    OperandSize sz = instr.kind.elementSize(objectLayout);
-    int offset = instr.kind.dataOffset(vmOffsets);
-    Register baseReg = inputReg(instr, 0);
-    final index = instr.index;
-    if (index is Constant) {
-      offset += index.value.intValue << sz.log2sizeInBytes;
-    } else {
-      final indexReg = inputReg(instr, 1);
-      _asm.add(
-        tempReg,
-        baseReg,
-        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
-      );
-      baseReg = tempReg;
-    }
+    final OperandSize sz = instr.kind.elementSize(objectLayout);
+    final arrayReg = inputReg(instr, 0);
+    final indexReg = (instr.index is Constant)
+        ? invalidReg
+        : inputReg(instr, 1);
     final resultReg = outputReg(instr);
-    _asm.ldr(resultReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+
+    _asm.ldr(
+      resultReg,
+      _computeArrayElementAddress(
+        instr.kind,
+        arrayReg,
+        instr.index,
+        indexReg,
+        tempReg,
+      ),
+      sz,
+    );
   }
 
   @override
   void visitStoreArrayElement(StoreArrayElement instr) {
-    OperandSize sz = instr.kind.elementSize(objectLayout);
-    int offset = instr.kind.dataOffset(vmOffsets);
-    final Register arrayReg = inputReg(instr, 0);
+    final OperandSize sz = instr.kind.elementSize(objectLayout);
+    final arrayReg = inputReg(instr, 0);
+    final indexReg = (instr.index is Constant)
+        ? invalidReg
+        : inputReg(instr, 1);
     Register valueReg = inputReg(instr, 2);
 
-    if (instr.kind == .uint8ClampedList) {
+    if (instr.kind == .uint8ClampedList ||
+        instr.kind == .uint8ClampedListView) {
       // Clamp value to [0, 0xff] range.
       final scratchReg = temporaryReg(instr, 0);
       _asm.cmpImmediate(valueReg, 0xff);
@@ -1238,20 +1301,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
       valueReg = scratchReg;
     }
 
-    var baseReg = arrayReg;
-    final index = instr.index;
-    if (index is Constant) {
-      offset += index.value.intValue << sz.log2sizeInBytes;
-    } else {
-      final indexReg = inputReg(instr, 1);
-      _asm.add(
+    _asm.str(
+      valueReg,
+      _computeArrayElementAddress(
+        instr.kind,
+        arrayReg,
+        instr.index,
+        indexReg,
         tempReg,
-        baseReg,
-        ShiftedRegOperand(indexReg, .LSL, sz.log2sizeInBytes),
-      );
-      baseReg = tempReg;
-    }
-    _asm.str(valueReg, _asm.address(baseReg, offset - heapObjectTag, sz), sz);
+      ),
+      sz,
+    );
 
     if (instr.kind == .fixedLengthList &&
         !_canSkipWriteBarrier(instr.array, instr.value)) {
@@ -2139,6 +2199,34 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _callRuntime(RuntimeEntry.AllocateTypedData, 2);
           _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
           break;
+        case .int8ListView ||
+            .uint8ListView ||
+            .uint8ClampedListView ||
+            .int16ListView ||
+            .uint16ListView ||
+            .int32ListView ||
+            .uint32ListView ||
+            .int64ListView ||
+            .uint64ListView ||
+            .float32ListView ||
+            .float64ListView ||
+            .float32x4ListView ||
+            .float64x2ListView ||
+            .int32x4ListView ||
+            .int8ByteData ||
+            .uint8ByteData ||
+            .int16ByteData ||
+            .uint16ByteData ||
+            .int32ByteData ||
+            .uint32ByteData ||
+            .int64ByteData ||
+            .uint64ByteData ||
+            .float32ByteData ||
+            .float64ByteData ||
+            .float32x4ByteData ||
+            .float64x2ByteData ||
+            .int32x4ByteData:
+          throw 'Unexpected array kind $arrayKind';
       }
       _asm.b(done);
     });
@@ -2821,19 +2909,120 @@ extension on ArrayKind {
                 : (throw 'Unexpected compressedWordSize ${objectLayout.compressedWordSize}'))),
     .oneByteString => .u8,
     .twoByteString => .u16,
-    .int8List => .s8,
-    .uint8List || .uint8ClampedList => .u8,
-    .int16List => .s16,
-    .uint16List => .u16,
-    .int32List => .s32,
-    .uint32List => .u32,
-    .int64List => .s64,
-    .uint64List => .u64,
-    .float32List => .u32,
-    .float64List => .u64,
-    .float32x4List || .float64x2List || .int32x4List => .simd128,
+    .int8List || .int8ListView || .int8ByteData => .s8,
+    .uint8List || .uint8ListView || .uint8ByteData => .u8,
+    .uint8ClampedList || .uint8ClampedListView => .u8,
+    .int16List || .int16ListView || .int16ByteData => .s16,
+    .uint16List || .uint16ListView || .uint16ByteData => .u16,
+    .int32List || .int32ListView || .int32ByteData => .s32,
+    .uint32List || .uint32ListView || .uint32ByteData => .u32,
+    .int64List || .int64ListView || .int64ByteData => .s64,
+    .uint64List || .uint64ListView || .uint64ByteData => .u64,
+    .float32List || .float32ListView || .float32ByteData => .u32,
+    .float64List || .float64ListView || .float64ByteData => .u64,
+    .float32x4List || .float32x4ListView || .float32x4ByteData => .simd128,
+    .float64x2List || .float64x2ListView || .float64x2ByteData => .simd128,
+    .int32x4List || .int32x4ListView || .int32x4ByteData => .simd128,
   };
 
+  /// Returns true if array elements should be accessed indirectly through `data` field.
+  bool get indirectElements => switch (this) {
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString ||
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List ||
+    .float32List ||
+    .float64List ||
+    .float32x4List ||
+    .float64x2List ||
+    .int32x4List => false,
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView ||
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => true,
+  };
+
+  /// Returns true if this array uses unscaled offset in bytes for indexing.
+  bool get unscaledIndex => switch (this) {
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString ||
+    .int8List ||
+    .uint8List ||
+    .uint8ClampedList ||
+    .int16List ||
+    .uint16List ||
+    .int32List ||
+    .uint32List ||
+    .int64List ||
+    .uint64List ||
+    .float32List ||
+    .float64List ||
+    .float32x4List ||
+    .float64x2List ||
+    .int32x4List ||
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView => false,
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => true,
+  };
+
+  /// Offset of the array elements from the beginning of the array object.
+  /// Should be used only if array allows direct access to its elements.
   int dataOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList => vmOffsets.Array_data_offset,
     .oneByteString => vmOffsets.OneByteString_data_offset,
@@ -2852,6 +3041,33 @@ extension on ArrayKind {
     .float32x4List ||
     .float64x2List ||
     .int32x4List => vmOffsets.TypedData_payload_offset,
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView ||
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => throw "Array ${this} doesn't have payload",
   };
 
   int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
@@ -2870,9 +3086,37 @@ extension on ArrayKind {
     .float64List ||
     .float32x4List ||
     .float64x2List ||
-    .int32x4List => vmOffsets.TypedDataBase_length_offset,
+    .int32x4List ||
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView ||
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => vmOffsets.TypedDataBase_length_offset,
   };
 
+  /// Offset of the `data` field which provides indirect access to array elements.
   int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList ||
     .oneByteString ||
@@ -2890,7 +3134,34 @@ extension on ArrayKind {
     .float64List ||
     .float32x4List ||
     .float64x2List ||
-    .int32x4List => vmOffsets.PointerBase_data_offset,
+    .int32x4List ||
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView ||
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => vmOffsets.PointerBase_data_offset,
   };
 
   int maxNewSpaceElements(ObjectLayout objectLayout) {
@@ -2918,5 +3189,32 @@ extension on ArrayKind {
     .float32x4List => ClassId.TypedDataFloat32x4ArrayCid,
     .float64x2List => ClassId.TypedDataFloat64x2ArrayCid,
     .int32x4List => ClassId.TypedDataInt32x4ArrayCid,
+    .int8ListView ||
+    .uint8ListView ||
+    .uint8ClampedListView ||
+    .int16ListView ||
+    .uint16ListView ||
+    .int32ListView ||
+    .uint32ListView ||
+    .int64ListView ||
+    .uint64ListView ||
+    .float32ListView ||
+    .float64ListView ||
+    .float32x4ListView ||
+    .float64x2ListView ||
+    .int32x4ListView ||
+    .int8ByteData ||
+    .uint8ByteData ||
+    .int16ByteData ||
+    .uint16ByteData ||
+    .int32ByteData ||
+    .uint32ByteData ||
+    .int64ByteData ||
+    .uint64ByteData ||
+    .float32ByteData ||
+    .float64ByteData ||
+    .float32x4ByteData ||
+    .float64x2ByteData ||
+    .int32x4ByteData => throw 'Unexpected array kind ${this}',
   };
 }

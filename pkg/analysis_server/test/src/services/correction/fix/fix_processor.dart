@@ -138,7 +138,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     String expected, {
     File? file,
   }) async {
-    var analysisContext = contextFor(file ?? testFile);
+    var analysisContext = contextFor2(file ?? testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -151,7 +151,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> assertFormat(String expectedCode) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -188,7 +188,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> assertOrganize(String expectedCode) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -207,7 +207,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     List<String>? codes,
     bool isParse = false,
   }) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -225,7 +225,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Computes whether there are bulk fixes for the context containing
   /// [testFile].
   Future<bool> computeHasFixes() async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,

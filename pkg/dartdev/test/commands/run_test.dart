@@ -430,6 +430,43 @@ void main(List<String> args) => print("$b $args");
     expect(abbreviationResult.exitCode, 0);
   });
 
+  test(
+    'with VM environment declaration options specified many times before run',
+    () async {
+      p = project(
+        mainSrc: r'''
+    void main() {
+      for (int i = 1; i <= 50; i++) {
+        if (String.fromEnvironment('x$i') != '$i') throw "Bad string";
+        if (int.fromEnvironment('x$i') != i) throw "Bad int";
+      }
+      print("Good");
+    }
+    ''',
+      );
+
+      final result = await p.run([
+        for (int i = 1; i <= 50; i++) '--define=x$i=$i',
+        'run',
+        p.relativeFilePath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('Good'));
+
+      final abbreviationResult = await p.run([
+        for (int i = 1; i <= 50; i++) '-Dx$i=$i',
+        'run',
+        p.relativeFilePath,
+      ]);
+
+      expect(abbreviationResult.stderr, isEmpty);
+      expect(abbreviationResult.exitCode, 0);
+      expect(abbreviationResult.stdout, contains('Good'));
+    },
+  );
+
   test('with accepted VM flags related to the timeline', () async {
     p = project(
       mainSrc:

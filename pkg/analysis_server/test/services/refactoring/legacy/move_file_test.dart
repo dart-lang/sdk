@@ -27,7 +27,7 @@ class MoveFileTest extends RefactoringTest {
   late String testFilePath;
 
   Future<void> analyzeTestPackageFiles() async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
       await analysisContext.applyPendingFileChanges();

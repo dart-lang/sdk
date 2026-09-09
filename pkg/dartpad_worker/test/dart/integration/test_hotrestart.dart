@@ -23,7 +23,7 @@ void main() => testDartIntegration('hotRestart', (ctx) async {
     ''');
 
   printOnFailure('# Running code in sandbox');
-  final r1 = await ctx.sandbox.runMain('bin/main.dart');
+  final r1 = await ctx.sandbox.run('bin/main.dart', mode: 'console');
   check(r1.log).isNotNull();
 
   await ctx.checkConsole((m) => m.contains('Hello 1!'));

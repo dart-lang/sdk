@@ -26,8 +26,9 @@ void main() => testDartIntegration('dartpad', (ctx) async {
   ''');
 
   printOnFailure('# Running code in sandbox');
-  final result = await ctx.sandbox.runMain(
+  final result = await ctx.sandbox.run(
     ctx.ws.workspaceFolder.resolve('main.dart').toString(),
+    mode: 'console',
   );
   check(result.log).isNotNull();
 
