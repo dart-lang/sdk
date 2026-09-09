@@ -276,7 +276,11 @@ final class Arm64Constraints extends Constraints {
       return InstructionConstraints(
         null,
         [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        [if (instr.kind == .uint8ClampedList) anyCpuRegister],
+        [
+          if (instr.kind == .uint8ClampedList ||
+              instr.kind == .uint8ClampedListView)
+            anyCpuRegister,
+        ],
       );
     }
   }
