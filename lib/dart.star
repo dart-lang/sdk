@@ -106,6 +106,11 @@ def _try_builder(
         fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = defaults.dimensions(dimensions)
 
+    # b/537826629: Try builders may not use luci.flutter.prod because it is
+    # shared with flutter-prod-builder@.
+    if dimensions["pool"] == "luci.flutter.prod":
+        fail("Try builders may not use luci.flutter.prod (b/537826629)")
+
     # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering
     # of host_class.
     if dimensions["pool"] in ["luci.flutter.prod", "luci.flutter.staging"]:

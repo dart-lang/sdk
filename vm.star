@@ -168,12 +168,16 @@ _vm_builder(
 _nightly_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|windows|ad",
+    # No try builder because of b/537826629.
+    channels = [],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-win-release-arm64",
     category = "vm|jit|windows|ar",
+    # No try builder because of b/537826629.
+    channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
@@ -262,12 +266,16 @@ _vm_builder(
 _nightly_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|windows|ad",
+    # No try builder because of b/537826629.
+    channels = [],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
     category = "vm|aot|windows|ar",
+    # No try builder because of b/537826629.
+    channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )

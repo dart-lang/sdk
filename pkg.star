@@ -85,6 +85,8 @@ _pkg_builder(
 _pkg_builder(
     "pkg-win-release-arm64",
     category = "pkg|wa",
+    # No try builder because of b/537826629.
+    channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
 )
