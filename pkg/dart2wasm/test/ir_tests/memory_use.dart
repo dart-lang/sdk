@@ -30,11 +30,9 @@ void main() {
 
   memory.storeInt32(memory.size, WasmI32.fromInt(32), offset: 10);
 
-  // Ensure we don't import memory as a procedure when TFA replaces this with an
-  // unconditional throw (https://dart-review.googlesource.com/c/sdk/+/546240).
-  memory.storeInt64(0, alwaysOne == 1 ? throw 'a' : WasmI64.fromInt(42));
-  // Swapping the memory index and offset makes this reference memory 258,
-  // which wasm-opt must reject before the IR snapshot is produced.
+  // Ensure the memory index and offset are correctly ordered; 
+  // if not, wasm-opt must reject before the IR snapshot is produced.
+  // See https://dart-review.googlesource.com/c/sdk/+/547420
   secondMemory.storeFloat64(
     secondMemory.size,
     WasmF64.fromDouble(42.5),
@@ -46,6 +44,10 @@ void main() {
         .loadFloat64(secondMemory.size, offset: 258, align: 3)
         .toDouble(),
   );
+
+  // Ensure we don't import memory as a procedure when TFA replaces this with an
+  // unconditional throw (https://dart-review.googlesource.com/c/sdk/+/546240).
+  memory.storeInt64(0, alwaysOne == 1 ? throw 'a' : WasmI64.fromInt(42));
 }
 
 int get alwaysOne => 1;
