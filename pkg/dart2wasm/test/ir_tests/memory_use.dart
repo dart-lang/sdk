@@ -13,6 +13,10 @@ import 'dart:_wasm';
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
 external Memory get memory;
 
+@pragma('wasm:import', 'foo.second_mem')
+@pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
+external Memory get secondMemory;
+
 @pragma('wasm:never-inline')
 void main() {
   memory.size;
@@ -29,6 +33,19 @@ void main() {
   // Ensure we don't import memory as a procedure when TFA replaces this with an
   // unconditional throw (https://dart-review.googlesource.com/c/sdk/+/546240).
   memory.storeInt64(0, alwaysOne == 1 ? throw 'a' : WasmI64.fromInt(42));
+  // Swapping the memory index and offset makes this reference memory 258,
+  // which wasm-opt must reject before the IR snapshot is produced.
+  secondMemory.storeFloat64(
+    secondMemory.size,
+    WasmF64.fromDouble(42.5),
+    offset: 258,
+    align: 3,
+  );
+  print(
+    secondMemory
+        .loadFloat64(secondMemory.size, offset: 258, align: 3)
+        .toDouble(),
+  );
 }
 
 int get alwaysOne => 1;
