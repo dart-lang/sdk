@@ -41,7 +41,7 @@ class ContextsPage extends DiagnosticPageWithNav {
       return;
     }
 
-    var (folder: folder, driver: driver) = currentContext(params);
+    var (:folder, :driver) = currentContext(params);
     var contextPath = folder.path;
 
     writeContextNavigationTabs(folder);

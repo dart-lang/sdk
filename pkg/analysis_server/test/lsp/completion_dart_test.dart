@@ -5971,7 +5971,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String prefix,
     required String label,
   }) async {
-    var (snippet: snippet, defaults: defaults) = await expectSnippet(
+    var (:snippet, :defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,

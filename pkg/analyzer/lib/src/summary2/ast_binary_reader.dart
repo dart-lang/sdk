@@ -363,7 +363,7 @@ class AstBinaryReader {
     node.element = switch ((element, node.staticType)) {
       (
         InternalConstructorElement element,
-        FunctionTypeImpl(returnType: InterfaceTypeImpl returnType),
+        FunctionTypeImpl(:InterfaceTypeImpl returnType),
       ) =>
         SubstitutedConstructorElementImpl.from2(
           element.baseElement,

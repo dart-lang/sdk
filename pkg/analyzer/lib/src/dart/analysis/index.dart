@@ -687,7 +687,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
 
       if (node.name case PrefixedIdentifier(
-        prefix: var prefix,
+        :var prefix,
         identifier: SimpleIdentifier(element: ConstructorElement()),
       )) {
         prefix.accept2(this);
@@ -957,7 +957,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case PropertyAssignmentTargetImpl target:
         switch (target.write) {
-          case SetterInvocationResolutionImpl(element: var element):
+          case SetterInvocationResolutionImpl(:var element):
             recordRelation(
               element,
               IndexRelationKind.IS_INVOKED_BY,
@@ -978,14 +978,14 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         switch (target.write) {
-          case VariableWriteResolutionImpl(element: var element):
+          case VariableWriteResolutionImpl(:var element):
             recordRelation(
               element,
               IndexRelationKind.IS_WRITTEN_BY,
               target,
               false,
             );
-          case SetterInvocationResolutionImpl(element: var element):
+          case SetterInvocationResolutionImpl(:var element):
             recordRelation(
               element,
               IndexRelationKind.IS_INVOKED_BY,
@@ -1170,14 +1170,14 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     switch (node.write) {
-      case VariableWriteResolutionImpl(element: var element):
+      case VariableWriteResolutionImpl(:var element):
         recordRelation(
           element,
           IndexRelationKind.IS_WRITTEN_BY,
           node.identifier2,
           false,
         );
-      case SetterInvocationResolutionImpl(element: var element):
+      case SetterInvocationResolutionImpl(:var element):
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,

@@ -3781,7 +3781,7 @@ class AstBuilder extends StackListener {
           operator: operator,
           propertyName: name,
         ),
-      PropertyAccessImpl(target2: var receiver?, operator: var operator)
+      PropertyAccessImpl(target2: var receiver?, :var operator)
           when operator.type == TokenType.PERIOD &&
               _isSupportedPropertyReceiver(receiver) =>
         ReceiverPropertyAssignmentTargetImpl(
@@ -6654,7 +6654,7 @@ class AstBuilder extends StackListener {
       case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
-      case PropertyAccessImpl(target2: var target?, operator: var operator)
+      case PropertyAccessImpl(target2: var target?, :var operator)
           when operator.type == TokenType.PERIOD:
         return _isSupportedPropertyReceiver(target);
       case ReceiverPropertyExtractionImpl(:var receiver):

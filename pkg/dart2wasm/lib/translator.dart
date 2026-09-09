@@ -2094,7 +2094,7 @@ class Translator with KernelNodes {
   w.ValueType translateTypeOfLocalVariable(Variable node) {
     final dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
     final wasmType = translateType(dartType);
-    if (wasmType case w.RefType(nullable: false, heapType: final heapType)) {
+    if (wasmType case w.RefType(nullable: false, :final heapType)) {
       if (isCyclicHeapType(heapType)) {
         // Cyclic types can't be instantiated, so locals with cyclic types won't
         // be assigned and we can give them a more general type. Returning a

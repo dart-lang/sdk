@@ -222,9 +222,7 @@ class SelectorInfo {
       outputSets.length,
       (i) => _upperBound(outputSets[i], ensureBoxed: false),
     );
-    if (outputs case [
-      w.RefType(heapType: w.HeapType.none, nullable: final nullable),
-    ]) {
+    if (outputs case [w.RefType(heapType: w.HeapType.none, :final nullable)]) {
       // All functions are guaranteed to return null or are unreachable.
       // => Prune signature to not return anything
       // => Tell callers to synthesize `null` or emit `unreachable`.
