@@ -10,29 +10,106 @@ import 'package:kernel/ast.dart';
 class ProcedureAttributesMetadata {
   static const int kInvalidSelectorId = 0;
 
-  final bool methodOrSetterCalledDynamically;
-  final bool getterCalledDynamically;
-  final bool hasThisUses;
-  final bool hasNonThisUses;
-  final bool hasTearOffUses;
-  final int methodOrSetterSelectorId;
-  final int getterSelectorId;
+  static const int _methodOrSetterCalledDynamicallyBit = 1 << 0;
+  static const int _nonThisUsesBit = 1 << 1;
+  static const int _tearOffUsesBit = 1 << 2;
+  static const int _thisUsesBit = 1 << 3;
+  static const int _getterCalledDynamicallyBit = 1 << 4;
+  static const int _numFlags = 5;
+  static const int _flagsMask = (1 << _numFlags) - 1;
 
-  const ProcedureAttributesMetadata({
-    this.methodOrSetterCalledDynamically = true,
-    this.getterCalledDynamically = true,
-    this.hasThisUses = true,
-    this.hasNonThisUses = true,
-    this.hasTearOffUses = true,
-    this.methodOrSetterSelectorId = kInvalidSelectorId,
-    this.getterSelectorId = kInvalidSelectorId,
-  });
+  static const int _selectorIdBits = (64 - _numFlags) ~/ 2;
+  static const int _maxSelectorId = (1 << _selectorIdBits) - 1;
+  static const int _selectorIdMask = _maxSelectorId;
+  static const int _methodOrSetterSelectorIdShift = _numFlags;
+  static const int _getterSelectorIdShift =
+      _methodOrSetterSelectorIdShift + _selectorIdBits;
 
-  const ProcedureAttributesMetadata.noDynamicUses()
-    : this(
-        methodOrSetterCalledDynamically: false,
-        getterCalledDynamically: false,
+  final int _flagsAndSelectorIds;
+
+  const ProcedureAttributesMetadata._(this._flagsAndSelectorIds);
+
+  ProcedureAttributesMetadata({
+    bool methodOrSetterCalledDynamically = true,
+    bool getterCalledDynamically = true,
+    bool hasThisUses = true,
+    bool hasNonThisUses = true,
+    bool hasTearOffUses = true,
+    int methodOrSetterSelectorId = kInvalidSelectorId,
+    int getterSelectorId = kInvalidSelectorId,
+  }) : this._(
+         _encode(
+           methodOrSetterCalledDynamically,
+           getterCalledDynamically,
+           hasThisUses,
+           hasNonThisUses,
+           hasTearOffUses,
+           methodOrSetterSelectorId,
+           getterSelectorId,
+         ),
+       );
+
+  static int _encode(
+    bool methodOrSetterCalledDynamically,
+    bool getterCalledDynamically,
+    bool hasThisUses,
+    bool hasNonThisUses,
+    bool hasTearOffUses,
+    int methodOrSetterSelectorId,
+    int getterSelectorId,
+  ) {
+    if (methodOrSetterSelectorId < 0 ||
+        methodOrSetterSelectorId > _maxSelectorId) {
+      throw RangeError.range(
+        methodOrSetterSelectorId,
+        0,
+        _maxSelectorId,
+        'methodOrSetterSelectorId',
       );
+    }
+    if (getterSelectorId < 0 || getterSelectorId > _maxSelectorId) {
+      throw RangeError.range(
+        getterSelectorId,
+        0,
+        _maxSelectorId,
+        'getterSelectorId',
+      );
+    }
+    return (methodOrSetterCalledDynamically
+            ? _methodOrSetterCalledDynamicallyBit
+            : 0) |
+        (hasNonThisUses ? _nonThisUsesBit : 0) |
+        (hasTearOffUses ? _tearOffUsesBit : 0) |
+        (hasThisUses ? _thisUsesBit : 0) |
+        (getterCalledDynamically ? _getterCalledDynamicallyBit : 0) |
+        (methodOrSetterSelectorId << _methodOrSetterSelectorIdShift) |
+        (getterSelectorId << _getterSelectorIdShift);
+  }
+
+  const ProcedureAttributesMetadata.noDynamicUses({
+    bool hasThisUses = true,
+    bool hasNonThisUses = true,
+    bool hasTearOffUses = true,
+  }) : this._(
+         (hasNonThisUses ? _nonThisUsesBit : 0) |
+             (hasTearOffUses ? _tearOffUsesBit : 0) |
+             (hasThisUses ? _thisUsesBit : 0),
+       );
+
+  bool get methodOrSetterCalledDynamically =>
+      (_flagsAndSelectorIds & _methodOrSetterCalledDynamicallyBit) != 0;
+  bool get getterCalledDynamically =>
+      (_flagsAndSelectorIds & _getterCalledDynamicallyBit) != 0;
+  bool get hasThisUses => (_flagsAndSelectorIds & _thisUsesBit) != 0;
+  bool get hasNonThisUses => (_flagsAndSelectorIds & _nonThisUsesBit) != 0;
+  bool get hasTearOffUses => (_flagsAndSelectorIds & _tearOffUsesBit) != 0;
+
+  int get methodOrSetterSelectorId =>
+      (_flagsAndSelectorIds >>> _methodOrSetterSelectorIdShift) &
+      _selectorIdMask;
+  int get getterSelectorId => _flagsAndSelectorIds >>> _getterSelectorIdShift;
+
+  int get _flags => _flagsAndSelectorIds & _flagsMask;
 
   @override
   String toString() {
@@ -57,12 +134,6 @@ class ProcedureAttributesMetadata {
 /// Repository for [ProcedureAttributesMetadata].
 class ProcedureAttributesMetadataRepository
     extends MetadataRepository<ProcedureAttributesMetadata> {
-  static const int kMethodOrSetterCalledDynamicallyBit = 1 << 0;
-  static const int kNonThisUsesBit = 1 << 1;
-  static const int kTearOffUsesBit = 1 << 2;
-  static const int kThisUsesBit = 1 << 3;
-  static const int kGetterCalledDynamicallyBit = 1 << 4;
-
   static const repositoryTag = 'vm.procedure-attributes.metadata';
 
   @override
@@ -72,33 +143,13 @@ class ProcedureAttributesMetadataRepository
   final Map<TreeNode, ProcedureAttributesMetadata> mapping =
       <TreeNode, ProcedureAttributesMetadata>{};
 
-  int _getFlags(ProcedureAttributesMetadata metadata) {
-    int flags = 0;
-    if (metadata.methodOrSetterCalledDynamically) {
-      flags |= kMethodOrSetterCalledDynamicallyBit;
-    }
-    if (metadata.getterCalledDynamically) {
-      flags |= kGetterCalledDynamicallyBit;
-    }
-    if (metadata.hasThisUses) {
-      flags |= kThisUsesBit;
-    }
-    if (metadata.hasNonThisUses) {
-      flags |= kNonThisUsesBit;
-    }
-    if (metadata.hasTearOffUses) {
-      flags |= kTearOffUsesBit;
-    }
-    return flags;
-  }
-
   @override
   void writeToBinary(
     ProcedureAttributesMetadata metadata,
     Node node,
     BinarySink sink,
   ) {
-    sink.writeByte(_getFlags(metadata));
+    sink.writeByte(metadata._flags);
     sink.writeUInt30(metadata.methodOrSetterSelectorId);
     sink.writeUInt30(metadata.getterSelectorId);
   }
@@ -106,26 +157,15 @@ class ProcedureAttributesMetadataRepository
   @override
   ProcedureAttributesMetadata readFromBinary(Node node, BinarySource source) {
     final int flags = source.readByte();
-
-    final bool methodOrSetterCalledDynamically =
-        (flags & kMethodOrSetterCalledDynamicallyBit) != 0;
-    final bool getterCalledDynamically =
-        (flags & kGetterCalledDynamicallyBit) != 0;
-    final bool hasThisUses = (flags & kThisUsesBit) != 0;
-    final bool hasNonThisUses = (flags & kNonThisUsesBit) != 0;
-    final bool hasTearOffUses = (flags & kTearOffUsesBit) != 0;
-
     final int methodOrSetterSelectorId = source.readUInt30();
     final int getterSelectorId = source.readUInt30();
 
-    return new ProcedureAttributesMetadata(
-      methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
-      getterCalledDynamically: getterCalledDynamically,
-      hasThisUses: hasThisUses,
-      hasNonThisUses: hasNonThisUses,
-      hasTearOffUses: hasTearOffUses,
-      methodOrSetterSelectorId: methodOrSetterSelectorId,
-      getterSelectorId: getterSelectorId,
+    return ProcedureAttributesMetadata._(
+      flags |
+          (methodOrSetterSelectorId <<
+              ProcedureAttributesMetadata._methodOrSetterSelectorIdShift) |
+          (getterSelectorId <<
+              ProcedureAttributesMetadata._getterSelectorIdShift),
     );
   }
 }
