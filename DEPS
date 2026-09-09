@@ -105,7 +105,7 @@ vars = {
   "boringssl_rev": "c66572ad4dcdbd388a2802378a7e422a7f7d82e1",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "c9c5bc8e936a3f8521c2296604778c8ca49a9ade",
+  "devtools_rev": "98217413399f2d56838f0f7497a3ba48adf6f35c",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "a38c5c628774a5e5a4e11ceeee6d5bc6a509eef0",
   "icu_rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
@@ -158,9 +158,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "153.0.8010.5",
+  "chrome_tag": "154.0.8037.0",
   "download_firefox": False,
-  "firefox_tag": "154.0",
+  "firefox_tag": "155.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -586,7 +586,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "u_fSMsPU22VvUsvSoFqxC8RjRhpErOdWDkryN7NzlP8C",
+      "version": "VObjlh3xw2P9sEbC_t_Xy0tpw7FtsjQjp2GwzRV3984C",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -597,7 +597,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "ZsxUUK2SfA-TrNvb8eTBxNftQSqDU5z-cdDoS4_nWTgC",
+      "version": "PDJz3b3CL31uoLOkDb0mm8FidqJ1eCJryoRFd9iVmbIC",
       }
     ],
     "condition": 'download_fuchsia_deps',

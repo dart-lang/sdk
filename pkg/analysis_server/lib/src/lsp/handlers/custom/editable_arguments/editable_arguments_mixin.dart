@@ -102,10 +102,10 @@ mixin EditableArgumentsMixin {
         invocation.constructorName.element?.formalParameters,
         invocation.argumentList,
       ),
-      MethodInvocation(
-        methodName: Identifier(element: ExecutableElement element),
-      ) =>
-        (element.formalParameters, invocation.argumentList),
+      MethodInvocation(methodName: Identifier(:ExecutableElement element)) => (
+        element.formalParameters,
+        invocation.argumentList,
+      ),
       _ => (null, null),
     };
 

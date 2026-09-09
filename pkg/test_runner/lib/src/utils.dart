@@ -430,3 +430,26 @@ class TestUtils {
     return path;
   }
 }
+
+String oomHelper =
+    "${Directory.current.path}/pkg/test_runner/tool/oom_kill_first";
+
+Future<Process> startProcess(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+}) {
+  // Make the OOM killer prefer to kill the tests instead of the test harness or
+  // swarming client.
+  if (Platform.isLinux) {
+    arguments = [executable, ...arguments];
+    executable = oomHelper;
+  }
+  return Process.start(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+  );
+}

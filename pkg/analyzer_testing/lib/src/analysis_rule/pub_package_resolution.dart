@@ -358,7 +358,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
     unitsAndDiagnostics,
   ) async {
     for (var (unitPath, expectedDiagnostics) in unitsAndDiagnostics) {
-      result = await resolveFile(convertPath(unitPath));
+      result = await resolveFile(unitPath);
       assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
@@ -628,7 +628,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
 
   /// Resolves the file with the [filePath] into [result].
   Future<void> _resolveFile(String filePath) async {
-    result = await resolveFile(convertPath(filePath));
+    result = await resolveFile(filePath);
   }
 
   Future<void> _resolveTestFile() => _resolveFile(testFilePath);

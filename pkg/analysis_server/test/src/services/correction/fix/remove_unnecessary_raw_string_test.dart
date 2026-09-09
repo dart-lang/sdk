@@ -36,8 +36,10 @@ var b = 'aid';
 
 @reflectiveTest
 class RemoveUnnecessaryRawStringInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.unnecessary_raw_strings];
+
   Future<void> test_file() async {
-    createAnalysisOptionsFile(lints: [LintNames.unnecessary_raw_strings]);
     await resolveTestCode('''
 var a = r'ace';
 var b = r'aid';

@@ -1250,7 +1250,7 @@ class AssignmentExpressionShared {
   void checkFinalForEachIdentifier(ForEachPartsWithIdentifierImpl node) {
     if (_resolver.flowAnalysis.flow == null) return;
     if (node.write case VariableWriteResolutionImpl(
-      element: PromotableElementImpl element,
+      :PromotableElementImpl element,
     )) {
       _checkFinalAlreadyAssigned(
         node,

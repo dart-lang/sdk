@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:smith/smith.dart';
 
 import '../test_progress.dart';
+import '../utils.dart';
 
 const safariDriverPort = 7055;
 
@@ -55,7 +56,7 @@ class WebDriverService extends EventListener {
         throw ArgumentError.value(runtime, 'runtime', 'Unsupported runtime');
     }
     try {
-      var process = await Process.start(driverExecutable, [
+      var process = await startProcess(driverExecutable, [
         '--port',
         '$port',
         ...driverArguments,

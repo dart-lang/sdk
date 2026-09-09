@@ -152,8 +152,8 @@ class ModulePrinter {
       switch (segment) {
         case ir.ActiveFunctionElementSegment(
           startIndex: final start,
-          table: final table,
-          entries: final entries,
+          :final table,
+          :final entries,
         ):
           final printedEntries = _activeElementSegments.putIfAbsent(
             table,
@@ -175,8 +175,8 @@ class ModulePrinter {
           break;
         case ir.ActiveExpressionElementSegment(
           startIndex: final start,
-          table: final table,
-          expressions: final expressions,
+          :final table,
+          :final expressions,
         ):
           final printedEntries = _activeElementSegments.putIfAbsent(
             table,
@@ -198,7 +198,7 @@ class ModulePrinter {
             }
           }
           break;
-        case ir.DeclarativeElementSegment(entries: final entries):
+        case ir.DeclarativeElementSegment(:final entries):
           final ip = newIrPrinter();
           ip.write('(elem declare');
           if (ip.preferMultiline) {
@@ -733,11 +733,11 @@ abstract class Namer<T> {
     final map = <ir.Exportable, String>{};
     for (final export in _module.exports.exported) {
       final ir.Exportable? key = switch (export) {
-        ir.TableExport(table: var table) => table,
-        ir.TagExport(tag: var tag) => tag,
-        ir.GlobalExport(global: var global) => global,
-        ir.MemoryExport(memory: var memory) => memory,
-        ir.FunctionExport(function: var function) => function,
+        ir.TableExport(:var table) => table,
+        ir.TagExport(:var tag) => tag,
+        ir.GlobalExport(:var global) => global,
+        ir.MemoryExport(:var memory) => memory,
+        ir.FunctionExport(:var function) => function,
         _ => null,
       };
       if (key != null) {
