@@ -289,11 +289,6 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-testcase:///main_lib2.dart:
-- Lib2. (from org-dartlang-testcase:///main_lib2.dart:5:6)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-
 org-dartlang-testcase:///main.dart:
 - Main1. (from org-dartlang-testcase:///main.dart:31:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
@@ -305,3 +300,8 @@ org-dartlang-testcase:///main_lib1.dart:
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - Lib1b. (from org-dartlang-testcase:///main_lib1.dart:56:6)
+
+org-dartlang-testcase:///main_lib2.dart:
+- Lib2. (from org-dartlang-testcase:///main_lib2.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

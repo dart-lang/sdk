@@ -47,7 +47,7 @@ checkIndirectUnmodifiable(TypedData data) {
 }
 
 int8ListTest() {
-  Int8List i8l = new Int8List.fromList(intList);
+  Int8List i8l = Int8List.fromList(intList);
   Int8List list = i8l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -55,7 +55,7 @@ int8ListTest() {
 }
 
 uint8ListTest() {
-  Uint8List u8l = new Uint8List.fromList(intList);
+  Uint8List u8l = Uint8List.fromList(intList);
   Uint8List list = u8l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -63,7 +63,7 @@ uint8ListTest() {
 }
 
 uint8ClampedListTest() {
-  Uint8ClampedList u8l = new Uint8ClampedList.fromList(intList);
+  Uint8ClampedList u8l = Uint8ClampedList.fromList(intList);
   Uint8ClampedList list = u8l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -71,7 +71,7 @@ uint8ClampedListTest() {
 }
 
 int16ListTest() {
-  Int16List i16l = new Int16List.fromList(intList);
+  Int16List i16l = Int16List.fromList(intList);
   Int16List list = i16l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -79,7 +79,7 @@ int16ListTest() {
 }
 
 uint16ListTest() {
-  Uint16List u16l = new Uint16List.fromList(intList);
+  Uint16List u16l = Uint16List.fromList(intList);
   Uint16List list = u16l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -87,7 +87,7 @@ uint16ListTest() {
 }
 
 int32ListTest() {
-  Int32List i32l = new Int32List.fromList(intList);
+  Int32List i32l = Int32List.fromList(intList);
   Int32List list = i32l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -95,7 +95,7 @@ int32ListTest() {
 }
 
 uint32ListTest() {
-  Uint32List u32l = new Uint32List.fromList(intList);
+  Uint32List u32l = Uint32List.fromList(intList);
   Uint32List list = u32l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -103,7 +103,7 @@ uint32ListTest() {
 }
 
 int64ListTest() {
-  Int64List i64l = new Int64List.fromList(intList);
+  Int64List i64l = Int64List.fromList(intList);
   Int64List list = i64l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -111,7 +111,7 @@ int64ListTest() {
 }
 
 uint64ListTest() {
-  Uint64List u64l = new Uint64List.fromList(intList);
+  Uint64List u64l = Uint64List.fromList(intList);
   Uint64List list = u64l.asUnmodifiableView();
   checkReadable(list);
   checkUnmodifiable(list);
@@ -148,7 +148,7 @@ checkDoubleUnmodifiable(List<double> list) {
 }
 
 float32ListTest() {
-  Float32List f32l = new Float32List.fromList(doubleList);
+  Float32List f32l = Float32List.fromList(doubleList);
   Float32List list = f32l.asUnmodifiableView();
   checkDoubleReadable(list);
   checkDoubleUnmodifiable(list);
@@ -156,7 +156,7 @@ float32ListTest() {
 }
 
 float64ListTest() {
-  Float64List f64l = new Float64List.fromList(doubleList);
+  Float64List f64l = Float64List.fromList(doubleList);
   Float64List list = f64l.asUnmodifiableView();
   checkDoubleReadable(list);
   checkDoubleUnmodifiable(list);
@@ -164,8 +164,8 @@ float64ListTest() {
 }
 
 byteDataTest() {
-  ByteBuffer buffer = new Uint8List.fromList(intList).buffer;
-  ByteData bd = new ByteData.view(buffer);
+  ByteBuffer buffer = Uint8List.fromList(intList).buffer;
+  ByteData bd = ByteData.view(buffer);
   ByteData ubdv = bd.asUnmodifiableView();
 
   Expect.throwsUnsupportedError(() => ubdv.setInt8(0, 0));

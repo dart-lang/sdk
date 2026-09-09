@@ -1945,10 +1945,9 @@ js.VariableInitialization _makeVariableInitializer(
     declaration = variable;
   }
   return js.VariableInitialization(
-        declaration,
-        initValue,
-      ).withSourceInformation(sourceInformation)
-      as js.VariableInitialization;
+    declaration,
+    initValue,
+  ).withSourceInformation(sourceInformation) as js.VariableInitialization;
 }
 
 class AsyncRewriter extends AsyncRewriterBase {
@@ -2146,9 +2145,8 @@ class AsyncRewriter extends AsyncRewriterBase {
             "completer": completer,
           })
           .withSourceInformation(bodySourceInformation);
-      js.Statement returnAsyncRethrow = js.Return(
-        asyncRethrowCall,
-      ).withSourceInformation(bodySourceInformation);
+      js.Statement returnAsyncRethrow = js.Return(asyncRethrowCall)
+          .withSourceInformation(bodySourceInformation);
       errorCheck = js.js
           .statement(
             """
@@ -2186,9 +2184,8 @@ class AsyncRewriter extends AsyncRewriterBase {
           "completer": completer,
         })
         .withSourceInformation(bodySourceInformation);
-    js.Statement returnAsyncStart = js.Return(
-      asyncStartCall,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnAsyncStart = js.Return(asyncStartCall)
+        .withSourceInformation(bodySourceInformation);
     js.Expression wrapBodyCall = js
         .js("#wrapBody(#innerFunction)", {
           "wrapBody": wrapBody,
@@ -2360,9 +2357,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
           },
         )
         .withSourceInformation(functionSourceInformation);
-    js.Statement returnInnerInnerFunction = js.Return(
-      innerInnerFunction,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerInnerFunction = js.Return(innerInnerFunction)
+        .withSourceInformation(bodySourceInformation);
     js.Expression innerFunction = js
         .js(
           """
@@ -2381,9 +2377,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
           },
         )
         .withSourceInformation(functionSourceInformation);
-    js.Statement returnInnerFunction = js.Return(
-      innerFunction,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerFunction = js.Return(innerFunction)
+        .withSourceInformation(bodySourceInformation);
     return js
             .js(
               """
@@ -2439,9 +2434,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
       addStatement(js.Comment("implicit return"));
     }
     addStatement(
-      js.Return(
-        js.number(status_codes.SYNC_STAR_DONE),
-      ).withSourceInformation(sourceInformation),
+      js.Return(js.number(status_codes.SYNC_STAR_DONE))
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -2620,9 +2614,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     js.Expression gotoError = js
         .js("#goto = #handler", {"goto": goto, "handler": handler})
         .withSourceInformation(bodySourceInformation);
-    js.Statement breakStatement = js.Break(
-      null,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement breakStatement = js.Break(null)
+        .withSourceInformation(bodySourceInformation);
     js.Statement switchCase = js.js
         .statement(
           """

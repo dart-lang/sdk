@@ -444,6 +444,7 @@ static constexpr uint32_t PLATFORM_ANY = 0xffffffff;
 
 static constexpr uint32_t PLATFORM_MACOS = 0x1;
 static constexpr uint32_t PLATFORM_IOS = 0x2;
+static constexpr uint32_t PLATFORM_IOSSIMULATOR = 0x7;
 
 union lc_str {
   // The offset of the string in the load command contents.

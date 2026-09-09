@@ -19,12 +19,6 @@ part "class_id_fasta.dart";
 part "print_patch.dart";
 part "symbol_patch.dart";
 
-// On the VM, we don't make the entire legacy weak mode check
-// const to avoid having a constant in the platform libraries
-// which evaluates differently in weak vs strong mode.
-@patch
-bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
-
 @patch
 @pragma("vm:external-name", "Internal_makeListFixedLength")
 @pragma("vm:exact-result-type", "dart:core#_List")

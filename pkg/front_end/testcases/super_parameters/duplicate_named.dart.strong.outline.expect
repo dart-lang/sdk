@@ -20,7 +20,7 @@ class S extends core::Object {
 }
 class C extends self::S {
   field core::int i1;
-  constructor •(initializing-formal core::int i1, super-initializing-formal core::int s1, {super-initializing-formal core::int s2 = 0, super-initializing-formal core::int s2 = 0}) → self::C
+  constructor •(initializing-formal core::int i1, super-initializing-formal core::int s1, {super-initializing-formal core::int s2 = 0, super-initializing-formal core::int s2##1 = 0}) → self::C
     ;
 }
 static method test() → dynamic

@@ -349,6 +349,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ mov(CSP, SP);
 
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);
@@ -375,6 +376,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ CallCFunction(R0);
 
   __ mov(SP, CALLEE_SAVED_TEMP2);

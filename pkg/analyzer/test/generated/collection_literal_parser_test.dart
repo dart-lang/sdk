@@ -133,10 +133,12 @@ ListLiteral
             literal: 10
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -234,7 +236,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -316,7 +319,8 @@ ListLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -440,7 +444,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -483,7 +488,8 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -530,11 +536,17 @@ SetOrMapLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: AssignmentExpression
-          leftHandSide2: SimpleIdentifier
+        initialization2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x
+          operator: =
+          value: IntegerLiteral
+            literal: 0
+        initialization(v1): AssignmentExpression
+          leftHandSide: SimpleIdentifier
             token: x
           operator: =
-          rightHandSide2: IntegerLiteral
+          rightHandSide: IntegerLiteral
             literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -552,10 +564,12 @@ SetOrMapLiteral
             literal: 10
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -689,7 +703,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: c
+          identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
           iterable2: SimpleIdentifier
@@ -795,7 +810,8 @@ SetOrMapLiteral
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
           iterable2: SimpleIdentifier

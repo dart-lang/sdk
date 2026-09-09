@@ -538,7 +538,8 @@ class Two {}
 
     await resolveTestCodeWithDiagnostics(r'''
 export 'src/foo.dart' show One;
-// [diag.invalidExportOfInternalElement][column 1][length 31] The member 'One' can't be exported as a part of a package's public API.
+//                         ^^^
+// [diag.invalidExportOfInternalElement] The member 'One' can't be exported as a part of a package's public API.
 ''');
   }
 }

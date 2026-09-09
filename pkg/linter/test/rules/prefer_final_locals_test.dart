@@ -618,6 +618,49 @@ f() {
 ''');
   }
 
+  test_switchExpression_declaredVariablePattern() async {
+    await assertNoDiagnostics(r'''
+Object? f(Object o) {
+  return switch (o) {
+    var foo => foo,
+  };
+}
+''');
+  }
+
+  test_switchExpression_declaredVariablePattern_closure() async {
+    await assertDiagnosticsFromMarkup(r'''
+Object? f(Object o) {
+  return switch (o) {
+    _ => () {
+      if (o case [!var x!]) return x;
+    }(),
+  };
+}
+''');
+  }
+
+  test_switchExpression_declaredVariablePattern_logicalAnd() async {
+    await assertNoDiagnostics(r'''
+Object? f(Object o) {
+  return switch (o) {
+    int() && var foo => foo,
+    _ => 0,
+  };
+}
+''');
+  }
+
+  test_switchExpression_declaredVariablePattern_parenthesized() async {
+    await assertNoDiagnostics(r'''
+Object? f(Object o) {
+  return switch (o) {
+    (var foo) => foo,
+  };
+}
+''');
+  }
+
   test_wildcardLocal() async {
     await assertNoDiagnostics(r'''
 f() {

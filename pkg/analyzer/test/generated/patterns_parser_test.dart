@@ -7655,17 +7655,17 @@ void f() {
     var node = parseResult.findNode.assignment('v2 =');
     assertParsedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+  leftHandSide: SimpleIdentifier
     token: v2
   operator: =
-  rightHandSide2: PatternAssignment
+  rightHandSide: PatternAssignment
     pattern: ParenthesizedPattern
       leftParenthesis: (
       pattern: AssignedVariablePattern
         name: v1
       rightParenthesis: )
     equals: =
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 2
 ''');
   }
@@ -7681,21 +7681,45 @@ void f() {
 CascadeExpression
   target2: SimpleIdentifier
     token: a
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: b
+        operator: =
+        value: PatternAssignment
+          pattern: ParenthesizedPattern
+            leftParenthesis: (
+            pattern: AssignedVariablePattern
+              name: v1
+            rightParenthesis: )
+          equals: =
+          expression2: SimpleIdentifier
+            token: c
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: b
       operator: =
-      rightHandSide2: PatternAssignment
+      rightHandSide: PatternAssignment
         pattern: ParenthesizedPattern
           leftParenthesis: (
           pattern: AssignedVariablePattern
             name: v1
           rightParenthesis: )
         equals: =
-        expression2: SimpleIdentifier
+        expression: SimpleIdentifier
           token: c
     MethodInvocation
       operator: ..
@@ -7752,7 +7776,16 @@ PatternAssignment
   expression2: CascadeExpression
     target2: SimpleIdentifier
       token: a
-    cascadeSections2
+    sections
+      CascadeSection
+        body: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: m
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    cascadeSections
       MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
@@ -7845,7 +7878,7 @@ var (a, b) = (0, 1);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var

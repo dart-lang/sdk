@@ -299,6 +299,14 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   );
 
+  static const ExperimentalFlag receiverTypeInference = const ExperimentalFlag(
+    name: 'receiver-type-inference',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag recordUse = const ExperimentalFlag(
     name: 'record-use',
     isEnabledByDefault: true,
@@ -329,6 +337,14 @@ class ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
+  );
+
+  static const ExperimentalFlag singleCombinators = const ExperimentalFlag(
+    name: 'single-combinators',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   );
 
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
@@ -610,6 +626,10 @@ class GlobalFeatures {
   GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
       _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
 
+  GlobalFeature? _receiverTypeInference;
+  GlobalFeature get receiverTypeInference => _receiverTypeInference ??=
+      _computeGlobalFeature(ExperimentalFlag.receiverTypeInference);
+
   GlobalFeature? _recordUse;
   GlobalFeature get recordUse =>
       _recordUse ??= _computeGlobalFeature(ExperimentalFlag.recordUse);
@@ -625,6 +645,10 @@ class GlobalFeatures {
   GlobalFeature? _setLiterals;
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
+
+  GlobalFeature? _singleCombinators;
+  GlobalFeature get singleCombinators => _singleCombinators ??=
+      _computeGlobalFeature(ExperimentalFlag.singleCombinators);
 
   GlobalFeature? _soundFlowAnalysis;
   GlobalFeature get soundFlowAnalysis => _soundFlowAnalysis ??=
@@ -930,6 +954,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _receiverTypeInference;
+  LibraryFeature get receiverTypeInference =>
+      _receiverTypeInference ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.receiverTypeInference,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _recordUse;
   LibraryFeature get recordUse =>
       _recordUse ??= globalFeatures._computeLibraryFeature(
@@ -958,6 +990,14 @@ class LibraryFeatures {
   LibraryFeature get setLiterals =>
       _setLiterals ??= globalFeatures._computeLibraryFeature(
         ExperimentalFlag.setLiterals,
+        canonicalUri,
+        libraryVersion,
+      );
+
+  LibraryFeature? _singleCombinators;
+  LibraryFeature get singleCombinators =>
+      _singleCombinators ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.singleCombinators,
         canonicalUri,
         libraryVersion,
       );
@@ -1115,6 +1155,8 @@ class LibraryFeatures {
         return primaryConstructors;
       case shared.ExperimentalFlag.privateNamedParameters:
         return privateNamedParameters;
+      case shared.ExperimentalFlag.receiverTypeInference:
+        return receiverTypeInference;
       case shared.ExperimentalFlag.recordUse:
         return recordUse;
       case shared.ExperimentalFlag.records:
@@ -1123,6 +1165,8 @@ class LibraryFeatures {
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
         return setLiterals;
+      case shared.ExperimentalFlag.singleCombinators:
+        return singleCombinators;
       case shared.ExperimentalFlag.soundFlowAnalysis:
         return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
@@ -1213,6 +1257,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.primaryConstructors;
     case "private-named-parameters":
       return ExperimentalFlag.privateNamedParameters;
+    case "receiver-type-inference":
+      return ExperimentalFlag.receiverTypeInference;
     case "record-use":
       return ExperimentalFlag.recordUse;
     case "records":
@@ -1221,6 +1267,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.sealedClass;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
+    case "single-combinators":
+      return ExperimentalFlag.singleCombinators;
     case "sound-flow-analysis":
       return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
@@ -1305,10 +1353,14 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.primaryConstructors.isEnabledByDefault,
   ExperimentalFlag.privateNamedParameters:
       ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
+  ExperimentalFlag.receiverTypeInference:
+      ExperimentalFlag.receiverTypeInference.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
+  ExperimentalFlag.singleCombinators:
+      ExperimentalFlag.singleCombinators.isEnabledByDefault,
   ExperimentalFlag.soundFlowAnalysis:
       ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -1381,10 +1433,14 @@ ExperimentalFlag fromSharedExperimentalFlag(
     ExperimentalFlag.primaryConstructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.receiverTypeInference =>
+    ExperimentalFlag.receiverTypeInference,
   shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records => ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals => ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.singleCombinators =>
+    ExperimentalFlag.singleCombinators,
   shared.ExperimentalFlag.soundFlowAnalysis =>
     ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections =>

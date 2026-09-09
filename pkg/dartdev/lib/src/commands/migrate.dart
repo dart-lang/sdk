@@ -5,18 +5,15 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:analysis_server_client/protocol.dart' show SourceEdit;
-import 'package:analyzer/source/line_info.dart';
 import 'package:cli_util/cli_logging.dart' show Progress;
+import 'package:dartdev/src/commands/utils/lsp_workspace_edits.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart' as lsp;
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../lsp_analysis_server.dart';
 import '../sdk.dart';
-import '../utils.dart';
 
 /// A command to run the package migration tool.
 class MigrateCommand extends DartdevCommand {
@@ -28,6 +25,10 @@ class MigrateCommand extends DartdevCommand {
   MigrateCommand({bool verbose = false})
     : super(cmdName, cmdDescription, verbose, hidden: true) {
     argParser
+      ..addOption(
+        'target-sdk',
+        help: 'The target Dart SDK version to migrate to (e.g., "3.13.0").',
+      )
       ..addFlag(
         'dry-run',
         abbr: 'n',
@@ -72,27 +73,28 @@ class MigrateCommand extends DartdevCommand {
     }
 
     final steps = args.multiOption('step');
+    final targetSdk = args.option('target-sdk');
     final rest = args.rest;
+    final targets = _getTargets(rest);
 
-    // TODO(kallentu): Support multiple targets.
-    final target = getTarget(rest);
-    if (!target.existsSync()) {
-      final entity = target is io.Directory ? 'Directory' : 'File';
-      usageException("$entity doesn't exist: ${target.path}");
+    String targetDescription;
+    if (targets.length == 1) {
+      final targetName = path.basename(targets.single.path);
+      targetDescription = 'package ${log.ansi.emphasized(targetName)}';
+    } else {
+      targetDescription = '${targets.length} packages';
     }
-
-    final migratePath = target.path;
-    final targetName = path.basename(migratePath);
     final modeText = dryRun ? ' (dry run)' : '';
-
-    Progress? progress = log.progress(
-      'Migrating package ${log.ansi.emphasized(targetName)}$modeText',
+    final initialMessage = 'Migrating $targetDescription$modeText';
+    Progress? progress = log.progress(initialMessage);
+    final workDoneToken = lsp.ProgressToken.t2(
+      'migrate-${DateTime.now().millisecondsSinceEpoch}',
     );
 
     final server = LspAnalysisServer(
       null,
       io.Directory(sdk.sdkPath),
-      [target],
+      targets,
       commandName: 'migrate',
       argResults: argResults,
       usePlugins: false,
@@ -100,6 +102,17 @@ class MigrateCommand extends DartdevCommand {
     );
 
     await server.start();
+
+    final progressSubscription = server.onProgress.listen((params) {
+      if (params.token != workDoneToken || progress == null) return;
+      if (params.value case {
+        'kind': 'report' || 'begin',
+        'message': String message,
+      } when message.isNotEmpty) {
+        progress?.cancel();
+        progress = log.progress('$initialMessage: $message');
+      }
+    });
 
     server.onExit.then((int exitCode) {
       if (progress != null && exitCode != 0) {
@@ -118,9 +131,11 @@ class MigrateCommand extends DartdevCommand {
     try {
       final result = await _executeMigration(
         server,
-        migratePath,
+        targets,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       );
       if (result == null) return 1;
 
@@ -134,20 +149,26 @@ class MigrateCommand extends DartdevCommand {
         log.stdout(summary);
       }
 
-      if (apply && result.edit != null) {
-        _applyWorkspaceEdit(result.edit!);
+      if (result.edit.hasEdits) {
+        if (apply) {
+          _applyWorkspaceEdit(result.edit!);
+        } else {
+          _printApplyTip(steps, rest, targetSdk);
+        }
       }
     } catch (e, st) {
-      if (progress != null) {
-        progress!.cancel();
-        progress = null;
-      }
+      progress?.cancel();
+      progress = null;
       log.stderr('An error occurred during migration: $e');
       log.stderr(st.toString());
       log.stdout(
         'Please report this at dartbug.com and include the stack trace above.',
       );
       return 1;
+    } finally {
+      progress?.cancel();
+      progress = null;
+      await progressSubscription.cancel();
     }
 
     return 0;
@@ -156,112 +177,125 @@ class MigrateCommand extends DartdevCommand {
   /// Applies the changes defined in a [lsp.WorkspaceEdit] to the local
   /// filesystem.
   void _applyWorkspaceEdit(lsp.WorkspaceEdit workspaceEdit) {
-    void applyEdits(Uri uri, List<lsp.TextEdit> edits) {
-      final file = io.File.fromUri(uri);
+    String? readFile(String filePath) {
+      final file = io.File(filePath);
       if (!file.existsSync()) {
         log.stderr(
           "Warning: File doesn't exist for migration edit: ${file.path}",
         );
-        return;
+        return null;
       }
 
-      final content = file.readAsStringSync();
-      final lineInfo = LineInfo.fromContent(content);
-      final sourceEdits = <SourceEdit>[];
-
-      for (final edit in edits) {
-        final startOffset = lineInfo.offsetOfPosition(edit.range.start);
-        final endOffset = lineInfo.offsetOfPosition(edit.range.end);
-        if (startOffset < 0 || endOffset < startOffset) {
-          log.stderr('Warning: Invalid edit range in ${file.path}');
-          continue;
-        }
-
-        sourceEdits.add(
-          SourceEdit(startOffset, endOffset - startOffset, edit.newText),
-        );
-      }
-
-      // SourceEdit.applySequence applies edits from the back of the list to the
-      // front, so edits must be sorted in descending order by offset to avoid
-      // shifting character offsets for subsequent edits.
-      sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
-      final updatedContent = SourceEdit.applySequence(content, sourceEdits);
-      file.writeAsStringSync(updatedContent);
+      return file.readAsStringSync();
     }
 
-    // LSP WorkspaceEdits can encode changes in two ways:
-    // 1. A simple map of URIs to lists of TextEdits (`changes`).
-    // 2. A list of resource operations and versioned document edits
-    // (`documentChanges`).
-    // We check and handle both representations.
-    if (workspaceEdit.changes case final changes?) {
-      changes.forEach(applyEdits);
+    void writeFile(String filePath, String content) {
+      final file = io.File(filePath);
+      file.writeAsStringSync(content);
     }
-    if (workspaceEdit.documentChanges case final documentChanges?) {
-      for (final change in documentChanges) {
-        if (change.textDocumentEdit case final docEdit?) {
-          applyEdits(docEdit.textDocument.uri, docEdit.plainTextEdits);
-        }
-      }
-    }
+
+    applyWorkspaceEdit(workspaceEdit, readFile, writeFile);
   }
 
   /// Sends the migration request to the analysis server and returns the
   /// [DartMigrateResult], or `null` if an error occurred.
   Future<DartMigrateResult?> _executeMigration(
     LspAnalysisServer server,
-    String migratePath, {
+    List<io.FileSystemEntity> targets, {
     required bool apply,
     required List<String> steps,
+    String? targetSdk,
+    lsp.ProgressToken? workDoneToken,
   }) async {
-    final uri = Uri.file(
-      path.canonicalize(path.normalize(path.absolute(migratePath))),
-    );
+    final uris = [for (final target in targets) Uri.file(target.path)];
+
     try {
       // Ensure the server has finished discovering analysis roots and building
       // contexts for the target workspace before sending the migration request.
       await server.workspaceAnalysisComplete();
       return await server.migrate(
-        [uri],
+        uris,
         apply: apply,
         steps: steps.map(MigrationStep.new).toList(),
+        targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       );
     } finally {
       await server.shutdown();
     }
   }
-}
 
-extension on lsp.TextDocumentEdit {
-  /// Converts all edits in this document edit (including snippet edits) into
-  /// a uniform list of plain [lsp.TextEdit]s.
-  List<lsp.TextEdit> get plainTextEdits {
-    return edits
-        .map(
-          (e) => e.map(
-            (a) => a,
-            (l) => l,
-            (s) => lsp.TextEdit(range: s.range, newText: s.snippet.value),
-            (t) => t,
-          ),
-        )
-        .toList();
+  /// Returns a list of unique [io.FileSystemEntity] targets to migrate.
+  ///
+  /// Defaults to the current directory if [rest] is empty. Validates that all
+  /// specified targets exist and deduplicates any paths that refer to the same
+  /// target.
+  List<io.FileSystemEntity> _getTargets(List<String> rest) {
+    // If there are no targets, the tool migrates the current directory.
+    if (rest.isEmpty) {
+      return [getTarget([])];
+    }
+
+    final targets = <io.FileSystemEntity>[];
+    final nonExistentPaths = <String>[];
+    for (final arg in rest) {
+      final currentTarget = getTarget([arg]);
+      if (!currentTarget.existsSync()) {
+        nonExistentPaths.add(currentTarget.path);
+        continue;
+      }
+
+      // Deduplicate target paths.
+      final currentTargetPath = currentTarget.resolveSymbolicLinksSync();
+      if (!targets.any(
+        (t) => io.FileSystemEntity.identicalSync(
+          t.resolveSymbolicLinksSync(),
+          currentTargetPath,
+        ),
+      )) {
+        targets.add(currentTarget);
+      }
+    }
+
+    if (nonExistentPaths.isNotEmpty) {
+      usageException(
+        [
+          "Directory or file doesn't exist:",
+          for (final target in nonExistentPaths) '  $target',
+        ].join('\n'),
+      );
+    }
+
+    return targets;
   }
-}
 
-extension
-    on
-        Either4<
-          lsp.CreateFile,
-          lsp.DeleteFile,
-          lsp.RenameFile,
-          lsp.TextDocumentEdit
-        > {
-  /// Extracts the [lsp.TextDocumentEdit] from this union, or returns `null` if
-  /// this is a resource operation ([lsp.CreateFile], [lsp.DeleteFile], or
-  /// [lsp.RenameFile]).
-  lsp.TextDocumentEdit? get textDocumentEdit {
-    return map((_) => null, (_) => null, (_) => null, (docEdit) => docEdit);
+  /// Prints a command tip instructing the user how to apply the proposed
+  /// changes.
+  void _printApplyTip(
+    List<String> steps,
+    List<String> targets,
+    String? targetSdk,
+  ) {
+    var targetArgs = '';
+    if (targets.isNotEmpty) {
+      targetArgs = ' ${targets.join(' ')}';
+    }
+
+    var targetSdkArg = '';
+    if (argResults!.wasParsed('target-sdk') && targetSdk != null) {
+      targetSdkArg = ' --target-sdk=$targetSdk';
+    }
+
+    // Omit '--step=all' from the suggested command because running all steps is
+    // the default behavior.
+    var stepArg = '';
+    if (argResults!.wasParsed('step') &&
+        !(steps.length == 1 && steps.first == 'all')) {
+      stepArg = ' --step=${steps.join(',')}';
+    }
+
+    log.stdout('');
+    log.stdout('To apply the proposed changes, run:');
+    log.stdout('  dart migrate --apply$targetSdkArg$stepArg$targetArgs');
   }
 }

@@ -1,0 +1,3 @@
+test1(Map<String, dynamic> m) {}
+
+test2(Map<String, String> m) {}

@@ -7,13 +7,13 @@ static method main() → void {
     function f<T extends core::Object? = dynamic>(T% x) → T%
       return throw "";
     <T extends core::Object? = dynamic>(T%) → T% v1 = f;
-    v1 = <S extends core::Object? = dynamic>(S% x) → S% => x;
+    v1 = <S extends core::Object? = dynamic>(S% x##1) → S% => x##1;
   }
   {
-    function f<T extends core::Object? = dynamic>(T% x) → core::List<T%>
+    function f##1<T extends core::Object? = dynamic>(T% x##2) → core::List<T%>
       return throw "";
-    <T extends core::Object? = dynamic>(T%) → core::List<T%> v2 = f;
-    v2 = <S extends core::Object? = dynamic>(S% x) → core::List<S%> => <S%>[x];
+    <T extends core::Object? = dynamic>(T%) → core::List<T%> v2 = f##1;
+    v2 = <S extends core::Object? = dynamic>(S% x##3) → core::List<S%> => <S%>[x##3];
     core::Iterable<core::int> r = v2<core::int>(42){(core::int) → core::List<core::int>};
     core::Iterable<core::String> s = v2<core::String>("hello"){(core::String) → core::List<core::String>};
     core::Iterable<core::List<core::int>> t = v2<core::List<core::int>>(<core::int>[]){(core::List<core::int>) → core::List<core::List<core::int>>};

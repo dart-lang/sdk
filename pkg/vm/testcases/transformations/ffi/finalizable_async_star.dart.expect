@@ -23,11 +23,11 @@ static method useFinalizableAsyncStar(ffi::Finalizable finalizable) → asy::Str
   } =>:expressionValueWrappedFinalizable;
   final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
   await block {
-    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 3);
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable##1 = asy::Future::sync<core::int>(() → core::int => 3);
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
     _in::reachabilityFence(finalizable3);
-  } =>:expressionValueWrappedFinalizable;
+  } =>:expressionValueWrappedFinalizable##1;
   final self::MyFinalizable finalizable4 = new self::MyFinalizable::•();
   if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 4) {
     {
@@ -39,12 +39,12 @@ static method useFinalizableAsyncStar(ffi::Finalizable finalizable) → asy::Str
     }
   }
   yield block {
-    final synthesized core::int :expressionValueWrappedFinalizable = 5;
+    final synthesized core::int :expressionValueWrappedFinalizable##2 = 5;
     _in::reachabilityFence(finalizable);
     _in::reachabilityFence(finalizable2);
     _in::reachabilityFence(finalizable3);
     _in::reachabilityFence(finalizable4);
-  } =>:expressionValueWrappedFinalizable;
+  } =>:expressionValueWrappedFinalizable##2;
   _in::reachabilityFence(finalizable2);
   _in::reachabilityFence(finalizable3);
   _in::reachabilityFence(finalizable4);

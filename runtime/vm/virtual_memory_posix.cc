@@ -20,6 +20,7 @@
 #endif
 
 #if defined(DART_HOST_OS_MACOS)
+#include <mach/mach_error.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
 #endif
@@ -630,12 +631,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastMacOSX10_14() &&
-      !ShouldDualMapExecutablePages()) {
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  if (is_executable && !ShouldDualMapExecutablePages()) {
     map_flags |= MAP_JIT;
   }
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
 
   void* hint = nullptr;
   // Some 64-bit microarchitectures store only the low 32-bits of targets as
@@ -836,7 +836,6 @@ void VirtualMemory::DontNeed(void* address, intptr_t size) {
 }
 
 #if defined(DART_HOST_OS_MACOS)
-// TODO(52579): Reenable on Fuchsia.
 bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   const intptr_t aligned_size = Utils::RoundUp(size(), PageSize());
   ASSERT_LESS_OR_EQUAL(aligned_size, target->size());
@@ -860,6 +859,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
       /*copy=*/true, &current_protection, &max_protection,
       /*inheritance=*/VM_INHERIT_NONE);
   if (status != KERN_SUCCESS) {
+    OS::PrintErr("DuplicateRX failed: %s\n", mach_error_string(status));
     return false;
   }
   ASSERT(reinterpret_cast<void*>(target_address) == target->address());

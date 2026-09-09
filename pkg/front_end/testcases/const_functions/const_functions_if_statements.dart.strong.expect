@@ -61,7 +61,7 @@ static method ifTest4(core::int a) → core::int {
 static method ifTest5() → core::int {
   core::int x = 10;
   if(true) {
-    core::int x = 20;
+    core::int x##1 = 20;
   }
   return x;
 }

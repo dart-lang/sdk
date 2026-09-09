@@ -577,7 +577,7 @@ abstract class ObjectAccessTarget {
 
   // Coverage-ignore(suite): Not run.
   /// Get the variable used by [ExpressionEvaluationParameterTarget].
-  Variable get expressionEvaluationParameterVariable =>
+  InternalVariable get expressionEvaluationParameterVariable =>
       throw new UnsupportedError(
         'ObjectAccessTarget.expressionEvaluationParameterVariable',
       );
@@ -1716,7 +1716,7 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
 // Coverage-ignore(suite): Not run.
 class ExpressionEvaluationParameterTarget extends ObjectAccessTarget {
   @override
-  final Variable expressionEvaluationParameterVariable;
+  final InternalFunctionParameter expressionEvaluationParameterVariable;
 
   new(this.expressionEvaluationParameterVariable)
     : super.internal(ObjectAccessTargetKind.expressionEvaluationParameter);

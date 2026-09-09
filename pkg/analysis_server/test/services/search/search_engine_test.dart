@@ -7,7 +7,8 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -30,7 +31,7 @@ void main() {
 class PubPackageResolutionTest extends AbstractContextTest {
   late ResolvedUnitResult result;
   late FindNode findNode;
-  late FindElement2 findElement2;
+  late FindElement findElement;
 
   void addTestFile(String content) {
     newFile(testFile.path, content);
@@ -41,7 +42,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
     result = await getResolvedUnit(file);
 
     findNode = FindNode(result.content, result.unit);
-    findElement2 = FindElement2(result.unit);
+    findElement = FindElement(result.unit);
   }
 
   /// Put the [code] into the test file, and resolve it.
@@ -58,7 +59,11 @@ class PubPackageResolutionTest extends AbstractContextTest {
 @reflectiveTest
 class SearchEngineImplTest extends PubPackageResolutionTest {
   SearchEngineImpl get searchEngine {
-    return SearchEngineImpl(allDrivers);
+    return SearchEngineImpl(
+      contextCollection.contexts.map(
+        (c) => (c as DriverBasedAnalysisContext).driver,
+      ),
+    );
   }
 
   Future<TestCode> resolveParsedCode(String content) async {
@@ -91,7 +96,7 @@ class C extends A {
 ''');
 
     await resolveFile2(a);
-    var A = findElement2.class_('A');
+    var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', 'b']));
@@ -109,7 +114,7 @@ enum E implements A {
 }
 ''');
 
-    var A = findElement2.class_('A');
+    var A = findElement.class_('A');
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['foo']));
   }
@@ -126,7 +131,7 @@ enum E with M {
 }
 ''');
 
-    var M = findElement2.mixin('M');
+    var M = findElement.mixin('M');
     var members = await searchEngine.membersOfSubtypes(M);
     expect(members, unorderedEquals(['foo']));
   }
@@ -146,7 +151,7 @@ class B extends A {}
 ''');
 
     await resolveFile2(a);
-    var A = findElement2.class_('A');
+    var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, isEmpty);
@@ -169,7 +174,7 @@ class B {
 ''');
 
     await resolveFile2(a);
-    var A = findElement2.class_('A');
+    var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, isNull);
@@ -199,7 +204,7 @@ class D extends B {
 ''');
 
     await resolveFile2(a);
-    var A = findElement2.class_('A');
+    var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
     expect(members, unorderedEquals(['a', '_b']));
@@ -213,7 +218,7 @@ class B extends A {}
 class C implements B {}
 ''');
 
-    var element = findElement2.class_('T');
+    var element = findElement.class_('T');
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
@@ -242,7 +247,7 @@ class C extends B {}
 ''');
 
     await resolveFile2(a);
-    var element = findElement2.class_('T');
+    var element = findElement.class_('T');
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
@@ -263,7 +268,7 @@ extension type B(int it) implements A {}
 extension type C(int it) implements A {}
 ''');
 
-    var element = findElement2.class_('A');
+    var element = findElement.class_('A');
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
@@ -289,7 +294,7 @@ mixin D on C {}
 mixin E implements C {}
 ''');
 
-    var element = findElement2.class_('T');
+    var element = findElement.class_('T');
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
@@ -396,7 +401,7 @@ import 'package:aaa/a.dart';
 T b;
 ''');
 
-    var element = findElement2.importFind('package:aaa/a.dart').class_('T');
+    var element = findElement.importFind('package:aaa/a.dart').class_('T');
     var matches = await searchEngine.searchReferences(element);
     expect(matches, hasLength(2));
     expect(
@@ -421,9 +426,9 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(
-      testFile,
-    ).getLibraryByUri('dart:core') as LibraryElementResult;
+    var driver = contextFor(testFile).driver;
+    var coreLibResult =
+        await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.classes.firstWhereOrNull(
       (e) => e.name == 'int',
     )!;
@@ -453,14 +458,14 @@ enum E {
 }
 ''');
 
-    var element = findElement2.constructor('named');
+    var element = findElement.constructor('named');
     var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element, findElement2.field('v')) &&
+              identical(m.element, findElement.field('v')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '.named'.length;
         }),
@@ -477,7 +482,7 @@ enum E {
 }
 ''');
 
-    var element = findElement2.unnamedConstructor('E');
+    var element = findElement.unnamedConstructor('E');
     var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
@@ -485,19 +490,19 @@ enum E {
         predicate((SearchMatch m) {
           return m.kind ==
                   MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS &&
-              identical(m.element, findElement2.field('v1')) &&
+              identical(m.element, findElement.field('v1')) &&
               m.sourceRange.offset == code.positions[0].offset &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element, findElement2.field('v2')) &&
+              identical(m.element, findElement.field('v2')) &&
               m.sourceRange.offset == code.positions[1].offset &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
-              identical(m.element, findElement2.field('v3')) &&
+              identical(m.element, findElement.field('v3')) &&
               m.sourceRange.offset == code.positions[2].offset &&
               m.sourceRange.length == '.new'.length;
         }),
@@ -512,14 +517,14 @@ extension type A(int it) {}
 void f(^A a) {}
 ''');
 
-    var element = findElement2.extensionType('A');
+    var element = findElement.extensionType('A');
     var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
-              identical(m.element, findElement2.parameter('a')) &&
+              identical(m.element, findElement.parameter('a')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 'A'.length;
         }),
@@ -538,7 +543,7 @@ class B extends A {
 }
 ''');
 
-    var element = findElement2.unnamedConstructor('A').parameter('a');
+    var element = findElement.unnamedConstructor('A').parameter('a');
     var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
@@ -547,7 +552,7 @@ class B extends A {
           return m.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT &&
               identical(
                 m.element,
-                findElement2.unnamedConstructor('B').superFormalParameter('a'),
+                findElement.unnamedConstructor('B').superFormalParameter('a'),
               ) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 1;
@@ -562,11 +567,11 @@ int _ = 0;
 int f(int _) => ^_;
 ''');
 
-    var parameter = findElement2.parameter('_');
+    var parameter = findElement.parameter('_');
     var parameterMatches = await searchEngine.searchReferences(parameter);
     expect(parameterMatches, isEmpty);
 
-    var topLevelVariable = findElement2.topVar('_');
+    var topLevelVariable = findElement.topVar('_');
     var topLevelVariableMatches = await searchEngine.searchReferences(
       topLevelVariable,
     );
@@ -575,7 +580,7 @@ int f(int _) => ^_;
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element, findElement2.topFunction('f')) &&
+              identical(m.element, findElement.topFunction('f')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
@@ -589,7 +594,7 @@ f(int _) {}
 ''';
     await resolveTestCode(code);
 
-    var element = findElement2.parameter('_');
+    var element = findElement.parameter('_');
     var matches = await searchEngine.searchReferences(element);
 
     // No crashes.
@@ -606,14 +611,14 @@ void g() {
 }
 ''');
 
-    var element = findElement2.parameter('test');
+    var element = findElement.parameter('test');
     var matches = await searchEngine.searchReferences(element);
     expect(
       matches,
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE_BY_NAMED_ARGUMENT &&
-              identical(m.element, findElement2.topFunction('g')) &&
+              identical(m.element, findElement.topFunction('g')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 'test'.length;
         }),
@@ -629,7 +634,7 @@ class A {
 }
 ''');
 
-    var element = findElement2.field('_');
+    var element = findElement.field('_');
     var matches = await searchEngine.searchReferences(element);
 
     expect(
@@ -637,7 +642,7 @@ class A {
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element, findElement2.method('a')) &&
+              identical(m.element, findElement.method('a')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
@@ -651,7 +656,7 @@ final _ = 1;
 int f() => ^_;
 ''');
 
-    var element = findElement2.topVar('_');
+    var element = findElement.topVar('_');
     var matches = await searchEngine.searchReferences(element);
 
     expect(
@@ -659,7 +664,7 @@ int f() => ^_;
       unorderedEquals([
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
-              identical(m.element, findElement2.topFunction('f')) &&
+              identical(m.element, findElement.topFunction('f')) &&
               m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
@@ -736,9 +741,9 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
-    writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
+    writePackageConfig2(aaaRootPath, config: PackageConfigFileBuilder());
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -747,8 +752,9 @@ class B extends A {}
   }
 
   Future<void> _ensureContainedFilesKnown() async {
-    for (var driver in allDrivers) {
-      var contextRoot = driver.analysisContext!.contextRoot;
+    for (var context in contextCollection.contexts) {
+      var driver = (context as DriverBasedAnalysisContext).driver;
+      var contextRoot = context.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
           await driver.getUnitElement(file);
@@ -778,7 +784,7 @@ typedef A<T> = Map<T, String>;
 void f(A<int> a, A<double> b) {}
 ''');
 
-    var element = findElement2.typeAlias('A');
+    var element = findElement.typeAlias('A');
     var matches = await searchEngine.searchReferences(element);
 
     Matcher hasOne(Element element, String search) {
@@ -791,8 +797,8 @@ void f(A<int> a, A<double> b) {}
     expect(
       matches,
       unorderedMatches([
-        hasOne(findElement2.parameter('a'), 'A<int>'),
-        hasOne(findElement2.parameter('b'), 'A<double>'),
+        hasOne(findElement.parameter('a'), 'A<int>'),
+        hasOne(findElement.parameter('b'), 'A<double>'),
       ]),
     );
   }

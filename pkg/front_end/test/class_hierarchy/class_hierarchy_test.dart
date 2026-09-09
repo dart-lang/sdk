@@ -40,7 +40,7 @@ class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     new InheritanceDataExtractor(
@@ -53,7 +53,7 @@ class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
   void computeClassData(
     CfeTestResultData testResultData,
     Class cls,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     new InheritanceDataExtractor(
@@ -66,7 +66,7 @@ class ClassHierarchyDataComputer extends CfeDataComputer<Features> {
   void computeExtensionTypeDeclarationData(
     CfeTestResultData testResultData,
     ExtensionTypeDeclaration extensionTypeDeclaration,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     new InheritanceDataExtractor(
@@ -120,18 +120,15 @@ class Tag {
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<Features> {
-  final InternalCompilerResult _compilerResult;
+  new(super.compilerResult, super.actualMap);
 
-  new(this._compilerResult, Map<Id, ActualData<Features>> actualMap)
-    : super(_compilerResult, actualMap);
-
-  CoreTypes get _coreTypes => _compilerResult.coreTypes!;
+  CoreTypes get _coreTypes => compilerResult.coreTypes!;
 
   ClassHierarchyBuilder get _classHierarchyBuilder =>
-      _compilerResult.kernelTargetForTesting!.loader.hierarchyBuilder;
+      compilerResult.kernelTargetForTesting!.loader.hierarchyBuilder;
 
   ClassMembersBuilder get _classMembersBuilder =>
-      _compilerResult.kernelTargetForTesting!.loader.membersBuilder;
+      compilerResult.kernelTargetForTesting!.loader.membersBuilder;
 
   @override
   void computeForClass(Class node) {

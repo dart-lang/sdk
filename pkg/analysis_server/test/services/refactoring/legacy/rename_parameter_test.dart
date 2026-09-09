@@ -118,7 +118,6 @@ void f() {
   new A(test: 2);
 }
 ''');
-    await analyzeTestPackageFiles();
 
     await resolveTestFile();
 

@@ -391,9 +391,12 @@ class TFADevirtualization extends Devirtualization {
             callSite.isNullableReceiver,
           );
         } else if (!isArtificialNode(singleTarget)) {
+          final bool checkReceiverForNull =
+              callSite.isNullableReceiver &&
+              singleTarget.enclosingClass != coreTypes.objectClass;
           return DirectCallMetadata.targetMember(
             singleTarget,
-            callSite.isNullableReceiver,
+            checkReceiverForNull,
           );
         }
       }
@@ -423,7 +426,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
-  AnnotateKernel(
+  AnnotateKernel._(
     Component component,
     this._typeFlowAnalysis,
     this.hierarchy,
@@ -432,12 +435,19 @@ class AnnotateKernel extends RecursiveVisitor {
     this._tableSelectorAssigner,
     this._unboxingInfo,
     this._closureIdMetadata,
+    Map<InferredType, InferredType> canonicalInferredTypes,
   ) : _directCallMetadataRepository =
           component.metadata[DirectCallMetadataRepository.repositoryTag]
               as DirectCallMetadataRepository,
-      _inferredTypeMetadata = InferredTypeMetadataRepository(),
-      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
-      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(),
+      _inferredTypeMetadata = InferredTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
       _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
       _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
       _tableSelectorMetadata = TableSelectorMetadataRepository(),
@@ -454,6 +464,29 @@ class AnnotateKernel extends RecursiveVisitor {
     component.addMetadataRepository(_tableSelectorMetadata);
     component.addMetadataRepository(_closureIdMetadata);
     component.addMetadataRepository(_unboxingInfoMetadata);
+  }
+
+  factory AnnotateKernel(
+    Component component,
+    TypeFlowAnalysis typeFlowAnalysis,
+    ClassHierarchy hierarchy,
+    FieldMorpher fieldMorpher,
+    Constant Function(Constant) treeShakeConstant,
+    TableSelectorAssigner tableSelectorAssigner,
+    UnboxingInfoManager unboxingInfo,
+    ClosureIdMetadataRepository closureIdMetadata,
+  ) {
+    return AnnotateKernel._(
+      component,
+      typeFlowAnalysis,
+      hierarchy,
+      fieldMorpher,
+      treeShakeConstant,
+      tableSelectorAssigner,
+      unboxingInfo,
+      closureIdMetadata,
+      <InferredType, InferredType>{},
+    );
   }
 
   // Query whether a call site was marked as a direct call by the analysis.
@@ -545,16 +578,18 @@ class AnnotateKernel extends RecursiveVisitor {
       if (constantValue != null) {
         constantValue = treeShakeConstant(constantValue);
       }
-      return new InferredType(
-        exactType,
-        concreteClass,
-        nullable,
-        isInt,
-        constantValue,
-        closureMember,
-        closureId,
-        skipCheck: skipCheck,
-        receiverNotInt: receiverNotInt,
+      return _inferredTypeMetadata.canonicalize(
+        InferredType(
+          exactType,
+          concreteClass,
+          nullable,
+          isInt,
+          constantValue,
+          closureMember,
+          closureId,
+          skipCheck: skipCheck,
+          receiverNotInt: receiverNotInt,
+        ),
       );
     }
 
@@ -1188,7 +1223,7 @@ class FieldMorpher {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
           new PositionalParameter(
-              cosmeticName: 'value',
+              parameterName: 'value',
               type: field.type,
               isSynthesized: true,
             )

@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
@@ -87,6 +88,74 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _checkSinceSdkVersion(element, node);
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _checkIndexRead(node);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node, errorEntity: node.name);
+    super.visitCascadePropertyExtraction(node);
+  }
+
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    var errorEntity = switch (target) {
+      PropertyAssignmentTarget() => target.propertyName,
+      UnqualifiedNameAssignmentTarget() => target.name,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
+    }
+    _checkSinceSdkVersion(node.element, node);
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorReference2(ConstructorReference2 node) {
     var typeReference = node.typeReference;
     _checkSinceSdkVersion(
@@ -115,14 +184,79 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitFunctionExpressionInvocation(node);
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      _checkSinceSdkVersion(
+        element,
+        target,
+        errorEntity: switch (target) {
+          PropertyAssignmentTarget() => target.propertyName,
+          UnqualifiedNameAssignmentTarget() => target.name,
+          _ => null,
+        },
+      );
+    }
+    super.visitDirectAssignment(node);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
   }
 
   @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    if (target is UnqualifiedNameAssignmentTarget) {
+      if (target.read case NamedReadResolutionWithElement(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+      if (target.write case NamedWriteResolutionWithElement(:var element)) {
+        _checkSinceSdkVersion(element, target);
+      }
+    }
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _checkNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _checkNamedRead(node.resolution, node, errorEntity: node.name);
+    super.visitImportPrefixedNameExpression(node);
   }
 
   @override
@@ -174,6 +308,28 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _checkIndexRead(node);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -184,6 +340,46 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     _checkSinceSdkVersion(node.element, node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _checkNamedRead(node.resolution, node, errorEntity: node.name);
+  }
+
+  void _checkIndexRead(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
+  }
+
+  void _checkNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node, errorEntity: node.name);
+  }
+
+  void _checkNamedRead(
+    NamedReadResolution? resolution,
+    AstNode node, {
+    required SyntacticEntity errorEntity,
+  }) {
+    var element = resolution.elementOrRecovery;
+    _checkSinceSdkVersion(element, node, errorEntity: errorEntity);
   }
 
   void _checkSinceSdkVersion(
@@ -203,9 +399,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           }
           if (target is ExtensionOverride) {
             errorEntity = target.name;
-          } else if (target is FunctionExpressionInvocation) {
+          } else if (target is CallInvocation) {
             errorEntity = target.argumentList;
+          } else if (target is IndexExpression2) {
+            errorEntity = target.leftBracket;
           } else if (target is IndexExpression) {
+            errorEntity = target.leftBracket;
+          } else if (target is IndexAssignmentTarget) {
             errorEntity = target.leftBracket;
           } else if (target is MethodInvocation) {
             errorEntity = target.methodName;
@@ -215,6 +415,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
             errorEntity = target.identifier;
           } else if (target is PropertyAccess) {
             errorEntity = target.propertyName;
+          } else if (target is PropertyExtraction) {
+            errorEntity = target.name;
           } else if (target is SimpleIdentifier) {
             errorEntity = target;
           } else {

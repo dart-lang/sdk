@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -46,7 +46,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<DartType>> actualMap,
+    ActualDataMap<DartType> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _TypePromotionDataExtractor(unitUri, actualMap).run(unit);
@@ -58,26 +58,60 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
-    if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = _readElement(node);
+    Element? element;
+    DartType? promotedType;
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement, :var type),
+    )) {
+      element = readElement;
+      promotedType = type;
+    } else if (node is SimpleIdentifier && node.inGetterContext()) {
+      element = _readElement(node);
       if (element is LocalVariableElement ||
           element is FormalParameterElement) {
-        var promotedType = _readType(node);
-        var declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != declaredType;
-        if (isPromoted) {
-          return promotedType;
+        promotedType = _readType(node);
+      }
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          promotedType = readResolution.type;
         }
+      }
+    } else if (node is UnqualifiedNameAssignmentTarget &&
+        node.parent2 is IncrementOrDecrementExpression) {
+      var readResolution = node.read;
+      if (readResolution is VariableReadResolution) {
+        element = readResolution.element;
+        promotedType = readResolution.type;
+      }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        promotedType != null) {
+      var declaredType = (element as VariableElement).type;
+      if (promotedType != declaredType) {
+        return promotedType;
       }
     }
     return null;
   }
 
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    if (node.parent2 is IncrementOrDecrementExpression) {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitUnqualifiedNameAssignmentTarget(node);
+  }
+
   static Element? _readElement(SimpleIdentifier node) {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readElement;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readElement;
     } else if (parent is PrefixExpression) {
       return parent.readElement;
@@ -89,8 +123,6 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   static DartType? _readType(SimpleIdentifier node) {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readType;
     } else if (parent is PrefixExpression) {
       return parent.readType;

@@ -714,11 +714,13 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
-      if (parent is MethodDeclarationImpl) {
-        return parent.body.bodyContext?.contextType;
-      } else if (parent is FunctionExpressionImpl) {
+      if (parent is MethodDeclaration) {
+        var body = parent.body as FunctionBodyImpl;
+        return body.bodyContext?.contextType;
+      } else if (parent is FunctionExpression) {
         // If the surrounding function has a context type, use it.
-        var functionContextType = parent.body.bodyContext?.contextType;
+        var body = parent.body as FunctionBodyImpl;
+        var functionContextType = body.bodyContext?.contextType;
         if (functionContextType != null &&
             functionContextType is! InvalidType) {
           return functionContextType;

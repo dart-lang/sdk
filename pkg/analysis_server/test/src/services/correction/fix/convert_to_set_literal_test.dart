@@ -76,9 +76,7 @@ var s = <int>{};
 ''');
   }
 
-  @failingTest
   Future<void> test_default_typeArg_linkedHashSet() async {
-    // LinkedHashSet isn't converted even though the lint reports that case.
     await resolveTestCode('''
 import 'dart:collection';
 

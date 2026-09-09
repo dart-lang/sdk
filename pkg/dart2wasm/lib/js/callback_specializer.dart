@@ -95,17 +95,17 @@ class CallbackSpecializer {
     // the number of arguments passed. The third argument is a cast closure if
     // needed.
     final callbackVariable = PositionalParameter(
-      cosmeticName: 'callback',
+      parameterName: 'callback',
       type: _util.nonNullableWasmExternRefType,
       isSynthesized: true,
     );
     final argumentsLengthWasmI32 = PositionalParameter(
-      cosmeticName: 'argumentsLengthWasmI32',
+      parameterName: 'argumentsLengthWasmI32',
       type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
       isSynthesized: true,
     );
     final castClosure = PositionalParameter(
-      cosmeticName: 'castClosure',
+      parameterName: 'castClosure',
       type: _util.nonNullableObjectType,
       isSynthesized: true,
     );
@@ -116,7 +116,7 @@ class CallbackSpecializer {
     final positionalParametersLength = function.positionalParameters.length;
     for (int i = 0; i < positionalParametersLength; i++) {
       final parameter = PositionalParameter(
-        cosmeticName: 'x${i + 1}',
+        parameterName: 'x${i + 1}',
         type: _util.nullableWasmExternRefType,
         isSynthesized: true,
       );
@@ -325,18 +325,18 @@ class CallbackSpecializer {
         null,
         positionalParameters: [
           PositionalParameter(
-            cosmeticName: 'wasmFunction',
+            parameterName: 'wasmFunction',
             type: _util.nonNullableWasmFuncRefType,
             isSynthesized: true,
           ),
           PositionalParameter(
-            cosmeticName: 'dartFunction',
+            parameterName: 'dartFunction',
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
           if (needsCastClosure)
             PositionalParameter(
-              cosmeticName: 'castClosure',
+              parameterName: 'castClosure',
               type: _util.nonNullableWasmExternRefType,
               isSynthesized: true,
             ),
@@ -386,7 +386,7 @@ class CallbackSpecializer {
       final type = positionalParameters[i];
       if (_needCastClosure(type)) {
         final parameter = PositionalParameter(
-          cosmeticName: 'x${i + 1}',
+          parameterName: 'x${i + 1}',
           type: _util.nullableJSValueType,
           isSynthesized: true,
         );

@@ -71,6 +71,9 @@ Constraint anyLocation(Definition def) => switch (registerClass(def)) {
   RegisterClass.fpu => anyFpuLocation,
 };
 
+Constraint? registerOrImmediate(Register reg, Definition def) =>
+    def is Constant ? null : reg;
+
 Constraint? anyRegisterOrImmediate(Definition def) =>
     def is Constant ? null : anyRegister(def);
 

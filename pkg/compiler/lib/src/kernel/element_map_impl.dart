@@ -340,10 +340,9 @@ class KernelToElementMap implements IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(
           ir.instantiateToBounds(
-                coreTypes.nonNullableRawType(node),
-                coreTypes.objectClass,
-              )
-              as ir.InterfaceType,
+            coreTypes.nonNullableRawType(node),
+            coreTypes.objectClass,
+          ) as ir.InterfaceType,
         );
       }
     }
@@ -1628,7 +1627,7 @@ class KernelToElementMap implements IrToElementMap {
       String? name;
       late ir.FunctionNode function;
       if (node is ir.FunctionDeclaration) {
-        name = node.variable.cosmeticName;
+        name = node.variable.name;
         function = node.function;
       } else if (node is ir.FunctionExpression) {
         function = node.function;

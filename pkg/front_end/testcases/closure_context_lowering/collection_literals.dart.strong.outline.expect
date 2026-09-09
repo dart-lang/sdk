@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::Map<core::String, dynamic> m) → dynamic
+  ;
+static method test2(core::Map<core::String, core::String> m) → dynamic
+  ;

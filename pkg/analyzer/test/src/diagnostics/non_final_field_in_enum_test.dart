@@ -117,86 +117,6 @@ enum E {
 ''');
   }
 
-  test_fieldDeclaration_instance_abstract() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract int foo;
-//             ^^^
-// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
-// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_augment_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract int foo;
-//             ^^^
-// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
-  augment int get foo => 0;
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_augment_getter_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract int foo;
-  augment int get foo => 0;
-  augment void set foo(int _) {}
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_augment_setter() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract int foo;
-//             ^^^
-// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
-  augment void set foo(int _) {}
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_beforeAugmentations() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: augmentations
-enum E {
-  v;
-  abstract int foo;
-//             ^^^
-// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract final int foo;
-//                   ^^^
-// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_abstract_final_augment_getter() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  abstract final int foo;
-  augment int get foo => 0;
-}
-''');
-  }
-
   test_fieldDeclaration_instance_covariant() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -204,24 +124,6 @@ enum E {
   covariant int foo = 0;
 //              ^^^
 // [diag.nonFinalFieldInEnum] Enums can only declare final fields.
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_external() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  external int foo;
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_external_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  external final int foo;
 }
 ''');
   }

@@ -431,7 +431,10 @@ class UntaggedObject : public AllStatic {
 };
 
 class UntaggedClosure : public AllStatic {
+  static const word kInstantiatorTypeArgumentsIndexBitsPos;
+  static const word kInstantiatorTypeArgumentsIndexBitsSize;
   static const word kHasDelayedTypeArgumentsBit;
+  static const word kDelayedTypeArgumentsIndex;
   static const word kHasInstantiatorTypeArgumentsBit;
   static const word kHasFunctionTypeArgumentsBit;
   static const word kFunctionTypeArgumentsIndexBitsPos;
@@ -470,6 +473,7 @@ class UntaggedTypeParameter : public AllStatic {
 
 class Object : public AllStatic {
  public:
+  static const word kHashBits;
   // Offset of the tags word.
   static word tags_offset();
   static word InstanceSize();
@@ -1398,6 +1402,13 @@ class IsolateGroup : public AllStatic {
   static word cached_class_table_table_offset();
 };
 
+class VMTag : public AllStatic {
+ public:
+  static const word kDartTagId;
+  static const word kRuntimeTagId;
+  static const word kNativeTagId;
+};
+
 class ClassTable : public AllStatic {
  public:
 #if !defined(PRODUCT)
@@ -1482,6 +1493,7 @@ class SubtypeTestCache : public AllStatic {
   static word num_inputs_offset();
 
   static const word kMaxInputs;
+  static const word kMaxLinearCacheSize;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;
@@ -1589,7 +1601,6 @@ class UserTag : public AllStatic {
 class Symbols : public AllStatic {
  public:
   static const word kNumberOfOneCharCodeSymbols;
-  static const word kNullCharCodeSymbolOffset;
 };
 
 class Field : public AllStatic {
@@ -1629,6 +1640,7 @@ class TypeArguments : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kAllDynamicHash;
   static const word kMaxElements;
 };
 

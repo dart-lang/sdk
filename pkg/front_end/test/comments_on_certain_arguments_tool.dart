@@ -258,7 +258,7 @@ class InvocationVisitor extends RecursiveVisitor {
           arguments.positional[i],
           positionalParameters[i],
           node,
-          "/* ${positionalParameters[i].cosmeticName} = */",
+          "/* ${positionalParameters[i].parameterName} = */",
         );
       }
     }
@@ -396,6 +396,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
+    CompilerContext context,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,

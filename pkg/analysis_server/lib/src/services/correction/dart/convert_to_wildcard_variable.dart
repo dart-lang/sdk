@@ -41,7 +41,27 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     var node = this.node;
 
     if (node is FormalParameter) {
-      await computeVariableConversion(builder, node.name!);
+      if (node.isNamed) return;
+      if (node is FieldFormalParameter || node is SuperFormalParameter) {
+        return;
+      }
+      var parent = node.parent;
+      if (parent is! FormalParameterList) return;
+      var function = parent.parent;
+
+      // Check whether the parameter is on a function type for which we want to
+      // offer this fix. We don't want to offer the fix for a parameter on an
+      // instance method or a constructor.
+      var isValidFunction = switch (function) {
+        FunctionExpression() => true,
+        MethodDeclaration(:var isStatic) => isStatic,
+        _ => false,
+      };
+      if (!isValidFunction) return;
+
+      if (node.name case var name?) {
+        await computeVariableConversion(builder, name);
+      }
       return;
     }
 

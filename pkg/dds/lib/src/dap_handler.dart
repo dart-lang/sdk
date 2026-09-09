@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dap_adapters/dap.dart';
+import 'package:dap_adapters/dap_adapters.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 

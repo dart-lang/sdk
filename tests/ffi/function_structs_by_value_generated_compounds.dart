@@ -54,6 +54,29 @@ final class Struct4BytesHomogeneousInt16 extends Struct {
   String toString() => "(${a0}, ${a1})";
 }
 
+final class Struct4BytesInt1Field extends Struct {
+  @Int32()
+  external int a0;
+
+  String toString() => "(${a0})";
+}
+
+final class Struct4BytesHomogeneousUint84Bytes extends Struct {
+  @Uint8()
+  external int a0;
+
+  @Uint8()
+  external int a1;
+
+  @Uint8()
+  external int a2;
+
+  @Uint8()
+  external int a3;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
+}
+
 final class Struct4BytesFloat extends Struct {
   @Float()
   external double a0;
@@ -112,6 +135,16 @@ final class Struct8BytesInt extends Struct {
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
 
+final class Struct8BytesHomogeneousInt322Fields extends Struct {
+  @Int32()
+  external int a0;
+
+  @Int32()
+  external int a1;
+
+  String toString() => "(${a0}, ${a1})";
+}
+
 final class Struct8BytesHomogeneousFloat extends Struct {
   @Float()
   external double a0;
@@ -140,6 +173,16 @@ final class Struct8BytesMixed extends Struct {
   external int a2;
 
   String toString() => "(${a0}, ${a1}, ${a2})";
+}
+
+final class Struct8BytesMixedInt32Float extends Struct {
+  @Int32()
+  external int a0;
+
+  @Float()
+  external double a1;
+
+  String toString() => "(${a0}, ${a1})";
 }
 
 final class Struct9BytesHomogeneousUint8 extends Struct {
@@ -257,6 +300,22 @@ final class Struct16BytesHomogeneousFloat extends Struct {
 
   @Float()
   external double a3;
+
+  String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
+}
+
+final class Struct16BytesHomogeneousInt324Fields extends Struct {
+  @Int32()
+  external int a0;
+
+  @Int32()
+  external int a1;
+
+  @Int32()
+  external int a2;
+
+  @Int32()
+  external int a3;
 
   String toString() => "(${a0}, ${a1}, ${a2}, ${a3})";
 }

@@ -2507,6 +2507,34 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    seen(beginToken);
+    seen(endToken);
+    seen(nextToken);
+    doPrint(
+      'handleSendWithoutArguments('
+      '$beginToken, '
+      '$endToken, '
+      '$nextToken)',
+    );
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    seen(beginToken);
+    seen(endToken);
+    doPrint(
+      'handleInvocationWithoutTypeArguments('
+      '$beginToken, '
+      '$endToken)',
+    );
+  }
+
+  @override
   void beginShow(Token showKeyword) {
     seen(showKeyword);
     doPrint(

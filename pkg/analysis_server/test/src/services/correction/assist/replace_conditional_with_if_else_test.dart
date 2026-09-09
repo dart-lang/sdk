@@ -156,7 +156,7 @@ void f(bool c) {
   }
 
   Future<void> test_variableDeclaration_type_late() async {
-    writeTestPackageConfig(languageVersion: '2.12.0');
+    writeTestPackageConfig2(languageVersion: '2.12.0');
     await resolveTestCode('''
 void f(bool c) {
   late num a = c ? 1^11 : 222;
@@ -193,7 +193,7 @@ void f(bool c) {
   }
 
   Future<void> test_variableDeclaration_var_late() async {
-    writeTestPackageConfig(languageVersion: '2.12.0');
+    writeTestPackageConfig2(languageVersion: '2.12.0');
     await resolveTestCode('''
 void f(bool c) {
   late var a = c ? 1^11 : 222;

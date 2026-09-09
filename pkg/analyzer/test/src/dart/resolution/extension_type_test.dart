@@ -260,7 +260,8 @@ extension type const A.named(int it) {
 ConstructorDeclaration
   constKeyword: const
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -338,7 +339,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -346,6 +348,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@33
@@ -375,7 +378,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -383,6 +387,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@39
@@ -410,7 +415,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -418,6 +424,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -446,7 +453,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -454,6 +462,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -473,7 +482,8 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -534,7 +544,8 @@ extension type A.named(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -600,7 +611,8 @@ extension type A(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -614,7 +626,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -622,6 +635,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@31
@@ -640,7 +654,8 @@ extension type A.named(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -652,7 +667,8 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
@@ -660,6 +676,7 @@ ConstructorDeclaration
       expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -4185,7 +4202,14 @@ PrimaryConstructorDeclaration
           name: it
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value2: SimpleIdentifier
+            value2: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@extensionType::E::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
+            value(v1): SimpleIdentifier
               token: foo
               element: <testLibrary>::@extensionType::E::@getter::foo
               staticType: int
@@ -4370,7 +4394,13 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: SimpleIdentifier
+            condition2: UnqualifiedNameExpression
+              name: it
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                type: bool
+              staticType: bool
+            condition(v1): SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
@@ -4380,7 +4410,14 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    invokeType: bool Function()
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4395,9 +4432,11 @@ ExtensionTypeDeclaration
             leftParenthesis: (
             condition2: LogicalNot
               operator: !
-              operand: SimpleIdentifier
-                token: it
-                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+              operand: UnqualifiedNameExpression
+                name: it
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  type: bool
                 staticType: bool
               staticType: bool
             condition(v1): PrefixExpression
@@ -4414,7 +4453,14 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    invokeType: bool Function()
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4466,7 +4512,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: it
+        resolution: VariableReadResolution
+          element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4492,7 +4544,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: it
+        resolution: VariableReadResolution
+          element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4522,13 +4580,26 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: it
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@extensionType::A::@getter::it
+              invokeType: int Function()
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: it
             element: <testLibrary>::@extensionType::A::@getter::it
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@extensionType::A::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()
@@ -4585,7 +4656,8 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
@@ -4673,7 +4745,8 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         constKeyword: const
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
@@ -4707,15 +4780,23 @@ ExtensionTypeDeclaration
         separator: :
         initializers
           ConstructorFieldInitializer
-            fieldName: SimpleIdentifier
+            fieldName2: it
+            fieldName(v1): SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@field::it
               staticType: null
             equals: =
-            expression2: SimpleIdentifier
+            expression2: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+                type: int
+              staticType: int
+            expression(v1): SimpleIdentifier
               token: a
               element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
               staticType: int
+            fieldElement: <testLibrary>::@extensionType::A::@field::it
         body: EmptyFunctionBody
           semicolon: ;
         declaredFragment: <testLibraryFragment> named@37

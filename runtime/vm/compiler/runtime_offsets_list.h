@@ -88,6 +88,7 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \
+  CONSTANT(Class, kNoTypeArguments)                                            \
   CONSTANT(Function, kKindBitsPos)                                             \
   CONSTANT(Function, kKindBitsSize)                                            \
   CONSTANT(Function, kRecognizedBitsPos)                                       \
@@ -117,6 +118,7 @@
   CONSTANT(NativeArguments, kArgcBitsSize)                                     \
   CONSTANT(NativeArguments, kGenericFunctionBitPos)                            \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
+  CONSTANT(Object, kHashBits)                                                  \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(Page, kPageMask)                                                    \
   CONSTANT(Record, kMaxElements)                                               \
@@ -126,6 +128,7 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(Symbols, kNumberOfOneCharCodeSymbols)                               \
   CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
   CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
@@ -137,8 +140,13 @@
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
+  CONSTANT(SubtypeTestCache, kMaxLinearCacheSize)                              \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
+  CONSTANT(TypeArguments, kAllDynamicHash)                                     \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedClosure, kDelayedTypeArgumentsIndex)                        \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsPos)            \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsSize)           \
   CONSTANT(UntaggedClosure, kHasDelayedTypeArgumentsBit)                       \
   CONSTANT(UntaggedClosure, kHasInstantiatorTypeArgumentsBit)                  \
   CONSTANT(UntaggedClosure, kHasFunctionTypeArgumentsBit)                      \
@@ -169,6 +177,9 @@
   CONSTANT(UntaggedPcDescriptors, kTryIndexBitsSize)                           \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsPos)                          \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsSize)                         \
+  CONSTANT(VMTag, kDartTagId)                                                  \
+  CONSTANT(VMTag, kRuntimeTagId)                                               \
+  CONSTANT(VMTag, kNativeTagId)                                                \
   FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \

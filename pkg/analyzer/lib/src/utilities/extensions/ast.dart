@@ -55,7 +55,8 @@ extension AstNodeExtension on AstNode {
           return node;
         case FunctionDeclaration() ||
             ConstructorDeclaration() ||
-            MethodDeclaration():
+            MethodDeclaration() ||
+            TopLevelGetterDeclaration():
           break;
       }
     }
@@ -90,6 +91,9 @@ extension AstNodeExtension on AstNode {
       if (node is MethodDeclaration) {
         return node.declaredFragment?.element;
       }
+      if (node is TopLevelGetterDeclaration) {
+        return node.declaredFragment?.element;
+      }
     }
     return null;
   }
@@ -97,17 +101,11 @@ extension AstNodeExtension on AstNode {
   /// The [InstanceElement] of the enclosing executable [AstNode].
   InstanceElement? get enclosingInstanceElement {
     for (var node in withAncestors) {
-      var element = switch (node) {
-        ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
-        EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
-        ExtensionDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        ExtensionTypeDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        MixinDeclaration(:var declaredFragment?) => declaredFragment.element,
-        _ => null,
-      };
-      if (element != null) {
+      var element = node
+          .tryCast<FragmentDeclaringNode>()
+          ?.declaredFragment
+          ?.element;
+      if (element is InstanceElement) {
         return element;
       }
     }
@@ -117,17 +115,11 @@ extension AstNodeExtension on AstNode {
   /// The [InstanceElement] of the enclosing executable [AstNode].
   InstanceElement? get enclosingInstanceElement2 {
     for (var node in withAncestors2) {
-      var element = switch (node) {
-        ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
-        EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
-        ExtensionDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        ExtensionTypeDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        MixinDeclaration(:var declaredFragment?) => declaredFragment.element,
-        _ => null,
-      };
-      if (element != null) {
+      var element = node
+          .tryCast<FragmentDeclaringNode>()
+          ?.declaredFragment
+          ?.element;
+      if (element is InstanceElement) {
         return element;
       }
     }

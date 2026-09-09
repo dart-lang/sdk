@@ -45,11 +45,15 @@ Future<void> runTestCase(Uri source) async {
     target: target,
   );
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final hierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
 
   String actual = GlobalContext.withContext(
-    GlobalContext(typeEnvironment: typeEnvironment),
+    GlobalContext(
+      typeEnvironment: typeEnvironment,
+      coreLibraries: coreLibraries,
+    ),
     () {
       final compileAndDump = CompileAndDumpIr();
 

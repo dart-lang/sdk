@@ -332,8 +332,8 @@ class Planner extends core::Object {
           unsatisfied.{core::List::add}(c){(self::Constraint) → void};
       }
       self::Constraint? determining = v.{self::Variable::determinedBy}{self::Constraint?};
-      for (core::int i = 0; i.{core::num::<}(v.{self::Variable::constraints}{core::List<self::Constraint>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-        self::Constraint next = v.{self::Variable::constraints}{core::List<self::Constraint>}.{core::List::[]}(i){(core::int) → self::Constraint};
+      for (core::int i##1 = 0; i##1.{core::num::<}(v.{self::Variable::constraints}{core::List<self::Constraint>}.{core::List::length}{core::int}){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+        self::Constraint next = v.{self::Variable::constraints}{core::List<self::Constraint>}.{core::List::[]}(i##1){(core::int) → self::Constraint};
         if(!(next =={core::Object::==}{(core::Object) → core::bool} determining) && next.{self::Constraint::isSatisfied}(){() → core::bool}) {
           next.{self::Constraint::recalculate}(){() → void};
           todo.{core::List::add}(next.{self::Constraint::output}(){() → self::Variable}){(self::Variable) → void};
@@ -399,12 +399,12 @@ static method chainTest(core::int n) → void {
   new self::StayConstraint::•(last!, #C9);
   self::EditConstraint edit = new self::EditConstraint::•(first!, #C6);
   self::Plan plan = self::planner.{self::Planner::extractPlanFromConstraints}(<self::Constraint>[edit]){(core::List<self::Constraint>) → self::Plan};
-  for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    first{self::Variable}.{self::Variable::value} = i;
+  for (core::int i##1 = 0; i##1.{core::num::<}(100){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+    first{self::Variable}.{self::Variable::value} = i##1;
     plan.{self::Plan::execute}(){() → void};
-    if(!(last{self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i)) {
+    if(!(last{self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i##1)) {
       core::print("Chain test failed:");
-      core::print("Expected last value to be ${i} but it was ${last{self::Variable}.{self::Variable::value}{core::int}}.");
+      core::print("Expected last value to be ${i##1} but it was ${last{self::Variable}.{self::Variable::value}{core::int}}.");
     }
   }
 }
@@ -429,13 +429,13 @@ static method projectionTest(core::int n) → void {
   if(!(src{self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} 5))
     core::print("Projection 2 failed");
   self::change(scale, 5);
-  for (core::int i = 0; i.{core::num::<}(n.{core::num::-}(1){(core::num) → core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    if(!(dests.{core::List::[]}(i){(core::int) → self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i.{core::num::*}(5){(core::num) → core::int}.{core::num::+}(1000){(core::num) → core::int}))
+  for (core::int i##1 = 0; i##1.{core::num::<}(n.{core::num::-}(1){(core::num) → core::int}){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+    if(!(dests.{core::List::[]}(i##1){(core::int) → self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i##1.{core::num::*}(5){(core::num) → core::int}.{core::num::+}(1000){(core::num) → core::int}))
       core::print("Projection 3 failed");
   }
   self::change(offset, 2000);
-  for (core::int i = 0; i.{core::num::<}(n.{core::num::-}(1){(core::num) → core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    if(!(dests.{core::List::[]}(i){(core::int) → self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i.{core::num::*}(5){(core::num) → core::int}.{core::num::+}(2000){(core::num) → core::int}))
+  for (core::int i##2 = 0; i##2.{core::num::<}(n.{core::num::-}(1){(core::num) → core::int}){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::num) → core::int}) {
+    if(!(dests.{core::List::[]}(i##2){(core::int) → self::Variable}.{self::Variable::value}{core::int} =={core::num::==}{(core::Object) → core::bool} i##2.{core::num::*}(5){(core::num) → core::int}.{core::num::+}(2000){(core::num) → core::int}))
       core::print("Projection 4 failed");
   }
 }

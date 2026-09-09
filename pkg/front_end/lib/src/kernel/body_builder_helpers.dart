@@ -411,33 +411,6 @@ class ExpressionOrPatternGuardCase._(
     : this._(caseOffset, null, patternGuard);
 }
 
-extension on MemberKind {
-  bool get isFunctionType {
-    switch (this) {
-      case MemberKind.FunctionTypeAlias:
-      case MemberKind.FunctionTypedParameter:
-      case MemberKind.GeneralizedFunctionType:
-        return true;
-      case MemberKind.Catch:
-      case MemberKind.Factory:
-      case MemberKind.Local:
-      case MemberKind.AnonymousMethod:
-      case MemberKind.NonStaticMethod:
-      case MemberKind.StaticMethod:
-      case MemberKind.TopLevelMethod:
-      case MemberKind.ExtensionNonStaticMethod:
-      case MemberKind.ExtensionStaticMethod:
-      case MemberKind.ExtensionTypeNonStaticMethod:
-      case MemberKind.ExtensionTypeStaticMethod:
-      case MemberKind.NonStaticField:
-      case MemberKind.StaticField:
-      case MemberKind.TopLevelField:
-      case MemberKind.PrimaryConstructor:
-        return false;
-    }
-  }
-}
-
 /// Annotations that needs to be inferred about the body has been inferred.
 class PendingAnnotations(
   final List<SingleTargetAnnotations>? singleTargetAnnotations,

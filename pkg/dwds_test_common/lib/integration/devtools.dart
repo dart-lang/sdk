@@ -47,6 +47,7 @@ void testAll({
             canaryFeatures: provider.canaryFeatures,
           ),
         );
+        await _waitForPageReady(context);
         await context.webDriver.driver.keyboard.sendChord([Keyboard.alt, 'd']);
         // Wait for DevTools to actually open.
         await Future<void>.delayed(const Duration(seconds: 2));
@@ -57,7 +58,25 @@ void testAll({
       });
 
       test('can launch devtools', () async {
-        final windows = await context.webDriver.windows.toList();
+        List<Window>? windows;
+        // Poll for the DevTools window to open.
+        final attempts = 10;
+        for (var i = 0; i < attempts; i++) {
+          try {
+            final currentWindows = await context.webDriver.windows.toList();
+            if (currentWindows.length > 1) {
+              windows = currentWindows;
+              break;
+            }
+          } catch (e) {
+            printOnFailure(
+              'Error while waiting for DevTools windows '
+              '(attempt ${i + 1}/$attempts): $e',
+            );
+          }
+          await Future<void>.delayed(const Duration(milliseconds: 500));
+        }
+        windows ??= await context.webDriver.windows.toList();
         await context.webDriver.driver.switchTo.window(windows.last);
         expect(await context.webDriver.pageSource, contains('flutter-view'));
         expect(await context.webDriver.currentUrl, contains('ide=Dwds'));

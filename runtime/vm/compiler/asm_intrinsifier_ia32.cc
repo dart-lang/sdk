@@ -1444,9 +1444,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ cmpl(EBX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, normal_ir_body);
   __ movl(EAX, Immediate(SymbolsPredefinedAddress()));
-  __ movl(EAX, Address(EAX, EBX, TIMES_4,
-                       target::Symbols::kNullCharCodeSymbolOffset *
-                           target::kWordSize));
+  __ movl(EAX, Address(EAX, EBX, TIMES_4, 0));
   __ ret();
 
   __ Bind(&try_two_byte_string);
@@ -1458,9 +1456,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ cmpl(EBX, Immediate(target::Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, normal_ir_body);
   __ movl(EAX, Immediate(SymbolsPredefinedAddress()));
-  __ movl(EAX, Address(EAX, EBX, TIMES_4,
-                       target::Symbols::kNullCharCodeSymbolOffset *
-                           target::kWordSize));
+  __ movl(EAX, Address(EAX, EBX, TIMES_4, 0));
   __ ret();
 
   __ Bind(normal_ir_body);

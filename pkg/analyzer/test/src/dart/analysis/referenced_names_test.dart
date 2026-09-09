@@ -35,6 +35,17 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadePropertyAssignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..foo = 0;
+  a..bar += 1;
+  a..baz ??= 2;
+}
+''');
+    expect(names, unorderedEquals(['A', 'foo', 'bar', '+', 'baz']));
+  }
+
   test_class_constructor() {
     var names = _computeReferencedNames('''
 class U {
@@ -245,6 +256,14 @@ class U<T> {
     expect(names, unorderedEquals(['A']));
   }
 
+  test_combinatorName() {
+    var names = _computeReferencedNames('''
+import 'a.dart' show A hide B;
+export 'b.dart' show C hide D;
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_extensionType_typeParameters() {
     var names = _computeReferencedNames('''
 extension type Z<T>(int it) {
@@ -294,6 +313,40 @@ f(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B']));
+  }
+
+  test_operator_compoundAssignment_property() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a.foo += 1;
+  a.foo -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_operator_compoundAssignment_unqualifiedName() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x += 1;
+  x -= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-']));
+  }
+
+  test_operator_incrementOrDecrement() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  var x = a;
+  x++;
+  --x;
+  a.foo++;
+  --a.foo;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '-', 'foo']));
   }
 
   test_patternField_objectPattern_explicitName() {

@@ -32,7 +32,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     var matchers = ElementMatcher.matchersForNode(
       node,
       node.beginToken,
-      testLibraryElement,
+      testUnit.declaredFragment!.element,
     );
     var matchedMatchers = <ElementMatcher>[];
     for (var matcher in matchers) {
@@ -75,7 +75,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     var matchers = ElementMatcher.matchersForNode(
       node,
       node.beginToken,
-      testLibraryElement,
+      testUnit.declaredFragment!.element,
     );
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
@@ -699,7 +699,7 @@ String s = '';
   Future<void> test_imports_package() async {
     var packageRootPath = '$workspaceRootPath/other';
     newFile('$packageRootPath/lib/other.dart', '');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: getFolder(packageRootPath)),
     );

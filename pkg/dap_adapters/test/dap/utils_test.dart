@@ -8,32 +8,32 @@ import 'package:dap_adapters/src/utils.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('isResolvableUri', () {
-    test('false for files', () async {
+    test('false for files', () {
       expect(isResolvableUri(Uri.parse('file:///foo/bar.dart')), isFalse);
       expect(isResolvableUri(Uri.parse('file:///c:/foo/bar.dart')), isFalse);
     });
-    test('false for http(s)', () async {
+    test('false for http(s)', () {
       expect(isResolvableUri(Uri.parse('http://example.org')), isFalse);
       expect(isResolvableUri(Uri.parse('https://example.org')), isFalse);
     });
-    test('true for dart:foo', () async {
+    test('true for dart:foo', () {
       expect(isResolvableUri(Uri.parse('dart:async')), isTrue);
       expect(isResolvableUri(Uri.parse('dart:async/foo')), isTrue);
     });
-    test('true for package:foo', () async {
+    test('true for package:foo', () {
       expect(isResolvableUri(Uri.parse('package:foo')), isTrue);
       expect(isResolvableUri(Uri.parse('package:foo/foo')), isTrue);
     });
-    test('false for foo:', () async {
+    test('false for foo:', () {
       expect(isResolvableUri(Uri.parse('foo:')), isFalse);
     });
   });
 
   group('parseDartStackFrame', () {
     void expectFrames(List<String> inputs, Uri uri, [int? line, int? col]) {
-      for (var input in inputs) {
+      for (final input in inputs) {
         final frame = parseDartStackFrame(input);
         expect(frame, isNotNull, reason: 'Failed to parse "$input"');
         expect(frame!.uri, uri, reason: 'Failed to parse URI from "$input"');

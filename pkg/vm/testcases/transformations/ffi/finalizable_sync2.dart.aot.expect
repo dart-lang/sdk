@@ -54,11 +54,11 @@ static method main() → void {
           }
           if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 101) {
             throw block {
-              final synthesized core::Error :expressionValueWrappedFinalizable = new core::Error::•();
+              final synthesized core::Error :expressionValueWrappedFinalizable##1 = new core::Error::•();
               _in::reachabilityFence(finalizable);
               _in::reachabilityFence(finalizable13);
               _in::reachabilityFence(finalizable14);
-            } =>:expressionValueWrappedFinalizable;
+            } =>:expressionValueWrappedFinalizable##1;
           }
           _in::reachabilityFence(finalizable14);
         }
@@ -71,15 +71,15 @@ static method main() → void {
       finally {
         if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart.core::DateTime.millisecondsSinceEpoch] [@vm.inferred-type.metadata=int] new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1000) {
           throw block {
-            final synthesized core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
+            final synthesized core::Exception :expressionValueWrappedFinalizable##2 = core::Exception::•("bar");
             _in::reachabilityFence(finalizable13);
-          } =>:expressionValueWrappedFinalizable;
+          } =>:expressionValueWrappedFinalizable##2;
         }
       }
       _in::reachabilityFence(finalizable13);
     }
-    on core::Exception catch(final core::Exception e) {
-      core::print(e);
+    on core::Exception catch(final core::Exception e##1) {
+      core::print(e##1);
     }
   }
   #L1:
@@ -202,14 +202,14 @@ static method main() → void {
     }
     _in::reachabilityFence(finalizable11);
   }
-  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(10){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+  for (core::int i##1 = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i##1.{core::num::<}(10){(core::num) → core::bool}; i##1 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i##1.{core::num::+}(1){(core::num) → core::int}) {
     final self::MyFinalizable finalizable15 = new self::MyFinalizable::•();
     _in::reachabilityFence(finalizable15);
   }
-  core::int i = 0;
-  while ([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(10){(core::num) → core::bool}) {
+  core::int i##2 = 0;
+  while ([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i##2.{core::num::<}(10){(core::num) → core::bool}) {
     final self::MyFinalizable finalizable16 = new self::MyFinalizable::•();
-    i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int};
+    i##2 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i##2.{core::num::+}(1){(core::num) → core::int};
     _in::reachabilityFence(finalizable16);
   }
   {
@@ -221,8 +221,8 @@ static method main() → void {
       }
     }
   }
-  i = 0;
-  for (ffi::Finalizable finalizable18 = new self::MyFinalizable::•(); [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(10){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+  i##2 = 0;
+  for (ffi::Finalizable finalizable18 = new self::MyFinalizable::•(); [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i##2.{core::num::<}(10){(core::num) → core::bool}; i##2 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i##2.{core::num::+}(1){(core::num) → core::int}) {
     _in::reachabilityFence(finalizable18);
   }
   _in::reachabilityFence(finalizable);

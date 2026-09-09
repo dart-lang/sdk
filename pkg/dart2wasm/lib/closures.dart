@@ -847,7 +847,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.call_ref(genericFunctionType);
     b.end();
 
-    return trampoline;
+    return trampoline.build();
   }
 
   w.BaseFunction _createInstantiationDynamicCallEntry(
@@ -913,7 +913,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.call_ref(translator.dynamicCallVtableEntryFunctionType);
     b.end();
 
-    return function;
+    return function.build();
   }
 
   w.BaseFunction _createInstantiationFunction(
@@ -955,6 +955,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
     ib.struct_new(instantiatedRepresentation.vtableStruct);
     ib.end();
+    final vtableGlobal = vtable.build();
 
     final instantiationFunction = module.functions.define(functionType, name);
     final b = instantiationFunction.body;
@@ -977,7 +978,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
     b.struct_new(contextStruct);
 
-    translator.globals.readGlobal(b, vtable);
+    translator.globals.readGlobal(b, vtableGlobal);
 
     // Construct the type of the instantiated closure, which is the type of the
     // original closure with the type arguments of the instantiation substituted
@@ -1004,7 +1005,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.end();
 
-    return instantiationFunction;
+    return instantiationFunction.build();
   }
 
   w.BaseFunction _createInstantiationTypeComparisonFunction(
@@ -1057,7 +1058,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.i32_const(0); // false
     b.end(); // end of function
-    return function;
+    return function.build();
   }
 
   w.BaseFunction _createInstantiationTypeHashFunction(
@@ -1095,7 +1096,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.end();
 
-    return function;
+    return function.build();
   }
 
   ClosureRepresentationsForParameterCount _representationsForCounts(
@@ -1335,6 +1336,8 @@ class Lambda {
   /// traversal of the member body.
   final int index;
 
+  final bool isInInitializer;
+
   late final LambdaCallTarget callTarget;
 
   Lambda._(
@@ -1343,7 +1346,11 @@ class Lambda {
     this.enclosingMember,
     this.enclosingMemberClosures,
     this.index,
+    this.isInInitializer,
   );
+
+  bool get isInConstructorBody =>
+      enclosingMember is Constructor && !isInInitializer;
 }
 
 /// The context for one or more closures, containing their captured variables.
@@ -1746,6 +1753,7 @@ class _CaptureFinder extends RecursiveVisitor {
       member,
       closures,
       closures.lambdas.length,
+      isInInitializer,
     );
     lambda.callTarget = LambdaCallTarget(
       translator.functions.getLambdaFunctionType(lambda),

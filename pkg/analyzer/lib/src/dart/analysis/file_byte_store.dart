@@ -81,6 +81,9 @@ class EvictingFileByteStore implements ByteStore {
   int get writeBytes => _fileByteStore.writeBytes;
   int get writeCount => _fileByteStore.writeCount;
 
+  /// Returns the future that completes when all file writes are done.
+  Future<void> flush() => _fileByteStore.flush();
+
   @override
   Uint8List? get(String key) => _fileByteStore.get(key);
 
@@ -241,6 +244,18 @@ class FileByteStore implements ByteStore {
   int get writeBytes => _writeBytes;
   int get writeCount => _writeCount;
 
+  /// Returns the future that completes when all file writes are done.
+  ///
+  /// On Windows this is a no-op because writing a large number of files can be
+  /// very slow and cause `dart analyze` and analysis_server shutdowns to take
+  /// a long time.
+  Future<void> flush() {
+    return Platform.isWindows
+        // No-op on Windows, see https://github.com/dart-lang/sdk/issues/64190
+        ? Future.value()
+        : _pool.waitForIdle();
+  }
+
   @override
   Uint8List? get(String key) {
     _readCount++;
@@ -297,12 +312,13 @@ class FileByteStore implements ByteStore {
         await Directory(shardPath).create(recursive: true);
         var path = join(shardPath, key);
         await tempFile.rename(path);
-        if (_writeInProgress[key] == bytes) {
-          _writeInProgress.remove(key);
-        }
       } catch (_) {
         // ignore exceptions
         _failedWriteCount++;
+      } finally {
+        if (_writeInProgress[key] == bytes) {
+          _writeInProgress.remove(key);
+        }
       }
     });
 
@@ -383,16 +399,26 @@ class FileByteStoreValidator {
 
 class FuturePool {
   int _available;
+  Completer<void>? _idleCompleter;
+  int _pending = 0;
   List<Future Function()> waiting = [];
 
   FuturePool(this._available);
 
   void execute(Future Function() fn) {
+    _pending++;
     if (_available > 0) {
       _run(fn);
     } else {
       waiting.add(fn);
     }
+  }
+
+  Future<void> waitForIdle() {
+    if (_pending == 0) {
+      return Future<void>.value();
+    }
+    return (_idleCompleter ??= Completer<void>()).future;
   }
 
   void _run(Future Function() fn) {
@@ -401,9 +427,15 @@ class FuturePool {
     unawaited(
       fn().whenComplete(() {
         _available++;
+        _pending--;
 
         if (waiting.isNotEmpty) {
           _run(waiting.removeAt(0));
+        }
+
+        if (_pending == 0) {
+          _idleCompleter?.complete();
+          _idleCompleter = null;
         }
       }),
     );

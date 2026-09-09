@@ -47,9 +47,10 @@ main() {
       bool expectTryInline = false,
     }) {
       LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
-      final method =
-          elementEnvironment.lookupLibraryMember(mainLibrary, name)
-              as FunctionEntity?;
+      final method = elementEnvironment.lookupLibraryMember(
+        mainLibrary,
+        name,
+      ) as FunctionEntity?;
       Expect.isNotNull(method);
       Expect.equals(
         expectNoInline,

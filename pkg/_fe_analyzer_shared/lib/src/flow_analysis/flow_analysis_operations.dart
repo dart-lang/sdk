@@ -81,15 +81,15 @@ abstract interface class FlowAnalysisTypeOperations {
   /// (c) is a type variable that has been promoted to `Never`
   bool isBottomType(SharedTypeView type);
 
+  /// Returns `true` if [type] represents the invalid type, i.e. the type of
+  /// an invalid expression.
+  bool isInvalidType(SharedTypeView type);
+
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(SharedTypeView leftType, SharedTypeView rightType);
 
   /// Returns `true` if [type] is a reference to a type parameter.
   bool isTypeParameterType(SharedTypeView type);
-
-  /// Returns `true` if [type] represents the invalid type, i.e. the type of
-  /// an invalid expression.
-  bool isInvalidType(SharedTypeView type);
 
   /// Computes the nullable form of [type], in other words the least upper bound
   /// of [type] and `Null`.

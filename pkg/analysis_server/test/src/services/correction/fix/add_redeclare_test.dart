@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class AddRedeclareBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.annotate_redeclares;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  String get lintCode => LintNames.annotate_redeclares;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -61,16 +58,13 @@ extension type E(C c) implements C {
 @reflectiveTest
 class AddRedeclareTest extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addRedeclare;
 
   @override
   String get lintCode => LintNames.annotate_redeclares;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_method() async {
     await resolveTestCode('''

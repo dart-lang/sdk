@@ -19,6 +19,25 @@ void main() {
 
 @reflectiveTest
 class OrganizeImportsBulkTest extends BulkFixProcessorTest {
+  Future<void> test_comments() async {
+    await parseTestCode('''
+import 'dart:io'; // comment1
+
+// comment2
+import 'dart:async';
+
+Future? a;
+''');
+
+    await assertOrganize('''
+// comment2
+import 'dart:async';
+import 'dart:io'; // comment1
+
+Future? a;
+''');
+  }
+
   Future<void> test_partFile() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

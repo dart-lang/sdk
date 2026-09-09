@@ -682,7 +682,11 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_mirrors;
     enable_mirrors.type = Dart_CObject_kBool;
-    enable_mirrors.value.as_bool = FLAG_enable_mirrors;
+    enable_mirrors.value.as_bool = FLAG_enable_mirrors && !FLAG_interpreter;
+
+    Dart_CObject enable_ffi;
+    enable_ffi.type = Dart_CObject_kBool;
+    enable_ffi.value.as_bool = Api::IsFfiEnabled();
 
     Dart_CObject generate_bytecode;
     generate_bytecode.type = Dart_CObject_kBool;
@@ -711,6 +715,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &enable_asserts,
                                    &experimental_flags_object,
                                    &enable_mirrors,
+                                   &enable_ffi,
                                    &generate_bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
@@ -918,6 +923,10 @@ class KernelCompilationRequest : public ValueObject {
     enable_mirrors.type = Dart_CObject_kBool;
     enable_mirrors.value.as_bool = FLAG_enable_mirrors && !FLAG_interpreter;
 
+    Dart_CObject enable_ffi;
+    enable_ffi.type = Dart_CObject_kBool;
+    enable_ffi.value.as_bool = Api::IsFfiEnabled();
+
     Dart_CObject generate_bytecode;
     generate_bytecode.type = Dart_CObject_kBool;
     generate_bytecode.value.as_bool = FLAG_interpreter;
@@ -938,6 +947,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &multiroot_scheme_object,
                                    &verbosity_str,
                                    &enable_mirrors,
+                                   &enable_ffi,
                                    &generate_bytecode};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);

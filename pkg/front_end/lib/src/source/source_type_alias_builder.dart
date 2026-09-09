@@ -92,7 +92,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   List<SourceNominalParameterBuilder>? get typeParameters =>
-      _introductory.typeParameters?.builders;
+      _introductory.typeParameterBuilders;
 
   @override
   bool get fromDill => false;

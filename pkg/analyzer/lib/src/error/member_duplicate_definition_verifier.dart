@@ -13,7 +13,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Information to pass from declarations to augmentations.
@@ -103,8 +102,8 @@ class MemberDuplicateDefinitionVerifier {
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName case var typeName?) {
-            if (typeName.name != firstFragment.name) {
+          if (member.typeName2 case var typeName?) {
+            if (typeName.lexeme != firstFragment.name) {
               continue;
             }
           }
@@ -263,7 +262,7 @@ class MemberDuplicateDefinitionVerifier {
                 }
                 .withArguments(name: name)
                 .atSourceRange(
-                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                  constructor.element.diagnosticRange(_currentUnit.source),
                 ),
           );
         case _ScopeEntryElement(element: MethodElementImpl()):
@@ -271,7 +270,7 @@ class MemberDuplicateDefinitionVerifier {
             diag.conflictingConstructorAndStaticMethod
                 .withArguments(name: name)
                 .atSourceRange(
-                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                  constructor.element.diagnosticRange(_currentUnit.source),
                 ),
           );
         case _ScopeEntryGetterSetterPair():
@@ -281,7 +280,7 @@ class MemberDuplicateDefinitionVerifier {
                     : diag.conflictingConstructorAndStaticGetter)
                 .withArguments(name: name)
                 .atSourceRange(
-                  constructor.asElement2.diagnosticRange(_currentUnit.source),
+                  constructor.element.diagnosticRange(_currentUnit.source),
                 ),
           );
         case _ScopeEntryElement(:var element):
@@ -389,7 +388,7 @@ class MemberDuplicateDefinitionVerifier {
                 conflictingClassName: inherited.enclosingElement!.name!,
               )
               .atSourceRange(
-                accessor.asElement2.diagnosticRange(_currentUnit.source),
+                accessor.element.diagnosticRange(_currentUnit.source),
               ),
         );
       }
@@ -413,7 +412,7 @@ class MemberDuplicateDefinitionVerifier {
                 conflictingClassName: inherited.enclosingElement.name!,
               )
               .atSourceRange(
-                method.asElement2.diagnosticRange(_currentUnit.source),
+                method.element.diagnosticRange(_currentUnit.source),
               ),
         );
       }
@@ -446,7 +445,7 @@ class MemberDuplicateDefinitionVerifier {
                   conflictingClassName: declarationName,
                 )
                 .atSourceRange(
-                  accessor.asElement2.diagnosticRange(_currentUnit.source),
+                  accessor.element.diagnosticRange(_currentUnit.source),
                 ),
           );
         }
@@ -470,7 +469,7 @@ class MemberDuplicateDefinitionVerifier {
                   conflictingClassName: declarationName,
                 )
                 .atSourceRange(
-                  method.asElement2.diagnosticRange(_currentUnit.source),
+                  method.element.diagnosticRange(_currentUnit.source),
                 ),
           );
         }
@@ -534,7 +533,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkUnit(CompilationUnitImpl node) {
-    for (var node in node.declarations) {
+    for (var node in node.declarations2) {
       switch (node) {
         case ClassDeclarationImpl():
           _checkClass(node);
@@ -548,16 +547,18 @@ class MemberDuplicateDefinitionVerifier {
           _checkMixin(node);
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
+        case TopLevelGetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():
-        // Do nothing.
+          // Do nothing.
+          break;
       }
     }
   }
 
   void _checkUnitStatic(CompilationUnitImpl node) {
-    for (var declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       switch (declaration) {
         case ClassDeclarationImpl():
           var fragment = declaration.declaredFragment!;
@@ -574,10 +575,12 @@ class MemberDuplicateDefinitionVerifier {
           _checkClassStatic(fragment, declaration.body.members);
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
+        case TopLevelGetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():
-        // Do nothing.
+          // Do nothing.
+          break;
       }
     }
   }

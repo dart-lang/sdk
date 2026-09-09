@@ -14,7 +14,7 @@ void main() {
   late ProtocolConverter converter;
   late ThreadInfo thread;
 
-  setUp(() async {
+  setUp(() {
     adapter = MockDartCliDebugAdapter();
     converter = ProtocolConverter(adapter);
     thread = ThreadInfo(

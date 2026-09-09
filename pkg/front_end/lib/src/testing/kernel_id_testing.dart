@@ -66,7 +66,7 @@ abstract class DataComputer<
   void computeMemberData(
     D testResultData,
     Member member,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool? verbose,
   }) {}
 
@@ -76,7 +76,7 @@ abstract class DataComputer<
   void computeClassData(
     D testResultData,
     Class cls,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool? verbose,
   }) {}
 
@@ -86,7 +86,7 @@ abstract class DataComputer<
   void computeExtensionData(
     D testResultData,
     Extension extension,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool? verbose,
   }) {}
 
@@ -96,7 +96,7 @@ abstract class DataComputer<
   void computeExtensionTypeDeclarationData(
     D testResultData,
     ExtensionTypeDeclaration extensionTypeDeclaration,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool? verbose,
   }) {}
 
@@ -106,7 +106,7 @@ abstract class DataComputer<
   void computeLibraryData(
     D testResultData,
     Library library,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool? verbose,
   }) {}
 
@@ -275,11 +275,11 @@ Future<TestResult<T>> processCompiledResult<
   C config = testResultData.config;
   R compilerResult = testResultData.compilerResult;
   Component component = testResultData.component;
-  Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
-  Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+  Map<Uri, ActualDataMap<T>> actualMaps = {};
+  ActualDataMap<T> globalData = new ActualDataMap();
 
-  Map<Id, ActualData<T>> actualMapForUri(Uri? uri) {
-    return actualMaps.putIfAbsent(uri ?? nullUri, () => <Id, ActualData<T>>{});
+  ActualDataMap<T> actualMapForUri(Uri? uri) {
+    return actualMaps.putIfAbsent(uri ?? nullUri, () => new ActualDataMap());
   }
 
   if (errors.isNotEmpty) {
@@ -310,21 +310,21 @@ Future<TestResult<T>> processCompiledResult<
         NodeId id = new NodeId(offset, IdKind.error);
         T? data = dataComputer.computeErrorData(testResultData, id, list);
         if (data != null) {
-          Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
+          ActualDataMap<T> actualMap = actualMapForUri(uri);
           actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
         }
       });
     });
   }
 
-  Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
+  ActualDataMap<T> actualMapFor(TreeNode node) {
     Uri uri = node is Library
         ? node.fileUri
         : (node is Member ? node.fileUri : node.location!.file);
     return actualMapForUri(uri);
   }
 
-  void processMember(Member member, Map<Id, ActualData<T>> actualMap) {
+  void processMember(Member member, ActualDataMap<T> actualMap) {
     if (!dataComputer.includeMemberSignatures && member is Procedure) {
       if (member.isMemberSignature ||
           (member.isForwardingStub && !member.isForwardingSemiStub)) {
@@ -363,7 +363,7 @@ Future<TestResult<T>> processCompiledResult<
     );
   }
 
-  void processClass(Class cls, Map<Id, ActualData<T>> actualMap) {
+  void processClass(Class cls, ActualDataMap<T> actualMap) {
     dataComputer.computeClassData(
       testResultData,
       cls,
@@ -372,7 +372,7 @@ Future<TestResult<T>> processCompiledResult<
     );
   }
 
-  void processExtension(Extension extension, Map<Id, ActualData<T>> actualMap) {
+  void processExtension(Extension extension, ActualDataMap<T> actualMap) {
     dataComputer.computeExtensionData(
       testResultData,
       extension,
@@ -383,7 +383,7 @@ Future<TestResult<T>> processCompiledResult<
 
   void processExtensionTypeDeclaration(
     ExtensionTypeDeclaration extensionTypeDeclaration,
-    Map<Id, ActualData<T>> actualMap,
+    ActualDataMap<T> actualMap,
   ) {
     dataComputer.computeExtensionTypeDeclarationData(
       testResultData,
@@ -497,8 +497,8 @@ Future<TestResult<T>> processCompiledResult<
     compilerResult,
     component,
     testData.entryPoint,
-    actualMaps,
-    globalData,
+    await actualMaps.getData(),
+    await globalData.getData(),
   );
   return checkCode(
     markerOptions,

@@ -29,11 +29,30 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpressionInvocation
-          function2: ParenthesizedExpression
+      expression2: CallInvocation
+        receiver: CallInvocation
+          receiver: ParenthesizedExpression
             leftParenthesis: (
             expression2: SimpleIdentifier
+              token: f
+            rightParenthesis: )
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpressionInvocation
+          function: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
               token: f
             rightParenthesis: )
           argumentList: ArgumentList
@@ -66,7 +85,7 @@ foo Future<List<int>> bar() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -107,7 +126,7 @@ main() { C<@Foo T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -145,7 +164,7 @@ main() { C<@Foo.bar(1) T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -190,7 +209,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -677,7 +696,7 @@ main() { else return 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -755,7 +774,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -943,7 +963,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -971,7 +992,8 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
         iterable2: SimpleIdentifier
@@ -1277,10 +1299,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1325,10 +1349,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1357,10 +1383,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+        initialization2: IncrementOrDecrementExpression
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1381,10 +1409,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1413,10 +1443,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+        initialization2: IncrementOrDecrementExpression
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1437,10 +1469,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1727,10 +1761,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1783,10 +1819,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1845,14 +1883,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
-          PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1915,14 +1957,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
-          PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1966,10 +2012,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2009,10 +2057,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2044,10 +2094,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2079,10 +2131,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+          IncrementOrDecrementExpression
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2838,9 +2892,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: AssignmentExpression
-        leftHandSide2: IndexExpression
-          target2: FunctionExpression
+      expression2: DirectAssignment
+        target: ReceiverIndexAssignmentTarget
+          receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
@@ -2849,11 +2903,28 @@ Block
                 leftBracket: {
                 rightBracket: }
           leftBracket: [
-          index2: IntegerLiteral
+          index: IntegerLiteral
             literal: 0
           rightBracket: ]
         operator: =
-        rightHandSide2: NullLiteral
+        value: NullLiteral
+          literal: null
+      expression(v1): AssignmentExpression
+        leftHandSide: IndexExpression
+          target: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        rightHandSide: NullLiteral
           literal: null
       semicolon: ;
   rightBracket: }
@@ -2897,8 +2968,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpression
+      expression2: CallInvocation
+        receiver: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             requiredPositionalFormalParameters
@@ -2934,6 +3005,33 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 3
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: a
+            rightParenthesis: )
+          body: BlockFunctionBody
+            block: Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                  semicolon: ;
+              rightBracket: }
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 3
           rightParenthesis: )
@@ -4243,7 +4341,7 @@ main() { try {} catch (int e) { } }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -4906,7 +5004,7 @@ Block
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4936,7 +5034,7 @@ foo <bar<
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

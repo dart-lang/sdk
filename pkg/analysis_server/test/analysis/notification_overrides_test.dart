@@ -364,6 +364,17 @@ class C implements B {
     assertHasInterfaceMember('m() {} // in A');
   }
 
+  Future<void> test_class_interface_primaryConstructorDeclaringField() async {
+    addTestFile('''
+class A(final Object value); // in A
+class B(@override final Object value) implements A; // in B
+''');
+    await prepareOverrides();
+    assertHasOverride('value) implements A');
+    assertNoSuperMember();
+    assertHasInterfaceMember('value); // in A');
+  }
+
   Future<void> test_class_interface_stopWhenFound() async {
     addTestFile('''
 class A {
@@ -610,6 +621,19 @@ class B extends A {
 ''');
     await prepareOverrides();
     // must finish
+  }
+
+  Future<void> test_class_super_primaryConstructorDeclaringField() async {
+    addTestFile('''
+class A(final Object value); // in A
+class B(@override final Object value) extends A { // in B
+  this : super(value);
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('value) extends A');
+    assertHasSuperElement('value); // in A');
+    assertNoInterfaceMembers();
   }
 
   Future<void> test_class_super_setterBySetter() async {

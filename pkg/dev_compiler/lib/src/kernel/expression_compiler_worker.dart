@@ -255,7 +255,9 @@ class ExpressionCompilerWorker {
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..verbose = verbose;
     requestStream ??= stdin
-        .transform(utf8.decoder.fuse(json.decoder))
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .map(jsonDecode)
         .cast<Map<String, dynamic>>();
     sendResponse ??= (Map<String, dynamic> response) =>
         stdout.writeln(json.encode(response));

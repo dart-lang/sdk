@@ -250,6 +250,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   ),
 
+  receiverTypeInference(
+    name: 'receiver-type-inference',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   recordUse(
     name: 'record-use',
     isEnabledByDefault: true,
@@ -280,6 +288,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
+  ),
+
+  singleCombinators(
+    name: 'single-combinators',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
   ),
 
   soundFlowAnalysis(

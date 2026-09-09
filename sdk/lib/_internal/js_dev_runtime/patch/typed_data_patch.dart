@@ -171,6 +171,8 @@ class Int32x4 {
   @patch
   factory Int32x4(int x, int y, int z, int w) = NativeInt32x4;
   @patch
+  factory Int32x4.splat(int value) = NativeInt32x4.splat;
+  @patch
   factory Int32x4.bool(bool x, bool y, bool z, bool w) = NativeInt32x4.bool;
   @patch
   factory Int32x4.fromFloat32x4Bits(Float32x4 x) =

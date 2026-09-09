@@ -158,6 +158,91 @@ library
 ''');
   }
 
+  test_expr_methodInvocation_staticAccessToInstanceMember_generic() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+var x = A.foo();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:42) (firstTokenOffset:42) (offset:42)
+          element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F6
+          inducedSetter: #F7
+      getters
+        #F6 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@getter::x
+          inducingVariable: #F5
+      setters
+        #F7 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@setter::x
+          inducingVariable: #F5
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@setter::x::@formalParameter::value
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: T
+  topLevelVariables
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F5
+      type: InvalidType
+      getter: <testLibrary>::@getter::x
+      setter: <testLibrary>::@setter::x
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F6
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::x
+  setters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@setter::x
+      firstFragment: #F7
+      formalParameters
+        #E1 requiredPositional value
+          firstFragment: #F8
+          type: InvalidType
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_infer_generic_typedef_complex() async {
     var library = await buildLibrary(r'''
 typedef F<T> = D<T, U> Function<U>();
@@ -225,6 +310,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @135
                 arguments2
+                  UnqualifiedNameExpression
+                    name: f @136
+                    resolution: ExecutableTearOffResolution
+                      element: <testLibrary>::@function::f
+                      type: D<int, U> Function<U>()
+                    staticType: D<int, U> Function<U>()
+                arguments(v1)
                   SimpleIdentifier
                     token: f @136
                     element: <testLibrary>::@function::f
@@ -363,6 +455,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @115
                 arguments2
+                  UnqualifiedNameExpression
+                    name: f @116
+                    resolution: ExecutableTearOffResolution
+                      element: <testLibrary>::@function::f
+                      type: D<T> Function<T>()
+                    staticType: D<T> Function<T>()
+                arguments(v1)
                   SimpleIdentifier
                     token: f @116
                     element: <testLibrary>::@function::f
@@ -2058,7 +2157,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function(String)
@@ -2421,7 +2520,7 @@ library
           firstFragment: #F2
       supertype: D<int, T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration v
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F3
           type: Map<T, int>
@@ -3009,7 +3108,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter f
+        isOriginGetterSetter isTypeInferredFromOverride f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int Function(String)
@@ -6012,6 +6111,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6304,6 +6411,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6508,6 +6623,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6770,6 +6893,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7023,6 +7154,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7470,6 +7609,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v

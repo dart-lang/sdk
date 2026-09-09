@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -45,10 +46,11 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
       var parent = node.parent;
       if (parent is AssignmentExpression && parent.rightHandSide == node) {
         await _forAssignment(builder, node, parent);
-      } else if (parent is VariableDeclarationImpl &&
-          parent.initializer == node) {
+      } else if (parent is VariableDeclaration && parent.initializer == node) {
         await _forVariableDeclaration(builder, node, parent);
       }
+    } else if (node is VariableDeclaration) {
+      await _forUninitializedVariableDeclaration(builder, node);
     }
   }
 
@@ -210,6 +212,29 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     }
   }
 
+  /// Builds a fix which makes the type on [declaration] nullable, if possible.
+  ///
+  /// If the declaration is either `final` or `const`, making the variable
+  /// nullable will not solve an "uninitialized variable/field" issue, so it is
+  /// not offered.
+  Future<void> _forUninitializedVariableDeclaration(
+    ChangeBuilder builder,
+    VariableDeclaration declaration,
+  ) async {
+    if (declaration.isConst || declaration.isFinal) return;
+
+    var declarationList = declaration.parent;
+    if (declarationList is! VariableDeclarationList) return;
+
+    var typeNode = declarationList.type;
+    if (typeNode == null || !_typeCanBeMadeNullable(typeNode)) return;
+
+    _variableName = declaration.name.lexeme;
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(typeNode.end, '?');
+    });
+  }
+
   Future<void> _forVariableDeclaration(
     ChangeBuilder builder,
     Expression node,
@@ -230,10 +255,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
 
     var newType = node.typeOrThrow;
     if (node is NullLiteral) {
-      if (oldType is InterfaceTypeImpl) {
-        newType = oldType.withNullability(NullabilitySuffix.question);
-      } else if (oldType is RecordTypeImpl) {
-        newType = oldType.withNullability(NullabilitySuffix.question);
+      if (oldType is TypeImpl) {
+        newType = (typeSystem as TypeSystemImpl).makeNullable(oldType);
       } else {
         return;
       }
@@ -263,11 +286,7 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     _variableName = variable.name.lexeme;
     await builder.addDartFileEdit(file, (builder) {
       var keyword = declarationList.keyword;
-      if (keyword != null && keyword.type == Keyword.VAR) {
-        builder.addReplacement(range.token(keyword), (builder) {
-          builder.writeType(newType);
-        });
-      } else if (keyword == null) {
+      if (keyword == null) {
         var typeAnnotation = declarationList.type;
         if (typeAnnotation == null) {
           builder.addInsertion(variable.offset, (builder) {
@@ -277,6 +296,13 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
         } else {
           builder.addSimpleInsertion(typeAnnotation.end, '?');
         }
+        return;
+      }
+
+      if (keyword.type == Keyword.VAR) {
+        builder.addReplacement(range.token(keyword), (builder) {
+          builder.writeType(newType);
+        });
       }
     });
   }

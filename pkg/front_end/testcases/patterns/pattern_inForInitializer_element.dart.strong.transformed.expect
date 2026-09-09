@@ -15,8 +15,8 @@ static method f(dynamic x) → void
     }
     final dynamic #t4 = a;
     final dynamic #t5 = b;
-    for (dynamic a = #t4, dynamic b = #t5; ; )
-      #t1.{core::List::add}{Invariant}(a){(dynamic) → void};
+    for (dynamic a##1 = #t4, dynamic b##1 = #t5; ; )
+      #t1.{core::List::add}{Invariant}(a##1){(dynamic) → void};
   } =>#t1;
 static method g(dynamic x) → void
   return block {
@@ -30,8 +30,8 @@ static method g(dynamic x) → void
     }
     final dynamic #t9 = a;
     final dynamic #t10 = b;
-    for (dynamic a = #t9, dynamic b = #t10; ; )
-      #t6.{core::Set::add}{Invariant}(b){(dynamic) → core::bool};
+    for (dynamic a##1 = #t9, dynamic b##1 = #t10; ; )
+      #t6.{core::Set::add}{Invariant}(b##1){(dynamic) → core::bool};
   } =>#t6;
 static method h(dynamic x) → void
   return block {
@@ -45,6 +45,6 @@ static method h(dynamic x) → void
     }
     final dynamic #t14 = a;
     final dynamic #t15 = b;
-    for (dynamic a = #t14, dynamic b = #t15; ; )
-      #t11.{core::Map::[]=}{Invariant}(a, b){(dynamic, dynamic) → void};
+    for (dynamic a##1 = #t14, dynamic b##1 = #t15; ; )
+      #t11.{core::Map::[]=}{Invariant}(a##1, b##1){(dynamic, dynamic) → void};
   } =>#t11;

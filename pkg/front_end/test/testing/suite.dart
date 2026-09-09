@@ -2798,10 +2798,7 @@ class _LibraryFinder extends RecursiveVisitor {
       // This call sometimes fail:
       // node.enclosingLibrary;
       // TODO(jensj): Figure out why it fails.
-      // It happens - currently - on these tests:
-      // strong/macros/augment_concrete
-      // strong/macros/extend_augmented
-      // strong/macros/multiple_augment_class
+      // It happened on some macro tests and might no longer fail.
       TreeNode? parent = node.parent;
       while (parent != null && parent is! Library) {
         parent = parent.parent;

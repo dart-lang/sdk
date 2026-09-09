@@ -2416,16 +2416,6 @@ illegalMixinDueToConstructorsCause:
   problemMessage: "This constructor prevents using '#className' as a mixin."
   severity: CONTEXT
 
-extensionTypeDeclaresAbstractMember:
-  pseudoSharedCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
-  parameters: none
-  problemMessage: "Extension types can't declare abstract members."
-  correctionMessage: "Try providing an implementation for the member."
-  script: |
-    extension type ET(int id) {
-      void method();
-    }
-
 extensionDeclaresInstanceField:
   pseudoSharedCode: EXTENSION_DECLARES_INSTANCE_FIELD
   parameters: none
@@ -4747,6 +4737,11 @@ incorrectTypeArgumentVariable:
   problemMessage: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+incorrectVariancePositionVariable:
+  parameters: none
+  problemMessage: "This is the type variable which is referenced from an invalid position."
+  severity: CONTEXT
+
 superBoundedHint:
   parameters:
     Type attemptedType: The type that the user appears to be attempting to make super-bounded.
@@ -6116,6 +6111,13 @@ jsInteropFunctionToJSNamedParameters:
   problemMessage: "Functions converted via '#conversion' cannot declare named parameters."
   correctionMessage: "Remove the declared named parameters from the function."
 
+jsInteropFunctionToJSReturnFutureOptionalParameters:
+  parameters:
+    String conversion: The "toJS" conversion in use.
+    Type type: The Future return type.
+  problemMessage: "Functions converted via '#conversion' that return '#type' cannot declare optional parameters."
+  correctionMessage: "Remove the declared optional parameters from the function."
+
 jsInteropFunctionToJSRequiresStaticType:
   parameters:
     String conversion: The "toJS" conversion in use.
@@ -6134,7 +6136,7 @@ jsInteropFunctionToJSTypeViolation:
     String conversion: The "toJS" conversion in use.
     String typeWithDiasllowedPartsHighlighted: The function type, with disallowed types surrounded by asterisks.
   problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#typeWithDiasllowedPartsHighlighted'."
-  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type. If the return type is a Future, then the result type must be a subtype of 'JSAny?' or 'void'."
 
 jsInteropInvalidStaticClassMemberName:
   parameters: none
@@ -7553,6 +7555,10 @@ awaitOfExtensionTypeNotFuture:
   problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
   script: |
     extension type E(num foo) { test(E e) async { await e; } }
+
+futureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise:
+  parameters: none
+  problemMessage: "Calling 'toJS' on a function returning 'Future<T>' requires 'T' to be a subtype of 'JSAny?' or 'void'."
 
 namedParametersInExtensionTypeDeclaration:
   parameters: none

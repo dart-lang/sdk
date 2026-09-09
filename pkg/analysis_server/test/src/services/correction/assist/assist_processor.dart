@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
@@ -12,6 +14,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
@@ -132,6 +135,14 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
+  }
+
+  @override
+  void setUp() {
+    registerLintRules();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
+    super.setUp();
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.

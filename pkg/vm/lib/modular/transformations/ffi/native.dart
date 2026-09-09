@@ -613,7 +613,7 @@ class FfiNativeTransformer extends FfiTransformer {
           for (final positionalParameter
               in wrappedDartFunctionType.positionalParameters)
             PositionalParameter(
-              cosmeticName: '#t${varCounter++}',
+              parameterName: '#t${varCounter++}',
               type: positionalParameter,
             )..fileOffset = node.fileOffset,
         ],

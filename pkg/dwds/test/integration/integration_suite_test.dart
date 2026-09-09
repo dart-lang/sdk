@@ -168,7 +168,7 @@ class _EnvironmentPaths {
 final _activeTests = <ActiveTest>{};
 final _completedResults = <TestResult>[];
 
-void main(List<String> args) async {
+void main([List<String> args = const []]) async {
   _setupSignalHandling();
   final options = _SuiteOptions.parse(args);
   final env = _EnvironmentPaths.resolve();

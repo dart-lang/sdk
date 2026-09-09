@@ -17,11 +17,11 @@ static method main() → void {
     }
   } =>#t2;
   let core::int? #t3 = self::i in #t3 == null ?{Null} null : block {
-    final synthesized core::int anonymous#this = #t3 as core::int;
+    final synthesized core::int anonymous#this##1 = #t3 as core::int;
     Null #t4;
     #L2:
     {
-      anonymous#this;
+      anonymous#this##1;
       {
         #t4 = null;
         break #L2;
@@ -29,11 +29,11 @@ static method main() → void {
     }
   } =>#t4;
   let core::int? #t5 = self::i in #t5 == null ?{Null} null : block {
-    final synthesized core::int anonymous#this = #t5 as core::int;
+    final synthesized core::int anonymous#this##2 = #t5 as core::int;
     Null #t6;
     #L3:
     {
-      anonymous#this.{core::int::isEven}{core::bool};
+      anonymous#this##2.{core::int::isEven}{core::bool};
       {
         #t6 = null;
         break #L3;
@@ -41,11 +41,11 @@ static method main() → void {
     }
   } =>#t6;
   let core::int? #t7 = self::i in #t7 == null ?{Null} null : block {
-    final synthesized core::int anonymous#this = #t7 as core::int;
+    final synthesized core::int anonymous#this##3 = #t7 as core::int;
     Null #t8;
     #L4:
     {
-      anonymous#this.{core::int::isEven}{core::bool};
+      anonymous#this##3.{core::int::isEven}{core::bool};
       {
         #t8 = null;
         break #L4;
@@ -53,7 +53,7 @@ static method main() → void {
     }
   } =>#t8;
   let core::int? #t9 = self::i in #t9 == null ?{core::int?} null : block {
-    final synthesized core::int anonymous#this = #t9 as core::int;
+    final synthesized core::int anonymous#this##4 = #t9 as core::int;
     core::int #t10;
     #L5:
     {
@@ -64,34 +64,34 @@ static method main() → void {
     }
   } =>#t10;
   let core::int? #t11 = self::i in #t11 == null ?{core::int?} null : block {
-    final synthesized core::int anonymous#this = #t11 as core::int;
+    final synthesized core::int anonymous#this##5 = #t11 as core::int;
     core::int #t12;
     #L6:
     {
       {
-        #t12 = anonymous#this;
+        #t12 = anonymous#this##5;
         break #L6;
       }
     }
   } =>#t12;
   let core::int? #t13 = self::i in #t13 == null ?{core::bool?} null : block {
-    final synthesized core::int anonymous#this = #t13 as core::int;
+    final synthesized core::int anonymous#this##6 = #t13 as core::int;
     core::bool #t14;
     #L7:
     {
       {
-        #t14 = anonymous#this.{core::int::isEven}{core::bool};
+        #t14 = anonymous#this##6.{core::int::isEven}{core::bool};
         break #L7;
       }
     }
   } =>#t14;
   let core::int? #t15 = self::i in #t15 == null ?{core::bool?} null : block {
-    final synthesized core::int anonymous#this = #t15 as core::int;
+    final synthesized core::int anonymous#this##7 = #t15 as core::int;
     core::bool #t16;
     #L8:
     {
       {
-        #t16 = anonymous#this.{core::int::isEven}{core::bool};
+        #t16 = anonymous#this##7.{core::int::isEven}{core::bool};
         break #L8;
       }
     }

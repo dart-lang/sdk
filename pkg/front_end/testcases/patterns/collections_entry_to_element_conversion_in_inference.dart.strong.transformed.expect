@@ -20,7 +20,7 @@ static method test1(dynamic x, dynamic another) → core::Iterable<dynamic> {
     }
     final core::int #t8 = i;
     final core::int #t9 = n;
-    for (core::int i = #t8, core::int n = #t9; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##1 = #t8, core::int n##1 = #t9; i##1.{core::num::<}(n##1){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int})
       #t1.{core::Set::addAll}{Invariant}(another as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
   } =>#t1;
 }

@@ -319,9 +319,9 @@ class Compiler {
     if (options.readProgramSplit != null) {
       var constraintUri = options.readProgramSplit;
       var constraintParser = psc.Parser();
-      var programSplitJson = await CompilerFileSystem(
-        provider,
-      ).entityForUri(constraintUri!).readAsString();
+      var programSplitJson = await CompilerFileSystem(provider)
+          .entityForUri(constraintUri!)
+          .readAsString();
       programSplitConstraintsData = constraintParser.read(programSplitJson);
     }
 

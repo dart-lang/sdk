@@ -175,7 +175,6 @@ enum BenchmarkPhases {
   outline_computeLibraryScopes,
   outline_setupTopAndBottomTypes,
   outline_resolveTypes,
-  outline_computeMacroApplications,
   outline_computeVariances,
   outline_computeDefaultTypes,
   outline_checkSemantics,
@@ -244,8 +243,6 @@ enum BenchmarkPhases {
   incremental_calculateOutputLibrariesAndIssueLibraryProblems,
   incremental_convertSourceLibraryBuildersToDill,
   incremental_end,
-
-  precompileMacros,
 
   // add more here
   //

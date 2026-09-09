@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:test/test.dart';
 
 import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp();
@@ -24,7 +26,7 @@ main() {
           .map((event) => event.body as Map<String, Object?>)
           .map((body) => body['message'] as String);
 
-      await Future.wait([
+      await Future.wait<void>([
         expectLater(
           logOutputs,
           // Check for a known VM Service packet.
@@ -54,9 +56,11 @@ main() {
           .toList();
 
       // Run the program until it pauses.
-      client.start(
-        file: testFile,
-        launch: () => client.launch(testFile.path, sendLogsToClient: false),
+      unawaited(
+        client.start(
+          file: testFile,
+          launch: () => client.launch(testFile.path, sendLogsToClient: false),
+        ),
       );
       final stoppedEvent = await client.expectStop('step');
       final frameId = await client.getTopFrameId(stoppedEvent.threadId!);
@@ -132,7 +136,8 @@ void main(List<String> args) async {
       await dap.client.terminate();
     });
 
-    test('does not crash if app exits while expanding long log messages', () async {
+    test('does not crash if app exits '
+        'while expanding long log messages', () async {
       // Make a long message that's more than 255 chars (where the VM truncates
       // log strings by default).
       //

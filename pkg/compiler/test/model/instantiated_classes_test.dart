@@ -5,10 +5,12 @@
 library instantiated_classes_test;
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart'
     show ClassEntity, LibraryEntity;
+
 import '../helpers/type_test_helper.dart';
 
 void main() {

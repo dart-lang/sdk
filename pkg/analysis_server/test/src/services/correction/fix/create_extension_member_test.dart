@@ -24,14 +24,13 @@ class CreateExtensionGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionGetter;
 
-  @FailingTest(reason: 'Should not be a fix because it will conflict with a')
   Future<void> test_conflicting_setter() async {
     await resolveTestCode('''
 class A {
-  void set a(int value) {}
+  set foo(int _) {}
 }
-void f() {
-  A().a;
+void f(A a) {
+  a.foo;
 }
 ''');
     await assertNoFix();
@@ -2096,14 +2095,13 @@ class CreateExtensionSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionSetter;
 
-  @FailingTest(reason: 'Should not be a fix because it will conflict with a')
   Future<void> test_conflicting_getter() async {
     await resolveTestCode('''
 class A {
-  int get a() {}
+  int get foo => 0;
 }
-void f() {
-  A().a = 0;
+void f(A a) {
+  a.foo = 0;
 }
 ''');
     await assertNoFix();

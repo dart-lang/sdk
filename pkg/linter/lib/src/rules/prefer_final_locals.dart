@@ -83,10 +83,24 @@ class _Visitor(final AnalysisRule rule, {required final String currentFilePath})
     if (node.thisOrAncestorOfType<PatternVariableDeclaration>() != null) return;
     if (node.isDeclaredFinal) return;
 
-    var function = node.thisOrAncestorOfType<FunctionBody>();
-    if (function == null) return;
+    FunctionBody? function;
+    var inCaseClause = false;
+    var parent = node.parent;
+    while (parent != null) {
+      // We do not report final variable patterns declared in switch expression
+      // cases.
+      if (parent is SwitchExpressionCase) return;
+      if (parent is CaseClause) {
+        inCaseClause = true;
+      }
+      if (parent is FunctionBody) {
+        function = parent;
+        break;
+      }
+      parent = parent.parent;
+    }
 
-    var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
+    if (function == null) return;
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
         var join = _joinPatternVariable(node.declaredFragment?.element);

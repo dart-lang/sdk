@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -305,7 +306,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitConstructorFieldInitializer(
     covariant ConstructorFieldInitializerImpl node,
   ) {
-    node.visitChildrenWithHooks(this, visitFieldName: (_) {});
+    node.visitChildren2(this);
   }
 
   @override
@@ -659,7 +660,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     if (element != null) {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
-    node.visitChildrenWithHooks(this, visitPrefix: (_) {});
+    node.visitChildren2(this);
   }
 
   @override
@@ -843,19 +844,12 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       node.element = element;
 
       if (element is JoinPatternVariableElementImpl) {
-        element.references.add(node);
+        element.references.add(node.token);
       }
+    }
 
-      if (node.inSetterContext()) {
-        _localVariableInfo.potentiallyMutatedInScope.add(element);
-
-        if (element is PatternVariableElementImpl &&
-            element.isVisitingWhenClause) {
-          _diagnosticReporter.report(
-            diag.patternVariableAssignmentInsideGuard.at(node),
-          );
-        }
-      }
+    if (node.inSetterContext()) {
+      _recordUnqualifiedWrite(scopeLookupResult, node);
     }
   }
 
@@ -945,6 +939,13 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelGetterDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
 
@@ -956,6 +957,32 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       if (fragment.previousFragment == null) {
         fragment.element.bound = boundNode.type;
       }
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    covariant UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
+    node.scopeLookupResult = scopeLookupResult;
+
+    if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
+    }
+
+    _recordUnqualifiedWrite(scopeLookupResult, node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
+    node.scopeLookupResult = scopeLookupResult;
+
+    if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
     }
   }
 
@@ -1102,6 +1129,23 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       current = LabelScope(current, labelElement, node);
     }
     return current;
+  }
+
+  void _recordUnqualifiedWrite(
+    ScopeLookupResult scopeLookupResult,
+    SyntacticEntity errorEntity,
+  ) {
+    var element = scopeLookupResult.getter;
+    if (element is PromotableElementImpl) {
+      _localVariableInfo.potentiallyMutatedInScope.add(element);
+
+      if (element is PatternVariableElementImpl &&
+          element.isVisitingWhenClause) {
+        _diagnosticReporter.report(
+          diag.patternVariableAssignmentInsideGuard.at(errorEntity),
+        );
+      }
+    }
   }
 
   void _resolveGuardedPattern(
@@ -1364,7 +1408,9 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
         node.loopVariable.accept2(this);
       case ForEachPartsWithIdentifierImpl():
         node.iterable2.accept2(this);
-        node.identifier.accept2(this);
+        var scopeLookupResult = nameScope.lookup(node.identifier2.lexeme);
+        node.scopeLookupResult = scopeLookupResult;
+        _recordUnqualifiedWrite(scopeLookupResult, node.identifier2);
       case ForEachPartsWithPatternImpl():
         node.iterable2.accept2(this);
         var variables = _computeDeclaredPatternVariables(node.pattern);

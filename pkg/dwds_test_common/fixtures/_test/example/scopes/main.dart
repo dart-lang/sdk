@@ -25,6 +25,8 @@ final stream = Stream.value(1);
 
 MyTestClass getLibraryPublicFinal() => libraryPublicFinal;
 
+List getLibraryPrivate() => _libraryPrivate;
+
 List<String> getLibraryPublic() => libraryPublic;
 
 Map<Object, Object> getMap() => map;

@@ -15,7 +15,7 @@ import 'package:vm_service/vm_service.dart' as vm;
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('dart base adapter', () {
     final vmPath = Platform.resolvedExecutable;
     final sdkRoot = path.dirname(path.dirname(vmPath));
@@ -25,11 +25,11 @@ main() {
       final testUri = Uri.parse('org-dartlang-sdk:///sdk/lib/core.dart');
       final adapter = MockDartCliDebugAdapter();
 
-      test('converts SDK paths to org-dartlang-sdk:///', () async {
+      test('converts SDK paths to org-dartlang-sdk:///', () {
         expect(adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)), testUri);
       });
 
-      test('converts org-dartlang-sdk:/// to SDK paths', () async {
+      test('converts org-dartlang-sdk:/// to SDK paths', () {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
           Uri.file(testPath),
@@ -49,26 +49,20 @@ main() {
         sdkRoot: Uri.parse('org-dartlang-sdk:///custom-dart/sdk'),
       });
 
-      test('converts SDK paths to custom org-dartlang-sdk:///', () async {
+      test('converts SDK paths to custom org-dartlang-sdk:///', () {
         expect(adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)), testUri);
       });
 
-      test('converts custom org-dartlang-sdk:/// to SDK paths', () async {
+      test('converts custom org-dartlang-sdk:/// to SDK paths', () {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
           Uri.file(testPath),
         );
       });
 
-      test(
-        'does not convert default org-dartlang-sdk:/// to SDK paths',
-        () async {
-          expect(
-            adapter.convertOrgDartlangSdkToPath(defaultSdkTestUri),
-            isNull,
-          );
-        },
-      );
+      test('does not convert default org-dartlang-sdk:/// to SDK paths', () {
+        expect(adapter.convertOrgDartlangSdkToPath(defaultSdkTestUri), isNull);
+      });
     });
 
     group('additional SDKs', () {
@@ -80,17 +74,11 @@ main() {
         customSdkRootPath: customSdkRootUri,
       });
 
-      test(
-        'converts additional SDK paths to custom org-dartlang-sdk:///',
-        () async {
-          expect(
-            adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)),
-            testUri,
-          );
-        },
-      );
+      test('converts additional SDK paths to custom org-dartlang-sdk:///', () {
+        expect(adapter.convertUriToOrgDartlangSdk(Uri.file(testPath)), testUri);
+      });
 
-      test('converts additional SDK org-dartlang-sdk:/// to paths', () async {
+      test('converts additional SDK org-dartlang-sdk:/// to paths', () {
         expect(
           adapter.convertOrgDartlangSdkToPath(testUri),
           Uri.file(testPath),
@@ -208,11 +196,11 @@ class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
 
   @override
   Future<void> attachImpl() {
-    throw DebugAdapterException('Unexpected attach error!', showToUser: false);
+    throw DebugAdapterException('Unexpected attach error!');
   }
 
   @override
   Future<void> launchAndRespond(void Function() _) {
-    throw DebugAdapterException('Unexpected launch error!', showToUser: false);
+    throw DebugAdapterException('Unexpected launch error!');
   }
 }

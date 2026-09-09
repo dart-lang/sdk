@@ -22,9 +22,9 @@ void testAll({
   group('Debugger module names: false |', () {
     const useDebuggerModuleNames = false;
 
-    final appServerPath = context.usesFrontendServer
-        ? 'web/main.dart'
-        : 'main.dart';
+    final appServerPath = context.usesBuildDaemon
+        ? 'main.dart'
+        : 'web/main.dart';
     final serverPath =
         'packages/${testPackageProject.packageName}/test_library.dart';
     final anotherServerPath =
@@ -32,7 +32,9 @@ void testAll({
 
     setUpAll(() async {
       await context.setUp(
-        testSettings: const TestSettings(
+        testSettings: TestSettings(
+          canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
           useDebuggerModuleNames: useDebuggerModuleNames,
         ),
       );

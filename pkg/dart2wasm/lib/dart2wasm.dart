@@ -199,12 +199,6 @@ final List<Option> options = [
   ),
 
   Flag(
-    "require-js-string-builtin",
-    (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
-    defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
-  ),
-
-  Flag(
     "strip-toolchain-annotations",
     (o, value) => o.stripToolchainAnnotations = value,
     defaultsTo: _d.stripToolchainAnnotations,
@@ -224,6 +218,12 @@ final List<Option> options = [
     (o, value) => o.moduleIdsToOptimize = value.toSet(),
   ),
   UriOption("recorded-uses", (o, value) => o.recordedUsesFile = value),
+  Flag(
+    "supports-es6-modules",
+    (o, value) => o.supportsES6Modules = value,
+    defaultsTo: _d.supportsES6Modules,
+    negatable: true,
+  ),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

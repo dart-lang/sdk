@@ -1,0 +1,9 @@
+main() {
+for (var
+)}
+
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+for[KeywordToken] ([BeginToken]var[KeywordToken]
+)[SyntheticToken]}[SimpleToken]
+[SimpleToken]

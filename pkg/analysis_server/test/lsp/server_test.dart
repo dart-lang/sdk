@@ -49,7 +49,7 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
     expect(promptManager.checksTriggered, 1);
 
     // Expect that writing package config attempts to trigger another check.
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
     await pumpEventQueue(times: 5000); // Allow server to pick up watcher event.
     await workspaceAnalysisComplete();
     expect(promptManager.checksTriggered, 2);

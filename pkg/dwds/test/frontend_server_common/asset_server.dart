@@ -173,6 +173,11 @@ class TestAssetServer implements AssetReader {
     _files[filePath] = Uint8List.fromList(utf8.encode(contents));
   }
 
+  /// Delete a single file from the in-memory cache.
+  void deleteFile(String filePath) {
+    _files.remove(filePath);
+  }
+
   /// Update the in-memory asset server with the provided source and manifest
   /// files.
   ///
@@ -344,6 +349,9 @@ class TestAssetServer implements AssetReader {
 
   String? _stripBasePath(String path, String basePath) {
     path = stripLeadingSlashes(path);
+    // Requests starting with 'packages/' are top-level and served relative
+    // to the root directory, so they don't contain the app's base path.
+    if (path.startsWith('packages/')) return path;
     if (path.startsWith(basePath)) {
       path = path.substring(basePath.length);
     } else {

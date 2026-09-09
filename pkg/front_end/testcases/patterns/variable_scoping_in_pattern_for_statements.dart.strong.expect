@@ -5,16 +5,16 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   core::int i;
   {
-    hoisted dynamic i;
+    hoisted dynamic i##1;
     {
       final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} core::List<dynamic>;
       final const synthesized core::int #0#3 = #C1;
-      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = i##1 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
-    final dynamic #t2 = i;
-    for (dynamic i = #t2; true; ) {
-      return i;
+    final dynamic #t2 = i##1;
+    for (dynamic i##2 = #t2; true; ) {
+      return i##2;
     }
   }
 }
@@ -30,9 +30,9 @@ static method test2(dynamic x) → dynamic {
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t6 = i;
-    for (core::int i = #t6; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-      core::int i = 1.{core::int::unary-}(){() → core::int};
-      return i;
+    for (core::int i##1 = #t6; i##1.{core::num::<}(3){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+      core::int i##2 = 1.{core::int::unary-}(){() → core::int};
+      return i##2;
     }
   }
 }
@@ -49,11 +49,11 @@ static method test3(dynamic x) → dynamic {
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t10 = i;
-    for (core::int i = #t10; i.{core::num::<}(5){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-      functions.{core::List::add}(() → core::int => i){(() → core::int) → void};
+    for (core::int i##1 = #t10; i##1.{core::num::<}(5){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+      functions.{core::List::add}(() → core::int => i##1){(() → core::int) → void};
     }
   }
-  return functions.{core::Iterable::map}<core::int>((() → core::int f) → core::int => f(){() → core::int}){((() → core::int) → core::int) → core::Iterable<core::int>}.{core::Iterable::fold}<core::int>(0, (core::int a, core::int x) → core::int => a.{core::num::+}(x){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  return functions.{core::Iterable::map}<core::int>((() → core::int f) → core::int => f(){() → core::int}){((() → core::int) → core::int) → core::Iterable<core::int>}.{core::Iterable::fold}<core::int>(0, (core::int a, core::int x##1) → core::int => a.{core::num::+}(x##1){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
 }
 static method main() → dynamic {
   self::expectEquals(self::test1(<core::int>[0]), 0);

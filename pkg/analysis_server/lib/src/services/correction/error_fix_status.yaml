@@ -78,6 +78,10 @@ deprecated_lint_with_replacement:
     We should be able to replace the deprecated lint rule with its replacement.
 duplicate_rule:
   status: hasFix
+exclude_invalid_glob:
+  status: needsFix
+  notes: |-
+    Remove the leading forward slash.
 include_file_not_found:
   status: noFix
   notes: |-
@@ -127,10 +131,6 @@ multiple_plugins:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-plugins_in_inner_options:
-  status: needsFix
-  notes: |-
-    The fix is to delete the 'plugins' section.
 recursive_include_file:
   status: noFix
   notes: |-
@@ -1402,7 +1402,7 @@ not_initialized_non_nullable_instance_field:
 not_initialized_non_nullable_instance_field_constructor:
   status: noFix
 not_initialized_non_nullable_variable:
-  status: noFix
+  status: hasFix
 not_instantiated_bound:
   status: noFix
 not_iterable_spread:
@@ -1722,6 +1722,8 @@ undefined_method:
 undefined_method_on_function_type:
   status: needsFix
   since: 2.15
+undefined_method_on_type_literal:
+  status: hasFix
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
@@ -1951,6 +1953,10 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
+deprecated_member_use_implicit:
+  status: needsEvaluation
+deprecated_member_use_implicit_with_message:
+  status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix
 import_deferred_library_with_load_function:
@@ -2193,6 +2199,8 @@ directives_ordering_exports:
   status: hasFix
 directives_ordering_package_before_relative:
   status: hasFix
+discarded_future_or:
+  status: hasFix
 discarded_futures:
   status: hasFix
 do_not_use_environment:
@@ -2319,8 +2327,14 @@ no_dynamic_casts:
   notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
+no_leading_underscores_for_library_prefixes_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_leading_underscores_for_local_identifiers:
   status: hasFix
+no_leading_underscores_for_local_identifiers_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
@@ -2555,6 +2569,8 @@ type_init_formals:
   status: hasFix
 type_literal_in_constant_pattern:
   status: hasFix
+unawaited_future_or:
+  status: hasFix
 unawaited_futures:
   status: hasFix
 unintended_html_in_doc_comment:
@@ -2628,7 +2644,7 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_this_alias:
-  status: needsEvaluation
+  status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
@@ -3740,12 +3756,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-

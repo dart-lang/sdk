@@ -138,9 +138,8 @@ class Collector {
 
   /// Compute all the classes and typedefs that must be emitted.
   void computeNeededDeclarations() {
-    Set<ClassEntity> backendTypeHelpers = getBackendTypeHelpers(
-      _commonElements,
-    ).toSet();
+    Set<ClassEntity> backendTypeHelpers = getBackendTypeHelpers(_commonElements)
+        .toSet();
 
     // Compute needed classes.
     Set<ClassEntity> instantiatedClasses =

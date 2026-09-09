@@ -390,10 +390,6 @@ linter:
     assertNoSuggestion('annotate_overrides');
   }
 
-  @FailingTest(
-    reason: 'Parser fails',
-    issue: 'https://github.com/dart-lang/tools/issues/2426',
-  )
   void test_linter_rules_listItem_noPrefix() {
     getCompletions('''
 linter:

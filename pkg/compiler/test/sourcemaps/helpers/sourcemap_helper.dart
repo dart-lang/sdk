@@ -6,6 +6,7 @@ library sourcemap.helper;
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
@@ -499,12 +500,11 @@ class SourceMapProcessor {
         );
         final outBuffer = NoopCodeOutput();
         SourceInformationProcessor sourceInformationProcessor =
-            HelperOnlinePositionSourceInformationStrategy([
-              visitor,
-            ]).createProcessor(
-              SourceMapperProviderImpl(outBuffer),
-              const SourceInformationReader(),
-            );
+            HelperOnlinePositionSourceInformationStrategy([visitor])
+                .createProcessor(
+                  SourceMapperProviderImpl(outBuffer),
+                  const SourceInformationReader(),
+                );
 
         js.Dart2JSJavaScriptPrintingContext context =
             js.Dart2JSJavaScriptPrintingContext(
@@ -546,12 +546,11 @@ class SourceMapProcessor {
       );
       final outBuffer = NoopCodeOutput();
       SourceInformationProcessor sourceInformationProcessor =
-          HelperOnlinePositionSourceInformationStrategy([
-            visitor,
-          ]).createProcessor(
-            SourceMapperProviderImpl(outBuffer),
-            const SourceInformationReader(),
-          );
+          HelperOnlinePositionSourceInformationStrategy([visitor])
+              .createProcessor(
+                SourceMapperProviderImpl(outBuffer),
+                const SourceInformationReader(),
+              );
 
       js.Dart2JSJavaScriptPrintingContext context =
           js.Dart2JSJavaScriptPrintingContext(

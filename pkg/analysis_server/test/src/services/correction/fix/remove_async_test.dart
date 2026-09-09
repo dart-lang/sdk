@@ -11,6 +11,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveAsyncIllegalReturnTest);
+    defineReflectiveTests(RemoveAsyncPriorityTest);
+    defineReflectiveTests(RemoveAsyncReturnUnawaitedTest);
     defineReflectiveTests(RemoveAsyncTest);
   });
 }
@@ -121,6 +123,78 @@ int f() {
   () => '';
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class RemoveAsyncPriorityTest extends FixPriorityTest {
+  Future<void> test_addAwait_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.async_return_with_no_await]);
+    await resolveTestCode('''
+Future<void> f() async {
+  return Future<void>.value();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.addAwait,
+      DartFixKind.removeAsync,
+    ]);
+  }
+}
+
+@reflectiveTest
+class RemoveAsyncReturnUnawaitedTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.removeAsync;
+
+  @override
+  String get lintCode => LintNames.async_return_with_no_await;
+
+  Future<void> test_containsAwait() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  await Future<void>.value(null);
+  return Future<void>.value(null);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_returnFuture() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  return Future<void>.value(null);
+}
+''');
+    await assertHasFix('''
+Future<void> f() {
+  return Future<void>.value(null);
+}
+''');
+  }
+
+  Future<void> test_returnFutureOrInt() async {
+    await resolveTestCode('''
+Future<int> f() async {
+  if (1 == 1) {
+    return 0;
+  }
+  return Future.value(0);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_returnFutureOrVoid() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  if (1 == 1) {
+    return;
+  }
+  return Future<void>.value(null);
+}
+''');
+    await assertNoFix();
   }
 }
 

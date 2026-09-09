@@ -8,7 +8,7 @@
 import "dart:typed_data";
 
 main() {
-  var list = new Int8List(1);
+  var list = Int8List(1);
   list[0] = 300;
   if (list[0] != 44) {
     throw 'Test failed';

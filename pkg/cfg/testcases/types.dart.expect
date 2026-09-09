@@ -53,6 +53,18 @@ B0 = EntryBlock()
   DirectCall print(v12)
   Return(v9)
 
+--- A.buz
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(this)
+  v4 = TypeParameters(v1)
+  v6 = TypeParameters(v2)
+  SubtypeCheck(type: A.buz.S%, bound: A.T%, name:S, v6, v4)
+  v9 = TypeLiteral(A.buz.S%, v8, v4)
+  DirectCall print(v9)
+  Return(v8)
+
 --- A.
 B0 = EntryBlock()
   v4 = Constant(null)

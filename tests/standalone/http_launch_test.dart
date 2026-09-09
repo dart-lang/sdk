@@ -52,49 +52,41 @@ handleRequest(HttpRequest request) {
   });
 }
 
-serverRunning(HttpServer server) {
+serverRunning(HttpServer server) async {
   port = server.port;
   server.listen(handleRequest);
-  Future<ProcessResult> no_http_run = Process.run(
+  ProcessResult no_http_run = await Process.run(
     pathToExecutable,
     []
       ..add('--verbosity=warning')
       ..addAll(executableArguments)
       ..add(pathOfData.resolve('http_launch_main.dart').toFilePath()),
   );
-  Future<ProcessResult> http_run = Process.run(
+  ProcessResult http_run = await Process.run(
     pathToExecutable,
     []
       ..add('--verbosity=warning')
       ..addAll(executableArguments)
       ..add('http://127.0.0.1:$port/http_launch_main.dart'),
   );
-  Future<ProcessResult> http_pkg_root_run = Process.run(
+  ProcessResult http_pkg_root_run = await Process.run(
     pathToExecutable,
     []
       ..add('--verbosity=warning')
       ..addAll(executableArguments)
       ..addAll(['http://127.0.0.1:$port/http_launch_main.dart']),
   );
-  Future<ProcessResult> isolate_run = Process.run(
+  ProcessResult isolate_run = await Process.run(
     pathToExecutable,
     []
       ..add('--verbosity=warning')
       ..addAll(executableArguments)
       ..addAll(['http://127.0.0.1:$port/http_spawn_main.dart', '$port']),
   );
-  Future<List<ProcessResult>> results = Future.wait([
-    no_http_run,
-    http_run,
-    http_pkg_root_run,
-    isolate_run,
-  ]);
-  results.then((results) {
-    // Close server.
-    server.close();
-    // Check results.
-    checkResults(results);
-  });
+  // Close server.
+  server.close();
+  // Check results.
+  checkResults([no_http_run, http_run, http_pkg_root_run, isolate_run]);
 }
 
 checkResults(List<ProcessResult> results) {

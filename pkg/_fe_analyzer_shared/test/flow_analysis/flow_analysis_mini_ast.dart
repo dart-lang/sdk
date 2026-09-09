@@ -45,7 +45,7 @@ class FlowAnalysisTestHarness extends Harness with FlowModelHelper {
   FlowAnalysisOperations<Var> get typeOperations => typeAnalyzer.operations;
 
   @override
-  bool isFinal(int variableKey) {
+  bool isFinal(PromotionKey variableKey) {
     Var? variable = promotionKeyStore.variableForKey(variableKey);
     if (variable != null && operations.isFinal(variable)) return true;
     return false;

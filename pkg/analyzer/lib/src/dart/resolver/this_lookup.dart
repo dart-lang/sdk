@@ -22,8 +22,14 @@ class ThisLookup {
   static LexicalLookupResult? lookupGetter(
     ResolverVisitor resolver,
     SimpleIdentifier node,
-  ) {
-    var id = node.name;
+  ) => lookupGetter2(resolver, node: node, name: node.name);
+
+  /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
+  static LexicalLookupResult? lookupGetter2(
+    ResolverVisitor resolver, {
+    required AstNode node,
+    required String name,
+  }) {
     var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
@@ -32,7 +38,7 @@ class ThisLookup {
     var propertyResult = resolver.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
-      name: id,
+      name: name,
       hasRead: true,
       hasWrite: false,
       propertyErrorEntity: node,
@@ -65,8 +71,14 @@ class ThisLookup {
   static LexicalLookupResult? lookupSetter(
     ResolverVisitor resolver,
     SimpleIdentifier node,
-  ) {
-    var id = node.name;
+  ) => lookupSetter2(resolver, node: node, name: node.name);
+
+  /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
+  static LexicalLookupResult? lookupSetter2(
+    ResolverVisitor resolver, {
+    required AstNode node,
+    required String name,
+  }) {
     var thisType = resolver.thisType;
     if (thisType == null) {
       return null;
@@ -75,7 +87,7 @@ class ThisLookup {
     var propertyResult = resolver.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
-      name: id,
+      name: name,
       hasRead: false,
       hasWrite: true,
       propertyErrorEntity: node,

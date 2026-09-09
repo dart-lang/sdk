@@ -680,9 +680,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t2 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t2 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:299:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -693,9 +693,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t3 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t3 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:302:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -706,9 +706,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t4 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t4 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:305:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -719,9 +719,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t5 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t5 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:308:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -732,9 +732,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t6 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t6 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:311:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -745,11 +745,11 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:314:26: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      synthesized core::Iterator<core::String> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:314:26: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringField in [1]) { // Error
                          ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::String #t7 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String #t7 = :sync-for-iterator##6.{core::Iterator::current}{core::String};
         {
           this.{self::Class::stringField} = #t7;
           core::print(this.{self::Class::stringField}{core::String});
@@ -757,9 +757,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t8 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t8 = :sync-for-iterator##7.{core::Iterator::current}{core::int};
         {
           this.{self::Class::stringField} = invalid-expression "pkg/front_end/testcases/general/for_in.dart:317:22: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringField in <int>[1]) { // Error
@@ -769,9 +769,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t9 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##8 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##8.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t9 = :sync-for-iterator##8.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:320:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -782,9 +782,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t10 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##9 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##9.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t10 = :sync-for-iterator##9.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:323:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -795,9 +795,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t11 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##10 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##10.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t11 = :sync-for-iterator##10.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:326:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -808,9 +808,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t12 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##11 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##11.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t12 = :sync-for-iterator##11.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:329:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -821,9 +821,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t13 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##12 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##12.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t13 = :sync-for-iterator##12.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:332:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -834,9 +834,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t14 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##13 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##13.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t14 = :sync-for-iterator##13.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:335:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -847,9 +847,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::_literal1<dynamic>(1).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##14 = core::_GrowableList::_literal1<dynamic>(1).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##14.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t15 = :sync-for-iterator##14.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:338:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
@@ -861,9 +861,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t16 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##15 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##15.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t16 = :sync-for-iterator##15.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:341:10: Error: The setter 'finalField' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/general/for_in.dart'.
@@ -875,9 +875,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t17 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##16 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##16.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t17 = :sync-for-iterator##16.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:344:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -888,9 +888,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t18 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##17 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##17.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t18 = :sync-for-iterator##17.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:347:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -901,9 +901,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t19 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##18 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##18.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t19 = :sync-for-iterator##18.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:350:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -914,9 +914,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t20 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##19 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##19.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t20 = :sync-for-iterator##19.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:353:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -927,9 +927,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t21 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##20 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##20.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t21 = :sync-for-iterator##20.{core::Iterator::current}{core::int};
         {
           this.{self::Class::lateFinalField} = #t21;
           core::print(this.{self::Class::lateFinalField}{core::int});
@@ -937,9 +937,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t22 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##21 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##21.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t22 = :sync-for-iterator##21.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:359:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -950,9 +950,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t23 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##22 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##22.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t23 = :sync-for-iterator##22.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:362:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -963,9 +963,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t24 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##23 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##23.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t24 = :sync-for-iterator##23.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:365:10: Error: Setter not found: 'finalStaticField'.
     for (finalStaticField in [1]) { // Error
@@ -975,11 +975,11 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:368:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      synthesized core::Iterator<core::String> :sync-for-iterator##24 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:368:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringStaticField in [1]) { // Error
                                ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::String #t25 = :sync-for-iterator.{core::Iterator::current}{core::String};
+      for (; :sync-for-iterator##24.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::String #t25 = :sync-for-iterator##24.{core::Iterator::current}{core::String};
         {
           self::Class::stringStaticField = #t25;
           core::print(self::Class::stringStaticField);
@@ -987,9 +987,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t26 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##25 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##25.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t26 = :sync-for-iterator##25.{core::Iterator::current}{core::int};
         {
           self::Class::stringStaticField = invalid-expression "pkg/front_end/testcases/general/for_in.dart:371:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringStaticField in <int>[1]) { // Error
@@ -999,9 +999,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t27 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##26 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##26.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t27 = :sync-for-iterator##26.{core::Iterator::current}{core::int};
         {
           self::Class::lateFinalStaticField = #t27;
           core::print(self::Class::lateFinalStaticField);
@@ -1009,9 +1009,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t28 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##27 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##27.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t28 = :sync-for-iterator##27.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:377:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1022,9 +1022,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t29 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##28 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##28.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t29 = :sync-for-iterator##28.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:380:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1035,9 +1035,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t30 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##29 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##29.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t30 = :sync-for-iterator##29.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:383:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1048,9 +1048,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t31 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##30 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##30.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t31 = :sync-for-iterator##30.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:386:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1061,9 +1061,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t32 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##31 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##31.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t32 = :sync-for-iterator##31.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:389:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1074,9 +1074,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t33 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##32 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##32.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t33 = :sync-for-iterator##32.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:392:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1087,9 +1087,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t34 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##33 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##33.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t34 = :sync-for-iterator##33.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:395:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1100,9 +1100,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t35 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##34 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##34.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t35 = :sync-for-iterator##34.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:398:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1113,9 +1113,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t36 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##35 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##35.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t36 = :sync-for-iterator##35.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:401:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1126,9 +1126,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t37 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##36 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##36.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t37 = :sync-for-iterator##36.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:404:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1139,9 +1139,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t38 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##37 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##37.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t38 = :sync-for-iterator##37.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:407:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1152,9 +1152,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t39 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##38 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##38.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t39 = :sync-for-iterator##38.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:410:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1165,9 +1165,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t40 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##39 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##39.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t40 = :sync-for-iterator##39.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:413:26: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1178,9 +1178,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t41 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##40 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##40.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t41 = :sync-for-iterator##40.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:416:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1191,9 +1191,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t42 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##41 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##41.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t42 = :sync-for-iterator##41.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:419:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1204,9 +1204,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t43 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##42 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##42.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t43 = :sync-for-iterator##42.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:422:12: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1217,9 +1217,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t45 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##43 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##43.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t45 = :sync-for-iterator##43.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:425:27: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1230,9 +1230,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t46 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##44 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##44.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t46 = :sync-for-iterator##44.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:428:28: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1255,9 +1255,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::num #t49 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      synthesized core::Iterator<core::num> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t49 = :sync-for-iterator##1.{core::Iterator::current}{core::num};
         {
           this.{self::Class::numField} = #t49;
           core::print(this.{self::Class::numField}{core::num});
@@ -1265,9 +1265,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t50 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t50 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
         {
           this.{self::Class::lateField} = #t50;
           core::print(this.{self::Class::lateField}{core::int});
@@ -1275,9 +1275,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t51 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t51 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
         {
           self::Class::intStaticField = #t51;
           core::print(self::Class::intStaticField);
@@ -1285,9 +1285,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::num #t52 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      synthesized core::Iterator<core::num> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t52 = :sync-for-iterator##4.{core::Iterator::current}{core::num};
         {
           self::Class::numStaticField = #t52;
           core::print(self::Class::numStaticField);
@@ -1295,9 +1295,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t53 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t53 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
         {
           self::Class::lateStaticField = #t53;
           core::print(self::Class::lateStaticField);
@@ -1305,9 +1305,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t54 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t54 = :sync-for-iterator##6.{core::Iterator::current}{core::int};
         {
           self::Extension|set#extensionIntProperty(this, #t54);
           core::print(self::Extension|get#extensionIntProperty(this));
@@ -1315,9 +1315,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::num #t55 = :sync-for-iterator.{core::Iterator::current}{core::num};
+      synthesized core::Iterator<core::num> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::num #t55 = :sync-for-iterator##7.{core::Iterator::current}{core::num};
         {
           self::Extension|set#extensionNumProperty(this, #t55);
           core::print(self::Extension|get#extensionNumProperty(this));
@@ -1345,9 +1345,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t57 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t57 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:466:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1358,9 +1358,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t58 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t58 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:469:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1371,9 +1371,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t59 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t59 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:472:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1384,9 +1384,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t60 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t60 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:475:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1397,9 +1397,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t61 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t61 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:478:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1410,9 +1410,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t62 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t62 = :sync-for-iterator##6.{core::Iterator::current}{core::int};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in.dart:481:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1479,35 +1479,35 @@ Try removing the 'const' modifier.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int lateLocal = :sync-for-iterator##1.{core::Iterator::current}{core::int};
       {
         core::print(lateLocal);
       }
     }
   }
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:22:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    synthesized core::Iterator<core::String> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:22:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   for (String stringLocal in [1]) { // Error
                               ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::String stringLocal = :sync-for-iterator##2.{core::Iterator::current}{core::String};
       {
         core::print(stringLocal);
       }
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t63 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t63 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
       {
-        core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+        core::String stringLocal##1 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
   for (String stringLocal in <int>[1]) { // Error
               ^" in #t63 as{TypeError} core::String;
-        core::print(stringLocal);
+        core::print(stringLocal##1);
       }
     }
   }
@@ -1519,10 +1519,10 @@ Try removing the 'const' modifier.
     for (const constLocal in [1]) constLocal // Error
                ^^^^^^^^^^";
       {
-        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          core::int constLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-          #t64.{core::List::add}{Invariant}(constLocal){(core::int) → void};
+        synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          core::int constLocal##1 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
+          #t64.{core::List::add}{Invariant}(constLocal##1){(core::int) → void};
         }
       }
     }
@@ -1530,37 +1530,37 @@ Try removing the 'const' modifier.
   core::print( block {
     final core::List<core::int> #t65 = core::_GrowableList::•<core::int>(0);
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t65.{core::List::add}{Invariant}(lateLocal){(core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int lateLocal##1 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
+        #t65.{core::List::add}{Invariant}(lateLocal##1){(core::int) → void};
       }
     }
   } =>#t65);
   core::print( block {
     final core::List<core::String> #t66 = core::_GrowableList::•<core::String>(0);
     {
-      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      synthesized core::Iterator<core::String> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (String stringLocal in [1]) stringLocal // Error
                                 ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
-        #t66.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::String stringLocal##2 = :sync-for-iterator##6.{core::Iterator::current}{core::String};
+        #t66.{core::List::add}{Invariant}(stringLocal##2){(core::String) → void};
       }
     }
   } =>#t66);
   core::print( block {
     final core::List<core::String> #t67 = core::_GrowableList::•<core::String>(0);
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t68 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t68 = :sync-for-iterator##7.{core::Iterator::current}{core::int};
         {
-          core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+          core::String stringLocal##3 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
     for (String stringLocal in <int>[1]) stringLocal // Error
                 ^" in #t68 as{TypeError} core::String;
-          #t67.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+          #t67.{core::List::add}{Invariant}(stringLocal##3){(core::String) → void};
         }
       }
     }
@@ -1573,10 +1573,10 @@ Try removing the 'const' modifier.
     for (const constLocal in [1]) 0: constLocal // Error
                ^^^^^^^^^^";
       {
-        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          core::int constLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-          #t69.{core::Map::[]=}{Invariant}(0, constLocal){(core::int, core::int) → void};
+        synthesized core::Iterator<core::int> :sync-for-iterator##8 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator##8.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          core::int constLocal##2 = :sync-for-iterator##8.{core::Iterator::current}{core::int};
+          #t69.{core::Map::[]=}{Invariant}(0, constLocal##2){(core::int, core::int) → void};
         }
       }
     }
@@ -1584,37 +1584,37 @@ Try removing the 'const' modifier.
   core::print( block {
     final core::Map<core::int, core::int> #t70 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int lateLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t70.{core::Map::[]=}{Invariant}(0, lateLocal){(core::int, core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##9 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##9.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int lateLocal##2 = :sync-for-iterator##9.{core::Iterator::current}{core::int};
+        #t70.{core::Map::[]=}{Invariant}(0, lateLocal##2){(core::int, core::int) → void};
       }
     }
   } =>#t70);
   core::print( block {
     final core::Map<core::int, core::String> #t71 = <core::int, core::String>{};
     {
-      synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      synthesized core::Iterator<core::String> :sync-for-iterator##10 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (String stringLocal in [1]) 0: stringLocal // Error
                                 ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::String stringLocal = :sync-for-iterator.{core::Iterator::current}{core::String};
-        #t71.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+      for (; :sync-for-iterator##10.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::String stringLocal##4 = :sync-for-iterator##10.{core::Iterator::current}{core::String};
+        #t71.{core::Map::[]=}{Invariant}(0, stringLocal##4){(core::int, core::String) → void};
       }
     }
   } =>#t71);
   core::print( block {
     final core::Map<core::int, core::String> #t72 = <core::int, core::String>{};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t73 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##11 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##11.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t73 = :sync-for-iterator##11.{core::Iterator::current}{core::int};
         {
-          core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+          core::String stringLocal##5 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
     for (String stringLocal in <int>[1]) 0: stringLocal // Error
                 ^" in #t73 as{TypeError} core::String;
-          #t72.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+          #t72.{core::Map::[]=}{Invariant}(0, stringLocal##5){(core::int, core::String) → void};
         }
       }
     }
@@ -1624,9 +1624,9 @@ Try changing the type of the variable.
   for (int? multiLocal1, multiLocal2 in [1]) { // Error
        ^^^";
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t74 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##12 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##12.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t74 = :sync-for-iterator##12.{core::Iterator::current}{core::int};
         {
           core::int? multiLocal1;
           core::int? multiLocal2;
@@ -1641,9 +1641,9 @@ Try changing the type of the variable.
   for (var varMultiLocal1, varMultiLocal2 in [1]) { // Error
        ^^^";
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t75 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##13 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##13.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t75 = :sync-for-iterator##13.{core::Iterator::current}{core::int};
         {
           dynamic varMultiLocal1;
           dynamic varMultiLocal2;
@@ -1658,9 +1658,9 @@ Try changing the type of the variable.
   for (num numMultiLocal1, numMultiLocal2 in [1]) { // Error
        ^^^";
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t76 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##14 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##14.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t76 = :sync-for-iterator##14.{core::Iterator::current}{core::int};
         {
           core::num numMultiLocal1;
           core::num numMultiLocal2;
@@ -1679,9 +1679,9 @@ Try changing the type of the variable.
   for (1 in [1]) { // Error
        ^";
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t77 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##15 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##15.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t77 = :sync-for-iterator##15.{core::Iterator::current}{core::int};
         {
           1;
         }
@@ -1693,9 +1693,9 @@ Try changing the type of the variable.
   for (main() in [1]) { // Error
        ^^^^";
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t78 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##16 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##16.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t78 = :sync-for-iterator##16.{core::Iterator::current}{core::int};
         {
           self::main();
         }
@@ -1704,9 +1704,9 @@ Try changing the type of the variable.
   }
   final core::int existingFinalLocal;
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t79 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##17 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##17.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t79 = :sync-for-iterator##17.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:71:8: Error: Can't assign to the final variable 'existingFinalLocal'.
   for (existingFinalLocal in [1]) { // Error
@@ -1719,11 +1719,11 @@ Try changing the type of the variable.
   }
   core::String existingStringLocal;
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:75:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    synthesized core::Iterator<core::String> :sync-for-iterator##18 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:75:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   for (existingStringLocal in [1]) { // Error
                                ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::String #t80 = :sync-for-iterator.{core::Iterator::current}{core::String};
+    for (; :sync-for-iterator##18.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t80 = :sync-for-iterator##18.{core::Iterator::current}{core::String};
       {
         existingStringLocal = #t80;
         core::print(existingStringLocal);
@@ -1731,9 +1731,9 @@ Try changing the type of the variable.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t81 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##19 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##19.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t81 = :sync-for-iterator##19.{core::Iterator::current}{core::int};
       {
         existingStringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:78:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   for (existingStringLocal in <int>[1]) { // Error
@@ -1744,9 +1744,9 @@ Try changing the type of the variable.
   }
   self::Class c = new self::Class::•();
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t82 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##20 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##20.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t82 = :sync-for-iterator##20.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:82:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1757,9 +1757,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t83 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##21 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##21.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t83 = :sync-for-iterator##21.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:85:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1770,9 +1770,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t84 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##22 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##22.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t84 = :sync-for-iterator##22.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:88:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1783,9 +1783,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t85 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##23 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##23.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t85 = :sync-for-iterator##23.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:91:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1796,9 +1796,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t87 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##24 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##24.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t87 = :sync-for-iterator##24.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:94:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1809,9 +1809,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t89 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##25 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##25.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t89 = :sync-for-iterator##25.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:97:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1822,9 +1822,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t91 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##26 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##26.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t91 = :sync-for-iterator##26.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:100:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1835,9 +1835,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t92 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##27 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##27.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t92 = :sync-for-iterator##27.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:103:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1848,9 +1848,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t93 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##28 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##28.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t93 = :sync-for-iterator##28.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:106:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1861,9 +1861,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t95 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##29 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##29.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t95 = :sync-for-iterator##29.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:109:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1874,9 +1874,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t97 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##30 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##30.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t97 = :sync-for-iterator##30.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:112:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1887,9 +1887,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t98 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##31 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##31.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t98 = :sync-for-iterator##31.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:115:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1900,9 +1900,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t100 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##32 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##32.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t100 = :sync-for-iterator##32.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:118:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1913,9 +1913,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t101 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##33 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##33.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t101 = :sync-for-iterator##33.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:121:11: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1926,9 +1926,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t103 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##34 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##34.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t103 = :sync-for-iterator##34.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:124:9: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1939,9 +1939,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t104 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##35 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##35.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t104 = :sync-for-iterator##35.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:127:10: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -1952,9 +1952,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t105 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##36 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##36.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t105 = :sync-for-iterator##36.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:130:8: Error: Setter not found: 'finalTopLevel'.
   for (finalTopLevel in [1]) { // Error
@@ -1964,9 +1964,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t106 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##37 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##37.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t106 = :sync-for-iterator##37.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:133:8: Error: Setter not found: 'constTopLevel'.
   for (constTopLevel in [1]) { // Error
@@ -1976,11 +1976,11 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:136:27: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    synthesized core::Iterator<core::String> :sync-for-iterator##38 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:136:27: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   for (stringTopLevel in [1]) { // Error
                           ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::String #t107 = :sync-for-iterator.{core::Iterator::current}{core::String};
+    for (; :sync-for-iterator##38.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t107 = :sync-for-iterator##38.{core::Iterator::current}{core::String};
       {
         self::stringTopLevel = #t107;
         core::print(self::stringTopLevel);
@@ -1988,9 +1988,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t108 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##39 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##39.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t108 = :sync-for-iterator##39.{core::Iterator::current}{core::int};
       {
         self::stringTopLevel = invalid-expression "pkg/front_end/testcases/general/for_in.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   for (stringTopLevel in <int>[1]) { // Error
@@ -2000,9 +2000,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t109 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##40 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##40.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t109 = :sync-for-iterator##40.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:142:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2013,9 +2013,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t111 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##41 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##41.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t111 = :sync-for-iterator##41.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:145:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2026,9 +2026,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t113 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##42 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##42.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t113 = :sync-for-iterator##42.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:148:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2039,9 +2039,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t115 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##43 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##43.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t115 = :sync-for-iterator##43.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:151:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2052,9 +2052,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t117 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##44 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##44.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t117 = :sync-for-iterator##44.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:154:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2065,9 +2065,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t119 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##45 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##45.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t119 = :sync-for-iterator##45.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:157:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2078,9 +2078,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t121 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##46 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##46.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t121 = :sync-for-iterator##46.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:160:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2091,9 +2091,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t123 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##47 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##47.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t123 = :sync-for-iterator##47.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:163:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2104,9 +2104,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t125 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##48 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##48.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t125 = :sync-for-iterator##48.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:166:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2117,9 +2117,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t126 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##49 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##49.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t126 = :sync-for-iterator##49.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:169:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2130,9 +2130,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t127 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##50 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##50.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t127 = :sync-for-iterator##50.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:172:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2143,9 +2143,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t128 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##51 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##51.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t128 = :sync-for-iterator##51.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:175:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2156,9 +2156,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t129 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##52 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##52.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t129 = :sync-for-iterator##52.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:178:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2169,9 +2169,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t130 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##53 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##53.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t130 = :sync-for-iterator##53.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:181:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2182,9 +2182,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t131 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##54 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##54.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t131 = :sync-for-iterator##54.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:184:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2195,9 +2195,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t132 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##55 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##55.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t132 = :sync-for-iterator##55.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:187:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2208,9 +2208,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t133 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##56 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##56.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t133 = :sync-for-iterator##56.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:190:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2221,9 +2221,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t134 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##57 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##57.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t134 = :sync-for-iterator##57.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:193:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2234,9 +2234,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t135 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##58 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##58.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t135 = :sync-for-iterator##58.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:196:14: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2247,9 +2247,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t136 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##59 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##59.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t136 = :sync-for-iterator##59.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:199:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2260,9 +2260,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t137 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##60 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##60.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t137 = :sync-for-iterator##60.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:202:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2273,9 +2273,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t138 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##61 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##61.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t138 = :sync-for-iterator##61.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:205:18: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2297,27 +2297,27 @@ static method main() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::num numLocal = :sync-for-iterator##1.{core::Iterator::current}{core::num};
       {
         core::print(numLocal);
       }
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      core::int varLocal = :sync-for-iterator##2.{core::Iterator::current}{core::int};
       {
         core::print(varLocal);
       }
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int finalLocal = :sync-for-iterator##3.{core::Iterator::current}{core::int};
       {
         core::print(finalLocal);
       }
@@ -2326,87 +2326,87 @@ static method main() → dynamic {
   core::print( block {
     final core::List<core::int> #t139 = core::_GrowableList::•<core::int>(0);
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int intLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t139.{core::List::add}{Invariant}(intLocal){(core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int intLocal##1 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
+        #t139.{core::List::add}{Invariant}(intLocal##1){(core::int) → void};
       }
     }
   } =>#t139);
   core::print( block {
     final core::List<core::num> #t140 = core::_GrowableList::•<core::num>(0);
     {
-      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
-        #t140.{core::List::add}{Invariant}(numLocal){(core::num) → void};
+      synthesized core::Iterator<core::num> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::num numLocal##1 = :sync-for-iterator##5.{core::Iterator::current}{core::num};
+        #t140.{core::List::add}{Invariant}(numLocal##1){(core::num) → void};
       }
     }
   } =>#t140);
   core::print( block {
     final core::List<core::int> #t141 = core::_GrowableList::•<core::int>(0);
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t141.{core::List::add}{Invariant}(varLocal){(core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int varLocal##1 = :sync-for-iterator##6.{core::Iterator::current}{core::int};
+        #t141.{core::List::add}{Invariant}(varLocal##1){(core::int) → void};
       }
     }
   } =>#t141);
   core::print( block {
     final core::List<core::int> #t142 = core::_GrowableList::•<core::int>(0);
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t142.{core::List::add}{Invariant}(finalLocal){(core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int finalLocal##1 = :sync-for-iterator##7.{core::Iterator::current}{core::int};
+        #t142.{core::List::add}{Invariant}(finalLocal##1){(core::int) → void};
       }
     }
   } =>#t142);
   core::print( block {
     final core::Map<core::int, core::int> #t143 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int intLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t143.{core::Map::[]=}{Invariant}(0, intLocal){(core::int, core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##8 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##8.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int intLocal##2 = :sync-for-iterator##8.{core::Iterator::current}{core::int};
+        #t143.{core::Map::[]=}{Invariant}(0, intLocal##2){(core::int, core::int) → void};
       }
     }
   } =>#t143);
   core::print( block {
     final core::Map<core::int, core::num> #t144 = <core::int, core::num>{};
     {
-      synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::num numLocal = :sync-for-iterator.{core::Iterator::current}{core::num};
-        #t144.{core::Map::[]=}{Invariant}(0, numLocal){(core::int, core::num) → void};
+      synthesized core::Iterator<core::num> :sync-for-iterator##9 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+      for (; :sync-for-iterator##9.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::num numLocal##2 = :sync-for-iterator##9.{core::Iterator::current}{core::num};
+        #t144.{core::Map::[]=}{Invariant}(0, numLocal##2){(core::int, core::num) → void};
       }
     }
   } =>#t144);
   core::print( block {
     final core::Map<core::int, core::int> #t145 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int varLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t145.{core::Map::[]=}{Invariant}(0, varLocal){(core::int, core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##10 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##10.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int varLocal##2 = :sync-for-iterator##10.{core::Iterator::current}{core::int};
+        #t145.{core::Map::[]=}{Invariant}(0, varLocal##2){(core::int, core::int) → void};
       }
     }
   } =>#t145);
   core::print( block {
     final core::Map<core::int, core::int> #t146 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int finalLocal = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t146.{core::Map::[]=}{Invariant}(0, finalLocal){(core::int, core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##11 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##11.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int finalLocal##2 = :sync-for-iterator##11.{core::Iterator::current}{core::int};
+        #t146.{core::Map::[]=}{Invariant}(0, finalLocal##2){(core::int, core::int) → void};
       }
     }
   } =>#t146);
   {
-    synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator = core::_GrowableList::_literal1<(core::int, core::int)>((1, 2)).{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final(core::int, core::int) #t147 = :sync-for-iterator.{core::Iterator::current}{(core::int, core::int)};
+    synthesized core::Iterator<(core::int, core::int)> :sync-for-iterator##12 = core::_GrowableList::_literal1<(core::int, core::int)>((1, 2)).{core::Iterable::iterator}{core::Iterator<(core::int, core::int)>};
+    for (; :sync-for-iterator##12.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final(core::int, core::int) #t147 = :sync-for-iterator##12.{core::Iterator::current}{(core::int, core::int)};
       {
         hoisted core::int a;
         hoisted core::int b;
@@ -2422,9 +2422,9 @@ static method main() → dynamic {
   }
   core::int existingIntLocal;
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t148 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##13 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##13.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t148 = :sync-for-iterator##13.{core::Iterator::current}{core::int};
       {
         existingIntLocal = #t148;
         core::print(existingIntLocal);
@@ -2433,9 +2433,9 @@ static method main() → dynamic {
   }
   core::num existingNumLocal;
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::num #t149 = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##14 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##14.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t149 = :sync-for-iterator##14.{core::Iterator::current}{core::num};
       {
         existingNumLocal = #t149;
         core::print(existingNumLocal);
@@ -2444,9 +2444,9 @@ static method main() → dynamic {
   }
   new self::Class::•().{self::Class::method}(){() → dynamic};
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t150 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##15 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##15.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t150 = :sync-for-iterator##15.{core::Iterator::current}{core::int};
       {
         self::intTopLevel = #t150;
         core::print(self::intTopLevel);
@@ -2454,9 +2454,9 @@ static method main() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::num #t151 = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##16 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##16.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t151 = :sync-for-iterator##16.{core::Iterator::current}{core::num};
       {
         self::numTopLevel = #t151;
         core::print(self::numTopLevel);
@@ -2464,9 +2464,9 @@ static method main() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t152 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##17 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##17.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t152 = :sync-for-iterator##17.{core::Iterator::current}{core::int};
       {
         self::lateTopLevel = #t152;
         core::print(self::lateTopLevel);
@@ -2474,9 +2474,9 @@ static method main() → dynamic {
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t153 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##18 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##18.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t153 = :sync-for-iterator##18.{core::Iterator::current}{core::int};
       {
         self::lateFinalTopLevel = #t153;
         core::print(self::lateFinalTopLevel);
@@ -2511,9 +2511,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t155 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t155 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:507:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2524,9 +2524,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t157 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t157 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:510:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2537,9 +2537,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t158 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t158 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:513:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2550,9 +2550,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t160 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t160 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:516:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2563,9 +2563,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t161 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t161 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:519:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2576,9 +2576,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t163 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t163 = :sync-for-iterator##6.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:522:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2589,9 +2589,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t164 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t164 = :sync-for-iterator##7.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:525:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2602,9 +2602,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t166 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##8 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##8.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t166 = :sync-for-iterator##8.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:528:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2615,9 +2615,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t167 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##9 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##9.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t167 = :sync-for-iterator##9.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:531:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2628,11 +2628,11 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:534:38: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    synthesized core::Iterator<core::String> :sync-for-iterator##10 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:534:38: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (extensionStringProperty in [1]) { // Error
                                      ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::String #t169 = :sync-for-iterator.{core::Iterator::current}{core::String};
+    for (; :sync-for-iterator##10.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t169 = :sync-for-iterator##10.{core::Iterator::current}{core::String};
       {
         self::Extension|set#extensionStringProperty(#this, #t169);
         core::print(self::Extension|get#extensionStringProperty(#this));
@@ -2640,9 +2640,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t170 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##11 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##11.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t170 = :sync-for-iterator##11.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:537:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2653,9 +2653,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t171 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##12 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##12.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t171 = :sync-for-iterator##12.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:540:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2666,9 +2666,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t173 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##13 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##13.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t173 = :sync-for-iterator##13.{core::Iterator::current}{core::int};
       {
         self::Extension|set#extensionStringProperty(#this, invalid-expression "pkg/front_end/testcases/general/for_in.dart:543:34: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (extensionStringProperty in <int>[1]) { // Error
@@ -2678,9 +2678,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t174 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##14 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##14.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t174 = :sync-for-iterator##14.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:546:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2691,9 +2691,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t175 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##15 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##15.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t175 = :sync-for-iterator##15.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:549:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2704,9 +2704,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t177 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##16 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##16.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t177 = :sync-for-iterator##16.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:552:10: Error: Setter not found: 'extensionReadOnlyProperty'.
     for (extensionReadOnlyProperty in [1]) { // Error
@@ -2716,9 +2716,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t178 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##17 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##17.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t178 = :sync-for-iterator##17.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:555:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2729,9 +2729,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t179 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##18 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##18.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t179 = :sync-for-iterator##18.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:558:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -2742,9 +2742,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t181 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##19 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##19.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t181 = :sync-for-iterator##19.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:561:10: Error: Setter not found: 'finalStaticField'.
     for (finalStaticField in [1]) { // Error
@@ -2754,11 +2754,11 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::String> :sync-for-iterator = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:564:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    synthesized core::Iterator<core::String> :sync-for-iterator##20 = core::_GrowableList::_literal1<core::String>(invalid-expression "pkg/front_end/testcases/general/for_in.dart:564:32: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringStaticField in [1]) { // Error
                                ^" in 1 as{TypeError} core::String).{core::Iterable::iterator}{core::Iterator<core::String>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::String #t182 = :sync-for-iterator.{core::Iterator::current}{core::String};
+    for (; :sync-for-iterator##20.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String #t182 = :sync-for-iterator##20.{core::Iterator::current}{core::String};
       {
         self::Extension|stringStaticField = #t182;
         core::print(self::Extension|stringStaticField);
@@ -2766,9 +2766,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t183 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##21 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##21.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t183 = :sync-for-iterator##21.{core::Iterator::current}{core::int};
       {
         self::Extension|stringStaticField = invalid-expression "pkg/front_end/testcases/general/for_in.dart:567:28: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (stringStaticField in <int>[1]) { // Error
@@ -2778,9 +2778,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t184 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##22 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##22.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t184 = :sync-for-iterator##22.{core::Iterator::current}{core::int};
       {
         self::Extension|lateFinalStaticField = #t184;
         core::print(self::Extension|lateFinalStaticField);
@@ -2802,9 +2802,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::num #t186 = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t186 = :sync-for-iterator##1.{core::Iterator::current}{core::num};
       {
         #this.{self::Class::numField} = #t186;
         core::print(#this.{self::Class::numField}{core::num});
@@ -2812,9 +2812,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t187 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t187 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
       {
         #this.{self::Class::lateField} = #t187;
         core::print(#this.{self::Class::lateField}{core::int});
@@ -2822,9 +2822,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t188 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t188 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
       {
         self::Extension|set#extensionIntProperty(#this, #t188);
         core::print(self::Extension|get#extensionIntProperty(#this));
@@ -2832,9 +2832,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::num #t189 = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##4 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t189 = :sync-for-iterator##4.{core::Iterator::current}{core::num};
       {
         self::Extension|set#extensionNumProperty(#this, #t189);
         core::print(self::Extension|get#extensionNumProperty(#this));
@@ -2842,9 +2842,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t190 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t190 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
       {
         self::Extension|intStaticField = #t190;
         core::print(self::Extension|intStaticField);
@@ -2852,9 +2852,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::num> :sync-for-iterator = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::num #t191 = :sync-for-iterator.{core::Iterator::current}{core::num};
+    synthesized core::Iterator<core::num> :sync-for-iterator##6 = core::_GrowableList::_literal1<core::num>(1).{core::Iterable::iterator}{core::Iterator<core::num>};
+    for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::num #t191 = :sync-for-iterator##6.{core::Iterator::current}{core::num};
       {
         self::Extension|numStaticField = #t191;
         core::print(self::Extension|numStaticField);
@@ -2862,9 +2862,9 @@ static extension-member method Extension|extensionMethod(lowered final self::Cla
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t192 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##7 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t192 = :sync-for-iterator##7.{core::Iterator::current}{core::int};
       {
         self::Extension|lateStaticField = #t192;
         core::print(self::Extension|lateStaticField);
@@ -2892,9 +2892,9 @@ Try using an existing variable or a variable declaration.
     }
   }
   {
-    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int #t194 = :sync-for-iterator.{core::Iterator::current}{core::int};
+    synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal1<core::int>(1).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int #t194 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
       {
         invalid-expression "pkg/front_end/testcases/general/for_in.dart:611:15: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.

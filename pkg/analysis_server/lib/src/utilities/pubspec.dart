@@ -48,8 +48,10 @@ List<String> checkDependencyCompatibility({
       }
     }
 
-    // Check if the dependency's SDK constraint allows the target version.
-    if (!constraint.allows(targetVersion)) {
+    // A dependency is incompatible only if its upper bound forbids all versions
+    // at or above [targetVersion]. Dependencies that require an even higher
+    // minimum SDK version remain compatible with this bump.
+    if (!constraint.allowsAny(VersionRange(min: targetVersion))) {
       incompatible.add(package.name);
     }
   }
@@ -63,60 +65,8 @@ List<String> checkDependencyCompatibility({
 /// format.
 PubspecEdit? computeEdit(File pubspecFile, Version minimumVersion) {
   var extractor = SdkConstraintExtractor(pubspecFile);
-  return _computeEdit(
-    extractor.constraintText(),
-    extractor.constraintOffset(),
-    minimumVersion,
-  );
-}
-
-/// Calculates the edit to bump the SDK constraint in [pubspecFile] by 1
-/// minor version.
-///
-/// Returns `null` if the constraint cannot be found or is not in a supported
-/// format.
-PubspecEdit? computeVersionBumpEdit(File pubspecFile) {
-  var extractor = SdkConstraintExtractor(pubspecFile);
   var text = extractor.constraintText();
-  if (text == null) return null;
-
-  Version? newVersion;
-  try {
-    var constraint = VersionConstraint.parse(text);
-    if (constraint is VersionRange) {
-      var min = constraint.min;
-      if (min != null) {
-        newVersion = Version(min.major, min.minor + 1, 0);
-      }
-    } else if (constraint is Version) {
-      newVersion = Version(constraint.major, constraint.minor + 1, 0);
-    }
-    // TODO(kallentu): Support VersionUnion.
-    // For example (e.g. '>=2.12.0 <3.0.0 || >=3.10.0').
-  } catch (e) {
-    // Can't parse the version constraint.
-    return null;
-  }
-
-  if (newVersion == null) return null;
-
-  return _computeEdit(text, extractor.constraintOffset(), newVersion);
-}
-
-/// Returns the minimum SDK version constraint defined in [pubspecFile], or
-/// `null` if the constraint cannot be found or parsed.
-Version? minimumSdkConstraint(File pubspecFile) {
-  var extractor = SdkConstraintExtractor(pubspecFile);
-  var constraint = extractor.constraint();
-  if (constraint is VersionRange) {
-    return constraint.min;
-  } else if (constraint is Version) {
-    return constraint;
-  }
-  return null;
-}
-
-PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
+  var offset = extractor.constraintOffset();
   if (text == null || offset < 0) {
     return null;
   }
@@ -149,6 +99,19 @@ PubspecEdit? _computeEdit(String? text, int offset, Version minimumVersion) {
   );
 }
 
+/// Returns the minimum SDK version constraint defined in [pubspecFile], or
+/// `null` if the constraint cannot be found or parsed.
+Version? minimumSdkConstraint(File pubspecFile) {
+  var extractor = SdkConstraintExtractor(pubspecFile);
+  var constraint = extractor.constraint();
+  if (constraint is VersionRange) {
+    return constraint.min;
+  } else if (constraint is Version) {
+    return constraint;
+  }
+  return null;
+}
+
 /// The result of computing an edit to a pubspec file's SDK constraint.
 class PubspecEdit {
   /// The character offset in the document where the edit should be applied.
@@ -157,8 +120,7 @@ class PubspecEdit {
   /// The length of the text to be replaced.
   final int length;
 
-  /// The full new SDK constraint text after the edit is applied and the text to
-  /// be inserted at [offset], replacing [length] characters.
+  /// The text to be inserted at [offset], replacing [length] characters.
   final String replacement;
 
   /// The full original SDK constraint text before the edit is applied.
@@ -174,6 +136,10 @@ class PubspecEdit {
     required this.originalConstraint,
     required this.targetVersion,
   });
+
+  /// The full new SDK constraint text after the edit is applied.
+  String get newConstraint =>
+      originalConstraint.replaceRange(0, length, replacement);
 }
 
 /// A target package's `pubspec.yaml` file and its derived display name.

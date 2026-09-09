@@ -812,7 +812,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   ParameterDeclaration getParameterDeclaration(FunctionParameter parameter) {
-    final name = parameter.cosmeticName!;
+    final name = parameter.parameterName;
     final lib = name.startsWith('_') ? enclosingMember!.enclosingLibrary : null;
     final nameHandle = objectTable.getNameHandle(lib, name);
     final typeHandle = objectTable.getHandle(parameter.type)!;
@@ -2189,7 +2189,18 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      asm.emitFrame(locals.frameSize - locals.numParameters);
+      // Frame(rD) initializes the frame slots which are not initialized yet,
+      // so rD is the frame size minus the number of slots already covered by
+      // the entry opcode. EntryOptional copies `numParameters` parameters,
+      // but EntrySuspendable covers one more slot: it nulls the reserved
+      // SuspendState local FP[kKBCSuspendStateSlotFromFp] and then copies the
+      // parameters into locals 1..numParameters. `numParameters` doesn't
+      // account for that reserved slot, so it is subtracted separately.
+      asm.emitFrame(
+        locals.frameSize -
+            locals.numParameters -
+            (locals.isSuspendableFunction ? 1 : 0),
+      );
     } else {
       asm.emitEntry(locals.frameSize);
     }
@@ -2541,7 +2552,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genArgumentTypeCheck(FunctionParameter variable) {
     final DartType type = variable.type;
     asm.emitPush(locals.getParamIndexInFrame(variable));
-    _genAssertAssignable(type, name: variable.cosmeticName);
+    _genAssertAssignable(type, name: variable.parameterName);
     asm.emitDrop1();
   }
 
@@ -2706,7 +2717,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     for (var v in function.positionalParameters) {
       parameters.add(
         new NameAndType(
-          objectTable.getPublicNameHandle(v.cosmeticName!),
+          objectTable.getPublicNameHandle(v.parameterName),
           objectTable.getHandle(v.type)!,
         ),
       );
@@ -4292,7 +4303,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _genPushContextIfCaptured(node.variable);
-    _genClosure(node, node.variable.cosmeticName!, node.function);
+    _genClosure(node, node.variable.name, node.function);
     asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }

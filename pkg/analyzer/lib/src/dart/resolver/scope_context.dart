@@ -102,14 +102,12 @@ class ScopeContext {
   void visitConstructorDeclaration(
     ConstructorDeclarationImpl node, {
     required AstVisitor2 visitor,
-    void Function(SimpleIdentifierImpl)? visitTypeName,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
   }) {
     var fragment = node.declaredFragment!;
 
     node.metadata.accept2(visitor);
-    node.typeName?.visitWithOverride(visitor, visitTypeName);
     node.parameters.accept2(visitor);
 
     withScope(_constructorInitializerScope(fragment), () {
@@ -435,6 +433,27 @@ class ScopeContext {
         node.body.accept2(visitor);
       },
     );
+  }
+
+  void visitTopLevelGetterDeclaration(
+    TopLevelGetterDeclarationImpl node, {
+    required AstVisitor2 visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept2(visitor);
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.recoveryTypeParameters?.accept2(visitor);
+      node.recoveryFormalParameters?.accept2(visitor);
+
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
+    });
   }
 
   void visitVariableDeclarationList(

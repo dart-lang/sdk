@@ -234,7 +234,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: f
@@ -772,7 +772,7 @@ BinaryOperatorInvocation
     leftBracket: [ <synthetic>
     rightBracket: ] <synthetic>
   binaryOperator: greaterThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: f
@@ -1097,7 +1097,16 @@ MethodInvocation
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
-        cascadeSections2
+        sections
+          CascadeSection
+            body: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+        cascadeSections
           MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
@@ -1660,11 +1669,18 @@ var x = x[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: ReceiverIndexExpression
+    receiver: SimpleIdentifier
       token: x
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: x
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList
@@ -1686,11 +1702,11 @@ var x = x[0]!<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: NullAssertionExpression
-    operand: IndexExpression
-      target2: SimpleIdentifier
+    operand: ReceiverIndexExpression
+      receiver: SimpleIdentifier
         token: x
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
         literal: 0
       rightBracket: ]
     operator: !
@@ -1721,12 +1737,23 @@ var x = x[0]()<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: FunctionExpressionInvocation
-    function2: IndexExpression
-      target2: SimpleIdentifier
+  function2: CallInvocation
+    receiver: ReceiverIndexExpression
+      receiver: SimpleIdentifier
         token: x
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  function(v1): FunctionExpressionInvocation
+    function: IndexExpression
+      target: SimpleIdentifier
+        token: x
+      leftBracket: [
+      index: IntegerLiteral
         literal: 0
       rightBracket: ]
     argumentList: ArgumentList
@@ -1750,12 +1777,20 @@ var x = x?[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: ReceiverIndexExpression
+    receiver: SimpleIdentifier
       token: x
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: x
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList
@@ -1801,10 +1836,12 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f()..m<a, b>;
 ''');
-    var node = parseResult.findNode.singleCascadeExpression.cascadeSections2[0];
+    var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    name: m
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: m

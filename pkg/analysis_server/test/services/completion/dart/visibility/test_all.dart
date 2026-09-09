@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'scope_shadow_test.dart' as scope_shadow;
 import 'types_test.dart' as types;
 
 void main() {
   defineReflectiveSuite(() {
     types.main();
+    scope_shadow.main();
   }, name: 'visibility');
 }

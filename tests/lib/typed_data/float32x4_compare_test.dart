@@ -10,13 +10,13 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 testEqual() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.equal(b);
   var d = b.equal(a);
   Expect.equals(0, c.x);
@@ -30,13 +30,13 @@ testEqual() {
 }
 
 testNotEqual() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.notEqual(b);
   var d = b.notEqual(a);
   Expect.equals(-1, c.x);
@@ -50,13 +50,13 @@ testNotEqual() {
 }
 
 testLessThan() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.lessThan(b);
   var d = b.lessThan(a);
   Expect.equals(0, c.x);
@@ -70,13 +70,13 @@ testLessThan() {
 }
 
 testLessThanOrEqual() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.lessThanOrEqual(b);
   var d = b.lessThanOrEqual(a);
   Expect.equals(0, c.x);
@@ -90,13 +90,13 @@ testLessThanOrEqual() {
 }
 
 testGreaterThan() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.greaterThan(b);
   var d = b.greaterThan(a);
   Expect.equals(0, c.x);
@@ -110,13 +110,13 @@ testGreaterThan() {
 }
 
 testGreaterThanOrEqual() {
-  var a = new Float32x4(
+  var a = Float32x4(
     double.nan,
     double.infinity,
     double.negativeInfinity,
     double.nan,
   );
-  var b = new Float32x4(0.0, 0.0, 0.0, double.nan);
+  var b = Float32x4(0.0, 0.0, 0.0, double.nan);
   var c = a.greaterThanOrEqual(b);
   var d = b.greaterThan(a);
   Expect.equals(0, c.x);

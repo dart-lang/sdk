@@ -243,7 +243,7 @@ Try changing the type of the variable.
   for (A y in l) {} // Error.
          ^" in #t3 as{TypeError} self::A;
   }
-  for (self::A y in invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (self::A y##1 in invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
@@ -315,7 +315,7 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
                         ^";
   }
   for (final core::List<self::B?> #t5 in l) {
-    core::List<self::A> y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:59:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>'.
+    core::List<self::A> y##1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:59:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.

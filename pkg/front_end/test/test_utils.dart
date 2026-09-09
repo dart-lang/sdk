@@ -13,7 +13,16 @@ void addConstantCoverageToExpectation(
   required bool Function(Uri?) skipImportUri,
 }) {
   bool printedConstantCoverageHeader = false;
+  List<Source> sorted = [];
   for (Source source in component.uriToSource.values) {
+    if (skipImportUri(source.importUri)) continue;
+    sorted.add(source);
+  }
+  sorted.sort((a, b) {
+    return a.importUri.toString().compareTo(b.importUri.toString());
+  });
+
+  for (Source source in sorted) {
     if (skipImportUri(source.importUri)) continue;
 
     if (source.constantCoverageConstructors != null &&

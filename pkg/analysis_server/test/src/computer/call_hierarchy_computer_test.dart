@@ -1175,7 +1175,7 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   void setUp() {
     super.setUp();
     otherFile = convertPath('$testPackageLibPath/other.dart');
-    searchEngine = SearchEngineImpl([driverFor(testFile)]);
+    searchEngine = SearchEngineImpl([contextFor(testFile).driver]);
   }
 
   Future<void> test_constructor() async {

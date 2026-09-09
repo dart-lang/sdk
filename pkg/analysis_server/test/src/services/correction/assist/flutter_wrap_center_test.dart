@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class FlutterWrapCenterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterWrapCenter;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterWrapCenter;
 
   Future<void> test_aroundCenter() async {
     await resolveTestCode('''

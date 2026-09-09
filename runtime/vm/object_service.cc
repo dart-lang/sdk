@@ -5,6 +5,7 @@
 #include "vm/canonical_tables.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
 #include "vm/object_graph.h"
@@ -88,6 +89,80 @@ void Object::PrintImplementationFields(JSONStream* stream) const {
   }
 }
 
+static const char* FfiTypeDisplayName(Zone* zone,
+                                      const compiler::ffi::NativeType& type) {
+  if (type.IsCompound()) {
+    const char* name = type.AsCompound().name();
+    if (name != nullptr) {
+      return name;
+    }
+  }
+  return type.ToCString(zone, /*multi_line=*/false, /*verbose=*/false);
+}
+
+static void PrintFfiLayout(JSONObject* jsobj, const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Class& struct_base_cls = Class::Handle(
+      zone, thread->isolate_group()->object_store()->ffi_struct_class());
+  if (struct_base_cls.IsNull()) {
+    return;
+  }
+
+  Class& super_cls = Class::Handle(zone, cls.SuperClass());
+  while (!super_cls.IsNull() && super_cls.ptr() != struct_base_cls.ptr()) {
+    super_cls = super_cls.SuperClass();
+  }
+  if (super_cls.IsNull()) {
+    return;
+  }
+
+  const Type& cls_type = Type::Handle(zone, cls.DeclarationType());
+  const Type& struct_base_type =
+      Type::Handle(zone, struct_base_cls.DeclarationType());
+  if (!cls_type.IsSubtypeOf(struct_base_type, Heap::kNew)) {
+    return;
+  }
+
+  const char* error = nullptr;
+  const compiler::ffi::NativeType* nt =
+      compiler::ffi::NativeType::FromAbstractType(zone, cls_type, &error);
+  if (nt == nullptr || !nt->IsCompound()) {
+    return;
+  }
+  const auto& compound = nt->AsCompound();
+  if (!compound.IsStruct()) {
+    // TODO(thenourhan): Support unions and arrays.
+    return;
+  }
+  const auto& members = compound.members();
+  const auto& offsets = compound.AsStruct().member_offsets();
+  JSONObject layout(jsobj, "ffiLayout");
+  layout.AddProperty("size", compound.SizeInBytes());
+  {
+    JSONArray fields_arr(&layout, "fields");
+    for (intptr_t i = 0; i < members.length(); ++i) {
+      const compiler::ffi::NativeType& field_nt = members[i].type();
+      const bool is_array = field_nt.IsArray();
+      JSONObject field_obj(&fields_arr);
+      field_obj.AddProperty("name", members[i].name());
+      field_obj.AddProperty(
+          "nativeType",
+          is_array ? "Array" : FfiTypeDisplayName(zone, field_nt));
+      field_obj.AddProperty64("offset", offsets[i]);
+      field_obj.AddProperty64("size", field_nt.SizeInBytes());
+      if (is_array) {
+        // Multi-dimensional arrays are flattened into a single one by the FFI
+        // transformer, so the element type is never itself an array.
+        const auto& array = field_nt.AsArray();
+        field_obj.AddProperty64("length", array.length());
+        field_obj.AddProperty("arrayElementType",
+                              FfiTypeDisplayName(zone, array.element_type()));
+      }
+    }
+  }
+}
+
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Isolate* isolate = Isolate::Current();
   JSONObject jsobj(stream);
@@ -136,6 +211,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
   jsobj.AddProperty("traceAllocations", TraceAllocation(isolate->group()));
+
+  if (err.IsNull() && is_finalized() && !IsTopLevel()) {
+    PrintFfiLayout(&jsobj, *this);
+  }
 
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {

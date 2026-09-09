@@ -27,6 +27,12 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
+    if (node is SwitchExpression && node.rightParenthesis.isSynthetic) {
+      return;
+    }
+    if (node is SwitchStatement && node.rightParenthesis.isSynthetic) {
+      return;
+    }
 
     var diagnostic = this.diagnostic;
     if (diagnostic is! Diagnostic) {
@@ -47,6 +53,17 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     // Make a modifiable copy. See:
     // https://github.com/dart-lang/sdk/issues/62426
     patternPartsList = patternPartsList.toList();
+
+    // Keep `null` after the cases for values of the nullable type.
+    var nullPatterns = <List<MissingPatternPart>>[];
+    patternPartsList.removeWhere((parts) {
+      if (parts case [MissingPatternTextPart(text: 'null')]) {
+        nullPatterns.add(parts);
+        return true;
+      }
+      return false;
+    });
+    patternPartsList.addAll(nullPatterns);
 
     // It is possible that a missing pattern is unrepresentable at the location
     // of the switch. For instance, an enum with a private member can't be

@@ -78,7 +78,7 @@ def HostCpuForArch(arch):
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
         candidates = ['arm64', 'x64', 'riscv64']
     elif arch in ['arm64e']:
-        candidates = ['arm64e']
+        candidates = ['arm64e', 'arm64', 'x64']
     elif arch in ['riscv32', 'simriscv32']:
         candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
     elif arch in ['riscv64', 'simriscv64']:
@@ -273,17 +273,6 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     if args.include_experimental_vm_service is not None:
         gn_args[
             'include_experimental_vm_service'] = args.include_experimental_vm_service
-
-    # We don't support stripping on Windows
-    if host_os != 'win':
-        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-        gn_args['dartvm_stripped_binary'] = 'exe.stripped/dartvm'
-        gn_args['dart_aotruntime_stripped_binary'] = (
-            'exe.stripped/dartaotruntime_product')
-        gn_args['gen_snapshot_stripped_binary'] = (
-            'exe.stripped/gen_snapshot_product')
-        gn_args['analyze_snapshot_binary'] = ('exe.stripped/analyze_snapshot')
-        gn_args['wasm_opt_stripped_binary'] = 'exe.stripped/wasm-opt'
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):

@@ -58,6 +58,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * Creates a lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
+  @pragma('vm:prefer-inline')
   StringTokenImpl.fromSubstring(
     TokenType type,
     String data,

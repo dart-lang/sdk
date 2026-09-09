@@ -5,8 +5,10 @@
 // Test that parameters keep their names in the output.
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/compiler_helper.dart';
 
 const String TEST_INVOCATION0 = r"""

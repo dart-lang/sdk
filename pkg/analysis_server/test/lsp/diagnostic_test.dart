@@ -246,7 +246,7 @@ include: package:pedantic/analysis_options.yaml
 
     // // Write a package file that allows resolving the include.
     // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
-    // writeTestPackageConfig(pedantic: true);
+    // writeTestPackageConfig2(pedantic: true);
     //
     // // Ensure the error disappeared.
     // final updatedDiagnostics = await secondDiagnosticsUpdate;
@@ -382,7 +382,7 @@ void f() {
     setDiagnosticTagSupport([DiagnosticTag.Deprecated]);
 
     var onePackagePath = convertPath('/home/one');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
@@ -406,7 +406,7 @@ void f() {
 
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
@@ -729,11 +729,11 @@ linter:
   rules:
     - avoid_dynamic_calls
 ''');
-    writePackageConfig(convertPath(lintsPackagePath));
+    writePackageConfig2(convertPath(lintsPackagePath));
 
     // Set up a project that imports the analysis_options and violates the lint.
     var projectPackagePath = '$rootWorkspacePath/my_project';
-    writePackageConfig(
+    writePackageConfig2(
       projectPackagePath,
       config: PackageConfigFileBuilder()
         ..add(name: 'my_lints', rootFolder: getFolder(lintsPackagePath)),

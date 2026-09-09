@@ -21,10 +21,21 @@
 #include "bin/file.h"
 #include "bin/socket_base_linux.h"
 #include "bin/thread.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
+
+static int fstat64_fixed(int fd, struct stat64* __restrict statbuf) {
+  int result = ::fstat64(fd, statbuf);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int fstat64(int fd, struct stat64* __restrict statbuf) = delete;
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
@@ -37,7 +48,7 @@ void SocketBase::GetError(intptr_t fd, OSError* os_error) {
 
 int SocketBase::GetType(intptr_t fd) {
   struct stat64 buf;
-  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
+  int result = TEMP_FAILURE_RETRY(fstat64_fixed(fd, &buf));
   if (result == -1) {
     return -1;
   }

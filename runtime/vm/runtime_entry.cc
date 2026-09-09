@@ -573,6 +573,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
   RuntimeAllocationEpilogue(thread);
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt32x4, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(
+      Object::Handle(zone, Int32x4::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
+}
+
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
@@ -632,6 +639,42 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
       TypedData::Handle(zone, TypedData::New(cid, static_cast<intptr_t>(len),
                                              SpaceForRuntimeAllocation()));
   arguments.SetReturn(typed_data);
+  RuntimeAllocationEpilogue(thread);
+}
+
+// Allocate OneByteString of given length.
+// Arg0: number of elements.
+// Return value: newly allocated OneByteString.
+DEFINE_RUNTIME_ENTRY(AllocateOneByteString, 1) {
+  const int64_t length =
+      Integer::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  if ((length < 0) || (length > OneByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    Exceptions::ThrowOOM();
+  }
+  const auto& str =
+      String::Handle(zone, OneByteString::New(static_cast<intptr_t>(length),
+                                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(str);
+  RuntimeAllocationEpilogue(thread);
+}
+
+// Allocate TwoByteString of given length.
+// Arg0: number of elements.
+// Return value: newly allocated TwoByteString.
+DEFINE_RUNTIME_ENTRY(AllocateTwoByteString, 1) {
+  const int64_t length =
+      Integer::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  if ((length < 0) || (length > TwoByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    Exceptions::ThrowOOM();
+  }
+  const auto& str =
+      String::Handle(zone, TwoByteString::New(static_cast<intptr_t>(length),
+                                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(str);
   RuntimeAllocationEpilogue(thread);
 }
 
@@ -818,7 +861,7 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   }
 }
 
-// Instantiate type.
+// Assert supertype-subtype relationship.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
 // Arg2: type to be a subtype of the other
@@ -1786,8 +1829,18 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     FfiCallTrampoline(&args);
   } else {
     PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
-    TransitionVMToNative transition(thread);
-    FfiCallTrampoline(&args);
+    {
+      TransitionVMToNative transition(thread);
+      FfiCallTrampoline(&args);
+    }
+    // An FFI callback may have exited the isolate, but the UnwindError was
+    // replaced with the callback's exceptional value on returning to native
+    // code. Resume the unwinding process here. (See DLRT_ExitSafepoint.)
+    if (thread->is_unwind_in_progress()) {
+      thread->SetUnwindErrorInProgress(false);
+      NoSafepointScope no_safepoint;
+      Exceptions::PropagateError(Object::unwind_error());
+    }
   }
   PRINT_IF_TRACING_INTERPRETER("returned from native entry point %#" Px "\n",
                                target);

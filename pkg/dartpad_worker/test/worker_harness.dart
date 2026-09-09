@@ -10,10 +10,12 @@ import 'package:test/test.dart';
 
 import 'asset_server/asset_server_client.dart';
 
+export 'package:dartpad/src/worker_client.dart';
 export 'package:dartpad_worker/src/shared.dart';
 export 'package:test/test.dart' show fail, group, printOnFailure;
 
 export 'checks_ext.dart';
+export 'fake_sandboxed_iframe.dart';
 
 /// Function used by [testDartWorker] and [testDartWorkspace] to create a
 /// worker.

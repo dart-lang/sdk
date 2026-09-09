@@ -10,7 +10,7 @@ static method opaqueVal() → core::int
 @/*original=core::pragma::•*/ const core::pragma::_("vm:never-inline")
 @/*original=core::pragma::•*/ const core::pragma::_("wasm:never-inline")
 @/*original=core::pragma::•*/ const core::pragma::_("dart2js:noInline")
-static method callClosure(positional-parameter func) → void
+static method callClosure(() → void func) → void
   ;
 static method foo45() → void
   ;

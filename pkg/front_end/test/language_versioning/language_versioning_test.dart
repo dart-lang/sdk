@@ -5,7 +5,7 @@
 import 'dart:io' show Directory, File, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/language_version.dart' as lv;
@@ -18,7 +18,6 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         CfeDataComputer,
         CfeTestConfig,
         CfeTestResultData,
-        InternalCompilerResult,
         createUriForFileName,
         onFailure,
         runTestFor;
@@ -119,7 +118,7 @@ Language version API (import URI): ${lvImportUri}
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     new LanguageVersioningDataExtractor(
@@ -148,10 +147,7 @@ Language version API (import URI): ${lvImportUri}
 }
 
 class LanguageVersioningDataExtractor extends CfeDataExtractor<Features> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<Features>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   Features computeLibraryValue(Id id, Library library) {

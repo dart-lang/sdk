@@ -1,0 +1,13 @@
+s0 float
+s1 float
+s2 float
+s3 float
+s4 float
+s5 float
+s6 float
+s7 float
+s8 float
+M(r0 uint32, r1 uint32) Struct(size: 8)
+r2 int32
+=>
+q0 float

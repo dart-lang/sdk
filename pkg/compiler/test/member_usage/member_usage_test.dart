@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -13,6 +14,7 @@ import 'package:compiler/src/universe/member_usage.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/util/enumset.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -89,7 +91,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;

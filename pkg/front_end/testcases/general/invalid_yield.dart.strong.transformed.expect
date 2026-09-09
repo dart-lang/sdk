@@ -41,7 +41,7 @@ static method method1(dynamic a) → dynamic {
   invalid-expression "pkg/front_end/testcases/general/invalid_yield.dart:6:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
   yield null;
   ^";
-  invalid-type a;
+  invalid-type a##1;
   invalid-expression "pkg/front_end/testcases/general/invalid_yield.dart:8:3: Error: 'yield' can only be used in 'sync*' or 'async*' methods.
   yield a();
   ^";

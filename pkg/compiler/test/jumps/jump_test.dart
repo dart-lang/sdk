@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
@@ -11,8 +12,10 @@ import 'package:compiler/src/elements/jumps.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
+
 import 'package:kernel/ast.dart' as ir;
 
 main(List<String> args) {
@@ -38,7 +41,7 @@ class JumpDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -90,11 +93,7 @@ class JumpsIrChecker extends IrDataExtractor<String> {
   Map<JumpTarget, TargetData> targets = <JumpTarget, TargetData>{};
   List<GotoData> gotos = <GotoData>[];
 
-  JumpsIrChecker(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
-    this._localsMap,
-  ) : super(reporter, actualMap);
+  JumpsIrChecker(super.reporter, super.actualMap, this._localsMap);
 
   void processData() {
     targets.forEach((JumpTarget target, TargetData data) {

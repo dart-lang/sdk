@@ -487,6 +487,25 @@ the rest of the struct.""",
     """
 Variable length array with variable dimension of 1.""",
   ),
+  for (final t in [
+    int32,
+    float,
+    struct4bytesInt1Field,
+    struct4bytesUint8x4,
+    struct8bytesInt2Fields,
+    struct12bytesInt,
+    struct16bytesInt4Fields,
+    struct4bytesFloat,
+    struct8bytesFloat,
+    struct12bytesFloat,
+    struct16bytesFloat,
+    struct8bytesMixedInt32Float,
+  ])
+    FunctionType(
+      [...List.filled(9, float), t],
+      double_,
+      "Exhaust FP registers with 9 floats, then pass \$t by value.",
+    ),
 ];
 
 /// Functions that return a struct by value.
@@ -693,19 +712,24 @@ final compounds = [
   struct3bytesInt,
   struct3bytesInt2,
   struct4bytesInt,
+  struct4bytesInt1Field,
+  struct4bytesUint8x4,
   struct4bytesFloat,
   struct7bytesInt,
   struct7bytesInt2,
   struct8bytesInt,
+  struct8bytesInt2Fields,
   struct8bytesFloat,
   struct8bytesFloat2,
   struct8BytesMixed,
+  struct8bytesMixedInt32Float,
   struct9bytesInt,
   struct9bytesInt2,
   struct10bytesBool,
   struct12bytesFloat,
   struct12bytesInt,
   struct16bytesFloat,
+  struct16bytesInt4Fields,
   struct16bytesMixed,
   struct16bytesMixed2,
   struct17bytesInt,
@@ -910,7 +934,24 @@ final struct1byteInt = StructType([int8]);
 final struct3bytesInt = StructType(List.filled(3, uint8));
 final struct3bytesInt2 = StructType.disambiguate([int16, int8], "2ByteAligned");
 final struct4bytesInt = StructType([int16, int16]);
+final struct4bytesInt1Field = StructType.disambiguate([int32], "1Field");
+final struct4bytesUint8x4 = StructType.disambiguate(
+  List.filled(4, uint8),
+  "4Bytes",
+);
 final struct4bytesFloat = StructType([float]);
+final struct8bytesInt2Fields = StructType.disambiguate([
+  int32,
+  int32,
+], "2Fields");
+final struct16bytesInt4Fields = StructType.disambiguate(
+  List.filled(4, int32),
+  "4Fields",
+);
+final struct8bytesMixedInt32Float = StructType.disambiguate([
+  int32,
+  float,
+], "Int32Float");
 final struct7bytesInt = StructType(List.filled(7, uint8));
 final struct7bytesInt2 = StructType.disambiguate([
   int32,

@@ -16,11 +16,22 @@ import '../variables.dart';
 import 'dart.dart';
 import 'mixins.dart';
 
-/// A DAP Debug Adapter for attaching to already-running Dart and Flutter applications.
+/// A DAP Debug Adapter for attaching to already-running Dart and Flutter
+/// applications.
 class DdsHostedAdapter
     extends
         DartDebugAdapter<DartLaunchRequestArguments, DartAttachRequestArguments>
     with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils, TestAdapter {
+  DdsHostedAdapter()
+    : super(
+        // TODO(helin24): Make channel optional for base adapter class.
+        ByteStreamServerChannel(
+          const Stream.empty(),
+          NullStreamSink(),
+          (message) {},
+        ),
+        ipv6: true,
+      );
   Uri? ddsUri;
 
   @override
@@ -29,17 +40,11 @@ class DdsHostedAdapter
   @override
   final parseAttachArgs = DartAttachRequestArguments.fromJson;
 
-  DdsHostedAdapter()
-    : super(
-        // TODO(helin24): Make channel optional for base adapter class.
-        ByteStreamServerChannel(Stream.empty(), NullStreamSink(), (message) {}),
-        ipv6: true,
-      );
-
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.
   ///
-  /// True here because we no longer need this adapter once the VM service has closed.
+  /// True here because we no longer need this adapter once the VM service has
+  /// closed.
   @override
   bool get terminateOnVmServiceClose => true;
 
@@ -125,11 +130,9 @@ class DdsHostedAdapter
     switch (request.command) {
       case Command.createVariableForInstance:
         sendResponse(_createVariableForInstance(request.arguments));
-        break;
 
       case Command.getVariablesInstanceId:
         sendResponse(_getVariablesInstanceId(request.arguments));
-        break;
 
       default:
         await super.customRequest(request, args, sendResponse);
@@ -140,19 +143,22 @@ class DdsHostedAdapter
   Map<String, Object?> _createVariableForInstance(Object? arguments) {
     if (arguments is! Map<String, Object?>) {
       throw DebugAdapterException(
-        '${Command.createVariableForInstance} arguments must be Map<String, Object?>',
+        '${Command.createVariableForInstance} arguments must '
+        'be Map<String, Object?>',
       );
     }
     final isolateId = arguments[Parameters.isolateId];
     final instanceId = arguments[Parameters.instanceId];
     if (isolateId is! String) {
       throw DebugAdapterException(
-        'createVariableForInstance requires a valid String ${Parameters.isolateId}',
+        'createVariableForInstance requires a '
+        'valid String ${Parameters.isolateId}',
       );
     }
     if (instanceId is! String) {
       throw DebugAdapterException(
-        'createVariableForInstance requires a value String ${Parameters.instanceId}',
+        'createVariableForInstance requires a '
+        'value String ${Parameters.instanceId}',
       );
     }
 
@@ -173,13 +179,15 @@ class DdsHostedAdapter
   Map<String, Object?> _getVariablesInstanceId(Object? arguments) {
     if (arguments is! Map<String, Object?>) {
       throw DebugAdapterException(
-        '${Command.getVariablesInstanceId} arguments must be Map<String, Object?>',
+        '${Command.getVariablesInstanceId} arguments must '
+        'be Map<String, Object?>',
       );
     }
     final variablesReference = arguments[Parameters.variablesReference];
     if (variablesReference is! int) {
       throw DebugAdapterException(
-        '${Command.getVariablesInstanceId} requires a valid int ${Parameters.variablesReference}',
+        '${Command.getVariablesInstanceId} requires a '
+        'valid int ${Parameters.variablesReference}',
       );
     }
 
@@ -218,7 +226,7 @@ class DdsHostedAdapter
     );
 
     try {
-      final Map<String, Object?> json = jsonDecode(message);
+      final json = jsonDecode(message) as Map<String, Object?>;
       final type = json['type'] as String;
       if (type == 'request') {
         handleIncomingRequest(Request.fromJson(json), responseWriter);
@@ -244,14 +252,14 @@ class DdsHostedAdapter
 /// Extends [Thread] with [isolateId] for easier mapping for clients using both
 /// DAP and VM Service.
 class ThreadWithIsolateId extends Thread {
-  /// The ID of the Isolate this thread represents.
-  final String isolateId;
-
   ThreadWithIsolateId({
     required super.id,
     required super.name,
     required this.isolateId,
   });
+
+  /// The ID of the Isolate this thread represents.
+  final String isolateId;
 
   @override
   Map<String, Object?> toJson() => {...super.toJson(), 'isolateId': isolateId};

@@ -1413,6 +1413,13 @@ void Assembler::vpaddlu(OperandSize sz, DRegister dd, DRegister dm) {
   EmitSIMDddd(B24 | B23 | B21 | B20 | size_bits | B9 | B7, kByte, dd, D0, dm);
 }
 
+void Assembler::vpmaxu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9, sz, dd, dn, dm);
+}
+
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }

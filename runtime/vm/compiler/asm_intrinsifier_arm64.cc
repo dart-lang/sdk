@@ -1609,8 +1609,6 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      R0, target::Symbols::kNullCharCodeSymbolOffset * target::kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
   __ ret();
 
@@ -1628,8 +1626,6 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      R0, target::Symbols::kNullCharCodeSymbolOffset * target::kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
   __ ret();
 

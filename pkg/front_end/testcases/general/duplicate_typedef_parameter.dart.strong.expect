@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:5:14: Error: Duplicated parameter name 'x'.
+// typedef a(x, x);
+//              ^
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:5:11: Context: Other parameter named 'x'.
+// typedef a(x, x);
+//           ^
+//
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:6:15: Error: Duplicated parameter name 'x'.
+// typedef b(x, [x]);
+//               ^
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:6:11: Context: Other parameter named 'x'.
+// typedef b(x, [x]);
+//           ^
+//
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:7:15: Error: Duplicated parameter name 'x'.
+// typedef c([x, x]);
+//               ^
+// pkg/front_end/testcases/general/duplicate_typedef_parameter.dart:7:12: Context: Other parameter named 'x'.
+// typedef c([x, x]);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef a = (dynamic, dynamic) → dynamic;
+typedef b = (dynamic, [dynamic]) → dynamic;
+typedef c = ([dynamic, dynamic]) → dynamic;
+typedef F1 = (dynamic, core::int) → core::int;
+typedef F2 = (dynamic, core::int, [dynamic, core::int]) → core::int;
+typedef F3<contravariant T extends core::Object? = dynamic> = (T%, T%, [T?, T?]) → core::int;
+typedef F4 = (dynamic, core::int) → core::int;
+typedef F5 = (dynamic, core::int, [dynamic, core::int]) → core::int;
+typedef F6<contravariant T extends core::Object? = dynamic> = (T%, T%, [T?, T?]) → core::int;

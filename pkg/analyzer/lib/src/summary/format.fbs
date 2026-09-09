@@ -195,10 +195,6 @@ table AnalysisDriverUnitError {
 
 /// Information about a resolved unit.
 table AnalysisDriverUnitIndex {
-  /// Each item of this list corresponds to a unique referenced element. It is
-  /// a list of the prefixes associated with references to the element.
-  elementImportPrefixes:[string] (id: 20);
-
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
   elementKinds:[IndexSyntheticElementKind] (id: 4);
@@ -231,17 +227,17 @@ table AnalysisDriverUnitIndex {
   ///
   /// This is the index into [unitLibraryPaths] and [unitUnitPaths].
   /// This is the library fragment referenced by the directive.
-  libFragmentRefTargets:[uint] (id: 21);
+  libFragmentRefTargets:[uint] (id: 20);
 
   /// Support for indexing `part` and `part of` directives.
   ///
   /// The offset of the URI in the directive.
-  libFragmentRefUriLengths:[uint] (id: 23);
+  libFragmentRefUriLengths:[uint] (id: 22);
 
   /// Support for indexing `part` and `part of` directives.
   ///
   /// The offset of the URI in the directive.
-  libFragmentRefUriOffsets:[uint] (id: 22);
+  libFragmentRefUriOffsets:[uint] (id: 21);
 
   /// Identifier of the null string in [strings].
   nullStringId:uint (id: 1);

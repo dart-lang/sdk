@@ -55,18 +55,24 @@ class VariableDeclarationResolver {
           ?.formalParameters;
     }
 
+    var beforeInitializerOffset = node.equals!.offset;
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_enter(
         node,
         inScopePrimaryConstructorParameters,
+        offset: beforeInitializerOffset,
       );
       if (inScopePrimaryConstructorParameters != null) {
         _resolver.flowAnalysis.declarePrimaryConstructorParameters(
           inScopePrimaryConstructorParameters,
+          offset: beforeInitializerOffset,
         );
       }
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
+      _resolver.flowAnalysis.flow?.lateInitializer_begin(
+        node,
+        offset: beforeInitializerOffset,
+      );
     }
 
     var contextType =
@@ -91,7 +97,7 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_end();
+      _resolver.flowAnalysis.flow?.lateInitializer_end(offset: node.end);
     }
 
     // Initializers of top-level variables and fields are already included

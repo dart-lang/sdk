@@ -133,7 +133,9 @@ String normalizeLog(File input, List<ContextRoot> contextRoots) {
   normalizer.addLspWorkspaceReplacements(initializeMessage.message);
 
   // Additionally add SDKs and packages.
-  normalizer.addReplacementsForPath(sdkPath, 'dartSdkRoot');
+  if (sdkPath case var path?) {
+    normalizer.addReplacementsForPath(path, 'dartSdkRoot');
+  }
   // TODO(somebody): replace {{flutterSdkRoot}} with the flutter SDK path
   for (var i = 0; i < contextRoots.length; i++) {
     for (var package in contextRoots[i].packageConfig.packages) {

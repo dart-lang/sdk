@@ -192,6 +192,14 @@ class DocumentationValidator {
     // The example doesn't generate the documented diagnostic.
     'depend_on_referenced_packages',
 
+    // eol_at_end_of_file_missing (linter)
+    //
+    // Since trailing newlines aren't visible in a code block,
+    // the examples use a comment to mark where the file ends.
+    // As a result, every snippet for this rule reports the lint on itself,
+    // and the reported range is past the end of the content.
+    'eol_at_end_of_file_missing',
+
     // file_names (linter)
     // - No example.
     //
@@ -774,18 +782,18 @@ class _SnippetTest extends PubPackageResolutionTest {
 
     // The lints from the 'recommended' lint set.
     LintNames.annotate_overrides,
-    // LintNames.avoid_function_literals_in_foreach_calls,
+    LintNames.avoid_function_literals_in_foreach_calls,
     LintNames.avoid_init_to_null,
     LintNames.avoid_renaming_method_parameters,
-    // LintNames.avoid_return_types_on_setters,
+    LintNames.avoid_return_types_on_setters,
     LintNames.avoid_returning_null_for_void,
-    // LintNames.avoid_single_cascade_in_expression_statements,
+    LintNames.avoid_single_cascade_in_expression_statements,
     LintNames.constant_identifier_names,
     LintNames.control_flow_in_finally,
-    // LintNames.empty_constructor_bodies,
-    // LintNames.empty_statements,
+    LintNames.empty_constructor_bodies,
+    LintNames.empty_statements,
     LintNames.exhaustive_cases,
-    // LintNames.implementation_imports,
+    LintNames.implementation_imports,
     LintNames.invalid_runtime_check_with_js_interop_types,
     LintNames.library_prefixes,
     LintNames.library_private_types_in_public_api,
@@ -794,15 +802,15 @@ class _SnippetTest extends PubPackageResolutionTest {
     LintNames.null_closures,
     LintNames.overridden_fields,
     LintNames.package_names,
-    // LintNames.prefer_adjacent_string_concatenation,
+    LintNames.prefer_adjacent_string_concatenation,
     LintNames.prefer_collection_literals,
     LintNames.prefer_conditional_assignment,
     LintNames.prefer_contains,
     LintNames.prefer_final_fields,
     LintNames.prefer_for_elements_to_map_fromiterable,
-    // LintNames.prefer_function_declarations_over_variables,
+    LintNames.prefer_function_declarations_over_variables,
     LintNames.prefer_if_null_operators,
-    // LintNames.prefer_initializing_formals,
+    LintNames.prefer_initializing_formals,
     LintNames.prefer_inlined_adds,
     LintNames.prefer_interpolation_to_compose_strings,
     LintNames.prefer_is_not_operator,
@@ -816,8 +824,8 @@ class _SnippetTest extends PubPackageResolutionTest {
     LintNames.unnecessary_constructor_name,
     LintNames.unnecessary_getters_setters,
     LintNames.unnecessary_late,
-    // LintNames.unnecessary_library_name,
-    // LintNames.unnecessary_new,
+    LintNames.unnecessary_library_name,
+    LintNames.unnecessary_new,
     LintNames.unnecessary_null_aware_assignments,
     LintNames.unnecessary_null_in_if_null_operators,
     LintNames.unnecessary_nullable_for_final_variable_declarations,
@@ -826,10 +834,10 @@ class _SnippetTest extends PubPackageResolutionTest {
     LintNames.unnecessary_this,
     LintNames.unnecessary_to_list_in_spreads,
     LintNames.unnecessary_underscores,
-    // LintNames.use_function_type_syntax_for_parameters,
+    LintNames.use_function_type_syntax_for_parameters,
     LintNames.use_null_aware_elements,
     LintNames.use_rethrow_when_possible,
-    // LintNames.use_super_parameters,
+    LintNames.use_super_parameters,
 
     // The lints from the 'flutter' lint set.
     // LintNames.avoid_print,

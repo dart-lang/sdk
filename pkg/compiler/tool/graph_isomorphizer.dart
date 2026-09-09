@@ -45,6 +45,7 @@ library;
 
 import 'dart:io';
 import 'dart:math';
+
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 typedef NameFunc = String Function(List<int>, int);
@@ -499,9 +500,8 @@ class GraphIsomorphizer {
     file.createSync(recursive: true);
     var sink = file.openWrite();
     sink.write(
-      DartFormatter(
-        languageVersion: DartFormatter.latestLanguageVersion,
-      ).format(contents.toString()),
+      DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+          .format(contents.toString()),
     );
     sink.close();
   }

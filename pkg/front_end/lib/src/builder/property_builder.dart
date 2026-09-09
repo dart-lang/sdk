@@ -231,6 +231,11 @@ extension PropertyBuilderExtension on PropertyBuilder {
   /// Returns `true` if this property builder has a getter.
   bool get hasGetter => getterQuality != GetterQuality.Absent;
 
+  /// Returns `true` if this property builder declares an abstract getter,
+  /// i.e. an explicit abstract getter as opposed to an abstract getter induced
+  /// by an abstract field.
+  bool get declaresAbstractGetter => getterQuality == GetterQuality.Abstract;
+
   /// Returns `true` if this property builder has an abstract getter
   /// declaration.
   bool get hasAbstractGetter =>
@@ -247,6 +252,11 @@ extension PropertyBuilderExtension on PropertyBuilder {
 
   /// Returns `true` if this property builder has a setter.
   bool get hasSetter => setterQuality != SetterQuality.Absent;
+
+  /// Returns `true` if this property builder declares an abstract setter,
+  /// i.e. an explicit abstract getter as opposed to an abstract setter induced
+  /// by an abstract field.
+  bool get declaresAbstractSetter => setterQuality == SetterQuality.Abstract;
 
   /// Returns `true` if this property builder has an abstract setter
   /// declaration.

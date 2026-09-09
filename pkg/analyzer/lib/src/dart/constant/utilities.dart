@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -43,6 +44,17 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
       _find(node);
     } else {
       super.visitDotShorthandConstructorInvocation(node);
+    }
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitDotShorthandConstructorInvocation2(node);
     }
   }
 
@@ -273,6 +285,35 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    if (node.isConst) {
+      var constructor = node.element?.baseElement;
+      if (constructor != null && constructor.isConst) {
+        _callback(constructor);
+      }
+    }
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case GetterInvocationResolution(:var element)) {
+      var variable = element.variable;
+      if (variable case ConstantEvaluationTarget dependency
+          when variable.isConst) {
+        _callback(dependency);
+      }
+    }
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
+  }
+
+  @override
   void visitLabel(Label node) {
     // We are visiting the "label" part of a named expression in a function
     // call (presumably a constructor call), e.g. "const C(label: ...)".  We
@@ -312,6 +353,21 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     var constructor = node.element?.baseElement;
     if (constructor != null) {
       _callback(constructor);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
+  }
+
+  void _recordNamedReadDependency(NamedReadResolution? resolution) {
+    var element = resolution.elementOrRecovery;
+    if (element is GetterElementImpl) {
+      element = element.variable;
+    }
+    if (element is VariableElementImpl && element.isConst) {
+      _callback(element);
     }
   }
 }

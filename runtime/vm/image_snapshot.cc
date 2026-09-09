@@ -2077,7 +2077,8 @@ void BlobImageWriter::AddDataSymbol(const char* symbol,
 ImageReader::ImageReader(const uint8_t* data_image,
                          const uint8_t* instructions_image)
     : data_image_(ASSERT_NOTNULL(data_image)),
-      instructions_image_(ASSERT_NOTNULL(instructions_image)) {}
+      instructions_image_(ASSERT_NOTNULL(instructions_image)),
+      instructions_image_authed_(Auth(instructions_image)) {}
 
 char* ImageReader::VerifyAlignment() const {
   // If this changes, bin_to_assembly.py and bin_to_coff.py must also change.
@@ -2093,11 +2094,11 @@ char* ImageReader::VerifyAlignment() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
 uword ImageReader::GetBareInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, Instructions::kBarePayloadAlignment));
-  return reinterpret_cast<uword>(instructions_image_) + offset;
+  return reinterpret_cast<uword>(instructions_image_authed_) + offset;
 }
 
 uword ImageReader::GetBareInstructionsEnd() const {
-  Image image(instructions_image_);
+  TextImage image(instructions_image_);
   return reinterpret_cast<uword>(image.object_start()) + image.object_size();
 }
 #endif
@@ -2107,7 +2108,7 @@ InstructionsPtr ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   ObjectPtr result = UntaggedObject::FromAddr(
-      reinterpret_cast<uword>(instructions_image_) + offset);
+      reinterpret_cast<uword>(instructions_image_authed_) + offset);
   ASSERT(result->IsInstructions());
   ASSERT(result->untag()->IsMarked());
 

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -11,7 +12,7 @@ import 'package:expect/expect.dart';
 
 const int numShards = 4;
 const List<String> dataDirs = ['data', '../inference/data'];
-const Set<String> needsLibs = {'deferred.dart'};
+const Set<String> needsLibs = {'deferred.dart', 'strings.dart'};
 
 const jsOutFilename = 'out.js';
 const sourceMapFilename = '${jsOutFilename}.map';
@@ -143,9 +144,12 @@ Future runTests(List<String> args, int shard) async {
 
   final libDirectory = Directory.fromUri(Platform.script.resolve('libs'));
 
-  final testFiles = dataDirs
-      .map((e) => Directory.fromUri(Platform.script.resolve('data')))
-      .expand((dataDir) => dataDir.listSync());
+  final testFiles =
+      dataDirs
+          .map((e) => Directory.fromUri(Platform.script.resolve(e)))
+          .expand((dataDir) => dataDir.listSync())
+          .toList()
+        ..sort((a, b) => a.uri.toString().compareTo(b.uri.toString()));
   int i = 0;
   for (final testFile in testFiles) {
     if (!testFile.uri.pathSegments.last.endsWith('.dart')) continue;

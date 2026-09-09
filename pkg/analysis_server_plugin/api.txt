@@ -1,3 +1,5 @@
+environment:
+  sdk: ^3.9.0
 package:analysis_server_plugin/edit/assist/assist.dart:
   Assist (class extends Object, final):
     compareAssists (static method: int Function(Assist, Assist))
@@ -202,7 +204,7 @@ package:analysis_server_plugin/edit/dart/correction_producer.dart:
     singleLocation (enum constant: CorrectionApplicability)
     values (static const getter: List<CorrectionApplicability>)
   CorrectionProducer (class<T extends ParsedUnitResult> extends _AbstractCorrectionProducer<T>, sealed (immediate subtypes: ParsedCorrectionProducer, ResolvedCorrectionProducer)):
-    applicability (getter: CorrectionApplicability)
+    applicability (getter: CorrectionApplicability, protected)
     assistArguments (getter: List<String>?)
     assistKind (getter: AssistKind?)
     canBeAppliedAcrossFiles (getter: bool)

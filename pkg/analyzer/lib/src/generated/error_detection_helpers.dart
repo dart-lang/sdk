@@ -75,9 +75,7 @@ mixin ErrorDetectionHelpers {
       correspondingParameterType = parameter.type;
     } else if (argument.parent2
         case ArgumentListImpl(
-          parent2: FunctionExpressionInvocationImpl(
-            function2: Expression(:var staticType),
-          ),
+          parent2: CallInvocationImpl(receiver: Expression(:var staticType)),
         )
         when identical(staticType, DynamicTypeImpl.instance) ||
             identical(staticType, NeverTypeImpl.instance) ||
@@ -250,6 +248,8 @@ mixin ErrorDetectionHelpers {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    } else if (expression is NamedFunctionInvocation) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }

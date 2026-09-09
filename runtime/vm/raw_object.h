@@ -3161,6 +3161,10 @@ class UntaggedClosure : public UntaggedInstance {
                uint8_t,
                HasDelayedTypeArgumentsBit::shift(),
                HasDelayedTypeArgumentsBit::bitsize()>;
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsPos =
+      InstantiatorTypeArgumentsIndexBits::shift();
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsSize =
+      InstantiatorTypeArgumentsIndexBits::bitsize();
 
   using FunctionTypeArgumentsIndexBits =
       BitField<intptr_t, uint8_t, HasFunctionTypeArgumentsBit::kNextBit, 2>;
@@ -3631,6 +3635,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
+  friend class Class;
+  friend class Interpreter;
   friend class Simd128DeserializationCluster;
   friend class Simd128MessageDeserializationCluster;
   friend class Simd128MessageSerializationCluster;

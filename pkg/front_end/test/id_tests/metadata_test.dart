@@ -4,17 +4,17 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/metadata/ast.dart' as shared;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/metadata_helper.dart';
-import 'package:_fe_analyzer_shared/src/metadata/ast.dart' as shared;
 import 'package:front_end/src/base/common.dart';
 import 'package:front_end/src/builder/member_builder.dart';
+import 'package:front_end/src/builder/metadata_builder.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
-import 'package:front_end/src/builder/metadata_builder.dart';
 
 Future<void> main(List<String> args) async {
   retainDataForTesting = true;
@@ -50,7 +50,7 @@ class MetadataDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -60,10 +60,7 @@ class MetadataDataComputer extends CfeDataComputer<String> {
 }
 
 class MetadataDataExtractor extends CfeDataExtractor<String> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   String? computeMemberValue(Id id, Member member) {

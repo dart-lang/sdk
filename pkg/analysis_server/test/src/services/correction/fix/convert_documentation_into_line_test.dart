@@ -66,6 +66,26 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.slash_for_doc_comments;
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39317')
+  Future<void> test_noLeadingAsterisk() async {
+    await resolveTestCode('''
+class A {
+  /**
+    AAAAAA BBBBBB CCCCCC
+    DDDDDD EEEEEE FFFFFF
+   **/
+  mmm() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  /// AAAAAA BBBBBB CCCCCC
+  /// DDDDDD EEEEEE FFFFFF
+  mmm() {}
+}
+''');
+  }
+
   /// More coverage in the `convert_to_documentation_line_test.dart` assist test.
   Future<void> test_onText() async {
     await resolveTestCode('''

@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/lint_names.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,12 @@ void main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractSingleUnitTest {
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
   Future<void> test_class_accessor() async {
     await parseTestCode(r'''
 class A {

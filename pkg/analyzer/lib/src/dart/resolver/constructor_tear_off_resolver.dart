@@ -123,29 +123,22 @@ class ConstructorTearOffResolver {
       var rawElement = elementToInfer.element.baseElement;
       var constructorType = elementToInfer.asType;
 
-      var inferred =
-          _resolver.inferenceHelper.inferTearOff2(
-                node,
-                constructorType,
-                contextType: contextType,
-                recordTypeArguments: (typeArguments) {
-                  node.tearOffTypeArgumentTypes = typeArguments;
-                },
-              )
-              as FunctionType?;
-
-      if (inferred != null) {
-        var inferredReturnType = inferred.returnType as InterfaceType;
-
-        // Update the static element as well. This is used in some cases, such
-        // as computing constant values. It is stored in two places.
-        var constructorElement = SubstitutedConstructorElementImpl.from2(
-          rawElement,
-          inferredReturnType,
-        );
-
-        node.element = constructorElement;
-        node.recordStaticType(inferred, resolver: _resolver);
+      node.element = SubstitutedConstructorElementImpl.from2(
+        rawElement,
+        constructorType.returnType as InterfaceType,
+      );
+      node.recordStaticType(constructorType, resolver: _resolver);
+      var typeArgumentTypes = <TypeImpl>[];
+      _resolver.inferenceHelper.inferTearOff2(
+        node,
+        constructorType,
+        contextType: contextType,
+        recordTypeArguments: (types) {
+          typeArgumentTypes = types;
+        },
+      );
+      if (typeArgumentTypes.isNotEmpty) {
+        _resolver.wrapFunctionInstantiation(node, typeArgumentTypes);
       }
     } else {
       var constructorElement = node.element;

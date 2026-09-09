@@ -512,6 +512,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _lateGetter!.function.registerFunctionBody(
       _createGetterBody(coreTypes, _fragment.name, initializer),
     );
+    _lateGetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // property to reflect whether the getter contains super calls.
     _lateGetter!.containsSuperCalls = _field!.containsSuperCalls;
@@ -524,10 +525,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           _lateSetter!.function.positionalParameters.first,
         ),
       );
+      _lateSetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     }
-    _field?.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
   }
 
   @override
@@ -641,7 +640,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     required bool isCovariantByDeclaration,
   }) {
     PositionalParameter parameter = extern.createPositionalParameter(
-      cosmeticName: "${_fragment.name}#param",
+      parameterName: "${_fragment.name}#param",
       isCovariantByDeclaration: isCovariantByDeclaration,
       type: const DynamicType(),
       fileOffset: _fragment.nameOffset,
@@ -1259,7 +1258,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           null,
           positionalParameters: [
             extern.createPositionalParameter(
-              cosmeticName: syntheticThisName,
+              parameterName: syntheticThisName,
               type: const DynamicType(),
               fileOffset: _fragment.nameOffset,
               isLowered: true,
@@ -1279,7 +1278,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (_fragment.hasSetter) {
         PositionalParameter parameter = extern.createPositionalParameter(
-          cosmeticName: "#externalFieldValue",
+          parameterName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
           isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1292,7 +1291,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             null,
             positionalParameters: [
               extern.createPositionalParameter(
-                cosmeticName: syntheticThisName,
+                parameterName: syntheticThisName,
                 type: const DynamicType(),
                 fileOffset: _fragment.nameOffset,
                 isLowered: true,
@@ -1335,7 +1334,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
         PositionalParameter parameter = extern.createPositionalParameter(
-          cosmeticName: "#externalFieldValue",
+          parameterName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
           isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1825,7 +1824,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         null,
         positionalParameters: [
           extern.createPositionalParameter(
-            cosmeticName: syntheticThisName,
+            parameterName: syntheticThisName,
             type: const DynamicType(),
             fileOffset: _fragment.nameOffset,
             isLowered: true,
@@ -1844,7 +1843,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         .attachMember(_getter!);
     if (_fragment.hasSetter) {
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#externalFieldValue",
+        parameterName: "#externalFieldValue",
         type: const DynamicType(),
         isSynthesized: true,
         isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1857,7 +1856,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
           null,
           positionalParameters: [
             extern.createPositionalParameter(
-              cosmeticName: syntheticThisName,
+              parameterName: syntheticThisName,
               type: const DynamicType(),
               fileOffset: _fragment.nameOffset,
               isLowered: true,

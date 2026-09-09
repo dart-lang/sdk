@@ -12,21 +12,12 @@ import 'protocol_stream.dart';
 
 typedef _FromJsonHandler<T> = T Function(Map<String, Object?>);
 typedef _NullableFromJsonHandler<T> = T? Function(Map<String, Object?>?);
-typedef RequestHandler<TArg, TResp> = Future<void> Function(
-  Request,
-  TArg,
-  void Function(TResp),
-);
-typedef _VoidArgRequestHandler<TArg> = Future<void> Function(
-  Request,
-  TArg,
-  void Function(void),
-);
-typedef _VoidNoArgRequestHandler<TArg> = Future<void> Function(
-  Request,
-  TArg,
-  void Function(),
-);
+typedef RequestHandler<TArg, TResp> =
+    Future<void> Function(Request, TArg, void Function(TResp));
+typedef _VoidArgRequestHandler<TArg> =
+    Future<void> Function(Request, TArg, void Function(void));
+typedef _VoidNoArgRequestHandler<TArg> =
+    Future<void> Function(Request, TArg, void Function());
 
 /// A base class for debug adapters.
 ///
@@ -38,16 +29,15 @@ abstract class BaseDebugAdapter<
   TLaunchArgs extends LaunchRequestArguments,
   TAttachArgs extends AttachRequestArguments
 > {
+  BaseDebugAdapter(this._channel, {Function? onError}) {
+    _channel.listen(_handleIncomingMessage, onError: onError);
+  }
   int _sequence = 1;
   final ByteStreamServerChannel _channel;
 
   /// Completers for requests that are sent from the server back to the editor
   /// such as `runInTerminal`.
   final _serverToClientRequestCompleters = <int, Completer<Object?>>{};
-
-  BaseDebugAdapter(this._channel, {Function? onError}) {
-    _channel.listen(_handleIncomingMessage, onError: onError);
-  }
 
   /// Parses arguments for [attachRequest] into a type of [TAttachArgs].
   ///
@@ -86,7 +76,7 @@ abstract class BaseDebugAdapter<
     Request request,
     RawRequestArguments? args,
     void Function(Object?) sendResponse,
-  ) async {
+  ) {
     throw DebugAdapterException('Unknown command ${request.command}');
   }
 
@@ -105,11 +95,11 @@ abstract class BaseDebugAdapter<
   /// Calls [handler] for an incoming request, using [fromJson] to parse its
   /// arguments from the request.
   ///
-  /// [handler] will be provided a function [sendResponse] that it can use to
+  /// [handler] will be provided a function `sendResponse` that it can use to
   /// sends its response without needing to build a [Response] from fields on
   /// the request.
   ///
-  /// [handler] must _always_ call [sendResponse], even if the response does not
+  /// [handler] must _always_ call `sendResponse`, even if the response does not
   /// require a body.
   ///
   /// [responseWriter] is a function that will be provided the response to be
@@ -132,7 +122,8 @@ abstract class BaseDebugAdapter<
 
       // Because handlers may need to send responses before they have finished
       // executing (for example, initializeRequest needs to send its response
-      // before sending InitializedEvent()), we pass in a function `sendResponse`
+      // before sending InitializedEvent()), we pass in a function
+      // `sendResponse`
       // rather than using a return value.
       var sendResponseCalled = false;
       void sendResponse(TResp responseBody) {

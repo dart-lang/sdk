@@ -19,7 +19,9 @@ import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/compiler_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
+
 import '../equivalence/id_equivalence.dart';
 
 export 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -80,7 +82,7 @@ abstract class DataComputer<T> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     bool verbose,
   });
 
@@ -93,7 +95,7 @@ abstract class DataComputer<T> {
   void computeClassData(
     Compiler compiler,
     ClassEntity cls,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     required bool verbose,
   }) {}
 
@@ -103,7 +105,7 @@ abstract class DataComputer<T> {
   void computeLibraryData(
     Compiler compiler,
     LibraryEntity library,
-    Map<Id, ActualData<T>> actualMap, {
+    ActualDataMap<T> actualMap, {
     required bool verbose,
   }) {}
 
@@ -199,11 +201,11 @@ Future<CompiledData<T>?> computeData<T>(
     await verifyCompiler(name, compiler);
   }
 
-  Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
-  Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+  Map<Uri, ActualDataMap<T>> actualMaps = {};
+  ActualDataMap<T> globalData = ActualDataMap();
 
-  Map<Id, ActualData<T>> actualMapForUri(Uri uri) {
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  ActualDataMap<T> actualMapForUri(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => ActualDataMap());
   }
 
   Map<Uri, Map<int, List<CollectedMessage>>> errors = {};
@@ -221,7 +223,7 @@ Future<CompiledData<T>?> computeData<T>(
       NodeId id = NodeId(offset, IdKind.error);
       T? data = dataComputer.computeErrorData(compiler, id, list);
       if (data != null) {
-        Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
+        ActualDataMap<T> actualMap = actualMapForUri(uri);
         actualMap[id] = ActualData<T>(id, data, uri, offset, list);
       }
     });
@@ -232,8 +234,8 @@ Future<CompiledData<T>?> computeData<T>(
       compiler,
       null,
       entryPoint,
-      actualMaps,
-      globalData,
+      await actualMaps.getData(),
+      await globalData.getData(),
     );
   }
 
@@ -243,7 +245,7 @@ Future<CompiledData<T>?> computeData<T>(
   ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
 
-  Map<Id, ActualData<T>> actualMapFor(Entity entity) {
+  ActualDataMap<T> actualMapFor(Entity entity) {
     // The Entity objects passed here can be from the K-world but
     // `compiler.backendStrategy.spanFromSpannable` does a J-world look up so
     // we may have to convert the entity first.
@@ -261,7 +263,7 @@ Future<CompiledData<T>?> computeData<T>(
     return actualMapForUri(span.uri);
   }
 
-  void processMember(MemberEntity member, Map<Id, ActualData<T>> actualMap) {
+  void processMember(MemberEntity member, ActualDataMap<T> actualMap) {
     if (member.isAbstract) {
       return;
     }
@@ -290,7 +292,7 @@ Future<CompiledData<T>?> computeData<T>(
     );
   }
 
-  void processClass(ClassEntity cls, Map<Id, ActualData<T>> actualMap) {
+  void processClass(ClassEntity cls, ActualDataMap<T> actualMap) {
     if (skipUnprocessedMembers && !closedWorld.isImplemented(cls)) {
       return;
     }
@@ -410,8 +412,8 @@ Future<CompiledData<T>?> computeData<T>(
     compiler,
     elementEnvironment,
     entryPoint,
-    actualMaps,
-    globalData,
+    await actualMaps.getData(),
+    await globalData.getData(),
   );
 }
 

@@ -97,16 +97,13 @@ void f() {
 @reflectiveTest
 class ReplaceNewWithConstTest extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.replaceNewWithConst;
 
   @override
   String get lintCode => LintNames.prefer_const_constructors;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_new() async {
     await resolveTestCode('''

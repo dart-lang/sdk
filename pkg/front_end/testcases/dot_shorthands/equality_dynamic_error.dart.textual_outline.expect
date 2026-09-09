@@ -1,0 +1,6 @@
+class C {
+  static const member = C();
+  const C();
+}
+
+void test(dynamic d) {}

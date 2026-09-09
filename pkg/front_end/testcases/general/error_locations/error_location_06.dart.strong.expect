@@ -19,9 +19,9 @@ library error_location_06;
 import self as self;
 
 part error_location_06_lib1.dart;
-static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x1(dynamic z, {dynamic z = #C1}) → dynamic {}
+static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x1(dynamic z, {dynamic z##1 = #C1}) → dynamic {}
 static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x2() → dynamic {
-  function y(dynamic z, {dynamic z = #C1}) → Null {}
+  function y(dynamic z, {dynamic z##1 = #C1}) → Null {}
 }
 
 constants  {

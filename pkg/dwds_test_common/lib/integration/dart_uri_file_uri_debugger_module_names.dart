@@ -32,7 +32,9 @@ void testAll({
 
     setUpAll(() async {
       await context.setUp(
-        testSettings: const TestSettings(
+        testSettings: TestSettings(
+          canaryFeatures: provider.canaryFeatures,
+          moduleFormat: provider.ddcModuleFormat,
           useDebuggerModuleNames: useDebuggerModuleNames,
         ),
       );

@@ -56,9 +56,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output1 = File.fromUri(
-      tmpDir.uri.resolve('without/out.js'),
-    ).readAsStringSync();
+    String output1 = File.fromUri(tmpDir.uri.resolve('without/out.js'))
+        .readAsStringSync();
 
     command = dart2JsCommand([
       '--out=json/out.js',
@@ -77,9 +76,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output2 = File.fromUri(
-      tmpDir.uri.resolve('json/out.js'),
-    ).readAsStringSync();
+    String output2 = File.fromUri(tmpDir.uri.resolve('json/out.js'))
+        .readAsStringSync();
     String dumpInfoJson1 = File.fromUri(
       tmpDir.uri.resolve('json/out.js.info.json'),
     ).readAsStringSync();
@@ -105,9 +103,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output3 = File.fromUri(
-      tmpDir.uri.resolve('binary/out.js'),
-    ).readAsStringSync();
+    String output3 = File.fromUri(tmpDir.uri.resolve('binary/out.js'))
+        .readAsStringSync();
     List<int> dumpInfoBinary1 = File.fromUri(
       tmpDir.uri.resolve('binary/out.js.info.data'),
     ).readAsBytesSync();
@@ -232,9 +229,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output4 = File.fromUri(
-      tmpDir.uri.resolve('json/out.js'),
-    ).readAsStringSync();
+    String output4 = File.fromUri(tmpDir.uri.resolve('json/out.js'))
+        .readAsStringSync();
     String dumpInfoJson2 = File.fromUri(
       tmpDir.uri.resolve('json/out.js.info.json'),
     ).readAsStringSync();
@@ -262,9 +258,8 @@ void main() {
     print('stderr:');
     print(result.stderr);
     Expect.equals(0, result.exitCode);
-    String output5 = File.fromUri(
-      tmpDir.uri.resolve('json/out.js'),
-    ).readAsStringSync();
+    String output5 = File.fromUri(tmpDir.uri.resolve('json/out.js'))
+        .readAsStringSync();
     List<int> dumpInfoBinary2 = File.fromUri(
       tmpDir.uri.resolve('binary/out.js.info.data'),
     ).readAsBytesSync();

@@ -24,7 +24,7 @@ void f(Object a) {
   print(b);
 }
 ''');
-    assertType(result.findNode.simple('b)'), 'bool');
+    assertType(result.findNode.unqualifiedNameExpression('b)'), 'bool');
   }
 }
 
@@ -37,6 +37,6 @@ void f(Object a) {
   print(b);
 }
 ''');
-    assertType(result.findNode.simple('b)'), 'bool');
+    assertType(result.findNode.unqualifiedNameExpression('b)'), 'bool');
   }
 }

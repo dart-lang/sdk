@@ -1328,9 +1328,60 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCallInvocation(CallInvocation node) {
+    _runSubscriptions(node, _registry._forCallInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitCascadeExpression(CascadeExpression node) {
     _runSubscriptions(node, _registry._forCascadeExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forCascadeIndexAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _runSubscriptions(node, _registry._forCascadeIndexExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _runSubscriptions(node, _registry._forCascadeMethodInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forCascadePropertyAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _runSubscriptions(node, _registry._forCascadePropertyExtraction);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _runSubscriptions(node, _registry._forCascadeSection);
     node.visitChildren2(this);
   }
 
@@ -1370,6 +1421,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCombinatorName(CombinatorName node) {
+    _runSubscriptions(node, _registry._forCombinatorName);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitComment(Comment node) {
     _runSubscriptions(node, _registry._forComment);
@@ -1385,6 +1443,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _runSubscriptions(node, _registry._forCompilationUnit);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _runSubscriptions(node, _registry._forCompoundAssignment);
     node.visitChildren2(this);
   }
 
@@ -1477,6 +1542,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _runSubscriptions(node, _registry._forDirectAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, _registry._forDoStatement);
@@ -1491,9 +1563,32 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    _runSubscriptions(node, _registry._forDotShorthandConstructorInvocation2);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _runSubscriptions(node, _registry._forDotShorthandInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _runSubscriptions(node, _registry._forDotShorthandMethodInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _runSubscriptions(node, _registry._forDotShorthandNameExpression);
     node.visitChildren2(this);
   }
 
@@ -1695,9 +1790,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _runSubscriptions(node, _registry._forFunctionExpressionInvocation);
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _runSubscriptions(node, _registry._forFunctionInstantiation);
     node.visitChildren2(this);
   }
 
@@ -1733,6 +1829,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    _runSubscriptions(node, _registry._forGetterDeclaration);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitGuardedPattern(GuardedPattern node) {
     _runSubscriptions(node, _registry._forGuardedPattern);
@@ -1758,6 +1861,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _runSubscriptions(node, _registry._forIfNullAssignment);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIfStatement(IfStatement node) {
     _runSubscriptions(node, _registry._forIfStatement);
@@ -1776,15 +1886,54 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    _runSubscriptions(node, _registry._forImplicitCallTearOff);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _runSubscriptions(node, _registry._forImplicitFunctionInstantiation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportDirective(ImportDirective node) {
     _runSubscriptions(node, _registry._forImportDirective);
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _runSubscriptions(node, _registry._forImportPrefixedFunctionInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _runSubscriptions(node, _registry._forImportPrefixedNameExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _runSubscriptions(node, _registry._forImportPrefixReference);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _runSubscriptions(node, _registry._forIncrementOrDecrementExpression);
     node.visitChildren2(this);
   }
 
@@ -1809,6 +1958,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitInterpolationString(InterpolationString node) {
     _runSubscriptions(node, _registry._forInterpolationString);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidExpressionAssignmentTarget(
+    InvalidExpressionAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forInvalidExpressionAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -1911,6 +2069,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    _runSubscriptions(node, _registry._forMethodDeclaration2);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _runSubscriptions(node, _registry._forMethodInvocation);
@@ -1996,6 +2161,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
+    _runSubscriptions(node, _registry._forOperatorDeclaration);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     _runSubscriptions(node, _registry._forParenthesizedExpression);
@@ -2052,37 +2224,9 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
-  @experimental
-  @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _runSubscriptions(node, _registry._forPostfixDecrement);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _runSubscriptions(node, _registry._forPostfixIncrement);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _runSubscriptions(node, _registry._forPrefixDecrement);
-    node.visitChildren2(this);
-  }
-
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _runSubscriptions(node, _registry._forPrefixedIdentifier);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _runSubscriptions(node, _registry._forPrefixIncrement);
     node.visitChildren2(this);
   }
 
@@ -2107,6 +2251,43 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _runSubscriptions(node, _registry._forPropertyAccess);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forReceiverIndexAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _runSubscriptions(node, _registry._forReceiverIndexExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _runSubscriptions(node, _registry._forReceiverMethodInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forReceiverPropertyAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _runSubscriptions(node, _registry._forReceiverPropertyExtraction);
     node.visitChildren2(this);
   }
 
@@ -2205,6 +2386,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _runSubscriptions(node, _registry._forSetOrMapLiteral);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    _runSubscriptions(node, _registry._forSetterDeclaration);
     node.visitChildren2(this);
   }
 
@@ -2310,6 +2498,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    _runSubscriptions(node, _registry._forTopLevelGetterDeclaration);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _runSubscriptions(node, _registry._forTopLevelVariableDeclaration);
@@ -2350,6 +2545,29 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _runSubscriptions(node, _registry._forUnaryOperatorInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _runSubscriptions(node, _registry._forUnqualifiedFunctionInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forUnqualifiedNameAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _runSubscriptions(node, _registry._forUnqualifiedNameExpression);
     node.visitChildren2(this);
   }
 
@@ -4250,7 +4468,26 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<BreakStatement>> _forBreakStatement = [];
 
+  final List<_Subscription2<CallInvocation>> _forCallInvocation = [];
+
   final List<_Subscription2<CascadeExpression>> _forCascadeExpression = [];
+
+  final List<_Subscription2<CascadeIndexAssignmentTarget>>
+  _forCascadeIndexAssignmentTarget = [];
+
+  final List<_Subscription2<CascadeIndexExpression>>
+  _forCascadeIndexExpression = [];
+
+  final List<_Subscription2<CascadeMethodInvocation>>
+  _forCascadeMethodInvocation = [];
+
+  final List<_Subscription2<CascadePropertyAssignmentTarget>>
+  _forCascadePropertyAssignmentTarget = [];
+
+  final List<_Subscription2<CascadePropertyExtraction>>
+  _forCascadePropertyExtraction = [];
+
+  final List<_Subscription2<CascadeSection>> _forCascadeSection = [];
 
   final List<_Subscription2<CaseClause>> _forCaseClause = [];
 
@@ -4265,11 +4502,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ClassTypeAlias>> _forClassTypeAlias = [];
 
+  final List<_Subscription2<CombinatorName>> _forCombinatorName = [];
+
   final List<_Subscription2<Comment>> _forComment = [];
 
   final List<_Subscription2<CommentReference>> _forCommentReference = [];
 
   final List<_Subscription2<CompilationUnit>> _forCompilationUnit = [];
+
+  final List<_Subscription2<CompoundAssignment>> _forCompoundAssignment = [];
 
   final List<_Subscription2<ConditionalExpression>> _forConditionalExpression =
       [];
@@ -4307,13 +4548,24 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DelimitedFormalParameters>>
   _forDelimitedFormalParameters = [];
 
+  final List<_Subscription2<DirectAssignment>> _forDirectAssignment = [];
+
   final List<_Subscription2<DoStatement>> _forDoStatement = [];
+
+  final List<_Subscription2<DotShorthandConstructorInvocation2>>
+  _forDotShorthandConstructorInvocation2 = [];
 
   final List<_Subscription2<DotShorthandConstructorInvocation>>
   _forDotShorthandConstructorInvocation = [];
 
   final List<_Subscription2<DotShorthandInvocation>>
   _forDotShorthandInvocation = [];
+
+  final List<_Subscription2<DotShorthandMethodInvocation>>
+  _forDotShorthandMethodInvocation = [];
+
+  final List<_Subscription2<DotShorthandNameExpression>>
+  _forDotShorthandNameExpression = [];
 
   final List<_Subscription2<DotShorthandPropertyAccess>>
   _forDotShorthandPropertyAccess = [];
@@ -4395,8 +4647,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<FunctionExpression>> _forFunctionExpression = [];
 
-  final List<_Subscription2<FunctionExpressionInvocation>>
-  _forFunctionExpressionInvocation = [];
+  final List<_Subscription2<FunctionInstantiation>> _forFunctionInstantiation =
+      [];
 
   final List<_Subscription2<FunctionReference>> _forFunctionReference = [];
 
@@ -4409,11 +4661,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<GenericTypeAlias>> _forGenericTypeAlias = [];
 
+  final List<_Subscription2<GetterDeclaration>> _forGetterDeclaration = [];
+
   final List<_Subscription2<GuardedPattern>> _forGuardedPattern = [];
 
   final List<_Subscription2<HideCombinator>> _forHideCombinator = [];
 
   final List<_Subscription2<IfElement>> _forIfElement = [];
+
+  final List<_Subscription2<IfNullAssignment>> _forIfNullAssignment = [];
 
   final List<_Subscription2<IfNull>> _forIfNull = [];
 
@@ -4424,10 +4680,24 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImplicitCallReference>> _forImplicitCallReference =
       [];
 
+  final List<_Subscription2<ImplicitCallTearOff>> _forImplicitCallTearOff = [];
+
+  final List<_Subscription2<ImplicitFunctionInstantiation>>
+  _forImplicitFunctionInstantiation = [];
+
   final List<_Subscription2<ImportDirective>> _forImportDirective = [];
+
+  final List<_Subscription2<ImportPrefixedFunctionInvocation>>
+  _forImportPrefixedFunctionInvocation = [];
+
+  final List<_Subscription2<ImportPrefixedNameExpression>>
+  _forImportPrefixedNameExpression = [];
 
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
+
+  final List<_Subscription2<IncrementOrDecrementExpression>>
+  _forIncrementOrDecrementExpression = [];
 
   final List<_Subscription2<IndexExpression>> _forIndexExpression = [];
 
@@ -4437,6 +4707,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forInterpolationExpression = [];
 
   final List<_Subscription2<InterpolationString>> _forInterpolationString = [];
+
+  final List<_Subscription2<InvalidExpressionAssignmentTarget>>
+  _forInvalidExpressionAssignmentTarget = [];
 
   final List<_Subscription2<IsExpression>> _forIsExpression = [];
 
@@ -4467,6 +4740,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<MapPatternEntry>> _forMapPatternEntry = [];
 
   final List<_Subscription2<MapPattern>> _forMapPattern = [];
+
+  final List<_Subscription2<MethodDeclaration2>> _forMethodDeclaration2 = [];
 
   final List<_Subscription2<MethodDeclaration>> _forMethodDeclaration = [];
 
@@ -4500,6 +4775,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ObjectPattern>> _forObjectPattern = [];
 
+  final List<_Subscription2<OperatorDeclaration>> _forOperatorDeclaration = [];
+
   final List<_Subscription2<ParenthesizedExpression>>
   _forParenthesizedExpression = [];
 
@@ -4522,15 +4799,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<PatternVariableDeclarationStatement>>
   _forPatternVariableDeclarationStatement = [];
 
-  final List<_Subscription2<PostfixDecrement>> _forPostfixDecrement = [];
-
-  final List<_Subscription2<PostfixIncrement>> _forPostfixIncrement = [];
-
-  final List<_Subscription2<PrefixDecrement>> _forPrefixDecrement = [];
-
   final List<_Subscription2<PrefixedIdentifier>> _forPrefixedIdentifier = [];
-
-  final List<_Subscription2<PrefixIncrement>> _forPrefixIncrement = [];
 
   final List<_Subscription2<PrimaryConstructorBody>>
   _forPrimaryConstructorBody = [];
@@ -4542,6 +4811,21 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forPrimaryConstructorName = [];
 
   final List<_Subscription2<PropertyAccess>> _forPropertyAccess = [];
+
+  final List<_Subscription2<ReceiverIndexAssignmentTarget>>
+  _forReceiverIndexAssignmentTarget = [];
+
+  final List<_Subscription2<ReceiverIndexExpression>>
+  _forReceiverIndexExpression = [];
+
+  final List<_Subscription2<ReceiverMethodInvocation>>
+  _forReceiverMethodInvocation = [];
+
+  final List<_Subscription2<ReceiverPropertyAssignmentTarget>>
+  _forReceiverPropertyAssignmentTarget = [];
+
+  final List<_Subscription2<ReceiverPropertyExtraction>>
+  _forReceiverPropertyExtraction = [];
 
   final List<_Subscription2<RecordLiteral>> _forRecordLiteral = [];
 
@@ -4580,6 +4864,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<SetOrMapLiteral>> _forSetOrMapLiteral = [];
 
+  final List<_Subscription2<SetterDeclaration>> _forSetterDeclaration = [];
+
   final List<_Subscription2<ShowCombinator>> _forShowCombinator = [];
 
   final List<_Subscription2<SimpleIdentifier>> _forSimpleIdentifier = [];
@@ -4617,6 +4903,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ThrowExpression>> _forThrowExpression = [];
 
+  final List<_Subscription2<TopLevelGetterDeclaration>>
+  _forTopLevelGetterDeclaration = [];
+
   final List<_Subscription2<TopLevelVariableDeclaration>>
   _forTopLevelVariableDeclaration = [];
 
@@ -4632,6 +4921,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<UnaryOperatorInvocation>>
   _forUnaryOperatorInvocation = [];
+
+  final List<_Subscription2<UnqualifiedFunctionInvocation>>
+  _forUnqualifiedFunctionInvocation = [];
+
+  final List<_Subscription2<UnqualifiedNameAssignmentTarget>>
+  _forUnqualifiedNameAssignmentTarget = [];
+
+  final List<_Subscription2<UnqualifiedNameExpression>>
+  _forUnqualifiedNameExpression = [];
 
   final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
 
@@ -4793,9 +5091,76 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addCallInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCallInvocation.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forCascadeExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCascadeIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadeIndexAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadeIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadeIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadeMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadeMethodInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyExtraction(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyExtraction.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadeSection(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCascadeSection.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -4837,6 +5202,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addCombinatorName(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCombinatorName.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addComment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forComment.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -4852,6 +5223,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forCompilationUnit.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCompoundAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCompoundAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -4979,6 +5356,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addDirectAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forDirectAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forDoStatement.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -4996,12 +5379,45 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addDotShorthandConstructorInvocation2(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandConstructorInvocation2.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addDotShorthandInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
     _forDotShorthandInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDotShorthandMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandMethodInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDotShorthandNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5269,12 +5685,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addFunctionExpressionInvocation(
+  void addFunctionInstantiation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forFunctionExpressionInvocation.add(
+    _forFunctionInstantiation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5315,6 +5731,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addGetterDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forGetterDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addGuardedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forGuardedPattern.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5336,6 +5758,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addIfNull(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIfNull.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addIfNullAssignment(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forIfNullAssignment.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5362,9 +5790,48 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forImplicitCallTearOff.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addImplicitFunctionInstantiation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImplicitFunctionInstantiation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forImportDirective.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedFunctionInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addImportPrefixedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedNameExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -5374,6 +5841,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forImportPrefixReference.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addIncrementOrDecrementExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forIncrementOrDecrementExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5405,6 +5883,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forInterpolationString.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidExpressionAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -5504,6 +5993,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forMethodDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addMethodInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forMethodInvocation.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5598,6 +6093,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addOperatorDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forOperatorDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addParenthesizedExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -5669,33 +6170,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPostfixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPostfixDecrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addPostfixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPostfixIncrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addPrefixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPrefixDecrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forPrefixedIdentifier.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addPrefixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPrefixIncrement.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5735,6 +6212,61 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forPropertyAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addReceiverIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverIndexAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverMethodInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverPropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverPropertyAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverPropertyExtraction(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverPropertyExtraction.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -5860,6 +6392,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addSetterDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forSetterDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forShowCombinator.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5971,6 +6509,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addTopLevelGetterDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forTopLevelGetterDeclaration.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addTopLevelVariableDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -6018,6 +6567,39 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedFunctionInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedNameAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

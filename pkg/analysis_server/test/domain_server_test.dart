@@ -60,7 +60,7 @@ class ServerDartFixPromptTest extends PubPackageAnalysisServerTest {
     expect(promptManager.checksTriggered, 1);
 
     // Expect that writing package config attempts to trigger another check.
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 2);
   }

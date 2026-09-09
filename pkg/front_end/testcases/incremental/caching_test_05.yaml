@@ -1,0 +1,50 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Test that we only (re)cache/(re)save the changed libraries.
+
+type: newworld
+worlds:
+  - entry: a.dart
+    sources:
+      a.dart: |
+        import "b.dart";
+        void main() {
+          fromB();
+        }
+        void fromA() {}
+      b.dart: |
+        import "c.dart";
+        void fromB() {
+          return fromC();
+        }
+      c.dart: |
+        void fromC() {
+          print("C!");
+        }
+    expectedLibraryCount: 3
+
+  - entry: a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - a.dart
+    sources:
+      a.dart: |
+        import "b.dart";
+        void main() {
+          fromB();
+          print("done");
+        }
+        void fromA() {}
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly
+
+  - entry: a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+    expectedCacheLoads: 3
+    expectedCacheSaves: 0
+    advancedInvalidation: noDirectlyInvalidated

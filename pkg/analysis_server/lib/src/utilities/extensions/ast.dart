@@ -351,20 +351,6 @@ extension MethodInvocationExtension on MethodInvocation {
     var element = methodName.element;
     return element is MethodElement && element.isCastMethod;
   }
-
-  /// Returns whether this expression is an invocation of the method `toList`
-  /// from `Iterable`.
-  bool get isToListMethodInvocation {
-    var element = methodName.element;
-    return element is MethodElement && element.isToListMethod;
-  }
-
-  /// Returns whether this expression is an invocation of the method `toSet`
-  /// from `Iterable`.
-  bool get isToSetMethodInvocation {
-    var element = methodName.element;
-    return element is MethodElement && element.isToSetMethod;
-  }
 }
 
 extension NamedTypeExtension on NamedType {

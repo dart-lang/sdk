@@ -7,12 +7,15 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartdev/src/lsp_analysis_server.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:language_server_protocol/protocol_special.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
-import '../analysis_server.dart';
 import '../core.dart';
 import '../experiments.dart';
 import '../sdk.dart';
@@ -37,6 +40,12 @@ class AnalyzeCommand extends DartdevCommand {
   static final int _newline = '\n'.codeUnitAt(0);
 
   static final int _return = '\r'.codeUnitAt(0);
+
+  /// A cache of [LineInfo]s by absolute file path.
+  ///
+  /// [LineInfo]s are used to map from the LSP line:col values to 'offset' which
+  /// is included in JSON and machine output formats.
+  final Map<String, LineInfo?> _lineInfoCache = {};
 
   AnalyzeCommand({bool verbose = false})
     : super(cmdName, 'Analyze Dart code in a directory.', verbose) {
@@ -119,6 +128,47 @@ class AnalyzeCommand extends DartdevCommand {
   @override
   String get invocation => '${super.invocation} [<directory>]';
 
+  /// Returns the [LineInfo] for the current version of the file on disk.
+  ///
+  /// [LineInfo]s are cached for the life of this class to speed up multiple
+  /// accesses for the same file (for example when there are multiple
+  /// diagnostics or the same file is referenced in another files context
+  /// messages).
+  ///
+  /// Returns `null` if no [LineInfo] is available (for example because the file
+  /// does not exist). It is assumed, but not guaranteed, that the file content
+  /// is the same on disk as it was when diagnostics were computed.
+  @visibleForTesting
+  LineInfo? getLineInfo(String filePath) {
+    return _lineInfoCache.putIfAbsent(filePath, () {
+      try {
+        var content = io.File(filePath).readAsStringSync();
+        return LineInfo.fromContent(content);
+      } catch (_) {
+        return null;
+      }
+    });
+  }
+
+  /// Returns the offset for [pos].
+  ///
+  /// Returns 0 if the values cannot be computed (for example because the
+  /// file is no longer available).
+  ///
+  /// This is used as a fallback if the offset/lengths are not included in the
+  /// additional diagnostic data, and for context messages which don't have
+  /// additional data.
+  @visibleForTesting
+  int getOffset(String filePath, Position pos) {
+    var lineInfo = getLineInfo(filePath);
+    if (lineInfo == null) {
+      // We can't get a LineInfo so we can't compute this. Rather than crash
+      // because the line/col are still visible and may be useful.
+      return 0;
+    }
+    return lineInfo.getOffsetOfLine(pos.line) + pos.character;
+  }
+
   @override
   Future<int> run() async {
     final args = argResults!;
@@ -142,7 +192,7 @@ class AnalyzeCommand extends DartdevCommand {
       }
     }
 
-    final errorsByFile = <String, List<AnalysisError>>{};
+    final errorsByFile = <String, List<Diagnostic>>{};
 
     final machineFormat = args.option('format') == 'machine';
     final jsonFormat = args.option('format') == 'json';
@@ -199,7 +249,7 @@ class AnalyzeCommand extends DartdevCommand {
         ? null
         : log.progress('Analyzing $targetsNames');
 
-    final server = AnalysisServer(
+    final server = LspAnalysisServer(
       _packagesFile(),
       sdkPath,
       targets,
@@ -207,15 +257,16 @@ class AnalyzeCommand extends DartdevCommand {
       commandName: 'analyze',
       argResults: args,
       usePlugins: usePlugins,
-      disableStatusNotificationDebouncing: true,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
       useAotSnapshot: useAotSnapshot,
     );
 
-    server.onErrors.listen((fileErrors) {
-      // Replace any previous results for `fileErrors.file`.
-      errorsByFile[fileErrors.file] = fileErrors.errors;
+    server.onErrors.listen((
+      params,
+    ) {
+      // Replace any previous results for this file.
+      errorsByFile[params.uri.toFilePath()] = params.diagnostics;
     });
 
     int pid = await server.start();
@@ -234,9 +285,8 @@ class AnalyzeCommand extends DartdevCommand {
       io.exit(_Result.crash.exitCode);
     });
 
-    // Note that we could be awaiting `null` here, if
-    // `AnalysisServer._analysisFinished` has not been initialized yet.
-    await server.analysisFinished;
+    // Wait for all analysis to complete.
+    await server.workspaceAnalysisComplete();
     analysisFinished = true;
 
     UsageInfo? usageInfo;
@@ -251,21 +301,19 @@ class AnalyzeCommand extends DartdevCommand {
 
     /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
     /// and a note that they might be the cause of other errors.
-    final priorityErrors = <AnalysisError>[];
-    final nonPriorityErrors = <AnalysisError>[];
+    final priorityErrors = <DiagnosticWithPath>[];
+    final nonPriorityErrors = <DiagnosticWithPath>[];
     for (final MapEntry(key: filePath, value: fileErrors)
         in errorsByFile.entries) {
       var isPriorityFile = const {
         'analysis_options.yaml',
         'pubspec.yaml',
       }.contains(path.basename(filePath));
-      for (var error in fileErrors.where(
-        (e) => e.type != 'TODO' || e.severity != 'INFO',
-      )) {
-        if (isPriorityFile && error.severity == 'ERROR') {
-          priorityErrors.add(error);
+      for (var error in fileErrors) {
+        if (isPriorityFile && error.severity == DiagnosticSeverity.Error) {
+          priorityErrors.add(DiagnosticWithPath(filePath, error));
         } else {
-          nonPriorityErrors.add(error);
+          nonPriorityErrors.add(DiagnosticWithPath(filePath, error));
         }
       }
     }
@@ -296,7 +344,7 @@ class AnalyzeCommand extends DartdevCommand {
       var relativeTo = targets.length == 1 ? targets.single : null;
 
       /// Helper to emit a set of errors.
-      void emit(List<AnalysisError> errors) {
+      void emit(List<DiagnosticWithPath> errors) {
         emitDefaultFormat(
           log,
           errors,
@@ -333,10 +381,13 @@ class AnalyzeCommand extends DartdevCommand {
     bool hasWarnings = false;
     bool hasInfos = false;
 
-    for (final error in [...priorityErrors, ...nonPriorityErrors]) {
-      hasErrors |= error.isError;
-      hasWarnings |= error.isWarning;
-      hasInfos |= error.isInfo;
+    for (final DiagnosticWithPath(filePath: _, diagnostic: error) in [
+      ...priorityErrors,
+      ...nonPriorityErrors,
+    ]) {
+      hasErrors |= error.severity == DiagnosticSeverity.Error;
+      hasWarnings |= error.severity == DiagnosticSeverity.Warning;
+      hasInfos |= error.severity == DiagnosticSeverity.Information;
     }
 
     // Return an error code in the range [0-3] dependent on the severity of
@@ -371,9 +422,9 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   @visibleForTesting
-  static void emitDefaultFormat(
+  void emitDefaultFormat(
     Logger log,
-    List<AnalysisError> errors, {
+    List<DiagnosticWithPath> errors, {
     io.Directory? relativeToDir,
     bool verbose = false,
   }) {
@@ -386,24 +437,29 @@ class AnalyzeCommand extends DartdevCommand {
         ? null
         : (dartdevUsageLineLength! - _bodyIndentWidth);
 
-    for (final AnalysisError error in errors) {
-      var severity = error.severity.toLowerCase().padLeft(_severityWidth);
-      if (error.isError) {
+    for (final DiagnosticWithPath(filePath: absolutePath, diagnostic: error)
+        in errors) {
+      var data = _readAdditionalData(error.data);
+      var severity = (error.severity?.displayName?.toLowerCase() ?? '').padLeft(
+        _severityWidth,
+      );
+      if (error.severity == DiagnosticSeverity.Error) {
         severity = ansi.error(severity);
       }
-      var filePath = _relativePath(error.file, relativeToDir);
+      var relativePath = _relativePath(absolutePath, relativeToDir);
       var codeRef = error.code;
       // If we're in verbose mode, write any error urls instead of error codes.
-      if (error.url != null && verbose) {
-        codeRef = error.url!;
+      var url = error.codeDescription?.href.toString();
+      if (url != null && verbose) {
+        codeRef = url;
       }
 
       // Emit "file:line:col * Error message. Correction (code)."
-      var message = ansi.emphasized(error.message);
-      if (error.correction != null) {
-        message += ' ${error.correction}';
+      var message = ansi.emphasized(error.message.asString);
+      if (data.correctionMessage != null) {
+        message += ' ${data.correctionMessage}';
       }
-      var location = '$filePath:${error.startLine}:${error.startColumn}';
+      var location = '$relativePath:${formatPosition(error.range.start)}';
       var output =
           '$location $bullet '
           '$message $bullet '
@@ -416,14 +472,16 @@ class AnalyzeCommand extends DartdevCommand {
       );
 
       // Add any context messages as bullet list items.
-      for (var message in error.contextMessages) {
-        var contextPath = _relativePath(message.filePath, relativeToDir);
+      for (var message
+          in error.relatedInformation ?? <DiagnosticRelatedInformation>[]) {
+        var absolutePath = message.location.uri.toFilePath();
+        var contextPath = _relativePath(absolutePath, relativeToDir);
         var messageSentenceFragment = trimEnd(message.message, '.');
 
         log.stdout(
           '$_bodyIndent'
           ' - $messageSentenceFragment at '
-          '$contextPath:${message.line}:${message.column}.',
+          '$contextPath:${formatPosition(message.location.range.start)}.',
         );
       }
     }
@@ -432,67 +490,92 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   @visibleForTesting
-  static void emitJsonFormat(
+  void emitJsonFormat(
     Logger log,
-    List<AnalysisError> errors,
+    List<DiagnosticWithPath> errors,
     UsageInfo? usageInfo,
   ) {
-    Map<String, dynamic> location(
+    Map<String, dynamic> locationJson(
       String filePath,
       Map<String, dynamic> range,
     ) => {'file': filePath, 'range': range};
 
-    Map<String, dynamic> position(int? offset, int? line, int? column) => {
+    Map<String, dynamic> positionJson(int? offset, int? line, int? column) => {
       'offset': offset,
       'line': line,
       'column': column,
     };
 
-    Map<String, dynamic> range(
+    Map<String, dynamic> rangeJson(
       Map<String, dynamic> start,
       Map<String, dynamic> end,
     ) => {'start': start, 'end': end};
 
     var diagnostics = <Map<String, dynamic>>[];
-    for (final AnalysisError error in errors) {
+    for (final DiagnosticWithPath(:filePath, diagnostic: error) in errors) {
       var contextMessages = [];
-      for (var contextMessage in error.contextMessages) {
-        var startOffset = contextMessage.offset;
+      for (DiagnosticRelatedInformation contextMessage
+          in error.relatedInformation ?? []) {
+        var contextFilePath = contextMessage.location.uri.toString();
+        var range = contextMessage.location.range;
+        var start = range.start;
+        var end = range.end;
+        // We don't have additional data for context messages, so we'll have
+        // to compute them from the current content.
+        var startOffset = getOffset(contextFilePath, start);
+        var endOffset = getOffset(contextFilePath, end);
         contextMessages.add({
-          'location': location(
-            contextMessage.filePath,
-            range(
-              position(startOffset, contextMessage.line, contextMessage.column),
-              position(
-                startOffset + contextMessage.length,
-                contextMessage.endLine,
-                contextMessage.endColumn,
+          'location': locationJson(
+            contextMessage.location.uri.toFilePath(),
+            rangeJson(
+              positionJson(
+                startOffset,
+                lspToUser(start.line),
+                lspToUser(start.character),
+              ),
+              positionJson(
+                endOffset,
+                lspToUser(end.line),
+                lspToUser(end.character),
               ),
             ),
           ),
           'message': contextMessage.message,
         });
       }
-      var startOffset = error.offset;
+      var data = _readAdditionalData(error.data);
+
+      var range = error.range;
+      var start = range.start;
+      var end = range.end;
+      var startOffset = data.offset ?? getOffset(filePath, start);
+      var length = data.length ?? getOffset(filePath, end) - startOffset;
+      var endOffset = startOffset + length;
+      var url = error.codeDescription?.href.toString();
+
       diagnostics.add({
         'code': error.code,
-        'severity': error.severity,
-        'type': error.type,
-        'location': location(
-          error.file,
-          range(
-            position(startOffset, error.startLine, error.startColumn),
-            position(
-              startOffset + error.length,
-              error.endLine,
-              error.endColumn,
+        'severity': error.severity?.displayName,
+        'type': data.type,
+        'location': locationJson(
+          filePath,
+          rangeJson(
+            positionJson(
+              startOffset,
+              lspToUser(start.line),
+              lspToUser(start.character),
+            ),
+            positionJson(
+              endOffset,
+              lspToUser(end.line),
+              lspToUser(end.character),
             ),
           ),
         ),
-        'problemMessage': error.message,
-        if (error.correction != null) 'correctionMessage': error.correction,
+        'problemMessage': error.message.asString,
+        'correctionMessage': ?data.correctionMessage,
         if (contextMessages.isNotEmpty) 'contextMessages': contextMessages,
-        if (error.url != null) 'documentation': error.url,
+        'documentation': ?url,
       });
     }
     log.stdout(
@@ -505,21 +588,44 @@ class AnalyzeCommand extends DartdevCommand {
   }
 
   @visibleForTesting
-  static void emitMachineFormat(Logger log, List<AnalysisError> errors) {
-    for (final AnalysisError error in errors) {
+  void emitMachineFormat(Logger log, List<DiagnosticWithPath> errors) {
+    for (final DiagnosticWithPath(:filePath, diagnostic: error) in errors) {
+      var data = _readAdditionalData(error.data);
+      var start = error.range.start;
+      var end = error.range.end;
+      var startOffset = getOffset(filePath, start);
+      var endOffset = getOffset(filePath, end);
+      var length = endOffset - startOffset;
       log.stdout(
         [
-          error.severity,
-          error.type,
-          error.code.toUpperCase(),
-          _escapeForMachineMode(error.file),
-          error.startLine.toString(),
-          error.startColumn.toString(),
-          error.length.toString(),
-          _escapeForMachineMode(error.message),
+          error.severity?.displayName?.toUpperCase() ?? '',
+          data.type ?? '',
+          error.code?.toUpperCase(),
+          _escapeForMachineMode(filePath),
+          lspToUser(error.range.start.line).toString(),
+          lspToUser(error.range.start.character).toString(),
+          length,
+          _escapeForMachineMode(error.message.asString),
         ].join('|'),
       );
     }
+  }
+
+  /// Reads the additional data from the Diagnostic.data field.
+  ({int? offset, int? length, String? type, String? correctionMessage})
+  _readAdditionalData(Object? data) {
+    var map = data is Map ? data : const {};
+
+    T? getIfType<T>(String name) => map[name] is T ? map[name] : null;
+    var getInt = getIfType<int>;
+    var getString = getIfType<String>;
+
+    return (
+      offset: getInt('offset'),
+      length: getInt('length'),
+      type: getString('type'),
+      correctionMessage: getString('correctionMessage'),
+    );
   }
 
   static String _escapeForMachineMode(String input) {
@@ -545,6 +651,66 @@ class AnalyzeCommand extends DartdevCommand {
     String relative = path.relative(givenPath, from: fromPath);
     return relative.length <= givenPath.length ? relative : givenPath;
   }
+
+  /// Formats an LSP position for output in the form `line:col`, accounting for
+  /// LSP being 0-based but server (and users) being 1-based.
+  static String formatPosition(Position pos) {
+    return '${lspToUser(pos.line)}:${lspToUser(pos.character)}';
+  }
+
+  /// Converts a line or column number from 0-based (LSP) to 1-based.
+  static int lspToUser(int i) {
+    return i + 1;
+  }
+}
+
+/// A [Diagnostic] aling with the [filePath] it belongs to.
+///
+/// Unlike legacy diagnostics, LSP diagnostics do not include a path/URI because
+/// they are grouped together under a [PublishDiagnosticsParams]. Because we
+/// sort by severity, we can't use that class for grouping them.
+class DiagnosticWithPath implements Comparable<DiagnosticWithPath> {
+  final String filePath;
+  final Diagnostic diagnostic;
+
+  DiagnosticWithPath(this.filePath, this.diagnostic);
+
+  @override
+  int compareTo(DiagnosticWithPath other) {
+    // Sort in order of severity, file path, error location, and message.
+    if (diagnostic.severity != other.diagnostic.severity) {
+      return _severityPriority(diagnostic) -
+          _severityPriority(other.diagnostic);
+    }
+
+    if (filePath != other.filePath) {
+      return filePath.compareTo(other.filePath);
+    }
+
+    if (diagnostic.range.start.line != other.diagnostic.range.start.line) {
+      return diagnostic.range.start.line - other.diagnostic.range.start.line;
+    }
+
+    if (diagnostic.range.start.character !=
+        other.diagnostic.range.start.character) {
+      return diagnostic.range.start.character -
+          other.diagnostic.range.start.character;
+    }
+
+    return diagnostic.message.asString.compareTo(
+      other.diagnostic.message.asString,
+    );
+  }
+
+  static int _severityPriority(Diagnostic diagnostic) {
+    return switch (diagnostic.severity) {
+      DiagnosticSeverity.Error => 0,
+      DiagnosticSeverity.Warning => 1,
+      DiagnosticSeverity.Hint => 2,
+      DiagnosticSeverity.Information => 3,
+      _ => 4,
+    };
+  }
 }
 
 /// The possible results of analysis and their exit codes.
@@ -567,4 +733,23 @@ enum _Result {
   final int exitCode;
 
   const _Result(this.exitCode);
+}
+
+extension on Either2<MarkupContent, String> {
+  /// Returns the String contents regardless of whether it was LSP
+  /// MarkupContent or a bare String.
+  String get asString => map((markup) => markup.value, (string) => string);
+}
+
+extension on DiagnosticSeverity {
+  String? get displayName {
+    return switch (this) {
+      // These names match the original values from the server protocol.
+      DiagnosticSeverity.Error => 'ERROR',
+      DiagnosticSeverity.Warning => 'WARNING',
+      DiagnosticSeverity.Information => 'INFO',
+      DiagnosticSeverity.Hint => 'HINT',
+      _ => null, // should never happen, but types allow.
+    };
+  }
 }

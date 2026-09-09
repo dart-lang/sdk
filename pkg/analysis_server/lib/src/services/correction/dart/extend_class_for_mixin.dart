@@ -5,6 +5,8 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_data.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -31,14 +33,15 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
       return;
     }
 
+    var constraint =
+        mixinApplicationNotImplementedInterfaceConstraint[diagnostic];
+    if (constraint == null || constraint.element is! ClassElement) {
+      return;
+    }
+
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
-      // TODO(brianwilkerson): Find a way to pass in the name of the class
-      //  without needing to parse the message.
-      var message = diagnostic.problemMessage.messageText(includeUrl: false);
-      var endIndex = message.lastIndexOf("'");
-      var startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
-      _typeName = message.substring(startIndex, endIndex);
+      _typeName = constraint.getDisplayString();
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(
           declaration.namePart.typeParameters?.end ??

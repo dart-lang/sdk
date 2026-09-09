@@ -315,10 +315,30 @@ class NativeArrayType : public NativeType {
 
 using NativeTypes = ZoneGrowableArray<const NativeType*>;
 
+// A single member of a compound native type.
+class NativeCompoundMember {
+ public:
+  explicit NativeCompoundMember(const NativeType& type,
+                                const char* name = nullptr)
+      : type_(&type), name_(name) {}
+
+  const NativeType& type() const { return *type_; }
+
+  const char* name() const { return name_; }
+
+ private:
+  const NativeType* type_;
+  const char* name_;
+};
+
+using NativeCompoundMembers = ZoneGrowableArray<NativeCompoundMember>;
+
 // Compound native types: native arrays and native structs.
 class NativeCompoundType : public NativeType {
  public:
-  const NativeTypes& members() const { return members_; }
+  const NativeCompoundMembers& members() const { return members_; }
+
+  const char* name() const { return name_; }
 
   virtual bool IsCompound() const { return true; }
 
@@ -363,16 +383,19 @@ class NativeCompoundType : public NativeType {
                                         intptr_t offset_in_members = 0) const;
 
  protected:
-  NativeCompoundType(const NativeTypes& members,
+  NativeCompoundType(const NativeCompoundMembers& members,
+                     const char* name,
                      intptr_t size,
                      intptr_t alignment_field,
                      intptr_t alignment_stack)
       : members_(members),
+        name_(name),
         size_(size),
         alignment_field_(alignment_field),
         alignment_stack_(alignment_stack) {}
 
-  const NativeTypes& members_;
+  const NativeCompoundMembers& members_;
+  const char* const name_;
   const intptr_t size_;
   const intptr_t alignment_field_;
   const intptr_t alignment_stack_;
@@ -388,6 +411,12 @@ class NativeStructType : public NativeCompoundType {
   static NativeStructType& FromNativeTypes(Zone* zone,
                                            const NativeTypes& members,
                                            intptr_t member_packing = kMaxInt32);
+
+  static NativeStructType& FromNativeMembers(
+      Zone* zone,
+      const NativeCompoundMembers& members,
+      const char* name = nullptr,
+      intptr_t member_packing = kMaxInt32);
 
   const ZoneGrowableArray<intptr_t>& member_offsets() const {
     return member_offsets_;
@@ -416,13 +445,18 @@ class NativeStructType : public NativeCompoundType {
                                  intptr_t member_index) const;
 
  private:
-  NativeStructType(const NativeTypes& members,
+  NativeStructType(const NativeCompoundMembers& members,
+                   const char* name,
                    const ZoneGrowableArray<intptr_t>& member_offsets,
                    intptr_t size,
                    intptr_t alignment_field,
                    intptr_t alignment_stack,
                    intptr_t alignment_stack_vararg)
-      : NativeCompoundType(members, size, alignment_field, alignment_stack),
+      : NativeCompoundType(members,
+                           name,
+                           size,
+                           alignment_field,
+                           alignment_stack),
         alignment_stack_vararg_(alignment_stack_vararg),
         member_offsets_(member_offsets) {}
 
@@ -436,6 +470,11 @@ class NativeUnionType : public NativeCompoundType {
   static NativeUnionType& FromNativeTypes(Zone* zone,
                                           const NativeTypes& members);
 
+  static NativeUnionType& FromNativeMembers(
+      Zone* zone,
+      const NativeCompoundMembers& members,
+      const char* name = nullptr);
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   virtual bool ContainsOnlyFloats(Range range) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -448,11 +487,16 @@ class NativeUnionType : public NativeCompoundType {
   virtual void PrintCompoundType(BaseTextBuffer* f) const;
 
  private:
-  NativeUnionType(const NativeTypes& members,
+  NativeUnionType(const NativeCompoundMembers& members,
+                  const char* name,
                   intptr_t size,
                   intptr_t alignment_field,
                   intptr_t alignment_stack)
-      : NativeCompoundType(members, size, alignment_field, alignment_stack) {}
+      : NativeCompoundType(members,
+                           name,
+                           size,
+                           alignment_field,
+                           alignment_stack) {}
 };
 
 class NativeFunctionType : public ZoneObject {

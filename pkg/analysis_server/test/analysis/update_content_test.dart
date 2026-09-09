@@ -85,7 +85,7 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_multiple_contexts() async {
-    writePackageConfig(
+    writePackageConfig2(
       workspaceRootPath,
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),

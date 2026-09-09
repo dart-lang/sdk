@@ -9,7 +9,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   group('debug mode', () {
     late DapTestSession dap;
     setUp(() async {

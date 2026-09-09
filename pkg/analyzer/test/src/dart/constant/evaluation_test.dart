@@ -207,9 +207,8 @@ class A {
 
 const v = .new() == A();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 
@@ -257,9 +256,8 @@ const A a = .method();
     await resolveTestCodeWithDiagnostics('''
 const a = .new();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 
@@ -303,6 +301,28 @@ E
   constructorInvocation
     constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::e
+''');
+  }
+
+  test_dotShorthand_propertyAccess_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+  static const A field = A();
+}
+''');
+
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+
+const A a = .field;
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+A
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -2690,6 +2710,44 @@ const c = _;
 ''');
   }
 
+  test_visitImplicitFunctionInstantiation_constructor() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+class C<T> {
+  C(T value);
+}
+const C<int> Function(int) c = C.new;
+const same = identical(c, C<int>.new);
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'same'), r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::same
+''');
+  }
+
+  test_visitImplicitFunctionInstantiation_constructor_typeAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+class C<T, U> {
+  C(T value);
+}
+typedef A<T> = C<T, String>;
+const C<int, String> Function(int) c = A.new;
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int, String> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_visitInterpolationExpression_list() async {
     await resolveTestCodeWithDiagnostics(r'''
 const x = '${const [2]}';
@@ -3224,6 +3282,23 @@ double -42.3
 ''');
   }
 
+  test_visitPrefixExpression_negated_double_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), -9223372036854775808.0);
+  }
+
+  test_visitPrefixExpression_negated_double_zero() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = -0;
+''');
+    var result = _topLevelVar(unitResult, 'c')!.toDoubleValue()!;
+    expect(result, 0.0);
+    expect(result.isNegative, isTrue);
+  }
+
   test_visitPrefixExpression_negated_int() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = -42;
@@ -3231,6 +3306,17 @@ const c = -42;
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
 int -42
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_visitPrefixExpression_negated_int_minValue() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const c = -9223372036854775808;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+int -9223372036854775808
   variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -5099,6 +5185,22 @@ const double d = 3;
 double 3.0
   variable: <testLibrary>::@topLevelVariable::d
 ''');
+  }
+
+  test_visitIntegerLiteral_doubleType_largeDecimal() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 1267650600228229401496703205376;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 1.2676506002282294e30);
+  }
+
+  test_visitIntegerLiteral_doubleType_largeHex() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+const double c = 0x8000000000000000;
+''');
+    var result = _topLevelVar(unitResult, 'c')!;
+    expect(result.toDoubleValue(), 9223372036854775808.0);
   }
 
   test_visitIntegerLiteral_integer() async {

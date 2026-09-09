@@ -76,10 +76,9 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
 
     _declaration.registerFunctionBody(
       body: body,
-      scope: scopeProviderInfo?.scope,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
-      thisVariable: scopeProviderInfo?.thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 

@@ -1,6 +1,0 @@
-S+0 double
-S+8 double
-S+16 Struct(size: 32)
-S+48 double
-=>
-xmm0 double

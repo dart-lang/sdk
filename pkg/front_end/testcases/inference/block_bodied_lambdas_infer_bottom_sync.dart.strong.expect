@@ -16,13 +16,13 @@ static method test() → dynamic {
     return null;
   };
   core::String? y = f(42){(core::Object) → Null};
-  f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:14: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+  f = (core::Object x##1) → Null => invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:14: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
   f = (x) => 'hello';
              ^" in "hello" as{TypeError} Null;
-  self::foo((core::Object x) → Null {
+  self::foo((core::Object x##2) → Null {
     return null;
   });
-  self::foo((core::Object x) → Never {
+  self::foo((core::Object x##3) → Never {
     throw "not implemented";
   });
 }

@@ -534,8 +534,7 @@
       "options": {
         "host-asserts": true,
         "dart2wasm-options": [
-          "-O0",
-          "--extra-compiler-option=--no-require-js-string-builtin"
+          "-O0"
         ],
         "timeout": 60
       }
@@ -1419,7 +1418,7 @@
             "--dart-dynamic-modules",
             "runtime",
             "utils/dart2bytecode",
-            "utils/modular_aot_compiler"
+            "modular_aot_compiler"
           ]
         },
         {
@@ -3592,6 +3591,10 @@
         "description": "This configuration is used for DevTools testing."
       },
       "steps": [
+        {
+          "name": "build devtools",
+          "script": "tools/build_devtools.py"
+        }
       ]
     }
   ],

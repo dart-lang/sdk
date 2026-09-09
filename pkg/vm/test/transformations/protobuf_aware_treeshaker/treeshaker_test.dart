@@ -9,9 +9,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/error_formatter.dart';
+import 'package:kernel/naive_type_checker.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'package:vm/kernel_front_end.dart'
     show runGlobalTransformations, ErrorDetector, KernelCompilationArguments;
@@ -52,13 +54,15 @@ Future<void> shakeAndRun(
       .toList();
 
   globalTypeFlow.transformComponent(
-    VmTarget(TargetFlags()),
+    target,
     CoreTypes(component),
     component,
     treeShakeProtobufs: true,
     treeShakeSignatures: false,
     treeShakeProtobufMixins: treeShakeProtobufMixins,
   );
+
+  _typeCheck(component);
 
   for (Class messageClass in messageClasses) {
     expect(
@@ -117,6 +121,20 @@ Future<void> compileAOT(
       protobufTreeShakerMixins: treeShakeProtobufMixins,
     ),
   );
+
+  _typeCheck(component);
+}
+
+void _typeCheck(Component component) {
+  final errorFormatter = ErrorFormatter();
+  NaiveTypeChecker(
+    errorFormatter,
+    component,
+    ignoreSdk: true,
+  ).checkComponent(component);
+  if (errorFormatter.numberOfFailures > 0) {
+    fail(errorFormatter.failures.join('\n'));
+  }
 }
 
 bool _hasGeneratedMessageSuper(Class? cls) {

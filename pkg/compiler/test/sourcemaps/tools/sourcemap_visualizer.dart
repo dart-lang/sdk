@@ -6,7 +6,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:source_maps/source_maps.dart';
+
 import '../helpers/sourcemap_html_helper.dart';
 
 main(List<String> args) {

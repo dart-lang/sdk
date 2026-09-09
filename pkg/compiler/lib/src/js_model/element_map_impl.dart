@@ -668,10 +668,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       } else {
         data.instantiationToBounds = getInterfaceType(
           ir.instantiateToBounds(
-                coreTypes.nonNullableRawType(node),
-                coreTypes.objectClass,
-              )
-              as ir.InterfaceType,
+            coreTypes.nonNullableRawType(node),
+            coreTypes.objectClass,
+          ) as ir.InterfaceType,
         );
       }
     }
@@ -1763,9 +1762,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         ContextContainerDefinition(getMemberDefinition(member).location),
         thisType,
         supertype,
-        getOrderedTypeSet(
-          supertype.element as JClass,
-        ).extendClass(types, thisType),
+        getOrderedTypeSet(supertype.element as JClass)
+            .extendClass(types, thisType),
       );
       classes.register(container, containerData, ContextEnv(memberMap));
 
@@ -1845,9 +1843,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       ClosureClassDefinition(location),
       thisType,
       supertype,
-      getOrderedTypeSet(
-        supertype.element as JClass,
-      ).extendClass(types, thisType),
+      getOrderedTypeSet(supertype.element as JClass)
+          .extendClass(types, thisType),
     );
     classes.register(classEntity, closureData, ClosureClassEnv(memberMap));
 
@@ -2156,8 +2153,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         parts.add(anonymous);
         anonymous = '';
       } else if (node is ir.FunctionDeclaration) {
-        String? name = node.variable.cosmeticName;
-        if (name != null && name != "") {
+        String name = node.variable.name;
+        if (name != "") {
           parts.add(utils.operatorNameToIdentifier(name)!);
         } else {
           parts.add(anonymous);
@@ -2352,9 +2349,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       RecordClassDefinition(location),
       thisType,
       supertype,
-      getOrderedTypeSet(
-        supertype.element as JClass,
-      ).extendClass(types, thisType),
+      getOrderedTypeSet(supertype.element as JClass)
+          .extendClass(types, thisType),
     );
     classes.register(classEntity, recordData, RecordClassEnv(memberMap));
 

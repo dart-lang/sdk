@@ -10,26 +10,19 @@ static method opaqueVal() → core::int
 @#C3
 @#C5
 @#C7
-static method callClosure(positional-parameter func) → void/* scope=[
-  #ctx1: not-captured VariableContext([
-    positional-parameter func;
-  ]),
+static method callClosure(() → void func) → void/* scope=[
+  #ctx1: not-captured [func],
 ] */ {
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)
     func(){() → void};
 }
 static method foo42() → void /* scope=[
-  #ctx2: direct-captured VariableContext([
-    local-variable a;
-    local-variable b;
-    local-variable c;
-    local-variable d;
-  ]),
+  #ctx2: direct-captured [a,b,c,d],
 ] */ {
-  a := self::opaqueVal();
-  b := self::opaqueVal();
-  c := self::opaqueVal();
-  d := self::opaqueVal();
+  core::int a = self::opaqueVal();
+  core::int b = self::opaqueVal();
+  core::int c = self::opaqueVal();
+  core::int d = self::opaqueVal();
   self::callClosure(() /* #ctx2 */ → void {
     core::print(a);
     core::print(b);
@@ -41,15 +34,11 @@ static method foo42() → void /* scope=[
   });
   #L1:
   while (true)/* scope=[
-    #ctx3: direct-captured VariableContext([
-      local-variable e;
-      local-variable f;
-      local-variable g;
-    ]),
+    #ctx3: direct-captured [e,f,g],
   ] */ {
-    e := 50;
-    f := 60;
-    g := 70;
+    core::int e = 50;
+    core::int f = 60;
+    core::int g = 70;
     self::callClosure(() /* #ctx2 */ → void {
       d = d.{core::num::+}(41){(core::num) → core::int};
     });
@@ -69,29 +58,21 @@ static method foo42() → void /* scope=[
       break #L1;
   }
   for /* scope=[
-    #ctx4: direct-captured VariableContext([
-      local-variable i;
-    ]),
-  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
-    #ctx5: direct-captured VariableContext([
-      local-variable h;
-    ]),
+    #ctx4: direct-captured [i],
+  ] */ (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})/* scope=[
+    #ctx5: direct-captured [h],
   ] */ {
-    h := self::opaqueVal();
+    core::int h = self::opaqueVal();
     self::callClosure(() /* #ctx5 #ctx4 */ → void {
       core::print(h);
       core::print(i);
     });
     for /* scope=[
-      #ctx6: direct-captured VariableContext([
-        local-variable j;
-      ]),
-    ] */ (j := 0; j.{core::num::<}(10){(core::num) → core::bool}; j = j.{core::num::+}(1){(core::num) → core::int})/* scope=[
-      #ctx7: direct-captured VariableContext([
-        local-variable k;
-      ]),
+      #ctx6: direct-captured [j],
+    ] */ (core::int j = 0; j.{core::num::<}(10){(core::num) → core::bool}; j = j.{core::num::+}(1){(core::num) → core::int})/* scope=[
+      #ctx7: direct-captured [k],
     ] */ {
-      k := 90;
+      core::int k = 90;
       self::callClosure(() /* #ctx6 #ctx7 */ → void {
         j = j.{core::num::+}(2){(core::num) → core::int};
         k = k.{core::num::+}(91){(core::num) → core::int};

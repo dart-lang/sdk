@@ -96,6 +96,7 @@ class ConstantInitializersResolver {
 
     // We could have rewritten the initializer.
     fragment.constantInitializer2 = node.initializer2;
+    element.resetConstantInitializer();
   }
 }
 

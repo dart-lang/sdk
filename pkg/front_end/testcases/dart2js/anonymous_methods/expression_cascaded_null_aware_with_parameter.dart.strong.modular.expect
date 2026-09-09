@@ -12,17 +12,17 @@ static method main() → void {
     } =>#t2;
   } =>#t1;
   let final core::int? #t4 = self::i in #t4 == null ?{core::int?} null : block {
-    let synthesized core::int anonymous#receiver = #t4{core::int} in anonymous#receiver == null ?{core::int?} null : block {
-      core::int p = anonymous#receiver as core::int;
+    let synthesized core::int anonymous#receiver##1 = #t4{core::int} in anonymous#receiver##1 == null ?{core::int?} null : block {
+      core::int p##1 = anonymous#receiver##1 as core::int;
       core::int #t5;
-      #t5 = let dynamic #t6 = p in p;
+      #t5 = let dynamic #t6 = p##1 in p##1;
     } =>#t5;
   } =>#t4;
   let final core::int? #t7 = self::i in #t7 == null ?{core::int?} null : block {
-    let synthesized core::int anonymous#receiver = #t7{core::int} in anonymous#receiver == null ?{core::int?} null : block {
-      core::int p = anonymous#receiver as core::int;
+    let synthesized core::int anonymous#receiver##2 = #t7{core::int} in anonymous#receiver##2 == null ?{core::int?} null : block {
+      core::int p##2 = anonymous#receiver##2 as core::int;
       core::int #t8;
-      #t8 = let dynamic #t9 = p.{core::int::isEven}{core::bool} in p;
+      #t8 = let dynamic #t9 = p##2.{core::int::isEven}{core::bool} in p##2;
     } =>#t8;
   } =>#t7;
 }

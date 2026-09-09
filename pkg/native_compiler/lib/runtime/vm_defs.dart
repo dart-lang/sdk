@@ -96,6 +96,11 @@ extension ComputedOffsets on VMOffsets {
       Thread_DeoptimizeCopyFrame_entry_point_offset +
       (entry.index - LeafRuntimeEntry.DeoptimizeCopyFrame.index) * wordSize;
 
+  /// Offset of 32-bit Object.hash field (part of Object.tags).
+  // ignore: non_constant_identifier_names
+  int get Object_hash_offset =>
+      Object_tags_offset + (UntaggedObject_kHashTagPos ~/ 8);
+
   /// Object tags for a freshly allocated object.
   int computeNewObjectTags(ClassId cid, int instanceSize, int log2wordSize) {
     final log2align = log2objectAlignment(log2wordSize);

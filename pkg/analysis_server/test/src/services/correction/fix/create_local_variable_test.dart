@@ -188,6 +188,24 @@ g(String p) {}
     assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
   }
 
+  Future<void> test_read_typeInvocationArgument_namedArgument() async {
+    await resolveTestCode('''
+void f() {
+  g(name: test);
+}
+void g({String? name}) {}
+''');
+    await assertHasFix('''
+void f() {
+  String? test;
+  g(name: test);
+}
+void g({String? name}) {}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['String? test;']);
+    assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
+  }
+
   Future<void> test_read_typeInvocationArgument_recordType() async {
     await resolveTestCode('''
 void f() {
@@ -237,7 +255,7 @@ class C {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );

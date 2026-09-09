@@ -11,12 +11,78 @@ import 'abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RenameUnitMember_OutsideOfProjectTest);
     defineReflectiveTests(RenameUnitMemberTest);
   });
 }
 
 @reflectiveTest
+class RenameUnitMember_OutsideOfProjectTest extends RenameRefactoringTest {
+  @override
+  String get testFilePath => convertPath('/home/test/bin/test.dart');
+
+  Future<void> test_checkInitialConditions_outsideOfProject() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {}
+''');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+    );
+
+    await indexTestUnit('''
+import "package:aaa/a.dart";
+void f() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    var status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.FATAL,
+      expectedMessage: "The class 'A' is defined outside of the project, so cannot be renamed.",
+    );
+  }
+
+  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
+    newFile('/home/part.dart', r'''
+part of 'test/bin/test.dart';
+
+Test test2;
+''');
+
+    await indexTestUnit('''
+part '../../part.dart';
+
+class Test {}
+
+void f(Test a) {}
+''');
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    await assertSuccessfulRefactoring('''
+part '../../part.dart';
+
+class NewName {}
+
+void f(NewName a) {}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits[0].file, testFile.path);
+  }
+}
+
+@reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<void> test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
@@ -257,33 +323,6 @@ void f() {
     );
   }
 
-  Future<void> test_checkInitialConditions_outsideOfProject() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
-class A {}
-''');
-
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
-    );
-
-    await indexTestUnit('''
-import "package:aaa/a.dart";
-void f() {
-  A a;
-}
-''');
-    createRenameRefactoringAtString('A a');
-    // check status
-    refactoring.newName = 'NewName';
-    var status = await refactoring.checkInitialConditions();
-    assertRefactoringStatus(
-      status,
-      RefactoringProblemSeverity.FATAL,
-      expectedMessage: "The class 'A' is defined outside of the project, so cannot be renamed.",
-    );
-  }
-
   Future<void> test_checkNewName_ClassElement() async {
     await indexTestUnit('''
 class Test {}
@@ -472,7 +511,6 @@ class NewName {
   }
 
   Future<void> test_createChange_ClassElement_flutterWidget() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -514,7 +552,6 @@ class NewPageState extends State<NewPage> {
 
   Future<void>
   test_createChange_ClassElement_flutterWidget_privateBoth() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -556,7 +593,6 @@ class _NewPageState extends State<_NewPage> {
 
   Future<void>
   test_createChange_ClassElement_flutterWidget_privateState() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -852,38 +888,6 @@ void f() {
 newName() {}
 foo() {}
 ''');
-  }
-
-  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
-    newFile('/home/part.dart', r'''
-part of 'test/bin/test.dart';
-
-Test test2;
-''');
-
-    // To use file:// URI.
-    testFilePath = convertPath('/home/test/bin/test.dart');
-
-    await indexTestUnit('''
-part '../../part.dart';
-
-class Test {}
-
-void f(Test a) {}
-''');
-    createRenameRefactoringAtString('Test {}');
-    refactoring.newName = 'NewName';
-
-    await assertSuccessfulRefactoring('''
-part '../../part.dart';
-
-class NewName {}
-
-void f(NewName a) {}
-''');
-
-    expect(refactoringChange.edits, hasLength(1));
-    expect(refactoringChange.edits[0].file, testFile.path);
   }
 
   Future<void>

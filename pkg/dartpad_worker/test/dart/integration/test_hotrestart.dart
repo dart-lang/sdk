@@ -22,16 +22,9 @@ void main() => testDartIntegration('hotRestart', (ctx) async {
       }
     ''');
 
-  printOnFailure('# c = startHotReloadCompiler()');
-  final c = await ctx.ws.startHotReloadCompiler(Uri.parse('bin/main.dart'));
-
-  printOnFailure('# c.compile()');
-  final r1 = await c.compile();
-  check(r1).successEmptyLog();
-
   printOnFailure('# Running code in sandbox');
-  await ctx.sandbox.loadModule(code: r1.code!);
-  await ctx.sandbox.runMain(ctx.ws.workspaceFolder.resolve('bin/main.dart'));
+  final r1 = await ctx.sandbox.runMain('bin/main.dart');
+  check(r1.log).isNotNull();
 
   await ctx.checkConsole((m) => m.contains('Hello 1!'));
 
@@ -41,12 +34,9 @@ void main() => testDartIntegration('hotRestart', (ctx) async {
       }
     ''');
 
-  printOnFailure('# c.compile(), again!');
-  final r2 = await c.compile();
-  check(r2).successEmptyLog();
-
-  printOnFailure('# hotReload in sandbox');
-  await ctx.sandbox.hotRestart(code: r2.code);
+  printOnFailure('# hotRestart in sandbox');
+  final r2 = await ctx.sandbox.hotRestart();
+  check(r2.log).isNotNull();
 
   await ctx.checkConsole((m) => m.contains('Hello 2!'));
 });

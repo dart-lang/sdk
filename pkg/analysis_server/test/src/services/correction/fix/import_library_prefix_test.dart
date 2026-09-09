@@ -19,10 +19,7 @@ void main() {
 @reflectiveTest
 class ImportLibraryPrefixPriorityTest extends FixPriorityTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_dartUi() async {
     await resolveTestCode('''

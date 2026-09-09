@@ -457,8 +457,20 @@ void f(x, int Function() a) {
     assertResolvedNodeText(node, r'''
 RelationalPattern
   operator: ==
-  operand2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  operand2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  operand(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()

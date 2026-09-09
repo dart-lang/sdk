@@ -5,12 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dap_adapters/dap.dart';
+import 'package:dap_adapters/dap_adapters.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('dart cli adapter', () {
     late MockDartCliDebugAdapter adapter;
 

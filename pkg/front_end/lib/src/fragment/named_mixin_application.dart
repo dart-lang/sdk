@@ -32,6 +32,9 @@ class NamedMixinApplicationFragment implements Fragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>? typeParameterBuilders =
+      typeParameters?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,

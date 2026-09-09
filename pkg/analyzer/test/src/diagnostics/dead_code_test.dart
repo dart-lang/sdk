@@ -279,7 +279,18 @@ void f(Null n, int i) {
 ''');
   }
 
-  test_nullAwarePropertyRead() async {
+  test_nullAwarePropertyRead_parenthesizedExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Null n) {
+  (n)?.p;
+//     ^
+// [diag.deadCode] Dead code.
+  print('reached');
+}
+''');
+  }
+
+  test_nullAwarePropertyRead_simpleIdentifier() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(Null n) {
   n?.p;
@@ -290,7 +301,18 @@ void f(Null n) {
 ''');
   }
 
-  test_nullAwarePropertyWrite() async {
+  test_nullAwarePropertyWrite_parenthesizedExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Null n, int i) {
+  (n)?.p = i;
+//     ^^^^^
+// [diag.deadCode] Dead code.
+  print('reached');
+}
+''');
+  }
+
+  test_nullAwarePropertyWrite_simpleIdentifier() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(Null n, int i) {
   n?.p = i;

@@ -671,7 +671,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       return createRecordSpace(
         path,
         contextType,
-        pattern.requiredType!,
+        pattern.requiredType,
         positional,
         named,
       );
@@ -738,7 +738,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       }
       return createListSpace(
         path,
-        type: pattern.requiredType!,
+        type: pattern.requiredType,
         elementType: elementType,
         headElements: headPatterns,
         restElement: restPattern,
@@ -766,7 +766,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       }
       return createMapSpace(
         path,
-        type: pattern.lookupType!,
+        type: pattern.lookupType,
         keyType: keyType,
         valueType: valueType,
         entries: entries,

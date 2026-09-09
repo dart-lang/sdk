@@ -282,6 +282,12 @@ class AstRewriter {
       // `C.new = foo`; do not rewrite.
       return node;
     }
+    // An import-prefixed read/write occurrence still uses the legacy target
+    // shape until there is a canonical import-prefixed assignment target.
+    // Rewriting it as a read expression would lose the write resolution.
+    if (node.identifier.inSetterContext()) {
+      return node;
+    }
     var identifier = node.identifier;
     if (identifier.isSynthetic) {
       // This isn't a constructor tear-off.
@@ -334,6 +340,18 @@ class AstRewriter {
           classElement: aliasedType.element,
         );
       }
+    }
+
+    if (prefixElement is PrefixElement && _isTypeLiteralContext(parent, node)) {
+      var expression = ImportPrefixedNameExpressionImpl(
+        importPrefix: ImportPrefixReferenceImpl(
+          name: node.prefix.token,
+          period: node.period,
+        )..element = prefixElement,
+        name: node.identifier.token,
+      );
+      node.replaceWith(expression);
+      return expression;
     }
     return node;
   }
@@ -442,7 +460,17 @@ class AstRewriter {
   }
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
+    if (node.isSynthetic) {
+      return node;
+    }
     var parent = node.parent2;
+    if (parent is ReceiverPropertyAssignmentTargetImpl &&
+        identical(parent.receiver, node) &&
+        nameScope.lookup(node.name).getter is PrefixElement) {
+      // Import-prefixed read/write targets currently retain their legacy
+      // prefix receiver until they have a dedicated canonical target node.
+      return node;
+    }
     if (parent is ConstantPatternImpl) {
       var element = nameScope.lookup(node.name).getter;
       switch (element) {
@@ -465,6 +493,10 @@ class AstRewriter {
         case TypeParameterElementImpl():
           return _toTypeLiteral(node);
       }
+
+      var expression = UnqualifiedNameExpressionImpl(name: node.token);
+      node.replaceWith(expression);
+      return expression;
     }
 
     return node;

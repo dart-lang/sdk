@@ -8,10 +8,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_extensions.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runner.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -61,18 +64,24 @@ class MigrateHandler
       return failure(targetSdkResult);
     }
 
+    var workDoneToken = params.workDoneToken;
+    var progressReporter = switch (server) {
+      LspAnalysisServer server when workDoneToken != null =>
+        ProgressReporter.clientProvided(server, workDoneToken),
+      _ => ProgressReporter.noop,
+    };
+
     var summaryBuilder = MigrationSummaryBuilder(
       apply: apply,
       pathContext: server.resourceProvider.pathContext,
       steps: steps,
     );
-    // TODO(kallentu): Pass targetSdk to MigrationRunner when multi-version
-    // migration is implemented.
     var migrationRunner = MigrationRunner(
       server: server,
       pubspecTargets: targets,
       summaryBuilder: summaryBuilder,
-      apply: apply,
+      targetSdk: targetSdkResult.resultOrNull,
+      progressReporter: progressReporter,
     );
 
     var fileEditsResult = await migrationRunner.computeEdits(steps);
@@ -81,21 +90,18 @@ class MigrateHandler
     }
     var fileEdits = fileEditsResult.resultOrNull!;
 
-    WorkspaceEdit? workspaceEdit;
-    if (apply) {
-      // Merge all the accumulated sequential edits per file.
-      var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
-      var sourceChange = SourceChange(
-        'Migrate package(s)',
-        edits: mergedFileEdits,
-      );
+    // Merge all the accumulated sequential edits per file.
+    var mergedFileEdits = SourceChangeMerger().merge(fileEdits);
+    var sourceChange = SourceChange(
+      'Migrate package(s)',
+      edits: mergedFileEdits,
+    );
 
-      workspaceEdit = createWorkspaceEdit(
-        server,
-        message.clientCapabilities!,
-        sourceChange,
-      );
-    }
+    var workspaceEdit = createWorkspaceEdit(
+      server,
+      message.clientCapabilities!,
+      sourceChange,
+    );
     return success(
       DartMigrateResult(
         summary: summaryBuilder.generate(),
@@ -201,6 +207,14 @@ class MigrateHandler
         "being migrated to. It's currently $currentServerSdk. Please either "
         'update your Dart SDK first or migrate to a version that is less than '
         'the running version.',
+      );
+    }
+    if (!knownSdkVersions.contains(targetSdk)) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'The target SDK version "$targetSdk" is not supported for migration. '
+        'It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.',
       );
     }
     if (!steps.runAll) {

@@ -18,11 +18,11 @@ class AbstractCodeActionsTest extends SharedLspOverLegacyTest
 
   @override
   Future<void> initializeServer() async {
-    await super.initializeServer();
-    await server.lspInitialized;
-
     // Most CodeActions tests set LSP capabilities so automatically send these
     // to the legacy server as part of initialization.
     await sendClientCapabilities();
+
+    await super.initializeServer();
+    await server.lspInitialized;
   }
 }

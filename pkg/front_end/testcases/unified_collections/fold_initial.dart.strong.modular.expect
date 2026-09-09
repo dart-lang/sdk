@@ -27,7 +27,7 @@ static method foldInitialElements() → void {
     #t2.{core::Set::add}{Invariant}(5){(core::int?) → core::bool};
     #t2.{core::Set::add}{Invariant}(6){(core::int?) → core::bool};
   } =>#t2;
-  self::expect(core::List::generate<core::int?>(7, (core::int? i) → core::int? => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
+  self::expect(core::List::generate<core::int?>(7, (core::int? i##1) → core::int? => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
 }
 static method foldInitialSpread1() → void {
   dynamic initial = <core::int>[0, 1, 2];
@@ -56,7 +56,7 @@ static method foldInitialSpread1() → void {
     #t6.{core::Set::add}{Invariant}(5){(core::int) → core::bool};
     #t6.{core::Set::add}{Invariant}(6){(core::int) → core::bool};
   } =>#t6;
-  self::expect(core::List::generate<core::int>(7, (core::int i) → core::int => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
+  self::expect(core::List::generate<core::int>(7, (core::int i##1) → core::int => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
 }
 static method foldInitialSpread2([core::bool c = #C1]) → void {
   core::Iterable<core::int?> initial = <core::int?>[0, 1, 2];
@@ -80,7 +80,7 @@ static method foldInitialSpread2([core::bool c = #C1]) → void {
     #t10.{core::Set::add}{Invariant}(5){(core::int?) → core::bool};
     #t10.{core::Set::add}{Invariant}(6){(core::int?) → core::bool};
   } =>#t10;
-  self::expect(core::List::generate<core::int?>(7, (core::int? i) → core::int? => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
+  self::expect(core::List::generate<core::int?>(7, (core::int? i##1) → core::int? => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
 }
 static method foldInitialSpread3([core::bool c = #C1]) → void {
   core::List<core::int?> initial = <core::int?>[0, 1, 2];
@@ -104,7 +104,7 @@ static method foldInitialSpread3([core::bool c = #C1]) → void {
     #t12.{core::Set::add}{Invariant}(5){(core::int?) → core::bool};
     #t12.{core::Set::add}{Invariant}(6){(core::int?) → core::bool};
   } =>#t12;
-  self::expect(core::List::generate<core::int?>(7, (core::int? i) → core::int? => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
+  self::expect(core::List::generate<core::int?>(7, (core::int? i##1) → core::int? => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int?>});
 }
 static method foldInitialSpread4([core::bool c = #C1]) → void {
   core::Iterable<core::int> initial = <core::int>[0, 1, 2];
@@ -125,7 +125,7 @@ static method foldInitialSpread4([core::bool c = #C1]) → void {
     #t14.{core::Set::add}{Invariant}(5){(core::int) → core::bool};
     #t14.{core::Set::add}{Invariant}(6){(core::int) → core::bool};
   } =>#t14;
-  self::expect(core::List::generate<core::int>(7, (core::int i) → core::int => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
+  self::expect(core::List::generate<core::int>(7, (core::int i##1) → core::int => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
 }
 static method foldInitialSpread5([core::bool c = #C1]) → void {
   core::List<core::int> initial = <core::int>[0, 1, 2];
@@ -146,7 +146,7 @@ static method foldInitialSpread5([core::bool c = #C1]) → void {
     #t16.{core::Set::add}{Invariant}(5){(core::int) → core::bool};
     #t16.{core::Set::add}{Invariant}(6){(core::int) → core::bool};
   } =>#t16;
-  self::expect(core::List::generate<core::int>(7, (core::int i) → core::int => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
+  self::expect(core::List::generate<core::int>(7, (core::int i##1) → core::int => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
 }
 static method foldInitialSpread6([core::bool c = #C1]) → void {
   core::List<core::int>? initial = <core::int>[0, 1, 2];
@@ -176,7 +176,7 @@ static method foldInitialSpread6([core::bool c = #C1]) → void {
     #t19.{core::Set::add}{Invariant}(5){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(6){(core::int) → core::bool};
   } =>#t19;
-  self::expect(core::List::generate<core::int>(7, (core::int i) → core::int => i), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
+  self::expect(core::List::generate<core::int>(7, (core::int i##1) → core::int => i##1), set.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>});
 }
 static method main() → dynamic {
   self::foldInitialElements();

@@ -4,9 +4,10 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -44,7 +45,7 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<_Data>> actualMap,
+    ActualDataMap<_Data> actualMap,
   ) {
     var unitElement = unit.declaredFragment!.element;
     var uri = unitElement.firstFragment.source.uri;
@@ -113,7 +114,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     );
   }
 
-  Set<String> _convertVars(Iterable<int> x) =>
+  Set<String> _convertVars(Iterable<PromotionKey> x) =>
       x.map((e) => _currentAssignedVariables!.variableForKey(e).name!).toSet();
 
   void _handlePossibleTopLevelDeclaration(

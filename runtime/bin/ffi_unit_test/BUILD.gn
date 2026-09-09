@@ -144,27 +144,6 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_arm64_win") {
   ]
 }
 
-build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_android") {
-  extra_configs = [
-    ":define_target_arch_ia32",
-    ":define_target_os_android",
-  ]
-}
-
-build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_linux") {
-  extra_configs = [
-    ":define_target_arch_ia32",
-    ":define_target_os_linux",
-  ]
-}
-
-build_run_ffi_unit_tests("run_ffi_unit_tests_ia32_win") {
-  extra_configs = [
-    ":define_target_arch_ia32",
-    ":define_target_os_windows",
-  ]
-}
-
 build_run_ffi_unit_tests("run_ffi_unit_tests_x64_fuchsia") {
   extra_configs = [
     ":define_target_arch_x64",
@@ -225,9 +204,6 @@ group("run_ffi_unit_tests") {
     ":run_ffi_unit_tests_arm_android",  # SoftFP
     ":run_ffi_unit_tests_arm_ios",  # No other test coverage.
     ":run_ffi_unit_tests_arm_linux",  # HardFP
-    ":run_ffi_unit_tests_ia32_android",  # Emulator, no other test coverage.
-    ":run_ffi_unit_tests_ia32_linux",
-    ":run_ffi_unit_tests_ia32_win",
     ":run_ffi_unit_tests_riscv32_linux",
     ":run_ffi_unit_tests_riscv64_linux",
     ":run_ffi_unit_tests_x64_fuchsia",

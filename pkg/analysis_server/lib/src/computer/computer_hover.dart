@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:path/path.dart' as path;
 
@@ -65,22 +66,69 @@ class DartUnitHoverComputer {
       var hover = HoverInformation(range.offset, range.length);
       // element
       var element = ElementLocator.locate(node);
-      if (element != null) {
+      if (element != null && element.isWildcardVariable) {
+        return null;
+      }
+      if (element case var elementReference?) {
         // short code that illustrates the element meaning.
-        hover.elementDescription = _elementDisplayString(node, element);
-        hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.isDeprecatedWithKind('use');
+        hover.elementDescription = _elementDisplayString(
+          node,
+          elementReference,
+        );
+        hover.elementKind = elementReference.kind.displayName;
+        hover.isDeprecated = elementReference.isDeprecatedWithKind('use');
         // not local element
-        if (element.enclosingElement is! ExecutableElement) {
-          // containing class
-          hover.containingClassDescription = _containingClass(element);
+        if (node.parent
+            case GenericFunctionType(
+              parent: Declaration(
+                    declaredFragment: Fragment(element: var declared),
+                  ) ||
+                  FormalParameter(
+                    declaredFragment: Fragment(element: var declared),
+                  ) ||
+                  GenericTypeAlias(
+                    declaredFragment: Fragment(element: var declared),
+                  ),
+            )
+            when elementReference.enclosingElement
+                is GenericFunctionTypeElement) {
+          var list = hover.containingExecutableDescriptions ??= [];
+          list.add(declared.displayName);
+          elementReference = declared;
+        }
+        var enclosingElement = elementReference.enclosingElement;
+        while (true) {
+          if (enclosingElement case ExecutableElement(
+            enclosingElement: var enclosing,
+            :var displayName,
+          )) {
+            if (enclosingElement case ConstructorElement(name: 'new')) {
+              displayName = 'new';
+            } else if (enclosingElement case LocalFunctionElement(
+              firstFragment: Fragment(:var enclosingFragment?),
+            )) {
+              enclosing = enclosingFragment.element;
+            }
+            enclosingElement = enclosing;
+            var list = hover.containingExecutableDescriptions ??= [];
+            list.add(displayName);
+          } else {
+            break;
+          }
+        }
+        // containing instance
+        hover.containingClassDescription = _containingInstance(
+          elementReference,
+        );
+        if (elementReference.enclosingElement is! ExecutableElement ||
+            (hover.containingExecutableDescriptions?.isNotEmpty ?? false)) {
           // containing library
-          var libraryInfo = _libraryInfo(element);
+          var libraryInfo = _libraryInfo(elementReference);
           hover.containingLibraryName = libraryInfo?.libraryName;
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.compute(element)?.full;
+        hover.dartdoc = _documentationComputer.compute(elementReference)?.full;
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);
@@ -94,7 +142,7 @@ class DartUnitHoverComputer {
   }
 
   /// Gets the name of the containing class of [element].
-  String? _containingClass(Element element) {
+  String? _containingInstance(Element element) {
     var containingClass = element.thisOrAncestorOfType<InterfaceElement>();
     return containingClass != null && containingClass != element
         ? containingClass.displayName
@@ -110,7 +158,9 @@ class DartUnitHoverComputer {
     var displayString = element?.displayString(multiline: true);
 
     if (displayString != null) {
-      if (node is InstanceCreationExpression && node.keyword == null) {
+      if (element is TypeParameterElement) {
+        displayString = '<$displayString>';
+      } else if (node is InstanceCreationExpression && node.keyword == null) {
         var prefix = node.isConst ? '(const) ' : '(new) ';
         displayString = prefix + displayString;
       } else if (node is DotShorthandConstructorInvocation) {

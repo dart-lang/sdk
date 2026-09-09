@@ -10,7 +10,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp();
@@ -94,65 +94,59 @@ void main(List<String> args) {
       },
     );
 
-    test(
-      'evaluates $threadExceptionExpression to the threads exception (simple type)',
-      () async {
-        final client = dap.client;
-        final testFile = dap.createTestFile(r'''
+    test('evaluates $threadExceptionExpression to the '
+        'threads exception (simple type)', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw 'my error';
 }''');
 
-        final stop = await client.hitException(testFile);
-        final topFrameId = await client.getTopFrameId(stop.threadId!);
-        final result = await client.expectEvalResult(
-          topFrameId,
-          threadExceptionExpression,
-          '"my error"',
-        );
-        expect(result.variablesReference, equals(0));
-      },
-    );
+      final stop = await client.hitException(testFile);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      final result = await client.expectEvalResult(
+        topFrameId,
+        threadExceptionExpression,
+        '"my error"',
+      );
+      expect(result.variablesReference, equals(0));
+    });
 
-    test(
-      'evaluates $threadExceptionExpression to the threads exception (complex type)',
-      () async {
-        final client = dap.client;
-        final testFile = dap.createTestFile(r'''
+    test('evaluates $threadExceptionExpression to the '
+        'threads exception (complex type)', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw Exception('my error');
 }''');
 
-        final stop = await client.hitException(testFile);
-        final topFrameId = await client.getTopFrameId(stop.threadId!);
-        final result = await client.expectEvalResult(
-          topFrameId,
-          threadExceptionExpression,
-          '_Exception',
-        );
-        expect(result.variablesReference, isPositive);
-      },
-    );
+      final stop = await client.hitException(testFile);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      final result = await client.expectEvalResult(
+        topFrameId,
+        threadExceptionExpression,
+        '_Exception',
+      );
+      expect(result.variablesReference, isPositive);
+    });
 
-    test(
-      'evaluates $threadExceptionExpression.x.y to x.y on the threads exception',
-      () async {
-        final client = dap.client;
-        final testFile = dap.createTestFile(r'''
+    test('evaluates $threadExceptionExpression.x.y to x.y '
+        'on the threads exception', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(r'''
 void main(List<String> args) {
   throw Exception('12345');
 }
     ''');
 
-        final stop = await client.hitException(testFile);
-        final topFrameId = await client.getTopFrameId(stop.threadId!);
-        await client.expectEvalResult(
-          topFrameId,
-          '$threadExceptionExpression.message.length',
-          '5',
-        );
-      },
-    );
+      final stop = await client.hitException(testFile);
+      final topFrameId = await client.getTopFrameId(stop.threadId!);
+      await client.expectEvalResult(
+        topFrameId,
+        '$threadExceptionExpression.message.length',
+        '5',
+      );
+    });
 
     test('can evaluate expressions in non-top frames', () async {
       final client = dap.client;
@@ -315,7 +309,8 @@ void foo() {
       );
     });
 
-    test('variableReferences remain valid while an isolate is paused', () async {
+    test('variableReferences remain valid while '
+        'an isolate is paused', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(
         simpleBreakpointProgramWith50ExtraLines,

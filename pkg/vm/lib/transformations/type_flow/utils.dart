@@ -463,7 +463,7 @@ T? filterArtificialNode<T extends TreeNode>(T? node) =>
 String localFunctionName(LocalFunction function) {
   switch (function) {
     case FunctionDeclaration():
-      return function.variable.cosmeticName!;
+      return function.variable.name;
     case FunctionExpression():
       final location = function.location;
       return '<anonymous closure' +

@@ -88,6 +88,11 @@ class LspAnalysisServer {
     );
   }
 
+  /// A stream of work done progress notifications from the analysis server.
+  Stream<ProgressParams> get onProgress {
+    return _stream(Method.progress, ProgressParams.fromJson);
+  }
+
   Future<int> _onExit = Future.value(0);
 
   /// A future that completes when the last spawned process exits with its exit
@@ -172,9 +177,7 @@ class LspAnalysisServer {
               .map(
                 (rootPath) => WorkspaceFolder(
                   name: path.basename(rootPath),
-                  uri: Uri.file(
-                    rootPath,
-                  ),
+                  uri: Uri.file(rootPath),
                 ),
               )
               .toList()
@@ -204,9 +207,6 @@ class LspAnalysisServer {
     );
     var serverCapabilities = initializeResult.capabilities;
     var experimentalCapabilities = serverCapabilities.experimental;
-    // TODO(dantup): This should never occur unless the server we have spawned
-    //  is somehow older than this code change. Is it possible? How should we
-    //  handle it?
     assert(experimentalCapabilities is Map<String, Object?>);
     assert(
       (experimentalCapabilities as Map<String, Object?>).containsKey(
@@ -214,10 +214,7 @@ class LspAnalysisServer {
       ),
     );
 
-    _sendNotification(
-      Method.initialized,
-      InitializedParams(),
-    );
+    _sendNotification(Method.initialized, InitializedParams());
 
     return process.pid;
   }
@@ -265,6 +262,8 @@ class LspAnalysisServer {
     List<Uri> uris, {
     bool? apply,
     List<MigrationStep>? steps,
+    String? targetSdk,
+    ProgressToken? workDoneToken,
   }) {
     return _expectSuccessfulResponse(
       CustomMethods.migrate,
@@ -272,6 +271,8 @@ class LspAnalysisServer {
         uris: uris,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       ),
       DartMigrateResult.fromJson,
     );

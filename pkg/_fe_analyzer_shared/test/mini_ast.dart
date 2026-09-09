@@ -23,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.d
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
@@ -2151,7 +2152,11 @@ class Harness {
         // if the unit test is deliberately trying to exercise a member lookup
         // that should find nothing, please use `addMember` to store an
         // explicit `null` value in the `_members` map.
-        fail('Unknown member query: $query');
+        fail(
+          'Unknown member query: $query. Either update '
+          'Harness._coreMemberTypes or call Harness.addMember from the top of '
+          'the test.',
+        );
     }
   }
 
@@ -2208,6 +2213,7 @@ class Harness {
         operations,
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
+        enableLog: true,
       );
       typeAnalyzer.bodyContext =
           bodyContext ??
@@ -2229,7 +2235,7 @@ class Harness {
         ].join(', ');
         fail('Unused error ids: $ids');
       }
-      _verifyCheckpoints(flow.getLog());
+      _verifyCheckpoints(flow.getLog()!);
     } finally {
       Node._nodesWithUnusedErrorIds.clear();
     }
@@ -2717,13 +2723,18 @@ class InvokeMethod extends Expression {
 
   final bool isNullAware;
 
+  final List<int> argumentVisitOrder;
+
   int? _syntheticAfterOperatorOffset;
+
+  List<int>? _syntheticBetweenArgumentOffsets;
 
   InvokeMethod._(
     this.target,
     this.methodName,
     this.arguments, {
     required this.isNullAware,
+    required this.argumentVisitOrder,
     required super.location,
   });
 
@@ -2731,8 +2742,12 @@ class InvokeMethod extends Expression {
   void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
     _syntheticAfterOperatorOffset = visitor.generateSyntheticOffset();
+    var syntheticBetweenArgumentOffsets = _syntheticBetweenArgumentOffsets = [
+      visitor.generateSyntheticOffset(),
+    ];
     for (var argument in arguments) {
       argument.preVisit(visitor);
+      syntheticBetweenArgumentOffsets.add(visitor.generateSyntheticOffset());
     }
   }
 
@@ -2752,6 +2767,8 @@ class InvokeMethod extends Expression {
       arguments,
       isNullAware: isNullAware,
       afterOperatorOffset: _syntheticAfterOperatorOffset!,
+      argumentVisitOrder: argumentVisitOrder,
+      betweenArgumentOffsets: _syntheticBetweenArgumentOffsets!,
     );
   }
 }
@@ -5308,11 +5325,24 @@ mixin ProtoExpression
   /// If `this` is an expression `x`, creates a method invocation with `x` as
   /// the target, [name] as the method name, and [arguments] as the method
   /// arguments. Named arguments are not supported.
+  ///
+  /// [argumentVisitOrder], if given, should be a permutation of the numbers 0
+  /// through `arguments.length - 1` indicating the order in which the arguments
+  /// should be visited by flow analysis. This allows the flow analysis effects
+  /// of horizontal inference to be tested without having to add a lot of test
+  /// boilerplace code.
   Expression invokeMethod(
     String name,
     List<ProtoExpression> arguments, {
     bool isNullAware = false,
+    List<int>? argumentVisitOrder,
   }) {
+    argumentVisitOrder ??= [for (var i = 0; i < arguments.length; i++) i];
+    assert(
+      argumentVisitOrder.isPermutation(arguments.length),
+      'arguentVisitOrder ($argumentVisitOrder) is not a permutation of the '
+      'numbers from 0 to ${arguments.length - 1})',
+    );
     var location = computeLocation();
     return new InvokeMethod._(
       asExpression(location: location),
@@ -5322,6 +5352,7 @@ mixin ProtoExpression
           argument.asExpression(location: location),
       ],
       isNullAware: isNullAware,
+      argumentVisitOrder: argumentVisitOrder,
       location: location,
     );
   }
@@ -6833,7 +6864,7 @@ class YieldStatement extends Statement {
 class _Checkpoint {
   final int offset;
   final PromotionInfo? expectedPromotionInfo;
-  final int? expectedThisBinding;
+  final PromotionKey? expectedThisBinding;
   final String location;
 
   _Checkpoint({
@@ -7469,6 +7500,19 @@ class _MiniAstTypeAnalyzer
   /// of the method being invoked, and [arguments] is the list of argument
   /// expressions.
   ///
+  /// [argumentVisitOrder] should be a permutation of the numbers 0 through
+  /// `arguments.length - 1` indicating the order in which the arguments should
+  /// be visited by flow analysis. This allows the flow analysis effects of
+  /// horizontal inference to be tested without having to add a lot of test
+  /// boilerplace code.
+  ///
+  /// [betweenArgumentOffsets] should be a list of length
+  /// `arguments.length + 1`, whose `i`th element is the offset just before the
+  /// `i`th argument, and whose last element is the offset just after the last
+  /// argument. This determines the offsets that will be passed to
+  /// [FlowAnalysis.recordArgumentVisitOrderException] when [argumentVisitOrder]
+  /// indicates that arguments should be visited out of order.
+  ///
   /// Named arguments are not supported.
   ExpressionTypeAnalysisResult analyzeMethodInvocation(
     Expression node,
@@ -7477,6 +7521,8 @@ class _MiniAstTypeAnalyzer
     List<Expression> arguments, {
     required bool isNullAware,
     required int afterOperatorOffset,
+    required List<int> argumentVisitOrder,
+    required List<int> betweenArgumentOffsets,
   }) {
     // Analyze the target, generate its IR, and look up the method's type.
     var methodType = _handlePropertyTargetAndMemberLookup(
@@ -7501,15 +7547,28 @@ class _MiniAstTypeAnalyzer
     }
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
+    var lastVisitedArgument = -1;
     for (var i = 0; i < arguments.length; i++) {
+      var j = argumentVisitOrder[i];
       inputKinds.add(Kind.expression);
+      if (lastVisitedArgument != j - 1) {
+        flow.recordArgumentVisitOrderException(
+          offset: betweenArgumentOffsets[j],
+        );
+      }
       analyzeExpression(
-        arguments[i],
+        arguments[j],
         methodType is FunctionType && !methodType.isQuestionType
             ? operations.typeToSchema(
-                SharedTypeView(methodType.positionalParameters[i]),
+                SharedTypeView(methodType.positionalParameters[j]),
               )
             : operations.unknownType,
+      );
+      lastVisitedArgument = j;
+    }
+    if (lastVisitedArgument != arguments.length - 1) {
+      flow.recordArgumentVisitOrderException(
+        offset: betweenArgumentOffsets[arguments.length],
       );
     }
     // Form the IR for the member invocation.
@@ -8491,5 +8550,20 @@ class _VariableBinder extends VariableBinder<Node, Var> {
       visitor: visitor,
     );
     return joinedVariable;
+  }
+}
+
+extension on List<int> {
+  /// Determines whether this list is a permutation of the numbers from 0 to
+  /// `expectedLength - 1`.
+  bool isPermutation(int expectedLength) {
+    if (length != expectedLength) return false;
+    List<bool> seen = List.filled(expectedLength, false);
+    for (var i in this) {
+      if (i < 0 || i >= expectedLength) return false;
+      if (seen[i]) return false;
+      seen[i] = true;
+    }
+    return true;
   }
 }

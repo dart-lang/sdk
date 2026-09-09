@@ -600,6 +600,22 @@ InternalLoopStatement createForStatement(
   );
 }
 
+InternalLoopStatement createPatternForStatement({
+  required InternalPatternVariableDeclaration patternVariableDeclaration,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalStatement body,
+  required int fileOffset,
+}) {
+  return new InternalPatternForStatement(
+    patternVariableDeclaration,
+    condition,
+    updates,
+    body,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalStatement createFunctionDeclaration({
   required InternalLocalFunctionVariable variable,
   required int fileOffset,
@@ -1223,7 +1239,6 @@ InternalNamedParameter createNamedParameter({
   bool isFinal = false,
   bool hasDeclaredDefaultValue = false,
   bool isLowered = false,
-  bool isSynthesized = false,
   bool isWildcard = false,
   bool isRenamedPrivateNamedParameter = false,
   required int fileOffset,
@@ -1241,7 +1256,6 @@ InternalNamedParameter createNamedParameter({
       isSuperInitializingFormal: isSuperInitializingFormal,
       isFinal: isFinal,
       hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-      isSynthesized: isSynthesized,
       isWildcard: isWildcard,
       isRenamedPrivateNamedParameter: isRenamedPrivateNamedParameter,
       fileOffset: fileOffset,
@@ -1354,8 +1368,8 @@ InternalExpression createPatternAssignment(
 
 InternalElement createPatternForElement({
   required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<InternalVariableDeclaration> intermediateVariables,
-  required List<InternalVariableDeclaration> variables,
+  //required List<InternalVariableDeclaration> intermediateVariables,
+  //required List<InternalVariableDeclaration> variables,
   required InternalExpression? condition,
   required List<InternalExpression> updates,
   required InternalElement body,
@@ -1363,8 +1377,8 @@ InternalElement createPatternForElement({
 }) {
   return new PatternForElement(
     patternVariableDeclaration: patternVariableDeclaration,
-    intermediateVariables: intermediateVariables,
-    variables: variables,
+    //intermediateVariables: intermediateVariables,
+    //variables: variables,
     condition: condition,
     updates: updates,
     body: body,
@@ -1447,7 +1461,7 @@ InternalPatternVariableDeclaration createPatternVariableDeclaration(
 }
 
 InternalPositionalParameter createPositionalParameter({
-  String? cosmeticName,
+  required String parameterName,
   required DartType type,
   bool isImplicitlyTyped = false,
   InternalExpression? defaultValue,
@@ -1458,7 +1472,6 @@ InternalPositionalParameter createPositionalParameter({
   bool isSuperInitializingFormal = false,
   bool isFinal = false,
   bool isLowered = false,
-  bool isSynthesized = false,
   bool isWildcard = false,
   required int fileOffset,
   bool forSyntheticToken = false,
@@ -1466,7 +1479,7 @@ InternalPositionalParameter createPositionalParameter({
   return new InternalPositionalParameter(
     defaultValue: defaultValue,
     astVariable: extern.createPositionalParameter(
-      cosmeticName: cosmeticName,
+      parameterName: parameterName,
       type: type,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isInitializingFormal: isInitializingFormal,
@@ -1474,7 +1487,6 @@ InternalPositionalParameter createPositionalParameter({
       isFinal: isFinal,
       hasDeclaredDefaultValue: hasDeclaredDefaultValue,
       isLowered: isLowered,
-      isSynthesized: isSynthesized,
       isWildcard: isWildcard,
       fileOffset: fileOffset,
     ),

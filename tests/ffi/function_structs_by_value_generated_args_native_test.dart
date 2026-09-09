@@ -99,6 +99,18 @@ void main() {
     testPassPointerStructInlineArrayVariableNative();
     testPassPointerStructInlineArrayVariableAlignNative();
     testPassPointerStructInlineArrayVariable2Native();
+    testUncategorizedFloatx9Int32Native();
+    testUncategorizedFloatx10Native();
+    testPassFloatx9Struct4BytesInt1FieldNative();
+    testPassFloatx9Struct4BytesHomogeneousUint84BytesNative();
+    testPassFloatx9Struct8BytesHomogeneousInt322FieldsNative();
+    testPassFloatx9Struct12BytesHomogeneousInt32Native();
+    testPassFloatx9Struct16BytesHomogeneousInt324FieldsNative();
+    testPassFloatx9Struct4BytesFloatNative();
+    testPassFloatx9Struct8BytesHomogeneousFloatNative();
+    testPassFloatx9Struct12BytesHomogeneousFloatNative();
+    testPassFloatx9Struct16BytesHomogeneousFloatNative();
+    testPassFloatx9Struct8BytesMixedInt32FloatNative();
   }
 }
 
@@ -6197,4 +6209,878 @@ void testPassPointerStructInlineArrayVariable2Native() {
   Expect.equals(66, result);
 
   calloc.free(a0);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Int32,
+  )
+>(symbol: 'UncategorizedFloatx9Int32')
+external double uncategorizedFloatx9Int32Native(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  int a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testUncategorizedFloatx9Int32Native() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  int a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10;
+
+  final result = uncategorizedFloatx9Int32Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+  )
+>(symbol: 'UncategorizedFloatx10')
+external double uncategorizedFloatx10Native(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  double a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testUncategorizedFloatx10Native() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  double a9;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9 = 10.0;
+
+  final result = uncategorizedFloatx10Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(5.0, result);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct4BytesInt1Field,
+  )
+>(symbol: 'PassFloatx9Struct4BytesInt1Field')
+external double passFloatx9Struct4BytesInt1FieldNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesInt1Field a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct4BytesInt1FieldNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct4BytesInt1Field>();
+  final Struct4BytesInt1Field a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+
+  final result = passFloatx9Struct4BytesInt1FieldNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(5.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct4BytesHomogeneousUint84Bytes,
+  )
+>(symbol: 'PassFloatx9Struct4BytesHomogeneousUint84Bytes')
+external double passFloatx9Struct4BytesHomogeneousUint84BytesNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesHomogeneousUint84Bytes a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct4BytesHomogeneousUint84BytesNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct4BytesHomogeneousUint84Bytes>();
+  final Struct4BytesHomogeneousUint84Bytes a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = 11;
+  a9.a2 = 12;
+  a9.a3 = 13;
+
+  final result = passFloatx9Struct4BytesHomogeneousUint84BytesNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(41.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct8BytesHomogeneousInt322Fields,
+  )
+>(symbol: 'PassFloatx9Struct8BytesHomogeneousInt322Fields')
+external double passFloatx9Struct8BytesHomogeneousInt322FieldsNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousInt322Fields a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct8BytesHomogeneousInt322FieldsNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct8BytesHomogeneousInt322Fields>();
+  final Struct8BytesHomogeneousInt322Fields a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+
+  final result = passFloatx9Struct8BytesHomogeneousInt322FieldsNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(-6.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct12BytesHomogeneousInt32,
+  )
+>(symbol: 'PassFloatx9Struct12BytesHomogeneousInt32')
+external double passFloatx9Struct12BytesHomogeneousInt32Native(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousInt32 a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct12BytesHomogeneousInt32Native() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct12BytesHomogeneousInt32>();
+  final Struct12BytesHomogeneousInt32 a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+
+  final result = passFloatx9Struct12BytesHomogeneousInt32Native(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(6.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct16BytesHomogeneousInt324Fields,
+  )
+>(symbol: 'PassFloatx9Struct16BytesHomogeneousInt324Fields')
+external double passFloatx9Struct16BytesHomogeneousInt324FieldsNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousInt324Fields a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct16BytesHomogeneousInt324FieldsNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct16BytesHomogeneousInt324Fields>();
+  final Struct16BytesHomogeneousInt324Fields a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11;
+  a9.a2 = 12;
+  a9.a3 = -13;
+
+  final result = passFloatx9Struct16BytesHomogeneousInt324FieldsNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(-7.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct4BytesFloat,
+  )
+>(symbol: 'PassFloatx9Struct4BytesFloat')
+external double passFloatx9Struct4BytesFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct4BytesFloat a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct4BytesFloatNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct4BytesFloat>();
+  final Struct4BytesFloat a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+
+  final result = passFloatx9Struct4BytesFloatNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(5.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct8BytesHomogeneousFloat,
+  )
+>(symbol: 'PassFloatx9Struct8BytesHomogeneousFloat')
+external double passFloatx9Struct8BytesHomogeneousFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesHomogeneousFloat a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct8BytesHomogeneousFloatNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct8BytesHomogeneousFloat>();
+  final Struct8BytesHomogeneousFloat a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+
+  final result = passFloatx9Struct8BytesHomogeneousFloatNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(-6.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct12BytesHomogeneousFloat,
+  )
+>(symbol: 'PassFloatx9Struct12BytesHomogeneousFloat')
+external double passFloatx9Struct12BytesHomogeneousFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct12BytesHomogeneousFloat a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct12BytesHomogeneousFloatNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct12BytesHomogeneousFloat>();
+  final Struct12BytesHomogeneousFloat a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+
+  final result = passFloatx9Struct12BytesHomogeneousFloatNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(6.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct16BytesHomogeneousFloat,
+  )
+>(symbol: 'PassFloatx9Struct16BytesHomogeneousFloat')
+external double passFloatx9Struct16BytesHomogeneousFloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct16BytesHomogeneousFloat a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct16BytesHomogeneousFloatNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct16BytesHomogeneousFloat>();
+  final Struct16BytesHomogeneousFloat a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10.0;
+  a9.a1 = -11.0;
+  a9.a2 = 12.0;
+  a9.a3 = -13.0;
+
+  final result = passFloatx9Struct16BytesHomogeneousFloatNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(-7.0, result);
+
+  calloc.free(a9Pointer);
+}
+
+@Native<
+  Double Function(
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Float,
+    Struct8BytesMixedInt32Float,
+  )
+>(symbol: 'PassFloatx9Struct8BytesMixedInt32Float')
+external double passFloatx9Struct8BytesMixedInt32FloatNative(
+  double a0,
+  double a1,
+  double a2,
+  double a3,
+  double a4,
+  double a5,
+  double a6,
+  double a7,
+  double a8,
+  Struct8BytesMixedInt32Float a9,
+);
+
+/// Exhaust FP registers with 9 floats, then pass $t by value.
+void testPassFloatx9Struct8BytesMixedInt32FloatNative() {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  double a6;
+  double a7;
+  double a8;
+  final a9Pointer = calloc<Struct8BytesMixedInt32Float>();
+  final Struct8BytesMixedInt32Float a9 = a9Pointer.ref;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6 = -7.0;
+  a7 = 8.0;
+  a8 = -9.0;
+  a9.a0 = 10;
+  a9.a1 = -11.0;
+
+  final result = passFloatx9Struct8BytesMixedInt32FloatNative(
+    a0,
+    a1,
+    a2,
+    a3,
+    a4,
+    a5,
+    a6,
+    a7,
+    a8,
+    a9,
+  );
+
+  print("result = $result");
+
+  Expect.approxEquals(-6.0, result);
+
+  calloc.free(a9Pointer);
 }

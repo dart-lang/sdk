@@ -32,9 +32,8 @@ void myTopLevelMethod() {
 When providing dart2js with the experimental `--write-resources` flag, the
 compiler will emit a `.resources.json` file. This file lists whether any
 top-level methods annotated with the special pragma was invoked in the program.
-It will also include some additional static information, like the source
-location of the call, or even which parameters where provided (if the parameters
-are constant).
+It will also include some additional static information, like which parameters
+were provided (if the parameters are constant).
 
 Only calls in reachable code (executable code) are tracked. Calls appearing
 within metadata (annotations) are ignored.

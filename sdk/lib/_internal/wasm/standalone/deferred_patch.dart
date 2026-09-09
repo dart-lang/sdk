@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-final Set<int> _loaded = {};
+final Set<int> _loadedPrefixes = {};
 
 // The standalone target doesn't support loading deferred libraries, dart2wasm
 // emits an error when `--enable-deferred-loading` is enabled with this target.
@@ -10,12 +10,12 @@ final Set<int> _loaded = {};
 // them do nothing.
 
 Future<void> loadLibraryFromLoadId(int loadId) {
-  _loaded.add(loadId);
+  _loadedPrefixes.add(loadId);
   return Future.value();
 }
 
 bool checkLibraryIsLoadedFromLoadId(int loadId) {
-  if (_loaded.contains(loadId)) {
+  if (_loadedPrefixes.contains(loadId)) {
     return true;
   }
   throw DeferredLoadIdNotLoadedError();

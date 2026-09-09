@@ -5175,7 +5175,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 ///     {
 ///       "included": List<FilePath>
-///       "inTestMode": optional bool
 ///       "updatePubspec": optional bool
 ///       "codes": optional List<String>
 ///     }
@@ -5192,14 +5191,6 @@ class EditBulkFixesParams implements RequestParams {
   /// of type `FILE_NOT_ANALYZED` will be generated.
   List<String> included;
 
-  /// A flag indicating whether the bulk fixes are being run in test mode. The
-  /// only difference is that in test mode the fix processor will look for a
-  /// configuration file that can modify the content of the data file used to
-  /// compute the fixes when data-driven fixes are being considered.
-  ///
-  /// If this field is omitted the flag defaults to `false`.
-  bool? inTestMode;
-
   /// A flag indicating whether to validate that the dependencies used by the
   /// included files are listed in the pubspec file. If specified, the fix
   /// processor will compute the set of packages imported in the source and
@@ -5212,12 +5203,7 @@ class EditBulkFixesParams implements RequestParams {
   /// A list of diagnostic codes to be fixed.
   List<String>? codes;
 
-  EditBulkFixesParams(
-    this.included, {
-    this.inTestMode,
-    this.updatePubspec,
-    this.codes,
-  });
+  EditBulkFixesParams(this.included, {this.updatePubspec, this.codes});
 
   factory EditBulkFixesParams.fromJson(
     JsonDecoder jsonDecoder,
@@ -5236,13 +5222,6 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included', json);
       }
-      bool? inTestMode;
-      if (json.containsKey('inTestMode')) {
-        inTestMode = jsonDecoder.decodeBool(
-          '$jsonPath.inTestMode',
-          json['inTestMode'],
-        );
-      }
       bool? updatePubspec;
       if (json.containsKey('updatePubspec')) {
         updatePubspec = jsonDecoder.decodeBool(
@@ -5260,7 +5239,6 @@ class EditBulkFixesParams implements RequestParams {
       }
       return EditBulkFixesParams(
         included,
-        inTestMode: inTestMode,
         updatePubspec: updatePubspec,
         codes: codes,
       );
@@ -5281,10 +5259,6 @@ class EditBulkFixesParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['included'] = included;
-    var inTestMode = this.inTestMode;
-    if (inTestMode != null) {
-      result['inTestMode'] = inTestMode;
-    }
     var updatePubspec = this.updatePubspec;
     if (updatePubspec != null) {
       result['updatePubspec'] = updatePubspec;
@@ -5308,14 +5282,12 @@ class EditBulkFixesParams implements RequestParams {
   bool operator ==(Object other) =>
       other is EditBulkFixesParams &&
       listEqual(included, other.included, (String a, String b) => a == b) &&
-      inTestMode == other.inTestMode &&
       updatePubspec == other.updatePubspec &&
       listEqual(codes, other.codes, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(
     Object.hashAll(included),
-    inTestMode,
     updatePubspec,
     Object.hashAll(codes ?? []),
   );
@@ -11605,6 +11577,7 @@ enum GeneralAnalysisService {
 ///       "containingLibraryPath": optional String
 ///       "containingLibraryName": optional String
 ///       "containingClassDescription": optional String
+///       "containingExecutableDescriptions": optional List<String>
 ///       "dartdoc": optional String
 ///       "elementDescription": optional String
 ///       "elementKind": optional String
@@ -11634,10 +11607,15 @@ class HoverInformation implements HasToJson {
   /// data is omitted if the element is declared inside an HTML file.
   String? containingLibraryName;
 
-  /// A human-readable description of the class declaring the element being
-  /// referenced. This data is omitted if there is no referenced element, or if
-  /// the element is not a class member.
+  /// A human-readable description of the instance type declaring the element
+  /// being referenced. This data is omitted if there is no referenced element,
+  /// or if the element is not a instance type member.
   String? containingClassDescription;
+
+  /// A human-readable list of the executable names declaring the element being
+  /// referenced. This data is omitted if there is no referenced element, or if
+  /// the element is not declared in an executable member.
+  List<String>? containingExecutableDescriptions;
 
   /// The dartdoc associated with the referenced element. Other than the
   /// removal of the comment delimiters, including leading asterisks in the
@@ -11678,6 +11656,7 @@ class HoverInformation implements HasToJson {
     this.containingLibraryPath,
     this.containingLibraryName,
     this.containingClassDescription,
+    this.containingExecutableDescriptions,
     this.dartdoc,
     this.elementDescription,
     this.elementKind,
@@ -11725,6 +11704,14 @@ class HoverInformation implements HasToJson {
         containingClassDescription = jsonDecoder.decodeString(
           '$jsonPath.containingClassDescription',
           json['containingClassDescription'],
+        );
+      }
+      List<String>? containingExecutableDescriptions;
+      if (json.containsKey('containingExecutableDescriptions')) {
+        containingExecutableDescriptions = jsonDecoder.decodeList(
+          '$jsonPath.containingExecutableDescriptions',
+          json['containingExecutableDescriptions'],
+          jsonDecoder.decodeString,
         );
       }
       String? dartdoc;
@@ -11782,6 +11769,7 @@ class HoverInformation implements HasToJson {
         containingLibraryPath: containingLibraryPath,
         containingLibraryName: containingLibraryName,
         containingClassDescription: containingClassDescription,
+        containingExecutableDescriptions: containingExecutableDescriptions,
         dartdoc: dartdoc,
         elementDescription: elementDescription,
         elementKind: elementKind,
@@ -11811,6 +11799,12 @@ class HoverInformation implements HasToJson {
     var containingClassDescription = this.containingClassDescription;
     if (containingClassDescription != null) {
       result['containingClassDescription'] = containingClassDescription;
+    }
+    var containingExecutableDescriptions =
+        this.containingExecutableDescriptions;
+    if (containingExecutableDescriptions != null) {
+      result['containingExecutableDescriptions'] =
+          containingExecutableDescriptions;
     }
     var dartdoc = this.dartdoc;
     if (dartdoc != null) {
@@ -11854,6 +11848,11 @@ class HoverInformation implements HasToJson {
       containingLibraryPath == other.containingLibraryPath &&
       containingLibraryName == other.containingLibraryName &&
       containingClassDescription == other.containingClassDescription &&
+      listEqual(
+        containingExecutableDescriptions,
+        other.containingExecutableDescriptions,
+        (String a, String b) => a == b,
+      ) &&
       dartdoc == other.dartdoc &&
       elementDescription == other.elementDescription &&
       elementKind == other.elementKind &&
@@ -11869,6 +11868,7 @@ class HoverInformation implements HasToJson {
     containingLibraryPath,
     containingLibraryName,
     containingClassDescription,
+    Object.hashAll(containingExecutableDescriptions ?? []),
     dartdoc,
     elementDescription,
     elementKind,

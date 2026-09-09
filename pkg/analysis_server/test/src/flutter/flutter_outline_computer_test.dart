@@ -24,6 +24,9 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   late ResolvedUnitResult resolveResult;
   late FlutterOutlineComputer computer;
 
+  @override
+  bool get addFlutterPackageDep => true;
+
   Matcher hasCodeOffsetLength(TestCodeRange range) {
     return TypeMatcher<FlutterOutline>()
         .having(
@@ -51,7 +54,6 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     testPath = convertPath('$testPackageLibPath/test.dart');
   }
 

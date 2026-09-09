@@ -9,12 +9,7 @@ import 'util.dart' as util;
 
 enum ExternType { memory }
 
-final class MemoryLimits {
-  final int minSize;
-  final int? maxSize;
-
-  MemoryLimits({required this.minSize, this.maxSize});
-
+final class MemoryLimits({required final int minSize, final int? maxSize}) {
   /// Read the `MemoryType` annotation on a member.
   static MemoryLimits? readAnnotation(KernelNodes nodes, Member member) {
     final memoryType = util.getPragma<InstanceConstant>(

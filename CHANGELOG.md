@@ -4,17 +4,152 @@
 
 ### Libraries
 
+#### `dart:ffi`
+
+- Added `NativeFinalizer.callback`, which returns the finalization callback the
+  finalizer was created with.
+  For more details, see SDK issue [#63811][]
+
+[#63811]: https://github.com/dart-lang/sdk/issues/63811
+
+#### `dart:typed_data`
+
+- Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
+  of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
+- Added `Int32x4.notEqual`, a lane-wise inequality comparison that returns `-1`
+  in each lane where the operands differ and `0` elsewhere.
+- Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
+  non-zero.
+
 #### `dart:js_interop`
+
 - The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
   verify if a value is an array; it is considered an array if either condition
   returns true.
   For more details, see SDK issue [#62699][]
 
+- Converting a `Future` to a `JSPromise` using `FutureOfJSAnyToJSPromise.toJS`
+  or `FutureOfVoidToJSPromise.toJS` now passes JavaScript error
+  values (`JSAny`) through directly to the rejected promise without
+  wrapping them. Only Dart errors are wrapped in a JS `Error`.
+  For more details, see SDK issue [#61353][].
+
+- Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
+  `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
+  `List<num>.toJS` (`ListOfNumberToJSArray`);
+  `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
+  `List<String>.toJS` (`ListOfStringToJSArray`);
+  `JSArray<JSBoolean>.toDartBoolList` (`JSArrayOfJSBooleanToList`);
+  `List<bool>.toJS` (`ListOfBoolToJSArray`);
+  `JSArray<JSNumber?>.toDartDoubleList` and `JSArray<JSNumber?>.toDartIntList`
+  (`JSArrayOfNullableJSNumberToList`); `List<num?>.toJS`
+  (`ListOfNullableNumberToJSArray`); `JSArray<JSString?>.toDartStringList`
+  (`JSArrayOfNullableJSStringToList`); `List<String?>.toJS`
+  (`ListOfNullableStringToJSArray`); `JSArray<JSBoolean?>.toDartBoolList`
+  (`JSArrayOfNullableJSBooleanToList`); and `List<bool?>.toJS`
+  (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
+  convert between JS and Dart arrays of primitives.
+
+- Added `JSFunction.length` and `.name` getters.
+
+- Added the `JSArray.fromAsync` static method to create an array from an
+  asynchronous generator or a synchronous list of asynchronous values.
+
+- Added `JSPromise.resolve` and `JSPromise.reject` static methods.
+
+- Added extension methods `FutureOr<JSAny>.toJSPromiseOrValue`
+  (`FutureOrToJSAny`), `FutureOr<JSAny?>.toJSPromiseOrValue`
+  (`FutureOrToNullableJSAny`), `JSAny.toDartFutureOr` (`JSAnyToFutureOr`), and
+  `JSAny?.toDartFutureOr` (`NullableJSAnyToFutureOr`). These make it easier and
+  more efficient to convert between possibly-synchronous values at the Dart/JS
+  boundary.
+
+[#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+
+### Tools
+
+#### Formatter
+
+The following bug fixes are *not* language versioned and apply also when
+formatting Dart 3.13 code:
+
+- Don't crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]).
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+## 3.13.3
+
+**Released on:** 2026-09-01
+
+This is a patch release that:
+
+- Fixes an issue where Windows to Linux cross compilation
+  produced incorrect executables if the applicatios used
+  build hooks to link native code. (issue [#63953][])
+
+[#63953]: https://github.com/dart-lang/sdk/issues/63953
+
+## 3.13.2
+
+**Released on:** 2026-08-25
+
+This is a patch release that:
+
+- Fixes incorrect dart2wasm compilation of constructor invocations when
+  the class was determined to be not allocatable. (issue [#63809][])
+- Deprecates the legacy analyzer plugin system. (issue [#62164][])
+- Fixes dart2js compiler crash when compiling code with
+  nested constants in `record_use`. (issue [#64070][])
+- Fixes a `dart format` crash and incorrect formatting with
+  enums that use primary constructors.
+  (issues [dart-lang/dart_style#1885][], [dart-lang/dart_style#1888][])
+
+[#63809]: https://github.com/dart-lang/sdk/issues/63809
+[#62164]: https://github.com/dart-lang/sdk/issues/62164
+[#64070]: https://github.com/dart-lang/sdk/issues/64070
+
+[dart-lang/dart_style#1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart-lang/dart_style#1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+
+## 3.13.1
+
+**Released on:** 2026-08-18
+
+This is a patch release that:
+
+- Fixes `dart fix --apply --code=migrate_design_widgets` to
+  replace URIs in both import and export statements. (issue [#63968][])
+- Fixes dart2wasm compiler crash in no-such-method forwarders.
+  (issue [#63904][])
+- Fixes dart2wasm compilation error if 3rd party `Type` implementations exist.
+  (issue [#63843][])
+- Fixes dart2wasm compiler crash if dynamic getter calls are used that
+  target a getter implementation that was inferred to never return.
+- Fixes dart2wasm compiler crash if named parameters in hierarchy have
+  mixed "required"-ness. (issue [#60583][])
+- Fixes `closure.hashCode` sometimes returning `null`. (issue [#64035][])
+
+[#63968]: https://github.com/dart-lang/sdk/issues/63968
+[#63904]: https://github.com/dart-lang/sdk/issues/63904
+[#63843]: https://github.com/dart-lang/sdk/issues/63843
+[#60583]: https://github.com/dart-lang/sdk/issues/60583
+[#64035]: https://github.com/dart-lang/sdk/issues/64035
 
 ## 3.13.0
 
-**Released on:** Unreleased
+**Released on:** 2026-08-12
 
 ### Language
 
@@ -79,14 +214,22 @@ class Point {
 To learn more about the feature, check out the
 [feature specification][primary-constructor-spec].
 
-[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.13/primary-constructors/feature-specification.md
 
 #### Other changes
 
+- **Breaking change**: You can no longer use `final` or `var` on non-declaring
+  parameters. Dart now reserves both for
+  [declaring parameters in primary constructors][declaring-parameters].
+  Remove `final` or `var` from affected parameter declarations. If you still
+  want to prevent parameter reassignment, you can use the
+  [`parameter_assignments`][] lint rule.
 - **Breaking change**: A minor change has been made to type promotion to avoid
   unsound behavior. See SDK issue [#62889][] for details.
 
 [#62889]: https://github.com/dart-lang/sdk/issues/62889
+[declaring-parameters]: https://dart.dev/language/primary-constructors#field-declarations-in-parameters
+[`parameter_assignments`]: https://dart.dev/tools/linter-rules/parameter_assignments
 
 ### Libraries
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -22,6 +23,7 @@ import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
+import 'inference_strategy.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
@@ -137,6 +139,7 @@ class TypeInferrerImpl implements TypeInferrer {
     operations,
     assignedVariables,
     typeAnalyzerOptions: typeAnalyzerOptions,
+    enableLog: false,
   );
 
   @override
@@ -211,6 +214,12 @@ class TypeInferrerImpl implements TypeInferrer {
       typeAnalyzerOptions,
       expressionEvaluationHelper,
       contextAllocationStrategy: contextAllocationStrategy,
+      cfeInferenceStrategy:
+          libraryBuilder.libraryFeatures.receiverTypeInference.isEnabled
+          ?
+            // Coverage-ignore(suite): Not run.
+            new CfeReceiverTypeInferenceStrategy()
+          : new CfeTrivialTypeInferenceStrategy(),
     );
   }
 
@@ -225,7 +234,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
@@ -324,7 +335,9 @@ class TypeInferrerImpl implements TypeInferrer {
     required FunctionType targetType,
   }) {
     ContextAllocationStrategy contextAllocationStrategy =
-        InferenceVisitorBase.createContextAllocationStrategy();
+        ContextAllocationStrategy.createContextAllocationStrategy(
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        );
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy: contextAllocationStrategy,
@@ -463,7 +476,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     List<Expression> result = visitor.inferMetadata(visitor, annotations);
     visitor.checkCleanState();
@@ -480,7 +495,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     ExpressionInferenceResult result = visitor.inferExpression(
       defaultValue,
@@ -504,16 +521,21 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   CaptureKind captureKindForVariable(InternalVariable variable) {
-    int variableKey = assignedVariables.promotionKeyStore.keyForVariable(
-      variable,
-    );
+    if (isClosureContextLoweringEnabled) {
+      PromotionKey variableKey = assignedVariables.promotionKeyStore
+          .keyForVariable(variable);
 
-    if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
-        assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.directCaptured;
-    } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
-        assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.assertCaptured;
+      if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
+          assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
+        return CaptureKind.directCaptured;
+      } else if (assignedVariables.insideAsserts.captured.contains(
+            variableKey,
+          ) ||
+          assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
+        return CaptureKind.assertCaptured;
+      } else {
+        return CaptureKind.notCaptured;
+      }
     } else {
       return CaptureKind.notCaptured;
     }
@@ -718,5 +740,5 @@ abstract class ConstructorContext {
   FunctionSignature get signature;
 
   /// The variable used for `this`, if any.
-  Variable? get thisVariable;
+  InternalDeclaredVariable? get thisVariable;
 }

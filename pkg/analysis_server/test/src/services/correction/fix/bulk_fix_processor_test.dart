@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,11 +38,11 @@ var a = new A();
 
     var analysisContext = contextFor(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      byteStore: MemoryByteStore(),
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -72,11 +73,11 @@ var a = new A();
 
     var analysisContext = contextFor(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      byteStore: MemoryByteStore(),
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -101,11 +102,11 @@ var a = new A();
 
     var analysisContext = contextFor(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
-      additionalEnabledCodes: ['some_fake_lint_that_doesnt_exist'],
+      byteStore: MemoryByteStore(),
+      additionalLintCodes: ['some_fake_lint_that_doesnt_exist'],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -129,11 +130,11 @@ var a = new A();
 
     var analysisContext = contextFor(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      byteStore: MemoryByteStore(),
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -188,7 +189,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       cancellationToken: token,
     );
 
@@ -469,6 +470,41 @@ void f() {
     await assertFixPubspec(content, expected);
   }
 
+  Future<void> test_existingDependencies_noTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_existingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_fileHasParts() async {
     var content = '''
 name: test
@@ -669,6 +705,34 @@ void bad() {
 }
 ''');
 
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_noTrailingNewline() async {
+    var content = 'name: test';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
     await assertFixPubspec(content, expected);
   }
 }

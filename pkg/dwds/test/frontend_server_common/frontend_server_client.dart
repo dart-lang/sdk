@@ -292,6 +292,7 @@ class ResidentCompiler {
   Process? _server;
   final StdoutHandler _stdoutHandler;
   bool _compileRequestNeedsConfirmation = false;
+  bool _isStopping = false;
 
   final StreamController<_CompilationRequest> _controller =
       StreamController<_CompilationRequest>();
@@ -413,7 +414,9 @@ class ResidentCompiler {
       if (compilerOptions.canaryFeatures) '--dartdevc-canary',
       if (verbose) '--verbose',
       if (compilerOptions.moduleFormat == ModuleFormat.ddc)
-        '--dartdevc-module-format=ddc',
+        '--dartdevc-module-format=ddc'
+      else if (compilerOptions.moduleFormat == ModuleFormat.amd)
+        '--dartdevc-module-format=amd',
     ];
     _logger.info(args.join(' '));
     final workingDirectory = projectDirectory.toFilePath();
@@ -446,8 +449,10 @@ class ResidentCompiler {
 
     unawaited(
       server.exitCode.then((int code) {
-        if (code != 0) {
-          throw Exception('the Dart compiler exited unexpectedly.');
+        if (!_isStopping && code != 0) {
+          throw Exception(
+            'the Dart compiler exited unexpectedly with exit code: $code.',
+          );
         }
       }),
     );
@@ -628,6 +633,7 @@ class ResidentCompiler {
   }
 
   Future<int> quit() async {
+    _isStopping = true;
     _server?.stdin.writeln('quit');
     _logger.info('<- quit');
 
@@ -639,6 +645,7 @@ class ResidentCompiler {
 
   /// stop the service normally
   Future<dynamic> shutdown() async {
+    _isStopping = true;
     // Server was never successfully created.
     if (_server == null) {
       return 0;
@@ -648,6 +655,7 @@ class ResidentCompiler {
 
   /// kill the service
   Future<dynamic> kill() async {
+    _isStopping = true;
     if (_server == null) {
       return 0;
     }

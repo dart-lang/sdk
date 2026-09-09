@@ -5,29 +5,25 @@ import "dart:core" as core;
 class A<X extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::A<self::A::X%>
     ;
-  static factory foo<X extends core::Object? = dynamic>(positional-parameter x) → self::A<self::A::foo::X%> /* redirection-target: self::B::•<self::A::foo::X%>*//* scope=[
-    #ctx1: not-captured VariableContext([
-      positional-parameter x;
-    ]),
+  static factory foo<X extends core::Object? = dynamic>(self::A::foo::X% x) → self::A<self::A::foo::X%> /* redirection-target: self::B::•<self::A::foo::X%>*//* scope=[
+    #ctx1: not-captured [x],
   ] */
     return new self::B::•<self::A::foo::X%>(x);
 }
 class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
-  constructor •(positional-parameter x) → self::B<self::B::X%>
+  constructor •(self::B::X% x) → self::B<self::B::X%>
     ;
 }
 class C<Y extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::C<self::C::Y%>
     ;
-  static factory bar<Y extends core::Object? = dynamic>({named-parameter required y}) → self::C<self::C::bar::Y%> /* redirection-target: self::D::•<self::C::bar::Y%>*//* scope=[
-    #ctx2: not-captured VariableContext([
-      named-parameter required y;
-    ]),
+  static factory bar<Y extends core::Object? = dynamic>({required self::C::bar::Y% y}) → self::C<self::C::bar::Y%> /* redirection-target: self::D::•<self::C::bar::Y%>*//* scope=[
+    #ctx2: not-captured [y],
   ] */
     return new self::D::•<self::C::bar::Y%>(y: y);
 }
 class D<Y extends core::Object? = dynamic> extends self::C<self::D::Y%> {
-  constructor •({named-parameter required y}) → self::D<self::D::Y%>
+  constructor •({required self::D::Y% y}) → self::D<self::D::Y%>
     ;
 }
 static method test() → dynamic

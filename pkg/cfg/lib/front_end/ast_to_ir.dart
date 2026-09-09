@@ -220,6 +220,27 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addStoreLocal(param);
       }
     }
+
+    final functionNode = function.functionNode;
+    if (functionNode != null) {
+      for (final typeParam in functionNode.typeParameters) {
+        if (!typeParam.isCovariantByClass) {
+          continue;
+        }
+        final type = ast.TypeParameterType.withDefaultNullability(typeParam);
+        final dartTypeParamBound = _typeTranslator.translate(typeParam.bound);
+        if (dartTypeParamBound is TopType) {
+          continue;
+        }
+        builder.addSubtypeCheck(
+          _typeTranslator.translate(type),
+          dartTypeParamBound,
+          typeParam.name!,
+          _typeParametersForTypes([type, typeParam.bound]),
+        );
+      }
+    }
+
     if (function.isSuspendable) {
       final emittedValueType = function.functionNode!.emittedValueType!;
       builder.addTypeArguments([
@@ -282,6 +303,9 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addLoadLocal(param);
       }
       recognizedBodyBuilder(builder);
+      if (builder.hasOpenBlock) {
+        builder.addReturn();
+      }
       return;
     }
     _translateNode(functionNode.body);
@@ -653,6 +677,14 @@ class AstToIr extends ast.RecursiveVisitor {
     final target = functionRegistry.getFunction(node.target);
     final inputCount = _translateArguments(null, args);
     if (_handleUnreachableExpression(inputCount)) return;
+    final matcher = recognizedMethods.staticInvocations[node.target];
+    if (matcher != null) {
+      final snippet = matcher.match(_argumentTypes(null, args));
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
     builder.addDirectCall(
       target,
       inputCount,

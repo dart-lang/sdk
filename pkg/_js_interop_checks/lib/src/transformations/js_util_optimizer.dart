@@ -1161,6 +1161,12 @@ class ExtensionIndex {
           final extensionType = onType.extensionTypeDeclaration;
           cls = extensionType;
           isInteropOnType = isInteropExtensionType(extensionType);
+        } else if (onType is TypeParameterType) {
+          final interopType = getCoreInteropType(onType.nonTypeParameterBound);
+          if (interopType != null) {
+            cls = interopType.node as Annotatable;
+            isInteropOnType = true;
+          }
         }
         if (!isInteropOnType) continue;
 

@@ -168,7 +168,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (completionNode is BlockClassBody) {
       completionNode = completionNode.parent!;
     }
-    if (completionNode is EnumBody) {
+    if (completionNode is BlockEnumBody) {
       completionNode = completionNode.parent!;
     }
     completionNode.accept(this);
@@ -1055,6 +1055,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {
+    if (offset <= node.offset) {
+      if (node.parent case ClassDeclaration declaration) {
+        keywordHelper.addClassDeclarationKeywords(declaration);
+      }
+    }
+  }
+
+  @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    if (offset <= node.offset) {
+      if (node.parent case EnumDeclaration declaration) {
+        keywordHelper.addEnumDeclarationKeywords(declaration);
+      }
+    }
+  }
+
+  @override
   void visitEmptyStatement(EmptyStatement node) {
     var parent = node.parent;
     if (parent is Block) {
@@ -1495,6 +1513,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     if (node.parent case PrimaryConstructorDeclaration primary) {
+      if (primary.parent case ClassDeclaration declaration
+          when offset >= primary.end) {
+        keywordHelper.addClassDeclarationKeywords(declaration);
+        return;
+      } else if (primary.parent case EnumDeclaration declaration
+          when offset >= primary.end) {
+        keywordHelper.addEnumDeclarationKeywords(declaration);
+        return;
+      }
       primary.accept(this);
       return;
     }
@@ -2634,6 +2661,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         } else {
           collector.completionLocation =
               'PrimaryConstructorDeclaration_fieldType';
+          if (node.parent is! ExtensionTypeDeclaration) {
+            keywordHelper.addFormalParameterKeywords(
+              formalParameters,
+              suggestRequired: true,
+              suggestVariableName: true,
+            );
+            keywordHelper.addKeyword(Keyword.DYNAMIC);
+            keywordHelper.addKeyword(Keyword.VOID);
+          }
           declarationHelper(mustBeType: true).addLexicalDeclarations(parameter);
         }
       } else {
@@ -4602,6 +4638,8 @@ extension on AstNode {
       } else if (enclosingMember is VariableDeclarationList &&
           enclosingMember.parent is FieldDeclaration) {
         return !enclosingMember.isLate;
+      } else if (enclosingMember is PrimaryConstructorBody) {
+        return false;
       }
       enclosingMember = enclosingMember.parent;
     }

@@ -10178,14 +10178,6 @@ void FullSnapshotWriter::WriteFullSnapshot(
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-static const uint8_t* Auth(const uint8_t* ptr) {
-#if defined(HOST_ARCH_ARM64E)
-  return ptrauth_auth_data(ptr, ptrauth_key_function_pointer, 0);
-#else
-  return ptr;
-#endif
-}
-
 FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
                                        const uint8_t* instructions_buffer,
                                        Thread* thread)
@@ -10194,7 +10186,7 @@ FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
       buffer_(snapshot->Addr()),
       size_(snapshot->length()),
       data_image_(snapshot->DataImage()),
-      instructions_image_(Auth(instructions_buffer)) {}
+      instructions_image_(instructions_buffer) {}
 
 char* SnapshotHeaderReader::InitializeIsolateGroupFlagsFromSnapshot(
     const Snapshot* snapshot) {
@@ -10359,7 +10351,7 @@ void FullSnapshotReader::InitializeBSS() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Initialize entries in the isolate portion of the BSS segment.
   ASSERT(Snapshot::IncludesCode(kind_));
-  Image image(instructions_image_);
+  TextImage image(instructions_image_);
   if (auto const bss = image.bss()) {
     BSS::Initialize(thread_, bss);
   }

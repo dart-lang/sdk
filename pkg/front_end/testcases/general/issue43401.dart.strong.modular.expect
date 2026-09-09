@@ -29,6 +29,6 @@ static method test() → void {
   invalid-expression "pkg/front_end/testcases/general/issue43401.dart:10:43: Error: Expected an identifier, but got ''.
 Try inserting an identifier before ''.
   Object o = Object() Test<Object,Object>.>> ((Object o) => o);
-                                          ^"{<invalid>}.>>((core::Object o) → core::Object => o);
+                                          ^"{<invalid>}.>>((core::Object o##1) → core::Object => o##1);
   core::print(o);
 }

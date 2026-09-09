@@ -560,7 +560,7 @@ class A {
 import 'package:aaa/a.dart';
 f(A a, A b) {
   a += b;
-//^^^^^^
+//  ^^
 // [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -584,7 +584,7 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
-//  ^^^^^^
+//  ^^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 //   ^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
@@ -608,7 +608,7 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.new());
-//  ^^^^^^
+//  ^^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -630,7 +630,7 @@ import 'package:aaa/a.dart';
 
 void f() {
   g(.a());
-//  ^^^^
+//  ^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -1545,7 +1545,7 @@ class A {
 import 'package:aaa/a.dart';
 f(A a, A b) {
   return a + b;
-//       ^^^^^
+//         ^
 // [diag.experimentalMemberUse] '+' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -2034,7 +2034,7 @@ class A {
 import 'package:aaa/a.dart';
 class B extends A {
   B() : super.named() {}
-//      ^^^^^^^^^^^^^
+//      ^^^^^^^^^^^
 // [diag.experimentalMemberUse] 'A.named' is experimental and could be removed or changed at any time.
 }
 ''');
@@ -2054,7 +2054,7 @@ class A {
 import 'package:aaa/a.dart';
 class B extends A {
   B() : super() {}
-//      ^^^^^^^
+//      ^^^^^
 // [diag.experimentalMemberUse] 'A' is experimental and could be removed or changed at any time.
 }
 ''');

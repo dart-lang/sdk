@@ -74,59 +74,59 @@ class InstantiationInfo {
   ///
   /// For instance
   ///
-  ///    import 'dart:html';
+  ///     import 'dart:html';
   ///
-  ///    abstract class AbstractClass<S> {
-  ///      factory AbstractClass.a() = Class<S>.a;
-  ///      factory AbstractClass.b() => Class<S>.b();
-  ///    }
-  ///    class Class<T> implements AbstractClass<T> {
-  ///      Class.a();
-  ///      Class.b();
-  ///      factory Class.c() = Class.b<T>;
-  ///    }
+  ///     abstract class AbstractClass<S> {
+  ///       factory AbstractClass.a() = Class<S>.a;
+  ///       factory AbstractClass.b() => Class<S>.b();
+  ///     }
+  ///     class Class<T> implements AbstractClass<T> {
+  ///       Class.a();
+  ///       Class.b();
+  ///       factory Class.c() = Class.b<T>;
+  ///     }
   ///
   ///
-  ///    main() {
-  ///      Class.a();
-  ///      Class<int>.a();
-  ///      Class<String>.b();
-  ///      Class<num>.c();
-  ///      AbstractClass<double>.a();
-  ///      AbstractClass<bool>.b();
-  ///      DivElement(); // native instantiation
-  ///    }
+  ///     main() {
+  ///       Class.a();
+  ///       Class<int>.a();
+  ///       Class<String>.b();
+  ///       Class<num>.c();
+  ///       AbstractClass<double>.a();
+  ///       AbstractClass<bool>.b();
+  ///       DivElement(); // native instantiation
+  ///     }
   ///
   /// will generate the mappings
   ///
-  ///    AbstractClass: {
-  ///      AbstractClass.a: {
-  ///        AbstractClass<double> none, // from `new AbstractClass<double>.a()`
-  ///      },
-  ///      AbstractClass.b: {
-  ///        AbstractClass<bool> none, // from `new AbstractClass<bool>.b()`
-  ///      },
-  ///    },
-  ///    Class: {
-  ///      Class.a: {
-  ///        Class directly, // from `new Class.a()`
-  ///        Class<int> directly, // from `new Class<int>.a()`
-  ///        Class<S> directly redirect, // from `factory AbstractClass.a`
-  ///      },
-  ///      Class.b: {
-  ///        Class<String> directly, // from `new Class<String>.b()`
-  ///        Class<T> directly redirect, // from `factory Class.c`
-  ///        Class<S> directly, // from `factory AbstractClass.b`
-  ///      },
-  ///      Class.c: {
-  ///        Class<num> directly, // from `new Class<num>.c()`
-  ///      },
-  ///    },
-  ///    DivElement: {
-  ///      DivElement: {
-  ///        DivElement abstractly, // from `new DivElement()`
-  ///      },
-  ///    }
+  ///     AbstractClass: {
+  ///       AbstractClass.a: {
+  ///         AbstractClass<double> none, // from `new AbstractClass<double>.a()`
+  ///       },
+  ///       AbstractClass.b: {
+  ///         AbstractClass<bool> none, // from `new AbstractClass<bool>.b()`
+  ///       },
+  ///     },
+  ///     Class: {
+  ///       Class.a: {
+  ///         Class directly, // from `new Class.a()`
+  ///         Class<int> directly, // from `new Class<int>.a()`
+  ///         Class<S> directly redirect, // from `factory AbstractClass.a`
+  ///       },
+  ///       Class.b: {
+  ///         Class<String> directly, // from `new Class<String>.b()`
+  ///         Class<T> directly redirect, // from `factory Class.c`
+  ///         Class<S> directly, // from `factory AbstractClass.b`
+  ///       },
+  ///       Class.c: {
+  ///         Class<num> directly, // from `new Class<num>.c()`
+  ///       },
+  ///     },
+  ///     DivElement: {
+  ///       DivElement: {
+  ///         DivElement abstractly, // from `new DivElement()`
+  ///       },
+  ///     }
   ///
   /// If the constructor is unknown, for instance for native or mirror usage,
   /// `null` is used as key.

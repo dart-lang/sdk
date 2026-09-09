@@ -69,40 +69,58 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
     }
 
     // Try to find the returned expression.
-    Expression? expression;
-    {
-      var body = getter.body;
-      if (body is ExpressionFunctionBody) {
+    Expression expression;
+
+    var body = getter.body;
+    switch (body) {
+      case ExpressionFunctionBody():
         expression = body.expression;
-      } else if (body is BlockFunctionBody) {
-        List<Statement> statements = body.block.statements;
-        if (statements.length == 1) {
-          var statement = statements.first;
-          if (statement is ReturnStatement) {
-            expression = statement.expression;
-          }
+      case BlockFunctionBody():
+        if (body.block.statements case [
+          ReturnStatement(expression: var returnExpression?),
+        ]) {
+          expression = returnExpression;
+        } else {
+          return;
         }
-      }
+      case EmptyFunctionBody():
+        if (!getterElement.isAbstract || getterElement.isStatic) return;
+
+        var returnType = getter.returnType;
+        var code = 'abstract final';
+        if (returnType != null) {
+          code += ' ${utils.getNodeText(returnType)}';
+        }
+        code += ' ${getter.name.lexeme};';
+        var replacementRange = range.startEnd(
+          getter.modifierKeyword ?? returnType ?? propertyKeywordGet,
+          getter,
+        );
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(replacementRange, code.toString());
+        });
+        return;
+      case NativeFunctionBody():
+        return;
     }
+
     // Use the returned expression as the field initializer.
-    if (expression != null) {
-      var returnType = getter.returnType;
-      var code = 'final';
-      if (returnType != null) {
-        code += ' ${utils.getNodeText(returnType)}';
-      }
-      code += ' ${getter.name.lexeme}';
-      if (expression is! NullLiteral) {
-        code += ' = ${utils.getNodeText(expression)}';
-      }
-      code += ';';
-      var replacementRange = range.startEnd(
-        returnType ?? propertyKeywordGet,
-        getter,
-      );
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(replacementRange, code);
-      });
+    var returnType = getter.returnType;
+    var code = 'final';
+    if (returnType != null) {
+      code += ' ${utils.getNodeText(returnType)}';
     }
+    code += ' ${getter.name.lexeme}';
+    if (expression is! NullLiteral) {
+      code += ' = ${utils.getNodeText(expression)}';
+    }
+    code += ';';
+    var replacementRange = range.startEnd(
+      returnType ?? propertyKeywordGet,
+      getter,
+    );
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(replacementRange, code);
+    });
   }
 }

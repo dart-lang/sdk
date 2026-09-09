@@ -35,11 +35,11 @@
             block $label4 (result i32)
               block $label5 (result i32)
                 local.get $var6
-                struct.get $#Top $field0
+                struct.get $#Top $#classId
                 local.set $var8
                 block $label6 (result i32)
                   local.get $var8
-                  i32.const 109
+                  i32.const 110
                   i32.eq
                   if
                     i32.const 1
@@ -88,7 +88,7 @@
       br_if $label0
       local.get $var0
       i32.const 0
-      i32.const 109
+      i32.const 110
       local.get $var1
       call $_throwInterfaceTypeAsCheckError1
       unreachable

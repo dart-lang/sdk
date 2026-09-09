@@ -27,7 +27,7 @@ class UseTestThrowsMatchersTest extends LintRuleTest {
       name: 'test_api',
       rootFolder: getFolder(testApiPath),
     );
-    writeTestPackageConfig(packageConfigBuilder);
+    writeTestPackageConfig2(config: packageConfigBuilder);
     newFile('$testApiPath/lib/src/frontend/expect.dart', r'''
 void expect(dynamic actual, dynamic matcher) {}
 

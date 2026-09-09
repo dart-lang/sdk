@@ -1219,6 +1219,7 @@ class OutlineBuilder extends StackListenerImpl {
             unionOfKinds([
               ValueKinds.ParserRecovery,
               ValueKinds.TypeBuilder,
+              ValueKinds.Modifiers,
               ValueKinds.NominalTypeParametersOrNull,
             ]),
           ]),
@@ -1639,6 +1640,8 @@ class OutlineBuilder extends StackListenerImpl {
       offset,
       typeParameters?.fragments,
     );
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1652,6 +1655,7 @@ class OutlineBuilder extends StackListenerImpl {
       checkState(extensionKeyword, [
         if (onKeyword != null)
           unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.IdentifierOrNull,
         ValueKinds.MetadataListOrNull,
@@ -1677,6 +1681,7 @@ class OutlineBuilder extends StackListenerImpl {
         );
       }
     }
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
@@ -1688,8 +1693,7 @@ class OutlineBuilder extends StackListenerImpl {
       offsetMap: _offsetMap,
       beginToken: beginToken,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extensions?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: name,
       typeParameters: typeParameters?.fragments,
       onType: onType as TypeBuilder,
@@ -1720,11 +1724,15 @@ class OutlineBuilder extends StackListenerImpl {
     int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
     push(typeParameters ?? NullValues.NominalParameters);
+
     _builderFactory.beginExtensionTypeDeclaration(
       name,
       nameOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1738,6 +1746,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(
       checkState(extensionKeyword, [
         ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.Identifier,
         ValueKinds.MetadataListOrNull,
@@ -1751,6 +1760,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier identifier = pop() as Identifier;
@@ -1767,8 +1777,7 @@ class OutlineBuilder extends StackListenerImpl {
     _builderFactory.addExtensionTypeDeclaration(
       offsetMap: _offsetMap,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extension types?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: identifier,
       typeParameters: typeParameters?.fragments,
       interfaces: interfaces,
@@ -2974,6 +2983,22 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
+  }
+
+  @override
   void handleNoTypeNameInConstructorReference(Token token) {
     debugEvent("NoTypeNameInConstructorReference");
     push(NullValues.Identifier);
@@ -3046,21 +3071,34 @@ class OutlineBuilder extends StackListenerImpl {
     Object? name = pop(NullValues.Identifier);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    if (memberKind == MemberKind.PrimaryConstructor &&
-        (varOrFinal != null ||
-            declarationContext == DeclarationContext.ExtensionType)) {
-      modifiers |= Modifiers.DeclaringParameter;
-    }
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     if (name is ParserRecovery) {
       push(name);
-    } else {
+    } else if (memberKind.isFunctionType) {
       Identifier? identifier = name as Identifier?;
+      String? parameterName = identifier?.name;
+      push(
+        _builderFactory.addFunctionTypeParameter(
+          kind: kind,
+          type:
+              type ??
+              _createOmittedParameterTypeBuilder(
+                memberKind,
+                isDeclaringParameter: modifiers.isDeclaringParameter,
+              ),
+          name: parameterName,
+          fileOffset: identifier?.nameOffset ?? nameToken.charOffset,
+        ),
+      );
+    } else {
+      if (memberKind == MemberKind.PrimaryConstructor &&
+          (varOrFinal != null ||
+              declarationContext == DeclarationContext.ExtensionType)) {
+        modifiers |= Modifiers.DeclaringParameter;
+      }
 
-      String parameterName = identifier == null
-          ? FormalParameterBuilder.noNameSentinel
-          : identifier.name;
-
+      Identifier identifier = name as Identifier;
+      String parameterName = identifier.name;
       String? publicName = _problemReporting.checkPublicName(
         compilationUnit: _compilationUnit,
         kind: kind,
@@ -3087,7 +3125,7 @@ class OutlineBuilder extends StackListenerImpl {
           publicName: publicName,
           hasThis: thisKeyword != null,
           hasSuper: superKeyword != null,
-          nameOffset: identifier?.nameOffset ?? nameToken.charOffset,
+          nameOffset: identifier.nameOffset,
           initializerToken: initializerStart,
         ),
       );
@@ -3175,20 +3213,35 @@ class OutlineBuilder extends StackListenerImpl {
     MemberKind kind,
   ) {
     debugEvent("endOptionalFormalParameters");
-    // When recovering from an empty list of optional arguments, count may be
-    // 0. It might be simpler if the parser didn't call this method in that
-    // case, however, then [beginOptionalFormalParameters] wouldn't always be
-    // matched by this method.
-    List<FormalParameterBuilder>? parameters =
-        const FixedNullableList<FormalParameterBuilder>().popNonNullable(
-          stack,
-          count,
-          dummyFormalParameterBuilder,
-        );
-    if (parameters == null) {
-      push(new ParserRecovery(offsetForToken(beginToken)));
+    if (kind.isFunctionType) {
+      // When recovering from an empty list of optional arguments, count may be
+      // 0. It might be simpler if the parser didn't call this method in that
+      // case, however, then [beginOptionalFormalParameters] wouldn't always be
+      // matched by this method.
+      List<FunctionTypeParameterBuilder>? parameters =
+          const FixedNullableList<FunctionTypeParameterBuilder>()
+              .popNonNullable(stack, count, dummyFunctionTypeParameterBuilder);
+      if (parameters == null) {
+        push(new ParserRecovery(offsetForToken(beginToken)));
+      } else {
+        push(parameters);
+      }
     } else {
-      push(parameters);
+      // When recovering from an empty list of optional arguments, count may be
+      // 0. It might be simpler if the parser didn't call this method in that
+      // case, however, then [beginOptionalFormalParameters] wouldn't always be
+      // matched by this method.
+      List<FormalParameterBuilder>? parameters =
+          const FixedNullableList<FormalParameterBuilder>().popNonNullable(
+            stack,
+            count,
+            dummyFormalParameterBuilder,
+          );
+      if (parameters == null) {
+        push(new ParserRecovery(offsetForToken(beginToken)));
+      } else {
+        push(parameters);
+      }
     }
   }
 
@@ -3200,166 +3253,266 @@ class OutlineBuilder extends StackListenerImpl {
     MemberKind kind,
   ) {
     debugEvent("FormalParameters");
-    List<FormalParameterBuilder>? formals;
-    if (count == 1) {
-      Object? last = pop();
-      if (last is List<FormalParameterBuilder>) {
-        formals = last;
-      } else if (last is! ParserRecovery) {
-        assert(last != null);
-        formals = [last as FormalParameterBuilder];
-      }
-      if (!libraryFeatures.primaryConstructors.isEnabled) {
-        Token? tokenBeforeEnd = endToken.previous;
-        if (tokenBeforeEnd != null &&
-            tokenBeforeEnd.isA(TokenType.COMMA) &&
-            kind == MemberKind.PrimaryConstructor &&
-            declarationContext == DeclarationContext.ExtensionType) {
-          _compilationUnit.addProblem(
-            diag.representationFieldTrailingComma,
-            tokenBeforeEnd.charOffset,
-            1,
-            uri,
-          );
+    if (kind.isFunctionType) {
+      List<FunctionTypeParameterBuilder>? formals;
+      if (count == 1) {
+        Object? last = pop();
+        if (last is List<FunctionTypeParameterBuilder>) {
+          formals = last;
+        } else if (last is! ParserRecovery) {
+          assert(last != null);
+          formals = [last as FunctionTypeParameterBuilder];
         }
-      }
-    } else if (count > 1) {
-      Object? last = pop();
-      count--;
-      if (last is ParserRecovery) {
-        // Coverage-ignore-block(suite): Not run.
-        discard(count);
-      } else if (last is List<FormalParameterBuilder>) {
-        formals = const FixedNullableList<FormalParameterBuilder>()
-            .popPaddedNonNullable(
-              stack,
-              count,
-              last.length,
-              dummyFormalParameterBuilder,
-            );
-        if (formals != null) {
-          formals.setRange(count, formals.length, last);
-        }
-      } else {
-        formals = const FixedNullableList<FormalParameterBuilder>()
-            .popPaddedNonNullable(stack, count, 1, dummyFormalParameterBuilder);
-        if (formals != null) {
-          formals[count] = last as FormalParameterBuilder;
-        }
-      }
-    }
-    if (formals != null) {
-      assert(formals.isNotEmpty);
-      if (formals.length == 2) {
-        // The name may be null for generalized function types.
-        if (formals[0].name != FormalParameterBuilder.noNameSentinel &&
-            formals[0].name == formals[1].name &&
-            !formals[0].isWildcard) {
-          addProblem(
-            diag.duplicatedParameterName.withArguments(name: formals[1].name),
-            formals[1].fileOffset,
-            formals[1].name.length,
-            context: [
-              diag.duplicatedParameterNameCause
-                  .withArguments(name: formals[1].name)
-                  .withLocation(
-                    uri,
-                    formals[0].fileOffset,
-                    formals[0].name.length,
-                  ),
-            ],
-          );
-        }
-
-        // For private named parameters, also look for a collision between the
-        // corresponding public name and another parameter's name.
-        if (formals[0].publicName case var publicName?
-            when publicName == formals[1].name) {
-          _privateNamedParameterPublicNameCollision(
-            publicName,
-            formals[0],
-            formals[1],
-          );
-        }
-
-        if (formals[1].publicName case var publicName?
-            when publicName == formals[0].name) {
-          _privateNamedParameterPublicNameCollision(
-            publicName,
-            formals[1],
-            formals[0],
-          );
-        }
-      } else if (formals.length > 2) {
-        Map<String, FormalParameterBuilder> seenNames =
-            <String, FormalParameterBuilder>{};
-        for (FormalParameterBuilder formal in formals) {
-          if (formal.isWildcard) {
-            continue;
+      } else if (count > 1) {
+        Object? last = pop();
+        count--;
+        if (last is ParserRecovery) {
+          // Coverage-ignore-block(suite): Not run.
+          discard(count);
+        } else if (last is List<FunctionTypeParameterBuilder>) {
+          formals = const FixedNullableList<FunctionTypeParameterBuilder>()
+              .popPaddedNonNullable(
+                stack,
+                count,
+                last.length,
+                dummyFunctionTypeParameterBuilder,
+              );
+          if (formals != null) {
+            formals.setRange(count, formals.length, last);
           }
-          if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
-          if (seenNames.containsKey(formal.name)) {
+        } else {
+          formals = const FixedNullableList<FunctionTypeParameterBuilder>()
+              .popPaddedNonNullable(
+                stack,
+                count,
+                1,
+                dummyFunctionTypeParameterBuilder,
+              );
+          if (formals != null) {
+            formals[count] = last as FunctionTypeParameterBuilder;
+          }
+        }
+      }
+      if (formals != null) {
+        assert(formals.isNotEmpty);
+        if (formals.length == 2) {
+          // The name may be null for generalized function types.
+          if (formals[0].name != null &&
+              formals[0].name == formals[1].name &&
+              !formals[0].isWildcard) {
             addProblem(
-              diag.duplicatedParameterName.withArguments(name: formal.name),
-              formal.fileOffset,
-              formal.name.length,
+              diag.duplicatedParameterName.withArguments(
+                name: formals[1].name!,
+              ),
+              formals[1].fileOffset,
+              formals[1].name!.length,
               context: [
                 diag.duplicatedParameterNameCause
-                    .withArguments(name: formal.name)
+                    .withArguments(name: formals[1].name!)
                     .withLocation(
                       uri,
-                      seenNames[formal.name]!.fileOffset,
-                      seenNames[formal.name]!.name.length,
+                      formals[0].fileOffset,
+                      formals[0].name!.length,
                     ),
               ],
             );
-          } else {
-            seenNames[formal.name] = formal;
           }
-        }
-
-        // For private named parameters, also look for a collision between the
-        // corresponding public name and another parameter's name.
-        for (FormalParameterBuilder formal in formals) {
-          if (formal.publicName case var publicName?) {
-            if (seenNames[publicName] case var previous?) {
-              _privateNamedParameterPublicNameCollision(
-                publicName,
-                formal,
-                previous,
+        } else if (formals.length > 2) {
+          Map<String, FunctionTypeParameterBuilder> seenNames =
+              <String, FunctionTypeParameterBuilder>{};
+          for (FunctionTypeParameterBuilder formal in formals) {
+            if (formal.isWildcard) {
+              continue;
+            }
+            String? name = formal.name;
+            if (name == null) continue;
+            if (seenNames.containsKey(formal.name)) {
+              // Coverage-ignore-block(suite): Not run.
+              addProblem(
+                diag.duplicatedParameterName.withArguments(name: name),
+                formal.fileOffset,
+                name.length,
+                context: [
+                  diag.duplicatedParameterNameCause
+                      .withArguments(name: name)
+                      .withLocation(
+                        uri,
+                        seenNames[name]!.fileOffset,
+                        seenNames[name]!.name!.length,
+                      ),
+                ],
               );
+            } else {
+              seenNames[name] = formal;
             }
           }
         }
       }
-    }
-    if (declarationContext == DeclarationContext.ExtensionType &&
-        kind == MemberKind.PrimaryConstructor &&
-        formals == null) {
-      // In case of primary constructors of extension types, an error is
-      // reported by the parser if the formals together with the parentheses
-      // around them are missing. To distinguish that case from the case of the
-      // formal parameters present, but lacking the representation field, we
-      // pass the empty list further along instead of `null`.
-      formals = const [];
-    } else if ((declarationContext == DeclarationContext.ExtensionType &&
-                kind == MemberKind.PrimaryConstructor ||
-            declarationContext ==
-                DeclarationContext.ExtensionTypeConstructor) &&
-        formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.isSuperInitializingFormal) {
-          _compilationUnit.addProblem(
-            diag.extensionTypeConstructorWithSuperFormalParameter,
-            formal.fileOffset,
-            formal.name.length,
-            formal.fileUri,
-          );
+      push(beginToken.charOffset);
+      push(formals ?? NullValues.FormalParameters);
+    } else {
+      List<FormalParameterBuilder>? formals;
+      if (count == 1) {
+        Object? last = pop();
+        if (last is List<FormalParameterBuilder>) {
+          formals = last;
+        } else if (last is! ParserRecovery) {
+          assert(last != null);
+          formals = [last as FormalParameterBuilder];
+        }
+        if (!libraryFeatures.primaryConstructors.isEnabled) {
+          Token? tokenBeforeEnd = endToken.previous;
+          if (tokenBeforeEnd != null &&
+              tokenBeforeEnd.isA(TokenType.COMMA) &&
+              kind == MemberKind.PrimaryConstructor &&
+              declarationContext == DeclarationContext.ExtensionType) {
+            _compilationUnit.addProblem(
+              diag.representationFieldTrailingComma,
+              tokenBeforeEnd.charOffset,
+              1,
+              uri,
+            );
+          }
+        }
+      } else if (count > 1) {
+        Object? last = pop();
+        count--;
+        if (last is ParserRecovery) {
+          // Coverage-ignore-block(suite): Not run.
+          discard(count);
+        } else if (last is List<FormalParameterBuilder>) {
+          formals = const FixedNullableList<FormalParameterBuilder>()
+              .popPaddedNonNullable(
+                stack,
+                count,
+                last.length,
+                dummyFormalParameterBuilder,
+              );
+          if (formals != null) {
+            formals.setRange(count, formals.length, last);
+          }
+        } else {
+          formals = const FixedNullableList<FormalParameterBuilder>()
+              .popPaddedNonNullable(
+                stack,
+                count,
+                1,
+                dummyFormalParameterBuilder,
+              );
+          if (formals != null) {
+            formals[count] = last as FormalParameterBuilder;
+          }
         }
       }
+      if (formals != null) {
+        assert(formals.isNotEmpty);
+        if (formals.length == 2) {
+          if (formals[0].name == formals[1].name && !formals[0].isWildcard) {
+            addProblem(
+              diag.duplicatedParameterName.withArguments(name: formals[1].name),
+              formals[1].fileOffset,
+              formals[1].name.length,
+              context: [
+                diag.duplicatedParameterNameCause
+                    .withArguments(name: formals[1].name)
+                    .withLocation(
+                      uri,
+                      formals[0].fileOffset,
+                      formals[0].name.length,
+                    ),
+              ],
+            );
+          }
+
+          // For private named parameters, also look for a collision between the
+          // corresponding public name and another parameter's name.
+          if (formals[0].publicName case var publicName?
+              when publicName == formals[1].name) {
+            _privateNamedParameterPublicNameCollision(
+              publicName,
+              formals[0],
+              formals[1],
+            );
+          }
+
+          if (formals[1].publicName case var publicName?
+              when publicName == formals[0].name) {
+            _privateNamedParameterPublicNameCollision(
+              publicName,
+              formals[1],
+              formals[0],
+            );
+          }
+        } else if (formals.length > 2) {
+          Map<String, FormalParameterBuilder> seenNames =
+              <String, FormalParameterBuilder>{};
+          for (FormalParameterBuilder formal in formals) {
+            if (formal.isWildcard) {
+              continue;
+            }
+            if (seenNames.containsKey(formal.name)) {
+              addProblem(
+                diag.duplicatedParameterName.withArguments(name: formal.name),
+                formal.fileOffset,
+                formal.name.length,
+                context: [
+                  diag.duplicatedParameterNameCause
+                      .withArguments(name: formal.name)
+                      .withLocation(
+                        uri,
+                        seenNames[formal.name]!.fileOffset,
+                        seenNames[formal.name]!.name.length,
+                      ),
+                ],
+              );
+            } else {
+              seenNames[formal.name] = formal;
+            }
+          }
+
+          // For private named parameters, also look for a collision between the
+          // corresponding public name and another parameter's name.
+          for (FormalParameterBuilder formal in formals) {
+            if (formal.publicName case var publicName?) {
+              if (seenNames[publicName] case var previous?) {
+                _privateNamedParameterPublicNameCollision(
+                  publicName,
+                  formal,
+                  previous,
+                );
+              }
+            }
+          }
+        }
+      }
+      if (declarationContext == DeclarationContext.ExtensionType &&
+          kind == MemberKind.PrimaryConstructor &&
+          formals == null) {
+        // In case of primary constructors of extension types, an error is
+        // reported by the parser if the formals together with the parentheses
+        // around them are missing. To distinguish that case from the case of
+        // the formal parameters present, but lacking the representation field,
+        // we pass the empty list further along instead of `null`.
+        formals = const [];
+      } else if ((declarationContext == DeclarationContext.ExtensionType &&
+                  kind == MemberKind.PrimaryConstructor ||
+              declarationContext ==
+                  DeclarationContext.ExtensionTypeConstructor) &&
+          formals != null) {
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.isSuperInitializingFormal) {
+            _compilationUnit.addProblem(
+              diag.extensionTypeConstructorWithSuperFormalParameter,
+              formal.fileOffset,
+              formal.name.length,
+              formal.fileUri,
+            );
+          }
+        }
+      }
+      push(beginToken.charOffset);
+      push(formals ?? NullValues.FormalParameters);
     }
-    push(beginToken.charOffset);
-    push(formals ?? NullValues.FormalParameters);
   }
 
   /// Report a duplicate declaration error between a private named [formal]
@@ -3429,6 +3582,9 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -3444,6 +3600,7 @@ class OutlineBuilder extends StackListenerImpl {
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
       ]),
@@ -3473,7 +3630,6 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as ConstructorReferenceBuilder?;
     Object? enumConstantInfo = pop();
     if (enumConstantInfo is EnumConstantInfo) {
-      push(enumConstantInfo);
       _builderFactory.addEnumElement(
         metadata: enumConstantInfo.metadata,
         name: enumConstantInfo.name,
@@ -3483,14 +3639,12 @@ class OutlineBuilder extends StackListenerImpl {
       );
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(NullValues.EnumConstantInfo);
     }
   }
 
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
-    push(elementsCount);
   }
 
   @override
@@ -3501,58 +3655,27 @@ class OutlineBuilder extends StackListenerImpl {
     int memberCount,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [/* element count */ ValueKinds.Integer]));
     debugEvent("endEnum");
-
-    int elementsCount = pop() as int;
 
     assert(
       checkState(beginToken, [
-        /* enum constants */ ...repeatedKind(
-          ValueKinds.EnumConstantInfoOrNull,
-          elementsCount,
-        ),
-
-        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
         /* metadata */ ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    List<EnumConstantInfo?>? enumConstantInfos =
-        const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
-
-    if (enumConstantInfos != null) {
-      List<EnumConstantInfo?>? parsedEnumConstantInfos;
-      for (int index = 0; index < enumConstantInfos.length; index++) {
-        EnumConstantInfo? info = enumConstantInfos[index];
-        if (parsedEnumConstantInfos != null && info != null) {
-          parsedEnumConstantInfos.add(info);
-        } else if (info == null && parsedEnumConstantInfos == null) {
-          // Skip this one, but copy previous (good) ones.
-          parsedEnumConstantInfos = [];
-          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
-        }
-      }
-      if (parsedEnumConstantInfos != null) {
-        if (parsedEnumConstantInfos.isEmpty) {
-          enumConstantInfos = null;
-        } else {
-          enumConstantInfos = parsedEnumConstantInfos;
-        }
-      }
-    }
-
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeBuilder>? mixins =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Object? identifier = pop();
@@ -3561,15 +3684,6 @@ class OutlineBuilder extends StackListenerImpl {
 
     int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     if (identifier is Identifier) {
-      if (enumConstantInfos == null) {
-        if (!leftBrace.isSynthetic) {
-          addProblem(
-            diag.enumDeclarationEmpty,
-            identifier.token.offset,
-            identifier.token.length,
-          );
-        }
-      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
@@ -3588,12 +3702,14 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.addEnum(
         offsetMap: _offsetMap,
         metadata: metadata,
+        modifiers: modifiers,
         identifier: identifier,
         typeParameters: typeParameters?.fragments,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endToken.charOffset, //endOffset,
+        endOffset: endToken.charOffset,
+        hasErroneousBody: leftBrace.isSynthetic,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(
@@ -3732,8 +3848,8 @@ class OutlineBuilder extends StackListenerImpl {
   void endFunctionType(Token functionToken, Token? questionMark) {
     debugEvent("FunctionType");
     _structuralParameterDepthLevel--;
-    List<FormalParameterBuilder>? formals =
-        pop() as List<FormalParameterBuilder>?;
+    List<FunctionTypeParameterBuilder>? formals =
+        pop() as List<FunctionTypeParameterBuilder>?;
     pop(); // formals offset
     TypeBuilder? returnType = pop() as TypeBuilder?;
     StructuralParameters? typeParameters =
@@ -3756,8 +3872,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endFunctionTypedFormalParameter(Token nameToken, Token? question) {
     debugEvent("FunctionTypedFormalParameter");
-    List<FormalParameterBuilder>? formals =
-        pop() as List<FormalParameterBuilder>?;
+    List<FunctionTypeParameterBuilder>? formals =
+        pop() as List<FunctionTypeParameterBuilder>?;
     int formalsOffset = popCharOffset();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     StructuralParameters? typeParameters =
@@ -3790,7 +3906,7 @@ class OutlineBuilder extends StackListenerImpl {
         typedefKeyword,
         equals == null
             ? [
-                /* formals */ ValueKinds.FormalListOrNull,
+                /* formals */ ValueKinds.FunctionTypeParameterBuilderListOrNull,
                 /* formals offset */ ValueKinds.Integer,
                 /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
                 /* name */ ValueKinds.IdentifierOrParserRecovery,
@@ -3814,8 +3930,9 @@ class OutlineBuilder extends StackListenerImpl {
     Identifier identifier;
     TypeBuilder aliasedType;
     if (equals == null) {
-      List<FormalParameterBuilder>? formals =
-          pop(NullValues.FormalParameters) as List<FormalParameterBuilder>?;
+      List<FunctionTypeParameterBuilder>? formals = pop(
+        NullValues.FormalParameters,
+      ) as List<FunctionTypeParameterBuilder>?;
       pop(); // formals offset
       typeParameters = pop(NullValues.NominalParameters) as NominalParameters?;
       name = pop();
@@ -4817,7 +4934,6 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();
-    push(0); // number of enum constants
   }
 
   @override

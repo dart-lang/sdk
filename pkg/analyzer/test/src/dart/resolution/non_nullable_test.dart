@@ -145,7 +145,7 @@ main() {
   x ??= y;
 }
 ''');
-    assertType(result.findNode.assignment('x ??= y'), 'int');
+    assertType(result.findNode.ifNullAssignment('x ??= y'), 'int');
   }
 
   test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
@@ -155,7 +155,7 @@ main() {
   x ??= x;
 }
 ''');
-    assertType(result.findNode.assignment('x ??= x'), 'int?');
+    assertType(result.findNode.ifNullAssignment('x ??= x'), 'int?');
   }
 
   test_local_typeParameter() async {
@@ -226,8 +226,8 @@ m<T extends Function>() {
 }
 ''');
     // Do not assert no test errors. Deliberately invokes nullable type.
-    var invocation = result.findNode.functionExpressionInvocation('first()');
-    assertType(invocation.function2, 'T?');
+    var invocation = result.findNode.callInvocation('first()');
+    assertType(invocation.receiver, 'T?');
   }
 
   test_mixin_hierarchy() async {
@@ -721,7 +721,7 @@ void f(int? x, int y) {
   x ??= y;
 }
 ''');
-    assertType(result.findNode.assignment('x ??= y'), 'int');
+    assertType(result.findNode.ifNullAssignment('x ??= y'), 'int');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_nullableInt() async {
@@ -730,7 +730,7 @@ void f(int? x) {
   x ??= x;
 }
 ''');
-    assertType(result.findNode.assignment('x ??= x'), 'int?');
+    assertType(result.findNode.ifNullAssignment('x ??= x'), 'int?');
   }
 
   test_parameter_typeParameter() async {

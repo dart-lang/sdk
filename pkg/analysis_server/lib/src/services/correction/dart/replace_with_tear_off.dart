@@ -33,14 +33,11 @@ class ReplaceWithTearOff extends ResolvedCorrectionProducer {
       if (expression is InvocationExpression) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addReplacement(range.node(ancestor), (builder) {
-            if (expression is MethodInvocation) {
-              var target = expression.target;
-              if (target != null) {
-                builder.write(utils.getNodeText(target));
-                builder.write('.');
-              }
-            }
-            builder.write(utils.getNodeText(expression.function));
+            builder.write(
+              utils.getRangeText(
+                range.startEnd(expression, expression.function),
+              ),
+            );
           });
         });
       } else if (expression is InstanceCreationExpression) {

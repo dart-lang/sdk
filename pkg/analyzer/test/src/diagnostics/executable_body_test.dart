@@ -16,6 +16,66 @@ main() {
 
 @reflectiveTest
 class ExecutableBodyTest extends PubPackageResolutionTest {
+  test_abstractClass_instanceField_abstract_dynamic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  abstract dynamic foo;
+}
+''');
+  }
+
+  test_abstractClass_instanceField_abstract_var() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  abstract var foo;
+}
+''');
+  }
+
+  test_abstractClass_instanceField_abstractCovariant_var() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  abstract covariant var foo;
+}
+''');
+  }
+
+  test_class_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  abstract int? foo;
+//^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_class_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  abstract final int? foo;
+//^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_class_instanceField_external() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external int? foo;
+}
+''');
+  }
+
+  test_class_instanceField_externalFinal() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external final int? foo;
+}
+''');
+  }
+
   test_class_instanceGetter_expressionBody_augmentation_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -256,6 +316,16 @@ class C {
 ''');
   }
 
+  test_class_instanceMethod_noBody() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo();
+//^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
   test_class_instanceMethod_noBody_augmentation_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -322,6 +392,26 @@ class C {
 ''');
   }
 
+  test_class_instanceSetter_blockBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
+  test_class_instanceSetter_blockBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) async* {}
+//               ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+}
+''');
+  }
+
   test_class_instanceSetter_blockBody_augmentation_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -346,6 +436,16 @@ class A {
 //            ^^^
 // [diag.augmentationWithoutGetterDeclaration][context 1] This augmentation induces a getter, but no getter declaration named 'foo' exists to augment.
 // [diag.augmentationInducedSetterAlreadyComplete][context 2] The setter induced by this augmentation is complete, but the setter being augmented is already complete.
+}
+''');
+  }
+
+  test_class_instanceSetter_blockBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) sync* {}
+//               ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
 }
 ''');
   }
@@ -384,6 +484,29 @@ class C {
 // %before-language-feature: augmentations
 class C {
   external void set foo(int v);
+}
+''');
+  }
+
+  test_class_instanceSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  set foo(int _);
+//^^^^^^^^^^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
+}
+''');
+  }
+
+  test_class_noSuchMethod_expressionBody_interface_class_instanceMethod_noBody() async {
+    await resolveTestCodeWithDiagnostics('''
+class I {
+  noSuchMethod(_) => '';
+}
+class A implements I {
+  foo();
+//^^^^^^
+// [diag.concreteClassWithAbstractMember] 'foo' must have a method body because 'A' isn't abstract.
 }
 ''');
   }
@@ -690,6 +813,16 @@ class A {
 ''');
   }
 
+  test_class_staticMethod_nativeBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static int foo(_) native 'string';
+//                  ^^^^^^^^^^^^^^^^
+// [diag.nativeFunctionBodyInNonSdkCode] Native functions can only be declared in the SDK and code that is loaded through native extensions.
+}
+''');
+  }
+
   test_class_staticMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -834,6 +967,29 @@ class A {
 ''');
   }
 
+  test_enum_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_enum_instanceField_abstract_augmentation_instanceGetter_expressionBody_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract int foo;
+  augment int get foo => 0;
+  augment void set foo(int _) {}
+}
+''');
+  }
+
   test_enum_instanceField_abstract_augmentation_instanceGetter_expressionBody_instanceSetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -843,6 +999,41 @@ enum E {
 // [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
   augment int get foo => 0;
   augment void set foo(int _);
+}
+''');
+  }
+
+  test_enum_instanceField_abstract_augmentation_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment void set foo(int _) {}
+}
+''');
+  }
+
+  test_enum_instanceField_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+enum E {
+  v;
+  abstract int foo;
+//             ^^^
+// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
+}
+''');
+  }
+
+  test_enum_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
 }
 ''');
   }
@@ -859,6 +1050,16 @@ enum E {
 ''');
   }
 
+  test_enum_instanceField_abstractFinal_augmentation_instanceGetter_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  abstract final int foo;
+  augment int get foo => 0;
+}
+''');
+  }
+
   test_enum_instanceField_abstractFinal_augmentation_instanceGetter_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -867,6 +1068,57 @@ enum E {
 //                   ^^^
 // [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
   augment int get foo;
+}
+''');
+  }
+
+  test_enum_instanceField_external() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external int foo;
+}
+''');
+  }
+
+  test_enum_instanceField_externalFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  external final int foo;
+}
+''');
+  }
+
+  test_enum_instanceGetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  int get foo;
+//^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+''');
+  }
+
+  test_enum_instanceMethod_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  void foo();
+//^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
+}
+''');
+  }
+
+  test_enum_instanceSetter_noBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v;
+  set foo(int _);
+//^^^^^^^^^^^^^^^
+// [diag.enumWithAbstractMember] 'foo' must have a method body because 'E' is an enum.
 }
 ''');
   }
@@ -1120,10 +1372,101 @@ enum E {
 ''');
   }
 
+  test_extension_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_extension_instanceField_abstract_augmentation_instanceGetter_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract int foo;
+//             ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo => 0;
+}
+''');
+  }
+
+  test_extension_instanceField_abstract_augmentation_instanceGetter_expressionBody_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract int foo;
+  augment int get foo => 0;
+  augment set foo(int _) {}
+}
+''');
+  }
+
+  test_extension_instanceField_abstract_augmentation_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment set foo(int _) {}
+}
+''');
+  }
+
+  test_extension_instanceField_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension E on int {
+  abstract int foo;
+//             ^^^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
+}
+''');
+  }
+
+  test_extension_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_extension_instanceField_abstractFinal_augmentation_instanceGetter_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract final int foo;
+  augment int get foo => 0;
+}
+''');
+  }
+
+  test_extension_instanceField_abstractFinal_augmentation_instanceGetter_external() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  abstract final int foo;
+  augment external int get foo;
+}
+''');
+  }
+
   test_extension_instanceGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {
   int get foo => 0;
+}
+''');
+  }
+
+  test_extension_instanceGetter_expressionBody_augmentation_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  int get foo => 0;
+  augment abstract final int foo;
 }
 ''');
   }
@@ -1133,6 +1476,16 @@ extension E on int {
 // %before-language-feature: augmentations
 extension E on int {
   int get foo => 0;
+}
+''');
+  }
+
+  test_extension_instanceGetter_expressionBody_instanceSetter_blockBody_augmentation_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  int get foo => 0;
+  set foo(int _) {}
+  augment abstract int foo;
 }
 ''');
   }
@@ -1602,10 +1955,109 @@ extension E on int {
 ''');
   }
 
+  test_extensionType_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+// [diag.inducedSetterWithoutBody] The setter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstract_augmentation_instanceGetter_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract int foo;
+//             ^^^
+// [diag.inducedSetterNotCompleteAfterAugmentations] The setter induced by 'foo' must have a body after all augmentations are applied.
+  augment int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstract_augmentation_instanceGetter_expressionBody_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract int foo;
+  augment int get foo => 0;
+  augment set foo(int _) {}
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstract_augmentation_instanceSetter_blockBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract int foo;
+//             ^^^
+// [diag.inducedGetterNotCompleteAfterAugmentations] The getter induced by 'foo' must have a body after all augmentations are applied.
+  augment set foo(int _) {}
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstract_beforeAugmentations() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: augmentations
+extension type E(int i) {
+  abstract int foo;
+//             ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract final int foo;
+//                   ^^^
+// [diag.inducedGetterWithoutBody] The getter induced by 'foo' must have a body.
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstractFinal_augmentation_instanceGetter_expressionBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract final int foo;
+  augment int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_instanceField_abstractFinal_augmentation_instanceGetter_external() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  abstract final int foo;
+  augment external int get foo;
+}
+''');
+  }
+
+  test_extensionType_instanceField_external() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  external int foo;
+}
+''');
+  }
+
   test_extensionType_instanceGetter_expressionBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E(int i) {
   int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_expressionBody_augmentation_instanceField_abstractFinal() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  int get foo => 0;
+  augment abstract final int foo;
 }
 ''');
   }
@@ -1615,6 +2067,16 @@ extension type E(int i) {
 // %before-language-feature: augmentations
 extension type E(int i) {
   int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_instanceGetter_expressionBody_instanceSetter_blockBody_augmentation_instanceField_abstract() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int i) {
+  int get foo => 0;
+  set foo(int _) {}
+  augment abstract int foo;
 }
 ''');
   }
@@ -2170,6 +2632,16 @@ mixin M {
 ''');
   }
 
+  test_mixin_staticMethod_nativeBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin A {
+  static int foo(_) native 'string';
+//                  ^^^^^^^^^^^^^^^^
+// [diag.nativeFunctionBodyInNonSdkCode] Native functions can only be declared in the SDK and code that is loaded through native extensions.
+}
+''');
+  }
+
   test_mixin_staticMethod_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {
@@ -2356,6 +2828,14 @@ external void foo();
 ''');
   }
 
+  test_topLevelFunction_nativeBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int foo(_) native 'string';
+//         ^^^^^^^^^^^^^^^^
+// [diag.nativeFunctionBodyInNonSdkCode] Native functions can only be declared in the SDK and code that is loaded through native extensions.
+''');
+  }
+
   test_topLevelFunction_noBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 void foo();
@@ -2533,6 +3013,22 @@ set foo(int _) {}
 ''');
   }
 
+  test_topLevelSetter_blockBody_async() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async {}
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
+  test_topLevelSetter_blockBody_asyncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) async* {}
+//             ^^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
+''');
+  }
+
   test_topLevelSetter_blockBody_augmentation_blockBody() async {
     await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) {}
@@ -2560,6 +3056,14 @@ augment int foo = 1;
     await resolveTestCodeWithDiagnostics(r'''
 // %before-language-feature: augmentations
 set foo(int _) {}
+''');
+  }
+
+  test_topLevelSetter_blockBody_syncStar() async {
+    await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) sync* {}
+//             ^^^^
+// [diag.invalidModifierOnSetter] Setters can't use 'async', 'async*', or 'sync*'.
 ''');
   }
 

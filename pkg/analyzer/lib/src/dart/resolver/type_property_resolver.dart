@@ -130,7 +130,7 @@ class TypePropertyResolver {
         locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
       } else {
         if (parentNode is CascadeExpression) {
-          parentNode = parentNode.cascadeSections2.first;
+          parentNode = parentNode.sections.first.body;
         }
         if (parentNode is BinaryOperatorInvocation ||
             parentNode is RelationalPattern) {
@@ -138,11 +138,14 @@ class TypePropertyResolver {
               .withArguments(operator: name);
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression ||
+            parentNode is CompoundAssignment ||
+            parentNode is IndexAssignmentTarget ||
+            parentNode is IndexExpression2 ||
             parentNode is IncrementOrDecrementExpression ||
             parentNode is UnaryOperatorInvocation) {
           locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue
               .withArguments(name: name);
-        } else if (parentNode is FunctionExpressionInvocation) {
+        } else if (parentNode is CallInvocation) {
           locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
         } else {
           locatableDiagnostic = diag.uncheckedPropertyAccessOfNullableValue

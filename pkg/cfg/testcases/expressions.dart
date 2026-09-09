@@ -55,4 +55,11 @@ void instantiateClosures<T1, T2>(
   print(baz);
 }
 
+void testIdentical(Object? x, Object? y, Object? z) {
+  print(identical(x, y));
+  if (identical(y, z)) {
+    print(identical(x, y) && identical(y, z));
+  }
+}
+
 void main() {}

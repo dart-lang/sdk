@@ -1,0 +1,61 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends self::A {
+  synthetic constructor •() → self::C
+    : super self::A::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_OneByteString (value: "C")]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  method toString() → core::String
+    return "C";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testNullableObjectMembers([@vm.inferred-arg-type.metadata=#lib::B?] self::B? b) → void {
+  [@vm.direct-call.metadata=dart.core::Object.runtimeType] [@vm.inferred-type.metadata=? (receiver not int)] b.{core::Object::runtimeType}{<object>}.{core::Type};
+  [@vm.inferred-type.metadata=? (skip check) (receiver not int)] b.{core::Object::toString}{<object>}.(){() → core::String};
+  [@vm.inferred-type.metadata=? (receiver not int)] b.{core::Object::hashCode}{<object>}.{core::int};
+  [@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=? (skip check) (receiver not int)] b =={core::Object::==}{(core::Object) → core::bool} b;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testNonNullableObjectMembers([@vm.inferred-arg-type.metadata=#lib::B] self::B b) → void {
+  [@vm.direct-call.metadata=dart.core::Object.runtimeType] [@vm.inferred-type.metadata=? (receiver not int)] b.{core::Object::runtimeType}{core::Type};
+  [@vm.direct-call.metadata=dart.core::Object.toString] [@vm.inferred-type.metadata=? (skip check) (receiver not int)] b.{core::Object::toString}(){() → core::String};
+  [@vm.direct-call.metadata=dart.core::Object.hashCode] [@vm.inferred-type.metadata=? (receiver not int)] b.{core::Object::hashCode}{core::int};
+  [@vm.direct-call.metadata=dart.core::Object.==] [@vm.inferred-type.metadata=? (skip check) (receiver not int)] b =={core::Object::==}{(core::Object) → core::bool} b;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testNullableOverriddenObjectMembers([@vm.inferred-arg-type.metadata=#lib::C?] self::C? c) → void {
+  [@vm.inferred-type.metadata=? (skip check) (receiver not int)] c.{core::Object::toString}{<object>}.(){() → core::String};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testNonNullableOverriddenObjectMembers([@vm.inferred-arg-type.metadata=#lib::C] self::C c) → void {
+  [@vm.direct-call.metadata=#lib::C.toString] [@vm.inferred-type.metadata=? (skip check)] c.{self::C::toString}(){() → core::String};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::testNullableObjectMembers(new self::B::•());
+  self::testNullableObjectMembers(null);
+  self::testNonNullableObjectMembers(new self::B::•());
+  self::testNullableOverriddenObjectMembers(new self::C::•());
+  self::testNullableOverriddenObjectMembers(null);
+  self::testNonNullableOverriddenObjectMembers(new self::C::•());
+}

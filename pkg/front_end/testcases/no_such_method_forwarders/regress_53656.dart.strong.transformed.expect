@@ -15,7 +15,7 @@ class C extends core::Object {
     for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
     }
-    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##1 = 0; i##1.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("s=${inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::[]}(new _in::Symbol::•("s")){(core::Object?) → dynamic}};"){(core::String) → core::String};
     }
     return 42;
@@ -28,7 +28,7 @@ abstract class M extends core::Object /*isMixinDeclaration*/  {
     for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
     }
-    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##1 = 0; i##1.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("s=${inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::[]}(new _in::Symbol::•("s")){(core::Object?) → dynamic}};"){(core::String) → core::String};
     }
     return 42;
@@ -42,7 +42,7 @@ class MA extends core::Object implements self::M /*isEliminatedMixin,hasConstCon
     for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("${inv.{core::Invocation::positionalArguments}{core::List<dynamic>}.{core::List::[]}(i){(core::int) → dynamic}};"){(core::String) → core::String};
     }
-    for (core::int i = 0; i.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##1 = 0; i##1.{core::num::<}(inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::length}{core::int}){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
       self::log = self::log.{core::String::+}("s=${inv.{core::Invocation::namedArguments}{core::Map<core::Symbol, dynamic>}.{core::Map::[]}(new _in::Symbol::•("s")){(core::Object?) → dynamic}};"){(core::String) → core::String};
     }
     return 42;

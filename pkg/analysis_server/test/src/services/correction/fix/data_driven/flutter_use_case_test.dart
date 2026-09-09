@@ -406,7 +406,7 @@ void f() {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -457,7 +457,7 @@ class IconButton {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -494,7 +494,7 @@ export 'package:p2/material.dart';
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -2891,7 +2891,7 @@ void f() {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -2954,7 +2954,7 @@ void f(CupertinoPageTransitionsBuilder builder) {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
@@ -3005,7 +3005,7 @@ void f(CupertinoPageTransitionsBuilder builder) {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -3061,7 +3061,7 @@ class MyApp extends StatelessWidget {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2'))

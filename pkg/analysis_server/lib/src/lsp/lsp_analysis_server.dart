@@ -240,6 +240,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
+  @override
   LspInitializationOptions? get initializationOptions => _initializationOptions;
 
   /// Whether the server has transitioned into the shutting down state.
@@ -401,7 +402,7 @@ class LspAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(
     analysis.AnalysisStatus status,
   ) async {
-    super.handleAnalysisStatusChange(status);
+    await super.handleAnalysisStatusChange(status);
     await sendStatusNotification(status);
   }
 
@@ -884,10 +885,10 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     if (isAnalyzing) {
-      analyzingProgressReporter ??= ProgressReporter.serverCreated(
-        this,
-        analyzingProgressToken,
-      )..begin('Analyzing…');
+      analyzingProgressReporter ??=
+          ProgressReporter.serverCreated(this, analyzingProgressToken)
+            // ignore: unawaited_futures
+            ..begin('Analyzing…');
     } else {
       if (analyzingProgressReporter != null) {
         // Do not null this out until after end completes, otherwise we may try

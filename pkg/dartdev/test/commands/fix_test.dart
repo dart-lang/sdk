@@ -713,6 +713,182 @@ class C {
 ''');
     });
 
+    test(
+      '--apply includes pubspec fixes (even without dart) when no codes',
+      () async {
+        p = project(
+          mainSrc: '''
+import 'package:path/path.dart' as path;
+
+path.Context? a;
+''',
+        );
+        var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Applying fixes...',
+            'pubspec.yaml',
+            '  missing_dependency $bullet 1',
+            '1 fix made in 1 file.',
+          ]),
+        );
+        expect(
+          p!.findFile('pubspec.yaml')!.readAsStringSync(),
+          contains('path: any'),
+        );
+      },
+    );
+
+    test('--apply includes dart and pubspec fixes when no codes', () async {
+      p = project(
+        mainSrc: '''
+import "package:path/path.dart" as path;
+
+path.Context? a;
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+        result.stdout,
+        stringContainsInOrderWithVariableBullets([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_single_quotes $bullet 1',
+          'pubspec.yaml',
+          '  missing_dependency $bullet 1',
+          '2 fixes made in 2 files.',
+        ]),
+      );
+      expect(
+        p!.findFile('pubspec.yaml')!.readAsStringSync(),
+        contains('path: any'),
+      );
+    });
+
+    test(
+      '--apply includes pubspec fixes when including missing_dependency',
+      () async {
+        p = project(
+          mainSrc: '''
+import "package:path/path.dart" as path;
+
+path.Context? a;
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix([
+          '--apply',
+          '.',
+          '--code=missing_dependency',
+        ], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Applying fixes...',
+            'pubspec.yaml',
+            '  missing_dependency $bullet 1',
+            '1 fix made in 1 file.',
+          ]),
+        );
+        expect(
+          p!.findFile('pubspec.yaml')!.readAsStringSync(),
+          contains('path: any'),
+        );
+      },
+    );
+
+    test(
+      '--apply includes pubspec fixes when including migrate_design_widgets',
+      () async {
+        p = project(
+          mainSrc: '''
+import "package:path/path.dart" as path;
+
+path.Context? a;
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix([
+          '--apply',
+          '.',
+          '--code=migrate_design_widgets',
+        ], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Applying fixes...',
+            'pubspec.yaml',
+            '  missing_dependency $bullet 1',
+            '1 fix made in 1 file.',
+          ]),
+        );
+        expect(
+          p!.findFile('pubspec.yaml')!.readAsStringSync(),
+          contains('path: any'),
+        );
+      },
+    );
+
+    test(
+      '--apply skips pubspec fixes when using codes if not a pubspec code',
+      () async {
+        p = project(
+          mainSrc: '''
+import "package:path/path.dart" as path;
+
+path.Context? a;
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix([
+          '--apply',
+          '.',
+          '--code=prefer_single_quotes',
+        ], workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Applying fixes...',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1',
+            '1 fix made in 1 file.',
+          ]),
+        );
+        expect(
+          p!.findFile('pubspec.yaml')!.readAsStringSync(),
+          isNot(contains('path: any')),
+        );
+      },
+    );
+
     group('AOT mode', () {
       test('--use-aot-snapshot', () async {
         p = project(

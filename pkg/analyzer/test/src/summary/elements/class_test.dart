@@ -9664,7 +9664,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @42
+              fieldName(v1): SimpleIdentifier
                 token: x @42
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
@@ -9672,6 +9673,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @46
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
@@ -9865,7 +9867,8 @@ library
               element: dart:core::@class::Deprecated::@constructor::new
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @61
+              fieldName(v1): SimpleIdentifier
                 token: x @61
                 element: <testLibrary>::@class::A::@field::x
                 staticType: null
@@ -9873,6 +9876,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @65
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
@@ -10120,9 +10124,11 @@ library
               assertKeyword: assert @38
               leftParenthesis: ( @44
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @45
-                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @45
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: > @47
                 rightOperand: IntegerLiteral
@@ -10994,7 +11000,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -11093,7 +11099,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: num
@@ -11658,7 +11664,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -12730,9 +12736,12 @@ library
                         staticType: null
                       element: <testLibrary>::@class::A::@getter::foo
                   initializer: expression_1
-                    SimpleIdentifier
-                      token: foo @46
-                      element: <testLibrary>::@class::A::@getter::foo
+                    UnqualifiedNameExpression
+                      name: foo @46
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@class::A::@getter::foo
+                        invokeType: int Function()
+                        type: int
                       staticType: int
           getters
             #F4 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
@@ -13501,7 +13510,8 @@ library
           firstFragment: #F5
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @66
+              fieldName(v1): SimpleIdentifier
                 token: f @66
                 element: <testLibrary>::@class::A::@field::f
                 staticType: null
@@ -13509,6 +13519,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @70
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::A::@getter::f
@@ -24111,9 +24122,11 @@ library
               assertKeyword: assert @29
               leftParenthesis: ( @35
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @36
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @36
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: >= @38
                 rightOperand: IntegerLiteral
@@ -24178,9 +24191,11 @@ library
               assertKeyword: assert @29
               leftParenthesis: ( @35
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @36
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @36
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: >= @38
                 rightOperand: IntegerLiteral
@@ -24253,7 +24268,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24261,6 +24277,7 @@ library
               expression2: IntegerLiteral
                 literal: 42 @39
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24321,12 +24338,23 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression2: MethodInvocation
+              expression2: UnqualifiedFunctionInvocation
+                name: foo @39
+                argumentList: ArgumentList
+                  leftParenthesis: ( @42
+                  rightParenthesis: ) @43
+                resolution: ExecutableInvocationResolution
+                  element: <testLibrary>::@function::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @39
                   element: <testLibrary>::@function::foo
@@ -24336,6 +24364,7 @@ library
                   rightParenthesis: ) @43
                 staticInvokeType: int Function()
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24409,15 +24438,23 @@ library
                 expression: expression_0
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: _f @51
+              fieldName(v1): SimpleIdentifier
                 token: _f @51
                 element: <testLibrary>::@class::A::@field::_f
                 staticType: null
               equals: = @54
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: f @56
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+                  type: int
+                staticType: int
+              expression(v1): SimpleIdentifier
                 token: f @56
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::_f
       getters
         isOriginVariable _f
           reference: <testLibrary>::@class::A::@getter::_f
@@ -24479,7 +24516,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @47
+              fieldName(v1): SimpleIdentifier
                 token: x @47
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24490,12 +24528,23 @@ library
                   IntegerLiteral
                     literal: 0 @52
                     staticType: int
+                  UnqualifiedNameExpression
+                    name: a @55
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+                      type: int
+                    staticType: int
+                fields(v1)
+                  IntegerLiteral
+                    literal: 0 @52
+                    staticType: int
                   SimpleIdentifier
                     token: a @55
                     element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                     staticType: int
                 rightParenthesis: ) @56
                 staticType: (int, int)
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -24550,7 +24599,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @35
+              fieldName(v1): SimpleIdentifier
                 token: f @35
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
@@ -24569,6 +24619,7 @@ library
                     contents: ' @45
                 staticType: String
                 stringValue: null
+              fieldElement: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
@@ -24630,7 +24681,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: f @40
+              fieldName(v1): SimpleIdentifier
                 token: f @40
                 element: <testLibrary>::@class::C::@field::f
                 staticType: null
@@ -24641,7 +24693,13 @@ library
                     contents: ' @44
                   InterpolationExpression
                     leftBracket: $ @45
-                    expression2: SimpleIdentifier
+                    expression2: UnqualifiedNameExpression
+                      name: x @46
+                      resolution: VariableReadResolution
+                        element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                        type: int
+                      staticType: int
+                    expression(v1): SimpleIdentifier
                       token: x @46
                       element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                       staticType: int
@@ -24649,6 +24707,7 @@ library
                     contents: ' @47
                 staticType: String
                 stringValue: null
+              fieldElement: <testLibrary>::@class::C::@field::f
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f
@@ -24710,7 +24769,8 @@ library
               type: int
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @40
+              fieldName(v1): SimpleIdentifier
                 token: x @40
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -24720,9 +24780,11 @@ library
                   literal: 1 @44
                   staticType: int
                 operator: + @46
-                rightOperand: SimpleIdentifier
-                  token: p @48
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
+                rightOperand: UnqualifiedNameExpression
+                  name: p @48
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
+                    type: int
                   staticType: int
                 binaryOperator: add
                 element: dart:core::@class::num::@method::+
@@ -24739,6 +24801,7 @@ library
                 element: dart:core::@class::num::@method::+
                 staticInvokeType: num Function(num)
                 staticType: int
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -28294,7 +28357,8 @@ library
           firstFragment: #F4
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @35
+              fieldName(v1): SimpleIdentifier
                 token: x @35
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
@@ -28323,6 +28387,7 @@ library
                   leftParenthesis: ( @46
                   rightParenthesis: ) @47
                 staticType: D
+              fieldElement: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::C::@getter::x
@@ -28344,7 +28409,8 @@ library
           firstFragment: #F8
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: x @88
+              fieldName(v1): SimpleIdentifier
                 token: x @88
                 element: <testLibrary>::@class::D::@field::x
                 staticType: null
@@ -28373,6 +28439,7 @@ library
                   leftParenthesis: ( @99
                   rightParenthesis: ) @100
                 staticType: C
+              fieldElement: <testLibrary>::@class::D::@field::x
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::D::@getter::x
@@ -29089,7 +29156,8 @@ library
           firstFragment: #F3
           constantInitializers
             ConstructorFieldInitializer
-              fieldName: SimpleIdentifier
+              fieldName2: foo @24
+              fieldName(v1): SimpleIdentifier
                 token: foo @24
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
@@ -29097,6 +29165,7 @@ library
               expression2: IntegerLiteral
                 literal: 0 @30
                 staticType: int
+              fieldElement: <testLibrary>::@class::A::@field::foo
       getters
         isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
@@ -29558,15 +29627,14 @@ library
             #F5 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
-                MethodInvocation
-                  methodName: SimpleIdentifier
-                    token: augmented @93
-                    element: <null>
-                    staticType: InvalidType
+                UnqualifiedFunctionInvocation
+                  name: augmented @93
                   argumentList: ArgumentList
                     leftParenthesis: ( @102
                     rightParenthesis: ) @103
-                  staticInvokeType: InvalidType
+                  resolution: InvalidInvocationResolution
+                    type: InvalidType
+                    recovery: <null>
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3
@@ -29650,9 +29718,12 @@ library
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: augmented @91
-                    element: <null>
+                  leftOperand: UnqualifiedNameExpression
+                    name: augmented @91
+                    resolution: InvalidNamedReadResolution
+                      type: InvalidType
+                      candidates
+                      recovery: <null>
                     staticType: InvalidType
                   operator: + @101
                   rightOperand: IntegerLiteral
@@ -31925,7 +31996,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -32312,7 +32383,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -32404,6 +32475,14 @@ library
                 ListLiteral
                   leftBracket: [ @113
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @114
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@getter::a
+                        invokeType: int Function()
+                        type: int
+                      staticType: int
+                  elements(v1)
                     SimpleIdentifier
                       token: a @114
                       element: <testLibrary>::@getter::a
@@ -32457,7 +32536,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: List<int>
@@ -32639,7 +32718,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: double
@@ -35272,7 +35351,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -36526,7 +36605,7 @@ library
       interfaces
         A
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -36617,7 +36696,7 @@ library
       interfaces
         A
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter isTypeInferredFromOverride foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -48201,7 +48280,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter f
+        isOriginGetterSetter isTypeInferredFromOverride f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int

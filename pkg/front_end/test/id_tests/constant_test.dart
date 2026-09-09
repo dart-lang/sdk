@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, cfeMarker, runTests;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -15,7 +15,6 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         CfeTestConfig,
         CfeTestResultData,
         FormattedMessage,
-        InternalCompilerResult,
         createUriForFileName,
         onFailure,
         runTestFor;
@@ -50,7 +49,7 @@ class ConstantsDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -62,7 +61,7 @@ class ConstantsDataComputer extends CfeDataComputer<String> {
   void computeClassData(
     CfeTestResultData testResultData,
     Class cls,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new ConstantsDataExtractor(
@@ -89,10 +88,7 @@ class ConstantsDataComputer extends CfeDataComputer<String> {
 }
 
 class ConstantsDataExtractor extends CfeDataExtractor<String> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

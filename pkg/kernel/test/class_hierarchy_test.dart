@@ -508,7 +508,7 @@ class H extends self::G implements self::C, self::A {}
         body,
         returnType: const VoidType(),
         positionalParameters: [
-          new PositionalParameter(cosmeticName: '_', type: type),
+          new PositionalParameter(parameterName: '_', type: type),
         ],
       ),
       fileUri: library.fileUri,

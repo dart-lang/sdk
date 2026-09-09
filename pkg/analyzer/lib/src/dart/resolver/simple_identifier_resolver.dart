@@ -75,11 +75,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is ConstructorDeclarationImpl) {
-      if (parent.typeName == node) {
-        return false;
-      }
-    }
     if (parent is MethodInvocationImpl ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl ||
@@ -141,9 +136,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var parent = node.parent2;
     if (parent is FieldFormalParameterImpl) {
       return null;
-    } else if (parent is ConstructorFieldInitializerImpl &&
-        parent.fieldName == node) {
-      return null;
     } else if (parent is AnnotationImpl && parent.constructorName == node) {
       return null;
     }
@@ -152,34 +144,16 @@ class SimpleIdentifierResolver with ScopeHelpers {
     // Otherwise, the node should be resolved.
     //
 
-    // TODO(scheglov): Special-case resolution of ForStatement, don't use this.
-    var hasRead = true;
-    var hasWrite = false;
-    {
-      var parent = node.parent2;
-      if (parent is ForEachPartsWithIdentifierImpl &&
-          parent.identifier == node) {
-        hasRead = false;
-        hasWrite = true;
-      }
-    }
-
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolveSimpleIdentifier(
       node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
+      hasRead: true,
+      hasWrite: false,
     );
 
     var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      var staticType = _resolver.inferenceHelper.inferTearOff(
-        node,
-        node,
-        callFunctionType,
-        contextType: contextType,
-      );
-      node.recordStaticType(staticType, resolver: _resolver);
+      node.recordStaticType(callFunctionType, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
     }
@@ -191,17 +165,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return null;
     }
 
-    var element = hasRead ? result.readElement2 : result.writeElement2;
+    var element = result.readElement2;
 
-    var enclosingInstanceElement = _resolver.enclosingInstanceElement;
-    if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingInstanceElement)) {
-      diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
-    } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingInstanceElement)) {
-      // This error is now reported by the parser.
-      element = null;
-    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
+    if (element is PrefixElement && !_isValidAsPrefix(node)) {
       if (element.name case var name?) {
         diagnosticReporter.report(
           diag.prefixIdentifierNotFollowedByDot
@@ -288,20 +254,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
       staticType = InvalidTypeImpl.instance;
     }
 
-    if (!_resolver.isConstructorTearoffsEnabled) {
-      // Only perform a generic function instantiation on a [PrefixedIdentifier]
-      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
-      // generic function instantiation is performed at assignability check
-      // sites.
-      // TODO(srawlins): Switch all resolution to use the latter method, in a
-      // breaking change release.
-      staticType = _resolver.inferenceHelper.inferTearOff(
-        node,
-        node,
-        staticType,
-        contextType: contextType,
-      );
-    }
     node.recordStaticType(staticType, resolver: _resolver);
   }
 
@@ -335,26 +287,5 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (node is SimpleIdentifier) {
       node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a
-  /// constructor declaration.
-  static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent2;
-    if (parent is ConstructorDeclarationImpl) {
-      return identical(parent.typeName, identifier);
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a factory
-  /// constructor.
-  static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent2;
-    if (parent is ConstructorDeclarationImpl) {
-      return identical(parent.typeName, identifier) &&
-          parent.factoryKeyword != null;
-    }
-    return false;
   }
 }

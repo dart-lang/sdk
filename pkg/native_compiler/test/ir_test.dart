@@ -54,11 +54,15 @@ Future<void> runTestCase(Uri source) async {
     target: target,
   );
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final hierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
 
   String actual = GlobalContext.withContext(
-    GlobalContext(typeEnvironment: typeEnvironment),
+    GlobalContext(
+      typeEnvironment: typeEnvironment,
+      coreLibraries: coreLibraries,
+    ),
     () {
       final compileAndDump = CompileAndDumpIr();
 
@@ -174,7 +178,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
     final stackFrame = Arm64StackFrame(function);
     final constraints = Arm64Constraints(stackFrame);
     backEndState.stackFrame = stackFrame;
-    backEndState.unboxing = Unboxing();
+    backEndState.unboxing = Unboxing(objectLayout);
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),

@@ -74,14 +74,14 @@ class AstUnitIndexItem {
   /// The offset in [AstUnitFormat.declarations].
   Uint30? offset;
 
-  /// The tag of the declaration from [Tag].
+  /// The tag of the declaration from [AstNodeTag].
   Byte? tag;
 
-  /// If not [Tag.VariableDeclaration], the name of the declaration.
+  /// If not [AstNodeTag.VariableDeclaration], the name of the declaration.
   /// Otherwise absent, [topLevelVariableNames] instead.
   StringRef? name;
 
-  /// If [Tag.VariableDeclaration], the names of the variables.
+  /// If [AstNodeTag.VariableDeclaration], the names of the variables.
   /// Otherwise absent, [name] instead.
   List<StringRef>? topLevelVariableNames;
 }

@@ -32,6 +32,16 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
+      methodName: '_assertCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
+      methodName: '_assertContextRootsText',
+      argument: _ArgumentNamed('expected'),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
       methodName: '_assertWorkspaceCollectionText',
       argument: _ArgumentIndex(1),
     ),
@@ -133,12 +143,17 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'IndexTest',
-      methodName: 'assertLibraryFragmentIndexText',
+      methodName: 'assertElementsIndexText',
       argument: _ArgumentIndex(2),
     ),
     _AssertMethod(
       className: 'IndexTest',
-      methodName: 'assertNameIndexText',
+      methodName: 'assertNamesIndexText',
+      argument: _ArgumentIndex(2),
+    ),
+    _AssertMethod(
+      className: 'IndexTest',
+      methodName: 'assertLibraryFragmentIndexText',
       argument: _ArgumentIndex(2),
     ),
     _AssertMethod(
@@ -252,6 +267,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'LookupPromotedThisTypeTest',
+      methodName: 'assertPromotedThisTypes',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'resolveTestCodeWithDiagnostics',
       argument: _ArgumentIndex(0),
@@ -264,6 +284,11 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'SearchTest',
       methodName: 'assertElementReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
+      methodName: 'assertElementsReferencesText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

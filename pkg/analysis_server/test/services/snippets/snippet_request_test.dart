@@ -28,7 +28,7 @@ class SnippetRequestTest extends AbstractSingleUnitTest {
     await testRequest(r'''
 @[!depre^!]
 class A {}
-''', SnippetContext.inAnnotation);
+''', .inAnnotation);
   }
 
   Future<void> test_argumentName() async {
@@ -36,7 +36,7 @@ class A {}
 void({required int switch}) {
   f([!sw^!]:);
 }
-''', SnippetContext.inName);
+''', .inName);
   }
 
   Future<void> test_block_forBody() async {
@@ -46,7 +46,7 @@ foo() {
     [!^!]
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_class_atEnd() async {
@@ -56,7 +56,7 @@ class A {
 
   [!^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_atEnd_partialIdentifier() async {
@@ -66,7 +66,7 @@ class A {
 
   [!mysnip^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_atStart() async {
@@ -76,7 +76,7 @@ class A {
 
   foo() {}
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_atStart_partialIdentifier() async {
@@ -86,7 +86,13 @@ class A {
 
   foo() {}
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
+  }
+
+  Future<void> test_class_beforeBody() async {
+    await testRequest(r'''
+class C [!^!]{}
+''', .inClassDeclaration);
   }
 
   Future<void> test_class_betweenMembers() async {
@@ -98,7 +104,7 @@ class A {
 
   bar() {}
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_betweenMembers_partialIdentifier() async {
@@ -110,7 +116,7 @@ class A {
 
   bar() {}
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_empty() async {
@@ -118,7 +124,7 @@ class A {
 class A {
   [!^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_class_empty_partialIdentifier() async {
@@ -126,14 +132,20 @@ class A {
 class A {
   [!mysnip^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
+  }
+
+  Future<void> test_class_primaryConstructor_emptyBody() async {
+    await testRequest(r'''
+class C() [!^!];
+''', .inClassDeclaration);
   }
 
   Future<void> test_comment_dartDoc() async {
     await testRequest(r'''
 /// [!^!]
 class A {}
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_dartDoc_reference_member() async {
@@ -142,14 +154,14 @@ class A {
   /// [ [!A^!] ]
   foo() {}
 }
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_dartDoc_reference_topLevel() async {
     await testRequest(r'''
 /// [ [!A^!] ]
 class A {}
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_multiline_member() async {
@@ -160,7 +172,7 @@ class A {
    */
   foo() {}
 }
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_multiline_topLevel() async {
@@ -169,7 +181,7 @@ class A {
  * [!^!]
  */
 class A {}
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_singleLine_member() async {
@@ -178,38 +190,38 @@ class A {
   // [!^!]
   foo () {}
 }
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_comment_singleLine_topLevel() async {
     await testRequest(r'''
 // [!^!]
 class A {}
-''', SnippetContext.inComment);
+''', .inComment);
   }
 
   Future<void> test_dotShorthand_constructor() async {
     await testRequest(r'''
 String _ = .[!^fromCharCode!]('42');
-''', SnippetContext.inDotShorthand);
+''', .inDotShorthand);
   }
 
   Future<void> test_dotShorthand_invocation() async {
     await testRequest(r'''
 int _ = .[!^parse!]('42');
-''', SnippetContext.inDotShorthand);
+''', .inDotShorthand);
   }
 
   Future<void> test_dotShorthand_noIdentifier() async {
     await testRequest(r'''
 String _ = .[!^!];
-''', SnippetContext.inDotShorthand);
+''', .inDotShorthand);
   }
 
   Future<void> test_dotShorthand_propertyAccess() async {
     await testRequest(r'''
 Duration _ = .[!^zero!];
-''', SnippetContext.inDotShorthand);
+''', .inDotShorthand);
   }
 
   Future<void> test_enum_constants() async {
@@ -217,7 +229,7 @@ Duration _ = .[!^zero!];
 enum A {
   [!^!]
 }
-''', SnippetContext.inEnumConstants);
+''', .inEnumConstants);
   }
 
   Future<void> test_enum_constants_args() async {
@@ -225,7 +237,7 @@ enum A {
 enum A {
   a([!^!]);
 }
-''', SnippetContext.inConstantExpression);
+''', .inConstantExpression);
   }
 
   Future<void> test_enum_members() async {
@@ -234,13 +246,13 @@ enum A {
   a;
   [!^!]
 }
-''', SnippetContext.inEnumMembers);
+''', .inEnumMembers);
   }
 
   Future<void> test_expression_constructor() async {
     await testRequest(r'''
 final a = new [!^!]
-''', SnippetContext.inConstructorInvocation);
+''', .inConstructorInvocation);
   }
 
   Future<void> test_expression_constructorName() async {
@@ -249,7 +261,7 @@ class A {
   A.foo();
 }
 final a = new A.[!fo^!]
-''', SnippetContext.inConstructorInvocation);
+''', .inConstructorInvocation);
   }
 
   Future<void> test_expression_functionCall() async {
@@ -257,7 +269,7 @@ final a = new A.[!fo^!]
 foo() {
   print([!^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_extension() async {
@@ -265,7 +277,7 @@ foo() {
 extension on Object {
   [!^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_function_atEnd() async {
@@ -274,7 +286,7 @@ foo() {
   var a = 1;
   [!^!]
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_atEnd_partialIdentifier() async {
@@ -283,7 +295,7 @@ foo() {
   var a = 1;
   [!mysnip^!]
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_atStart() async {
@@ -292,7 +304,7 @@ foo() {
   [!^!]
   var a = 1;
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_atStart_partialIdentifier() async {
@@ -301,7 +313,7 @@ foo() {
   [!mysnip^!]
   var a = 1;
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_betweenStatements() async {
@@ -311,7 +323,7 @@ foo() {
   [!^!]
   var b = 1;
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_betweenStatements_partialIdentifier() async {
@@ -321,7 +333,7 @@ foo() {
   [!mysnip^!]
   var b = 1;
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_empty() async {
@@ -329,7 +341,7 @@ foo() {
 foo() {
   [!^!]
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_function_empty_partialIdentifier() async {
@@ -337,7 +349,7 @@ foo() {
 foo() {
   [!mysnip^!]
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_importPrefixMember() async {
@@ -347,7 +359,7 @@ import 'dart:async' as a;
 void f() {
   a.[!^!]
 }
-''', SnippetContext.inQualifiedMemberAccess);
+''', .inQualifiedMemberAccess);
   }
 
   Future<void> test_initializingFormal() async {
@@ -356,7 +368,7 @@ class A {
   int a;
   A(this.[!f^!]);
 }
-''', SnippetContext.inQualifiedMemberAccess);
+''', .inQualifiedMemberAccess);
   }
 
   Future<void> test_method_atEnd() async {
@@ -367,7 +379,7 @@ class A {
     [!^!]
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_atEnd_partialIdentifier() async {
@@ -378,7 +390,7 @@ class A {
     [!mysnip^!]
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_atStart() async {
@@ -389,7 +401,7 @@ class A {
     var a = 1;
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_atStart_partialIdentifier() async {
@@ -400,7 +412,7 @@ class A {
     var a = 1;
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_betweenStatements() async {
@@ -412,7 +424,7 @@ class A {
     var b = 1;
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_betweenStatements_partialIdentifier() async {
@@ -424,7 +436,7 @@ class A {
     var b = 1;
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_call() async {
@@ -434,7 +446,7 @@ class A {
     this.[!^!]
   }
 }
-''', SnippetContext.inQualifiedMemberAccess);
+''', .inQualifiedMemberAccess);
   }
 
   Future<void> test_method_call_partialIdentifier() async {
@@ -444,7 +456,7 @@ class A {
     this.[!fo^!]
   }
 }
-''', SnippetContext.inQualifiedMemberAccess);
+''', .inQualifiedMemberAccess);
   }
 
   Future<void> test_method_declaration() async {
@@ -452,7 +464,7 @@ class A {
 class A {
   void [!foo^!]
 }
-''', SnippetContext.inIdentifierDeclaration);
+''', .inIdentifierDeclaration);
   }
 
   Future<void> test_method_empty() async {
@@ -462,7 +474,7 @@ class A {
     [!^!]
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_method_empty_partialIdentifier() async {
@@ -472,7 +484,7 @@ class A {
     [!mysnip^!]
   }
 }
-''', SnippetContext.inBlock);
+''', .inBlock);
   }
 
   Future<void> test_mixin() async {
@@ -480,7 +492,7 @@ class A {
 mixin A {
   [!^!]
 }
-''', SnippetContext.inClass);
+''', .inClassBody);
   }
 
   Future<void> test_pattern_switch() async {
@@ -488,7 +500,7 @@ mixin A {
 f(String a) => switch (a) {
     [!^!]
 };
-''', SnippetContext.inPattern);
+''', .inPattern);
   }
 
   Future<void> test_pattern_switch_partialIdentifier() async {
@@ -496,7 +508,7 @@ f(String a) => switch (a) {
 f(String a) => switch (a) {
     [!sw^!]
 };
-''', SnippetContext.inPattern);
+''', .inPattern);
   }
 
   Future<void> test_prefixedEnumMember() async {
@@ -511,7 +523,7 @@ enum MyEnum {
 void f() {
   self.MyEnum.[!^!]
 }
-''', SnippetContext.inQualifiedMemberAccess);
+''', .inQualifiedMemberAccess);
   }
 
   Future<void> test_return_expression() async {
@@ -519,7 +531,7 @@ void f() {
 int f() {
   return [!sw^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_return_expression_empty() async {
@@ -527,7 +539,7 @@ int f() {
 int f() {
   return [!^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_statement_forCondition() async {
@@ -535,7 +547,7 @@ int f() {
 foo() {
   for (var i = [!^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_statement_forCondition_partialIdentifier() async {
@@ -543,25 +555,25 @@ foo() {
 foo() {
   for (var i = [!a^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_string() async {
     await testRequest(r'''
 const a = '[!^!]';
-''', SnippetContext.inString);
+''', .inString);
   }
 
   Future<void> test_string_raw() async {
     await testRequest(r'''
 const a = r'[!^!]';
-''', SnippetContext.inString);
+''', .inString);
   }
 
   Future<void> test_string_unterminated() async {
     await testRequest(r'''
 const a = r'[!^!]
-''', SnippetContext.inString);
+''', .inString);
   }
 
   Future<void> test_topLevel_atEnd() async {
@@ -569,7 +581,7 @@ const a = r'[!^!]
 class A {}
 
 [!^!]
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_atEnd_partialIdentifier() async {
@@ -577,7 +589,7 @@ class A {}
 class A {}
 
 [!mysnip^!]
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_atStart() async {
@@ -585,7 +597,7 @@ class A {}
 [!^!]
 
 class A {}
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_atStart_partialIdentifier() async {
@@ -593,7 +605,7 @@ class A {}
 [!mysnip^!]
 
 class A {}
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_betweenClasses() async {
@@ -603,7 +615,7 @@ class A {}
 [!^!]
 
 class B {}
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_betweenClasses_partialIdentifier() async {
@@ -613,15 +625,15 @@ class A {}
 [!mysnip^!]
 
 class B {}
-''', SnippetContext.atTopLevel);
+''', .atTopLevel);
   }
 
   Future<void> test_topLevel_empty() async {
-    await testRequest('[!^!]', SnippetContext.atTopLevel);
+    await testRequest('[!^!]', .atTopLevel);
   }
 
   Future<void> test_topLevel_empty_partialIdentifier() async {
-    await testRequest('[!mysnip^!]', SnippetContext.atTopLevel);
+    await testRequest('[!mysnip^!]', .atTopLevel);
   }
 
   Future<void> test_variable_value_partialIdentifier() async {
@@ -629,7 +641,7 @@ class B {}
 foo() {
   var a = [!a^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   Future<void> test_variableDeclaration() async {
@@ -637,7 +649,7 @@ foo() {
 foo() {
   var [!^!]
 }
-''', SnippetContext.inIdentifierDeclaration);
+''', .inIdentifierDeclaration);
   }
 
   Future<void> test_variableDeclaration_constant() async {
@@ -645,7 +657,7 @@ foo() {
 foo() {
   const a = [!^!]
 }
-''', SnippetContext.inConstantExpression);
+''', .inConstantExpression);
   }
 
   Future<void> test_variableDeclaration_partialIdentifier() async {
@@ -653,7 +665,7 @@ foo() {
 foo() {
   var [!a^!]
 }
-''', SnippetContext.inIdentifierDeclaration);
+''', .inIdentifierDeclaration);
   }
 
   Future<void> test_variableDeclaration_value() async {
@@ -661,7 +673,7 @@ foo() {
 foo() {
   var a = [!^!]
 }
-''', SnippetContext.inExpression);
+''', .inExpression);
   }
 
   /// Checks that [content] produces a context of [expectedContext] where the

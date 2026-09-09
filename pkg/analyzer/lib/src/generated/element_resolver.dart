@@ -44,7 +44,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 ///    overridden ([BinaryOperatorInvocation], [UnaryOperatorInvocation], and
 ///    [IncrementOrDecrementExpression]) should resolve to the element
 ///    representing the method invoked by that operator (a [MethodElement]).
-/// 3. Every [FunctionExpressionInvocation] should resolve to the element
+/// 3. Every [FunctionInvocation] should resolve to the element
 ///    representing the function being invoked (a [ExecutableElement]). This
 ///    will be the same element as that to which the name is resolved if the
 ///    function has a name, but is provided for those cases where an unnamed
@@ -163,21 +163,35 @@ class ElementResolver {
     }
   }
 
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var parameters = _resolveArgumentsToFunction(
+      node.argumentList,
+      node.element,
+    );
+    if (parameters != null) {
+      node.argumentList.correspondingStaticParameters = parameters;
+    }
+  }
+
   /// Resolves the dot shorthand invocation, [node].
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
-  /// [DotShorthandConstructorInvocation] in the process, then returns that new
+  /// If [node] is rewritten to be a [CallInvocation] or a
+  /// [DotShorthandConstructorInvocation2] in the process, then returns that new
   /// node. Otherwise, returns `null`.
-  RewrittenMethodInvocationImpl? visitDotShorthandInvocation(
+  ExpressionImpl? visitDotShorthandInvocation(
     covariant DotShorthandInvocationImpl node, {
     List<WhyNotPromotedGetter>? whyNotPromotedArguments,
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolveDotShorthand(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
   }
 
@@ -210,19 +224,6 @@ class ElementResolver {
   void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
-    var prefixNode = node.prefix;
-    if (prefixNode != null) {
-      String prefixName = prefixNode.name;
-      var prefixes = _resolver.libraryFragment.prefixes;
-      int count = prefixes.length;
-      for (int i = 0; i < count; i++) {
-        var prefixElement = prefixes[i];
-        if (prefixElement.displayName == prefixName) {
-          prefixNode.element = prefixElement;
-          break;
-        }
-      }
-    }
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
@@ -415,7 +416,7 @@ class ElementResolver {
   /// [library].
   void _resolveCombinators(
     LibraryElementImpl? library,
-    NodeList<Combinator> combinators,
+    NodeList<CombinatorImpl> combinators,
   ) {
     if (library == null) {
       //
@@ -425,26 +426,11 @@ class ElementResolver {
       return;
     }
     Namespace namespace = library.exportNamespace;
-    for (Combinator combinator in combinators) {
-      NodeList<SimpleIdentifier> names;
-      if (combinator is HideCombinator) {
-        names = combinator.hiddenNames;
-      } else {
-        names = (combinator as ShowCombinator).shownNames;
-      }
-      for (var name in names) {
-        name as SimpleIdentifierImpl;
-        String nameStr = name.name;
-        var element = namespace.get2(nameStr) ?? namespace.get2("$nameStr=");
-        if (element != null) {
-          // Ensure that the name always resolves to a top-level variable
-          // rather than a getter or setter
-          if (element is PropertyAccessorElement) {
-            name.element = element.variable;
-          } else {
-            name.element = element;
-          }
-        }
+    for (var combinator in combinators) {
+      for (var name in combinator.names) {
+        var nameStr = name.name.lexeme;
+        name.element = namespace.get2(nameStr);
+        name.setterElement = namespace.get2('$nameStr=');
       }
     }
   }

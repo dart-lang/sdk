@@ -9,8 +9,52 @@ import 'test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(MainFunctionBinFolderTest);
+    defineReflectiveTests(MainFunctionProjectRootTest);
     defineReflectiveTests(MainFunctionTest);
+    defineReflectiveTests(MainFunctionTestFolderTest);
+    defineReflectiveTests(MainFunctionToolFolderTest);
   });
+}
+
+@reflectiveTest
+class MainFunctionBinFolderTest extends MainFunctionTest {
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/bin/main.dart');
+
+  Future<void> test_noPrefix() async {
+    await assertSnippetResult('^', '''
+void main(List<String> args) {
+  ^
+}''');
+  }
+
+  Future<void> test_typedPrefix() async {
+    await assertSnippetResult('$prefix^', '''
+void main(List<String> args) {
+  ^
+}''');
+  }
+}
+
+@reflectiveTest
+class MainFunctionProjectRootTest extends MainFunctionTest {
+  @override
+  String get testFilePath => convertPath('$testPackageRootPath/foo.dart');
+
+  Future<void> test_noPrefix() async {
+    await assertSnippetResult('^', '''
+void main(List<String> args) {
+  ^
+}''');
+  }
+
+  Future<void> test_typedPrefix() async {
+    await assertSnippetResult('$prefix^', '''
+void main(List<String> args) {
+  ^
+}''');
+  }
 }
 
 @reflectiveTest
@@ -23,42 +67,44 @@ class MainFunctionTest extends DartSnippetProducerTest {
 
   @override
   String get prefix => MainFunction.prefix;
+}
 
-  Future<void> test_noParams_testFolder() => testInFile(
-    convertPath('$testPackageTestPath/foo_test.dart'),
-    expectArgsParameter: false,
-  );
+@reflectiveTest
+class MainFunctionTestFolderTest extends MainFunctionTest {
+  @override
+  String get testFilePath => convertPath('$testPackageTestPath/foo_test.dart');
 
-  Future<void> test_params_binFolder() => testInFile(
-    convertPath('$testPackageLibPath/bin/main.dart'),
-    expectArgsParameter: true,
-  );
-
-  Future<void> test_params_projectRoot() => testInFile(
-    convertPath('$testPackageRootPath/foo.dart'),
-    expectArgsParameter: true,
-  );
-
-  Future<void> test_params_toolFolder() => testInFile(
-    convertPath('$testPackageLibPath/tool/tool.dart'),
-    expectArgsParameter: true,
-  );
-
-  Future<void> test_typedPrefix() =>
-      testInFile(testFile.path, code: '$prefix^', expectArgsParameter: true);
-
-  Future<void> testInFile(
-    String file, {
-    String code = '^',
-    required bool expectArgsParameter,
-  }) async {
-    testFilePath = file;
-    var expectedParams = expectArgsParameter ? 'List<String> args' : '';
-    var expectedCode =
-        '''
-void main($expectedParams) {
+  Future<void> test_noPrefix() async {
+    await assertSnippetResult('^', '''
+void main() {
   ^
-}''';
-    await assertSnippetResult(code, expectedCode);
+}''');
+  }
+
+  Future<void> test_typedPrefix() async {
+    await assertSnippetResult('$prefix^', '''
+void main() {
+  ^
+}''');
+  }
+}
+
+@reflectiveTest
+class MainFunctionToolFolderTest extends MainFunctionTest {
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/tool/tool.dart');
+
+  Future<void> test_noPrefix() async {
+    await assertSnippetResult('^', '''
+void main(List<String> args) {
+  ^
+}''');
+  }
+
+  Future<void> test_typedPrefix() async {
+    await assertSnippetResult('$prefix^', '''
+void main(List<String> args) {
+  ^
+}''');
   }
 }

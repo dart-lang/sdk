@@ -126,6 +126,7 @@ class BulkFixProcessor {
     diag.undefinedGetter: [DataDriven.new],
     diag.undefinedIdentifier: [DataDriven.new],
     diag.undefinedMethod: [DataDriven.new],
+    diag.undefinedMethodOnTypeLiteral: [DataDriven.new],
     diag.undefinedNamedParameter: [DataDriven.new],
     diag.undefinedSetter: [DataDriven.new],
     diag.wrongNumberOfTypeArguments: [DataDriven.new],
@@ -141,11 +142,11 @@ class BulkFixProcessor {
   /// Cached results of [_canBulkFix].
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
-  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+  static final Set<String> _allDiagnosticCodes = diagnosticCodeValues
       .map((code) => code.lowerCaseName)
       .toSet();
 
-  static final Set<String> _lintCodes = Registry.ruleRegistry.rules
+  static final Set<String> _allLintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name)
       .toSet();
 
@@ -156,12 +157,21 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace _workspace;
 
-  /// A list of diagnostic codes to fix.
+  /// The set of diagnostic codes to fix.
   ///
-  /// If `null`, fixes are computed for all codes.
-  final List<String>? _codes;
+  /// Lint codes listed here do not need to be enabled in the project as they
+  /// will be included automatically.
+  ///
+  /// If `null`, fixes are computed for all codes/enabled lints.
+  final Set<String>? _codesToFix;
 
-  final List<AbstractAnalysisRule>? _additionalLintRules;
+  /// Additional lint rules to fix.
+  ///
+  /// Unlike [_codesToFix], these lints are added in addition (whereas
+  /// [_codesToFix] replaces the set of enabled lints).
+  ///
+  /// Only one of [_codesToFix] or [_additionalLintRulesToFix] can be used.
+  final List<AbstractAnalysisRule>? _additionalLintRulesToFix;
 
   final ByteStore _byteStore;
 
@@ -179,20 +189,45 @@ class BulkFixProcessor {
   /// invalid).
   final CancellationToken? _cancellationToken;
 
+  /// The set of codes that that can be passed that will cause Pubspec fixes
+  /// to be applied (in addition to when no codes are supplied).
+  final _pubspecFixDiagnosticCodes = {
+    diag.missingDependency.lowerCaseName,
+    diag.dependOnReferencedPackages.lowerCaseName,
+    diag.migrateDesignWidgets.lowerCaseName,
+  };
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
+  ///
+  /// If [codes] is non-null, only diagnostics with those codes will be
+  /// fixed. If [codes] include lint codes, they will be enabled for fixing even
+  /// if they are not enabled in the analysis options.
   new(
     this._instrumentationService,
     this._workspace, {
     required this._byteStore,
     ChangeBuilder? builder,
     List<String>? codes,
-    List<String>? additionalEnabledCodes,
     this._cancellationToken,
   }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
-       _codes = codes?.map((e) => e.toLowerCase()).toList(),
-       _additionalLintRules = additionalEnabledCodes
-           ?.map((e) => Registry.ruleRegistry.getRule(e.toLowerCase()))
+       _codesToFix = codes?.map((e) => e.toLowerCase()).toSet(),
+       _additionalLintRulesToFix = null;
+
+  /// Initialize a newly created processor to create fixes for both existing
+  /// diagnostics and additionally for [additionalLintCodes] in libraries in
+  /// the [_workspace].
+  new withAdditionalLints(
+    this._instrumentationService,
+    this._workspace, {
+    required this._byteStore,
+    ChangeBuilder? builder,
+    List<String>? additionalLintCodes,
+    this._cancellationToken,
+  }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
+       _codesToFix = null,
+       _additionalLintRulesToFix = additionalLintCodes
+           ?.map(_getLint)
            .nonNulls
            .toList();
 
@@ -218,7 +253,7 @@ class BulkFixProcessor {
 
   /// Returns a change builder that has been used to create fixes for the
   /// diagnostics in [path] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(
+  Future<BulkFixRequestResult> fixErrorsForFile(
     OperationPerformanceImpl performance,
     AnalysisContext context,
     String path, {
@@ -243,7 +278,7 @@ class BulkFixProcessor {
       }
     }
 
-    return builder;
+    return BulkFixRequestResult(builder);
   }
 
   /// Returns a [BulkFixRequestResult] that includes a change builder that has
@@ -308,6 +343,14 @@ class BulkFixProcessor {
   /// files in the given [contexts].
   Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
       _computeChangesToPubspec(contexts);
+
+  /// Returns a [PubspecFixRequestResult] that includes edits to the pubspec
+  /// files in the given [context] to fix diagnostics for missing packages in
+  /// [filePath].
+  Future<PubspecFixRequestResult> fixPubspecForFile(
+    AnalysisContext context,
+    String filePath,
+  ) => _computeChangesToPubspec([context], onlyForFile: filePath);
 
   /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
@@ -378,8 +421,26 @@ class BulkFixProcessor {
   }
 
   Future<PubspecFixRequestResult> _computeChangesToPubspec(
-    List<AnalysisContext> contexts,
-  ) async {
+    List<AnalysisContext> contexts, {
+    String? onlyForFile,
+  }) async {
+    assert(
+      onlyForFile == null || contexts.length == 1,
+      'When fixing pubspec issues only for one file, only one context should be provided',
+    );
+
+    // If we were filtered to a set or codes that doesn't include codes that
+    // should make pubspec fixes, don't compute any fixes.
+    //
+    // Note: Currently, any of these codes will result in all dependencies being
+    // fixed even if they did not produce the specific code requested. This is a
+    // consequence of how these fixes are currently applied (that is, they are
+    // not driven by the diagnostics).
+    if (_codesToFix != null &&
+        !_codesToFix.any(_pubspecFixDiagnosticCodes.contains)) {
+      return (edits: <SourceFileEdit>[], details: <BulkFix>[]);
+    }
+
     var fixes = <SourceFileEdit>[];
     var details = <BulkFix>[];
     for (var context in contexts) {
@@ -390,12 +451,15 @@ class BulkFixProcessor {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       var packageToDeps = <PubPackage, _PubspecDeps>{};
 
-      for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+      var filePaths = onlyForFile != null
+          ? [onlyForFile]
+          : context.contextRoot.analyzedFiles();
+      for (var filePath in filePaths) {
+        if (!file_paths.isDart(pathContext, filePath) ||
+            file_paths.isGenerated(filePath)) {
           continue;
         }
-        var package = workspace.findPackageFor(path);
+        var package = workspace.findPackageFor(filePath);
         if (package is! PubPackage) {
           continue;
         }
@@ -409,7 +473,7 @@ class BulkFixProcessor {
         );
 
         // Get the list of imports used in the files.
-        var libraryResult = context.currentSession.getParsedLibrary(path);
+        var libraryResult = context.currentSession.getParsedLibrary(filePath);
         if (libraryResult is! ParsedLibraryResult) {
           continue;
         }
@@ -422,7 +486,7 @@ class BulkFixProcessor {
                 : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
-              if (libPath.contains(path) || binPath.contains(path)) {
+              if (libPath.contains(filePath) || binPath.contains(filePath)) {
                 pubspecDeps.packages.add(name);
               } else {
                 pubspecDeps.devPackages.add(name);
@@ -448,6 +512,9 @@ class BulkFixProcessor {
           }
           details.add(
             BulkFix(pubspecFile.path, [
+              // TODO(dantup): We always show 1 here and this diagnostic code
+              //  even if there are multiple packages added and if the
+              //  diagnostic is something like depend_on_referenced_packages.
               BulkFixDetail(diag.missingDependency.lowerCaseName, 1),
             ]),
           );
@@ -471,10 +538,11 @@ class BulkFixProcessor {
     bool stopAfterFirst = false,
   }) async {
     // Ensure specified codes are defined.
-    if (_codes != null) {
+    if (_codesToFix != null) {
       var undefinedCodes = <String>[];
-      for (var code in _codes) {
-        if (!_diagnosticCodes.contains(code) && !_lintCodes.contains(code)) {
+      for (var code in _codesToFix) {
+        if (!_allDiagnosticCodes.contains(code) &&
+            !_allLintCodes.contains(code)) {
           undefinedCodes.add(code);
         }
       }
@@ -535,9 +603,7 @@ class BulkFixProcessor {
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);
-    var lintRules = _syntacticLintCodes
-        .map((name) => Registry.ruleRegistry.getRule(name))
-        .nonNulls;
+    var lintRules = _syntacticLintCodes.map(_getLint).nonNulls;
     for (var lintRule in lintRules) {
       lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
@@ -549,9 +615,9 @@ class BulkFixProcessor {
   }
 
   /// Builds a temporary [AnalysisContext] that has the lint rules in
-  /// [_additionalLintRules] enabled in its analysis options.
+  /// [_codesToFix]/[_additionalLintRulesToFix] enabled in its analysis options.
   AnalysisContext _contextWithAdditionalCodes(AnalysisContext originalContext) {
-    if (_additionalLintRules == null || _additionalLintRules.isEmpty) {
+    if (_codesToFix == null && (_additionalLintRulesToFix?.isEmpty ?? true)) {
       return originalContext;
     }
 
@@ -563,17 +629,22 @@ class BulkFixProcessor {
       configureAnalysisOptionsBuilder:
           ({required AnalysisOptionsBuilder analysisOptionsBuilder}) {
             analysisOptionsBuilder.lint = true;
-            analysisOptionsBuilder.lintRules = [
-              ...analysisOptionsBuilder.lintRules,
-              ..._additionalLintRules,
-            ];
+            // Combine the set of lints that are enabled and the additional
+            // rules provided.
+            analysisOptionsBuilder.lintRules = {
+              if (_codesToFix != null)
+                ..._codesToFix.map(_getLint).nonNulls
+              else
+                ...analysisOptionsBuilder.lintRules,
+              ...?_additionalLintRulesToFix,
+            }.toList();
           },
     );
 
     return collection.contextFor(originalContext.contextRoot.root.path);
   }
 
-  /// Filters errors to only those that are in [_codes] and are not filtered out
+  /// Filters errors to only those that are in [_codesToFix] and are not filtered out
   /// in analysis_options.
   Iterable<Diagnostic> _filterDiagnostics(
     AnalysisOptions analysisOptions,
@@ -582,8 +653,8 @@ class BulkFixProcessor {
     var diagnostics = originalDiagnostics.toList();
     diagnostics.sort(_fixOrder);
     for (var diagnostic in diagnostics) {
-      if (_codes != null &&
-          !_codes.contains(diagnostic.diagnosticCode.lowerCaseName)) {
+      if (_codesToFix != null &&
+          !_codesToFix.contains(diagnostic.diagnosticCode.lowerCaseName)) {
         continue;
       }
       var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
@@ -1045,6 +1116,9 @@ class BulkFixProcessor {
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
     });
   }
+
+  static AbstractAnalysisRule? _getLint(String name) =>
+      Registry.ruleRegistry.getRule(name);
 }
 
 class BulkFixRequestResult {
@@ -1083,10 +1157,10 @@ class IterativeBulkFixProcessor {
   static const _maxPassCount = 4;
 
   final InstrumentationService _instrumentationService;
-  final AnalysisContext _context;
 
   final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
   final Future<void> Function() _applyOverlays;
+  final List<String>? _diagnosticCodes;
 
   final ByteStore _byteStore;
 
@@ -1100,9 +1174,9 @@ class IterativeBulkFixProcessor {
   new({
     required this._instrumentationService,
     required this._byteStore,
-    required this._context,
     required this._applyTemporaryOverlayEdits,
     required this._applyOverlays,
+    this._diagnosticCodes,
     this._cancellationToken,
   });
 
@@ -1111,67 +1185,144 @@ class IterativeBulkFixProcessor {
 
   bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
-  Future<List<SourceFileEdit>> fixErrorsForFile(
+  Future<IterativeBulkFixRequestResult> fixErrors(
     OperationPerformanceImpl performance,
+    List<AnalysisContext> contexts,
+  ) {
+    return performance.runAsync('IterativeBulkFixProcessor.fixErrors', (
+      performance,
+    ) {
+      return _runFixesIteratively(
+        performance,
+        contexts,
+        (processor) => processor.fixErrors(contexts),
+        (processor) => processor.fixPubspec(contexts),
+      );
+    });
+  }
+
+  Future<IterativeBulkFixRequestResult> fixErrorsForFile(
+    OperationPerformanceImpl performance,
+    AnalysisContext context,
     String path, {
     required bool autoTriggered,
   }) {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile', (
       performance,
-    ) async {
-      var edits = <SourceFileEdit>[];
-      _passesWithEdits = 0;
-
-      for (var i = 0; i < _maxPassCount; i++) {
-        var workspace = DartChangeWorkspace([_context.currentSession]);
-        var processor = BulkFixProcessor(
-          _instrumentationService,
-          workspace,
-          byteStore: _byteStore,
-          cancellationToken: _cancellationToken,
-        );
-
-        var builder = await performance.runAsync(
-          'BulkFixProcessor.fixErrorsForFile pass $i',
-          (performance) => processor.fixErrorsForFile(
+    ) {
+      return _runFixesIteratively(
+        performance,
+        [context],
+        (processor) {
+          return processor.fixErrorsForFile(
             performance,
-            _context,
+            context,
             path,
             autoTriggered: autoTriggered,
-          ),
-        );
-
-        if (_isCancelled) {
-          return [];
-        }
-
-        var change = builder.sourceChange;
-        // If this pass made no changes, we don't need to do anything more.
-        if (change.edits.isEmpty) {
-          break;
-        }
-
-        // Record these changes in the results.
-        edits.addAll(change.edits);
-        _passesWithEdits++;
-
-        // Also apply them to the overlay provider so the next iteration can
-        // use them.
-        await performance.runAsync('Apply edits from pass $i', (_) async {
-          for (var fileEdit in change.edits) {
-            _applyTemporaryOverlayEdits(fileEdit);
-          }
-          await _applyOverlays();
-        });
-
-        if (_isCancelled) {
-          return [];
-        }
-      }
-
-      return edits;
+          );
+        },
+        (processor) {
+          return processor.fixPubspecForFile(context, path);
+        },
+      );
     });
   }
+
+  BulkFixProcessor _createProcessor(List<AnalysisContext> contexts) {
+    var workspace = DartChangeWorkspace(
+      contexts.map((context) => context.currentSession).toList(),
+    );
+    var processor = BulkFixProcessor(
+      _instrumentationService,
+      workspace,
+      byteStore: _byteStore,
+      codes: _diagnosticCodes,
+      cancellationToken: _cancellationToken,
+    );
+
+    return processor;
+  }
+
+  /// Runs [fixOperation] iteratively using temporary overlay changes to allow
+  /// multiple passes of fixes in a single request.
+  Future<IterativeBulkFixRequestResult> _runFixesIteratively(
+    OperationPerformanceImpl performance,
+    List<AnalysisContext> contexts,
+    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation,
+    Future<PubspecFixRequestResult> Function(BulkFixProcessor)
+    fixPubspecOperation,
+  ) async {
+    var edits = <SourceFileEdit>[];
+    var details = <BulkFix>[];
+    _passesWithEdits = 0;
+
+    for (var pass = 0; pass < _maxPassCount; pass++) {
+      var processor = _createProcessor(contexts);
+
+      var result = await performance.runAsync(
+        '_runFixesIteratively pass $pass',
+        (_) => fixOperation(processor),
+      );
+      var builder = result.builder;
+
+      if (_isCancelled) {
+        return IterativeBulkFixRequestResult([], []);
+      }
+      if (builder == null) {
+        return IterativeBulkFixRequestResult.error(result.errorMessage!);
+      }
+
+      var change = builder.sourceChange;
+      // If this pass made no changes, we don't need to do anything more.
+      if (change.edits.isEmpty) {
+        break;
+      }
+
+      // Record these changes in the results.
+      edits.addAll(change.edits);
+      details.addAll(processor.fixDetails);
+      _passesWithEdits++;
+
+      // Also apply them to the overlay provider so the next iteration can use
+      // them.
+      await performance.runAsync('Apply edits from pass $pass', (_) async {
+        for (var fileEdit in change.edits) {
+          _applyTemporaryOverlayEdits(fileEdit);
+        }
+        await _applyOverlays();
+      });
+
+      if (_isCancelled) {
+        return IterativeBulkFixRequestResult([], []);
+      }
+    }
+
+    // Finally, add any Pubspec fixes.
+    var pubspecResult = await performance.runAsync(
+      '_runFixesIteratively pubspec pass',
+      (_) {
+        var processor = _createProcessor(contexts);
+        return fixPubspecOperation(processor);
+      },
+    );
+    if (pubspecResult.edits.isNotEmpty) {
+      _passesWithEdits++;
+      edits.addAll(pubspecResult.edits);
+      details.addAll(pubspecResult.details);
+    }
+
+    return IterativeBulkFixRequestResult(edits, details);
+  }
+}
+
+class IterativeBulkFixRequestResult {
+  final List<SourceFileEdit> edits;
+  final List<BulkFix> details;
+  final String? errorMessage;
+
+  new(this.edits, this.details) : errorMessage = null;
+
+  new error(this.errorMessage) : edits = [], details = [];
 }
 
 class _PubspecDeps {

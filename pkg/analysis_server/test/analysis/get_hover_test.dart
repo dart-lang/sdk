@@ -1658,9 +1658,10 @@ class A {
 ''');
     var hover = await prepareHover('vvv = 42');
     // element
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
-    expect(hover.containingClassDescription, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingExecutableDescriptions, ['m']);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'num vvv');
     expect(hover.elementKind, 'local variable');
@@ -1680,8 +1681,8 @@ void f() {
 ''');
     var hover = await prepareHover('vvv);');
     // element
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'int vvv');
@@ -1805,8 +1806,8 @@ void f(int? x) {
 }
 ''');
     var hover = await prepareHover('x];');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'int? x');
@@ -1821,8 +1822,8 @@ void f(int? x) {
 }
 ''');
     var hover = await prepareHover('x};');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'int? x');
@@ -1837,8 +1838,8 @@ void f(int? x) {
 }
 ''');
     var hover = await prepareHover('x: ');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'int? x');
@@ -1853,8 +1854,8 @@ void f(int? x) {
 }
 ''');
     var hover = await prepareHover('x};');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, 'int? x');
@@ -1874,9 +1875,10 @@ void f() {
 }
 ''');
     var hover = await prepareHover('fff});');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
-    expect(hover.containingClassDescription, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingExecutableDescriptions, ['new']);
     expect(hover.dartdoc, 'The field documentation.');
     expect(hover.elementDescription, '{int fff}');
     expect(hover.elementKind, 'parameter');
@@ -1893,9 +1895,10 @@ class A {
 ''');
     var hover = await prepareHover('p) {');
     // element
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
-    expect(hover.containingClassDescription, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingExecutableDescriptions, ['m']);
     expect(hover.dartdoc, 'The method documentation.');
     expect(hover.elementDescription, 'int p');
     expect(hover.elementKind, 'parameter');
@@ -2010,9 +2013,10 @@ void f() {
 }
 ''');
     var hover = await prepareHover('fff: 42');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
-    expect(hover.containingClassDescription, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingExecutableDescriptions, ['new']);
     expect(hover.dartdoc, 'The field documentation.');
     expect(hover.elementDescription, '{int fff}');
     expect(hover.elementKind, 'parameter');
@@ -2031,9 +2035,10 @@ void f() {
 }
 ''');
     var hover = await prepareHover('fff: 42');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
-    expect(hover.containingClassDescription, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.containingExecutableDescriptions, ['new']);
     expect(hover.dartdoc, 'The field documentation.');
     expect(hover.elementDescription, '{int fff}');
     expect(hover.elementKind, 'parameter');
@@ -2047,8 +2052,8 @@ void f((int, String) r) {
 }
 ''');
     var hover = await prepareHover('r);');
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
     expect(hover.elementDescription, '(int, String) r');
@@ -2143,8 +2148,8 @@ void f(String x) {
 ''');
     var hover = await prepareHover('x;');
     // element
-    expect(hover.containingLibraryName, isNull);
-    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingLibraryName, 'package:test/test.dart');
+    expect(hover.containingLibraryPath, isNotNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.elementDescription, 'String x');
     expect(hover.elementKind, 'parameter');

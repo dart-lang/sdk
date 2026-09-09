@@ -39,9 +39,9 @@ static method test2(dynamic x, dynamic another) → dynamic
               throw{for-error-handling} new core::StateError::•("Pattern matching error");
           }
           {
-            synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
-            for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-              final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+            synthesized core::Iterator<dynamic> :sync-for-iterator##1 = (x as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+            for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+              final dynamic #t7 = :sync-for-iterator##1.{core::Iterator::current}{dynamic};
               {
                 hoisted dynamic j;
                 {

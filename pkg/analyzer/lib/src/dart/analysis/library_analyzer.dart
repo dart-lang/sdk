@@ -45,7 +45,6 @@ import 'package:analyzer/src/error/redeclare_verifier.dart';
 import 'package:analyzer/src/error/todo_finder.dart';
 import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
-import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -154,6 +153,16 @@ class LibraryAnalyzer {
     });
     var parsedUnit = fileAnalysis.unit;
     var node = parsedUnit.nodeCovering2(offset: offset);
+    // Resolution can replace the node at the completion offset. Select the
+    // stable enclosing resolution root while the parsed tree still owns it.
+    var nodeToResolve = node?.thisOrAncestorMatching2((e) {
+      return e.parent2 is ClassBody ||
+          e.parent2 is ClassDeclaration ||
+          e.parent2 is CompilationUnit ||
+          e.parent2 is EnumBody ||
+          e.parent2 is ExtensionDeclaration ||
+          e.parent2 is MixinDeclaration;
+    });
     var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
@@ -163,17 +172,7 @@ class LibraryAnalyzer {
           : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
-      var elementWalker = ElementWalker.forCompilationUnit(
-        libraryFragment,
-        libraryFilePath: _library.file.path,
-        unitFilePath: file.path,
-      );
-      parsedUnit.accept2(
-        ElementBindingVisitor.forAnalysis(
-          fragment: libraryFragment,
-          walker: elementWalker,
-        ),
-      );
+      parsedUnit.accept2(ElementBindingVisitor(libraryFragment));
       parsedUnit.accept2(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
@@ -196,6 +195,7 @@ class LibraryAnalyzer {
         _testingData != null,
         typeSystemOperations: _typeSystemOperations,
         typeAnalyzerOptions: typeAnalyzerOptions,
+        enableLog: true,
       );
       _testingData?.recordFlowAnalysisDataForTesting(
         file.uri,
@@ -220,14 +220,6 @@ class LibraryAnalyzer {
         resolverVisitor.inferenceHelper.dataForTesting!,
       );
 
-      var nodeToResolve = node?.thisOrAncestorMatching2((e) {
-        return e.parent2 is ClassBody ||
-            e.parent2 is ClassDeclaration ||
-            e.parent2 is CompilationUnit ||
-            e.parent2 is EnumBody ||
-            e.parent2 is ExtensionDeclaration ||
-            e.parent2 is MixinDeclaration;
-      });
       if (nodeToResolve != null && nodeToResolve is! Directive) {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {
@@ -840,17 +832,7 @@ class LibraryAnalyzer {
     TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
         _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
 
-    var elementWalker = ElementWalker.forCompilationUnit(
-      libraryFragment,
-      libraryFilePath: _library.file.path,
-      unitFilePath: fileAnalysis.file.path,
-    );
-    unit.accept2(
-      ElementBindingVisitor.forAnalysis(
-        fragment: libraryFragment,
-        walker: elementWalker,
-      ),
-    );
+    unit.accept2(ElementBindingVisitor(libraryFragment));
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)
@@ -885,6 +867,7 @@ class LibraryAnalyzer {
       _testingData != null,
       typeSystemOperations: _typeSystemOperations,
       typeAnalyzerOptions: typeAnalyzerOptions,
+      enableLog: true,
     );
     _testingData?.recordFlowAnalysisDataForTesting(
       fileAnalysis.file.uri,
@@ -982,7 +965,6 @@ class LibraryAnalyzer {
     required DiagnosticReporter diagnosticReporter,
   }) {
     directive.libraryImport = element;
-    directive.prefix?.element = element.prefix?.element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,

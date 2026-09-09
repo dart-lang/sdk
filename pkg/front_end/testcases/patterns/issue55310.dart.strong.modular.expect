@@ -61,10 +61,10 @@ static method foo(self::Wrapper wrapper) → void {
         }
       }
       {
-        final hoisted self::Other other;
+        final hoisted self::Other other##1;
         if(#0#0 is self::WrapperB && (#0#3#isSet ?{self::Other?} #0#3 : let final dynamic #t6 = #0#3#isSet = true in #0#3 = #0#0{self::WrapperB}.{self::WrapperB::inner}{self::Inner}.{self::Inner::other}{self::Other?}) is self::Other) {
-          other = (#0#3#isSet ?{self::Other?} #0#3 : let final dynamic #t7 = #0#3#isSet = true in #0#3 = #0#0{self::WrapperB}.{self::WrapperB::inner}{self::Inner}.{self::Inner::other}{self::Other?}) as{Unchecked} self::Other;
-          #t1 = other.{self::Other::text}{core::String};
+          other##1 = (#0#3#isSet ?{self::Other?} #0#3 : let final dynamic #t7 = #0#3#isSet = true in #0#3 = #0#0{self::WrapperB}.{self::WrapperB::inner}{self::Inner}.{self::Inner::other}{self::Other?}) as{Unchecked} self::Other;
+          #t1 = other##1.{self::Other::text}{core::String};
           break #L1;
         }
       }

@@ -59,7 +59,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList

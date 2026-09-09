@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,36 +19,36 @@ class PubspecTest with ResourceProviderMixin {
   String get testPubspecPath => convertPath('/test/pubspec.yaml');
 
   void test_any() {
-    _assertBump('any', null);
+    _assertEdit('any', '^2.13.0');
   }
 
   void test_caret() {
-    _assertBump('^2.12.0', '^2.13.0');
+    _assertEdit('^2.12.0', '^2.13.0');
   }
 
   void test_compound() {
-    _assertBump("'>=2.12.0 <3.0.0'", '>=2.13.0');
+    _assertEdit("'>=2.12.0 <3.0.0'", '>=2.13.0');
   }
 
   void test_gt() {
-    _assertBump("'>2.12.0'", '>=2.13.0');
+    _assertEdit("'>2.12.0'", '>=2.13.0');
   }
 
   void test_invalid() {
-    _assertBump('not a version', null);
+    _assertEdit('not a version', null);
   }
 
   void test_specificVersion() {
-    _assertBump('2.12.0', null);
+    _assertEdit('2.12.0', null);
   }
 
-  void _assertBump(String from, String? expectedReplacement) {
+  void _assertEdit(String from, String? expectedReplacement) {
     newFile(testPubspecPath, '''
 environment:
   sdk: $from
 ''');
     var file = getFile(testPubspecPath);
-    var edit = computeVersionBumpEdit(file);
+    var edit = computeEdit(file, Version(2, 13, 0));
     if (expectedReplacement == null) {
       expect(edit, isNull);
     } else {

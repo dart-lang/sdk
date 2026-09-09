@@ -1166,15 +1166,18 @@ if (build_analyze_snapshot) {
 }
 
 executable("process_test") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "process_test.cc" ]
 }
 
 executable("abstract_socket_test") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "abstract_socket_test.cc" ]
   include_dirs = [ ".." ]
 }
 
 executable("create_process_test_helper") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "create_process_test_helper.cc" ]
   include_dirs = [ ".." ]
 }
@@ -1276,6 +1279,7 @@ executable("run_vm_tests") {
 }
 
 shared_library("entrypoints_verification_test") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
   sources = [ "entrypoints_verification_test.cc" ]
   if (is_win) {
@@ -1285,12 +1289,14 @@ shared_library("entrypoints_verification_test") {
 }
 
 shared_library("ffi_test_dynamic_library") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
   sources = [ "ffi_test/ffi_test_dynamic_library.cc" ]
   include_dirs = [ ".." ]
 }
 
 shared_library("ffi_test_functions") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
 
   sources = [

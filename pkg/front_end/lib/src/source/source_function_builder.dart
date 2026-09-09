@@ -59,7 +59,9 @@ void buildTypeParametersAndFormals(
   if (declaredFormals != null) {
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
-      FunctionParameter parameter = formal.build(libraryBuilder).astVariable;
+      FunctionParameter parameter = formal
+          .build(libraryBuilder)
+          .functionParameter;
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {
           parameter.isCovariantByClass = true;

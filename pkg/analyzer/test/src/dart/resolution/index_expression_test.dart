@@ -32,9 +32,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: int Function()
+    type: int
+  correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -64,9 +77,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: int Function()
+    type: int
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -98,9 +124,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: num Function()
+    type: num
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -130,9 +169,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: String Function()
+    type: String
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: String
+  typeArgumentTypes
+    String
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -156,16 +208,35 @@ void f({a = b?[0]}) {}
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -184,16 +255,35 @@ typedef void F({a = b?[0]});
 // [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -214,15 +304,33 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.index('a[0]');
+    var node = result.findNode.receiverIndexExpression('a[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -243,12 +351,24 @@ void f(A? a) {
 }
 ''');
 
-    var node1 = result.findNode.index('..[0]');
+    var node1 = result.findNode.cascadeIndexExpression('[0]');
     assertResolvedNodeText(node1, r'''
-IndexExpression
+CascadeIndexExpression
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
   period: ?..
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -257,12 +377,24 @@ IndexExpression
   staticType: bool
 ''');
 
-    var node2 = result.findNode.index('..[1]');
+    var node2 = result.findNode.cascadeIndexExpression('[1]');
     assertResolvedNodeText(node2, r'''
-IndexExpression
+CascadeIndexExpression
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
   period: ..
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -285,15 +417,37 @@ void f(A<double> a) {
 }
 ''');
 
-    var node = result.findNode.index('a[0]');
+    var node = result.findNode.receiverIndexExpression('a[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<double>
+    staticType: A<double>
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      substitution: {T: double}
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]
+      substitution: {T: double}
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A<double>
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
@@ -320,14 +474,28 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: ThisExpression
+ReceiverIndexExpression
+  receiver: ThisExpression
     thisKeyword: this
     staticType: A
   leftBracket: [
-  index2: SuperExpression
+  index: SuperExpression
+    superKeyword: super
+    staticType: A
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: int Function(Object)
+    type: int
+  staticType: int
+V1: IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  leftBracket: [
+  index: SuperExpression
     superKeyword: super
     staticType: A
   rightBracket: ]
@@ -345,15 +513,41 @@ void f(List<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: List<int>
+    staticType: List<int>
+  leftBracket: [
+  index: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+      substitution: {E: int}
+    staticType: InvalidType
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::List::@method::[]
+      substitution: {E: int}
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: List<int>
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
     token: b
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
@@ -368,6 +562,48 @@ IndexExpression
 ''');
   }
 
+  test_read_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  a?[0];
+}
+''');
+
+    var node = result.findNode.receiverIndexExpression('a?[0]');
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Null
+    staticType: Null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: <null>
+  staticType: Never?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: Never?
+''');
+  }
+
   test_read_nullable() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -379,16 +615,148 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.index('a?[0]');
+    var node = result.findNode.receiverIndexExpression('a?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool?
+  staticType: bool?
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  element: <testLibrary>::@class::A::@method::[]
+  staticType: bool?
+''');
+  }
+
+  test_read_nullable_propagated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  String operator[](int index) => '';
+}
+
+void f(A? a) {
+  a?[0].length;
+}
+''');
+
+    var node = result.findNode.receiverPropertyExtraction('.length');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ReceiverIndexExpression
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: String Function(int)
+      type: String
+    staticType: String
+  operator: .
+  name: length
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::String::@getter::length
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <testLibrary>::@class::A::@method::[]
+    staticType: String
+  operator: .
+  propertyName: SimpleIdentifier
+    token: length
+    element: dart:core::@class::String::@getter::length
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_read_nullable_resultNullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  bool? operator[](int index) => null;
+}
+
+void f(A? a) {
+  a?[0];
+}
+''');
+
+    var node = result.findNode.receiverIndexExpression('a?[0]');
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool? Function(int)
+    type: bool?
+  staticType: bool?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -409,14 +777,29 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: IntegerLiteral
+ReceiverIndexExpression
+  receiver: IntegerLiteral
     literal: 0
     staticType: int
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  leftBracket: [
+  index: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -439,14 +822,29 @@ augment extension E {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: IntegerLiteral
+ReceiverIndexExpression
+  receiver: IntegerLiteral
     literal: 0
     staticType: int
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
+  target: IntegerLiteral
+    literal: 0
+    staticType: int
+  leftBracket: [
+  index: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -469,15 +867,17 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SwitchExpression
+ReceiverIndexExpression
+  receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -499,7 +899,37 @@ IndexExpression
             leftParenthesis: (
             rightParenthesis: )
           staticType: A
-        expression(v1): InstanceCreationExpression
+    rightBracket: }
+    staticType: A
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression: InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
@@ -513,7 +943,7 @@ IndexExpression
     rightBracket: }
     staticType: A
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -530,15 +960,31 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    staticType: dynamic
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: DynamicIndexReadResolution
+    type: dynamic
+  staticType: dynamic
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -557,15 +1003,33 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
+    var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
     token: a
     element: <null>
     staticType: InvalidType
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -590,13 +1054,13 @@ void f(A a) {
     var node = result.findNode.assignment('a[0]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -604,7 +1068,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
@@ -632,13 +1096,13 @@ void f(A<double> a) {
     var node = result.findNode.assignment('a[0]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<double>
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
@@ -648,7 +1112,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
@@ -665,6 +1129,124 @@ AssignmentExpression
 ''');
   }
 
+  test_readWrite_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  a?[0] += 1;
+  a?[1] ??= 2;
+}
+''');
+
+    var compound = result.findNode.compoundAssignment('a?[0]');
+    assertResolvedNodeText(compound, r'''
+CompoundAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
+      staticType: Null
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: Never
+  staticType: Never?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: Never?
+''');
+
+    var ifNull = result.findNode.ifNullAssignment('a?[1]');
+    assertResolvedNodeText(ifNull, r'''
+IfNullAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
+      staticType: Null
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  staticType: Never?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: Never?
+''');
+  }
+
   test_readWrite_nullable() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -677,17 +1259,49 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a?[0]');
+    var node = result.findNode.compoundAssignment('a?[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+CompoundAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: num Function(int)
+      type: num
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: +=
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: double
+  staticType: double?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -695,7 +1309,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
@@ -708,16 +1322,169 @@ AssignmentExpression
 ''');
   }
 
-  test_realTarget_views() async {
+  test_readWrite_nullable_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  num? operator[](int index) => 0;
+  void operator[]=(int index, num value) {}
+}
+
+void f(A? a) {
+  a?[0] ??= 1.2;
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('a?[0]');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: num? Function(int)
+      type: num?
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: ??=
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+    staticType: double
+  staticType: num?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+    staticType: double
+  readElement: <testLibrary>::@class::A::@method::[]
+  readType: num?
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: num
+  element: <null>
+  staticType: num?
+''');
+  }
+
+  test_receiver() async {
     var result = await resolveTestCode(r'''
 void f(List<int>? x) {
   x![0];
 }
 ''');
 
-    var node = result.findNode.singleIndexExpression;
-    expect(node.realTarget, isA<PostfixExpression>());
-    expect(node.realTarget2, isA<NullAssertionExpression>());
+    var node = result.findNode.singleReceiverIndexExpression;
+    expect(node.receiver, isA<NullAssertionExpression>());
+  }
+
+  test_receiverIndexAssignmentTarget_extensionOverride() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  operator[]=(int index, num value) {}
+}
+
+void f() {
+  E(0)[1] = 2.3;
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      staticType: null
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 2.3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      staticType: null
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: DoubleLiteral
+    literal: 2.3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: double
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@method::[]=
+  writeType: num
+  element: <null>
+  staticType: double
+''');
   }
 
   test_rewrite_nullShorting() async {
@@ -731,10 +1498,10 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a[0];
 ''');
 
-    var node = result.findNode.functionReference('b?.a[0]');
-    assertResolvedNodeText(node, r'''FunctionReference
-  function2: IndexExpression
-    target2: PropertyAccess
+    var node = result.findNode.implicitFunctionInstantiation('b?.a[0]');
+    assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
+  operand: ReceiverIndexExpression
+    receiver: PropertyAccess
       target2: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
@@ -746,7 +1513,34 @@ int Function(int)? f(B? b) => b?.a[0];
         staticType: A
       staticType: A
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::i
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: T Function<T>(T) Function(int)
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@getter::a
+        staticType: A
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::i
       staticType: int
@@ -770,16 +1564,41 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a[0]');
+    var node = result.findNode.directAssignment('a[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -787,7 +1606,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
@@ -814,16 +1633,71 @@ void f(A? a) {
     var node = result.findNode.cascade('a?..');
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ?..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: <null>
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, A)
+            acceptedType: A
+        operator: =
+        value: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+          staticType: A
+        staticType: A
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 1
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: <null>
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, A)
+            acceptedType: A
+        operator: =
+        value: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+          staticType: A
+        staticType: A
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ?..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 0
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
@@ -831,7 +1705,7 @@ CascadeExpression
         element: <null>
         staticType: null
       operator: =
-      rightHandSide2: SimpleIdentifier
+      rightHandSide: SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a
@@ -843,10 +1717,10 @@ CascadeExpression
       element: <null>
       staticType: A
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
@@ -854,7 +1728,7 @@ CascadeExpression
         element: <null>
         staticType: null
       operator: =
-      rightHandSide2: SimpleIdentifier
+      rightHandSide: SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a
@@ -880,16 +1754,47 @@ void f(A<double> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a[0]');
+    var node = result.findNode.directAssignment('a[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<double>
+      staticType: A<double>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+        substitution: {T: double}
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=
+        substitution: {T: double}
+      invokeType: void Function(int, double)
+      acceptedType: double
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+      substitution: {T: double}
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<double>
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
@@ -899,7 +1804,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
@@ -916,6 +1821,74 @@ AssignmentExpression
 ''');
   }
 
+  test_write_never_alias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+
+void f(N x) {
+  x[0] = 0;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//  ^^^^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.directAssignment('x[0]');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
+      staticType: Never
+        alias: <testLibrary>::@typeAlias::N
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: Never
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Never
+        alias: <testLibrary>::@typeAlias::N
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: null
+  element: <null>
+  staticType: Never
+''');
+  }
+
   test_write_nullable() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -927,17 +1900,43 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a?[0]');
+    var node = result.findNode.directAssignment('a?[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+    staticType: double
+  staticType: double?
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -945,7 +1944,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
@@ -955,46 +1954,6 @@ AssignmentExpression
   writeType: num
   element: <null>
   staticType: double?
-''');
-  }
-
-  test_write_ofExtension() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-extension E on int {
-  operator[]=(int index, num value) {}
-}
-
-void f() {
-  0[1] = 2.3;
-}
-''');
-
-    var node = result.findNode.singleAssignmentExpression;
-    assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: IntegerLiteral
-      literal: 0
-      staticType: int
-    leftBracket: [
-    index2: IntegerLiteral
-      literal: 1
-      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
-      staticType: int
-    rightBracket: ]
-    element: <null>
-    staticType: null
-  operator: =
-  rightHandSide2: DoubleLiteral
-    literal: 2.3
-    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
-    staticType: double
-  readElement: <null>
-  readType: null
-  writeElement: <testLibrary>::@extension::E::@method::[]=
-  writeType: num
-  element: <null>
-  staticType: double
 ''');
   }
 
@@ -1011,16 +1970,18 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.assignment('[0]');
+    var node = result.findNode.directAssignment('[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SwitchExpression
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: SwitchExpression
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: Object?
         staticType: Object?
       rightParenthesis: )
       leftBracket: {
@@ -1042,7 +2003,44 @@ AssignmentExpression
               leftParenthesis: (
               rightParenthesis: )
             staticType: A
-          expression(v1): InstanceCreationExpression
+      rightBracket: }
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SwitchExpression
+      switchKeyword: switch
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Object?
+      rightParenthesis: )
+      leftBracket: {
+      cases
+        SwitchExpressionCase
+          guardedPattern: GuardedPattern
+            pattern: WildcardPattern
+              name: _
+              matchedValueType: Object?
+          arrow: =>
+          expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 name: A
@@ -1056,7 +2054,7 @@ AssignmentExpression
       rightBracket: }
       staticType: A
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -1064,7 +2062,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double

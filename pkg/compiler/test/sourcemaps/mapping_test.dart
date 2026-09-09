@@ -124,9 +124,8 @@ Future runTest(
   String sourceMapText = collector.getOutput('', api.OutputType.sourceMap)!;
   final sourceMap = parse(sourceMapText) as SingleMapping;
   if (writeJs) {
-    File(
-      'out.js',
-    ).writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
+    File('out.js')
+        .writeAsStringSync(collector.getOutput('', api.OutputType.js)!);
     File('out.js.map').writeAsStringSync(sourceMapText);
   }
 

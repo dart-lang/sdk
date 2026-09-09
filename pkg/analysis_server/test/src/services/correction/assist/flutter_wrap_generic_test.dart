@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class FlutterWrapGenericTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterWrapGeneric;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterWrapGeneric;
 
   Future<void> test_editGroup() async {
     await resolveTestCode('''

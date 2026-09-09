@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -14,6 +15,7 @@ import 'package:compiler/src/js_model/js_world.dart';
 import 'package:dart2js_info/info.dart' as info;
 import 'package:dart2js_info/json_info_codec.dart' as info;
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -78,7 +80,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeLibraryData(
     Compiler compiler,
     LibraryEntity library,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     required bool verbose,
   }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
@@ -136,7 +138,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeClassData(
     Compiler compiler,
     ClassEntity cls,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);
@@ -180,7 +182,7 @@ class DumpInfoDataComputer extends DataComputer<Features> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     final converter = info.AllInfoToJsonConverter(isBackwardCompatible: true);

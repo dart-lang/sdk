@@ -33,13 +33,13 @@ import "dart:_compact_hash" as _co;
 [472]    [472, -1] final core::Set<core::String> #t4 = [472] [472] col::LinkedHashSet::of [472]<core::String>([481] args);
 [505]    [505] [505] [-1] [-1] #t4.{core::Set::addAll}{Invariant}[-1]([505] [494] [494]<core::String, core::String>{[498] [495] [495] "x": [500] [500] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
 [-1]    {
-[532]      [532, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [532] [532] [532] [532] args.{core::Iterable::iterator}{core::Iterator<core::String>};
-[515]      for (; [532] [532] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
-[527]        [527, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
+[532]      [532, -1] synthesized core::Iterator<core::String> :sync-for-iterator##1 = [532] [532] [532] [532] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[515]      for (; [532] [532] [-1] [-1] :sync-for-iterator##1.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[527]        [527, -1] core::String s##1 = [-1] [-1] [-1] [-1] :sync-for-iterator##1.{core::Iterator::current}{core::String};
 [541]        [541] [541] [-1] [-1] #t4.{core::Set::addAll}{Invariant}[-1]([541] block {
 [-1]          [-1, -1] final core::Set<core::String> #t5 = [-1] [-1] new _co::_Set::• [-1]<core::String>();
-[542]          [542] [542] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([542] "${[544] [544] s}"){(core::String) → core::bool};
-[548]          [548] [548] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([548] "${[551] [551] s}_2"){(core::String) → core::bool};
+[542]          [542] [542] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([542] "${[544] [544] s##1}"){(core::String) → core::bool};
+[548]          [548] [548] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([548] "${[551] [551] s##1}_2"){(core::String) → core::bool};
         } =>[-1] [-1] #t5){(core::Iterable<core::String>) → void};
       }
     }
@@ -57,10 +57,10 @@ import "dart:_compact_hash" as _co;
 [681]    [681] [681] [-1] [-1] #t7.{core::List::add}{Invariant}[-1]([681] "hello"){(core::String) → void};
 [708]    [708] [708] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([708] [697] [697]<core::String, core::String>{[701] [698] [698] "x": [703] [703] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
 [-1]    {
-[735]      [735, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [735] [735] [735] [735] args.{core::Iterable::iterator}{core::Iterator<core::String>};
-[718]      for (; [735] [735] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
-[730]        [730, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
-[744]        [744] [744] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([744] core::_GrowableList::_literal2 [-1]<core::String>([745] "${[747] [747] s}", [751] "${[754] [754] s}_2")){(core::Iterable<core::String>) → void};
+[735]      [735, -1] synthesized core::Iterator<core::String> :sync-for-iterator##2 = [735] [735] [735] [735] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[718]      for (; [735] [735] [-1] [-1] :sync-for-iterator##2.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[730]        [730, -1] core::String s##2 = [-1] [-1] [-1] [-1] :sync-for-iterator##2.{core::Iterator::current}{core::String};
+[744]        [744] [744] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([744] core::_GrowableList::_literal2 [-1]<core::String>([745] "${[747] [747] s##2}", [751] "${[754] [754] s##2}_2")){(core::Iterable<core::String>) → void};
       }
     }
 [766]    if([782] [782] [775] [775] [770] [770] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [785] [785] 42)
@@ -71,10 +71,10 @@ import "dart:_compact_hash" as _co;
 [871]    [871, -1] final core::Map<core::String, core::String> #t8 = [871] [871]<core::String, core::String>{};
 [884]    [884] [884] [-1] [-1] #t8.{core::Map::[]=}{Invariant}[-1]([877] "hello", [886] "world"){(core::String, core::String) → void};
 [-1]    {
-[916]      [916, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [916] [916] [916] [916] args.{core::Iterable::iterator}{core::Iterator<core::String>};
-[899]      for (; [916] [916] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
-[911]        [911, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
-[925]        [925] [925] [-1] [-1] #t8.{core::Map::addAll}{Invariant}[-1]([925]<core::String, core::String>{[930] [926] [926] "${[928] [928] s}": [932] [932] "${[935] [935] s}_2"}){(core::Map<core::String, core::String>) → void};
+[916]      [916, -1] synthesized core::Iterator<core::String> :sync-for-iterator##3 = [916] [916] [916] [916] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[899]      for (; [916] [916] [-1] [-1] :sync-for-iterator##3.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[911]        [911, -1] core::String s##3 = [-1] [-1] [-1] [-1] :sync-for-iterator##3.{core::Iterator::current}{core::String};
+[925]        [925] [925] [-1] [-1] #t8.{core::Map::addAll}{Invariant}[-1]([925]<core::String, core::String>{[930] [926] [926] "${[928] [928] s##3}": [932] [932] "${[935] [935] s##3}_2"}){(core::Map<core::String, core::String>) → void};
       }
     }
 [947]    if([963] [963] [956] [956] [951] [951] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [966] [966] 42)

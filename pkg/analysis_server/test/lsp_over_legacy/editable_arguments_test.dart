@@ -23,11 +23,7 @@ class EditableArgumentsTest extends SharedLspOverLegacyTest
         // are shared and run for both LSP and Legacy servers.
         SharedEditableArgumentsTests {
   @override
-  Future<void> setUp() async {
-    await super.setUp();
-
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   /// Over the legacy protocol, document versions are optional so we must also
   /// support this.

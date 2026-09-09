@@ -415,7 +415,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 /// The implementations are kept separate so that the two AST views can
 /// evolve independently.
 @Deprecated('This has no uses in package:analyzer and not exhaustive.')
-class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
+class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.
   static Object NOT_A_CONSTANT = Object();
@@ -552,7 +552,7 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       break;
     }
     // TODO(brianwilkerson): This doesn't handle numeric conversions.
-    return visitExpression(node);
+    return visitNode(node);
   }
 
   @override
@@ -573,6 +573,11 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
     }
     return leftOperand ?? rightOperand;
   }
+
+  @override
+  Object? visitImportPrefixedNameExpression(
+    ImportPrefixedNameExpression node,
+  ) => _getConstantValue(null);
 
   @override
   Object? visitIntegerLiteral(IntegerLiteral node) => node.value;
@@ -666,6 +671,10 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
   Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
 
   @override
+  Object? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) =>
+      _getConstantValue(null);
+
+  @override
   Object? visitSetOrMapLiteral(SetOrMapLiteral node) {
     // There are a lot of constants that this class does not support, so we
     // didn't add support for set literals. As a result, this assumes that we're
@@ -735,6 +744,10 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       _ => NOT_A_CONSTANT,
     };
   }
+
+  @override
+  Object? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
+      _getConstantValue(null);
 
   /// Return the constant value of the static constant represented by the given
   /// [element].

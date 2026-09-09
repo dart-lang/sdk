@@ -49,6 +49,36 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_declaration_binaryExpression_nullAware() async {
+    await resolveTestCode('''
+void foo(int? one, int two) {
+  var result = one ?? two;
+  result.abs();
+}
+''');
+    await assertHasFix('''
+void foo(int? one, int two) {
+  var result = (one ?? two)
+  ..abs();
+}
+''');
+  }
+
+  Future<void> test_declaration_binaryExpression_plus() async {
+    await resolveTestCode('''
+void foo(int two) {
+  var result = two + 1;
+  result.abs();
+}
+''');
+    await assertHasFix('''
+void foo(int two) {
+  var result = (two + 1)
+  ..abs();
+}
+''');
+  }
+
   Future<void> test_declaration_method() async {
     await resolveTestCode('''
 class A {

@@ -30,7 +30,7 @@ mixin SharedWorkspaceApplyEditTests
   /// Overridden by test subclasses to initialize the server.
   @override
   Future<void> setUp() async {
-    super.setUp();
+    await super.setUp();
     setApplyEditSupport();
     setFileCreateSupport();
     setDocumentChangesSupport();

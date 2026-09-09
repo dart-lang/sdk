@@ -10,9 +10,9 @@ import 'package:dap/dap.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
-import 'rpc_error_codes.dart';
 import 'adapters/dart.dart';
 import 'adapters/mixins.dart';
+import 'rpc_error_codes.dart';
 import 'utils.dart';
 import 'variables.dart';
 
@@ -27,6 +27,7 @@ typedef _UniqueVmBreakpointId = ({String isolateId, String breakpointId});
 /// Handles incoming Isolate and Debug events to track the lifetime of isolates
 /// and updating breakpoints for each isolate as necessary.
 class IsolateManager {
+  IsolateManager(this._adapter);
   // TODO(dantup): This class has a lot of overlap with the same-named class
   //  in DDS. Review what can be shared.
   final DartDebugAdapter _adapter;
@@ -51,14 +52,14 @@ class IsolateManager {
 
   /// Whether SDK libraries should be marked as debuggable.
   ///
-  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// Calling `sendLibraryDebuggables` is required after changing this value to
   /// apply changes. This allows applying both [debugSdkLibraries] and
   /// [debugExternalPackageLibraries] in one step.
   bool debugSdkLibraries = true;
 
   /// Whether external package libraries should be marked as debuggable.
   ///
-  /// Calling [sendLibraryDebuggables] is required after changing this value to
+  /// Calling `sendLibraryDebuggables` is required after changing this value to
   /// apply changes. This allows applying both [debugSdkLibraries] and
   /// [debugExternalPackageLibraries] in one step.
   bool debugExternalPackageLibraries = true;
@@ -128,7 +129,8 @@ class IsolateManager {
   /// A pattern that matches an opening brace `{` that was not preceded by a
   /// dollar.
   ///
-  /// Any leading character matched in place of the dollar is in the first capture.
+  /// Any leading character matched in place of the dollar is in the first
+  /// capture.
   final _braceNotPrefixedByDollarOrBackslashPattern = RegExp(r'(^|[^\\\$]){');
 
   /// A [RegExp] to extract the useful part of an error message when adding
@@ -137,12 +139,11 @@ class IsolateManager {
     r'Error occurred when resolving breakpoint location: (.*?)\.?$',
   );
 
-  IsolateManager(this._adapter);
-
   /// A list of all current active isolates.
   ///
   /// When isolates exit, they will no longer be returned in this list, although
-  /// due to the async nature, it's not guaranteed that threads in this list have
+  /// due to the async nature, it's not guaranteed that threads in this list
+  /// have
   /// not exited between accessing this list and trying to use the results.
   List<ThreadInfo> get threads => _threadsByIsolateId.values.toList();
 
@@ -155,7 +156,7 @@ class IsolateManager {
       _threadsByThreadId.values.map(
         // debuggable libraries is the only thing currently affected by these
         // changable options.
-        (thread) => _sendLibraryDebuggables(thread),
+        _sendLibraryDebuggables,
       ),
     );
   }
@@ -221,7 +222,8 @@ class IsolateManager {
   /// Registers a new isolate that exists at startup, or has subsequently been
   /// created.
   ///
-  /// New isolates will be configured with the correct pause-exception behaviour,
+  /// New isolates will be configured with the correct pause-exception
+  /// behaviour,
   /// libraries will be marked as debuggable if appropriate, and breakpoints
   /// sent.
   Future<ThreadInfo> registerIsolate(
@@ -232,7 +234,7 @@ class IsolateManager {
     // events can wait on it.
     final registrationCompleter = _isolateRegistrations.putIfAbsent(
       isolate.id!,
-      () => Completer<void>(),
+      Completer<void>.new,
     );
 
     final thread = _threadsByIsolateId.putIfAbsent(isolate.id!, () {
@@ -294,7 +296,7 @@ class IsolateManager {
   /// in-flight, a request will not be sent.
   ///
   /// If the isolate is paused at an async suspension and the [resumeType] is
-  /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
+  /// [vm.StepOption.kOver], a [vm.StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
     await _resume(threadId, resumeType: resumeType);
@@ -427,32 +429,35 @@ class IsolateManager {
 
       // Finally, signal that we're ready to resume.
       await _adapter.vmService?.readyToResume(isolateId);
-    } on UnimplementedError {
-      // Fallback to a regular resume if the DDS version doesn't support
-      // `readyToResume`:
-      return _resume(threadId);
-    } on vm.SentinelException {
-      // It's possible during these async requests that the isolate went away
-      // (for example a shutdown/restart) and we no longer care about
-      // resuming it.
-    } on vm.RPCError catch (e) {
-      if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
-        // It's possible something else resumed the thread (such as if another
-        // debugger is attached), we can just continue.
-      } else if (e.isServiceDisposedError) {
-        // The VM service connection was terminated, we can silently ignore this
-        // because we're likely shutting down.
-      } else if (e.code == RpcErrorCodes.kMethodNotFound) {
-        // Fallback to a regular resume if the DDS service extension isn't
-        // available:
+    } catch (e) {
+      if (e is UnimplementedError) {
+        // Fallback to a regular resume if the DDS version doesn't support
+        // `readyToResume`:
         return _resume(threadId);
-      } else if (e.code == RpcErrorCodes.kInternalError &&
-          e.message.contains('No running isolate (inspector is not set).')) {
-        // TODO(bkonyi): remove once https://github.com/flutter/flutter/issues/156793
-        // is resolved.
+      } else if (e is vm.SentinelException) {
         // It's possible during these async requests that the isolate went away
         // (for example a shutdown/restart) and we no longer care about
         // resuming it.
+      } else if (e is vm.RPCError) {
+        if (e.code == RpcErrorCodes.kIsolateMustBePaused) {
+          // It's possible something else resumed the thread (such as if another
+          // debugger is attached), we can just continue.
+        } else if (e.isServiceDisposedError) {
+          // The VM service connection was terminated, we can silently ignore
+          // this
+          // because we're likely shutting down.
+        } else if (e.code == RpcErrorCodes.kMethodNotFound) {
+          // Fallback to a regular resume if the DDS service extension isn't
+          // available:
+          return _resume(threadId);
+        } else if (e.code == RpcErrorCodes.kInternalError &&
+            e.message.contains('No running isolate (inspector is not set).')) {
+          // It's possible during these async requests that the isolate went
+          // away (for example a shutdown/restart) and we no longer care about
+          // resuming it.
+        } else {
+          rethrow;
+        }
       } else {
         rethrow;
       }
@@ -539,9 +544,7 @@ class IsolateManager {
     _clientBreakpointsByUri.updateAll((key, value) => []);
 
     // Send the breakpoints to all existing threads.
-    await Future.wait(
-      _threadsByThreadId.values.map((thread) => _sendBreakpoints(thread)),
-    );
+    await Future.wait(_threadsByThreadId.values.map(_sendBreakpoints));
   }
 
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
@@ -550,11 +553,7 @@ class IsolateManager {
     _exceptionPauseMode = mode;
 
     // Send to all existing threads.
-    await Future.wait(
-      _threadsByThreadId.values.map(
-        (thread) => _sendExceptionPauseMode(thread),
-      ),
-    );
+    await Future.wait(_threadsByThreadId.values.map(_sendExceptionPauseMode));
   }
 
   /// Stores some basic data indexed by an integer for use in "reference" fields
@@ -626,7 +625,7 @@ class IsolateManager {
   }
 
   /// Evaluates an expression, returning the result if it is a [vm.InstanceRef]
-  /// and sending any error as an [OutputEvent].
+  /// and sending any error as an `OutputEvent`.
   Future<vm.InstanceRef?> _evaluateAndPrintErrors(
     ThreadInfo thread,
     String expression,
@@ -640,12 +639,14 @@ class IsolateManager {
       } else if (result is vm.ErrorRef) {
         final message = result.message ?? '<error ref>';
         _adapter.sendConsoleOutput(
-          'Debugger failed to evaluate breakpoint $type "$expression": $message',
+          'Debugger failed to evaluate '
+          'breakpoint $type "$expression": $message',
         );
       } else if (result is vm.Sentinel) {
         final message = result.valueAsString ?? '<collected>';
         _adapter.sendConsoleOutput(
-          'Debugger failed to evaluate breakpoint $type "$expression": $message',
+          'Debugger failed to evaluate '
+          'breakpoint $type "$expression": $message',
         );
       }
     } catch (e) {
@@ -708,7 +709,7 @@ class IsolateManager {
       thread.startupHandled = true;
       await readyToResumeThread(thread.threadId);
     } else if (eventKind == vm.EventKind.kPauseStart) {
-      handleThreadStartup(thread);
+      unawaited(handleThreadStartup(thread));
     } else {
       // PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
       var reason = 'pause';
@@ -716,7 +717,8 @@ class IsolateManager {
       if (eventKind == vm.EventKind.kPauseBreakpoint &&
           (event.pauseBreakpoints?.isNotEmpty ?? false)) {
         reason = 'breakpoint';
-        // Look up the client breakpoints that correspond to the VM breakpoint(s)
+        // Look up the client breakpoints that correspond to the VM
+        // breakpoint(s)
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
         //
@@ -891,7 +893,8 @@ class IsolateManager {
 
     // And for existing breakpoints, send (or queue) resolved events.
     final existingBreakpoints = _clientBreakpointsByVmId[uniqueBreakpointId];
-    for (final existingBreakpoint in existingBreakpoints ?? const []) {
+    for (final existingBreakpoint
+        in existingBreakpoints ?? const <ClientBreakpoint>[]) {
       queueBreakpointResolutionEvent(event, existingBreakpoint);
     }
   }
@@ -1043,7 +1046,8 @@ class IsolateManager {
     );
 
     for (final messageResult in results) {
-      // TODO(dantup): Format this using other existing code in protocol converter?
+      // TODO(dantup): Format this using other existing code in protocol
+      // converter?
       _adapter.sendConsoleOutput(messageResult?.valueAsString);
     }
   }
@@ -1222,7 +1226,8 @@ class IsolateManager {
             isDebuggableNew,
           );
         } on vm.RPCError catch (e) {
-          // DWDS does not currently support `setLibraryDebuggable` so instead of
+          // DWDS does not currently support `setLibraryDebuggable` so instead
+          // of
           // failing (because this code runs in a VM event handler where there's
           // no incoming request to fail/reject), just log this error.
           // https://github.com/dart-lang/webdev/issues/606
@@ -1308,11 +1313,12 @@ class IsolateManager {
 
 /// Holds state for a single Isolate/Thread.
 class ThreadInfo with FileUtils {
+  ThreadInfo(this._manager, this.threadId, this.isolate);
   final IsolateManager _manager;
   final vm.IsolateRef isolate;
   final int threadId;
-  var runnable = false;
-  var atAsyncSuspension = false;
+  bool runnable = false;
+  bool atAsyncSuspension = false;
   int? exceptionReference;
 
   /// A [Completer] that completes with the evaluation zone ID for this thread.
@@ -1345,7 +1351,7 @@ class ThreadInfo with FileUtils {
   ///
   /// Because requests are async, this is not guaranteed to be always correct
   /// but should represent the state based on the latest VM events.
-  var paused = false;
+  bool paused = false;
 
   /// Tracks whether an isolates startup routine has been handled.
   ///
@@ -1371,7 +1377,8 @@ class ThreadInfo with FileUtils {
   vm.Event? pauseEvent;
 
   /// A cache of requests (Futures) to fetch scripts, so that multiple requests
-  /// that require scripts (for example looking up locations for stack frames from
+  /// that require scripts (for example looking up locations for stack frames
+  /// from
   /// tokenPos) can share the same response.
   final _scripts = <String, Future<vm.Script>>{};
 
@@ -1386,9 +1393,7 @@ class ThreadInfo with FileUtils {
 
   /// Whether this isolate has an in-flight user-initiated resume request that
   /// has not yet been responded to.
-  var hasPendingUserResume = false;
-
-  ThreadInfo(this._manager, this.threadId, this.isolate);
+  bool hasPendingUserResume = false;
 
   Future<T> getObject<T extends vm.Response>(vm.ObjRef ref) =>
       _manager.getObject<T>(isolate, ref);
@@ -1499,12 +1504,12 @@ class ThreadInfo with FileUtils {
   /// lib folder.
   ///
   /// This method is more performant than repeatedly calling
-  /// [resolveUrisToPackageLibPath] because it resolves multiple URIs in a
+  /// `resolveUrisToPackageLibPath` because it resolves multiple URIs in a
   /// single request to the VM.
   ///
-  /// Results are cached and shared with [resolveUrisToPackageLibPath] (and
+  /// Results are cached and shared with `resolveUrisToPackageLibPath` (and
   /// [resolveUriToPath]) so it's reasonable to call this method up-front and
-  /// then use [resolveUrisToPackageLibPath] (and [resolveUriToPath]) to read
+  /// then use `resolveUrisToPackageLibPath` (and [resolveUriToPath]) to read
   /// the results later.
   Future<List<Uri?>> resolveUrisToPackageLibPathsBatch(List<Uri> uris) async {
     final results = await resolveUrisToPathsBatch(uris);
@@ -1589,7 +1594,8 @@ class ThreadInfo with FileUtils {
     }
 
     // Finally, assemble a list of the values by using the cached futures and
-    // the original list. Any non-file URI is guaranteed to be in [_resolvedPaths]
+    // the original list. Any non-file URI is guaranteed to be in
+    // [_resolvedPaths]
     // because they were either filtered out of [requiredUris] because they were
     // already there, or we then populated completers for them above.
     final futures = uris.map((uri) async {
@@ -1812,6 +1818,10 @@ class ThreadInfo with FileUtils {
 /// can look up this [ClientBreakpoint] and use the ID to send an update to the
 /// client.
 class ClientBreakpoint {
+  ClientBreakpoint(this.breakpoint, Future<void> setBreakpointResponse)
+    : id = _nextId++,
+      _lastActionFuture = setBreakpointResponse;
+
   /// The next number to use as a client ID for breakpoints.
   ///
   /// To slightly improve debugging, we start this at 100000 so it doesn't
@@ -1826,10 +1836,6 @@ class ClientBreakpoint {
   /// information to the client, to ensure breakpoint events are always sent
   /// in-order and after the initial response sending the IDs to the client.
   Future<void> _lastActionFuture;
-
-  ClientBreakpoint(this.breakpoint, Future<void> setBreakpointResponse)
-    : id = _nextId++,
-      _lastActionFuture = setBreakpointResponse;
 
   /// Queues an action to run after all previous actions that sent breakpoint
   /// information to the client.
@@ -1846,15 +1852,15 @@ class ClientBreakpoint {
 /// These events need to be chained into the end of the [ClientBreakpoint] once
 /// that request completes.
 class PendingBreakpointActions {
+  PendingBreakpointActions() {
+    _lastActionFuture = completer.future;
+  }
+
   /// A completer that will trigger processing of the queue.
   final completer = Completer<void>();
 
   /// A [Future] that completes with the last action in the queue.
   late Future<void> _lastActionFuture;
-
-  PendingBreakpointActions() {
-    _lastActionFuture = completer.future;
-  }
 
   /// Queues an action to run after all previous actions.
   FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
@@ -1865,8 +1871,7 @@ class PendingBreakpointActions {
 }
 
 class StoredData {
+  StoredData(this.thread, this.data);
   final ThreadInfo thread;
   final Object data;
-
-  StoredData(this.thread, this.data);
 }

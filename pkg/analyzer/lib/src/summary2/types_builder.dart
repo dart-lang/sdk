@@ -17,7 +17,6 @@ import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 List<InterfaceTypeImpl> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
@@ -94,7 +93,7 @@ class TypesBuilder {
     var formalParameters = _formalParameters(formalParameterList);
 
     return FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
+      typeParameters: typeParameters.map((f) => f.element).toList(),
       formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -165,6 +164,8 @@ class TypesBuilder {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclarationImpl) {
       _functionDeclaration(node);
+    } else if (node is TopLevelGetterDeclarationImpl) {
+      _topLevelGetterDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
@@ -427,6 +428,16 @@ class TypesBuilder {
       fragment.element.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
+    }
+  }
+
+  void _topLevelGetterDeclaration(TopLevelGetterDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    if (fragment.previousFragment == null) {
+      element.returnType = node.returnType?.type ?? _dynamicType;
+      _setSyntheticVariableType(element);
     }
   }
 

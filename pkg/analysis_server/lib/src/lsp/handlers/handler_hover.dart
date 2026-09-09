@@ -88,6 +88,18 @@ class HoverHandler
     }
 
     var declaredInDescription = StringBuffer();
+    if (hover.containingExecutableDescriptions
+        case List(isNotEmpty: true) && var list) {
+      for (var executableDescription in list) {
+        if (executableDescription.isEmpty) {
+          continue;
+        }
+        declaredInDescription
+          ..write(' in `')
+          ..write(executableDescription)
+          ..write('`');
+      }
+    }
     if (hover.containingClassDescription?.isNotEmpty ?? false) {
       declaredInDescription
         ..write(' in `')

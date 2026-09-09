@@ -17,7 +17,17 @@ abstract class FileStateFilter {
     }
   }
 
+  /// Whether files from every package can be accessed.
+  bool get includesAllPackages;
+
   bool shouldInclude(FileState file);
+
+  /// Whether files in the package with the [packageName] can be accessed.
+  bool shouldIncludePackage(String packageName);
+
+  /// Whether files under `lib/src` in the package with the [packageName] can
+  /// be accessed.
+  bool shouldIncludePackageSrc(String packageName);
 
   static bool shouldIncludeSdk(FileState file, FileUriProperties uri) {
     assert(identical(file.uriProperties, uri));
@@ -47,6 +57,15 @@ abstract class FileStateFilter {
 
 class _AnyFilter implements FileStateFilter {
   @override
+  int get hashCode => 0;
+
+  @override
+  bool get includesAllPackages => true;
+
+  @override
+  bool operator ==(Object other) => other is _AnyFilter;
+
+  @override
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
@@ -54,6 +73,12 @@ class _AnyFilter implements FileStateFilter {
     }
     return true;
   }
+
+  @override
+  bool shouldIncludePackage(String packageName) => true;
+
+  @override
+  bool shouldIncludePackageSrc(String packageName) => true;
 }
 
 class _PubFilter implements FileStateFilter {
@@ -103,6 +128,24 @@ class _PubFilter implements FileStateFilter {
   });
 
   @override
+  int get hashCode => Object.hash(
+    targetPackage.root,
+    targetPackage.pubspecContent,
+    targetInLibOrEntryPoint,
+  );
+
+  @override
+  bool get includesAllPackages => false;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _PubFilter &&
+        other.targetPackage.root == targetPackage.root &&
+        other.targetPackage.pubspecContent == targetPackage.pubspecContent &&
+        other.targetInLibOrEntryPoint == targetInLibOrEntryPoint;
+  }
+
+  @override
   bool shouldInclude(FileState file) {
     var uri = file.uriProperties;
     if (uri.isDart) {
@@ -122,22 +165,21 @@ class _PubFilter implements FileStateFilter {
       }
     }
 
-    // Any `package:` library from the same package.
-    if (packageName == targetPackageName) {
-      return true;
-    }
+    return shouldIncludePackage(packageName) &&
+        (!uri.isSrc || shouldIncludePackageSrc(packageName));
+  }
 
-    // If not the same package, must be public.
-    if (uri.isSrc) {
-      // Special case access to `analyzer` to allow privileged access
-      // from "friends" like `analysis_server` and `linter`.
-      if (targetPackageIsFriendOfAnalyzer && packageName == 'analyzer') {
-        return true;
-      }
-      return false;
-    }
+  @override
+  bool shouldIncludePackage(String packageName) {
+    return packageName == targetPackageName ||
+        dependencies.contains(packageName) ||
+        (targetPackageIsFriendOfAnalyzer && packageName == 'analyzer');
+  }
 
-    return dependencies.contains(packageName);
+  @override
+  bool shouldIncludePackageSrc(String packageName) {
+    return packageName == targetPackageName ||
+        (targetPackageIsFriendOfAnalyzer && packageName == 'analyzer');
   }
 }
 

@@ -178,21 +178,21 @@ void emptyChecks<T extends num>(List<T> list, T zero) {
 }
 
 main() {
-  testIterableFunctions(new Float32List.fromList([1.5, 9.5]), 1.5, 9.5, 0.0);
-  testIterableFunctions(new Float64List.fromList([1.5, 9.5]), 1.5, 9.5, 0.0);
-  testIterableFunctions(new Int8List.fromList([3, 9]), 3, 9, 0);
-  testIterableFunctions(new Int16List.fromList([3, 9]), 3, 9, 0);
-  testIterableFunctions(new Int32List.fromList([3, 9]), 3, 9, 0);
-  testIterableFunctions(new Uint8List.fromList([3, 9]), 3, 9, 0);
-  testIterableFunctions(new Uint16List.fromList([3, 9]), 3, 9, 0);
-  testIterableFunctions(new Uint32List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Float32List.fromList([1.5, 9.5]), 1.5, 9.5, 0.0);
+  testIterableFunctions(Float64List.fromList([1.5, 9.5]), 1.5, 9.5, 0.0);
+  testIterableFunctions(Int8List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Int16List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Int32List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Uint8List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Uint16List.fromList([3, 9]), 3, 9, 0);
+  testIterableFunctions(Uint32List.fromList([3, 9]), 3, 9, 0);
 
-  emptyChecks(new Float32List(0), 0.0);
-  emptyChecks(new Float64List(0), 0.0);
-  emptyChecks(new Int8List(0), 0);
-  emptyChecks(new Int16List(0), 0);
-  emptyChecks(new Int32List(0), 0);
-  emptyChecks(new Uint8List(0), 0);
-  emptyChecks(new Uint16List(0), 0);
-  emptyChecks(new Uint32List(0), 0);
+  emptyChecks(Float32List(0), 0.0);
+  emptyChecks(Float64List(0), 0.0);
+  emptyChecks(Int8List(0), 0);
+  emptyChecks(Int16List(0), 0);
+  emptyChecks(Int32List(0), 0);
+  emptyChecks(Uint8List(0), 0);
+  emptyChecks(Uint16List(0), 0);
+  emptyChecks(Uint32List(0), 0);
 }

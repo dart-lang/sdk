@@ -63,7 +63,7 @@ class DocCommentVerifier {
     // TODO(srawlins): Support prefixes. This was done temporarily with
     // https://dart-review.googlesource.com/c/sdk/+/387861, but this was
     // reverted as it increased memory usage.
-    var prefix = docImport.import.prefix;
+    var prefix = docImport.import.prefixName;
     if (prefix != null) {
       _diagnosticReporter.report(
         diag.docImportCannotHavePrefix.atOffset(

@@ -1,18 +1,18 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $BoxedInt (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value i64))))
   (global $1 (ref $BoxedInt)
-    (i32.const 60)
+    (i32.const 101)
     (i64.const 1)
     (struct.new $BoxedInt))
   (@binaryen.inline 0)
   (func $main
     global.get $1
     call $print
-    i32.const 60
+    i32.const 101
     i64.const 2
     struct.new $BoxedInt
     call $print

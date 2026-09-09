@@ -9,8 +9,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveUnnecessaryIgnoreCommentTest);
     defineReflectiveTests(RemoveUnnecessaryIgnoreCommentBulkTest);
+    defineReflectiveTests(RemoveUnnecessaryIgnoreCommentTest);
   });
 }
 
@@ -23,10 +23,10 @@ class RemoveUnnecessaryIgnoreCommentBulkTest extends BulkFixProcessorTest {
     await resolveTestCode('''
 // ignore_for_file: unused_local_variable
 // ignore_for_file: return_of_invalid_type
-void f(){}
+void f() {}
 ''');
     await assertHasFix('''
-void f(){}
+void f() {}
 ''');
   }
 
@@ -35,12 +35,12 @@ void f(){}
 class C {
   // ignore: unused_local_variable
   // ignore: return_of_invalid_type
-  void f(){}
+  void f() {}
 }
 ''');
     await assertHasFix('''
 class C {
-  void f(){}
+  void f() {}
 }
 ''');
   }
@@ -55,10 +55,10 @@ class RemoveUnnecessaryIgnoreCommentTest extends FixProcessorLintTest {
   Future<void> test_file() async {
     await resolveTestCode('''
 // ignore_for_file: unused_local_variable
-void f(){}
+void f() {}
 ''');
     await assertHasFix('''
-void f(){}
+void f() {}
 ''');
   }
 
@@ -66,12 +66,12 @@ void f(){}
     await resolveTestCode('''
 class C {
   // ignore: unused_local_variable
-  void f(){}
+  void f() {}
 }
 ''');
     await assertHasFix('''
 class C {
-  void f(){}
+  void f() {}
 }
 ''');
   }
@@ -79,12 +79,42 @@ class C {
   Future<void> test_line_eol() async {
     await resolveTestCode('''
 class C {
-  void f(){} // ignore: unused_local_variable
+  void f() {} // ignore: unused_local_variable
 }
 ''');
     await assertHasFix('''
 class C {
-  void f(){}
+  void f() {}
+}
+''');
+  }
+
+  Future<void> test_line_withDocComment() async {
+    await resolveTestCode('''
+class C {
+  /// Some documentation comment.
+  // ignore: unused_local_variable
+  void f() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  /// Some documentation comment.
+  void f() {}
+}
+''');
+  }
+
+  Future<void> test_line_withTrailingText() async {
+    await resolveTestCode('''
+class C {
+  // ignore: unused_local_variable, (reason)
+  void f() {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void f() {}
 }
 ''');
   }

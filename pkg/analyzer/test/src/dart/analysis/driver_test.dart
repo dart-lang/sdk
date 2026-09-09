@@ -932,7 +932,7 @@ var B = 0;
 
     configuration.libraryConfiguration.unitConfiguration.nodeSelector =
         (result) {
-          return result.findNode.simple('B;');
+          return result.findNode.unqualifiedNameExpression('B;');
         };
 
     // We have a result only for "a".
@@ -947,9 +947,12 @@ var B = 0;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: int Function()
+        type: int
       staticType: int
 [status] idle
 ''');
@@ -973,9 +976,12 @@ var B = 1.2;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: double Function()
+        type: double
       staticType: double
 [status] idle
 ''');
@@ -1329,10 +1335,10 @@ final B1 = A1;
         (result) {
           return switch (result.uriStr) {
             'package:test/a.dart' => [
-              result.findElement2.topVar('A1'),
-              result.findElement2.topVar('A2'),
+              result.findElement.topVar('A1'),
+              result.findElement.topVar('A2'),
             ],
-            'package:test/b.dart' => [result.findElement2.topVar('B1')],
+            'package:test/b.dart' => [result.findElement.topVar('B1')],
             _ => [],
           };
         };
@@ -1414,7 +1420,7 @@ final A2 = B1;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -1486,7 +1492,7 @@ final v = 2;
     expect(session2, isNot(session1));
   }
 
-  test_discoverAvailableFiles_packages() {
+  test_discoverAvailableFiles_packages() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
@@ -1501,11 +1507,15 @@ final v = 2;
     var c1 = newFile('$packagesRootPath/ccc/lib/c1.dart', '');
 
     var driver = driverFor(testFile);
+
+    // Add only the explicit file.
+    //
+    // Don't add `a1`, `a2`, or `b1`; they should be discovered. `a3` is not a
+    // Dart file, and `c1` is not in the package config, so neither should be
+    // discovered.
     driver.addFile2(t1);
 
-    // Don't add `a1`, `a2`, or `b1` - they should be discovered.
-    // And `c` is not in the package config, so should not be discovered.
-    driver.discoverAvailableFiles();
+    await driver.discoverAvailableFiles();
 
     var knownFiles = driver.knownFiles.resources;
     expect(knownFiles, contains(t1));
@@ -1516,12 +1526,34 @@ final v = 2;
     expect(knownFiles, isNot(contains(c1)));
 
     // We can wait for discovery more than once.
-    driver.discoverAvailableFiles();
+    await driver.discoverAvailableFiles();
   }
 
-  test_discoverAvailableFiles_sdk() {
+  test_discoverAvailableFiles_resetAfterRemove() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
+    );
+
+    var t1 = newFile('$testPackageLibPath/t1.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+
     var driver = driverFor(testFile);
-    driver.discoverAvailableFiles();
+    driver.addFile2(t1);
+    await driver.discoverAvailableFiles();
+    expect(driver.knownFiles.resources, contains(a1));
+
+    var a2 = newFile('$packagesRootPath/aaa/lib/a2.dart', '');
+    driver.removeFile2(t1);
+    await driver.applyPendingFileChanges();
+
+    await driver.discoverAvailableFiles();
+    expect(driver.knownFiles.resources, contains(a2));
+  }
+
+  test_discoverAvailableFiles_sdk() async {
+    var driver = driverFor(testFile);
+    await driver.discoverAvailableFiles();
     expect(
       driver.knownFiles.resources,
       containsAll([
@@ -1531,6 +1563,109 @@ final v = 2;
         sdkRoot.getFile('lib/math/math.dart'),
       ]),
     );
+  }
+
+  test_discoverAvailableFilesFor_devDependencies() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
+    );
+
+    var target = newFile('$testPackageRootPath/test/target.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+    var b1 = newFile('$packagesRootPath/bbb/lib/b1.dart', '');
+    var b2 = newFile('$packagesRootPath/bbb/lib/src/b2.dart', '');
+
+    var driver = driverFor(target);
+    var targetState = driver.fsState.getFileForPath(target.path);
+
+    await driver.discoverAvailableFilesFor(targetState);
+
+    expect(driver.knownFiles.resources, containsAll([a1, b1]));
+    expect(driver.knownFiles.resources, isNot(contains(b2)));
+  }
+
+  test_discoverAvailableFilesFor_directDependencies() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
+    );
+
+    var target = newFile('$testPackageLibPath/target.dart', '');
+    var target2 = newFile('$testPackageLibPath/target2.dart', '');
+    var ownPrivate = newFile('$testPackageLibPath/src/own_private.dart', '');
+    var ownTest = newFile('$testPackageRootPath/test/own_test.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+    var a2 = newFile('$packagesRootPath/aaa/lib/public/a2.dart', '');
+    var a3 = newFile('$packagesRootPath/aaa/lib/src/a3.dart', '');
+    var aTest = newFile('$packagesRootPath/aaa/test/a_test.dart', '');
+    var b1 = newFile('$packagesRootPath/bbb/lib/b1.dart', '');
+
+    var driver = driverFor(target);
+    driver.addFile2(ownTest);
+    var targetState = driver.fsState.getFileForPath(target.path);
+    var targetState2 = driver.fsState.getFileForPath(target2.path);
+
+    var discovery = driver.discoverAvailableFilesFor(targetState);
+    expect(driver.discoverAvailableFilesFor(targetState2), same(discovery));
+    await discovery;
+
+    expect(
+      driver.knownFiles.resources,
+      containsAll([target, target2, ownPrivate, ownTest, a1, a2]),
+    );
+    expect(driver.knownFiles.resources, isNot(contains(a3)));
+    expect(driver.knownFiles.resources, isNot(contains(aTest)));
+    expect(driver.knownFiles.resources, isNot(contains(b1)));
+
+    await driver.discoverAvailableFiles();
+
+    expect(driver.knownFiles.resources, containsAll([a3, b1]));
+    expect(driver.knownFiles.resources, isNot(contains(aTest)));
+  }
+
+  test_discoverAvailableFilesFor_resetAfterRemove() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
+    );
+
+    var target = newFile('$testPackageLibPath/target.dart', '');
+    var marker = newFile('$testPackageLibPath/marker.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+
+    var driver = driverFor(target);
+    driver.addFile2(marker);
+    var targetState = driver.fsState.getFileForPath(target.path);
+    await driver.discoverAvailableFilesFor(targetState);
+    expect(driver.knownFiles.resources, contains(a1));
+
+    var a2 = newFile('$packagesRootPath/aaa/lib/a2.dart', '');
+    driver.removeFile2(marker);
+    await driver.applyPendingFileChanges();
+
+    targetState = driver.fsState.getFileForPath(target.path);
+    await driver.discoverAvailableFilesFor(targetState);
+    expect(driver.knownFiles.resources, contains(a2));
   }
 
   test_getCachedResolvedUnit() async {
@@ -3036,7 +3171,7 @@ final foo = 0;
 
     configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
         (result) {
-          return [result.findElement2.topVar('foo')];
+          return [result.findElement.topVar('foo')];
         };
 
     // The extension of the file does not matter.
@@ -3491,7 +3626,7 @@ final B = A;
         (result) {
           switch (result.uriStr) {
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }
@@ -3645,7 +3780,7 @@ driver
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -3880,7 +4015,7 @@ class A {}
       var result = driver.parseFileSync2(a) as ParsedUnitResult;
       assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3929,7 +4064,7 @@ class A {}
     var result = driver.parseFileSync2(a) as ParsedUnitResult;
     assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4945,17 +5080,17 @@ class B2 {}
   test_priorities_changedAll() async {
     // Make sure that `test2` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5017,17 +5152,17 @@ class B2 {}
   test_priorities_getResolvedUnit_beforePriority() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5084,17 +5219,17 @@ class B2 {}
   test_priorities_priority_rest() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5282,9 +5417,9 @@ final B = 0;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('A')];
+              return [result.findElement.topVar('A')];
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }
@@ -23901,13 +24036,6 @@ export 'dart:core' show int, dynamic, Never;
       package:test/a.dart
         libraryMetadataId: #M5
         exportMapId: #M2
-        exportMap
-          Never: <null>
-          Never=: <null>
-          dynamic: <null>
-          dynamic=: <null>
-          int: <null>
-          int=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -84952,17 +85080,19 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v1'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v2'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
@@ -85099,16 +85229,18 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),

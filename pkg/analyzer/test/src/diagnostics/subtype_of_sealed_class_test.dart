@@ -67,7 +67,7 @@ class Bar implements Foo {}
       ..add(name: 'foo', rootFolder: fooRoot)
       ..add(name: 'meta', rootFolder: addMeta().parent);
     writeTestPackageConfig(packageConfig);
-    writePackageConfig(fooRoot.path, packageConfig);
+    writePackageConfig2(fooRoot.path, config: packageConfig);
 
     await resolveFilesWithDiagnostics({
       getFile('$workspaceRootPath/foo/lib/foo.dart'): r'''

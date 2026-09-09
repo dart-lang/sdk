@@ -72,7 +72,8 @@ environment:
   sdk: ^3.6.0
 dependencies:
   # The version of the analysis_server_plugin package that matches the protocol
-  # used by the active analysis_server.
+  # used by the active analysis_server. This might be a local dev version that
+  # has not yet been published to Pub.
   analysis_server_plugin: ^0.3.21-dev
 ''');
 

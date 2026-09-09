@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
 import 'package:dartpad_worker/src/util/json_rpc_message_port_channel.dart';
+import 'package:dartpad_worker/src/util/message_port.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
@@ -78,7 +79,7 @@ void main() {
         'method': 'connect',
         'params': {
           // We can only send ports in params.port and result.port
-          'port': portToSend,
+          'port': MessagePortExt.fromMessagePort(portToSend),
         },
         'id': 3,
       });
@@ -87,12 +88,13 @@ void main() {
       // Verify the port arrived and is recognized as a MessagePort
       final receivedPort = (received['params'] as Map)['port'] as Object?;
       check(
-        receivedPort.isA<web.MessagePort>(),
+        receivedPort,
         because: 'params.port is a MessagePort',
-      ).isTrue();
+      ).isA<MessagePort>();
 
       // Verify that the port works
-      final actualPort = receivedPort as web.MessagePort;
+      final actualPort = (receivedPort as MessagePort)
+          .asTransferableMessagePort();
       actualPort.start();
 
       var pingReceived = Completer<void>();
@@ -119,7 +121,7 @@ void main() {
         'id': 4,
         'result': {
           // We can only send ports in params.port and result.port
-          'port': portToSend,
+          'port': MessagePortExt.fromMessagePort(portToSend),
         },
       });
       final received = await peer2.stream.first as Map;
@@ -127,9 +129,9 @@ void main() {
       // Verify the port arrived and is recognized as a MessagePort
       final receivedPort = (received['result'] as Map)['port'] as Object?;
       check(
-        receivedPort.isA<web.MessagePort>(),
+        receivedPort,
         because: 'result.port is a MessagePort',
-      ).isTrue();
+      ).isA<MessagePort>();
     });
 
     test('handles batched arrays of messages', () async {
@@ -182,12 +184,12 @@ void main() {
       });
 
       server.registerMethod('sendPort', (Parameters params) {
-        return (params['port'].value as Object?).isA<web.MessagePort>();
+        return params['port'].value is MessagePort;
       });
 
       server.registerMethod('receivePort', (Parameters params) {
         final sideChannel = web.MessageChannel();
-        return {'port': sideChannel.port2};
+        return {'port': MessagePortExt.fromMessagePort(sideChannel.port2)};
       });
 
       // Start processing messages
@@ -221,12 +223,14 @@ void main() {
 
       // Verify that we can send a port
       await check(
-        client.sendRequest('sendPort', {'port': web.MessageChannel().port1}),
+        client.sendRequest('sendPort', {
+          'port': MessagePortExt.fromMessagePort(web.MessageChannel().port1),
+        }),
       ).completes((v) => v.isA<bool>().isTrue());
 
       // Verify that we can receive a port
       final r = await client.sendRequest('receivePort') as Map;
-      check((r['port'] as Object?).isA<web.MessagePort>()).isTrue();
+      check(r['port']).isA<MessagePort>();
 
       // Closing the client/server closes the underlying streams automatically
       await client.close();
@@ -249,7 +253,7 @@ void main() {
 
       await check(
         client.sendRequest('failWithPort', {
-          'port': web.MessageChannel().port1,
+          'port': MessagePortExt.fromMessagePort(web.MessageChannel().port1),
         }),
       ).throws<RpcException>();
 

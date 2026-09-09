@@ -5,7 +5,7 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/kernel/dart_scope_calculator.dart';
@@ -45,7 +45,7 @@ class ScopeDataComputer extends CfeDataComputer<Features> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -111,6 +111,6 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
         return features;
       }
     }
-    return super.computeNodeValue(id, node);
+    return null;
   }
 }

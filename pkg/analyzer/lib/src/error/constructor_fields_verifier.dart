@@ -261,8 +261,8 @@ class _Constructor {
         hasRedirectingConstructorInvocation = true;
       }
       if (initializer is ConstructorFieldInitializer) {
-        var fieldName = initializer.fieldName;
-        var fieldElement = fieldName.element;
+        var fieldName = initializer.fieldName2;
+        var fieldElement = initializer.fieldElement;
         if (fieldElement is FieldElement) {
           var state = fields[fieldElement];
           if (state == _InitState.notInit) {

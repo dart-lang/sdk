@@ -928,7 +928,6 @@ class FrontendCompiler implements CompilerInterface {
       );
       final String? depfile = options['depfile'];
       if (depfile != null) {
-        // TODO(https://dartbug.com/55246): track macro deps when available.
         await writeDepfile(
           compilerOptions.fileSystem,
           compiledSources,
@@ -1321,9 +1320,9 @@ class FrontendCompiler implements CompilerInterface {
               _options['js-strongly-connected-components'],
           extraDdcOptions: extraDdcOptions,
         );
-      } catch (e) {
-        _outputStream.writeln('$e');
-        errors.add(e.toString());
+      } catch (e, s) {
+        _outputStream.writeln('$e\n$s');
+        errors.add('$e\n$s');
       }
     } else {
       await writeDillFile(

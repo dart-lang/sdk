@@ -14,8 +14,9 @@ testFunctionStatement() {
 /*member: testFunctionExpression:[null|exact=JSUInt31|powerset={null}{I}{O}{N}]*/
 testFunctionExpression() {
   var res;
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      (/*[exact=JSUInt31|powerset={I}{O}{N}]*/ a) => res = a;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ (
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ a,
+  ) => res = a;
   closure(42);
   return res;
 }

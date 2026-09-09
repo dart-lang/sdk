@@ -8,10 +8,15 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
-    dap = await DapTestSession.setUp(additionalArgs: ['--test']);
+    dap = await DapTestSession.setUp(
+      additionalArgs: ['--test'],
+      // Enable verbose logging to try and track down flakes on bots:
+      // https://github.com/dart-lang/sdk/issues/63988
+      forceVerboseLogging: true,
+    );
     // For "dart run test:test" to work we must always have a cwd set.
     dap.client.defaultCwd = dap.testAppDir.path;
     await dap.addPackageDependency(dap.testAppDir, 'test');
@@ -195,7 +200,7 @@ main() {
       );
       for (final frame in stack.stackFrames) {
         // Skip labels frames (eg. "<async gap>").
-        if (frame.presentationHint == "label") continue;
+        if (frame.presentationHint == 'label') continue;
 
         expect(frame.line, isPositive);
         expect(frame.column, isPositive);
@@ -274,8 +279,9 @@ main() {
       await Future.wait([
         client.breakpointChangeEvents.first.then((_) {
           if (!setBreakpointsResponded) {
-            throw 'breakpoint change event arrived before '
-                'setBreakpoints completed';
+            throw StateError(
+              'breakpoint change event arrived before setBreakpoints completed',
+            );
           }
         }),
         client

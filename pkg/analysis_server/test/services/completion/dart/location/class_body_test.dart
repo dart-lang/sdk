@@ -647,9 +647,11 @@ class ClassOverrideTest extends AbstractCompletionDriverTest
 
 mixin OverrideTestCases on AbstractCompletionDriverTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   Future<void> setUp() async {
     await super.setUp();
-    writeTestPackageConfig(meta: true);
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {

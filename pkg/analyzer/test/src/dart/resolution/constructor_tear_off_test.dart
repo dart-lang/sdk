@@ -45,7 +45,7 @@ ConstructorTearOff
     name2: new
   element: <testLibrary>::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -86,7 +86,7 @@ ConstructorTearOff
     name2: new
   element: <testLibrary>::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -129,7 +129,7 @@ ConstructorTearOff
     name2: new
   element: <testLibrary>::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -171,9 +171,9 @@ ConstructorTearOff
     name2: foo
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::foo
-    substitution: {T: Never}
-  staticType: A<Never> Function()
-ConstructorReference
+    substitution: {T: T}
+  staticType: A<T> Function<T extends num>()
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -206,21 +206,25 @@ A<int> Function() bar() {
 }
 ''');
 
-    var node = result.findNode.constructorTearOff('A.foo;');
+    var node = result.findNode.implicitFunctionInstantiation('A.foo;');
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: A
-    element: <testLibrary>::@class::A
-    type: A<dynamic>
-  selector: ConstructorSelector
-    period: .
-    name2: foo
-  element: SubstitutedConstructorElementImpl
-    baseElement: <testLibrary>::@class::A::@constructor::foo
-    substitution: {T: int}
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: T}
+    staticType: A<T> Function<T>()
   staticType: A<int> Function()
-ConstructorReference
+  typeArgumentTypes
+    int
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -267,7 +271,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: T}
   staticType: A<T> Function<T>()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -312,7 +316,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: T}
   staticType: A<T> Function<T extends num>()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -353,7 +357,7 @@ ConstructorTearOff
     name2: new
   element: <testLibrary>::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -392,7 +396,7 @@ ConstructorTearOff
     name2: foo
   element: <testLibrary>::@class::A::@constructor::foo
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -431,7 +435,7 @@ ConstructorTearOff
     name2: new
   element: <testLibrary>::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -478,7 +482,7 @@ ConstructorTearOff
     name2: foo
   element: package:test/a.dart::@class::A::@constructor::foo
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -529,7 +533,7 @@ ConstructorTearOff
     name2: new
   element: package:test/a.dart::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -578,7 +582,7 @@ ConstructorTearOff
     name2: foo
   element: package:test/a.dart::@class::A::@constructor::foo
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -627,7 +631,7 @@ ConstructorTearOff
     name2: new
   element: package:test/a.dart::@class::A::@constructor::new
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -674,7 +678,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: T}
   staticType: A<T> Function<T>()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -723,7 +727,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: String, U: U}
   staticType: A<String, U> Function<U>()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -768,7 +772,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -815,7 +819,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -873,7 +877,7 @@ ConstructorTearOff
     name2: i
   element: <null>
   staticType: InvalidType
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -922,7 +926,7 @@ ConstructorTearOff
     name2: foo
   element: <testLibrary>::@class::A::@constructor::foo
   staticType: A Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -982,7 +986,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: String, U: int}
   staticType: A<String, int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1049,7 +1053,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: int, U: String}
   staticType: A<int, String> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1119,7 +1123,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: String, U: int}
   staticType: A<String, int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1179,7 +1183,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: U, U: T}
   staticType: A<U, T> Function<T, U>()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1236,7 +1240,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1316,7 +1320,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1383,7 +1387,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: String}
   staticType: A<String> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
@@ -1442,7 +1446,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1503,7 +1507,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1608,7 +1612,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::foo
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1671,7 +1675,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1732,7 +1736,7 @@ ConstructorTearOff
     name2: i
   element: <null>
   staticType: InvalidType
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1789,7 +1793,7 @@ ConstructorTearOff
     name2: <empty> <synthetic>
   element: <null>
   staticType: InvalidType
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1846,7 +1850,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1907,7 +1911,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1968,7 +1972,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -2031,7 +2035,7 @@ ConstructorTearOff
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: String}
   staticType: A<String> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -2102,7 +2106,7 @@ ConstructorTearOff
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -2173,7 +2177,7 @@ ConstructorTearOff
     baseElement: package:test/a.dart::@class::A::@constructor::foo
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -2247,7 +2251,7 @@ ConstructorTearOff
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -2318,7 +2322,7 @@ ConstructorTearOff
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
   staticType: A<int> Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference

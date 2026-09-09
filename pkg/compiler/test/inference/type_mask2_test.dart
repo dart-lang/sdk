@@ -5,12 +5,14 @@
 library type_mask2_test;
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/util/bitset.dart';
+
 import '../helpers/type_test_helper.dart';
 
 void main() {
@@ -154,9 +156,11 @@ Future testUnionTypeMaskFlatten() async {
       TypeMask.nonNullEmpty(domain, hasLateSentinel: true) as FlatTypeMask;
   final subclassObject =
       TypeMask.nonNullSubclass(Object_, domain) as FlatTypeMask;
-  final subclassObjectOrSentinel =
-      TypeMask.nonNullSubclass(Object_, domain, hasLateSentinel: true)
-          as FlatTypeMask;
+  final subclassObjectOrSentinel = TypeMask.nonNullSubclass(
+    Object_,
+    domain,
+    hasLateSentinel: true,
+  ) as FlatTypeMask;
   final exactA = TypeMask.nonNullExact(A, domain) as FlatTypeMask;
   final exactAOrSentinel =
       TypeMask.nonNullExact(A, domain, hasLateSentinel: true) as FlatTypeMask;

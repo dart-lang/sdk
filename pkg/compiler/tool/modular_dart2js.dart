@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:compiler/src/commandline_options.dart';
 
 Future<void> main(List<String> args) async {

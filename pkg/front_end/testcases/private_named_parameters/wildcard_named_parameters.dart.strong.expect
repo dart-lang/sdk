@@ -35,7 +35,7 @@ class C extends core::Object {
     ;
 }
 static method f1({core::int _ = #C1}) → void {}
-static method f2({core::int _ = #C1, core::String _ = #C2}) → void {}
+static method f2({core::int _ = #C1, core::String _##1 = #C2}) → void {}
 static method test() → dynamic {
   self::f1(_: 1);
   self::f2(_: 2);

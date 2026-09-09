@@ -276,6 +276,18 @@ TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapeInHost) {
   EXPECT(uri->fragment == nullptr);
 }
 
+TEST_CASE(ParseUri_NormalizeEscapes_NonAsciiBytes) {
+  auto uri = ParseUri("scheme:/caf\xC3\xA9");
+  EXPECT(uri);
+  EXPECT_USTREQ("scheme", uri->scheme);
+  EXPECT(uri->userinfo == nullptr);
+  EXPECT(uri->host == nullptr);
+  EXPECT(uri->port == nullptr);
+  EXPECT_USTREQ("/caf%C3%A9", uri->path);  // Each byte keeps its own value.
+  EXPECT(uri->query == nullptr);
+  EXPECT(uri->fragment == nullptr);
+}
+
 TEST_CASE(ParseUri_BrokenEscapeSequence) {
   auto uri = ParseUri("scheme:/%1g");
   EXPECT(uri);

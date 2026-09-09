@@ -15,3 +15,4 @@ class C<T>.named() {}
 class const C<T>.named {}
 class const C = O with M;
 class const C<T> = O with M;
+class C({var int a})

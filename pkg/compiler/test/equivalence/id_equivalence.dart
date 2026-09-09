@@ -39,8 +39,7 @@ abstract class IrDataExtractor<T> extends DataExtractor<T>
   @override
   final DiagnosticReporter reporter;
 
-  IrDataExtractor(this.reporter, Map<Id, ActualData<T>> actualMap)
-    : super(actualMap);
+  IrDataExtractor(this.reporter, super.actualMap);
 
   SourceSpan computeSourceSpan(ir.TreeNode node) {
     return computeSourceSpanFromTreeNode(node);

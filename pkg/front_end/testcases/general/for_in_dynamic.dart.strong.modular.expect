@@ -16,8 +16,8 @@ static method test() → dynamic async /* emittedValueType= dynamic */ {
     core::print(i);
   }
   await for (final dynamic #t2 in self::makeStream(<dynamic>[1, 2, 3])) {
-    core::String i = #t2 as{TypeError,ForDynamic} core::String;
-    core::print(i);
+    core::String i##1 = #t2 as{TypeError,ForDynamic} core::String;
+    core::print(i##1);
   }
 }
 static method main() → dynamic async /* emittedValueType= dynamic */ {
@@ -26,7 +26,7 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
     core::print(i);
   }
   await for (final dynamic #t4 in self::makeStream(<dynamic>[1, 2, 3])) {
-    core::int i = #t4 as{TypeError,ForDynamic} core::int;
-    core::print(i);
+    core::int i##1 = #t4 as{TypeError,ForDynamic} core::int;
+    core::print(i##1);
   }
 }

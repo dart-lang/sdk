@@ -19,14 +19,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RemoveAsync extends ResolvedCorrectionProducer {
   final _Type _type;
 
-  new({required super.context}) : _type = _Type.other;
+  new({required super.context}) : _type = .other;
 
-  new unnecessary({required super.context}) : _type = _Type.unnecessary;
+  new unawaited({required super.context}) : _type = .unawaited;
+
+  new unnecessary({required super.context}) : _type = .unnecessary;
 
   @override
-  CorrectionApplicability get applicability =>
-      // Not predictably the correct action.
-      CorrectionApplicability.singleLocation;
+  // Not predictably the correct action.
+  CorrectionApplicability get applicability => .singleLocation;
 
   @override
   AssistKind get assistKind => DartAssistKind.removeAsync;
@@ -38,15 +39,17 @@ class RemoveAsync extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     bool updateReturnType = true;
     AstNode? node = this.node;
-    FunctionBody body;
+    FunctionBody? body;
     DartType? returnType;
-    if (_type == _Type.unnecessary) {
+    if (_type != .other) {
       if (node.thisOrAncestorOfType<FunctionBody>() case var ancestorBody?) {
         body = ancestorBody;
+        if (_type == .unawaited) node = body;
       } else {
         return;
       }
-    } else {
+    }
+    if (_type != .unnecessary) {
       if (node is Block) {
         node = node.parent;
       }
@@ -80,6 +83,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
           return;
       }
     }
+    if (body == null) return;
     if (body.keyword?.lexeme != Keyword.ASYNC.lexeme || body.star != null) {
       return;
     }
@@ -88,7 +92,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
       var newReturn = returnType.typeArguments.first;
       var visitor = _VisitorTester(typeSystem, typeProvider, newReturn);
       if (!visitor.returnsWillBeAssignable(body)) {
-        if (visitor.returnsAreAssignable(body)) {
+        if (_type != .unawaited && visitor.returnsAreAssignable(body)) {
           updateReturnType = false;
         } else {
           return;
@@ -107,17 +111,17 @@ class RemoveAsync extends ResolvedCorrectionProducer {
     } else {
       updateReturnType = false;
     }
-    if (updateReturnType) {
+    if (updateReturnType && _type != .unawaited) {
       return await builder.addDartFileEdit(file, (builder) {
         builder.convertFunctionFromAsyncToSync(
-          body: body,
+          body: body!,
           typeSystem: typeSystem,
           typeProvider: typeProvider,
         );
       });
     } else {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = body.keyword!;
+        var keyword = body!.keyword!;
         builder.addDeletion(
           range.startOffsetEndOffset(
             keyword.offset,
@@ -129,7 +133,7 @@ class RemoveAsync extends ResolvedCorrectionProducer {
   }
 }
 
-enum _Type { unnecessary, other }
+enum _Type { unnecessary, unawaited, other }
 
 /// An AST visitor used to test if all return statements in a function body
 /// are assignable to a given type.
@@ -177,6 +181,7 @@ class _VisitorTester extends RecursiveAstVisitor<void> {
     _foundAwait = false;
     _returnsAreAssignable = true;
     _foundOneReturn = false;
+    _processingFuture = false;
     node.accept(this);
     return _returnsAreAssignable && _foundOneReturn || !_foundOneReturn;
   }

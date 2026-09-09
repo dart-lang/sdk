@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, DataRegistry, Id;
+    show DataRegistry, Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
@@ -117,7 +117,7 @@ class CfeDataRegistry<T> with DataRegistry<T>, CfeDataRegistryMixin<T> {
   final InternalCompilerResult compilerResult;
 
   @override
-  final Map<Id, ActualData<T>> actualMap;
+  final ActualDataMap<T> actualMap;
 
   new(this.compilerResult, this.actualMap);
 }
@@ -127,7 +127,7 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T>
   @override
   final InternalCompilerResult compilerResult;
 
-  new(this.compilerResult, Map<Id, ActualData<T>> actualMap) : super(actualMap);
+  new(this.compilerResult, super.actualMap);
 }
 
 /// Create the testing URI used for [fileName] in annotated tests.

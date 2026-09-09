@@ -69,7 +69,7 @@ static method useAddAll() → void {
     #t13.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<core::num>) → void};
     #t13.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<core::num>) → void};
   } =>#t13;
-  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
+  self::expect(core::List::generate<core::num>(15, (core::int i##1) → core::int => i##1).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
   core::Set<core::int> set3 = block {
     final core::Set<core::int> #t20 = col::LinkedHashSet::•<core::int>();
     for (final has-declared-initializer dynamic #t21 in dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
@@ -87,7 +87,7 @@ static method useAddAll() → void {
     #t20.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<core::int>) → void};
     #t20.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<core::int>) → void};
   } =>#t20;
-  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::int>}, set3);
+  self::expect(core::List::generate<core::int>(15, (core::int i##2) → core::int => i##2).{core::Iterable::toSet}(){() → core::Set<core::int>}, set3);
   core::Set<dynamic> set4 = block {
     final core::Set<dynamic> #t27 = col::LinkedHashSet::of<dynamic>(dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>);
     #t27.{core::Set::addAll}{Invariant}(dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
@@ -95,7 +95,7 @@ static method useAddAll() → void {
     #t27.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<dynamic>) → void};
     #t27.{core::Set::addAll}{Invariant}(intSet){(core::Iterable<dynamic>) → void};
   } =>#t27;
-  self::expect(core::List::generate<dynamic>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<dynamic>}, set4);
+  self::expect(core::List::generate<dynamic>(15, (core::int i##3) → core::int => i##3).{core::Iterable::toSet}(){() → core::Set<dynamic>}, set4);
   {
     core::Set<core::int> intSet1 = block {
       final core::Set<core::int> #t28 = col::LinkedHashSet::•<core::int>();
@@ -113,7 +113,7 @@ static method useAddAll() → void {
       final core::Set<core::int> #t30 = col::LinkedHashSet::of<core::int>(intSet1);
       #t30.{core::Set::addAll}{Invariant}(intSet2){(core::Iterable<core::int>) → void};
     } =>#t30;
-    self::expect(core::List::generate<core::int>(6, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::int>}, set);
+    self::expect(core::List::generate<core::int>(6, (core::int i##4) → core::int => i##4).{core::Iterable::toSet}(){() → core::Set<core::int>}, set);
   }
 }
 static method useAddAllNullable() → void {
@@ -202,7 +202,7 @@ static method useAddAllNullable() → void {
     if(!(#t59 == null))
       #t48.{core::Set::addAll}{Invariant}(#t59{core::Iterable<core::num>}){(core::Iterable<core::num>) → void};
   } =>#t48;
-  self::expect(core::List::generate<core::num>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
+  self::expect(core::List::generate<core::num>(15, (core::int i##1) → core::int => i##1).{core::Iterable::toSet}(){() → core::Set<core::num>}, set2);
   core::Set<core::int> set3 = block {
     final core::Set<core::int> #t60 = col::LinkedHashSet::•<core::int>();
     final core::Iterable<dynamic>? #t61 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>?;
@@ -230,7 +230,7 @@ static method useAddAllNullable() → void {
     if(!(#t71 == null))
       #t60.{core::Set::addAll}{Invariant}(#t71{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
   } =>#t60;
-  self::expect(core::List::generate<core::int>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<core::int>}, set3);
+  self::expect(core::List::generate<core::int>(15, (core::int i##2) → core::int => i##2).{core::Iterable::toSet}(){() → core::Set<core::int>}, set3);
   core::Set<dynamic> set4 = block {
     final core::Set<dynamic> #t72 = col::LinkedHashSet::•<dynamic>();
     final core::Iterable<dynamic>? #t73 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>?;
@@ -249,7 +249,7 @@ static method useAddAllNullable() → void {
     if(!(#t77 == null))
       #t72.{core::Set::addAll}{Invariant}(#t77{core::Iterable<dynamic>}){(core::Iterable<dynamic>) → void};
   } =>#t72;
-  self::expect(core::List::generate<dynamic>(15, (core::int i) → core::int => i).{core::Iterable::toSet}(){() → core::Set<dynamic>}, set4);
+  self::expect(core::List::generate<dynamic>(15, (core::int i##3) → core::int => i##3).{core::Iterable::toSet}(){() → core::Set<dynamic>}, set4);
 }
 static method main() → dynamic {
   self::useAddAll();

@@ -18,6 +18,9 @@ void main() {
 @reflectiveTest
 class AddReopenBulkTest extends BulkFixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintCode => LintNames.implicit_reopen;
 
   Future<void> test_singleFile() async {
@@ -43,16 +46,13 @@ base class D extends S {}
 @reflectiveTest
 class AddReopenTest extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addReopen;
 
   @override
   String get lintCode => LintNames.implicit_reopen;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_inducedFinal() async {
     await resolveTestCode('''

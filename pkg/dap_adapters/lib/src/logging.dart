@@ -8,9 +8,8 @@ typedef Logger = void Function(String);
 
 /// Wraps a [Logger] as a [vm/Log] to be passed to the VM Service library.
 class VmServiceLogger extends vm.Log {
-  final Logger _logger;
-
   VmServiceLogger(this._logger);
+  final Logger _logger;
 
   @override
   void severe(String message) => _logger.call('ERROR: $message');

@@ -668,6 +668,65 @@ class C(num x^) {
     await assertNoAssist();
   }
 
+  Future<void> test_requiredPositional_simple_nonFinal_sameLine() async {
+    await resolveTestCode('''
+// Header.
+
+class C(int x^) { int x; this : x = x; }
+''');
+    await assertHasAssist('''
+// Header.
+
+class C(var int x) { }
+''');
+  }
+
+  Future<void>
+  test_requiredPositional_simple_nonFinal_surroundedByMembers() async {
+    await resolveTestCode('''
+class C(int x^) {
+  static int count = 0;
+
+  int x;
+
+  this : x = x;
+
+  void f() {}
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+  static int count = 0;
+
+  void f() {}
+}
+''');
+  }
+
+  Future<void>
+  test_requiredPositional_simple_nonFinal_surroundedByMembers_multipleBlankLines() async {
+    await resolveTestCode('''
+class C(int x^) {
+  static int count = 0;
+
+
+
+  int x;
+
+  this : x = x;
+
+  void f() {}
+}
+''');
+    await assertHasAssist('''
+class C(var int x) {
+  static int count = 0;
+
+  void f() {}
+}
+''');
+  }
+
   Future<void> test_requiredPositional_simple_nonFinal_widerField() async {
     await resolveTestCode('''
 class C(int x^) {
@@ -1105,7 +1164,6 @@ enum E({int x^ = 0}) {
     await assertHasAssist('''
 enum E({final int x = 0}) {
   a(x: 0);
-
 }
 ''');
   }
@@ -1123,7 +1181,6 @@ enum E({int x^ = 0}) {
     await assertHasAssist('''
 enum E({final int _x = 0}) {
   a(x: 0);
-
 }
 ''');
   }
@@ -1154,11 +1211,9 @@ enum E([int x^ = 0]) {
   this : x = x;
 }
 ''');
-    // TODO(brianwilkerson): It would be nice to remove the extra blank line.
     await assertHasAssist('''
 enum E([final int x = 0]) {
   a(0);
-
 }
 ''');
   }
@@ -1176,7 +1231,6 @@ enum E(int x^) {
     await assertHasAssist('''
 enum E(final int _x) {
   a(0);
-
 }
 ''');
   }
@@ -1210,7 +1264,6 @@ enum E({required int x^}) {
     await assertHasAssist('''
 enum E({required final int x}) {
   a(x: 0);
-
 }
 ''');
   }
@@ -1244,7 +1297,6 @@ enum E(int x^) {
     await assertHasAssist('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
   }
@@ -1262,9 +1314,15 @@ enum E(int x^) {
     await assertHasAssist('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
+  }
+
+  Future<void> test_requiredPositional_simple_firstLine() async {
+    await resolveTestCode(
+      'enum E(int x^) { a(0); final int x; this : x = x; }',
+    );
+    await assertHasAssist('enum E(final int x) { a(0); }');
   }
 
   Future<void>
@@ -1347,7 +1405,6 @@ enum E(
   @b
   final int x) {
   e(0);
-
 }
 
 const a = 0;
@@ -1373,7 +1430,6 @@ enum E(
   /// on multiple lines.
   final int x) {
   a(0);
-
 }
 ''');
   }
@@ -1403,7 +1459,6 @@ enum E(
   @b
   final int x) {
   a(0);
-
 }
 
 const a = 0;
@@ -1437,7 +1492,6 @@ enum E(int x^) {
     await assertHasAssist('''
 enum E(final int x) {
   a(0);
-
 }
 ''');
   }

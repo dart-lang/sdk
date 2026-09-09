@@ -3092,12 +3092,12 @@ class Parser {
     Token? constToken,
     String className,
   ) {
-    Token start = token;
     token = parsePrimaryConstructorOpt(
       DeclarationKind.Class,
       token,
       constToken,
     );
+    Token headerStart = token;
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
@@ -3112,7 +3112,7 @@ class Parser {
     } else {
       if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
         // Recovery
-        token = parseClassHeaderRecovery(start, beginToken, classKeyword);
+        token = parseClassHeaderRecovery(headerStart, beginToken, classKeyword);
         ensureBlock(token, BlockKind.classDeclaration);
       }
       token = parseClassOrMixinOrExtensionBody(
@@ -6132,30 +6132,6 @@ class Parser {
       if (varFinalOrConst != null) {
         assert(varFinalOrConst.isA(Keyword.CONST));
         reportRecoverableError(varFinalOrConst, diag.constMethod);
-      }
-      switch (kind) {
-        case DeclarationKind.Class:
-        case DeclarationKind.Mixin:
-        case DeclarationKind.Enum:
-          break;
-        case DeclarationKind.Extension:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.ExtensionType:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionTypeDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.TopLevel:
-          throw "Internal error: TopLevel method.";
       }
       // TODO(danrubel): Remove beginInitializers token from method events
       listener.endMethod(
@@ -9417,8 +9393,6 @@ class Parser {
 
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
-    } else {
-      listener.handleNoTypeArguments(token.next!);
     }
     if (constantPatternContext == ConstantPatternContext.explicit &&
         !(token.next!.isA(TokenType.PERIOD) ||
@@ -9430,6 +9404,15 @@ class Parser {
       reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
       // Avoid subsequent errors.
       constantPatternContext = ConstantPatternContext.none;
+    }
+    if (typeArg == noTypeParamOrArg && !token.next!.isA(TokenType.OPEN_PAREN)) {
+      listener.handleSendWithoutArguments(beginToken, token, token.next!);
+      return token;
+    }
+    if (typeArg == noTypeParamOrArg) {
+      token = parseArgumentsOpt(token);
+      listener.handleInvocationWithoutTypeArguments(beginToken, token);
+      return token;
     }
     token = parseArgumentsOpt(token);
     listener.handleSend(beginToken, token);
@@ -9550,9 +9533,7 @@ class Parser {
             // Shortcut common cases:
             // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
             listener.handleIdentifier(next1, IdentifierContext.expression);
-            listener.handleNoTypeArguments(next2);
-            listener.handleNoArguments(next2);
-            listener.handleSend(next1, next1);
+            listener.handleSendWithoutArguments(next1, next1, next2);
             token = next1;
             expressionHandled = true;
           } else if (next2.isA(TokenType.PERIOD)) {
@@ -9565,16 +9546,12 @@ class Parser {
                 // "IDENTIFIER DOT IDENTIFIER COMMA" and
                 // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
                 listener.handleIdentifier(next1, IdentifierContext.expression);
-                listener.handleNoTypeArguments(next2);
-                listener.handleNoArguments(next2);
-                listener.handleSend(next1, next1);
+                listener.handleSendWithoutArguments(next1, next1, next2);
                 listener.handleIdentifier(
                   next3,
                   IdentifierContext.expressionContinuation,
                 );
-                listener.handleNoTypeArguments(next4);
-                listener.handleNoArguments(next4);
-                listener.handleSend(next3, next3);
+                listener.handleSendWithoutArguments(next3, next3, next4);
                 listener.handleDotAccess(
                   next2,
                   next3,

@@ -20,9 +20,9 @@ final class TestContext {
   final consoleLog = <String>[];
 
   TestContext._(this.server, this.dartpad, this.ws, this.sandbox) {
-    sandbox.onConsole.listen((event) {
-      consoleLog.add(event.message);
-      printOnFailure('[sandbox] console.${event.level.name}: ${event.message}');
+    sandbox.console.listen((message) {
+      consoleLog.add(message);
+      printOnFailure('[sandbox] console: $message');
     });
   }
 
@@ -36,8 +36,8 @@ final class TestContext {
       return;
     }
 
-    await sandbox.onConsole
-        .firstWhere((event) => softCheck(event.message, condition) == null)
+    await sandbox.console
+        .firstWhere((message) => softCheck(message, condition) == null)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(
@@ -65,23 +65,16 @@ void testDartIntegration(
 
     // Initialize Sandbox
     printOnFailure('# Initializing sandbox');
-    final sandbox = await Sandbox.createIFrame(
-      web.document.body!,
-      assetBaseUrl: server.baseUrl.resolve('dart/'),
-    );
+    final iframe = await sdk.createSandboxedIframe(web.document.body!);
+    final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
       await fn(TestContext._(server, dartpad, workspace, sandbox));
     } finally {
-      try {
-        sandbox.dispose();
-      } finally {
-        try {
-          await workspace.dispose();
-        } finally {
-          await dartpad.dispose();
-        }
-      }
+      await sandbox.close();
+      await iframe.close();
+      await workspace.dispose();
+      await dartpad.dispose();
     }
   });
 }
@@ -111,23 +104,16 @@ void testFlutterIntegration(
 
     // Initialize Sandbox
     printOnFailure('# Initializing sandbox');
-    final sandbox = await Sandbox.createIFrame(
-      web.document.body!,
-      assetBaseUrl: server.baseUrl.resolve('flutter/'),
-    );
+    final iframe = await sdk.createSandboxedIframe(web.document.body!);
+    final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
       await fn(TestContext._(server, dartpad, workspace, sandbox));
     } finally {
-      try {
-        sandbox.dispose();
-      } finally {
-        try {
-          await workspace.dispose();
-        } finally {
-          await dartpad.dispose();
-        }
-      }
+      await sandbox.close();
+      await iframe.close();
+      await workspace.dispose();
+      await dartpad.dispose();
     }
   });
 }

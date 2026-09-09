@@ -2,61 +2,61 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable '#local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
 //   local2 = value; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable '#local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable '#local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
 //   local2 = value; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable '#local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 += 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable '#local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
 //   local2 = value; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable '#local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable '#local2' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
 //   local2 = value; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable '#local6' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
 //   local6 = 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
-// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable '#local4' definitely assigned.
+// pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
 //   local4 += 0; // error
-//   ^^^^^^^
+//   ^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -95,15 +95,15 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   #local2#set(value){(T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
-  ^^^^^^^" in #local2#set(value){(T%) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable '#local4' definitely assigned.
+  ^^^^^^" in #local2#set(value){(T%) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
-  ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable '#local6' definitely assigned.
+  ^^^^^^" in #local4#set(0){(core::int) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
-  ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
+  ^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 };
 static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional = <T extends core::Object? = dynamic>(core::bool b, T% value) → Null {
   lowered final T? #local2;
@@ -141,15 +141,15 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   #local2#set(value){(T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
-  ^^^^^^^" in #local2#set(value){(T%) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable '#local4' definitely assigned.
+  ^^^^^^" in #local2#set(value){(T%) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
-  ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable '#local6' definitely assigned.
+  ^^^^^^" in #local4#set(0){(core::int) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
-  ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
+  ^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 };
 static field () → Null fieldCompound = () → Null {
   lowered final core::int? #local4;
@@ -161,9 +161,9 @@ static field () → Null fieldCompound = () → Null {
     else
       throw{for-error-handling} new _in::LateError::localAI("local4");
   #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
-  ^^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
+  ^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 };
 static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic {
   lowered final self::methodDirect::T? #local2;
@@ -196,15 +196,15 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   #local2#set(value){(self::methodDirect::T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:16:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
-  ^^^^^^^" in #local2#set(value){(self::methodDirect::T%) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable '#local4' definitely assigned.
+  ^^^^^^" in #local2#set(value){(self::methodDirect::T%) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:17:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
-  ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable '#local6' definitely assigned.
+  ^^^^^^" in #local4#set(0){(core::int) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:18:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
-  ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
+  ^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 }
 static method methodConditional<T extends core::Object? = dynamic>(core::bool b, self::methodConditional::T% value) → dynamic {
   lowered final self::methodConditional::T? #local2;
@@ -242,15 +242,15 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   #local2#set(value){(self::methodConditional::T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
   #local6#set(0){(FutureOr<core::int>) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable '#local2' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:50:3: Error: Late final variable 'local2' definitely assigned.
   local2 = value; // error
-  ^^^^^^^" in #local2#set(value){(self::methodConditional::T%) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable '#local4' definitely assigned.
+  ^^^^^^" in #local2#set(value){(self::methodConditional::T%) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:51:3: Error: Late final variable 'local4' definitely assigned.
   local4 = 0; // error
-  ^^^^^^^" in #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable '#local6' definitely assigned.
+  ^^^^^^" in #local4#set(0){(core::int) → dynamic};
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:52:3: Error: Late final variable 'local6' definitely assigned.
   local6 = 0; // error
-  ^^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
+  ^^^^^^" in #local6#set(0){(FutureOr<core::int>) → dynamic};
 }
 static method methodCompound() → dynamic {
   lowered final core::int? #local4;
@@ -262,8 +262,8 @@ static method methodCompound() → dynamic {
     else
       throw{for-error-handling} new _in::LateError::localAI("local4");
   #local4#set(0){(core::int) → dynamic};
-  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable '#local4' definitely assigned.
+  invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable 'local4' definitely assigned.
   local4 += 0; // error
-  ^^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
+  ^^^^^^" in #local4#set(#local4#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
 }
 static method main() → dynamic {}

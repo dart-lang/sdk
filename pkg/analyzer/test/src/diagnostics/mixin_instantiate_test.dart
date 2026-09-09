@@ -48,7 +48,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: M
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -95,7 +95,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: M
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType

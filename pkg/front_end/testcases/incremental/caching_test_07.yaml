@@ -1,0 +1,40 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Changing a part will make it not load
+
+type: newworld
+worlds:
+  - entry: a.dart
+    sources:
+      a.dart: |
+        part "a_part.dart";
+        void main() {
+          fromPart();
+        }
+      a_part.dart: |
+        part of "a.dart";
+        void fromPart() {
+          print("1");
+        }
+    expectedLibraryCount: 1
+    expectedCacheLoadTries: 1
+    expectedCacheLoads: 0
+    expectedCacheSaves: 1
+  - entry: a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - a_part.dart
+    sources:
+      a_part.dart: |
+        part of "a.dart";
+        void fromPart() {
+          print("2");
+        }
+    expectedLibraryCount: 1
+    expectedCacheLoadTries: 1
+    expectedCacheLoads: 0
+    expectedCacheSaves: 1
+    advancedInvalidation: bodiesOnly

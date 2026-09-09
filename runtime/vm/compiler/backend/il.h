@@ -479,6 +479,7 @@ struct InstrAttrs {
   M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
+  M(UnaryInt32Op, kNoGC)                                                       \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
   M(SmiToDouble, kNoGC)                                                        \
@@ -488,7 +489,7 @@ struct InstrAttrs {
   M(DoubleToSmi, kNoGC)                                                        \
   M(DoubleToFloat, kNoGC)                                                      \
   M(FloatToDouble, kNoGC)                                                      \
-  M(FloatCompare, kNoGC)                                                       \
+  M(CompareAsMask, kNoGC)                                                      \
   M(CheckClass, kNoGC)                                                         \
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
@@ -9294,6 +9295,34 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
 };
 
+class UnaryInt32OpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryInt32OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(IsSupported(op_kind));
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedInt32;
+  }
+
+  static bool IsSupported(Token::Kind op_kind) {
+    return op_kind == Token::kBIT_NOT;
+  }
+
+  DECLARE_INSTRUCTION(UnaryInt32Op)
+
+  DECLARE_EMPTY_SERIALIZATION(UnaryInt32OpInstr, UnaryIntegerOpInstr)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnaryInt32OpInstr);
+};
+
 class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
  public:
   UnaryInt64OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
@@ -9964,10 +9993,13 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // left op right ? -1 : 0
-class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class CompareAsMaskInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  FloatCompareInstr(Token::Kind op_kind, Value* left, Value* right)
-      : op_kind_(op_kind) {
+  CompareAsMaskInstr(Representation input_representation,
+                     Token::Kind op_kind,
+                     Value* left,
+                     Value* right)
+      : input_representation_(input_representation), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -9975,33 +10007,37 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
+  Representation input_representation() const { return input_representation_; }
   Token::Kind op_kind() const { return op_kind_; }
 
-  DECLARE_INSTRUCTION(FloatCompare)
+  DECLARE_INSTRUCTION(CompareAsMask)
 
-  DECLARE_ATTRIBUTE(op_kind())
+  DECLARE_ATTRIBUTES_NAMED(("input_representation", "op_kind"),
+                           (input_representation(), op_kind()))
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kUnboxedFloat;
+    return input_representation_;
   }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsFloatCompare()->op_kind() == op_kind();
+    return other.AsCompareAsMask()->op_kind() == op_kind();
   }
 
-#define FIELD_LIST(F) F(const Token::Kind, op_kind_)
+#define FIELD_LIST(F)                                                          \
+  F(const Representation, input_representation_)                               \
+  F(const Token::Kind, op_kind_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(FloatCompareInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CompareAsMaskInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(FloatCompareInstr);
+  DISALLOW_COPY_AND_ASSIGN(CompareAsMaskInstr);
 };
 
 // TODO(sjindel): Replace with FFICallInstr.
@@ -11193,6 +11229,8 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(2, MASK, Float32x4ShuffleMix, (Float32x4, Float32x4), Float32x4)           \
   M(2, MASK, Int32x4ShuffleMix, (Int32x4, Int32x4), Int32x4)                   \
   M(2, _, Float32x4Equal, (Float32x4, Float32x4), Int32x4)                     \
+  M(2, _, Int32x4Equal, (Int32x4, Int32x4), Int32x4)                           \
+  M(2, _, Int32x4NotEqual, (Int32x4, Int32x4), Int32x4)                        \
   M(2, _, Float32x4GreaterThan, (Float32x4, Float32x4), Int32x4)               \
   M(2, _, Float32x4GreaterThanOrEqual, (Float32x4, Float32x4), Int32x4)        \
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
@@ -11207,6 +11245,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
   M(1, _, Float64x2Splat, (Double), Float64x2)                                 \
   M(1, _, Int32x4GetSignMask, (Int32x4), Int8)                                 \
+  M(1, _, Int32x4AnyTrue, (Int32x4), Bool)                                     \
   M(1, _, Float32x4GetSignMask, (Float32x4), Int8)                             \
   M(1, _, Float64x2GetSignMask, (Float64x2), Int8)                             \
   M(2, _, Float32x4Scale, (Double, Float32x4), Float32x4)                      \
@@ -11219,6 +11258,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(1, _, Float64x2Negate, (Float64x2), Float64x2)                             \
   M(1, _, Float32x4Abs, (Float32x4), Float32x4)                                \
   M(1, _, Float64x2Abs, (Float64x2), Float64x2)                                \
+  M(1, _, Int32x4Not, (Int32x4), Int32x4)                                      \
   M(3, _, Float32x4Clamp, (Float32x4, Float32x4, Float32x4), Float32x4)        \
   M(3, _, Float64x2Clamp, (Float64x2, Float64x2, Float64x2), Float64x2)        \
   M(1, _, Float64x2GetX, (Float64x2), Double)                                  \
@@ -11299,6 +11339,8 @@ class SimdOpInstr : public Definition {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
   virtual CompileType ComputeType() const;
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool MayThrow() const { return false; }
   virtual bool ComputeCanDeoptimize() const { return false; }

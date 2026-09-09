@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
+
 import 'type_graph_nodes.dart';
 
 /// A work queue for the inferrer. It filters out nodes that are tagged as

@@ -146,6 +146,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ movl(EAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ call(EAX);
   __ LeaveFrame();
 
@@ -164,6 +165,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ ReserveAlignedFrameSpace(0);
 
   __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ call(EAX);
   __ LeaveFrame();
 

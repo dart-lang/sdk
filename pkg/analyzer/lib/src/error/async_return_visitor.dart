@@ -92,6 +92,8 @@ extension on FunctionBody {
     FunctionExpression(
       :var declaredFragment,
     ) => declaredFragment?.element.returnType,
+    TopLevelGetterDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
     _ => null,
   };
 }

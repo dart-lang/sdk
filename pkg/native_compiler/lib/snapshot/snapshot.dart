@@ -67,13 +67,8 @@ enum PredefinedClusters {
   closureRefs,
   argumentsDescriptorRefs,
   recordShapeRefs,
-  closureDatas,
-  functions,
   ints,
   doubles,
-  lists,
-  maps,
-  sets,
   records,
   instantiatedClosures,
   typeParameters,
@@ -82,6 +77,12 @@ enum PredefinedClusters {
   recordTypes,
   typeParameterTypes,
   typeArguments,
+  closureDatas,
+  functions,
+  lists,
+  maps,
+  sets,
+  instances, // Separate cluster for every class.
   codes,
   icDatas,
   subtypeTestCaches,
@@ -91,7 +92,6 @@ enum PredefinedClusters {
   catchEntryMoves,
   compressedStackMaps,
   codeSourceMap,
-  instances, // Separate cluster for every class.
 }
 
 /// Object pool entry kinds in the module snapshots.
@@ -171,12 +171,8 @@ class SnapshotSerializer {
     addBaseObject(PcDescriptors());
     addBaseObject(RuntimeConstantObject(.uninitializedIndex));
     addBaseObject(RuntimeConstantObject(.uninitializedData));
+    addBaseObject(RuntimeConstantObject(.mutableEmptyList));
     // TODO: generate these stubs instead of referencing them from the VM.
-    addBaseObject(StubCode.Subtype1TestCache);
-    addBaseObject(StubCode.Subtype2TestCache);
-    addBaseObject(StubCode.Subtype3TestCache);
-    addBaseObject(StubCode.Subtype4TestCache);
-    addBaseObject(StubCode.Subtype6TestCache);
     addBaseObject(StubCode.InstantiateTypeArguments);
     addBaseObject(StubCode.InitAsync);
     addBaseObject(StubCode.InitAsyncStar);
@@ -189,6 +185,7 @@ class SnapshotSerializer {
     addBaseObject(StubCode.ReturnAsync);
     addBaseObject(StubCode.ReturnAsyncNotFuture);
     addBaseObject(StubCode.ReturnAsyncStar);
+    addBaseObject(StubCode.CloneSuspendState);
     addBaseObject(StubCode.CallBootstrapNative);
     numObjects = numBaseObjects;
   }
@@ -209,8 +206,11 @@ class SnapshotSerializer {
     );
 
     final clusters = [
-      for (final c in _clusters) ?c,
-      ..._instanceClusters.values,
+      for (final clusterId in PredefinedClusters.values)
+        if (clusterId == .instances)
+          ..._instanceClusters.values
+        else
+          ?_clusters[clusterId.index],
     ];
     out.writeUint(clusters.length);
 
@@ -824,7 +824,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
         data = ClosureData(function.enclosingFunction);
         positionalParameterNames = getListConstant([
           '#closure', // Implicit closure parameter.
-          for (final p in functionNode.positionalParameters) p.cosmeticName!,
+          for (final p in functionNode.positionalParameters) p.parameterName,
         ]);
         startFileOffset = functionNode.fileOffset;
         endFileOffset = functionNode.fileEndOffset;
@@ -1582,17 +1582,8 @@ final class TypeParameterTypeSerializationCluster extends SerializationCluster {
     switch (declaration) {
       case ast.Class():
         return declaration;
-      case ast.Procedure():
-        return serializer.functionRegistry.getFunction(
-          declaration,
-          isGetter: declaration.isGetter,
-          isSetter: declaration.isSetter,
-        );
-      case ast.LocalFunction():
-        return serializer.functionRegistry.getFunction(
-          getEnclosingMember(declaration),
-          localFunction: declaration,
-        );
+      case ast.GenericFunction():
+        return declaration.function.computeThisFunctionType(.nonNullable);
       default:
         throw 'Unexpected type parameter declaration ${declaration.runtimeType} $declaration';
     }

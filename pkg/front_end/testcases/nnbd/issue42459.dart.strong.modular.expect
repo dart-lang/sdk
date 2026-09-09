@@ -20,8 +20,8 @@ static method test() → dynamic {
       ^" in null;
     }
   };
-  function local(dynamic x) → void {
-    if(x as{TypeError,ForDynamic} core::bool) {
+  function local(dynamic x##1) → void {
+    if(x##1 as{TypeError,ForDynamic} core::bool) {
       return core::print("");
     }
     else {

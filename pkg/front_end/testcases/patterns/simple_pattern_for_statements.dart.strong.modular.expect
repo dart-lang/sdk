@@ -14,8 +14,8 @@ static method test1(dynamic x) → dynamic {
         throw{for-error-handling} new core::StateError::•("Pattern matching error");
     }
     final core::int #t4 = i;
-    for (core::int i = #t4; true; ) {
-      return i;
+    for (core::int i##1 = #t4; true; ) {
+      return i##1;
     }
   }
 }
@@ -32,9 +32,9 @@ static method test2(core::List<core::int> x) → dynamic {
     }
     final core::int #t7 = c;
     final core::int #t8 = n;
-    for (core::int c = #t7, core::int n = #t8; c.{core::num::<}(n){(core::num) → core::bool}; result.{core::List::add}(c){(core::int) → void}) {
-      result.{core::List::add}(c){(core::int) → void};
-      c = c.{core::num::+}(1){(core::num) → core::int};
+    for (core::int c##1 = #t7, core::int n##1 = #t8; c##1.{core::num::<}(n##1){(core::num) → core::bool}; result.{core::List::add}(c##1){(core::int) → void}) {
+      result.{core::List::add}(c##1){(core::int) → void};
+      c##1 = c##1.{core::num::+}(1){(core::num) → core::int};
     }
   }
   return result;

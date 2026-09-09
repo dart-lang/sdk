@@ -12,12 +12,10 @@ import 'common/generate_common.dart';
 import 'dart/generate_dart_client.dart';
 import 'dart/generate_dart_common.dart';
 import 'dart/generate_dart_interface.dart';
-import 'java/generate_java.dart' as java show Api, api, JavaGenerator;
 
 final bool _stampPubspecVersion = false;
 
-/// Parse the 'service.md' into a model and generate both Dart and Java
-/// libraries.
+/// Parse the 'service.md' into a model and generate Dart libraries.
 Future<void> main(List<String> args) async {
   final codeGeneratorDir = dirname(Platform.script.toFilePath());
 
@@ -36,11 +34,12 @@ Future<void> main(List<String> args) async {
 
   await _generateDartClient(codeGeneratorDir, nodes);
   await _generateDartInterface(codeGeneratorDir, nodes);
-  await _generateJava(codeGeneratorDir, nodes);
 }
 
 Future<void> _generateDartClient(
-    String codeGeneratorDir, List<Node> nodes) async {
+  String codeGeneratorDir,
+  List<Node> nodes,
+) async {
   final outputFilePath = await _generateDartCommon(
     api: VmServiceApi(),
     nodes: nodes,
@@ -52,7 +51,9 @@ Future<void> _generateDartClient(
 }
 
 Future<void> _generateDartInterface(
-    String codeGeneratorDir, List<Node> nodes) async {
+  String codeGeneratorDir,
+  List<Node> nodes,
+) async {
   final outputFilePath = await _generateDartCommon(
     api: VmServiceInterfaceApi(),
     nodes: nodes,
@@ -71,24 +72,14 @@ Future<String> _generateDartCommon({
   required String interfaceName,
 }) async {
   final outDirPath = normalize(
-    join(
-      codeGeneratorDir,
-      '../..',
-      packageName,
-      'lib/src',
-    ),
+    join(codeGeneratorDir, '../..', packageName, 'lib/src'),
   );
   final outDir = Directory(outDirPath);
   if (!outDir.existsSync()) {
     outDir.createSync(recursive: true);
   }
 
-  final outputFile = File(
-    join(
-      outDirPath,
-      '$packageName.dart',
-    ),
-  );
+  final outputFile = File(join(outDirPath, '$packageName.dart'));
   final generator = DartGenerator(interfaceName: interfaceName);
 
   // Generate the code.
@@ -111,50 +102,14 @@ Future<String> _generateDartCommon({
 }
 
 Future<void> _runDartFormat(String outDirPath) async {
-  ProcessResult result =
-      Process.runSync(Platform.resolvedExecutable, ['format', outDirPath]);
+  ProcessResult result = Process.runSync(Platform.resolvedExecutable, [
+    'format',
+    outDirPath,
+  ]);
   if (result.exitCode != 0) {
     print('dart format: ${result.stdout}\n${result.stderr}');
     throw result.exitCode;
   }
-}
-
-Future<void> _generateJava(String codeGeneratorDir, List<Node> nodes) async {
-  var srcDirPath = normalize(join(codeGeneratorDir, '..', 'java', 'src'));
-  var generator = java.JavaGenerator(srcDirPath);
-
-  // We might be on Windows, but we always write paths with forward slashes.
-  final scriptPath = Platform.script.toFilePath();
-  final kSdk = [Platform.pathSeparator, 'sdk', Platform.pathSeparator].join();
-  final scriptLocation = scriptPath
-      .substring(scriptPath.indexOf(kSdk) + kSdk.length)
-      .replaceAll(Platform.pathSeparator, '/');
-
-  java.api = java.Api(scriptLocation);
-  java.api.parse(nodes);
-  java.api.generate(generator);
-
-  // We generate files into the java/src/ folder; ensure the generated files
-  // aren't committed to git (but manually maintained files in the same
-  // directory are).
-  List<String> generatedPaths = generator.allWrittenFiles
-      .map((path) => relative(path, from: 'java'))
-      .map((path) => path.replaceAll(Platform.pathSeparator, '/'))
-      .toList();
-  generatedPaths.sort();
-  File gitignoreFile = File(join(codeGeneratorDir, '..', 'java', '.gitignore'));
-  gitignoreFile.writeAsStringSync('''
-# This is a generated file.
-
-${generatedPaths.join('\n')}
-''');
-
-  // Generate a version file.
-  Version version = ApiParseUtil.parseVersionSemVer(nodes);
-  File file = File(join('java', 'version.properties'));
-  file.writeAsStringSync('version=${version.major}.${version.minor}\n');
-
-  print('Wrote Java to $srcDirPath.');
 }
 
 // Push the major and minor versions into the pubspec.
@@ -164,19 +119,27 @@ void _stampPubspec(Version version) {
   String text = file.readAsStringSync();
   bool found = false;
 
-  text = text.split('\n').map((line) {
-    if (line.startsWith(pattern)) {
-      found = true;
-      Version v = Version.parse(line.substring(pattern.length));
-      String? pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
-      String? build = v.build.isEmpty ? null : v.build.join('+');
-      v = Version(version.major, version.minor, v.patch,
-          pre: pre, build: build);
-      return '$pattern${v.toString()}';
-    } else {
-      return line;
-    }
-  }).join('\n');
+  text = text
+      .split('\n')
+      .map((line) {
+        if (line.startsWith(pattern)) {
+          found = true;
+          Version v = Version.parse(line.substring(pattern.length));
+          String? pre = v.preRelease.isEmpty ? null : v.preRelease.join('-');
+          String? build = v.build.isEmpty ? null : v.build.join('+');
+          v = Version(
+            version.major,
+            version.minor,
+            v.patch,
+            pre: pre,
+            build: build,
+          );
+          return '$pattern${v.toString()}';
+        } else {
+          return line;
+        }
+      })
+      .join('\n');
 
   if (!found) throw '`$pattern` not found';
 
@@ -189,8 +152,9 @@ void _checkUpdateChangelog(Version version) {
 
   File file = File('CHANGELOG.md');
   String text = file.readAsStringSync();
-  bool containsReleaseNotes =
-      text.split('\n').any((line) => line.startsWith(check));
+  bool containsReleaseNotes = text
+      .split('\n')
+      .any((line) => line.startsWith(check));
   if (!containsReleaseNotes) {
     throw '`$check` not found in the CHANGELOG.md file';
   }

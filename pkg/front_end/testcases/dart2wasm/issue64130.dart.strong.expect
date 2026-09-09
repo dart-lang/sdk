@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method getNull() → asy::Future<core::String?> async /* emittedValueType= core::String? */ 
+  return null;
+static method testAnd() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return !(await self::getNull() == null) && await asy::Future::value<core::bool>(true);
+static method testOr() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return await self::getNull() == null || await asy::Future::value<core::bool>(false);
+static method main() → void async /* emittedValueType= void */ {
+  core::print(await self::testAnd());
+  core::print(await self::testOr());
+}

@@ -17,6 +17,26 @@ main() {
 
 @reflectiveTest
 class ConstantResolutionTest extends PubPackageResolutionTest {
+  test_constantValue_defaultParameter_integerLiteral_minValue() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int id;
+
+  const A({this.id = -9223372036854775808});
+}
+''');
+
+    var parameter = result.findElement
+        .class_('A')
+        .constructors
+        .single
+        .formalParameters
+        .single;
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int -9223372036854775808
+''');
+  }
+
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

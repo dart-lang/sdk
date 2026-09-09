@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 static method test(core::List<core::int> o) → void {
-  core::int y = o.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
-  core::int z = o.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  core::int y = o.{core::Iterable::fold}<core::int>(0, (core::int x, core::int y##1) → core::int => x.{core::num::+}(y##1){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  core::int z = o.{core::Iterable::fold}<core::int>(0, (core::int x##1, core::int y##2) → core::int => x##1.{core::num::+}(y##2){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
   y = z;
 }
 static method functionExpressionInvocation(core::List<core::int> o) → void {
-  core::int y = o.{core::Iterable::fold}{<T extends core::Object? = dynamic>(T%, (T%, core::int) → T%) → T%}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
-  core::int z = o.{core::Iterable::fold}{<T extends core::Object? = dynamic>(T%, (T%, core::int) → T%) → T%}<core::int>(0, (core::int x, core::int y) → core::int => x.{core::num::+}(y){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  core::int y = o.{core::Iterable::fold}{<T extends core::Object? = dynamic>(T%, (T%, core::int) → T%) → T%}<core::int>(0, (core::int x, core::int y##1) → core::int => x.{core::num::+}(y##1){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
+  core::int z = o.{core::Iterable::fold}{<T extends core::Object? = dynamic>(T%, (T%, core::int) → T%) → T%}<core::int>(0, (core::int x##1, core::int y##2) → core::int => x##1.{core::num::+}(y##2){(core::num) → core::int}){(core::int, (core::int, core::int) → core::int) → core::int};
   y = z;
 }
 static method main() → dynamic {}

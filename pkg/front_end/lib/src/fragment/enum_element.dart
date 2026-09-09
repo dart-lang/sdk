@@ -461,8 +461,8 @@ class EnumElementDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
     // Initializer has already been created through [_buildElement].

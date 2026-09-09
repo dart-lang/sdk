@@ -3,18 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:expect/async_helper.dart';
+
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/ssa/builder.dart';
-import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
+import 'package:compiler/src/universe/world_impact.dart';
+import 'package:expect/async_helper.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -35,7 +36,7 @@ class InliningDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -63,14 +64,13 @@ class InliningIrComputer extends IrDataExtractor<String> {
   final InlineDataCache _inlineDataCache;
 
   InliningIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._elementMap,
     MemberEntity member,
     this._backendStrategy,
     this._closureDataLookup,
-  ) : this._inlineDataCache = InlineDataCache(enableUserAssertions: true),
-      super(reporter, actualMap);
+  ) : this._inlineDataCache = InlineDataCache(enableUserAssertions: true);
 
   String? getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
@@ -131,9 +131,8 @@ class InliningIrComputer extends IrDataExtractor<String> {
 
   ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
     return _elementMap.getConstructorBody(
-          _elementMap.getMemberDefinition(constructor).node as ir.Constructor,
-        )
-        as ConstructorBodyEntity;
+      _elementMap.getMemberDefinition(constructor).node as ir.Constructor,
+    ) as ConstructorBodyEntity;
   }
 
   String? getTooDifficultReasonForbidLoops(MemberEntity member) {

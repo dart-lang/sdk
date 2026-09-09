@@ -66,7 +66,7 @@ import 'dart:_wasm';
       rootFolder: getFolder(packageRootPath),
       languageVersion: testPackageLanguageVersion,
     );
-    writePackageConfig(packageRootPath, builder);
+    writePackageConfig2(packageRootPath, config: builder);
     return packageRootPath;
   }
 }

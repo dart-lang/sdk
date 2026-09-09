@@ -32,7 +32,7 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
   function f_sync_star() → core::int sync* /* emittedValueType= dynamic */ {
     yield 42;
   }
-  for (dynamic x in (f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>) {
-    core::print(x);
+  for (dynamic x##1 in (f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+    core::print(x##1);
   }
 }

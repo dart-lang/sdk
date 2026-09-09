@@ -2143,10 +2143,9 @@ js_ast.VariableInitialization _makeVariableInitializer(
   Object? sourceInformation,
 ) {
   return js_ast.VariableInitialization(
-        variable,
-        initValue,
-      ).withSourceInformation(sourceInformation)
-      as js_ast.VariableInitialization;
+    variable,
+    initValue,
+  ).withSourceInformation(sourceInformation) as js_ast.VariableInitialization;
 }
 
 class AsyncRewriter extends AsyncRewriterBase {
@@ -2294,9 +2293,8 @@ class AsyncRewriter extends AsyncRewriterBase {
           'completer': completer,
         })
         .withSourceInformation(sourceInformation);
-    return js_ast.Return(
-      asyncHelperCall,
-    ).withSourceInformation(sourceInformation);
+    return js_ast.Return(asyncHelperCall)
+        .withSourceInformation(sourceInformation);
   }
 
   @override
@@ -2628,9 +2626,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
       _addStatement(js_ast.Comment('implicit return'));
     }
     _addStatement(
-      js_ast.Return(
-        js_ast.number(status_codes.SYNC_STAR_DONE),
-      ).withSourceInformation(sourceInformation),
+      js_ast.Return(js_ast.number(status_codes.SYNC_STAR_DONE))
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -2764,9 +2761,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
         })
         .withSourceInformation(sourceInformation);
     _addStatement(
-      js_ast.Return(
-        asyncStarHelperCall,
-      ).withSourceInformation(sourceInformation),
+      js_ast.Return(asyncStarHelperCall)
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -2969,9 +2965,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           'controller': controller,
         })
         .withSourceInformation(sourceInformation);
-    return js_ast.Return(
-      asyncHelperCall,
-    ).withSourceInformation(sourceInformation);
+    return js_ast.Return(asyncHelperCall)
+        .withSourceInformation(sourceInformation);
   }
 }
 

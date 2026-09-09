@@ -153,12 +153,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   final myappDir = p.join(ctx.tempDir, 'myapp');
 
   print('Pruning pubspec.yaml...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'remove',
-    'flutter_test',
-    'flutter_lints',
-  ], myappDir);
+  _runSync(ctx.flutterBin, ['pub', 'remove', 'flutter_lints'], myappDir);
 
   print('Adding flutter_web_plugins dependency...');
   _runSync(ctx.flutterBin, [
@@ -173,6 +168,14 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     'pub',
     'add',
     'flutter_localizations',
+    '--sdk=flutter',
+  ], myappDir);
+
+  print('Adding integration_test dependency...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'integration_test',
     '--sdk=flutter',
   ], myappDir);
 
@@ -224,6 +227,9 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
           .where((f) => f.path.endsWith('.dart'));
       for (final file in topLevelFiles) {
         final relative = p.relative(file.path, from: libDir.path);
+        if (name == 'matcher' && relative == 'mirror_matchers.dart') {
+          continue;
+        }
         compileSources.add('package:$name/${p.toUri(relative).path}');
       }
     }
@@ -423,6 +429,10 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
     'flutter',
     'flutter_web_plugins',
     'flutter_localizations',
+    'flutter_test',
+    'integration_test',
+    'flutter_driver',
+    'fuchsia_remote_debug_protocol',
   ];
   for (final pkg in sdkPackages) {
     print('Adding package:$pkg for analysis...');

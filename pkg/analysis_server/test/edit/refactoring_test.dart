@@ -903,9 +903,8 @@ int? res(int b) {
 class GetAvailableRefactoringsTest extends PubPackageAnalysisServerTest {
   late List<RefactoringKind> kinds;
 
-  void addFlutterPackage() {
-    writeTestPackageConfig(flutter: true);
-  }
+  @override
+  bool get addFlutterPackageDep => true;
 
   /// Tests that there is refactoring of the given [kind] is available at the
   /// [search] offset.
@@ -1000,7 +999,6 @@ void f() {
   }
 
   Future<void> test_extractWidget() async {
-    addFlutterPackage();
     addTestFile('''
 import 'package:flutter/material.dart';
 

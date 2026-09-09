@@ -24,6 +24,9 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   final Completer<void> _outlineReceived = Completer();
   late FlutterOutline outline;
 
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<void> addFlutterSubscription(FlutterService service, File file) async {
     await handleSuccessfulRequest(
       FlutterSetSubscriptionsParams({
@@ -55,7 +58,6 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 

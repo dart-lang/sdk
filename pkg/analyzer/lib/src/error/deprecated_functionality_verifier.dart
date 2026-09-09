@@ -99,6 +99,22 @@ class DeprecatedFunctionalityVerifier {
     );
   }
 
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var element = node.element;
+    if (element == null) return;
+    _checkForDeprecatedOptional(
+      element: element,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
+    _checkForDeprecatedInstantiate(
+      element: element.enclosingElement,
+      errorNode: node.name,
+    );
+  }
+
   void dotShorthandInvocation(DotShorthandInvocation node) {
     var element = node.memberName.element;
     if (element is! ExecutableElement) return;
@@ -130,6 +146,19 @@ class DeprecatedFunctionalityVerifier {
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
+  }
+
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var method = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (method is! ExecutableElement || method is LocalFunctionElement) return;
+    _checkForDeprecatedOptional(
+      element: method,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
   }
 
   void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
@@ -187,7 +216,7 @@ class DeprecatedFunctionalityVerifier {
 
   void _checkForDeprecatedInstantiate({
     required InterfaceElement element,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (element.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.report(

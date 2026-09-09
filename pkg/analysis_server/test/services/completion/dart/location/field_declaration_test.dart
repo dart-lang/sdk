@@ -109,6 +109,20 @@ suggestions
 ''');
   }
 
+  Future<void> test_initializer_declaringParameter() async {
+    includeKeywords = false;
+    await computeSuggestions('''
+class A(var int f0, int p0) { var foo = ^ }
+''');
+    assertResponse('''
+suggestions
+  p0
+    kind: parameter
+  f0
+    kind: field
+''');
+  }
+
   Future<void> test_initializer_partial() async {
     await computeSuggestions('''
 class A {var foo = n^}

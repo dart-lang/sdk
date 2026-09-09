@@ -25,7 +25,8 @@ rm -rf pkg/dartpad/web
 mkdir -p pkg/dartpad/web
 
 # Copy compiled Dart SDK assets
-cp -R out/ReleaseX64/dartpad/* pkg/dartpad/web/
+mkdir -p pkg/dartpad/web/dart/
+cp -R out/ReleaseX64/dartpad/* pkg/dartpad/web/dart/
 
 # Copy Flutter assets if available (from .dart_tool/dartpad_worker/asset/)
 ASSET_DIR="pkg/dartpad_worker/.dart_tool/dartpad_worker/asset"

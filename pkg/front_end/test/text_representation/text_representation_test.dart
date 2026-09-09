@@ -86,7 +86,7 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new TextRepresentationDataExtractor(
@@ -100,7 +100,7 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -119,11 +119,7 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
 class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   final AstTextStrategy strategy;
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-    this.strategy,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap, this.strategy);
 
   @override
   void visitConstructor(Constructor node) {

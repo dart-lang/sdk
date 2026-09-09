@@ -17,6 +17,7 @@
 #include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
@@ -163,19 +164,30 @@ static void WriteDepsFile() {
   file->Release();
 }
 
-static void OnExitHook(int64_t exit_code) {
-  if (Dart_CurrentIsolate() != main_isolate) {
-    Syslog::PrintErr(
-        "A snapshot was requested, but a secondary isolate "
-        "performed a hard exit (%" Pd64 ").\n",
-        exit_code);
-    Platform::Exit(kErrorExitCode);
+static void DeleteTempDirOnShutdown() {
+  if (Options::delete_temp_dir_on_shutdown() != nullptr) {
+    const char* temp_dir = Options::delete_temp_dir_on_shutdown();
+    dart::bin::Directory::Delete(nullptr, temp_dir, /* recursive= */ true);
   }
-  if (exit_code == 0) {
-    if (Options::gen_snapshot_kind() == kAppJIT) {
-      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+}
+
+static void OnExitHook(int64_t exit_code) {
+  DeleteTempDirOnShutdown();
+  if ((Options::gen_snapshot_kind() == kAppJIT) ||
+      (Options::depfile() != nullptr)) {
+    if (Dart_CurrentIsolate() != main_isolate) {
+      Syslog::PrintErr(
+          "A snapshot was requested, but a secondary isolate "
+          "performed a hard exit (%" Pd64 ").\n",
+          exit_code);
+      Platform::Exit(kErrorExitCode);
     }
-    WriteDepsFile();
+    if (exit_code == 0) {
+      if (Options::gen_snapshot_kind() == kAppJIT) {
+        Snapshot::GenerateAppJIT(Options::snapshot_filename());
+      }
+      WriteDepsFile();
+    }
   }
 }
 
@@ -416,12 +428,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::load_module_snapshot() != nullptr) {
-    auto snapshot =
-        Snapshot::TryReadAppSnapshot(Options::load_module_snapshot());
+  for (const char* filename : Options::load_module_snapshots()) {
+    auto snapshot = Snapshot::TryReadAppSnapshot(filename);
     if (snapshot == nullptr) {
-      Syslog::PrintErr("Unable to load module snapshot %s.\n",
-                       Options::load_module_snapshot());
+      Syslog::PrintErr("Unable to load module snapshot %s.\n", filename);
       Dart_ExitScope();
       Dart_ShutdownIsolate();
       return nullptr;
@@ -1417,10 +1427,19 @@ void main(int argc, char** argv) {
 #endif
   }
 
-  // If we need to write an app-jit snapshot or a depfile, then add an exit
-  // hook that writes the snapshot and/or depfile as appropriate.
+  // --delete_temp_dir_on_shutdown would otherwise point into argv, whose
+  // strings main() frees before returning. Own a copy instead, kept for the
+  // lifetime of the process.
+  if (Options::delete_temp_dir_on_shutdown() != nullptr) {
+    Options::set_delete_temp_dir_on_shutdown(
+        Utils::StrDup(Options::delete_temp_dir_on_shutdown()));
+  }
+
+  // If we need to write an app-jit snapshot, a depfile, or delete a temp dir,
+  // then add an exit hook.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||
-      (Options::depfile() != nullptr)) {
+      (Options::depfile() != nullptr) ||
+      (Options::delete_temp_dir_on_shutdown() != nullptr)) {
     Process::SetExitHook(OnExitHook);
   }
 
@@ -1544,6 +1563,8 @@ void main(int argc, char** argv) {
   delete app_snapshot;
   free(app_script_uri);
   asset_resolution_base.reset();
+
+  DeleteTempDirOnShutdown();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

@@ -62,63 +62,91 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
     });
   }
 
+  /// Creates a new unnamed library directive and moves [comment] immediately
+  /// above it, along with all metadata on the first directive.
   Future<void> _moveToNewLibraryDirective(
     ChangeBuilder builder,
     Comment comment,
     CompilationUnit compilationUnit,
   ) async {
     var commentRange = _rangeOfFirstBlock(comment, compilationUnit.lineInfo);
+    var contentRange = commentRange;
 
-    // Create a new, unnamed library directive, and move the comment to just
-    // above the directive.
-    var token = compilationUnit.beginToken;
-
-    if (token.type == TokenType.SCRIPT_TAG) {
-      // TODO(srawlins): Handle this case.
-      return;
-    }
-
-    if (token.precedingComments == comment.beginToken) {
-      // Do not "move" the comment. Just slip a library directive below it.
-      await builder.addDartFileEdit(file, (builder) {
-        var eol = builder.eol;
-        builder.addSimpleInsertion(commentRange.end, 'library;$eol');
-      });
-      return;
-    }
-
-    int insertionOffset;
-    bool leadingEols = false;
-    Token? commentOnFirstToken = token.precedingComments;
-    if (commentOnFirstToken != null) {
-      while (commentOnFirstToken!.next != null) {
-        commentOnFirstToken = commentOnFirstToken.next!;
-
-        if (commentOnFirstToken == comment.beginToken) {
-          // Do not "move" the comment. Just slip a library directive below it.
-          await builder.addDartFileEdit(file, (builder) {
-            var eol = builder.eol;
-            builder.addSimpleInsertion(commentRange.end, 'library;$eol$eol');
-          });
-          return;
-        }
-      }
-      // `token` is now the last of the leading comments (perhaps a Copyright
-      // notice, a Dart language version, etc.)
-      insertionOffset = commentOnFirstToken.end;
-      leadingEols = true;
-    } else {
-      insertionOffset = 0;
+    // Metadata on the first directive is also metadata on the implicit
+    // library. Move the whole block to preserve that meaning when the library
+    // directive becomes explicit.
+    var movesMetadata = false;
+    var firstDirective = compilationUnit.directives.firstOrNull;
+    if (firstDirective != null &&
+        firstDirective.documentationComment == comment &&
+        firstDirective.metadata.isNotEmpty) {
+      movesMetadata = true;
+      var metadataRange = utils.getLinesRange(
+        range.startEnd(
+          firstDirective.metadata.first,
+          firstDirective.metadata.last,
+        ),
+      );
+      contentRange = commentRange.getUnion(metadataRange);
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var token = compilationUnit.beginToken;
       var eol = builder.eol;
-      builder.addDeletion(commentRange);
-      var commentText = utils.getRangeText(commentRange);
-      var prefix = leadingEols ? '$eol$eol' : '';
-      builder.addSimpleInsertion(
+      var insertionOffset = 0;
+      var prefix = '';
+
+      // Move past the script tag.
+      if (token.type == TokenType.SCRIPT_TAG) {
+        insertionOffset = token.end;
+        prefix = eol;
+        token = token.next!;
+      }
+
+      // Move past headers such as copyright and language-version comments.
+      Token? lastHeaderComment;
+      for (
+        Token? comment = token.precedingComments;
+        comment != null;
+        comment = comment.next
+      ) {
+        if (comment.end <= contentRange.offset) {
+          lastHeaderComment = comment;
+        }
+      }
+      if (lastHeaderComment != null) {
+        insertionOffset = lastHeaderComment.end;
+        prefix = '$eol$eol';
+      }
+
+      // Extend the replacement through whitespace before the next token.
+      var textBeforeContent = utils.getRangeText(
+        range.startOffsetEndOffset(insertionOffset, contentRange.offset),
+      );
+      var leadingWhitespaceLength = RegExp(r'^\s*')
+          .firstMatch(textBeforeContent)!
+          .end;
+
+      // The content is already in the target location.
+      // Insert the library directive after it without moving the content.
+      if (leadingWhitespaceLength == textBeforeContent.length) {
+        var suffix = movesMetadata || lastHeaderComment != null
+            ? '$eol$eol'
+            : eol;
+        builder.addSimpleInsertion(contentRange.end, 'library;$suffix');
+        return;
+      }
+
+      var insertionRange = range.startOffsetLength(
         insertionOffset,
-        '$prefix${commentText}library;$eol$eol',
+        leadingWhitespaceLength,
+      );
+
+      var contentText = utils.getRangeText(contentRange);
+      builder.addDeletion(contentRange);
+      builder.addSimpleReplacement(
+        insertionRange,
+        '$prefix${contentText}library;$eol$eol',
       );
     });
   }

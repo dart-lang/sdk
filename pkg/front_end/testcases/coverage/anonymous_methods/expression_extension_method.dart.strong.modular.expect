@@ -9,19 +9,19 @@ extension E on core::int {
 static extension-member method E|foo(lowered final core::int #this) → void {
   let final synthesized core::int anonymous#this = 1 in anonymous#this;
   let core::int p = 1 in #this;
-  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in anonymous#this;
-  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as core::int in #this;
+  let synthesized core::int anonymous#receiver = 1 in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this##1 = anonymous#receiver as core::int in anonymous#this##1;
+  let synthesized core::int anonymous#receiver##1 = 1 in anonymous#receiver##1 == null ?{core::int?} null : let core::int p##1 = anonymous#receiver##1 as core::int in #this;
   let final core::int #t1 = 1 in block {
-    let final synthesized core::int anonymous#this = #t1 in let dynamic #t2 = anonymous#this in anonymous#this;
+    let final synthesized core::int anonymous#this##2 = #t1 in let dynamic #t2 = anonymous#this##2 in anonymous#this##2;
   } =>#t1;
   let final core::int #t3 = 1 in block {
-    let core::int p = #t3 in let dynamic #t4 = #this in p;
+    let core::int p##2 = #t3 in let dynamic #t4 = #this in p##2;
   } =>#t3;
   let final core::int #t5 = 1 in #t5 == null ?{core::int} #t5 : block {
-    let synthesized core::int anonymous#receiver = #t5 in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in let dynamic #t6 = anonymous#this in anonymous#this;
+    let synthesized core::int anonymous#receiver##2 = #t5 in anonymous#receiver##2 == null ?{core::int?} null : let final synthesized core::int anonymous#this##3 = anonymous#receiver##2 as core::int in let dynamic #t6 = anonymous#this##3 in anonymous#this##3;
   } =>#t5;
   let final core::int #t7 = 1 in #t7 == null ?{core::int} #t7 : block {
-    let synthesized core::int anonymous#receiver = #t7 in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as core::int in let dynamic #t8 = #this in p;
+    let synthesized core::int anonymous#receiver##3 = #t7 in anonymous#receiver##3 == null ?{core::int?} null : let core::int p##3 = anonymous#receiver##3 as core::int in let dynamic #t8 = #this in p##3;
   } =>#t7;
 }
 static extension-member method E|get#foo(lowered final core::int #this) → () → void

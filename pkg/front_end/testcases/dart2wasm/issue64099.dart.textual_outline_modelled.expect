@@ -1,0 +1,13 @@
+Future<String> getString() async => "hello";
+
+Future<bool> f(int i) async => i.isEven;
+
+Future<bool> testOr(int n) async {}
+
+Future<bool> testXorRight(int n) async {}
+
+Future<int> getInt() async => 42;
+
+Future<int> testReuse(bool cond) async {}
+
+void main() async {}

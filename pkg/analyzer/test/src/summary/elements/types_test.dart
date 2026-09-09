@@ -452,8 +452,18 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 arguments2
+                  ImplicitCallTearOff
+                    operand: UnqualifiedNameExpression
+                      name: c @68
+                      resolution: VariableReadResolution
+                        element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+                        type: C
+                      staticType: C
+                    element: <testLibrary>::@class::C::@method::call
+                    staticType: void Function()
+                arguments(v1)
                   ImplicitCallReference
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: c @68
                       element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
                       staticType: C
@@ -1871,11 +1881,15 @@ library
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @44
-                  element: multiplyDefinedElement
-                    package:test/a.dart::@function::V
-                    package:test/b.dart::@function::V
+                UnqualifiedNameExpression
+                  name: V @44
+                  resolution: InvalidNamedReadResolution
+                    type: InvalidType
+                    candidates
+                      candidate: multiplyDefinedElement
+                        package:test/a.dart::@function::V
+                        package:test/b.dart::@function::V
+                    recovery: <null>
                   staticType: InvalidType
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo
@@ -1923,9 +1937,11 @@ library
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @27
-                  element: package:test/a.dart::@function::V
+                UnqualifiedNameExpression
+                  name: V @27
+                  resolution: ExecutableTearOffResolution
+                    element: package:test/a.dart::@function::V
+                    type: dynamic Function()
                   staticType: dynamic Function()
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo
@@ -1977,9 +1993,12 @@ library
             #F6 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: V @9
-                  element: <testLibrary>::@getter::V
+                UnqualifiedNameExpression
+                  name: V @9
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::V
+                    invokeType: dynamic Function()
+                    type: dynamic
                   staticType: dynamic
         #F7 hasImplicitReturnType isComplete isOriginDeclaration isStatic V (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::V

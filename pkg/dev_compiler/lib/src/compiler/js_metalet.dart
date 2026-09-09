@@ -292,9 +292,8 @@ T _substitute<T extends Node>(
   if (nodes.isEmpty) return tree;
 
   return instantiator({
-        for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v,
-      })
-      as T;
+    for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v,
+  }) as T;
 }
 
 /// A temporary variable used in a [MetaLet].

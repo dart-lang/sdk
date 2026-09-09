@@ -8,31 +8,8 @@ import 'adapters/dart.dart';
 
 /// A reporter that can send progress notifications to the client.
 abstract class DapProgressReporter {
-  final DartDebugAdapter adapter;
-
-  /// The ID for the this progress, used by the client to distinguish between
-  /// any overlapping progress.
-  final String id;
-
-  /// A suffix to use for the next token to ensure all IDs are unique.
-  static int nextIdSuffix = 1;
-
   DapProgressReporter(this.adapter, String idPrefix)
     : id = '${idPrefix}_${nextIdSuffix++}';
-
-  void _start(String title, String? message) {
-    sendStart(
-      ProgressStartEventBody(progressId: id, title: title, message: message),
-    );
-  }
-
-  void update({required String message}) {
-    sendUpdate(ProgressUpdateEventBody(progressId: id, message: message));
-  }
-
-  void end([String? message]) {
-    sendEnd(ProgressEndEventBody(progressId: id, message: message));
-  }
 
   /// Creates a progress reporter and sends the start event.
   factory DapProgressReporter.start(
@@ -52,6 +29,28 @@ abstract class DapProgressReporter {
         : _NoopDapProgressReporter(adapter, idPrefix);
 
     return reporter.._start(title, message);
+  }
+  final DartDebugAdapter adapter;
+
+  /// The ID for the this progress, used by the client to distinguish between
+  /// any overlapping progress.
+  final String id;
+
+  /// A suffix to use for the next token to ensure all IDs are unique.
+  static int nextIdSuffix = 1;
+
+  void _start(String title, String? message) {
+    sendStart(
+      ProgressStartEventBody(progressId: id, title: title, message: message),
+    );
+  }
+
+  void update({required String message}) {
+    sendUpdate(ProgressUpdateEventBody(progressId: id, message: message));
+  }
+
+  void end([String? message]) {
+    sendEnd(ProgressEndEventBody(progressId: id, message: message));
   }
 
   void sendStart(ProgressStartEventBody body);

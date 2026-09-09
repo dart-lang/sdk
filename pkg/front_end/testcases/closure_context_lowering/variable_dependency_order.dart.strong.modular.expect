@@ -4,21 +4,14 @@ import "dart:core" as core;
 
 abstract class M extends core::Object /*isMixinDeclaration*/  {
   method foo() → dynamic/* scope=[
-    #ctx1: not-captured VariableContext([
-      this-variable final;
-    ]),
+    #ctx1: not-captured [this],
   ] */ /* scope=[
-    #ctx2: direct-captured VariableContext([
-      local-variable x;
-      local-variable z;
-    ]),
-    #ctx3: not-captured VariableContext([
-      local-variable y;
-    ]),
+    #ctx2: direct-captured [x,z],
+    #ctx3: not-captured [y],
   ] */ {
-    x := 0;
-    y := 0;
-    z := y;
+    core::int x = 0;
+    core::int y = 0;
+    core::int z = y;
     return () /* #ctx2 */ → core::int => x.{core::num::+}(z){(core::num) → core::int};
   }
 }

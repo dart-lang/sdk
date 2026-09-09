@@ -65,8 +65,8 @@ static method test(() → void f) → core::Object? {
     core::print(e);
     return e.{core::AssertionError::message}{core::Object?};
   }
-  on core::Object catch(final core::Object e) {
-    throw "Unexpected exception ${e} (${e.{core::Object::runtimeType}{core::Type}}";
+  on core::Object catch(final core::Object e##1) {
+    throw "Unexpected exception ${e##1} (${e##1.{core::Object::runtimeType}{core::Type}}";
   }
   throw "Missing exception";
 }

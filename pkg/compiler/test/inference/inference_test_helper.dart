@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'package:expect/async_helper.dart';
+
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
@@ -13,7 +12,9 @@ import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
+import 'package:expect/async_helper.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -50,7 +51,7 @@ class TypeMaskDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -83,15 +84,14 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
   final ClosureData _closureDataLookup;
 
   TypeMaskIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._elementMap,
     MemberEntity member,
     this._localsMap,
     this.results,
     this._closureDataLookup,
-  ) : result = results.resultOfMember(member),
-      super(reporter, actualMap);
+  ) : result = results.resultOfMember(member);
 
   String? getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult memberResult = results.resultOfMember(

@@ -34,6 +34,28 @@ int f(A a) => a();
 ''');
   }
 
+  test_cascadePropertyAssignment_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+extension E1 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+extension E2 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+void f(C x) {
+  x..foo += 1;
+//   ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on C' and 'extension E2 on C', and neither is more specific.
+}
+''');
+  }
+
   test_getter_getter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
@@ -51,10 +73,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: IntegerLiteral
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -81,10 +114,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: IntegerLiteral
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E1::@getter::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: PropertyAccess
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -113,10 +157,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: IntegerLiteral
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -145,10 +200,21 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: IntegerLiteral
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -272,10 +338,23 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('0.a()');
+    var node = result.findNode.receiverMethodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -499,8 +578,8 @@ f() {
     var node = result.findNode.assignment('= 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: IntegerLiteral
+  leftHandSide: PropertyAccess
+    target: IntegerLiteral
       literal: 0
       staticType: int
     operator: .
@@ -510,7 +589,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <null>
     staticType: int

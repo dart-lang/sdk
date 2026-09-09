@@ -1,0 +1,10 @@
+class SubClass extends SuperClass {
+  bool test() => super == .member;
+  bool testNotEqual() => super != .member;
+  const SubClass();
+  static const member = SubClass();
+}
+
+class SuperClass {
+  const SuperClass();
+}

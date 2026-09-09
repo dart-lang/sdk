@@ -86,7 +86,7 @@ class RemovePrintTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
   }
 
   Future<void> test_multi_statement() async {

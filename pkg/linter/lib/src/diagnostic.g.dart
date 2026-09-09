@@ -1254,12 +1254,22 @@ directivesOrderingPackageBeforeRelative = LinterLintTemplate(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments discardedFutureOr = LinterLintWithoutArguments(
+  name: 'discarded_futures',
+  problemMessage: "'FutureOr'-returning calls in a non-'async' function.",
+  correctionMessage:
+      "Try converting the enclosing function to be 'async' and then 'await'.",
+  uniqueName: 'discarded_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments discardedFutures = LinterLintWithoutArguments(
   name: 'discarded_futures',
   problemMessage: "'Future'-returning calls in a non-'async' function.",
   correctionMessage:
-      "Try converting the enclosing function to be 'async' and then 'await' "
-      "the future, or wrap the expression in 'unawaited'.",
+      "Try converting the enclosing function to be 'async' and then 'await', "
+      "or wrap the expression in 'unawaited'.",
   uniqueName: 'discarded_futures',
   expectedTypes: [],
 );
@@ -1385,6 +1395,7 @@ exhaustiveCases = LinterLintTemplate(
   name: 'exhaustive_cases',
   problemMessage: "Missing case clauses for some constants in '{0}'.",
   correctionMessage: "Try adding case clauses for the missing constants.",
+  hasPublishedDocs: true,
   uniqueName: 'exhaustive_cases',
   withArguments: _withArgumentsExhaustiveCases,
   expectedTypes: [ExpectedType.object],
@@ -1423,6 +1434,7 @@ const LinterLintWithoutArguments futureSyncValue = LinterLintWithoutArguments(
   problemMessage:
       "For synchronous values, `Future.syncValue` is more performant.",
   correctionMessage: "Try replacing `Future.value` with `Future.syncValue`.",
+  hasPublishedDocs: true,
   uniqueName: 'future_sync_value',
   expectedTypes: [],
 );
@@ -1874,6 +1886,7 @@ const LinterLintWithoutArguments noDefaultCases = LinterLintWithoutArguments(
   problemMessage: "Invalid use of 'default' member in a switch.",
   correctionMessage:
       "Try enumerating all the possible values of the switch expression.",
+  hasPublishedDocs: true,
   uniqueName: 'no_default_cases',
   expectedTypes: [],
 );
@@ -1906,9 +1919,9 @@ const LinterLintWithoutArguments noDynamicCasts = LinterLintWithoutArguments(
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String prefix: The library prefix.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String prefix})
 >
 noLeadingUnderscoresForLibraryPrefixes = LinterLintTemplate(
   name: 'no_leading_underscores_for_library_prefixes',
@@ -1917,13 +1930,28 @@ noLeadingUnderscoresForLibraryPrefixes = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'no_leading_underscores_for_library_prefixes',
   withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixes,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
 );
 
 /// Parameters:
-/// Object p0: undocumented
+/// String prefix: The library prefix.
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required Object p0})
+  LocatableDiagnostic Function({required String prefix})
+>
+noLeadingUnderscoresForLibraryPrefixesShadowed = LinterLintTemplate(
+  name: 'no_leading_underscores_for_library_prefixes',
+  problemMessage: "The library prefix '{0}' starts with an underscore.",
+  correctionMessage: "Try renaming the prefix to not start with an underscore.",
+  hasPublishedDocs: true,
+  uniqueName: 'no_leading_underscores_for_library_prefixes_shadowed',
+  withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixesShadowed,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String variableName: The variable name.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String variableName})
 >
 noLeadingUnderscoresForLocalIdentifiers = LinterLintTemplate(
   name: 'no_leading_underscores_for_local_identifiers',
@@ -1933,7 +1961,23 @@ noLeadingUnderscoresForLocalIdentifiers = LinterLintTemplate(
   hasPublishedDocs: true,
   uniqueName: 'no_leading_underscores_for_local_identifiers',
   withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiers,
-  expectedTypes: [ExpectedType.object],
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String variableName: The variable name.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String variableName})
+>
+noLeadingUnderscoresForLocalIdentifiersShadowed = LinterLintTemplate(
+  name: 'no_leading_underscores_for_local_identifiers',
+  problemMessage: "The local variable '{0}' starts with an underscore.",
+  correctionMessage:
+      "Try renaming the variable to not start with an underscore.",
+  hasPublishedDocs: true,
+  uniqueName: 'no_leading_underscores_for_local_identifiers_shadowed',
+  withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiersShadowed,
+  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -2525,6 +2569,7 @@ const LinterLintWithoutArguments preferIfElementsToConditionalExpressions =
       problemMessage: "Use an 'if' element to conditionally add elements.",
       correctionMessage:
           "Try using an 'if' element rather than a conditional expression.",
+      hasPublishedDocs: true,
       uniqueName: 'prefer_if_elements_to_conditional_expressions',
       expectedTypes: [],
     );
@@ -2755,6 +2800,7 @@ const LinterLintWithoutArguments preferSpreadCollections =
       problemMessage: "The addition of multiple elements could be inlined.",
       correctionMessage:
           "Try using the spread operator ('...') to inline the addition.",
+      hasPublishedDocs: true,
       uniqueName: 'prefer_spread_collections',
       expectedTypes: [],
     );
@@ -3143,12 +3189,24 @@ const LinterLintWithoutArguments typeLiteralInConstantPattern =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments unawaitedFutureOr = LinterLintWithoutArguments(
+  name: 'unawaited_futures',
+  problemMessage:
+      "Missing an 'await' for the 'FutureOr' computed by this expression.",
+  correctionMessage: "Try adding an 'await'.",
+  hasPublishedDocs: true,
+  uniqueName: 'unawaited_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments unawaitedFutures = LinterLintWithoutArguments(
   name: 'unawaited_futures',
   problemMessage:
       "Missing an 'await' for the 'Future' computed by this expression.",
   correctionMessage:
-      "Try adding an 'await' or wrapping the expression with 'unawaited'.",
+      "Try adding an 'await' or wrapping the expression with 'unawaited' (if "
+      "it is a 'Future').",
   hasPublishedDocs: true,
   uniqueName: 'unawaited_futures',
   expectedTypes: [],
@@ -3606,6 +3664,7 @@ unreachableFromMain = LinterLintTemplate(
   name: 'unreachable_from_main',
   problemMessage: "Unreachable member '{0}' in an executable library.",
   correctionMessage: "Try referencing the member or removing it.",
+  hasPublishedDocs: true,
   uniqueName: 'unreachable_from_main',
   withArguments: _withArgumentsUnreachableFromMain,
   expectedTypes: [ExpectedType.object],
@@ -3820,6 +3879,7 @@ useIsEvenRatherThanModulo = LinterLintTemplate(
   name: 'use_is_even_rather_than_modulo',
   problemMessage: "Use '{0}' rather than '% 2'.",
   correctionMessage: "Try using '{0}'.",
+  hasPublishedDocs: true,
   uniqueName: 'use_is_even_rather_than_modulo',
   withArguments: _withArgumentsUseIsEvenRatherThanModulo,
   expectedTypes: [ExpectedType.object],
@@ -4411,19 +4471,39 @@ LocatableDiagnostic _withArgumentsNoDuplicateCaseValues({
 }
 
 LocatableDiagnostic _withArgumentsNoLeadingUnderscoresForLibraryPrefixes({
-  required Object p0,
+  required String prefix,
 }) {
   return LocatableDiagnosticImpl(diag.noLeadingUnderscoresForLibraryPrefixes, [
-    p0,
+    prefix,
   ]);
 }
 
+LocatableDiagnostic
+_withArgumentsNoLeadingUnderscoresForLibraryPrefixesShadowed({
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.noLeadingUnderscoresForLibraryPrefixesShadowed,
+    [prefix],
+  );
+}
+
 LocatableDiagnostic _withArgumentsNoLeadingUnderscoresForLocalIdentifiers({
-  required Object p0,
+  required String variableName,
 }) {
   return LocatableDiagnosticImpl(diag.noLeadingUnderscoresForLocalIdentifiers, [
-    p0,
+    variableName,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsNoLeadingUnderscoresForLocalIdentifiersShadowed({
+  required String variableName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.noLeadingUnderscoresForLocalIdentifiersShadowed,
+    [variableName],
+  );
 }
 
 LocatableDiagnostic _withArgumentsNonConstantIdentifierNames({

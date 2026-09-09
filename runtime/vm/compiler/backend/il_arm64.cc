@@ -1756,7 +1756,6 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
 
   __ ldr(result,
          compiler::Address(THR, Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ SmiUntag(TMP, char_code);  // Untag to use scaled address mode.
   __ ldr(result,
          compiler::Address(result, TMP, UXTX, compiler::Address::Scaled));
@@ -3970,6 +3969,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, vand)                                                       \
   V(Int32x4BitOr, vorr)                                                        \
   V(Int32x4BitXor, veor)                                                       \
+  V(Int32x4Equal, vceqw)                                                       \
   V(Float32x4Equal, vceqs)                                                     \
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
@@ -4024,6 +4024,7 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   SIMD_OP_FLOAT_ARITH(V, Sqrt, vsqrt)                                          \
   SIMD_OP_FLOAT_ARITH(V, Negate, vneg)                                         \
   SIMD_OP_FLOAT_ARITH(V, Abs, vabs)                                            \
+  V(Int32x4Not, vnot)                                                          \
   V(Float32x4Reciprocal, VRecps)                                               \
   V(Float32x4ReciprocalSqrt, VRSqrts)
 
@@ -4112,22 +4113,17 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
 }
 
 DEFINE_EMIT(Simd32x4GetSignMask,
-            (Register out, VRegister value, Temp<Register> temp)) {
-  // X lane.
-  __ vmovrs(out, value, 0);
-  __ LsrImmediate(out, out, 31);
-  // Y lane.
-  __ vmovrs(temp, value, 1);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 1));
-  // Z lane.
-  __ vmovrs(temp, value, 2);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 2));
-  // W lane.
-  __ vmovrs(temp, value, 3);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 3));
+            (Register out, VRegister value, Temp<VRegister> temp)) {
+  simd128_value_t weights;
+  weights.int_storage[0] = 1;
+  weights.int_storage[1] = 2;
+  weights.int_storage[2] = 4;
+  weights.int_storage[3] = 8;
+  __ vsshr_4s(VTMP, value, 31);
+  __ LoadQImmediate(temp, weights);
+  __ vand(VTMP, VTMP, temp);
+  __ vuaddlv_4s(VTMP, VTMP);
+  __ fmovrs(out, VTMP);
 }
 
 DEFINE_EMIT(
@@ -4288,6 +4284,22 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, VRegister value)) {
   __ csel(result, TMP, result, EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
+  __ vumaxp_4s(VTMP, value, value);
+  __ vmovrd(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
+DEFINE_EMIT(Int32x4NotEqual,
+            (VRegister result, VRegister left, VRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ vceqw(result, left, right);
+  __ vnot(result, result);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4346,6 +4358,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4399,6 +4413,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   CASE(Int32x4Select)                                                          \
   ____(Int32x4Select)                                                          \
   CASE(Int32x4WithFlagX)                                                       \
@@ -4735,13 +4751,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -5851,7 +5867,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kPOPCNT: {
       __ fmovdr(VTMP, left);
       __ vcnt(VTMP, VTMP);
-      __ vuaddlv(VTMP, VTMP);
+      __ vuaddlv_8b(VTMP, VTMP);
       __ fmovrs(out, VTMP);
       break;
     }
@@ -5952,6 +5968,25 @@ LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  __ mvnw(out, left);
+}
+
+LocationSummary* UnaryInt32OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void UnaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register out = locs()->out(0).reg();
 

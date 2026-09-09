@@ -20,6 +20,7 @@ class DartCliDebugAdapter
     extends
         DartDebugAdapter<DartLaunchRequestArguments, DartAttachRequestArguments>
     with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils {
+  DartCliDebugAdapter(super.channel, {super.ipv6, super.logger, super.onError});
   Process? _process;
 
   @override
@@ -27,8 +28,6 @@ class DartCliDebugAdapter
 
   @override
   final parseAttachArgs = DartAttachRequestArguments.fromJson;
-
-  DartCliDebugAdapter(super.channel, {super.ipv6, super.logger, super.onError});
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.
@@ -84,14 +83,14 @@ class DartCliDebugAdapter
     final debug = !(args.noDebug ?? false);
     if (debug) {
       final progress = startProgressNotification(
-        "launch",
-        "Debugger",
-        message: "Starting…",
+        'launch',
+        'Debugger',
+        message: 'Starting…',
       );
       vmServiceInfoFile = generateVmServiceInfoFile();
       unawaited(
         waitForVmServiceInfoFile(logger, vmServiceInfoFile).then((uri) async {
-          progress.update(message: "Connecting…");
+          progress.update(message: 'Connecting…');
           await connectDebugger(uri);
           progress.end();
         }),
@@ -290,7 +289,7 @@ class DartCliDebugAdapter
   /// Launches the program as a process controlled by the debug adapter.
   ///
   /// Output to `stdout`/`stderr` will be sent to the editor using
-  /// [OutputEvent]s.
+  /// `OutputEvent`s.
   Future<void> launchAsProcess(
     String executable,
     List<String> processArgs, {

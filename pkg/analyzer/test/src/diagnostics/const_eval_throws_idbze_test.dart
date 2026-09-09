@@ -21,4 +21,14 @@ const C = 1 ~/ 0;
 // [diag.constEvalThrowsIdbze] Evaluation of this constant expression throws an IntegerDivisionByZeroException.
 ''');
   }
+
+  test_divisionByZero_fromMinimumInt() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const int minValue = -9223372036854775808;
+const int zero = minValue - minValue;
+const int result = 1 ~/ zero;
+//                 ^^^^^^^^^
+// [diag.constEvalThrowsIdbze] Evaluation of this constant expression throws an IntegerDivisionByZeroException.
+''');
+  }
 }

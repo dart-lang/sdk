@@ -76,12 +76,17 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       addStaticKeyword = true;
     }
 
-    // TODO(FMorschel): We should take into account if the target type contains
-    // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
+      return;
+    }
+
+    // Extensions aren't considered when the interface already defines a
+    // member with the same basename.
+    if (targetType is InterfaceType &&
+        targetType.lookUpSetter(_getterName, libraryElement2) != null) {
       return;
     }
 
@@ -548,12 +553,17 @@ class CreateExtensionSetter extends _CreateExtensionMember {
       addStaticKeyword = true;
     }
 
-    // TODO(FMorschel): We should take into account if the target type contains
-    // a setter for the same name and stop the fix from being applied.
     // We need the type for the extension.
     if (targetType == null ||
         targetType is DynamicType ||
         targetType is InvalidType) {
+      return;
+    }
+
+    // Extensions aren't considered when the interface already defines a
+    // member with the same basename.
+    if (targetType is InterfaceType &&
+        targetType.lookUpGetter(_setterName, libraryElement2) != null) {
       return;
     }
 

@@ -19,6 +19,12 @@ class DartTestDebugAdapter
     extends
         DartDebugAdapter<DartLaunchRequestArguments, DartAttachRequestArguments>
     with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils, TestAdapter {
+  DartTestDebugAdapter(
+    super.channel, {
+    super.ipv6,
+    super.logger,
+    super.onError,
+  });
   Process? _process;
 
   @override
@@ -26,13 +32,6 @@ class DartTestDebugAdapter
 
   @override
   final parseAttachArgs = DartAttachRequestArguments.fromJson;
-
-  DartTestDebugAdapter(
-    super.channel, {
-    super.ipv6,
-    super.logger,
-    super.onError,
-  });
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.
@@ -78,7 +77,7 @@ class DartTestDebugAdapter
         waitForVmServiceInfoFile(
           logger,
           vmServiceInfoFile,
-        ).then((uri) => connectDebugger(uri)),
+        ).then(connectDebugger),
       );
     }
 
@@ -221,7 +220,7 @@ class DartTestDebugAdapter
     // shows up in the client and can be seen (although we generally expect
     // package:test to have captured output and sent it in "print" events).
     try {
-      final payload = jsonDecode(data);
+      final payload = jsonDecode(data) as Object;
       sendTestEvents(payload);
     } catch (e) {
       sendOutput('stdout', data);

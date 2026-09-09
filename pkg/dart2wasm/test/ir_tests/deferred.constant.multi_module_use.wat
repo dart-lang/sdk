@@ -1,14 +1,14 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $JSExternWrapper (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $_externRef externref))))
   (type $Object (sub $#Top (struct
-    (field $field0 i32)
-    (field $field1 (mut i32)))))
+    (field $#classId i32)
+    (field $#identityHash (mut i32)))))
   (func $"wasm:js-string.charCodeAt (import)" (import "wasm:js-string" "charCodeAt") (param externref i32) (result i32))
   (@binaryen.removable.if.unused)
   (func $"wasm:js-string.concat (import)" (import "wasm:js-string" "concat") (param externref externref) (result (ref extern)))

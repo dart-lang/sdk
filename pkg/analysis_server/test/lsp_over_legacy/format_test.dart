@@ -19,7 +19,7 @@ class FormatTest extends LspOverLegacyTest {
     const content = 'void     main() {}';
     const expectedContent = 'void main() {}';
     newFile(testFilePath, content);
-    await waitForTasksFinished();
+    await initializeServer();
 
     var edits = await formatDocument(testFileUri);
     var formattedContents = applyTextEdits(content, edits!);
@@ -30,7 +30,7 @@ class FormatTest extends LspOverLegacyTest {
     const content = 'void     main() {}';
     const expectedContent = 'void main() {}';
     newFile(testFilePath, content);
-    await waitForTasksFinished();
+    await initializeServer();
 
     var position = positionFromOffset(content.indexOf('}'), content);
     var edits = await formatOnType(testFileUri, position, '}');
@@ -42,7 +42,7 @@ class FormatTest extends LspOverLegacyTest {
     const content = 'void     main() {}';
     const expectedContent = 'void main() {}';
     newFile(testFilePath, content);
-    await waitForTasksFinished();
+    await initializeServer();
 
     var edits = await formatRange(testFileUri, entireRange(content));
     var formattedContents = applyTextEdits(content, edits!);

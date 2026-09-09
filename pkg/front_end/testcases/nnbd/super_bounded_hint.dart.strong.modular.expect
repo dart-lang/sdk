@@ -548,25 +548,25 @@ static method foo5a({required (self::A<Never>) → self::A<dynamic> x}) → dyna
 static method foo5b({required (self::A<Never>) → self::A<dynamic> x}) → dynamic {}
 static method foo6a() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
-  for ((self::A<Never>) → self::A<dynamic> x in <(self::A<Never>) → self::A<dynamic>>[]) {
+  for ((self::A<Never>) → self::A<dynamic> x##1 in <(self::A<Never>) → self::A<dynamic>>[]) {
   }
-  function fooFoo1((self::A<Never>) → self::A<dynamic> x) → Null {}
+  function fooFoo1((self::A<Never>) → self::A<dynamic> x##2) → Null {}
   function fooFoo2<X extends (self::A<Never>) → self::A<dynamic>>() → Null {}
   function fooFoo4() → (self::A<Never>) → self::A<dynamic>
     return throw 42;
-  function fooFoo5({required (self::A<Never>) → self::A<dynamic> x}) → Null {}
-  function fooFoo7([(self::A<Never>) →? self::A<dynamic> x = #C1]) → Null {}
+  function fooFoo5({required (self::A<Never>) → self::A<dynamic> x##3}) → Null {}
+  function fooFoo7([(self::A<Never>) →? self::A<dynamic> x##4 = #C1]) → Null {}
 }
 static method foo6b() → dynamic {
   (self::A<Never>) → self::A<dynamic> x;
-  for ((self::A<Never>) → self::A<dynamic> x in <(self::A<Never>) → self::A<dynamic>>[]) {
+  for ((self::A<Never>) → self::A<dynamic> x##1 in <(self::A<Never>) → self::A<dynamic>>[]) {
   }
-  function fooFoo1((self::A<Never>) → self::A<dynamic> x) → Null {}
+  function fooFoo1((self::A<Never>) → self::A<dynamic> x##2) → Null {}
   function fooFoo2<X extends (self::A<Never>) → self::A<dynamic>>() → Null {}
   function fooFoo4() → (self::A<Never>) → self::A<dynamic>
     return throw 42;
-  function fooFoo5({required (self::A<Never>) → self::A<dynamic> x}) → Null {}
-  function fooFoo7([(self::A<Never>) →? self::A<dynamic> x = #C1]) → Null {}
+  function fooFoo5({required (self::A<Never>) → self::A<dynamic> x##3}) → Null {}
+  function fooFoo7([(self::A<Never>) →? self::A<dynamic> x##4 = #C1]) → Null {}
 }
 static method foo7a([(self::A<Never>) →? self::A<dynamic> x = #C1]) → dynamic {}
 static method foo7b([(self::A<Never>) →? self::A<dynamic> x = #C1]) → dynamic {}
@@ -577,14 +577,14 @@ static method bar4() → self::B<core::num>
 static method bar5({required self::B<core::num> x}) → dynamic {}
 static method bar6() → dynamic {
   self::B<core::num> x;
-  for (self::B<core::num> x in <self::B<core::num>>[]) {
+  for (self::B<core::num> x##1 in <self::B<core::num>>[]) {
   }
-  function barBar1(self::B<core::num> x) → Null {}
+  function barBar1(self::B<core::num> x##2) → Null {}
   function barBar2<X extends self::B<core::num>>() → Null {}
   function barBar4() → self::B<core::num>
     return throw 42;
-  function barBar5({required self::B<core::num> x}) → Null {}
-  function barBar7([self::B<core::num>? x = #C1]) → Null {}
+  function barBar5({required self::B<core::num> x##3}) → Null {}
+  function barBar7([self::B<core::num>? x##4 = #C1]) → Null {}
   new self::B::•<dynamic>();
   new self::A::•<self::B<dynamic>>();
 }

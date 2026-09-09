@@ -180,15 +180,15 @@ org-dartlang-test:///foo.dart:
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:9:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:4:9)
 
+org-dartlang-test:///main.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+
 org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 
 org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
-
-org-dartlang-test:///main.dart:
-- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 

@@ -286,6 +286,24 @@ class DartdevRunner extends CommandRunner<int> {
       return 0;
     }
 
+    if (topLevelResults.flag('diagnostics')) {
+      log = Logger.verbose(ansi: ansi);
+    }
+
+    late final List<String> experimentErrors = validateExperiments(
+      vmEnabledExperiments,
+    );
+    if (experimentErrors.isNotEmpty) {
+      experimentErrors.forEach(io.stderr.writeln);
+      return 254;
+    }
+
+    if (topLevelResults.command == null &&
+        topLevelResults.wasParsed(evalOption)) {
+      final runCmd = commands[RunCommand.cmdName] as RunCommand;
+      return await runCmd.runEval(topLevelResults);
+    }
+
     if (topLevelResults.command == null &&
         topLevelResults.arguments.isNotEmpty) {
       final firstArg = topLevelResults.arguments.first;
@@ -297,18 +315,6 @@ class DartdevRunner extends CommandRunner<int> {
         // This is the exit code used by the frontend.
         return 254;
       }
-    }
-
-    if (topLevelResults.flag('diagnostics')) {
-      log = Logger.verbose(ansi: ansi);
-    }
-
-    late final List<String> experimentErrors = validateExperiments(
-      vmEnabledExperiments,
-    );
-    if (experimentErrors.isNotEmpty) {
-      experimentErrors.forEach(io.stderr.writeln);
-      return 254;
     }
 
     var command = topLevelResults.command;

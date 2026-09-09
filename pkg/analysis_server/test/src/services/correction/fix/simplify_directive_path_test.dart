@@ -23,7 +23,6 @@ class SimplifyDirectivePathBulkTest extends BulkFixProcessorTest {
   Future<void> test_bulk() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
-    testFilePath = convertPath('$testPackageLibPath/test.dart');
 
     await resolveTestCode('''
 export './a.dart';
@@ -38,11 +37,23 @@ export 'b.dart';
 
 @reflectiveTest
 class SimplifyDirectivePathTest extends FixProcessorLintTest {
+  /// Here we make `testFilePath` writable for each test case. Many test
+  /// cases are testing different test locations, and choose a different test
+  /// file path.
+  @override
+  late String testFilePath;
+
   @override
   FixKind get kind => DartFixKind.simplifyDirectivePath;
 
   @override
   String get lintCode => 'simple_directive_paths';
+
+  @override
+  void setUp() {
+    testFilePath = convertPath('$testPackageLibPath/test.dart');
+    super.setUp();
+  }
 
   Future<void> test_absolute_backtracking() async {
     testFilePath = convertPath('$testPackageLibPath/b.dart');

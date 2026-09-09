@@ -14,23 +14,13 @@ main() {
 
 @reflectiveTest
 class IntegerLiteralOutOfRangeTest extends PubPackageResolutionTest {
-  test_hex() async {
+  test_decimal_max() async {
     await resolveTestCodeWithDiagnostics(r'''
-int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
-//      ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [diag.integerLiteralOutOfRange] The integer literal 0xFFFF_FFFF_FFFF_FFFF_FFFF can't be represented in 64 bits.
+int x = 9223372036854775807;
 ''');
   }
 
-  test_negative() async {
-    await resolveTestCodeWithDiagnostics(r'''
-int x = -9223372036854775809;
-//       ^^^^^^^^^^^^^^^^^^^
-// [diag.integerLiteralOutOfRange] The integer literal -9223372036854775809 can't be represented in 64 bits.
-''');
-  }
-
-  test_positive() async {
+  test_decimal_maxPlusOne() async {
     await resolveTestCodeWithDiagnostics(r'''
 int x = 9223372036854775808;
 //      ^^^^^^^^^^^^^^^^^^^
@@ -38,11 +28,41 @@ int x = 9223372036854775808;
 ''');
   }
 
-  test_separators() async {
+  test_decimal_maxPlusOne_withSeparators() async {
     await resolveTestCodeWithDiagnostics(r'''
 int x = 9_223_372_036_854_775_808;
 //      ^^^^^^^^^^^^^^^^^^^^^^^^^
 // [diag.integerLiteralOutOfRange] The integer literal 9_223_372_036_854_775_808 can't be represented in 64 bits.
+''');
+  }
+
+  test_decimal_min() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int x = -9223372036854775808;
+''');
+  }
+
+  test_decimal_min_parenthesizedMagnitude() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int x = -(9223372036854775808);
+//        ^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal 9223372036854775808 can't be represented in 64 bits.
+''');
+  }
+
+  test_decimal_minMinusOne() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int x = -9223372036854775809;
+//       ^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal -9223372036854775809 can't be represented in 64 bits.
+''');
+  }
+
+  test_hex_exceeds64Bits() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int x = 0xFFFF_FFFF_FFFF_FFFF_FFFF;
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.integerLiteralOutOfRange] The integer literal 0xFFFF_FFFF_FFFF_FFFF_FFFF can't be represented in 64 bits.
 ''');
   }
 }

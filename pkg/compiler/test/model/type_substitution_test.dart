@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
+
 import '../helpers/type_test_helper.dart';
 
 DartType getType(ElementEnvironment elementEnvironment, String name) {
@@ -17,12 +18,10 @@ DartType getType(ElementEnvironment elementEnvironment, String name) {
     elementEnvironment.mainLibrary!,
     'Class',
   )!;
-  final element =
-      elementEnvironment.lookupClassMember(
-            cls,
-            Name(name, cls.library.canonicalUri),
-          )
-          as FunctionEntity?;
+  final element = elementEnvironment.lookupClassMember(
+    cls,
+    Name(name, cls.library.canonicalUri),
+  ) as FunctionEntity?;
   Expect.isNotNull(element);
   FunctionType type = elementEnvironment.getFunctionType(element!);
 

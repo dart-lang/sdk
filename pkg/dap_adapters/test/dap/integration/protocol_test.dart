@@ -9,20 +9,20 @@ import 'package:test/test.dart';
 
 import 'test_support.dart';
 
-main() {
+void main() {
   group('dap protocol', () {
     test(
       'prints a suitable error if the server receives malformed input',
       () async {
         final errorOutput = Completer<String>();
         final server = await DapTestSession.startServer(
-          onError: (e) {
+          onError: (Object e) {
             if (!errorOutput.isCompleted) {
               errorOutput.complete('$e');
             }
           },
         );
-        addTearDown(() => server.stop());
+        addTearDown(server.stop);
         server.sink.add(utf8.encode('not\r\n\r\nvalid'));
         expect(
           await errorOutput.future,

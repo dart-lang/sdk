@@ -37,6 +37,12 @@ void main() {
           sdk: flutter
         flutter_web_plugins:
           sdk: flutter
+        flutter_test:
+          sdk: flutter
+        integration_test:
+          sdk: flutter
+        flutter_driver:
+          sdk: flutter
       environment:
         sdk: '>=3.12.0 <4.0.0'
     ''');

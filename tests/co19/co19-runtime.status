@@ -5,6 +5,9 @@
 LibTest/io/FileSystemModifyEvent/*: Pass, Slow
 LibTest/io/FileSystemMoveEvent/*: Pass, Slow
 
+[ $runtime == dart_precompiled ]
+TypeSystem/inference/least_and_greatest_closure_A09_t01: Skip # Issue 63857 - consumes lots of memory and makes bots purple
+
 [ $system == windows ]
 LibTest/io/ProcessResult/exitCode_A01_t02: Skip # Issue 32138
 LibTest/io/Stdin/readByteSync_A01_t01: Skip # Issue 32138

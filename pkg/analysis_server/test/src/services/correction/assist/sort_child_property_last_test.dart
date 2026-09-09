@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.sortChildPropertyLast;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.sortChildPropertyLast;
 
   Future<void> test_already_sorted() async {
     await resolveTestCode('''

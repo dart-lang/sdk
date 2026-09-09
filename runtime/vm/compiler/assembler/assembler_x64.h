@@ -465,6 +465,7 @@ class Assembler : public AssemblerBase {
   XX(L, cvtsd2ss, 0x5A, 0x0F, 0xF2)
   XX(L, cvtss2sd, 0x5A, 0x0F, 0xF3)
   XX(L, pxor, 0xEF, 0x0F, 0x66)
+  XX(L, pcmpeqd, 0x76, 0x0F, 0x66)
   XX(L, subpl, 0xFA, 0x0F, 0x66)
   XX(L, addpl, 0xFE, 0x0F, 0x66)
 #undef XX
@@ -567,6 +568,8 @@ class Assembler : public AssemblerBase {
     kRoundToZero = 0x3
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
+
+  void ptest(XmmRegister dst, XmmRegister src);
 
   void CompareImmediate(Register reg,
                         const Immediate& imm,

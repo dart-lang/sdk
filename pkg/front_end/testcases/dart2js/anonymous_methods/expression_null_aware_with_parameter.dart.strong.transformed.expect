@@ -9,14 +9,14 @@ static method main() → void {
     core::int #t1;
     #t1 = 1;
   } =>#t1;
-  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : block {
-    core::int p = anonymous#receiver as core::int;
+  let synthesized core::int? anonymous#receiver##1 = self::i in anonymous#receiver##1 == null ?{core::int?} null : block {
+    core::int p##1 = anonymous#receiver##1 as core::int;
     core::int #t2;
-    #t2 = p{core::int};
+    #t2 = p##1;
   } =>#t2;
-  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::bool?} null : block {
-    core::int p = anonymous#receiver as core::int;
+  let synthesized core::int? anonymous#receiver##2 = self::i in anonymous#receiver##2 == null ?{core::bool?} null : block {
+    core::int p##2 = anonymous#receiver##2 as core::int;
     core::bool #t3;
-    #t3 = p{core::int}.{core::int::isEven}{core::bool};
+    #t3 = p##2.{core::int::isEven}{core::bool};
   } =>#t3;
 }

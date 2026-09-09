@@ -60,6 +60,9 @@ abstract class CompilerConfiguration {
 
   bool get _enableAsserts => _configuration.enableAsserts;
 
+  bool get isWasmBrowserConfiguration =>
+      _configuration.runtime.isBrowser && !_configuration.isDart2wasmStandalone;
+
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
@@ -571,6 +574,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return [
       if (!_useSdk && _enableHostAsserts) '--compiler-asserts',
       if (_enableAsserts) '--enable-asserts',
+      if (isWasmBrowserConfiguration) '--enable-deferred-loading',
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),

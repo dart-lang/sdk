@@ -5,6 +5,7 @@
 library compiler_helper;
 
 import 'dart:async';
+
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/elements.dart';
@@ -86,9 +87,10 @@ Future<String> compile(
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary!;
-  final element =
-      elementEnvironment.lookupLibraryMember(mainLibrary, methodName)
-          as FunctionEntity;
+  final element = elementEnvironment.lookupLibraryMember(
+    mainLibrary,
+    methodName,
+  ) as FunctionEntity;
   JsBackendStrategy backendStrategy = compiler.backendStrategy;
   String generated = backendStrategy.getGeneratedCodeForTesting(element)!;
   if (check != null) {

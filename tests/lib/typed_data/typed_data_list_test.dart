@@ -89,7 +89,7 @@ void testListFunctions<T extends num>(
   list.setRange(
     1,
     list.length - 1,
-    new Iterable.generate(list.length - 2, (x) => toElementType(x + 5)),
+    Iterable.generate(list.length - 2, (x) => toElementType(x + 5)),
   );
   Expect.equals(first, list.first);
   Expect.equals(last, list.last);
@@ -99,7 +99,7 @@ void testListFunctions<T extends num>(
   list.setRange(
     1,
     list.length - 1,
-    new Iterable.generate(list.length - 1, (x) => toElementType(x + 5)),
+    Iterable.generate(list.length - 1, (x) => toElementType(x + 5)),
     1,
   );
   Expect.equals(first, list.first);
@@ -187,31 +187,21 @@ main() {
   double toDouble(x) => x.toDouble();
   int toInt(x) => x.toInt();
 
-  testListFunctions(
-    new Float32List.fromList([1.5, 6.3, 9.5]),
-    1.5,
-    9.5,
-    toDouble,
-  );
-  testListFunctions(
-    new Float64List.fromList([1.5, 6.3, 9.5]),
-    1.5,
-    9.5,
-    toDouble,
-  );
-  testListFunctions(new Int8List.fromList([3, 5, 9]), 3, 9, toInt);
-  testListFunctions(new Int16List.fromList([3, 5, 9]), 3, 9, toInt);
-  testListFunctions(new Int32List.fromList([3, 5, 9]), 3, 9, toInt);
-  testListFunctions(new Uint8List.fromList([3, 5, 9]), 3, 9, toInt);
-  testListFunctions(new Uint16List.fromList([3, 5, 9]), 3, 9, toInt);
-  testListFunctions(new Uint32List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Float32List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
+  testListFunctions(Float64List.fromList([1.5, 6.3, 9.5]), 1.5, 9.5, toDouble);
+  testListFunctions(Int8List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Int16List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Int32List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Uint8List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Uint16List.fromList([3, 5, 9]), 3, 9, toInt);
+  testListFunctions(Uint32List.fromList([3, 5, 9]), 3, 9, toInt);
 
-  emptyChecks(new Float32List(0), toDouble);
-  emptyChecks(new Float64List(0), toDouble);
-  emptyChecks(new Int8List(0), toInt);
-  emptyChecks(new Int16List(0), toInt);
-  emptyChecks(new Int32List(0), toInt);
-  emptyChecks(new Uint8List(0), toInt);
-  emptyChecks(new Uint16List(0), toInt);
-  emptyChecks(new Uint32List(0), toInt);
+  emptyChecks(Float32List(0), toDouble);
+  emptyChecks(Float64List(0), toDouble);
+  emptyChecks(Int8List(0), toInt);
+  emptyChecks(Int16List(0), toInt);
+  emptyChecks(Int32List(0), toInt);
+  emptyChecks(Uint8List(0), toInt);
+  emptyChecks(Uint16List(0), toInt);
+  emptyChecks(Uint32List(0), toInt);
 }

@@ -51,10 +51,13 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.primary_constructors: ExperimentalFeatures.primary_constructors,
   EnableString.private_named_parameters:
       ExperimentalFeatures.private_named_parameters,
+  EnableString.receiver_type_inference:
+      ExperimentalFeatures.receiver_type_inference,
   EnableString.record_use: ExperimentalFeatures.record_use,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
+  EnableString.single_combinators: ExperimentalFeatures.single_combinators,
   EnableString.sound_flow_analysis: ExperimentalFeatures.sound_flow_analysis,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.static_extensions: ExperimentalFeatures.static_extensions,
@@ -122,10 +125,14 @@ Feature fromSharedExperimentalFlags(
     ExperimentalFeatures.primary_constructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFeatures.private_named_parameters,
+  shared.ExperimentalFlag.receiverTypeInference =>
+    ExperimentalFeatures.receiver_type_inference,
   shared.ExperimentalFlag.recordUse => ExperimentalFeatures.record_use,
   shared.ExperimentalFlag.records => ExperimentalFeatures.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFeatures.sealed_class,
   shared.ExperimentalFlag.setLiterals => ExperimentalFeatures.set_literals,
+  shared.ExperimentalFlag.singleCombinators =>
+    ExperimentalFeatures.single_combinators,
   shared.ExperimentalFlag.soundFlowAnalysis =>
     ExperimentalFeatures.sound_flow_analysis,
   shared.ExperimentalFlag.spreadCollections =>
@@ -240,6 +247,9 @@ class EnableString {
   /// String to enable the experiment "private-named-parameters"
   static const String private_named_parameters = 'private-named-parameters';
 
+  /// String to enable the experiment "receiver-type-inference"
+  static const String receiver_type_inference = 'receiver-type-inference';
+
   /// String to enable the experiment "record-use"
   static const String record_use = 'record-use';
 
@@ -251,6 +261,9 @@ class EnableString {
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
+
+  /// String to enable the experiment "single-combinators"
+  static const String single_combinators = 'single-combinators';
 
   /// String to enable the experiment "sound-flow-analysis"
   static const String sound_flow_analysis = 'sound-flow-analysis';
@@ -625,8 +638,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final record_use = ExperimentalFeature(
+  static final receiver_type_inference = ExperimentalFeature(
     index: 30,
+    enableString: EnableString.receiver_type_inference,
+    isEnabledByDefault: IsEnabledByDefault.receiver_type_inference,
+    isExpired: IsExpired.receiver_type_inference,
+    documentation: 'Type inference of generic receivers in non-empty contexts.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final record_use = ExperimentalFeature(
+    index: 31,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -637,7 +661,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -648,7 +672,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -659,7 +683,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -669,8 +693,20 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
+  static final single_combinators = ExperimentalFeature(
+    index: 35,
+    enableString: EnableString.single_combinators,
+    isEnabledByDefault: IsEnabledByDefault.single_combinators,
+    isExpired: IsExpired.single_combinators,
+    documentation:
+        'Allow at most one `show` or `hide` combinator per import or export directive.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 34,
+    index: 36,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
@@ -682,7 +718,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 35,
+    index: 37,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -693,7 +729,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 36,
+    index: 38,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -704,7 +740,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 37,
+    index: 39,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -715,7 +751,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 38,
+    index: 40,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -727,7 +763,7 @@ class ExperimentalFeatures {
   );
 
   static final this_promotion = ExperimentalFeature(
-    index: 39,
+    index: 41,
     enableString: EnableString.this_promotion,
     isEnabledByDefault: IsEnabledByDefault.this_promotion,
     isExpired: IsExpired.this_promotion,
@@ -738,7 +774,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 40,
+    index: 42,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -749,7 +785,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 41,
+    index: 43,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -760,7 +796,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 42,
+    index: 44,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -771,7 +807,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 43,
+    index: 45,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -782,7 +818,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 44,
+    index: 46,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -887,6 +923,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
 
+  /// Default state of the experiment "receiver-type-inference"
+  static const bool receiver_type_inference = false;
+
   /// Default state of the experiment "record-use"
   static const bool record_use = true;
 
@@ -898,6 +937,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Default state of the experiment "single-combinators"
+  static const bool single_combinators = false;
 
   /// Default state of the experiment "sound-flow-analysis"
   static const bool sound_flow_analysis = true;
@@ -1027,6 +1069,9 @@ class IsExpired {
   /// Expiration status of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
 
+  /// Expiration status of the experiment "receiver-type-inference"
+  static const bool receiver_type_inference = false;
+
   /// Expiration status of the experiment "record-use"
   static const bool record_use = false;
 
@@ -1038,6 +1083,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Expiration status of the experiment "single-combinators"
+  static const bool single_combinators = false;
 
   /// Expiration status of the experiment "sound-flow-analysis"
   static const bool sound_flow_analysis = true;
@@ -1180,6 +1228,10 @@ mixin _CurrentState {
   bool get private_named_parameters =>
       isEnabled(ExperimentalFeatures.private_named_parameters);
 
+  /// Current state for the flag "receiver-type-inference"
+  bool get receiver_type_inference =>
+      isEnabled(ExperimentalFeatures.receiver_type_inference);
+
   /// Current state for the flag "record-use"
   bool get record_use => isEnabled(ExperimentalFeatures.record_use);
 
@@ -1191,6 +1243,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
+
+  /// Current state for the flag "single-combinators"
+  bool get single_combinators =>
+      isEnabled(ExperimentalFeatures.single_combinators);
 
   /// Current state for the flag "sound-flow-analysis"
   bool get sound_flow_analysis =>

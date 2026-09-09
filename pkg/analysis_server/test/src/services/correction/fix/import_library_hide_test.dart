@@ -274,10 +274,7 @@ void f(A a1) {
 @reflectiveTest
 class ImportLibraryHidePriorityTest extends FixPriorityTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_dartUi() async {
     newFile(join(testPackageLibPath, 'size.dart'), '''

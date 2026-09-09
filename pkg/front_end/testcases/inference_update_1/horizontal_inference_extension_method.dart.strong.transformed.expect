@@ -102,7 +102,7 @@ static method testDependencyCycle(core::int i) → dynamic {
   } =>#t4);
 }
 static method testPropagateFromContravariantReturnType(core::int i) → dynamic {
-  self::_extension#0|_propagateFromContravariantReturnType<core::int, core::List<core::int>>(i, () → (core::int) → void => (core::int i) → void {}, (core::int x) → core::List<core::int> => core::_GrowableList::_literal1<core::int>(x));
+  self::_extension#0|_propagateFromContravariantReturnType<core::int, core::List<core::int>>(i, () → (core::int) → void => (core::int i##1) → void {}, (core::int x) → core::List<core::int> => core::_GrowableList::_literal1<core::int>(x));
 }
 static method testPropagateToContravariantParameterType(core::int i) → dynamic {
   self::_extension#0|_propagateToContravariantParameterType<core::int, core::List<(core::int) → void>>(i, () → core::int => 0, ((core::int) → void x) → core::List<(core::int) → void> => core::_GrowableList::_literal1<(core::int) → void>(x));

@@ -136,6 +136,8 @@ final _typeFactories = <String, Function>{
   'Error': Error.parse,
   'Event': Event.parse,
   'ExtensionData': ExtensionData.parse,
+  'FfiStructField': FfiStructField.parse,
+  'FfiStructLayout': FfiStructLayout.parse,
   '@Field': FieldRef.parse,
   'Field': Field.parse,
   'Flag': Flag.parse,
@@ -3044,6 +3046,14 @@ class Class extends Obj implements ClassRef {
   /// A list of subclasses of this class.
   List<ClassRef>? subclasses;
 
+  /// The native memory layout of this class.
+  ///
+  /// Provided if this class is a subclass of `dart:ffi`'s `Struct` and its
+  /// layout could be computed. It is emitted on the compound class itself. A
+  /// `Pointer<MyStruct>` object has no `ffiLayout`
+  @optional
+  FfiStructLayout? ffiLayout;
+
   Class({
     this.name,
     this.library,
@@ -3066,6 +3076,7 @@ class Class extends Obj implements ClassRef {
     this.superClass,
     this.superType,
     this.mixin,
+    this.ffiLayout,
   });
 
   Class._fromJson(super.json)
@@ -3106,6 +3117,9 @@ class Class extends Obj implements ClassRef {
         subclasses = _createServiceObjectListOrNull<ClassRef>(
                 json['subclasses'], const ['ClassRef']) ??
             [],
+        ffiLayout =
+            createServiceObject(json['ffiLayout'], const ['FfiStructLayout'])
+                as FfiStructLayout?,
         super._fromJson();
 
   @override
@@ -3139,6 +3153,8 @@ class Class extends Obj implements ClassRef {
         if (superType?.toJson() case final superTypeValue?)
           'superType': superTypeValue,
         if (mixin?.toJson() case final mixinValue?) 'mixin': mixinValue,
+        if (ffiLayout?.toJson() case final ffiLayoutValue?)
+          'ffiLayout': ffiLayoutValue,
       };
 
   @override
@@ -4200,6 +4216,100 @@ class Event extends Response {
 
   @override
   String toString() => '[Event kind: $kind, timestamp: $timestamp]';
+}
+
+/// An `FfiStructField` describes a single member of an [FfiStructLayout].
+class FfiStructField {
+  static FfiStructField? parse(Map<String, dynamic>? json) =>
+      json == null ? null : FfiStructField._fromJson(json);
+
+  /// The declared name of the struct field.
+  String? name;
+
+  /// Human-readable native (C-semantics) type name (e.g. "int32", a compound's
+  /// class name, or "Array").
+  String? nativeType;
+
+  /// The byte offset of this field from the start of the struct, not from the
+  /// start of the backing storage.
+  int? offset;
+
+  /// The size of this field in bytes.
+  int? size;
+
+  /// The number of elements if this field is an inline Array.
+  @optional
+  int? length;
+
+  /// The element type name if this field is an inline Array (e.g. "uint8",
+  /// "InnerStruct").
+  @optional
+  String? arrayElementType;
+
+  FfiStructField({
+    this.name,
+    this.nativeType,
+    this.offset,
+    this.size,
+    this.length,
+    this.arrayElementType,
+  });
+
+  FfiStructField._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '',
+        nativeType = json['nativeType'] ?? '',
+        offset = json['offset'] ?? -1,
+        size = json['size'] ?? -1,
+        length = json['length'],
+        arrayElementType = json['arrayElementType'];
+
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+        'nativeType': nativeType ?? '',
+        'offset': offset ?? -1,
+        'size': size ?? -1,
+        if (length case final lengthValue?) 'length': lengthValue,
+        if (arrayElementType case final arrayElementTypeValue?)
+          'arrayElementType': arrayElementTypeValue,
+      };
+
+  @override
+  String toString() => '[FfiStructField ' //
+      'name: $name, nativeType: $nativeType, offset: $offset, size: $size]';
+}
+
+/// An `FfiStructLayout` describes the native memory layout of a `dart:ffi`
+/// compound.
+///
+/// See [Class].
+class FfiStructLayout {
+  static FfiStructLayout? parse(Map<String, dynamic>? json) =>
+      json == null ? null : FfiStructLayout._fromJson(json);
+
+  /// The total size of the struct in bytes, including padding.
+  int? size;
+
+  /// The ordered list of fields in the struct layout.
+  List<FfiStructField>? fields;
+
+  FfiStructLayout({
+    this.size,
+    this.fields,
+  });
+
+  FfiStructLayout._fromJson(Map<String, dynamic> json)
+      : size = json['size'] ?? -1,
+        fields = _createServiceObjectListOrNull<FfiStructField>(
+                json['fields'], const ['FfiStructField']) ??
+            [];
+
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'size': size ?? -1,
+        'fields': fields?.map((f) => f.toJson()).toList(),
+      };
+
+  @override
+  String toString() => '[FfiStructLayout size: $size, fields: $fields]';
 }
 
 /// An `FieldRef` is a reference to a `Field`.

@@ -21,7 +21,7 @@ class HoverTest extends LspOverLegacyTest {
   Future<void> expectHover(String content, String expected) async {
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
-    await waitForTasksFinished();
+    await initializeServer();
 
     var result = await getHover(testFileUri, code.position.position);
     var markup = _getMarkupContents(result!);
@@ -50,7 +50,7 @@ This is my class.
 
   Future<void> test_loggedMethodName() async {
     newFile(testFilePath, 'String s;');
-    await waitForTasksFinished();
+    await initializeServer();
     await getHover(testFileUri, Position(character: 1, line: 0));
 
     expect(

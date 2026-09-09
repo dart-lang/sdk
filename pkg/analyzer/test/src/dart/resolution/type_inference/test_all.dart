@@ -14,6 +14,7 @@ import 'inference_update_1_test.dart' as inference_update_1;
 import 'list_literal_test.dart' as list_literal;
 import 'local_variable_test.dart' as local_variable;
 import 'logical_boolean_expressions_test.dart' as logical_boolean_expressions;
+import 'lookup_promoted_this_type_test.dart' as lookup_promoted_this_type;
 import 'map_literal_test.dart' as map_literal;
 import 'set_literal_test.dart' as set_literal;
 import 'statements_test.dart' as statements;
@@ -32,6 +33,7 @@ main() {
     list_literal.main();
     local_variable.main();
     logical_boolean_expressions.main();
+    lookup_promoted_this_type.main();
     map_literal.main();
     set_literal.main();
     statements.main();

@@ -54,6 +54,11 @@ abstract class _NetworkProfiling {
   static const _kGetSocketProfileRPC = 'ext.dart.io.getSocketProfile';
   static const _kSocketProfilingEnabledRPC =
       'ext.dart.io.socketProfilingEnabled';
+  // WebSocket relative RPCs
+  static const _kGetWebSocketProfileRPC = 'ext.dart.io.getWebSocketProfile';
+  static const _kGetWebSocketConnectionRPC =
+      'ext.dart.io.getWebSocketConnection';
+  static const _kClearWebSocketProfileRPC = 'ext.dart.io.clearWebSocketProfile';
 
   // TODO(zichangguo): This version number represents the version of service
   // extension of dart:io. Consider moving this out of web profiler class,
@@ -62,14 +67,24 @@ abstract class _NetworkProfiling {
 
   @pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
   static void _registerServiceExtension() {
+    // HTTP profiling service extensions
     registerExtension(_kHttpEnableTimelineLogging, _serviceExtensionHandler);
-    registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
-    registerExtension(_kSocketProfilingEnabledRPC, _serviceExtensionHandler);
-    registerExtension(_kClearSocketProfileRPC, _serviceExtensionHandler);
-    registerExtension(_kGetVersionRPC, _serviceExtensionHandler);
     registerExtension(_kGetHttpProfileRPC, _serviceExtensionHandler);
     registerExtension(_kGetHttpProfileRequestRPC, _serviceExtensionHandler);
     registerExtension(_kClearHttpProfileRPC, _serviceExtensionHandler);
+
+    // Socket profiling service extensions
+    registerExtension(_kGetSocketProfileRPC, _serviceExtensionHandler);
+    registerExtension(_kSocketProfilingEnabledRPC, _serviceExtensionHandler);
+    registerExtension(_kClearSocketProfileRPC, _serviceExtensionHandler);
+
+    // Websocket profiling service extensions
+    registerExtension(_kGetWebSocketProfileRPC, _serviceExtensionHandler);
+    registerExtension(_kGetWebSocketConnectionRPC, _serviceExtensionHandler);
+    registerExtension(_kClearWebSocketProfileRPC, _serviceExtensionHandler);
+
+    // Version service extension
+    registerExtension(_kGetVersionRPC, _serviceExtensionHandler);
   }
 
   // Note this function only returns a `Future` because that is required by the
@@ -87,11 +102,11 @@ abstract class _NetworkProfiling {
             _setHttpEnableTimelineLogging(parameters);
           }
           responseJson = _getHttpEnableTimelineLogging();
-          break;
         case _kGetHttpProfileRPC:
-          final updatedSince = parameters.containsKey('updatedSince')
-              ? int.tryParse(parameters['updatedSince']!)
-              : null;
+          final updatedSince = switch (parameters['updatedSince']) {
+            var updatedSince? => int.tryParse(updatedSince),
+            _ => null,
+          };
           responseJson = json.encode({
             'type': 'HttpProfile',
             'timestamp': DateTime.now().microsecondsSinceEpoch,
@@ -109,26 +124,26 @@ abstract class _NetworkProfiling {
                   ),
             ],
           });
-          break;
         case _kGetHttpProfileRequestRPC:
           responseJson = _getHttpProfileRequest(parameters);
-          break;
         case _kClearHttpProfileRPC:
           HttpProfiler.clear();
           responseJson = _success();
-          break;
         case _kGetSocketProfileRPC:
           responseJson = _SocketProfile.toJson();
-          break;
         case _kSocketProfilingEnabledRPC:
           responseJson = _socketProfilingEnabled(parameters);
-          break;
         case _kClearSocketProfileRPC:
           responseJson = _SocketProfile.clear();
-          break;
         case _kGetVersionRPC:
           responseJson = getVersion();
-          break;
+        case _kGetWebSocketProfileRPC:
+          responseJson = _getWebSocketProfile(parameters);
+        case _kGetWebSocketConnectionRPC:
+          responseJson = _getWebSocketConnection(parameters);
+        case _kClearWebSocketProfileRPC:
+          WebSocketProfiler.clear();
+          responseJson = _success();
         default:
           return ServiceExtensionResponse.error(
             ServiceExtensionResponse.extensionError,
@@ -174,6 +189,33 @@ String _setHttpEnableTimelineLogging(Map<String, String> parameters) {
   }
   HttpClient.enableTimelineLogging = enable == 'true';
   return _success();
+}
+
+String _getWebSocketProfile(Map<String, String> parameters) {
+  final updatedSince = parameters.containsKey('updatedSince')
+      ? int.tryParse(parameters['updatedSince']!)
+      : null;
+
+  return json.encode({
+    'type': 'WebSocketProfile',
+    'timestamp': DateTime.now().microsecondsSinceEpoch,
+    'connections': WebSocketProfiler.serializeConnections(updatedSince),
+  });
+}
+
+String _getWebSocketConnection(Map<String, String> parameters) {
+  final id = parameters['id'];
+  if (id == null) {
+    throw _missingArgument('id');
+  }
+
+  final connection = WebSocketProfiler.getConnection(id)?.toJson(ref: false);
+
+  if (connection == null) {
+    throw "Unable to find connection with id: '$id'";
+  }
+
+  return json.encode(connection);
 }
 
 String _getHttpProfileRequest(Map<String, String> parameters) {
@@ -278,17 +320,14 @@ abstract class _SocketProfile {
     switch (type) {
       case _SocketProfileType.endTime:
         stats.endTime = Timeline.now;
-        break;
       case _SocketProfileType.readBytes:
         if (object == null) return;
         stats.readBytes += object as int;
         stats.lastReadTime = Timeline.now;
-        break;
       case _SocketProfileType.writeBytes:
         if (object == null) return;
         stats.writeBytes += object as int;
         stats.lastWriteTime = Timeline.now;
-        break;
       case _SocketProfileType.startTime:
       case _SocketProfileType.socketType:
       case _SocketProfileType.address:

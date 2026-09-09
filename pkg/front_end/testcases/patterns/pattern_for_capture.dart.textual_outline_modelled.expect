@@ -1,0 +1,11 @@
+void check(List<int Function()> actual, List<int> expected) {}
+
+void forElement() {}
+
+void forStatement() {}
+
+void main() {}
+
+void patternForElement() {}
+
+void patternForStatement() {}

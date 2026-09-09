@@ -263,7 +263,7 @@ error.errorCode: ${diagnostic.diagnosticCode}
 
     YamlNode node;
     try {
-      node = loadYamlNode(content);
+      node = loadYamlNode(content, sourceUrl: pubspecFile.toUri());
     } catch (exception) {
       return errorFixesList;
     }

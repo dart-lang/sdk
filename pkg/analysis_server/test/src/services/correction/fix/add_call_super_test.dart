@@ -17,13 +17,10 @@ void main() {
 @reflectiveTest
 class AddCallSuperTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.addCallSuper;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  FixKind get kind => DartFixKind.addCallSuper;
 
   Future<void> test_body() async {
     await resolveTestCode('''

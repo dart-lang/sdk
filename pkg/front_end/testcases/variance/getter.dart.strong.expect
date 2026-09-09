@@ -5,98 +5,98 @@ library;
 // pkg/front_end/testcases/variance/getter.dart:8:11: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   final T a = throw "uncalled"; // Error
 //           ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:9:22: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   final T Function() b = () => throw "uncalled"; // Error
 //                      ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:10:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   T get c => throw "uncalled"; // Error
 //         ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:11:10: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   late T d; // Error
 //          ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:12:20: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   covariant late T e; // Error
 //                    ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:13:6: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   T? f = null; // Error
 //      ^
-// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:7:12: Context: This is the type variable which is referenced from an invalid position.
 // class A<in T> {
 //            ^
 //
 // pkg/front_end/testcases/variance/getter.dart:17:11: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   final T a = throw "uncalled"; // Error
 //           ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:18:22: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   final T Function() b = () => throw "uncalled"; // Error
 //                      ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:19:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   T get c => throw "uncalled"; // Error
 //         ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:20:10: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   late T d; // Error
 //          ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:21:20: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   covariant late T e; // Error
 //                    ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:22:6: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   T? f = null; // Error
 //      ^
-// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:16:17: Context: This is the type variable which is referenced from an invalid position.
 // mixin BMixin<in T> {
 //                 ^
 //
 // pkg/front_end/testcases/variance/getter.dart:26:9: Error: Can't use 'in' type variable 'T' in an 'out' position in the return type.
 //   T get a; // Error
 //         ^
-// pkg/front_end/testcases/variance/getter.dart:25:21: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:25:21: Context: This is the type variable which is referenced from an invalid position.
 // abstract class C<in T> {
 //                     ^
 //
 // pkg/front_end/testcases/variance/getter.dart:30:7: Error: Can't use 'in' type variable 'T' in an 'out' position.
 //   var a; // Error
 //       ^
-// pkg/front_end/testcases/variance/getter.dart:29:12: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/variance/getter.dart:29:12: Context: This is the type variable which is referenced from an invalid position.
 // class D<in T> extends C<T> {
 //            ^
 //

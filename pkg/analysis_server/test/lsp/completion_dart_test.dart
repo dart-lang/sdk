@@ -1540,6 +1540,9 @@ void f(int variable) {
 
 @reflectiveTest
 class CompletionTest extends AbstractCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -1692,12 +1695,6 @@ void f() {
     expect(item.textEditText ?? item.label, text);
     expect(item.insertText, isNull);
     expect(item.textEdit, isNull);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_alreadyImported_noImportUris() async {
@@ -3765,6 +3762,56 @@ class Derived extends Base {
     await _checkCompletionEdits(mainFileUri, completionLabel, expectedContent);
   }
 
+  /// The suggestion label, kind, and textEdit for a `this.`-prefixed instance
+  /// member all go through LSP-specific conversion, unlike the raw
+  /// suggestions checked in `CompletionScopeTest`.
+  Future<void> test_parameter_instanceMethod() async {
+    content = '''
+class C {
+  void foo() {}
+  void bar(int foo) {
+    ^
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    var fooParameter = res.singleWhere((c) => c.label == 'foo');
+    var thisMethodFoo = res.singleWhere((c) => c.label.startsWith('this.foo'));
+
+    expect(fooParameter.kind, equals(CompletionItemKind.Variable));
+    expect(thisMethodFoo.kind, equals(CompletionItemKind.Method));
+    var newText = toTextEdit(thisMethodFoo.textEdit!).newText;
+    expect(newText, equals('this.foo'));
+  }
+
+  /// The suggestion label, kind, and textEdit for a `this.`-prefixed instance
+  /// member all go through LSP-specific conversion, unlike the raw
+  /// suggestions checked in `CompletionScopeTest`.
+  Future<void> test_parameter_staticField() async {
+    content = '''
+class C {
+  static int foo = 0;
+  void bar(int foo) {
+    ^
+  }
+}
+''';
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    var fooParameter = res.singleWhere((c) => c.label == 'foo');
+    var staticFooField = res.singleWhere((c) => c.label.startsWith('C.foo'));
+
+    expect(fooParameter.kind, equals(CompletionItemKind.Variable));
+    expect(staticFooField.kind, equals(CompletionItemKind.Field));
+    var newText = toTextEdit(staticFooField.textEdit!).newText;
+    expect(newText, equals('C.foo'));
+  }
+
   Future<void> test_plainText() async {
     content = '''
 class MyClass {
@@ -5645,18 +5692,15 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
 
   /// Constructor params expected on Widget classes.
   String get expectedWidgetConstructorParams => '({super.key})';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_snippets_flutterStateful() async {
     content = '''

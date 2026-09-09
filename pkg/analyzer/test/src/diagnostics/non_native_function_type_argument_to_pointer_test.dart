@@ -25,7 +25,7 @@ class C {
   void f(Pointer<Double> p) {
     p.asFunction<R>();
 //    ^^^^^^^^^^
-// [diag.undefinedMethod] The method 'asFunction' isn't defined for the type 'Pointer'.
+// [diag.undefinedMethod] The method 'asFunction' isn't defined for the type 'Pointer<Double>'.
   }
 }
 ''');

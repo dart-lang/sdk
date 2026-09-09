@@ -4,8 +4,10 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -146,8 +148,12 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
       return null;
     }
 
-    // TODO(brianwilkerson): Consider also accepting uses of LinkedHashSet.
-    if (type.element != typeProvider.setElement) {
+    var element = type.element;
+    if (element is! ClassElement) {
+      return null;
+    }
+
+    if (!element.isDartCoreSet && !element.isDartCollectionLinkedHashSet) {
       return null;
     }
     return creation;

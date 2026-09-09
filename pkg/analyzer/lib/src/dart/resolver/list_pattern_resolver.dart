@@ -39,6 +39,7 @@ class ListPatternResolver {
       node,
       elementType: elementType?.wrapSharedTypeView(),
       elements: node.elements,
+      promoteForPatternOffset: node.leftBracket.offset,
     );
     node.requiredType = result.requiredType.unwrapTypeView();
 

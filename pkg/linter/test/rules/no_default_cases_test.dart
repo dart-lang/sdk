@@ -17,7 +17,7 @@ class NoDefaultCasesTest extends LintRuleTest {
   @override
   String get lintRule => 'no_default_cases';
 
-  test_enumLikeType() async {
+  test_class_enumLike() async {
     await assertDiagnosticsFromMarkup(r'''
 class C {
   final int i;
@@ -40,7 +40,21 @@ void f(C c) {
 ''');
   }
 
-  test_enumType() async {
+  test_class_notEnumLike() async {
+    await assertNoDiagnostics(r'''
+void f(int i) {
+  switch (i) {
+    case 1 :
+      print('1');
+      break;
+    default:
+      print('default');
+  }
+}
+''');
+  }
+
+  test_enum() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(E e) {
   switch(e) {
@@ -58,15 +72,20 @@ enum E {
 ''');
   }
 
-  test_intType() async {
+  test_extensionType_enumLike() async {
+    // Enum-like extension types can contain values other than their declared
+    // constants, so a default clause can be necessary.
     await assertNoDiagnostics(r'''
-void f(int i) {
-  switch (i) {
-    case 1 :
-      print('1');
+extension type const E._(int i) {
+  static const E a = E._(1);
+  static const E b = E._(2);
+}
+
+void f(E e) {
+  switch (e) {
+    case E.a:
       break;
     default:
-      print('default');
   }
 }
 ''');

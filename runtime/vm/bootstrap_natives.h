@@ -226,8 +226,11 @@ namespace dart {
   V(Int32x4_fromBools, 4)                                                      \
   V(Int32x4_fromFloat32x4Bits, 1)                                              \
   V(Int32x4_or, 2)                                                             \
+  V(Int32x4_equal, 2)                                                          \
+  V(Int32x4_notEqual, 2)                                                       \
   V(Int32x4_and, 2)                                                            \
   V(Int32x4_xor, 2)                                                            \
+  V(Int32x4_not, 1)                                                            \
   V(Int32x4_add, 2)                                                            \
   V(Int32x4_sub, 2)                                                            \
   V(Int32x4_getX, 1)                                                           \
@@ -239,6 +242,7 @@ namespace dart {
   V(Int32x4_setZ, 2)                                                           \
   V(Int32x4_setW, 2)                                                           \
   V(Int32x4_getSignMask, 1)                                                    \
+  V(Int32x4_getAnyTrue, 1)                                                     \
   V(Int32x4_shuffle, 2)                                                        \
   V(Int32x4_shuffleMix, 3)                                                     \
   V(Int32x4_getFlagX, 1)                                                       \

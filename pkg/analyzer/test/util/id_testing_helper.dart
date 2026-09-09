@@ -153,11 +153,11 @@ Future<TestResult<T>> runTestForConfig<T>(
   var analysisSession = analysisContext.currentSession;
   var driver = analysisContext.driver;
 
-  Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
-  Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+  Map<Uri, ActualDataMap<T>> actualMaps = <Uri, ActualDataMap<T>>{};
+  ActualDataMap<T> globalData = ActualDataMap();
 
-  Map<Id, ActualData<T>> actualMapFor(Uri uri) {
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  ActualDataMap<T> actualMapFor(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => ActualDataMap());
   }
 
   var results = <Uri, ResolvedUnitResult>{};
@@ -186,7 +186,7 @@ Future<TestResult<T>> runTestForConfig<T>(
             errors,
           );
           if (data != null) {
-            Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
+            ActualDataMap<T> actualMap = actualMapFor(testUri);
             actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
           }
         });
@@ -213,8 +213,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var compiledData = AnalyzerCompiledData<T>(
     testData.code,
     testData.entryPoint,
-    actualMaps,
-    globalData,
+    await actualMaps.getData(),
+    await globalData.getData(),
   );
   return checkCode(
     markerOptions,
@@ -354,7 +354,7 @@ abstract class DataComputer<T> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<T>> actualMap,
+    ActualDataMap<T> actualMap,
   );
 }
 

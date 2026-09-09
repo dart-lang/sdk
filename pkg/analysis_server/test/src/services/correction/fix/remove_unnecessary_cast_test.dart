@@ -95,4 +95,33 @@ void f(Object p) {
 }
 ''');
   }
+
+  Future<void> test_thisPromotion() async {
+    await resolveTestCode('''
+class A {
+  void a() {
+    if (this is B) {
+      (this as B).b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  void a() {
+    if (this is B) {
+      this.b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''');
+  }
 }

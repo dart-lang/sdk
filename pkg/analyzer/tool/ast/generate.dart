@@ -285,7 +285,6 @@ part of 'visitor.dart';
 
   Future<String> generate() async {
     _writeGeneralizing();
-    _writeGeneralizing2();
     _writeRecursive();
     _writeRecursive2();
     _writeSimple();
@@ -322,7 +321,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-${_astVersionPolicy.v1AnnotationCode('GeneralizingAstVisitor2')}
+@ToBeDeprecated()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();
@@ -358,86 +357,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
         out.writeln(r'''
 R? visitFunctionDeclaration(FunctionDeclaration node) {
   if (node.parent is FunctionDeclarationStatement) {
-    return visitNode(node);
-  }
-  return visitCompilationUnitMember(node);
-}''');
-        continue;
-      }
-
-      if (superNode.implElement.isAstNodeImplExactly) {
-        out.writeln('''
-R? visit$name($name node) => visitNode(node);
-''');
-      } else {
-        out.writeln('''
-R? visit$name($name node) => visit${superNode.apiElementName}(node);
-''');
-      }
-    }
-    out.writeln('}');
-  }
-
-  void _writeGeneralizing2() {
-    if (!_astVersionPolicy.hasV2TreeApi) {
-      return;
-    }
-    out.write('''
-/// An AST visitor that will recursively visit all of the nodes in an AST
-/// structure (like instances of the class [RecursiveAstVisitor2]). In addition,
-/// when a node of a specific type is visited not only will the visit method for
-/// that specific type of node be invoked, but additional methods for the
-/// superclasses of that node will also be invoked. For example, using an
-/// instance of this class to visit a [Block] will cause the method [visitBlock]
-/// to be invoked but will also cause the methods [visitStatement] and
-/// [visitNode] to be subsequently invoked. This allows visitors to be written
-/// that visit all statements without needing to override the visit method for
-/// each of the specific subclasses of [Statement].
-///
-/// Subclasses that override a visit method must either invoke the overridden
-/// visit method or explicitly invoke the more general visit method. Failure to
-/// do so will cause the visit methods for superclasses of the node to not be
-/// invoked and will cause the children of the visited node to not be visited.
-///
-/// Clients may extend this class.
-''');
-    _writeV2ExperimentalAnnotation(out);
-    out.write('''
-class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
-  /// Initialize a newly created visitor.
-  const GeneralizingAstVisitor2();
-
-  R? visitNode(AstNode node) {
-    node.visitChildren2(this);
-    return null;
-  }
-''');
-    for (var node in astLibrary.nodes) {
-      if (!node.isV2ViewNode) {
-        continue;
-      }
-      var name = node.apiElementName;
-      var superNode = node.superNode;
-      if (superNode == null) {
-        continue;
-      }
-      if (node.isExperimental) {
-        out.writeln('@experimental');
-      }
-      if (node.isConcrete) {
-        out.writeln('@override');
-      }
-
-      if (node.isDeprecated) {
-        out.writeln('  // ignore: deprecated_member_use_from_same_package');
-      }
-
-      // TODO(fshcheglov): Remove special case after AST hierarchy is fixed.
-      // https://github.com/dart-lang/sdk/issues/61224
-      if (node.apiElementName == 'FunctionDeclaration') {
-        out.writeln(r'''
-R? visitFunctionDeclaration(FunctionDeclaration node) {
-  if (node.parent2 is FunctionDeclarationStatement) {
     return visitNode(node);
   }
   return visitCompilationUnitMember(node);

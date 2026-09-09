@@ -2212,6 +2212,13 @@ class Class extends Object {
 
   // A list of subclasses of this class.
   @Class[] subclasses;
+
+  // The native memory layout of this class.
+  //
+  // Provided if this class is a subclass of `dart:ffi`'s `Struct` and its
+  // layout could be computed. It is emitted on the compound class itself. A
+  // `Pointer<MyStruct>` object has no `ffiLayout`
+  FfiStructLayout ffiLayout [optional];
 }
 ```
 
@@ -2823,6 +2830,52 @@ class ExtensionData {
 ```
 
 An _ExtensionData_ is an arbitrary map that can have any contents.
+
+### FfiStructField
+
+```
+class FfiStructField {
+  // The declared name of the struct field.
+  string name;
+
+  // Human-readable native (C-semantics) type name (e.g. "int32", a compound's
+  // class name, or "Array").
+  string nativeType;
+
+  // The byte offset of this field from the start of the struct, not from the
+  // start of the backing storage.
+  int offset;
+
+  // The size of this field in bytes.
+  int size;
+
+  // The number of elements if this field is an inline Array.
+  int length [optional];
+
+  // The element type name if this field is an inline Array (e.g. "uint8", "InnerStruct").
+  string arrayElementType [optional];
+}
+```
+
+An _FfiStructField_ describes a single member of an
+[FfiStructLayout](#ffistructlayout).
+
+### FfiStructLayout
+
+```
+class FfiStructLayout {
+  // The total size of the struct in bytes, including padding.
+  int size;
+
+  // The ordered list of fields in the struct layout.
+  FfiStructField[] fields;
+}
+```
+
+An _FfiStructLayout_ describes the native memory layout of a `dart:ffi`
+compound.
+
+See [Class](#class).
 
 ### Field
 

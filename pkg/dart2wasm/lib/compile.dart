@@ -440,6 +440,10 @@ Future<CompilationResult> _runTfaPhase(
     );
   }
 
+  if (!options.translatorOptions.enableMultiModuleStressTestMode) {
+    _pruneLibraryDependencies(component);
+  }
+
   final librariesToTransform = component.libraries;
   final constantEvaluator = ConstantEvaluator(
     options,
@@ -654,9 +658,9 @@ Future<CompilationResult> _runCodegenPhase(
       moduleOutputData.mainModule.moduleImportName,
       translator.functions.translatedProcedures,
       translator.internalizedStringsForJSRuntime,
-      translator.options.requireJsStringBuiltin,
       translator.options.enableDeferredLoading ||
           translator.options.enableMultiModuleStressTestMode,
+      options.supportsES6Modules,
     );
 
     final supportJs = _generateSupportJs(options.translatorOptions);
@@ -822,6 +826,20 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
   throw 'Main method has unexpected type: $mainMethodType';
 }
 
+/// Removes all import/export library dependencies except for deferred imports
+/// (which are used for partitioning the application into deferred units).
+void _pruneLibraryDependencies(Component component) {
+  for (final library in component.libraries) {
+    final deferredDependencies = <LibraryDependency>[];
+    for (final dependency in library.dependencies) {
+      if (dependency.isDeferred) {
+        deferredDependencies.add(dependency);
+      }
+    }
+    library.dependencies = deferredDependencies;
+  }
+}
+
 class _RecordClassesRepository extends MetadataRepository<RecordShape> {
   static const String _tag = 'dart2wasm.recordClasses';
   @override
@@ -902,7 +920,7 @@ String _generateSupportJs(TranslatorOptions options) {
   final requiredFeatures = [
     supportsWasmGC,
     supportsWasmSimd,
-    if (options.requireJsStringBuiltin) supportsJsStringBuiltins,
+    supportsJsStringBuiltins,
   ];
   return '(${requiredFeatures.join('&&')})';
 }

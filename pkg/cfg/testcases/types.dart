@@ -20,6 +20,10 @@ class A<T> {
     print(Map<S, T>);
   }
 
+  void buz<S extends T>() {
+    print(S);
+  }
+
   factory A() => A<T>._();
   A._();
 }

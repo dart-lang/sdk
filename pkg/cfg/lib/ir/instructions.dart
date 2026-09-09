@@ -1096,6 +1096,11 @@ final class StoreStaticField extends StoreField {
 
 /// Array is a sequence of elements of known size and type, such as typed data, String or a built-in List.
 enum ArrayKind {
+  // Built-in fixed-length List.
+  fixedLengthList,
+  // String objects with 1-byte and 2-byte characters.
+  oneByteString,
+  twoByteString,
   // Typed data lists holding their elements.
   int8List,
   uint8List,
@@ -1106,17 +1111,18 @@ enum ArrayKind {
   uint32List,
   int64List,
   uint64List,
-  // TODO: add FP typed data lists
-  // float32List,
-  // float64List,
-  // TODO: add SIMD typed data lists
-  // float32x4List,
-  // int32x4List,
-  // float64x2List,
-  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+  float32List,
+  float64List,
+  float32x4List,
+  float64x2List,
+  int32x4List,
+  // TODO: add external typed data lists, typed data views.
 }
 
 /// Load value from an array element.
+///
+/// [LoadArrayElement] assumes index was already checked to be within
+/// array bounds, e.g. via [IndexCheck].
 final class LoadArrayElement extends Definition with NoThrow, Pure {
   final ArrayKind kind;
 
@@ -1140,6 +1146,34 @@ final class LoadArrayElement extends Definition with NoThrow, Pure {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadArrayElement(this);
+}
+
+/// Store value to an array element.
+///
+/// [StoreArrayElement] assumes index was already checked to be within
+/// array bounds, e.g. via [IndexCheck].
+final class StoreArrayElement extends Instruction with NoThrow, HasSideEffects {
+  final ArrayKind kind;
+
+  StoreArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition array,
+    Definition index,
+    Definition value,
+  ) : super(inputCount: 3) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+    setInputAt(2, value);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+  Definition get value => inputDefAt(2);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreArrayElement(this);
 }
 
 /// Kinds of exceptions thrown via [Throw].
@@ -1229,6 +1263,33 @@ final class IndexCheck extends Definition with CanThrow, Pure, Idempotent {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitIndexCheck(this);
+}
+
+// Checks that a [type] is subtype of a [bound].
+//
+// Throws TypeError if relationship doesn't hold.
+// Inputs to this instructions are type parameters needed for type
+// instantiation.
+final class SubtypeCheck extends Instruction with CanThrow, Pure, Idempotent {
+  final CType type;
+  final CType bound;
+  final String name;
+
+  SubtypeCheck(
+    super.graph,
+    super.sourcePosition,
+    this.type,
+    this.bound,
+    this.name, {
+    required super.inputCount,
+  }) : assert(inputCount > 0);
+
+  @override
+  bool attributesEqual(covariant SubtypeCheck other) =>
+      type == other.type && bound == other.bound && name == other.name;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSubtypeCheck(this);
 }
 
 enum TypeParametersKind {
@@ -1332,8 +1393,8 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral], [AllocateMapLiteral], [InstantiateClosure] and
-/// [EnterSuspendableFunction].
+/// [AllocateListLiteral], [AllocateMapLiteral], [AllocateArray],
+/// [InstantiateClosure] and [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1851,44 +1912,122 @@ final class ExternalCall extends CallInstruction with BackendInstruction {
   R accept<R>(InstructionVisitor<R> v) => v.visitExternalCall(this);
 }
 
-/// Allocate a fixed-size List of given length.
-final class AllocateList extends Definition
-    with CanThrow, Pure, BackendInstruction {
-  AllocateList(super.graph, super.sourcePosition, Definition length)
-    : super(inputCount: 1) {
-    setInputAt(0, length);
-  }
-
-  Definition get length => inputDefAt(0);
-
-  CType get type =>
-      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType);
-
-  @override
-  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateList(this);
-}
-
-/// Set value of [index]-th element of the given fixed-size List.
-final class SetListElement extends Instruction
-    with NoThrow, HasSideEffects, BackendInstruction {
-  SetListElement(
+/// Load value from a field of a non-Dart object.
+final class LoadExternalField extends LoadField with BackendInstruction {
+  LoadExternalField(
     super.graph,
     super.sourcePosition,
-    Definition list,
-    Definition index,
-    Definition value,
-  ) : super(inputCount: 3) {
-    setInputAt(0, list);
-    setInputAt(1, index);
-    setInputAt(2, value);
+    super.field, {
+    Definition? object,
+  }) : super(inputCount: object != null ? 1 : 0, checkInitialized: false) {
+    if (object != null) {
+      setInputAt(0, object);
+    }
   }
 
-  Definition get list => inputDefAt(0);
-  Definition get index => inputDefAt(1);
-  Definition get value => inputDefAt(2);
+  bool get hasObject => inputCount > 0;
+  Definition? get object => inputDefAt(0);
 
   @override
-  R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
+/// Load value from an element of a non-Dart array.
+final class LoadExternalArrayElement extends Definition
+    with NoThrow, Pure, BackendInstruction {
+  @override
+  final CType type;
+
+  LoadExternalArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.type,
+    Definition array,
+    Definition index,
+  ) : super(inputCount: 2) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalArrayElement(this);
+}
+
+/// Copy array elements from one array into another.
+///
+/// [CopyArrayElements] assumes source and destination regions are within array bounds.
+final class CopyArrayElements extends Instruction
+    with NoThrow, HasSideEffects, BackendInstruction {
+  final ArrayKind kind;
+
+  /// Whether the source and destination regions can overlap.
+  bool canOverlap;
+
+  CopyArrayElements(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition srcArray,
+    Definition srcStart,
+    Definition dstArray,
+    Definition dstStart,
+    Definition length, {
+    required this.canOverlap,
+  }) : super(inputCount: 5) {
+    setInputAt(0, srcArray);
+    setInputAt(1, srcStart);
+    setInputAt(2, dstArray);
+    setInputAt(3, dstStart);
+    setInputAt(4, length);
+  }
+
+  Definition get srcArray => inputDefAt(0);
+  Definition get srcStart => inputDefAt(1);
+  Definition get dstArray => inputDefAt(2);
+  Definition get dstStart => inputDefAt(3);
+  Definition get length => inputDefAt(4);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitCopyArrayElements(this);
+}
+
+/// Allocate an array (built-in list or typed data list) of given length.
+///
+/// When creating built-in lists, [AllocateArray] can optionally take type arguments
+/// as an input.
+final class AllocateArray extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  final ArrayKind kind;
+
+  @override
+  final CType type;
+
+  AllocateArray(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    this.type,
+    Definition? typeArguments,
+    Definition length,
+  ) : super(inputCount: typeArguments != null ? 2 : 1) {
+    if (typeArguments != null) {
+      assert(kind == .fixedLengthList);
+      setInputAt(0, typeArguments);
+      setInputAt(1, length);
+    } else {
+      setInputAt(0, length);
+    }
+  }
+
+  bool get hasTypeArguments => inputCount > 1;
+  Definition? get typeArguments => hasTypeArguments ? inputDefAt(0) : null;
+  Definition get length => inputDefAt(hasTypeArguments ? 1 : 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateArray(this);
 }
 
 /// Allocate a Record instance of given type.
@@ -1906,11 +2045,14 @@ final class AllocateRecord extends Definition
 
 /// Base class for boxing instructions.
 abstract base class Box extends Definition
-    with CanThrow, Pure, BackendInstruction {
+    with CanThrow, Pure, Idempotent, BackendInstruction {
   Box(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 
   Definition get operand => inputDefAt(0);
 }
@@ -1939,13 +2081,16 @@ final class BoxDouble extends Box {
 
 /// Base class for unboxing instructions.
 abstract base class Unbox extends Definition
-    with NoThrow, Pure, BackendInstruction {
+    with NoThrow, Pure, Idempotent, BackendInstruction {
   Unbox(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
 
   Definition get operand => inputDefAt(0);
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 }
 
 /// Get raw int value out of the box.

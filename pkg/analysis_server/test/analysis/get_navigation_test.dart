@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -27,6 +28,93 @@ class GetNavigationTest extends AbstractNavigationTest {
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
 
+  Future<void> test_analysisOptions_include_list() async {
+    var file1 = newFile('$testPackageRootPath/opt1.yaml', '');
+    var file2 = newFile('$testPackageRootPath/opt2.yaml', '');
+    var optionsFile = newFile('$testPackageRootPath/analysis_options.yaml', '''
+include:
+  - opt1.yaml
+  - opt2.yaml
+''');
+    await waitForTasksFinished();
+    await _getNavigation(file: optionsFile, search: 'opt1.yaml');
+    assertHasRegion(
+      'opt1.yaml',
+      length: 'opt1.yaml'.length,
+      targetFile: optionsFile,
+    );
+    assertHasFileTarget(file1.path, 0, 0);
+
+    await _getNavigation(file: optionsFile, search: 'opt2.yaml');
+    assertHasRegion(
+      'opt2.yaml',
+      length: 'opt2.yaml'.length,
+      targetFile: optionsFile,
+    );
+    assertHasFileTarget(file2.path, 0, 0);
+  }
+
+  Future<void> test_analysisOptions_include_package() async {
+    var lintsPath = '$packagesRootPath/lints';
+    var recommendedFile = newFile('$lintsPath/lib/recommended.yaml', '');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'lints', rootFolder: getFolder(lintsPath)),
+    );
+    var optionsFile = newFile('$testPackageRootPath/analysis_options.yaml', '''
+include: package:lints/recommended.yaml
+''');
+    await waitForTasksFinished();
+    await _getNavigation(
+      file: optionsFile,
+      search: 'package:lints/recommended.yaml',
+    );
+    assertHasRegion(
+      'package:lints/recommended.yaml',
+      length: 'package:lints/recommended.yaml'.length,
+      targetFile: optionsFile,
+    );
+    assertHasFileTarget(recommendedFile.path, 0, 0);
+  }
+
+  Future<void> test_analysisOptions_include_package_unresolved() async {
+    var optionsFile = newFile('$testPackageRootPath/analysis_options.yaml', '''
+include: package:unknown/analysis_options.yaml
+''');
+    await waitForTasksFinished();
+    await _getNavigation(
+      file: optionsFile,
+      search: 'package:unknown/analysis_options.yaml',
+    );
+    expect(regions, isEmpty);
+  }
+
+  Future<void> test_analysisOptions_include_relative() async {
+    var otherFile = newFile('$testPackageRootPath/other.yaml', '');
+    var optionsFile = newFile('$testPackageRootPath/analysis_options.yaml', '''
+include: other.yaml
+''');
+    await waitForTasksFinished();
+    await _getNavigation(file: optionsFile, search: 'other.yaml');
+    assertHasRegion(
+      'other.yaml',
+      length: 'other.yaml'.length,
+      targetFile: optionsFile,
+    );
+    assertHasFileTarget(otherFile.path, 0, 0);
+  }
+
+  Future<void> test_analysisOptions_noInclude() async {
+    var optionsFile = newFile('$testPackageRootPath/analysis_options.yaml', '''
+linter:
+  rules:
+    - avoid_empty_else
+''');
+    await waitForTasksFinished();
+    await _getNavigation(file: optionsFile, search: 'avoid_empty_else');
+    expect(regions, isEmpty);
+  }
+
   Future<void> test_beforeAnalysisComplete() async {
     addTestFile('''
 void f() {
@@ -37,6 +125,21 @@ void f() {
     await _getNavigation(search: 'test);');
     assertHasRegion('test);');
     assertHasTarget('test = 0');
+  }
+
+  Future<void> test_comment_exampleDirective() async {
+    var examplePath = 'examples/api/foo.dart';
+    newFile('$testPackageLibPath/$examplePath', '');
+    addTestFile('''
+/// {@tool dartpad}
+/// {@example $examplePath}
+/// {@end-tool}
+String f() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(search: examplePath, length: 1);
+    expect(regions, hasLength(1));
+    assertHasRegion(examplePath, length: examplePath.length);
   }
 
   Future<void> test_comment_outsideReference() async {

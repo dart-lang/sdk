@@ -88,7 +88,7 @@ import 'package:no_ints/main.dart' as no_ints;
 dependency_overrides:
   dep_one: 2.0.0
   dep_two:
-    path: /aaa/bbb/ccc
+    path: "/aaa/bbb/ccc"
 '''),
     );
   }
@@ -112,7 +112,7 @@ dependency_overrides:
     );
   }
 
-  void test_pubspecContainsPathDependencies() {
+  void test_pubspecContainsPathDependencies_posix() {
     var pluginPackageGenerator = PluginPackageGenerator(
       configurations: [
         PluginConfiguration(
@@ -129,9 +129,35 @@ dependency_overrides:
       pluginPackageGenerator.generatePubspec(),
       contains('''
   no_bools:
-    path: ../no_bools_plugin
+    path: "../no_bools_plugin"
   no_ints:
-    path: tools/no_ints_plugin
+    path: "tools/no_ints_plugin"
+'''),
+    );
+  }
+
+  void test_pubspecContainsPathDependencies_windows() {
+    var pluginPackageGenerator = PluginPackageGenerator(
+      configurations: [
+        PluginConfiguration(
+          name: 'no_bools',
+          source: PathPluginSource(path: r'C:\no_bools_plugin'),
+        ),
+        PluginConfiguration(
+          name: 'no_ints',
+          source: PathPluginSource(path: r'C:\tools\no_ints_plugin'),
+        ),
+      ],
+    );
+    expect(
+      pluginPackageGenerator.generatePubspec(),
+      // Raw string so slashes are literal, but they should be escaped
+      // as part of the string, so there are two literal slashes in the YAML.
+      contains(r'''
+  no_bools:
+    path: "C:\\no_bools_plugin"
+  no_ints:
+    path: "C:\\tools\\no_ints_plugin"
 '''),
     );
   }

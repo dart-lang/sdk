@@ -110,7 +110,13 @@ PatternAssignment
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: List<int>
+    staticType: List<int>
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: List<int>
@@ -195,7 +201,13 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -224,7 +236,19 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: int
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: int Function()
+      type: int
+    staticType: int
+    typeArgumentTypes
+      int
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -265,7 +289,13 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: ({int foo})
+    staticType: ({int foo})
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: ({int foo})
@@ -334,7 +364,13 @@ PatternAssignment
     rightParenthesis: )
     matchedValueType: (int,)
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: (int,)
+    staticType: (int,)
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int,)
@@ -480,9 +516,15 @@ void f(num a) {
   a;
 }
 ''');
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::f::@formalParameter::a
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::f::@formalParameter::a
   staticType: int

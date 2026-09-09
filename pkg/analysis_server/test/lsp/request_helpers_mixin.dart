@@ -909,6 +909,19 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  Future<DartGetWorkspaceFixesResult> getWorkspaceFixes([
+    DartGetWorkspaceFixesParams? params,
+  ]) {
+    var request = makeRequest(
+      CustomMethods.getWorkspaceFixes,
+      params ?? DartGetWorkspaceFixesParams(),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      DartGetWorkspaceFixesResult.fromJson,
+    );
+  }
+
   Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
     var request = makeRequest(
       Method.workspace_symbol,

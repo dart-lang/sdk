@@ -10,8 +10,96 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ReplaceWithPartOfUriNestedTest);
+    defineReflectiveTests(ReplaceWithPartOfUriSecondTest);
     defineReflectiveTests(ReplaceWithPartOfUriTest);
   });
+}
+
+@reflectiveTest
+class ReplaceWithPartOfUriNestedTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.replaceWithPartOfUri;
+
+  @override
+  String get lintCode => LintNames.use_string_in_part_of_directives;
+
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `lib/nested` directory.
+  @override
+  String get testFilePath =>
+      getFile('$testPackageLibPath/nested/test.dart').path;
+
+  Future<void> test_packageLib_parentDirectory() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+library my.lib;
+part 'nested/test.dart';
+''');
+
+    await resolveTestCode('''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+part of my.lib;
+
+class A {}
+''');
+
+    await assertHasFix('''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+part of '../a.dart';
+
+class A {}
+''');
+  }
+}
+
+@reflectiveTest
+class ReplaceWithPartOfUriSecondTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.replaceWithPartOfUri;
+
+  @override
+  String get lintCode => LintNames.use_string_in_part_of_directives;
+
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `lib/second` directory.
+  @override
+  String get testFilePath =>
+      getFile('$testPackageLibPath/second/test.dart').path;
+
+  Future<void> test_packageLib_siblingDirectory() async {
+    newFile('$testPackageLibPath/first/a.dart', r'''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+library my.lib;
+part '../second/test.dart';
+''');
+
+    await resolveTestCode('''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+part of my.lib;
+
+class A {}
+''');
+
+    await assertHasFix('''
+// @dart = 3.4
+// (pre enhanced-parts)
+
+part of '../first/a.dart';
+
+class A {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -50,36 +138,6 @@ class A {}
 ''');
   }
 
-  Future<void> test_packageLib_parentDirectory() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-library my.lib;
-part 'nested/test.dart';
-''');
-
-    testFilePath = getFile('$testPackageLibPath/nested/test.dart').path;
-
-    await resolveTestCode('''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-part of my.lib;
-
-class A {}
-''');
-
-    await assertHasFix('''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-part of '../a.dart';
-
-class A {}
-''');
-  }
-
   Future<void> test_packageLib_sameDirectory() async {
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 3.4
@@ -103,36 +161,6 @@ class A {}
 // (pre enhanced-parts)
 
 part of 'a.dart';
-
-class A {}
-''');
-  }
-
-  Future<void> test_packageLib_siblingDirectory() async {
-    newFile('$testPackageLibPath/first/a.dart', r'''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-library my.lib;
-part '../second/test.dart';
-''');
-
-    testFilePath = getFile('$testPackageLibPath/second/test.dart').path;
-
-    await resolveTestCode('''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-part of my.lib;
-
-class A {}
-''');
-
-    await assertHasFix('''
-// @dart = 3.4
-// (pre enhanced-parts)
-
-part of '../first/a.dart';
 
 class A {}
 ''');

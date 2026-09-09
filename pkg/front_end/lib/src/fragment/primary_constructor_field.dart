@@ -110,8 +110,8 @@ class PrimaryConstructorFieldDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");

@@ -168,24 +168,25 @@ class FunctionCollector {
             )
           : translator.signatureForDirectCall(target);
 
-      final function = module.functions.define(ftype, getFunctionName(target))
-        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
-        ..inlineHint = inlineHint;
+      final functionBuilder =
+          module.functions.define(ftype, getFunctionName(target))
+            ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
+            ..inlineHint = inlineHint;
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
-        function.isJSCalled = true;
-        module.exports.export(exportName, function);
+        functionBuilder.isJSCalled = true;
+        module.exports.export(exportName, functionBuilder.function);
       }
 
       translator.compilationQueue.add(
         AstCompilationTask(
-          function,
-          getMemberCodeGenerator(translator, function, target),
+          functionBuilder,
+          getMemberCodeGenerator(translator, functionBuilder, target),
           target,
         ),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
@@ -204,7 +205,7 @@ class FunctionCollector {
       final module = translator.moduleForReference(target);
       final ftype = makeDynamicForwarderSignature(translator, shape);
       final name = getDynamicForwarderName(target, shape);
-      final function = module.functions.define(ftype, name);
+      final functionBuilder = module.functions.define(ftype, name);
       final codegen = DynamicForwarderCodeGenerator(
         translator,
         ftype,
@@ -212,9 +213,9 @@ class FunctionCollector {
         shape,
       );
       translator.compilationQueue.add(
-        AstCompilationTask(function, codegen, target),
+        AstCompilationTask(functionBuilder, codegen, target),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
@@ -223,10 +224,12 @@ class FunctionCollector {
       final module = translator.mainModule;
       final ftype = makeInvocationCreatorSignature(translator, shape);
       final name = getInvocationCreatorStubName(shape);
-      final function = module.functions.define(ftype, name);
+      final functionBuilder = module.functions.define(ftype, name);
       final codegen = InvocationCreationStubGenerator(translator, shape);
-      translator.compilationQueue.add(CompilationTask(function, codegen));
-      return function;
+      translator.compilationQueue.add(
+        CompilationTask(functionBuilder, codegen),
+      );
+      return functionBuilder.function;
     });
   }
 
@@ -235,14 +238,17 @@ class FunctionCollector {
       final module = translator.moduleForReference(
         lambda.enclosingMember.reference,
       );
-      final function = module.functions.define(
+      final functionBuilder = module.functions.define(
         getLambdaFunctionType(lambda),
         getLambdaFunctionName(lambda),
       );
       translator.compilationQueue.add(
-        CompilationTask(function, getLambdaCodeGenerator(translator, lambda)),
+        CompilationTask(
+          functionBuilder,
+          getLambdaCodeGenerator(translator, lambda),
+        ),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
@@ -379,7 +385,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.cosmeticName;
+      final functionNodeName = lambdaNode.variable.name;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -747,15 +753,24 @@ List<w.ValueType> _getInputTypes(
     List<String> names = [
       for (var p in function.namedParameters) p.parameterName,
     ]..sort();
-    final typeForParam = translator.typeOfParameterVariable;
+    final isNoSuchMethodForwarder =
+        member is Procedure && member.isNoSuchMethodForwarder;
     Map<String, DartType> nameTypes = {
       for (var p in function.namedParameters)
-        p.parameterName: typeForParam(p, p.isRequired),
+        p.parameterName: translator.typeOfParameterVariable(
+          p,
+          p.isRequired,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
     };
     final positionals = function.positionalParameters;
     params = [
       for (int i = 0; i < positionals.length; ++i)
-        typeForParam(positionals[i], i < function.requiredParameterCount),
+        translator.typeOfParameterVariable(
+          positionals[i],
+          i < function.requiredParameterCount,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
       for (String name in names) nameTypes[name]!,
     ];
   }

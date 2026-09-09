@@ -227,9 +227,18 @@ abstract int get foo {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -249,9 +258,18 @@ abstract int get foo {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -269,9 +287,20 @@ FunctionDeclaration
 augment int get foo => 0;
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: int
@@ -280,7 +309,7 @@ FunctionDeclaration
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
       semicolon: ;
 ''');
@@ -294,15 +323,23 @@ augment int get foo => 0;
 // [diag.expectedToken] Expected to find ';'.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: FunctionDeclaration
   propertyKeyword: get
   name: foo
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
       semicolon: ;
 ''');
@@ -313,9 +350,17 @@ FunctionDeclaration
 augment int get foo;
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: int
@@ -332,9 +377,18 @@ FunctionDeclaration
 augment external int get foo;
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   externalKeyword: external
   returnType: NamedType
@@ -352,9 +406,16 @@ FunctionDeclaration
 int get foo;
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -373,9 +434,16 @@ int get foo;
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get

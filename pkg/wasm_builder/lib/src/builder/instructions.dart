@@ -255,29 +255,14 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get isEmpty => _instructions.isEmpty;
 
-  void collectUsedTypes(Set<ir.DefType> usedTypes) {
-    for (final local in locals) {
-      final localDefType = local.type.containedDefType;
-      if (localDefType != null) usedTypes.add(localDefType);
-    }
-    for (final instruction in _instructions) {
-      usedTypes.addAll(instruction.usedDefTypes);
-      for (final valueType in instruction.usedValueTypes) {
-        final type = valueType.containedDefType;
-        if (type != null) usedTypes.add(type);
-      }
-    }
-    for (final patch in _patchPoints) {
-      patch.patchBuilder.collectUsedTypes(usedTypes);
-    }
-  }
+  bool get hasPatchPoints => _patchPoints.isNotEmpty;
 
   @override
   ir.Instructions forceBuild() {
     if (_patchPoints.isEmpty) {
       return ir.Instructions(
         locals,
-        localNames,
+        localNames.isEmpty ? const {} : localNames,
         _instructions,
         _stackTraces,
         _traceLines,
@@ -300,6 +285,10 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     int smi = _sourceMappings != null ? 0 : -1;
 
     for (final patch in _patchPoints) {
+      assert(
+        patch.patchBuilder._instructions.isNotEmpty,
+        "Patchable region at offset ${patch.start} was not patched before building.",
+      );
       // Add all instructions before the patch starts.
       while (ini < patch.start) {
         newInstructions.add(instructions[ini++]);
@@ -331,7 +320,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
     return ir.Instructions(
       locals,
-      localNames,
+      localNames.isEmpty ? const {} : localNames,
       newInstructions,
       _stackTraces,
       _traceLines,
@@ -345,6 +334,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     List<ir.ValueType> inputs,
     List<ir.ValueType> outputs,
   ) {
+    assert(!isBuilt);
     assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));
     if (!_reachable) return null;
 
@@ -361,6 +351,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   void _add(ir.Instruction i) {
+    assert(!isBuilt);
     assert(
       !constantExpression || i.isConstant,
       "Non-constant instruction $i added to constant expression",
@@ -1836,7 +1827,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   /// Emit an `array.new_data` instruction.
-  void array_new_data(ir.ArrayType arrayType, ir.BaseDataSegment data) {
+  void array_new_data(ir.ArrayType arrayType, ir.DataSegment data) {
     assert(arrayType.elementType.type.isPrimitive);
     assert(
       _verifyTypes(
@@ -4650,6 +4641,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i32x4Eq);
+  }
+
+  void i32x4_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Ne);
   }
 
   void i64x2_eq() {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +28,26 @@ void foo<T>(T _) {}
 ''');
 
     var formalParameter = result.findElement.parameter('a');
-    expect(formalParameter.constantInitializer2, isA<FunctionReference>());
+    assertResolvedNodeText(formalParameter.constantInitializer2!, r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::foo
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_element_block() async {
@@ -46,9 +64,19 @@ f() {
     expect(fragment.nameOffset, 8);
     expect(element.name, 'g');
 
-    var node = result.findNode.methodInvocation('g();');
+    var node = result.findNode.unqualifiedFunctionInvocation('g();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: g@8
+    invokeType: Null Function()
+    type: Null
+  staticType: Null
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: g@8
@@ -96,9 +124,19 @@ f(int a) {
     expect(fragment.nameOffset, 44);
     expect(element.name, 'g');
 
-    var node = result.findNode.methodInvocation('g();');
+    var node = result.findNode.unqualifiedFunctionInvocation('g();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: g@44
+    invokeType: Null Function()
+    type: Null
+  staticType: Null
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: g@44
@@ -130,9 +168,19 @@ f(int a) {
     expect(fragment.nameOffset, 60);
     expect(element.name, 'g');
 
-    var node = result.findNode.methodInvocation('g();');
+    var node = result.findNode.unqualifiedFunctionInvocation('g();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: g@60
+    invokeType: Null Function()
+    type: Null
+  staticType: Null
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: g@60
@@ -157,13 +205,23 @@ f(bool c) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: g@25
+    invokeType: dynamic Function()
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: g@25
-    staticType: dynamic Function()
+    staticType: Null Function()
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )

@@ -20,12 +20,51 @@
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
 #include "bin/namespace.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/signal_blocker.h"
 #include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
 namespace bin {
+
+static int lstat64_fixed(const char* __restrict pathname,
+                         struct stat64* __restrict statbuf) {
+  int result = ::lstat64(pathname, statbuf);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int lstat64(const char* __restrict pathname,
+                   struct stat64* __restrict statbuf) = delete;
+
+static int fstat64_fixed(int fd, struct stat64* __restrict statbuf) {
+  int result = ::fstat64(fd, statbuf);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int fstat64(int fd, struct stat64* __restrict statbuf) = delete;
+
+static int fstatat64_fixed(int dirfd,
+                           const char* __restrict pathname,
+                           struct stat64* __restrict statbuf,
+                           int flags) {
+  int result = ::fstatat64(dirfd, pathname, statbuf, flags);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int fstatat64(int dirfd,
+                     const char* __restrict pathname,
+                     struct stat64* __restrict statbuf,
+                     int flags) = delete;
 
 class FileHandle {
  public:
@@ -212,7 +251,7 @@ bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
 int64_t File::Length() {
   ASSERT(handle_->fd() >= 0);
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstat64(handle_->fd(), &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstat64_fixed(handle_->fd(), &st)) == 0) {
     return st.st_size;
   }
   return -1;
@@ -234,7 +273,7 @@ File* File::Open(Namespace* namespc,
   NamespaceScope ns(namespc, name);
   // Report errors for non-regular files.
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), &st, 0)) == 0) {
     // Only accept regular files, character devices, and pipes.
     if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode) && !S_ISFIFO(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
@@ -297,7 +336,7 @@ File* File::OpenStdio(int fd) {
 bool File::Exists(Namespace* namespc, const char* name) {
   NamespaceScope ns(namespc, name);
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), &st, 0)) == 0) {
     // Everything but a directory and a link is a file to Dart.
     return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
   } else {
@@ -328,7 +367,7 @@ bool File::Create(Namespace* namespc, const char* name, bool exclusive) {
   // an entity at the same path that is a directory or a link.
   bool is_file = true;
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstat64(fd, &st)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstat64_fixed(fd, &st)) == 0) {
     if (S_ISDIR(st.st_mode)) {
       errno = EISDIR;
       is_file = false;
@@ -367,10 +406,10 @@ File::Type File::GetType(Namespace* namespc,
   int stat_success;
   if (follow_links) {
     stat_success =
-        TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+        TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), &entry_info, 0));
   } else {
     stat_success = TEMP_FAILURE_RETRY(
-        fstatat64(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
+        fstatat64_fixed(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
   }
   if (stat_success == -1) {
     return File::kDoesNotExist;
@@ -469,7 +508,8 @@ bool File::Copy(Namespace* namespc,
   }
   NamespaceScope oldns(namespc, old_path);
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstatat64(oldns.fd(), oldns.path(), &st, 0)) != 0) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(oldns.fd(), oldns.path(), &st, 0)) !=
+      0) {
     return false;
   }
   const int old_fd = TEMP_FAILURE_RETRY(
@@ -525,7 +565,7 @@ static bool StatHelper(Namespace* namespc,
                        const char* name,
                        struct stat64* st) {
   NamespaceScope ns(namespc, name);
-  if (TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), st, 0)) != 0) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), st, 0)) != 0) {
     return false;
   }
   // Signal an error if it's a directory.
@@ -559,7 +599,7 @@ static void MicrosecondsToTimespec(int64_t micros, struct timespec* t) {
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
   NamespaceScope ns(namespc, name);
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &st, 0)) == 0) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), &st, 0)) == 0) {
     if (S_ISREG(st.st_mode)) {
       data[kType] = kIsFile;
     } else if (S_ISDIR(st.st_mode)) {
@@ -640,7 +680,7 @@ const char* File::LinkTarget(Namespace* namespc,
   NamespaceScope ns(namespc, name);
   struct stat64 link_stats;
   const int status = TEMP_FAILURE_RETRY(
-      fstatat64(ns.fd(), ns.path(), &link_stats, AT_SYMLINK_NOFOLLOW));
+      fstatat64_fixed(ns.fd(), ns.path(), &link_stats, AT_SYMLINK_NOFOLLOW));
   if (status != 0) {
     return nullptr;
   }
@@ -681,7 +721,7 @@ intptr_t File::ReadLinkInto(const char* pathname,
   ASSERT(pathname != nullptr);
   ASSERT(IsAbsolutePath(pathname));
   struct stat64 link_stats;
-  if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) {
+  if (TEMP_FAILURE_RETRY(lstat64_fixed(pathname, &link_stats)) != 0) {
     return -1;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
@@ -755,7 +795,7 @@ const char* File::StringEscapedPathSeparator() {
 
 File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat64 buf;
-  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
+  int result = TEMP_FAILURE_RETRY(fstat64_fixed(fd, &buf));
   if (result == -1) {
     return kTypeError;
   }
@@ -783,16 +823,16 @@ File::Identical File::AreIdentical(Namespace* namespc_1,
   int status;
   {
     NamespaceScope ns1(namespc_1, file_1);
-    status = TEMP_FAILURE_RETRY(
-        fstatat64(ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
+    status = TEMP_FAILURE_RETRY(fstatat64_fixed(
+        ns1.fd(), ns1.path(), &file_1_info, AT_SYMLINK_NOFOLLOW));
     if (status == -1) {
       return File::kError;
     }
   }
   {
     NamespaceScope ns2(namespc_2, file_2);
-    status = TEMP_FAILURE_RETRY(
-        fstatat64(ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
+    status = TEMP_FAILURE_RETRY(fstatat64_fixed(
+        ns2.fd(), ns2.path(), &file_2_info, AT_SYMLINK_NOFOLLOW));
     if (status == -1) {
       return File::kError;
     }

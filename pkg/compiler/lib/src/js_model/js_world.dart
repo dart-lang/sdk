@@ -342,9 +342,8 @@ class JClosedWorld implements World {
     ClassEntity cls,
     ClassEntity type,
   ) {
-    return mixinUsesOf(
-      cls,
-    ).any((use) => hasAnySubclassThatImplements(use, type));
+    return mixinUsesOf(cls)
+        .any((use) => hasAnySubclassThatImplements(use, type));
   }
 
   /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass

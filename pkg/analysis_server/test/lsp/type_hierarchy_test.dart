@@ -333,7 +333,7 @@ Depende^ncyClass? x;
     /// contains a class and subclass.
     void createDependency(int version) {
       var dependencyPath = convertPath('$packagesRootPath/v$version/a');
-      writePackageConfig(convertPath(dependencyPath));
+      writePackageConfig2(convertPath(dependencyPath));
       newFile('$dependencyPath/lib/a.dart', '''
 class DependencyClass;
 
@@ -345,7 +345,7 @@ class SubClass extends DependencyClass;
     /// version [i] of of `package:a`.
     void createTestPackage(int i) {
       var packagePath = convertPath('$projectFolderPath/package$i');
-      writePackageConfig(
+      writePackageConfig2(
         packagePath,
         config: (PackageConfigFileBuilder()
           // Package i references version i of the dependency.

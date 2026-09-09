@@ -237,9 +237,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t11, block {
     final core::Set<core::int> #t12 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##1 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##1 = :sync-for-iterator##1.{core::Iterator::current}{dynamic};
         #t12.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:25:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...b}, // Error.
                                     ^"){(core::int) → core::bool};
@@ -248,9 +248,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t12, block {
     final core::Set<core::int> #t13 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##2 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##2 = :sync-for-iterator##2.{core::Iterator::current}{dynamic};
         #t13.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:26:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...c}, // Error.
                                     ^"){(core::int) → core::bool};
@@ -259,9 +259,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t13, block {
     final core::Map<core::int, core::int> #t14 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##3 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##3 = :sync-for-iterator##3.{core::Iterator::current}{dynamic};
         invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:27:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...d}, // Error.
                                     ^";
@@ -275,19 +275,19 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
                                      ^"){(core::int) → core::bool};
   } =>#t15, block {
     final core::Set<core::int> #t16 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##1 = 0; i##1.{core::num::<}(42){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int})
       #t16.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:29:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...b}, // Error.
                                      ^"){(core::int) → core::bool};
   } =>#t16, block {
     final core::Set<core::int> #t17 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##2 = 0; i##2.{core::num::<}(42){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::num) → core::int})
       #t17.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:30:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...c}, // Error.
                                      ^"){(core::int) → core::bool};
   } =>#t17, block {
     final core::Map<core::int, core::int> #t18 = <core::int, core::int>{};
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##3 = 0; i##3.{core::num::<}(42){(core::num) → core::bool}; i##3 = i##3.{core::num::+}(1){(core::num) → core::int})
       invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:31:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...d}, // Error.
                                      ^";
@@ -342,9 +342,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t33, block {
     final core::Set<core::int> #t35 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##4 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##4 = :sync-for-iterator##4.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t36 = a;
           if(!(#t36 == null))
@@ -355,9 +355,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t35, block {
     final core::Set<core::int> #t37 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##5 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##5 = :sync-for-iterator##5.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t38 = b;
           if(!(#t38 == null))
@@ -368,9 +368,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t37, block {
     final core::Set<core::int> #t39 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##6 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##6 = :sync-for-iterator##6.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t40 = c;
           if(!(#t40 == null))
@@ -381,9 +381,9 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
   } =>#t39, block {
     final core::Map<core::int, core::int> #t41 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##7 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##7 = :sync-for-iterator##7.{core::Iterator::current}{dynamic};
         {
           final core::Map<core::int, core::int>? #t42 = d;
           if(!(#t42 == null))
@@ -393,28 +393,28 @@ static method foo(core::bool condition, core::Iterable<dynamic> iterable, core::
     }
   } =>#t41, block {
     final core::Set<core::int> #t43 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##4 = 0; i##4.{core::num::<}(42){(core::num) → core::bool}; i##4 = i##4.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t44 = a;
       if(!(#t44 == null))
         #t43.{core::Set::addAll}{Invariant}(#t44{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t43, block {
     final core::Set<core::int> #t45 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##5 = 0; i##5.{core::num::<}(42){(core::num) → core::bool}; i##5 = i##5.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t46 = b;
       if(!(#t46 == null))
         #t45.{core::Set::addAll}{Invariant}(#t46{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t45, block {
     final core::Set<core::int> #t47 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##6 = 0; i##6.{core::num::<}(42){(core::num) → core::bool}; i##6 = i##6.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t48 = c;
       if(!(#t48 == null))
         #t47.{core::Set::addAll}{Invariant}(#t48{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t47, block {
     final core::Map<core::int, core::int> #t49 = <core::int, core::int>{};
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##7 = 0; i##7.{core::num::<}(42){(core::num) → core::bool}; i##7 = i##7.{core::num::+}(1){(core::num) → core::int}) {
       final core::Map<core::int, core::int>? #t50 = d;
       if(!(#t50 == null))
         #t49.{core::Map::addAll}{Invariant}(#t50{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
@@ -490,9 +490,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t61, block {
     final core::Set<core::int> #t62 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##1 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##1 = :sync-for-iterator##1.{core::Iterator::current}{dynamic};
         #t62.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:70:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...y}, // Error.
                                     ^"){(core::int) → core::bool};
@@ -501,9 +501,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t62, block {
     final core::Set<core::int> #t63 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##2 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##2 = :sync-for-iterator##2.{core::Iterator::current}{dynamic};
         #t63.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:71:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...z}, // Error.
                                     ^"){(core::int) → core::bool};
@@ -512,9 +512,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t63, block {
     final core::Map<core::int, core::int> #t64 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##3 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##3 = :sync-for-iterator##3.{core::Iterator::current}{dynamic};
         invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:72:37: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (dynamic e in iterable) ...w}, // Error.
                                     ^";
@@ -528,19 +528,19 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
                                      ^"){(core::int) → core::bool};
   } =>#t65, block {
     final core::Set<core::int> #t66 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##1 = 0; i##1.{core::num::<}(42){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int})
       #t66.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:74:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...y}, // Error.
                                      ^"){(core::int) → core::bool};
   } =>#t66, block {
     final core::Set<core::int> #t67 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##2 = 0; i##2.{core::num::<}(42){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::num) → core::int})
       #t67.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:75:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...z}, // Error.
                                      ^"){(core::int) → core::bool};
   } =>#t67, block {
     final core::Map<core::int, core::int> #t68 = <core::int, core::int>{};
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    for (core::int i##3 = 0; i##3.{core::num::<}(42){(core::num) → core::bool}; i##3 = i##3.{core::num::+}(1){(core::num) → core::int})
       invalid-expression "pkg/front_end/testcases/nnbd/issue43495.dart:76:38: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
     {for (int i = 0; i < 42; ++i) ...w}, // Error.
                                      ^";
@@ -595,9 +595,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t83, block {
     final core::Set<core::int> #t85 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##4 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##4 = :sync-for-iterator##4.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t86 = x;
           if(!(#t86 == null))
@@ -608,9 +608,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t85, block {
     final core::Set<core::int> #t87 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##5 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##5 = :sync-for-iterator##5.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t88 = y;
           if(!(#t88 == null))
@@ -621,9 +621,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t87, block {
     final core::Set<core::int> #t89 = new _co::_Set::•<core::int>();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##6 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##6 = :sync-for-iterator##6.{core::Iterator::current}{dynamic};
         {
           final core::Iterable<core::int>? #t90 = z;
           if(!(#t90 == null))
@@ -634,9 +634,9 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
   } =>#t89, block {
     final core::Map<core::int, core::int> #t91 = <core::int, core::int>{};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        dynamic e = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##7 = iterable.{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        dynamic e##7 = :sync-for-iterator##7.{core::Iterator::current}{dynamic};
         {
           final core::Map<core::int, core::int>? #t92 = w;
           if(!(#t92 == null))
@@ -646,28 +646,28 @@ static method bar<X extends core::List<core::int>?, Y extends core::Set<core::in
     }
   } =>#t91, block {
     final core::Set<core::int> #t93 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##4 = 0; i##4.{core::num::<}(42){(core::num) → core::bool}; i##4 = i##4.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t94 = x;
       if(!(#t94 == null))
         #t93.{core::Set::addAll}{Invariant}(#t94{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t93, block {
     final core::Set<core::int> #t95 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##5 = 0; i##5.{core::num::<}(42){(core::num) → core::bool}; i##5 = i##5.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t96 = y;
       if(!(#t96 == null))
         #t95.{core::Set::addAll}{Invariant}(#t96{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t95, block {
     final core::Set<core::int> #t97 = new _co::_Set::•<core::int>();
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##6 = 0; i##6.{core::num::<}(42){(core::num) → core::bool}; i##6 = i##6.{core::num::+}(1){(core::num) → core::int}) {
       final core::Iterable<core::int>? #t98 = z;
       if(!(#t98 == null))
         #t97.{core::Set::addAll}{Invariant}(#t98{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
     }
   } =>#t97, block {
     final core::Map<core::int, core::int> #t99 = <core::int, core::int>{};
-    for (core::int i = 0; i.{core::num::<}(42){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int i##7 = 0; i##7.{core::num::<}(42){(core::num) → core::bool}; i##7 = i##7.{core::num::+}(1){(core::num) → core::int}) {
       final core::Map<core::int, core::int>? #t100 = w;
       if(!(#t100 == null))
         #t99.{core::Map::addAll}{Invariant}(#t100{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};

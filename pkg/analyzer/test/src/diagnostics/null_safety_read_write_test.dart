@@ -1202,7 +1202,7 @@ void f(bool b) {
     required bool assigned,
     required bool unassigned,
   }) {
-    var node = result.findNode.simple(search);
+    var node = result.findNode.any(search);
 
     var testingData = driverFor(testFile).testingData!;
     var unitData = testingData.uriToFlowAnalysisData[result.uri]!;

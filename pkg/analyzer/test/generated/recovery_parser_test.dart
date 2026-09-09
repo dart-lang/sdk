@@ -34,7 +34,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
@@ -60,7 +60,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
@@ -84,7 +84,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: +
@@ -108,7 +108,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: +
@@ -141,7 +141,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -178,7 +178,7 @@ BinaryOperatorInvocation
       token: <empty> <synthetic>
     binaryOperator: multiply
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
@@ -213,7 +213,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -234,15 +234,26 @@ var v = a.b[];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: PrefixedIdentifier
+ReceiverIndexExpression
+  receiver: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
     identifier: SimpleIdentifier
       token: b
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: <empty> <synthetic>
+  rightBracket: ]
+V1: IndexExpression
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+  leftBracket: [
+  index: SimpleIdentifier
     token: <empty> <synthetic>
   rightBracket: ]
 ''');
@@ -256,15 +267,25 @@ var v = = y = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: y
+    operator: =
+    value: IntegerLiteral
+      literal: 0
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 0
 ''');
   }
@@ -277,15 +298,25 @@ var v = x = = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: <empty> <synthetic>
+    operator: =
+    value: IntegerLiteral
+      literal: 0
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: <empty> <synthetic>
     operator: =
-    rightHandSide2: IntegerLiteral
+    rightHandSide: IntegerLiteral
       literal: 0
 ''');
   }
@@ -298,15 +329,25 @@ var v = x = y =;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: DirectAssignment
+    target: UnqualifiedNameAssignmentTarget
+      name: y
+    operator: =
+    value: SimpleIdentifier
+      token: <empty> <synthetic>
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: AssignmentExpression
-    leftHandSide2: SimpleIdentifier
+  rightHandSide: AssignmentExpression
+    leftHandSide: SimpleIdentifier
       token: y
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: <empty> <synthetic>
 ''');
   }
@@ -319,11 +360,17 @@ var v = = 0;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: <empty> <synthetic>
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
 ''');
   }
@@ -336,11 +383,17 @@ var v = x =;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: SimpleIdentifier
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+  operator: =
+  value: SimpleIdentifier
+    token: <empty> <synthetic>
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
     token: x
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: <empty> <synthetic>
 ''');
   }
@@ -360,7 +413,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &
@@ -386,7 +439,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &
@@ -410,7 +463,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &
@@ -434,7 +487,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: &
@@ -466,7 +519,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -502,7 +555,7 @@ LogicalAnd
     rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
     binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
@@ -537,7 +590,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -565,7 +618,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: |
@@ -591,7 +644,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: |
@@ -615,7 +668,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: |
@@ -639,7 +692,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: |
@@ -672,7 +725,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -709,7 +762,7 @@ BinaryOperatorInvocation
       token: <empty> <synthetic>
     binaryOperator: bitwiseXor
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: |
@@ -744,7 +797,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -772,7 +825,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ^
@@ -798,7 +851,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ^
@@ -822,7 +875,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ^
@@ -846,7 +899,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: ^
@@ -879,7 +932,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -916,7 +969,7 @@ BinaryOperatorInvocation
       token: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ^
@@ -951,7 +1004,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -976,7 +1029,7 @@ class B = Object with A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1019,11 +1072,14 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1050,6 +1106,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: <empty> <synthetic>
           shownNames
             SimpleIdentifier
               token: <empty> <synthetic>
@@ -1152,7 +1211,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       semicolon: ;
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1194,7 +1253,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ==
@@ -1220,7 +1279,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ==
@@ -1244,7 +1303,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ==
@@ -1268,7 +1327,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: ==
@@ -1300,7 +1359,7 @@ BinaryOperatorInvocation
     type: NamedType
       name: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ==
@@ -1336,7 +1395,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -1364,7 +1423,7 @@ BinaryOperatorInvocation
   rightOperand: SuperExpression
     superKeyword: super
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: IntegerLiteral
     literal: 1
   operator: ==
@@ -1447,7 +1506,7 @@ class A { A() : a = (){}; var v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1456,7 +1515,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
@@ -1464,7 +1524,8 @@ CompilationUnit
             separator: :
             initializers
               ConstructorFieldInitializer
-                fieldName: SimpleIdentifier
+                fieldName2: a
+                fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
                 expression2: RecordLiteral
@@ -1558,9 +1619,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'b.dart'
       asKeyword: as
+      prefixName: b
+      semicolon: ;
       prefix: SimpleIdentifier
         token: b
-      semicolon: ;
 ''');
   }
 
@@ -1581,6 +1643,9 @@ CompilationUnit
       combinators
         HideCombinator
           keyword: hide
+          names
+            CombinatorName
+              name: foo
           hiddenNames
             SimpleIdentifier
               token: foo
@@ -1605,6 +1670,9 @@ CompilationUnit
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: foo
           shownNames
             SimpleIdentifier
               token: foo
@@ -1645,7 +1713,7 @@ C() : {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1671,7 +1739,7 @@ C() : x(3) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1716,7 +1784,7 @@ C() : this {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1758,7 +1826,7 @@ C() : this.g {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1810,7 +1878,7 @@ C() : this. {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1846,7 +1914,7 @@ C() : x {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1925,7 +1993,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Map
       functionExpression: FunctionExpression
@@ -2046,12 +2114,12 @@ CompilationUnit
                             leftBracket: {
                             statements
                               ExpressionStatement
-                                expression2: AssignmentExpression
-                                  leftHandSide2: IndexExpression
-                                    target2: SimpleIdentifier
+                                expression2: DirectAssignment
+                                  target: ReceiverIndexAssignmentTarget
+                                    receiver: SimpleIdentifier
                                       token: result
                                     leftBracket: [
-                                    index2: ConstructorInvocation
+                                    index: ConstructorInvocation
                                       keyword: new
                                       constructorReference: ConstructorReference2
                                         typeReference: ConstructorTypeReference
@@ -2062,7 +2130,16 @@ CompilationUnit
                                           SimpleIdentifier
                                             token: name
                                         rightParenthesis: )
-                                    index(v1): InstanceCreationExpression
+                                    rightBracket: ]
+                                  operator: =
+                                  value: SimpleIdentifier
+                                    token: value
+                                expression(v1): AssignmentExpression
+                                  leftHandSide: IndexExpression
+                                    target: SimpleIdentifier
+                                      token: result
+                                    leftBracket: [
+                                    index: InstanceCreationExpression
                                       keyword: new
                                       constructorName: ConstructorName
                                         type: NamedType
@@ -2075,7 +2152,7 @@ CompilationUnit
                                         rightParenthesis: )
                                     rightBracket: ]
                                   operator: =
-                                  rightHandSide2: SimpleIdentifier
+                                  rightHandSide: SimpleIdentifier
                                     token: value
                                 semicolon: ;
                             rightBracket: }
@@ -2097,7 +2174,7 @@ foo();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2119,7 +2196,7 @@ foo();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2140,7 +2217,7 @@ String
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -2160,7 +2237,7 @@ const
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -2181,7 +2258,7 @@ final
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -2202,7 +2279,7 @@ var
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2225,7 +2302,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2256,7 +2333,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2287,7 +2364,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2317,7 +2394,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2350,7 +2427,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2380,7 +2457,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2611,7 +2688,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2648,7 +2725,7 @@ class C<K {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2675,7 +2752,7 @@ class C<K extends L<T> {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2711,7 +2788,7 @@ class C<K extends L<T {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2746,7 +2823,7 @@ f() sync {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2770,7 +2847,7 @@ class C { var f = Map<A, B> {}; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2813,7 +2890,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2850,7 +2927,7 @@ class C<X super Y> {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2881,7 +2958,7 @@ class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2959,7 +3036,7 @@ class C { get C.named => null; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2968,7 +3045,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -2993,7 +3071,7 @@ class C { C.named : super(); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3002,7 +3080,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3031,7 +3110,7 @@ class C { C => null; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3040,7 +3119,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: ( <synthetic>
@@ -3063,7 +3143,7 @@ class C { C.named => null; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3072,7 +3152,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3099,7 +3180,7 @@ class C { set C.named => null; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3108,7 +3189,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3132,7 +3214,7 @@ do() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: do
       functionExpression: FunctionExpression
@@ -3160,7 +3242,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: y
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
@@ -3185,7 +3267,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
@@ -3208,7 +3290,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &&
@@ -3240,7 +3322,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -3276,7 +3358,7 @@ LogicalAnd
     rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
     binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: &&
@@ -3303,7 +3385,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: y
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
@@ -3328,7 +3410,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
@@ -3351,7 +3433,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ||
@@ -3382,7 +3464,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -3417,7 +3499,7 @@ LogicalOr
     operator: &&
     rightOperand: SimpleIdentifier
       token: <empty> <synthetic>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: ||
@@ -3439,7 +3521,7 @@ class C { b() }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3505,7 +3587,7 @@ MethodInvocation
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -3535,7 +3617,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3592,7 +3674,7 @@ String n x = "";
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -3628,7 +3710,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: *
@@ -3654,7 +3736,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: *
@@ -3678,7 +3760,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: *
@@ -3702,7 +3784,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: *
@@ -3729,7 +3811,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: -
     operand: SimpleIdentifier
@@ -3758,7 +3840,7 @@ BinaryOperatorInvocation
       token: y
     unaryOperator: negate
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: *
@@ -3792,7 +3874,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -3816,7 +3898,7 @@ class A { b(c: 0, Foo d: 0, e){} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3895,7 +3977,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: "" <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -3931,7 +4013,7 @@ UnaryOperatorInvocation
   operand: SimpleIdentifier
     token: <empty> <synthetic>
   unaryOperator: negate
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -4061,7 +4143,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: <<
@@ -4087,7 +4169,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: <<
@@ -4111,7 +4193,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: <<
@@ -4135,7 +4217,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: <<
@@ -4168,7 +4250,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: <empty> <synthetic>
@@ -4205,7 +4287,7 @@ BinaryOperatorInvocation
       token: <empty> <synthetic>
     binaryOperator: add
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: <<
@@ -4240,7 +4322,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: <empty> <synthetic>
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -4264,7 +4346,7 @@ typedef n
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: n
@@ -4290,7 +4372,7 @@ BinaryOperatorInvocation
   rightOperand: IntegerLiteral
     literal: 2
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +

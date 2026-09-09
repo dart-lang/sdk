@@ -67,7 +67,7 @@ class SnippetManagerTest extends AbstractSingleUnitTest {
 
     var manager = _TestDartSnippetManager({
       SnippetContext.atTopLevel: [_ValidSnippetProducer.newInstance],
-      SnippetContext.inClass: [
+      SnippetContext.inClassBody: [
         (
           context, {
           required Map<Element, LibraryElement?> elementImportCache,

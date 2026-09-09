@@ -1121,11 +1121,11 @@ Try removing the 'const' modifier.
     core::print(stringLocal);
   }
   for (final core::int #t63 in <core::int>[1]) {
-    core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    core::String stringLocal##1 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:25:15: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
   for (String stringLocal in <int>[1]) { // Error
               ^" in #t63 as{TypeError} core::String;
-    core::print(stringLocal);
+    core::print(stringLocal##1);
   }
   core::print( block {
     final core::List<core::int> #t64 = <core::int>[];
@@ -1134,30 +1134,30 @@ Try changing the type of the variable.
 Try removing the 'const' modifier.
     for (const constLocal in [1]) constLocal // Error
                ^^^^^^^^^^";
-      for (core::int constLocal in <core::int>[1])
-        #t64.{core::List::add}{Invariant}(constLocal){(core::int) → void};
+      for (core::int constLocal##1 in <core::int>[1])
+        #t64.{core::List::add}{Invariant}(constLocal##1){(core::int) → void};
     }
   } =>#t64);
   core::print( block {
     final core::List<core::int> #t65 = <core::int>[];
-    for (core::int lateLocal in <core::int>[1])
-      #t65.{core::List::add}{Invariant}(lateLocal){(core::int) → void};
+    for (core::int lateLocal##1 in <core::int>[1])
+      #t65.{core::List::add}{Invariant}(lateLocal##1){(core::int) → void};
   } =>#t65);
   core::print( block {
     final core::List<core::String> #t66 = <core::String>[];
-    for (core::String stringLocal in <core::String>[invalid-expression "pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (core::String stringLocal##2 in <core::String>[invalid-expression "pkg/front_end/testcases/general/for_in.dart:35:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (String stringLocal in [1]) stringLocal // Error
                                 ^" in 1 as{TypeError} core::String])
-      #t66.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+      #t66.{core::List::add}{Invariant}(stringLocal##2){(core::String) → void};
   } =>#t66);
   core::print( block {
     final core::List<core::String> #t67 = <core::String>[];
     for (final core::int #t68 in <core::int>[1]) {
-      core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      core::String stringLocal##3 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:38:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
     for (String stringLocal in <int>[1]) stringLocal // Error
                 ^" in #t68 as{TypeError} core::String;
-      #t67.{core::List::add}{Invariant}(stringLocal){(core::String) → void};
+      #t67.{core::List::add}{Invariant}(stringLocal##3){(core::String) → void};
     }
   } =>#t67);
   core::print( block {
@@ -1167,30 +1167,30 @@ Try changing the type of the variable.
 Try removing the 'const' modifier.
     for (const constLocal in [1]) 0: constLocal // Error
                ^^^^^^^^^^";
-      for (core::int constLocal in <core::int>[1])
-        #t69.{core::Map::[]=}{Invariant}(0, constLocal){(core::int, core::int) → void};
+      for (core::int constLocal##2 in <core::int>[1])
+        #t69.{core::Map::[]=}{Invariant}(0, constLocal##2){(core::int, core::int) → void};
     }
   } =>#t69);
   core::print( block {
     final core::Map<core::int, core::int> #t70 = <core::int, core::int>{};
-    for (core::int lateLocal in <core::int>[1])
-      #t70.{core::Map::[]=}{Invariant}(0, lateLocal){(core::int, core::int) → void};
+    for (core::int lateLocal##2 in <core::int>[1])
+      #t70.{core::Map::[]=}{Invariant}(0, lateLocal##2){(core::int, core::int) → void};
   } =>#t70);
   core::print( block {
     final core::Map<core::int, core::String> #t71 = <core::int, core::String>{};
-    for (core::String stringLocal in <core::String>[invalid-expression "pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    for (core::String stringLocal##4 in <core::String>[invalid-expression "pkg/front_end/testcases/general/for_in.dart:47:33: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
     for (String stringLocal in [1]) 0: stringLocal // Error
                                 ^" in 1 as{TypeError} core::String])
-      #t71.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+      #t71.{core::Map::[]=}{Invariant}(0, stringLocal##4){(core::int, core::String) → void};
   } =>#t71);
   core::print( block {
     final core::Map<core::int, core::String> #t72 = <core::int, core::String>{};
     for (final core::int #t73 in <core::int>[1]) {
-      core::String stringLocal = invalid-expression "pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+      core::String stringLocal##5 = invalid-expression "pkg/front_end/testcases/general/for_in.dart:50:17: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the variable.
     for (String stringLocal in <int>[1]) 0: stringLocal // Error
                 ^" in #t73 as{TypeError} core::String;
-      #t72.{core::Map::[]=}{Invariant}(0, stringLocal){(core::int, core::String) → void};
+      #t72.{core::Map::[]=}{Invariant}(0, stringLocal##5){(core::int, core::String) → void};
     }
   } =>#t72);
   {
@@ -1575,43 +1575,43 @@ static method main() → dynamic {
   }
   core::print( block {
     final core::List<core::int> #t139 = <core::int>[];
-    for (core::int intLocal in <core::int>[1])
-      #t139.{core::List::add}{Invariant}(intLocal){(core::int) → void};
+    for (core::int intLocal##1 in <core::int>[1])
+      #t139.{core::List::add}{Invariant}(intLocal##1){(core::int) → void};
   } =>#t139);
   core::print( block {
     final core::List<core::num> #t140 = <core::num>[];
-    for (core::num numLocal in <core::num>[1])
-      #t140.{core::List::add}{Invariant}(numLocal){(core::num) → void};
+    for (core::num numLocal##1 in <core::num>[1])
+      #t140.{core::List::add}{Invariant}(numLocal##1){(core::num) → void};
   } =>#t140);
   core::print( block {
     final core::List<core::int> #t141 = <core::int>[];
-    for (core::int varLocal in <core::int>[1])
-      #t141.{core::List::add}{Invariant}(varLocal){(core::int) → void};
+    for (core::int varLocal##1 in <core::int>[1])
+      #t141.{core::List::add}{Invariant}(varLocal##1){(core::int) → void};
   } =>#t141);
   core::print( block {
     final core::List<core::int> #t142 = <core::int>[];
-    for (final core::int finalLocal in <core::int>[1])
-      #t142.{core::List::add}{Invariant}(finalLocal){(core::int) → void};
+    for (final core::int finalLocal##1 in <core::int>[1])
+      #t142.{core::List::add}{Invariant}(finalLocal##1){(core::int) → void};
   } =>#t142);
   core::print( block {
     final core::Map<core::int, core::int> #t143 = <core::int, core::int>{};
-    for (core::int intLocal in <core::int>[1])
-      #t143.{core::Map::[]=}{Invariant}(0, intLocal){(core::int, core::int) → void};
+    for (core::int intLocal##2 in <core::int>[1])
+      #t143.{core::Map::[]=}{Invariant}(0, intLocal##2){(core::int, core::int) → void};
   } =>#t143);
   core::print( block {
     final core::Map<core::int, core::num> #t144 = <core::int, core::num>{};
-    for (core::num numLocal in <core::num>[1])
-      #t144.{core::Map::[]=}{Invariant}(0, numLocal){(core::int, core::num) → void};
+    for (core::num numLocal##2 in <core::num>[1])
+      #t144.{core::Map::[]=}{Invariant}(0, numLocal##2){(core::int, core::num) → void};
   } =>#t144);
   core::print( block {
     final core::Map<core::int, core::int> #t145 = <core::int, core::int>{};
-    for (core::int varLocal in <core::int>[1])
-      #t145.{core::Map::[]=}{Invariant}(0, varLocal){(core::int, core::int) → void};
+    for (core::int varLocal##2 in <core::int>[1])
+      #t145.{core::Map::[]=}{Invariant}(0, varLocal##2){(core::int, core::int) → void};
   } =>#t145);
   core::print( block {
     final core::Map<core::int, core::int> #t146 = <core::int, core::int>{};
-    for (final core::int finalLocal in <core::int>[1])
-      #t146.{core::Map::[]=}{Invariant}(0, finalLocal){(core::int, core::int) → void};
+    for (final core::int finalLocal##2 in <core::int>[1])
+      #t146.{core::Map::[]=}{Invariant}(0, finalLocal##2){(core::int, core::int) → void};
   } =>#t146);
   for (final(core::int, core::int) #t147 in <(core::int, core::int)>[(1, 2)]) {
     hoisted core::int a;

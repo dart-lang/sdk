@@ -91,5 +91,5 @@ final class CreationLocation {
 /// constructor was called from.
 abstract interface class _HasCreationLocation {
   /// The location where the constructor was called.
-  CreationLocation? _location;
+  CreationLocation? get _location;
 }

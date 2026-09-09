@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
@@ -21,6 +22,7 @@ import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/check_helpers.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -277,7 +279,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -299,7 +301,7 @@ class RtiNeedDataComputer extends DataComputer<String> {
   void computeClassData(
     Compiler compiler,
     ClassEntity cls,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -388,7 +390,7 @@ class RtiClassNeedIrComputer
   final Compiler compiler;
   final JsToElementMap _elementMap;
   @override
-  final Map<Id, ActualData<String>> actualMap;
+  final ActualDataMap<String> actualMap;
 
   RtiClassNeedIrComputer(this.compiler, this._elementMap, this.actualMap);
 
@@ -418,12 +420,12 @@ class RtiNeedIrComputer extends IrDataExtractor<String>
   final Compiler compiler;
 
   RtiNeedIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._elementMap,
     this.compiler,
     this._closureDataLookup,
-  ) : super(reporter, actualMap);
+  );
 
   @override
   String computeClassValue(Id id, ir.Class node) {

@@ -10,11 +10,66 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/feature_sets.dart';
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ToSourceVisitorTest);
+    defineReflectiveTests(ToSourceVisitorResolutionTest);
   });
+}
+
+@reflectiveTest
+class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  test_functionReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const g = f<int>;
+''');
+    _assertSource('f<int>', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_functionReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const int Function(int) g = f;
+''');
+    _assertSource('f', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_implicitCallReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c<int>;
+''');
+    _assertSource('c<int>', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_nonGeneric() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int call(int value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  void _assertSource(String expected, AstNode node) {
+    expect(node.toString(), expected);
+  }
 }
 
 @reflectiveTest
@@ -247,7 +302,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression;
+    var node = parseResult.findNode.singleDirectAssignment;
     _assertSource(code, node);
   }
 
@@ -883,6 +938,17 @@ var a;
 ''');
     var node = parseResult.findNode.unit;
     _assertSource('#!/bin/dartvm library my; var a;', node);
+  }
+
+  void test_visitCompoundAssignment() {
+    var code = 'a += b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCompoundAssignment;
+    _assertSource(code, node);
   }
 
   void test_visitConditionalExpression() {
@@ -2187,13 +2253,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_getter() {
-    var code = 'get foo {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_local_blockBody() {
     var code = 'void foo() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2280,7 +2339,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2291,7 +2350,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2441,6 +2500,17 @@ final x = a ?? (b ?? c);
 ''');
     var node = parseResult.findNode.ifNull('a ??');
     _assertSource('a ?? (b ?? c)', node);
+  }
+
+  void test_visitIfNullAssignment() {
+    var code = 'a ??= b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleIfNullAssignment;
+    _assertSource(code, node);
   }
 
   void test_visitIfStatement_withElse() {
@@ -2604,7 +2674,16 @@ import 'a.dart' $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitIndexExpression_nullAware() {
+    var code = 'a?[0]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
@@ -3491,7 +3570,7 @@ int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singlePostfixIncrement;
+    var node = parseResult.findNode.singleIncrementOrDecrement;
     _assertSource(code, node);
   }
 
@@ -3573,8 +3652,8 @@ class A() {
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess() {
-    var code = '(foo).bar';
+  void test_visitPropertyAccess_conditional() {
+    var code = 'foo?.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
@@ -3582,12 +3661,12 @@ final x = $code;
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess_conditional() {
-    var code = 'foo?.bar';
+  void test_visitPropertyExtraction() {
+    var code = '(foo).bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNode.singleReceiverPropertyExtraction;
     _assertSource(code, node);
   }
 
@@ -4277,6 +4356,13 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.singleThrowExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelGetterDeclaration() {
+    var code = 'get foo {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     _assertSource(code, node);
   }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
@@ -46,7 +47,7 @@ void main() {
   x += 1;
 }
 ''');
-    var node = result.findNode.assignment('+=');
+    var node = result.findNodeV1.assignment('+=');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -160,7 +161,9 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    var node = V1Projection.toV1Expression(
+      result.findNode.singleDotShorthandConstructorInvocation as ExpressionImpl,
+    );
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -179,7 +182,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNodeV1.singleDotShorthandInvocation;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -198,7 +201,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNodeV1.singleDotShorthandPropertyAccess;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -340,13 +343,13 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
+  test_locate_Identifier_constructor_unnamed_v1Projection() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
 ''');
-    var node = result.findNode.simple('A()');
+    var node = result.findNode.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -363,6 +366,33 @@ class A {
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
+''');
+  }
+
+  test_locate_Identifier_fieldName_constructorInitializer_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var initializer = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocator.locate(initializer.fieldName);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
+''');
+  }
+
+  test_locate_Identifier_forEachParts_v1Projection() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var parts = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocator.locate(parts.identifier);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
 ''');
   }
 
@@ -416,7 +446,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.simple('length');
+    var node = result.findNodeV1.simple('length');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::String::@getter::length
@@ -443,7 +473,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNodeV1.index('[0]');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -562,7 +592,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNodeV1.methodInvocation('call(1)').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -605,7 +635,7 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNodeV1.methodInvocation('foo();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -620,7 +650,7 @@ void main() {
  foo(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNodeV1.methodInvocation('foo(0)');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
@@ -888,20 +918,6 @@ foo@17
 ''');
   }
 
-  test_locate_AssignmentExpression() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-int x = 0;
-void main() {
-  x += 1;
-}
-''');
-    var node = result.findNode.assignment('+=');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-dart:core::@class::num::@method::+
-''');
-  }
-
   test_locate_BinaryExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 3 + 4;
@@ -911,6 +927,54 @@ var x = 3 + 4;
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
 ''');
+  }
+
+  test_locate_CascadePropertyExtraction_getter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a..foo;
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@getter::foo
+''');
+  }
+
+  test_locate_CascadePropertyExtraction_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@setter::foo
+''');
+  }
+
+  test_locate_CascadePropertyExtraction_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    expect(ElementLocatorV2.locate(node), isNull);
   }
 
   test_locate_CatchClauseParameter() async {
@@ -944,6 +1008,20 @@ class A {}
 ''');
   }
 
+  test_locate_CompoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int x = 0;
+void main() {
+  x += 1;
+}
+''');
+    var node = result.findNode.compoundAssignment('x += 1');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:core::@class::num::@method::+
+''');
+  }
+
   test_locate_ConstructorDeclaration_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -967,6 +1045,20 @@ class A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorFieldInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int f;
+  A() : f = 0;
+}
+''');
+    var node = result.findNode.singleConstructorFieldInitializer;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -1079,6 +1171,20 @@ foo@37
 ''');
   }
 
+  test_locate_DirectAssignment_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo() {}
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+    var node = result.findNode.directAssignment('foo = 0').target;
+    expect(ElementLocatorV2.locate(node), isNull);
+  }
+
   test_locate_DotShorthandConstructorInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -1096,7 +1202,7 @@ void main() {
 ''');
   }
 
-  test_locate_DotShorthandInvocation() async {
+  test_locate_DotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo() => A();
@@ -1108,14 +1214,14 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
 ''');
   }
 
-  test_locate_DotShorthandPropertyAccess() async {
+  test_locate_DotShorthandNameExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo = A();
@@ -1127,9 +1233,27 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
+<testLibrary>::@class::A::@getter::foo
+''');
+  }
+
+  test_locate_DotShorthandNameExpression_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A get foo => this;
+}
+
+A f() {
+  return .foo;
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+}
+''');
+    var node = result.findNode.singleDotShorthandNameExpression;
+    _assertElement(ElementLocatorV2.locate(node), r'''
 <testLibrary>::@class::A::@getter::foo
 ''');
   }
@@ -1188,6 +1312,19 @@ extension type A(int it) {}
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A
+''');
+  }
+
+  test_locate_ForEachPartsWithIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  for (x in <int>[]) {}
+}
+''');
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f::@formalParameter::x
 ''');
   }
 
@@ -1269,19 +1406,6 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A();
-}
-''');
-    var node = result.findNode.simple('A()');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
-''');
-  }
-
   test_locate_Identifier_fieldName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1329,7 +1453,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.simple('length');
+    var node = result.findNode.receiverPropertyExtraction('length');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::String::@getter::length
@@ -1347,6 +1471,41 @@ dart:core
 ''');
   }
 
+  test_locate_ImportPrefixedNameExpression() async {
+    newFile('$testPackageLibPath/a.dart', 'const value = 1;');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+void f() {
+  p.value;
+}
+''');
+    var node = result.findNode.importPrefixedNameExpression('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@getter::value
+''');
+    _assertElement(ElementLocatorV2.locate(node.importPrefix), r'''
+<testLibraryFragment>::@prefix::p
+''');
+  }
+
+  test_locate_ImportPrefixedNameExpression_invalidRead() async {
+    newFile('$testPackageLibPath/a.dart', 'set value(int _) {}');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+void f() {
+  p.value;
+//  ^^^^^
+// [diag.undefinedPrefixedName] The name 'value' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+}
+''');
+    var node = result.findNode.importPrefixedNameExpression('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@setter::value
+''');
+  }
+
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
@@ -1356,7 +1515,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1425,7 +1584,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -1468,7 +1627,7 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -1483,10 +1642,25 @@ void main() {
  foo(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(0)');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
+''');
+  }
+
+  test_locate_MethodInvocation_topLevel_importPrefix() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+void f() {
+  math.max(0, 1);
+}
+''');
+    var node = result.findNode.singleImportPrefixedFunctionInvocation;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:math::@function::max
 ''');
   }
 
@@ -1518,7 +1692,7 @@ dart:core::@class::int::@getter::isEven
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => x++;
 ''');
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -1568,7 +1742,7 @@ void f(int a) {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => ++x;
 ''');
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -1632,6 +1806,55 @@ class A.named() {}
 ''');
   }
 
+  test_locate_ReceiverIndexAssignmentTarget() async {
+    var result = await resolveTestCode(r'''
+class A {
+  void operator []=(int index, num value) {}
+}
+
+void f(A a) {
+  a[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
+  test_locate_ReceiverPropertyExtraction_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  (a).foo;
+//    ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    expect(ElementLocatorV2.locate(node), isNull);
+  }
+
+  test_locate_ReceiverPropertyExtraction_methodTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::foo
+''');
+  }
+
   test_locate_StringLiteral_exportUri() async {
     newFile("$testPackageLibPath/foo.dart", '');
     var result = await resolveTestCodeWithDiagnostics(r'''
@@ -1666,6 +1889,33 @@ import 'foo.dart';
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
+''');
+  }
+
+  test_locate_TopLevelGetterDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+''');
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@getter::x
+''');
+  }
+
+  test_locate_UnqualifiedNameExpression_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) {}
+
+void f() {
+  foo;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+}
+''');
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@setter::foo
 ''');
   }
 

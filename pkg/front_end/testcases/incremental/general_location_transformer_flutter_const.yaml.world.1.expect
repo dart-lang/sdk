@@ -139,13 +139,6 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-test:///main.dart:
-- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- Bar._ (from org-dartlang-test:///foo.dart:12:9)
-- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
-- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
-
 org-dartlang-test:///foo.dart:
 - CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
@@ -154,6 +147,13 @@ org-dartlang-test:///foo.dart:
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
 - Baz.__ (from org-dartlang-test:///foo.dart:20:9)
 - Boz._ (from org-dartlang-test:///foo.dart:32:9)
+
+org-dartlang-test:///main.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- Bar._ (from org-dartlang-test:///foo.dart:12:9)
+- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
+- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
 
 org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)

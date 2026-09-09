@@ -13,7 +13,7 @@ namespace dart {
 const uint8_t* OS::GetAppDSOBase(const uint8_t* snapshot_instructions) {
   // Use the relocated address in the Image if the snapshot was compiled
   // directly to a shared object instead of assembled.
-  const Image instructions_image(snapshot_instructions);
+  const TextImage instructions_image(snapshot_instructions);
   if (auto* const so_start = reinterpret_cast<const uint8_t*>(
           instructions_image.shared_object_start())) {
     return so_start;

@@ -55,6 +55,12 @@ DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 STRING_OPTIONS_LIST(STRING_OPTION_DEFINITION)
 #undef STRING_OPTION_DEFINITION
 
+#define STRING_LIST_OPTION_DEFINITION(name, variable)                          \
+  MallocGrowableArray<const char*> OPTION_FIELD(variable);                     \
+  DEFINE_STRING_LIST_OPTION(name, OPTION_FIELD(variable))
+STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_DEFINITION)
+#undef STRING_LIST_OPTION_DEFINITION
+
 #define BOOL_OPTION_DEFINITION(name, variable)                                 \
   bool OPTION_FIELD(variable) = false;                                         \
   DEFINE_BOOL_OPTION(name, OPTION_FIELD(variable))
@@ -302,6 +308,14 @@ void Options::Cleanup() {
   DestroyEnvArgv();
 #endif
   DestroyEnvironment();
+
+#define STRING_LIST_OPTION_CLEANUP(flag, variable)                             \
+  for (intptr_t i = 0; i < OPTION_FIELD(variable).length(); i++) {             \
+    free(const_cast<char*>(OPTION_FIELD(variable)[i]));                        \
+  }                                                                            \
+  OPTION_FIELD(variable).Clear();
+  STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_CLEANUP)
+#undef STRING_LIST_OPTION_CLEANUP
 }
 
 void Options::DestroyEnvironment() {

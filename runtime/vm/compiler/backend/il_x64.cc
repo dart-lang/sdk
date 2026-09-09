@@ -1590,7 +1590,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ movq(result,
           compiler::Address(result, char_code,
                             TIMES_HALF_WORD_SIZE,  // Char code is a smi.
-                            Symbols::kNullCharCodeSymbolOffset * kWordSize));
+                            0));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,
@@ -4212,6 +4212,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, andps)                                                      \
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
+  V(Int32x4Equal, pcmpeqd)                                                     \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
@@ -4291,6 +4292,7 @@ DEFINE_EMIT(SimdBinaryOp,
   SIMD_OP_FLOAT_ARITH(V, Sqrt, sqrt)                                           \
   SIMD_OP_FLOAT_ARITH(V, Negate, negate)                                       \
   SIMD_OP_FLOAT_ARITH(V, Abs, abs)                                             \
+  V(Int32x4Not, notps)                                                         \
   V(Float32x4Reciprocal, rcpps)                                                \
   V(Float32x4ReciprocalSqrt, rsqrtps)
 
@@ -4494,6 +4496,15 @@ DEFINE_EMIT(Int32x4GetFlag, (Register out, XmmRegister value)) {
   EmitToBoolean(compiler, out);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, XmmRegister value)) {
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ ptest(value, value);
+  __ setcc(EQUAL, ByteRegisterOf(out));
+  __ movzxb(out, out);
+  __ movq(out,
+          compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
+}
+
 DEFINE_EMIT(
     Int32x4WithFlag,
     (SameAsFirstInput, XmmRegister mask, Register flag, Temp<Register> temp)) {
@@ -4536,6 +4547,13 @@ DEFINE_EMIT(Int32x4Select,
   __ orps(mask, temp);
 }
 
+DEFINE_EMIT(Int32x4NotEqual,
+            (SameAsFirstInput, XmmRegister left, XmmRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ pcmpeqd(left, right);
+  __ notps(left, left);
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -4556,6 +4574,8 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4593,6 +4613,8 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -4979,13 +5001,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -6332,6 +6354,11 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
+  ASSERT(instr->op_kind() == Token::kBIT_NOT);
+  __ notl(value);
+}
+
+DEFINE_BACKEND(UnaryInt32Op, (SameAsFirstInput, Register value)) {
   ASSERT(instr->op_kind() == Token::kBIT_NOT);
   __ notl(value);
 }

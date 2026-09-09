@@ -189,12 +189,12 @@ static method localFunctions() → dynamic {
         }
     }
   }
-  function caseReturn2(self::Enum e) → self::Enum {
-    switch(e) /* self::Enum */ {
+  function caseReturn2(self::Enum e##1) → self::Enum {
+    switch(e##1) /* self::Enum */ {
       #L7:
       case #C3:
         {
-          return e;
+          return e##1;
         }
       #L8:
       default:
@@ -205,15 +205,15 @@ static method localFunctions() → dynamic {
   Enum caseReturn2(Enum e) /* error */ {
   ^" in null;
   }
-  core::bool b = false;
+  core::bool b##1 = false;
   core::int? local1 = (() → core::int? {
-    if(b)
+    if(b##1)
       return 0;
   })(){() → core::int?};
   core::int? local2 = (() → core::int? {
-    if(b)
+    if(b##1)
       return null;
-    if(!b)
+    if(!b##1)
       return 0;
   })(){() → core::int?};
 }

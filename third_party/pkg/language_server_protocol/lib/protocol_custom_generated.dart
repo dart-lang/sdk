@@ -499,6 +499,60 @@ bool _canParseListFormField(
   return true;
 }
 
+bool _canParseListLspBulkFix(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !LspBulkFix.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<LspBulkFix>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
+bool _canParseListLspBulkFixDetail(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        (value is! List<Object?> ||
+            value.any((item) => !LspBulkFixDetail.canParse(item, reporter)))) {
+      reporter.reportError('must be of type List<LspBulkFixDetail>');
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 bool _canParseListMigrationStep(
     Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
     {required bool allowsUndefined, required bool allowsNull}) {
@@ -1692,7 +1746,135 @@ class DartDiagnosticServer implements ToJsonable {
   }
 }
 
-class DartMigrateParams implements ToJsonable {
+class DartGetWorkspaceFixesParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartGetWorkspaceFixesParams.canParse,
+    DartGetWorkspaceFixesParams.fromJson,
+  );
+
+  /// An optional set of diagnostic codes to filter to.
+  final List<String>? diagnosticCodes;
+
+  DartGetWorkspaceFixesParams({
+    this.diagnosticCodes,
+  });
+
+  @override
+  int get hashCode => lspHashCode(diagnosticCodes);
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartGetWorkspaceFixesParams &&
+        other.runtimeType == DartGetWorkspaceFixesParams &&
+        const DeepCollectionEquality()
+            .equals(diagnosticCodes, other.diagnosticCodes);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (diagnosticCodes != null) {
+      result['diagnosticCodes'] = diagnosticCodes;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseListString(obj, reporter, 'diagnosticCodes',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartGetWorkspaceFixesParams');
+      return false;
+    }
+  }
+
+  static DartGetWorkspaceFixesParams fromJson(Map<String, Object?> json) {
+    final diagnosticCodesJson = json['diagnosticCodes'];
+    final diagnosticCodes = (diagnosticCodesJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    return DartGetWorkspaceFixesParams(
+      diagnosticCodes: diagnosticCodes,
+    );
+  }
+}
+
+class DartGetWorkspaceFixesResult implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartGetWorkspaceFixesResult.canParse,
+    DartGetWorkspaceFixesResult.fromJson,
+  );
+
+  /// Additional details about the fixes we have returned edits for.
+  final List<LspBulkFix> details;
+
+  /// The edits to be applied to the workspace or `null` if there are none.
+  final WorkspaceEdit? edit;
+
+  DartGetWorkspaceFixesResult({
+    required this.details,
+    this.edit,
+  });
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(details),
+        edit,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartGetWorkspaceFixesResult &&
+        other.runtimeType == DartGetWorkspaceFixesResult &&
+        const DeepCollectionEquality().equals(details, other.details) &&
+        edit == other.edit;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['details'] = details.map((item) => item.toJson()).toList();
+    result['edit'] = edit?.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListLspBulkFix(obj, reporter, 'details',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseWorkspaceEdit(obj, reporter, 'edit',
+          allowsUndefined: false, allowsNull: true);
+    } else {
+      reporter.reportError('must be of type DartGetWorkspaceFixesResult');
+      return false;
+    }
+  }
+
+  static DartGetWorkspaceFixesResult fromJson(Map<String, Object?> json) {
+    final detailsJson = json['details'];
+    final details = (detailsJson as List<Object?>)
+        .map((item) => LspBulkFix.fromJson(item as Map<String, Object?>))
+        .toList();
+    final editJson = json['edit'];
+    final edit = editJson != null
+        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
+        : null;
+    return DartGetWorkspaceFixesResult(
+      details: details,
+      edit: edit,
+    );
+  }
+}
+
+class DartMigrateParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DartMigrateParams.canParse,
     DartMigrateParams.fromJson,
@@ -1710,11 +1892,16 @@ class DartMigrateParams implements ToJsonable {
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
+
+  /// An optional token that a server can use to report work done progress.
+  @override
+  final ProgressToken? workDoneToken;
   DartMigrateParams({
     this.apply,
     this.steps,
     this.targetSdk,
     required this.uris,
+    this.workDoneToken,
   });
   @override
   int get hashCode => Object.hash(
@@ -1722,6 +1909,7 @@ class DartMigrateParams implements ToJsonable {
         lspHashCode(steps),
         targetSdk,
         lspHashCode(uris),
+        workDoneToken,
       );
 
   @override
@@ -1731,7 +1919,8 @@ class DartMigrateParams implements ToJsonable {
         apply == other.apply &&
         const DeepCollectionEquality().equals(steps, other.steps) &&
         targetSdk == other.targetSdk &&
-        const DeepCollectionEquality().equals(uris, other.uris);
+        const DeepCollectionEquality().equals(uris, other.uris) &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -1747,6 +1936,9 @@ class DartMigrateParams implements ToJsonable {
       result['targetSdk'] = targetSdk;
     }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
+    if (workDoneToken != null) {
+      result['workDoneToken'] = workDoneToken?.toJson();
+    }
     return result;
   }
 
@@ -1767,8 +1959,12 @@ class DartMigrateParams implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseListUri(obj, reporter, 'uris',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseListUri(obj, reporter, 'uris',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseIntString(obj, reporter, 'workDoneToken',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type DartMigrateParams');
       return false;
@@ -1788,11 +1984,15 @@ class DartMigrateParams implements ToJsonable {
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DartMigrateParams(
       apply: apply,
       steps: steps,
       targetSdk: targetSdk,
       uris: uris,
+      workDoneToken: workDoneToken,
     );
   }
 }
@@ -4151,6 +4351,143 @@ class LegacySnippetTextEdit implements TextEdit, ToJsonable {
       insertTextFormat: insertTextFormat,
       newText: newText,
       range: range,
+    );
+  }
+}
+
+class LspBulkFix implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    LspBulkFix.canParse,
+    LspBulkFix.fromJson,
+  );
+
+  /// A list of bulk fix details.
+  final List<LspBulkFixDetail> fixes;
+
+  /// The URI of the library these fixes were applied to.
+  final Uri uri;
+
+  LspBulkFix({
+    required this.fixes,
+    required this.uri,
+  });
+  @override
+  int get hashCode => Object.hash(
+        lspHashCode(fixes),
+        uri,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is LspBulkFix &&
+        other.runtimeType == LspBulkFix &&
+        const DeepCollectionEquality().equals(fixes, other.fixes) &&
+        uri == other.uri;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['fixes'] = fixes.map((item) => item.toJson()).toList();
+    result['uri'] = uri.toString();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseListLspBulkFixDetail(obj, reporter, 'fixes',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseUri(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type LspBulkFix');
+      return false;
+    }
+  }
+
+  static LspBulkFix fromJson(Map<String, Object?> json) {
+    final fixesJson = json['fixes'];
+    final fixes = (fixesJson as List<Object?>)
+        .map((item) => LspBulkFixDetail.fromJson(item as Map<String, Object?>))
+        .toList();
+    final uriJson = json['uri'];
+    final uri = Uri.parse(uriJson as String);
+    return LspBulkFix(
+      fixes: fixes,
+      uri: uri,
+    );
+  }
+}
+
+class LspBulkFixDetail implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    LspBulkFixDetail.canParse,
+    LspBulkFixDetail.fromJson,
+  );
+
+  /// The code of the diagnostic associated with the fix.
+  final String code;
+
+  /// The number times the associated diagnostic was fixed in the associated
+  /// source edit.
+  final int occurrences;
+
+  LspBulkFixDetail({
+    required this.code,
+    required this.occurrences,
+  });
+  @override
+  int get hashCode => Object.hash(
+        code,
+        occurrences,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is LspBulkFixDetail &&
+        other.runtimeType == LspBulkFixDetail &&
+        code == other.code &&
+        occurrences == other.occurrences;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['code'] = code;
+    result['occurrences'] = occurrences;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseString(obj, reporter, 'code',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseInt(obj, reporter, 'occurrences',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type LspBulkFixDetail');
+      return false;
+    }
+  }
+
+  static LspBulkFixDetail fromJson(Map<String, Object?> json) {
+    final codeJson = json['code'];
+    final code = codeJson as String;
+    final occurrencesJson = json['occurrences'];
+    final occurrences = occurrencesJson as int;
+    return LspBulkFixDetail(
+      code: code,
+      occurrences: occurrences,
     );
   }
 }

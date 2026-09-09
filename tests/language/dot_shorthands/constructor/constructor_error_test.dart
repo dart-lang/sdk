@@ -10,27 +10,29 @@ void main() {
   // Using a constructor shorthand without any context.
 
   var ctorNew = .new();
-  //             ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //            ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //             ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   const ctorConstNew = .new();
   //                   ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                    ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   var ctorNamed = .regular();
-  //               ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //              ^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //               ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   const ctorConstNamed = .regular();
   //                     ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                      ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                      ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   UnnamedConstructor Function() ctorTearoff = .new;

@@ -125,9 +125,16 @@ void bar([int foo = foo + 1]) {
 }
 ''');
 
-    var node = result.findNode.simple('foo + 1');
+    var node = result.findNode.unqualifiedNameExpression('foo + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@getter::foo
   staticType: int
@@ -151,9 +158,15 @@ NamedType
   type: a
 ''');
 
-    var node2 = result.findNode.simple('a;');
+    var node2 = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::bar::@formalParameter::a
+    type: a
+  staticType: a
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::bar::@formalParameter::a
   staticType: a
@@ -369,9 +382,38 @@ int get foo(double a) => 0;
 // [diag.getterWithParameters] Getters must be declared without a parameter list.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelGetterDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  recoveryFormalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: double
+          element: dart:core::@class::double
+          type: double
+        name: a
+        declaredFragment: <testLibraryFragment> a@19
+          element: isPublic
+            type: double
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function(double)
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -380,19 +422,6 @@ FunctionDeclaration
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: double
-            element: dart:core::@class::double
-            type: double
-          name: a
-          declaredFragment: <testLibraryFragment> a@19
-            element: isPublic
-              type: double
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -406,7 +435,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;

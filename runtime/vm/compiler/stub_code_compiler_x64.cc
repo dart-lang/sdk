@@ -332,6 +332,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
@@ -350,6 +351,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(RAX);
 
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
@@ -3102,7 +3104,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
   __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
   __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
 
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.

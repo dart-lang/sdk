@@ -12,11 +12,10 @@ environment can use to fetch dependencies, analyze, compile and run Dart code.
   Sessions do share the same file-system and thread. But are otherwise
   independent, and should be using differnet parts of the virtual file-system.
  * _Workspace_, a workspace is a folder and associated resources for
-   running language-servers and compiling source code.
+   running language-servers, compiling source code and running Dart code.
  * _Language-server_, a process running within a workspace that provides a
    language-server-protocol server for Dart.
- * _Hot-reload compiler_, a process running with a workspace that faciliates
-   incremental compilation of a single entry-point.
+ * _Sandbox_, a sandboxed iframe within which compiled Dart code is executed.
 
 
 ## DartPad SDK
@@ -41,10 +40,8 @@ Once instantiated, one or more sessions can be created using `worker.session()`,
 which will communicate over the given [MessagePort][2] using the protocol
 specified in this document.
 
-// TODO(jonasfj): Refactor sandbox.js into this shape later.
-
-The `sandbox.js` script is to be injected into a sandboxed iframe as follows:
-```
+The `sandbox.js` script is to be injected into a _sandboxed iframe_ as follows:
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -55,14 +52,16 @@ The `sandbox.js` script is to be injected into a sandboxed iframe as follows:
 </html>
 ```
 
-The `sandbox.js` script must use [window.postMessage][4] to send, either:
- * `{action: 'error', message: '...'}`, if loading failed, or,
+The `sandbox.js` script must use [window.postMessage][4] to send:
+ * `{action: 'error', message: '...'}`, if loading failed,
  * `{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached,
- if loading succeeded.
+   if loading succeeded, and,
+ * `{action: 'disconnected'}`, when `<MessagePort>` from connect is closed from
+   the remote side.
 
 The attached [MessagePort][2] must be forwarded to the worker as outline in the
 protocol below. The communication protocol between `sandbox.js` and `worker.js`
-is private, though messages will never carry a `MessagePort`, thus, they can
+is internal, though messages will never carry a `MessagePort`, thus, they can
 be serialized (with care taken to wrap `Uint8Array` instances).
 
 
@@ -160,7 +159,7 @@ prefixed `workspace/` require a `workspaceId` parameter.
 | `workspace/` | `workspaceId` |
 | `workspace/languageServer/` | `workspaceId` and `languageServerId` |
 | `workspace/watcher/` | `workspaceId` and `watcherId` |
-| `workspace/hotReloadCompiler/` | `workspaceId` and `hotReloadCompilerId` |
+| `workspace/sandbox/` | `workspaceId` and `sandboxId` |
 
 
 ### Method `createWorkspace`
@@ -409,64 +408,6 @@ Runs `pub` in the specified directory.
 }
 ```
 
-### Method `workspace/startHotReloadCompiler`
-Start a hot-reload compiler for `uri`.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "uri": "bin/hello.dart",
-}
-```
-
-**Result:**
-```js
-{
-  // identifier for the hot-reload compiler just started
-  "hotReloadCompilerId": 67,
-}
-```
-
-### Method `workspace/hotReloadCompiler/compile`
-Run the hot-reload compiler for the `uri` it was started with.
-Returns `code` and `compiledLibraryUris`, which must be supplied to the
-hot-reload method as `librariesToReload` when hot-reloading.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "hotReloadCompilerId": 67,
-}
-```
-
-**Result:**
-```js
-{
-  // Code is `null` if compilation failed!
-  "code": "<javascript code>" || null,
-  "compiledLibraryUris": ["package:myapp/myapp.dart", ...],
-  "log": "<log lines>",
-}
-```
-
-### Method `workspace/hotReloadCompiler/close`
-Close the hot-reload compiler, releasing resources (memory) held.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "hotReloadCompilerId": 67,
-}
-```
-
-**Result:**
-```js
-{} // empty result
-```
-
 ### Method `workspace/startLanguageServer`
 Start a language-server.
 
@@ -559,6 +500,136 @@ Terminates an active watcher.
 {} // empty result
 ```
 
+### Method `workspace/connectSandbox`
+Connects a `MessagePort` from `sandbox.js` to the workspace, returning a `sandboxId` used to control the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "port": /* MessagePort instance */
+}
+```
+
+**Result:**
+```js
+{
+  "sandboxId": 1
+}
+```
+
+### Method `workspace/sandbox/runMain`
+Compiles and runs a Dart entrypoint in the sandbox without Flutter bootstrap.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "path": "bin/hello.dart"
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/runApp`
+Compiles and runs a Flutter entrypoint in the sandbox with Flutter bootstrap.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "path": "lib/main.dart"
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/hotReload`
+Hot-reloads the currently running application in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/hotRestart`
+Hot-restarts the currently running application in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{
+  "log": "<output log string>"
+}
+```
+
+### Method `workspace/sandbox/invokeExtension`
+Invokes a Dart extension method in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "method": "ext.myExtension",
+  "args": {
+    "key": "value"
+  }
+}
+```
+
+**Result:**
+```js
+{
+  "result": "<json encoded result string>"
+}
+```
+
+### Method `workspace/sandbox/close`
+Closes the sandbox, severing its `MessagePort` and releasing resources.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
 ## Client Notifications
 
 ### Notification `workspace/watcher/events`
@@ -604,6 +675,55 @@ Sent by the worker when a language server process terminates.
 }
 ```
 
+### Notification `workspace/sandbox/console`
+Sent by the worker when the sandbox produces a console message.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "message": "Hello world"
+}
+```
+
+### Notification `workspace/sandbox/error`
+Sent by the worker when the sandbox produces an error message.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "message": "Error details..."
+}
+```
+
+### Notification `workspace/sandbox/unhandledRejection`
+Sent by the worker when a Promise is unhandled in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "message": "Rejection details..."
+}
+```
+
+### Notification `workspace/sandbox/extensionEvent`
+Sent by the worker when an extension event is fired in the sandbox.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "kind": "my.event.kind",
+  "data": { /* JSON object */ }
+}
+```
+
 ## Error codes
 Errors returned by the worker use the following codes.
 
@@ -615,32 +735,28 @@ Errors returned by the worker use the following codes.
 | 4002 | `fileWriteConflict` | Could not write file (e.g. parent is a file). |
 | 4003 | `fileDeletionFailed` | Could not delete the requested entity. |
 | 5001 | `languageServerNotFound` | The `languageServerId` does not exist in this workspace. |
-| 6001 | `compilationFailed` | Failed to compile code, usually due to an issue in the code being compiled. |
-| 6020 | `packageConfigNotFound` | Unable to find `.dart_tool/package_config.json` in any parent directory. |
-| 6100 | `hotReloadCompilerNotFound` | The `hotReloadCompilerId` does not exist in this workspace. |
-| 6101 | `hotReloadRejected` | The hot reload request was rejected by the compiler. |
-| 7001 | `pubCommandFailed` | The pub command failed to execute successfully. |
-| 7064 | `pubUsage` | The command was used incorrectly. |
-| 7065 | `pubData` | The input data was incorrect. |
-| 7066 | `pubNoInput` | An input file did not exist or was unreadable. |
-| 7067 | `pubNoUser` | The user specified did not exist. |
-| 7068 | `pubNoHost` | The host specified did not exist. |
-| 7069 | `pubUnavailable` | A service is unavailable. |
-| 7070 | `pubSoftware` | An internal software error has been detected. |
-| 7071 | `pubOs` | An operating system error has been detected. |
-| 7072 | `pubOsFile` | Some system file did not exist or was unreadable. |
-| 7073 | `pubCantCreate` | A user-specified output file cannot be created. |
-| 7074 | `pubIo` | An error occurred while doing I/O on some file. |
-| 7075 | `pubTempFail` | Temporary failure, indicating something that is not really an error. |
-| 7076 | `pubProtocol` | The remote system returned something invalid during a protocol exchange. |
-| 7077 | `pubNoPerm` | The user did not have sufficient permissions. |
-| 7078 | `pubConfig` | Something was unconfigured or mis-configured. |
-| 8001 | `moduleLoaderNotAvailable` | The DDC module loader is has not been loaded into the sandbox. |
-| 8002 | `flutterLoaderNotAvailable` | The flutter loader has not been loaded into the sandbox. |
-| 8100 | `moduleLoadingFailed` | Failed to load module into the sandbox. |
-| 8200 | `executionFailed` | Error happened when running `main()` from user-code. |
-| 8300 | `hotRestartFailed` | Hot-restart failed. |
-| 8400 | `hotReloadFailed` | Hot-reload failed. |
+| 6001 | `pubCommandFailed` | The pub command failed to execute successfully. |
+| 6064 | `pubUsage` | The command was used incorrectly. |
+| 6065 | `pubData` | The input data was incorrect. |
+| 6066 | `pubNoInput` | An input file did not exist or was unreadable. |
+| 6067 | `pubNoUser` | The user specified did not exist. |
+| 6068 | `pubNoHost` | The host specified did not exist. |
+| 6069 | `pubUnavailable` | A service is unavailable. |
+| 6070 | `pubSoftware` | An internal software error has been detected. |
+| 6071 | `pubOs` | An operating system error has been detected. |
+| 6072 | `pubOsFile` | Some system file did not exist or was unreadable. |
+| 6073 | `pubCantCreate` | A user-specified output file cannot be created. |
+| 6074 | `pubIo` | An error occurred while doing I/O on some file. |
+| 6075 | `pubTempFail` | Temporary failure, indicating something that is not really an error. |
+| 6076 | `pubProtocol` | The remote system returned something invalid during a protocol exchange. |
+| 6077 | `pubNoPerm` | The user did not have sufficient permissions. |
+| 6078 | `pubConfig` | Something was unconfigured or mis-configured. |
+| 7001 | `sandboxNotFound` | Sandbox with the given `sandboxId` was not found. |
+| 7002 | `invalidSandboxState` | Sandbox methods have not been called in correct order. |
+| 7101 | `compilationFailed` | Failed to compile code, usually due to an issue in the code being compiled. |
+| 7102 | `packageConfigNotFound` | Unable to find `.dart_tool/package_config.json` in any parent directory. |
+| 7103 | `hotReloadRejected` | The hot reload request was rejected by the compiler. |
+| 7201 | `executionFailed` | Error happened when running `main()` from user-code. |
 
 <!-- END GENERATED ERROR CODE TABLE -->
 

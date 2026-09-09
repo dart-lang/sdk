@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
 
@@ -30,6 +31,27 @@ typedef InvalidOverrideDiagnosticCode =
 class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
   DiagnosticFactory();
+
+  /// Return a diagnostic indicating that [name] is defined by multiple
+  /// imports.
+  diag.LocatedDiagnostic ambiguousImport({
+    required Token name,
+    required MultiplyDefinedElementImpl element,
+  }) {
+    var libraryNames = [
+      for (var conflictingElement in element.conflictingElements)
+        _getLibraryName(
+          currentUnit: element.libraryFragment,
+          element: conflictingElement,
+        ),
+    ]..sort();
+    return diag.ambiguousImport
+        .withArguments(
+          name: name.lexeme,
+          libraries: libraryNames.quotedAndCommaSeparatedWithAnd,
+        )
+        .at(name);
+  }
 
   /// Return a diagnostic indicating that [duplicate] uses the same [variable]
   /// as a previous [original] node in a pattern assignment.
@@ -425,5 +447,44 @@ class DiagnosticFactory {
       ]);
     }
     return locatableDiagnostic.at(nameToken);
+  }
+
+  /// Return the name of the library that defines [element].
+  String _getLibraryName({
+    required LibraryFragmentImpl currentUnit,
+    required Element element,
+  }) {
+    var library = element.library;
+    var name = element.name;
+    if (library == null || name == null) {
+      return '';
+    }
+    var imports = currentUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .toList();
+    for (var import in imports) {
+      if (identical(import.importedLibrary, library)) {
+        return library.uri.toString();
+      }
+    }
+    var indirectSources = <String>[];
+    for (var import in imports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null && import.namespace.get2(name) == element) {
+        indirectSources.add(importedLibrary.uri.toString());
+      }
+    }
+    var buffer = StringBuffer()..write(library.uri);
+    if (indirectSources.isNotEmpty) {
+      buffer.write(' (via ');
+      if (indirectSources.length > 1) {
+        indirectSources.sort();
+        buffer.write(indirectSources.quotedAndCommaSeparatedWithAnd);
+      } else {
+        buffer.write(indirectSources.single);
+      }
+      buffer.write(')');
+    }
+    return buffer.toString();
   }
 }

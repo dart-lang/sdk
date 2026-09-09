@@ -7,6 +7,7 @@
 // block to avoid an inner if-then 'capturing' the else part.
 
 import 'dart:convert';
+
 import 'package:expect/expect.dart';
 import 'package:js_ast/js_ast.dart';
 

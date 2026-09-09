@@ -28,9 +28,16 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.simple('f; // 1');
+    var node = result.findNode.unqualifiedNameExpression('f; // 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@function::f
+    type: T Function<T>(T)
+  correspondingParameter: <null>
+  staticType: T Function<T>(T)
+V1: SimpleIdentifier
   token: f
   correspondingParameter: <null>
   element: <testLibrary>::@function::f
@@ -50,9 +57,16 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.simple('f; // 1');
+    var node = result.findNode.unqualifiedNameExpression('f; // 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@function::f
+    type: int Function(int)
+  correspondingParameter: <null>
+  staticType: int Function(int)
+V1: SimpleIdentifier
   token: f
   correspondingParameter: <null>
   element: <testLibrary>::@function::f
@@ -71,11 +85,11 @@ int Function(int) test() {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
-    target2: ConstructorInvocation
+ImplicitFunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: ConstructorInvocation
       keyword: new
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -87,7 +101,18 @@ FunctionReference
         leftParenthesis: (
         rightParenthesis: )
       staticType: C
-    target(v1): InstanceCreationExpression
+    operator: .
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
         type: NamedType
@@ -119,10 +144,20 @@ int Function(int) test() {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: f@31
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: f@31
     staticType: T Function<T>(T)
@@ -143,10 +178,26 @@ int Function(int) test() {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+ImplicitFunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: C
+      element: <testLibrary>::@class::C
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::C::@method::f
+      staticType: T Function<T>(T)
+    element: <testLibrary>::@class::C::@method::f
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -177,11 +228,25 @@ class D extends C {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: SuperExpression
+      superKeyword: super
+      staticType: D
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::C::@method::f
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -205,10 +270,20 @@ int Function(int) test() {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::f
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
@@ -227,16 +302,35 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl

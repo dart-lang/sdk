@@ -9,7 +9,7 @@
   (type $_Type <...>)
   (global $"\")\"" (import "M" "0") (ref $JSExternWrapper))
   (global $_InterfaceType (import "M" ".") (ref $_InterfaceType))
-  (table $M.$ (import "M" "$") 645 funcref)
+  (table $M.$ (import "M" "$") 663 funcref)
   (table $M.& (import "M" "&") 20 funcref)
   (global $"\">.takeT(\"" (ref $JSExternWrapper) <...>)
   (global $"\"Foo<\"" (ref $JSExternWrapper) <...>)
@@ -31,16 +31,16 @@
     block $label0 (result i32)
       i32.const 0
       local.get $var0
-      struct.get $Foo $field0
-      i32.const 111
+      struct.get $Foo $#classId
+      i32.const 112
       i32.ne
       br_if $label0
       drop
       i32.const 0
       local.get $var0
       local.get $var0
-      struct.get $Foo $field0
-      i32.const 332
+      struct.get $Foo $#classId
+      i32.const 335
       i32.add
       call_indirect $M.$ (param (ref $#Top)) (result (ref $Array<_Type>))
       i32.const 0
@@ -75,7 +75,7 @@
         local.get $var0
         struct.get $Foo $field2
         local.tee $var3
-        struct.get $_Type $field0
+        struct.get $_Type $#classId
         local.tee $var2
         i32.const 9
         i32.le_u
@@ -146,8 +146,8 @@
       local.tee $var4
       local.get $var1
       local.get $var4
-      struct.get $_Type $field0
-      i32.const 488
+      struct.get $_Type $#classId
+      i32.const 492
       i32.add
       call_indirect $M.$ (param (ref $_Type) (ref $#Top)) (result i32)
     end $label0

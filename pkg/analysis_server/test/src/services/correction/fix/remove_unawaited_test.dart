@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class RemoveAwaitBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.unnecessary_unawaited;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  String get lintCode => LintNames.unnecessary_unawaited;
 
   Future<void> test_nested() async {
     await resolveTestCode(r'''
@@ -78,16 +75,13 @@ Future<int> g() async => 7;
 @reflectiveTest
 class RemoveAwaitTest extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.removeUnawaited;
 
   @override
   String get lintCode => LintNames.unnecessary_unawaited;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
 
   Future<void> test_unawaited() async {
     await resolveTestCode('''

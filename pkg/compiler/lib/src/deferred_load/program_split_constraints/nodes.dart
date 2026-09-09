@@ -28,13 +28,17 @@ class UriAndPrefix {
   }
 
   static UriAndPrefix fromJson(String json) {
-    var uriAndPrefix = json.split('#');
-    if (uriAndPrefix.length != 2) {
+    // NOTE: The deferred prefix names can have `#` in them (as CFE mangles
+    // those names in the parts with imports feature).
+    //
+    // => So we split on the first occurance of `#`.
+    final separatorIndex = json.indexOf('#');
+    if (separatorIndex == -1) {
       throw 'Invalid "import" "uri#prefix" value in $json';
     }
-    var uri = Uri.parse(uriAndPrefix[0]);
-    var prefix = uriAndPrefix[1];
-    return UriAndPrefix(uri, prefix);
+    final url = json.substring(0, separatorIndex);
+    final prefixName = json.substring(separatorIndex + 1);
+    return UriAndPrefix(Uri.parse(url), prefixName);
   }
 }
 

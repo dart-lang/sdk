@@ -149,7 +149,8 @@ CStringUniquePtr NormalizeEscapes(const char* str, intptr_t len) {
         buffer_pos++;
       } else {
         // Escape funky characters.
-        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X",
+                       static_cast<unsigned char>(c));
         buffer_pos += 3;
       }
       pos++;

@@ -12,7 +12,7 @@ import 'test_client.dart';
 import 'test_scripts.dart';
 import 'test_support.dart';
 
-main() {
+void main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp();
@@ -157,8 +157,9 @@ main() {
       await Future.wait([
         client.breakpointChangeEvents.first.then((_) {
           if (!setBreakpointsResponded) {
-            throw 'breakpoint change event arrived before '
-                'setBreakpoints completed';
+            throw StateError(
+              'breakpoint change event arrived before setBreakpoints completed',
+            );
           }
         }),
         client
@@ -477,7 +478,8 @@ void main(List<String> args) async {
       ], eagerError: true);
     });
 
-    test('does not step into external package code with debugExternalPackageLibraries=false', () async {
+    test('does not step into external '
+        'package code with debugExternalPackageLibraries=false', () async {
       final client = dap.client;
       final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
@@ -499,14 +501,16 @@ void main(List<String> args) async {
             client.launch(testFile.path, debugExternalPackageLibraries: false),
       );
 
-      // Step in and expect stopping on the next line (don't go into the package).
+      // Step in and expect stopping on the next line (don't go into the
+      // package).
       await Future.wait([
         client.expectStop('step', file: testFile, line: stepLine),
         client.stepIn(stop.threadId!),
       ], eagerError: true);
     });
 
-    test('steps into external package code with debugExternalPackageLibraries=true', () async {
+    test('steps into external package '
+        'code with debugExternalPackageLibraries=true', () async {
       final client = dap.client;
       final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
@@ -534,7 +538,8 @@ void main(List<String> args) async {
       ], eagerError: true);
     });
 
-    test('steps into other-project package code with debugExternalPackageLibraries=false', () async {
+    test('steps into other-project package '
+        'code with debugExternalPackageLibraries=false', () async {
       final client = dap.client;
       final (otherPackageUri, _) = await dap.createFooPackage();
       final testFile = dap.createTestFile('''
@@ -619,14 +624,14 @@ void main(List<String> args) async {
       await client.setBreakpoints(testFile, []);
 
       // Resume so that the new isolate spawns.
-      client.continue_(mainIsolateStop.threadId!);
+      unawaited(client.continue_(mainIsolateStop.threadId!));
       final otherIsolateStop = await client.expectStop(debuggerStopReason);
 
       // Make sure the stop we got was a new isolate.
       expect(otherIsolateStop.threadId!, isNot(mainIsolateStop.threadId!));
 
       // Send the other breakpoint and verify it resolves to the expected line.
-      client.setBreakpoints(testFile, [breakpoint2Line]);
+      unawaited(client.setBreakpoints(testFile, [breakpoint2Line]));
       final bpResolved = await client.breakpointChangeEvents.firstWhere(
         (e) => e.reason == 'changed',
       );
@@ -732,7 +737,8 @@ void main(List<String> args) async {
         'evaluateInFrame: (113) Expression compilation error',
       );
       final hasDescriptiveMessage = contains(
-        "A value of type 'String' can't be assigned to a variable of type 'num'",
+        "A value of type 'String' can't be assigned to a variable of type "
+        "'num'",
       );
 
       expect(
@@ -781,18 +787,20 @@ void main(List<String> args) async {
       await testLogPoint(
         dap,
         r'This is a test message in ${DateTime(2000, 1, 1).year}',
-        'This is a test message in ${DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000).year}',
       );
     });
 
     test('print messages with just {braces}', () async {
       await testLogPoint(
         dap,
-        // The DAP spec says "Expressions within {} are interpolated" so in the DA
-        // we just prefix them with $ and treat them like other Dart interpolation
+        // The DAP spec says "Expressions within {} are interpolated" so in the
+        // DA
+        // we just prefix them with $ and treat them like other Dart
+        // interpolation
         // expressions.
         r'This is a test message in {DateTime(2000, 1, 1).year}',
-        'This is a test message in ${DateTime(2000, 1, 1).year}',
+        'This is a test message in ${DateTime(2000).year}',
       );
     });
 

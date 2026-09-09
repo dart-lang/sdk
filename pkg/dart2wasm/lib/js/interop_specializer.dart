@@ -105,7 +105,7 @@ abstract class _Specializer {
       String parameterString = 'x$i';
       dartPositionalParameters.add(
         PositionalParameter(
-          cosmeticName: parameterString,
+          parameterName: parameterString,
           type: interopFunctionParameterType,
           isSynthesized: true,
         ),
@@ -127,9 +127,8 @@ abstract class _Specializer {
       ),
       isExternal: true,
     );
-    JsCodeData(
-      generateJS(jsParameterStrings),
-    ).applyToMember(dartProcedure, _util.coreTypes);
+    JsCodeData(generateJS(jsParameterStrings))
+        .applyToMember(dartProcedure, _util.coreTypes);
     return dartProcedure;
   }
 

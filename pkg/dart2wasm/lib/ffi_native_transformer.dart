@@ -227,7 +227,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       if (argWasmType != null) {
         wasmImportProcedureArgs.add(
           PositionalParameter(
-            cosmeticName: node.function.positionalParameters[i].cosmeticName!,
+            parameterName: node.function.positionalParameters[i].parameterName,
             type: argWasmType,
             isSynthesized: true,
           ),

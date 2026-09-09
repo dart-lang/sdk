@@ -718,6 +718,8 @@ void KernelLoader::ReadInferredType(const Field& field,
                            FlowGraphCompiler::SupportsUnboxedSimd128()) ||
                           (field.guarded_cid() == kFloat64x2Cid &&
                            FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+                          (field.guarded_cid() == kInt32x4Cid &&
+                           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
                           type.IsInt()));
   }
 }

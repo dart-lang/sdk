@@ -7,6 +7,10 @@
 #
 #     dart run pkg/linter/tool/generate_lints.dart
 #     dart run pkg/analyzer/tool/messages/generate.dart
+#
+# The legacy rules.json file can be updated by running:
+#
+#     dart run pkg/linter/tool/machine.dart -w
 
 # There is a fixed set of categories:
 #
@@ -1444,9 +1448,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, errorProne]
     hasPublishedDocs: true
-    # In the documentation, the `curly_braces_in_flow_control_structures`
-    # diagnostic is being ignored because the lint shouldn't be reported when
-    # there's already an error being reported.
+    # In the documentation, the `curly_braces_in_flow_control_structures` and
+    # `empty_statements` diagnostics are being ignored because they can't be
+    # fixed without also fixing the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -1462,7 +1466,7 @@ LinterLintCode:
       following the `else` is an empty statement:
 
       ```dart
-      %ignore=curly_braces_in_flow_control_structures
+      %ignore=curly_braces_in_flow_control_structures,empty_statements
       void f(int x, int y) {
         if (x > y) {
           print('1');
@@ -5090,11 +5094,19 @@ LinterLintCode:
     problemMessage: "Place 'package:' #p0 before relative #p0."
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
+  discardedFutureOr:
+    type: lint
+    parameters: none
+    sharedName: discardedFutures
+    problemMessage: "'FutureOr'-returning calls in a non-'async' function."
+    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await'."
+    hasPublishedDocs: false
   discardedFutures:
     type: lint
     parameters: none
+    sharedName: discardedFutures
     problemMessage: "'Future'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited'."
+    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await', or wrap the expression in 'unawaited'."
     state:
       stable: "2.18"
     categories: [errorProne]
@@ -5510,6 +5522,45 @@ LinterLintCode:
       stable: "2.14"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a non-empty Dart file
+      doesn't end with a single newline.
+      This occurs when a file has no trailing newline or
+      when it has multiple trailing newlines.
+
+      Trailing newlines aren't visible in rendered code blocks.
+      To make them clear, the examples below use comments to
+      show where each file ends.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the file doesn't end with a newline:
+
+      ```dart
+      class C {} // The file ends here, without a newline.
+      ```
+
+      The following code produces this diagnostic because
+      the file ends with multiple newlines:
+
+      ```dart
+      class C {}
+
+      // The file ends here, after two newlines.
+      ```
+
+      #### Common fixes
+
+      Add or remove newlines at the end of the file
+      until it ends with exactly one newline:
+
+      ```dart
+      class C {}
+      // The file ends here, after a single newline.
+      ```
     deprecatedDetails: |-
       **DO** put a single newline at the end of non-empty files.
 
@@ -5555,20 +5606,22 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a
-      `switch` statement over an instance of an enum-like class is
-      missing a `case` clause for one or more of the class's constants and
+      `switch` statement over an instance of an enum-like type is
+      missing a `case` clause for one or more of the type's constants and
       doesn't have a `default` clause.
 
-      Enum-like classes are non-abstract classes that have:
+      Enum-like types are classes or extension types that have:
 
       - Only private, non-factory constructors.
-      - Two or more `static const` fields whose type is the enclosing class.
-      - No subclasses in the defining library.
+      - Two or more `static const` fields whose type is the enclosing type.
+
+      In addition, an enum-like class must be non-abstract and have no
+      subclasses in the defining library.
 
       #### Example
 
@@ -5588,6 +5641,24 @@ LinterLintCode:
             print('a');
           case .b:
             print('b');
+        }
+      }
+      ```
+
+      Extension types can also be enum-like. The following code produces this
+      diagnostic because the `switch` statement is missing a `case` clause for
+      the constant `E.b`:
+
+      ```dart
+      extension type const E._(int value) {
+        static const E a = ._(1);
+        static const E b = ._(2);
+      }
+
+      void f(E e) {
+        [!switch (e)!] {
+          case .a:
+            print('a');
         }
       }
       ```
@@ -5638,14 +5709,33 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      Switching on instances of enum-like classes should be exhaustive.
+      Switching on instances of enum-like types should cover all known
+      constants.
 
-      Enum-like classes are defined as concrete (non-abstract) classes that have:
+      Enum-like types are classes or extension types that have:
         * only private non-factory constructors
-        * two or more static const fields whose type is the enclosing class and
-        * no subclasses of the class in the defining library
+        * two or more static const fields whose type is the enclosing type
 
-      **DO** define case clauses for all constants in enum-like classes.
+      In addition, enum-like classes are concrete (non-abstract) and have no
+      subclasses in the defining library.
+
+      **DO** define case clauses for all constants in enum-like types.
+
+      Extension types can also be enum-like:
+
+      ```dart
+      extension type const E._(int value) {
+        static const E a = E._(1);
+        static const E b = E._(2);
+      }
+
+      void f(E e) {
+        switch (e) { // LINT
+          case E.a:
+            print('a');
+        }
+      }
+      ```
 
       **BAD:**
       ```dart
@@ -5786,7 +5876,7 @@ LinterLintCode:
     state:
       stable: "3.14"
     categories: [nonPerformant]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5821,7 +5911,7 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      Future<int> f() => Future.value(1);
+      Future<int> f() => Future.syncValue(1);
       ```
   hashAndEquals:
     type: lint
@@ -7021,6 +7111,9 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_library_name` diagnostic is ignored
+    # because the diagnostic being documented requires the existance of a
+    # library name.
     documentation: |-
       #### Description
 
@@ -7033,6 +7126,7 @@ LinterLintCode:
       `libraryName` isn't a lower_case_with_underscores identifier:
 
       ```dart
+      %ignore=unnecessary_library_name
       library [!libraryName!];
       ```
 
@@ -7048,6 +7142,7 @@ LinterLintCode:
       lower_case_with_underscores naming convention:
 
       ```dart
+      %ignore=unnecessary_library_name
       library library_name;
       ```
     deprecatedDetails: |-
@@ -7664,6 +7759,10 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_adjacent_string_concatenation`
+    # diagnostic is ignored because even though the use of `+` isn't a
+    # recommended solution, it is a valid way to avoid this lint. We should
+    # consider allowing the use of `+` in list literals.
     documentation: |-
       #### Description
 
@@ -7704,6 +7803,7 @@ LinterLintCode:
       Or use the `+` operator to concatenate the strings:
 
       ```dart
+      %ignore=prefer_adjacent_string_concatenation
       List<String> list = ['a' + 'b', 'c'];
       ```
     deprecatedDetails: |-
@@ -7736,7 +7836,7 @@ LinterLintCode:
     state:
       experimental: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7988,8 +8088,8 @@ LinterLintCode:
   noLeadingUnderscoresForLibraryPrefixes:
     type: lint
     parameters:
-      Object p0: undocumented
-    problemMessage: "The library prefix '#p0' starts with an underscore."
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
     correctionMessage: "Try renaming the prefix to not start with an underscore."
     state:
       stable: "2.16"
@@ -8035,11 +8135,20 @@ LinterLintCode:
       ```dart
       import 'dart:core' as core;
       ```
+  noLeadingUnderscoresForLibraryPrefixesShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLibraryPrefixes
+    parameters:
+      String prefix: The library prefix.
+    problemMessage: "The library prefix '#prefix' starts with an underscore."
+    correctionMessage: "Try renaming the prefix to not start with an underscore."
+    hasPublishedDocs: true
   noLeadingUnderscoresForLocalIdentifiers:
     type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
     parameters:
-      Object p0: undocumented
-    problemMessage: "The local variable '#p0' starts with an underscore."
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
     correctionMessage: "Try renaming the variable to not start with an underscore."
     state:
       stable: "2.16"
@@ -8105,6 +8214,14 @@ LinterLintCode:
       ```dart
       [1,2,3].map((_) => print('Hello'));
       ```
+  noLeadingUnderscoresForLocalIdentifiersShadowed:
+    type: lint
+    sharedName: noLeadingUnderscoresForLocalIdentifiers
+    parameters:
+      String variableName: The variable name.
+    problemMessage: "The local variable '#variableName' starts with an underscore."
+    correctionMessage: "Try renaming the variable to not start with an underscore."
+    hasPublishedDocs: true
   noLiteralBoolComparisons:
     type: lint
     parameters: none
@@ -11108,7 +11225,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11961,7 +12078,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -14101,11 +14218,19 @@ LinterLintCode:
         }
       }
       ```
+  unawaitedFutureOr:
+    type: lint
+    parameters: none
+    sharedName: unawaitedFutures
+    problemMessage: "Missing an 'await' for the 'FutureOr' computed by this expression."
+    correctionMessage: "Try adding an 'await'."
+    hasPublishedDocs: true
   unawaitedFutures:
     type: lint
     parameters: none
+    sharedName: unawaitedFutures
     problemMessage: "Missing an 'await' for the 'Future' computed by this expression."
-    correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited'."
+    correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited' (if it is a 'Future')."
     state:
       stable: "2.0"
     categories: [style]
@@ -14114,7 +14239,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic on an expression with a `Future`
-      type, only in a few specific cases:
+      or `FutureOr` type, only in a few specific cases:
 
       * when the expression is itself a statement (like `f();`),
       * when the expression is part of a cascade (like `C()..f()`),
@@ -14123,8 +14248,9 @@ LinterLintCode:
       The analyzer only produces this diagnostic on expressions inside an
       `async` or `async*` function.
 
-      The two common corrections are to 'await' the expression, or to wrap the
-      expression in a call to `unawaited()`.
+      The two common corrections are to 'await' the expression, or if it is
+      a `Future` (not `FutureOr`), to wrap the expression in a call to
+      `unawaited()`.
 
       #### Example
 
@@ -14152,7 +14278,7 @@ LinterLintCode:
       Future<int> g() => Future.value(0);
       ```
 
-      If the future doesn't need to complete before the following code is
+      If the `Future` doesn't need to complete before the following code is
       executed, then wrap the `Future`-returning invocation in an invocation of
       the `unawaited` function:
 
@@ -14166,10 +14292,11 @@ LinterLintCode:
       Future<int> g() => Future.value(0);
       ```
     deprecatedDetails: |-
-      **DO** await functions that return a `Future` inside of an async function body.
+      **DO** await functions that return a `Future` or `FutureOr` inside of an async
+      function body.
 
-      It's easy to forget await in async methods as naming conventions usually don't
-      tell us if a method is sync or async (except for some in `dart:io`).
+      It's easy to forget `await` in `async` methods as naming conventions usually don't
+      tell us if a method is sync or `async` (except for some in `dart:io`).
 
       When you really _do_ want to start a fire-and-forget `Future`, the recommended
       way is to use `unawaited` from `dart:async`. The `// ignore` and
@@ -14177,6 +14304,8 @@ LinterLintCode:
 
       **BAD:**
       ```dart
+      Future doSomething() => ...;
+
       void main() async {
         doSomething(); // Likely a bug.
       }
@@ -14190,6 +14319,9 @@ LinterLintCode:
         await doSomething();
 
         unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
+
+        // ignore: unawaited_futures
+        doSomething(); // Explicitly-ignored fire-and-forget.
       }
       ```
   unintendedHtmlInDocComment:
@@ -14278,8 +14410,13 @@ LinterLintCode:
 
       Such a mistake can, for example, happen if writing Dart code with type arguments
       outside of a code span, for example `The type List<int> is ...`, where `<int>`
-      looks like an HTML tag. Missing the end quote of a code span can have the same
+      looks like an HTML tag. Missing the end backtick of a code span can have the same
       effect: ``The type `List<int> is ...`` will also treat `<int>` as an HTML tag.
+
+      When using indentation for code blocks, this can also be caused by not indenting
+      enough. Code blocks should be indented by four spaces _in addition to_ the space
+      that separates the comment from the markers, although using triple backticks for
+      code blocks should be preferred over indentation.
 
       Allows the following HTML directives: HTML comments, `<!-- text -->`, processing
       instructions, `<?...?>`, CDATA-sections, and `<[CDATA...]>`.
@@ -14302,6 +14439,8 @@ LinterLintCode:
       ```dart
       /// The type List<int>.
       /// <assignment> -> <variable> = <expression>
+      ///
+      ///    List<int> func() => [];
       ```
 
       **GOOD:**
@@ -14311,6 +14450,12 @@ LinterLintCode:
       /// `<assignment> -> <variable> = <expression>`
       /// \<assignment\> -> \<variable\> = \<expression\>`
       /// <https://example.com/example>
+      ///
+      ///     List<int> func() => [];
+      ///
+      /// ```
+      /// List<int> func() => [];
+      /// ```
       ```
   unnecessaryAsync:
     type: lint
@@ -14670,7 +14815,7 @@ LinterLintCode:
       ```dart
       enum [!const!] E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
@@ -14695,7 +14840,7 @@ LinterLintCode:
       ```dart
       enum E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
@@ -15031,6 +15176,11 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `avoid_function_literals_in_foreach_calls`
+    # diagnostic is ignored because it's a bi-product of the choice of example.
+    # The documentation is more clear if we use a familiar method that taked a
+    # function as a parameter, and `forEach` is a reasonable choice. We could
+    # remove the ignore by choosing a different method.
     documentation: |-
       #### Description
 
@@ -15044,6 +15194,7 @@ LinterLintCode:
       parameter of the closure:
 
       ```dart
+      %ignore=avoid_function_literals_in_foreach_calls
       void f(List<String> strings) {
         strings.forEach([!(string) {
           print(string);
@@ -16338,7 +16489,7 @@ LinterLintCode:
       **GOOD:**
       ```dart
       class C {
-        new ();
+        new();
         new name();
       }
       ```
@@ -16468,7 +16619,7 @@ LinterLintCode:
     state:
       stable: "2.19"
     categories: [unusedCode]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17180,6 +17331,9 @@ LinterLintCode:
       stable: "3.13"
     categories: [style]
     hasPublishedDocs: true
+    # In the documentation, the `prefer_initializing_formals` diagnostic is
+    # ignored because not using an initializing formal shows a more dramatic
+    # improvement in the code.
     documentation: |-
       #### Description
 
@@ -17193,6 +17347,7 @@ LinterLintCode:
       assigns the parameter `i` to the field `i`:
 
       ```dart
+      %ignore=prefer_initializing_formals
       class C(int [!i!]) {
         final int i;
 
@@ -17513,7 +17668,7 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

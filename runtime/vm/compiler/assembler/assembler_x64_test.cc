@@ -5314,6 +5314,45 @@ ASSEMBLER_TEST_RUN(Pxor, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Pcmpeqd, assembler) {
+  // Comparing a register with itself: every lane is equal -> all ones.
+  __ pcmpeqd(XMM0, XMM0);
+  // Collect the four lane sign bits; all set -> 0xF.
+  __ movmskps(RAX, XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pcmpeqd, test) {
+  typedef intptr_t (*PcmpeqdCode)();
+  intptr_t res = reinterpret_cast<PcmpeqdCode>(test->entry())();
+  EXPECT_EQ(0xF, res);
+  EXPECT_DISASSEMBLY(
+      "pcmpeqd xmm0,xmm0\n"
+      "movmskps rax,xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Ptest, assembler) {
+  // Zero vector: ptest sets ZF=1, so setcc(EQUAL) yields 1.
+  __ xorps(XMM0, XMM0);
+  __ ptest(XMM0, XMM0);
+  __ setcc(EQUAL, ByteRegisterOf(RAX));
+  __ movzxb(RAX, RAX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ptest, test) {
+  typedef intptr_t (*PtestCode)();
+  intptr_t res = reinterpret_cast<PtestCode>(test->entry())();
+  EXPECT_EQ(1, res);
+  EXPECT_DISASSEMBLY(
+      "xorps xmm0,xmm0\n"
+      "ptest xmm0,xmm0\n"
+      "setz al\n"
+      "movzxbq rax,rax\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
   __ sqrtsd(XMM0, XMM0);
   __ ret();

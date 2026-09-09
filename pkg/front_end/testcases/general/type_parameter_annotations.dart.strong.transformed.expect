@@ -56,7 +56,7 @@ class C extends core::Object {
   method method<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:26:27: Error: Not a constant expression.
   void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {
                           ^^^" T extends core::Object? = dynamic, @#C1 U extends core::Object? = dynamic>(dynamic foo) → void {
-    dynamic foo;
+    dynamic foo##1;
   }
   static method bar() → void {}
 }
@@ -75,7 +75,7 @@ extension Extension<@Annotation(foo) T> on Class<T> {
 static method function<@invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:15:27: Error: Undefined name 'foo'.
 void function<@Annotation(foo) T>(dynamic foo) {
                           ^^^" T extends core::Object? = dynamic>(dynamic foo) → void {
-  dynamic foo;
+  dynamic foo##1;
 }
 static extension-member method Extension|foo() → void {}
 static extension-member method Extension|extensionMethod<#T extends core::Object? = dynamic, @#C1 T extends core::Object? = dynamic, @invalid-expression "pkg/front_end/testcases/general/type_parameter_annotations.dart:22:56: Error: Not a constant expression.

@@ -91,36 +91,36 @@ static method test1(dynamic x) → dynamic {
     {
       hoisted core::int i;
       if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0 is core::int && (let final dynamic #t5 = i = #0#0{core::int} in true) && (let final dynamic #t6 = #t1 = i in true)) {
-        invalid-type i = #t1{invalid-type};
+        invalid-type i##1 = #t1{invalid-type};
         {
-          return i;
+          return i##1;
         }
       }
     }
     {
       hoisted core::String s;
       if(#0#0 is core::String && (let final dynamic #t7 = s = #0#0{core::String} in true) && (let final dynamic #t8 = #t2 = s in true) || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0) {
-        core::String s = #t2{core::String};
+        core::String s##1 = #t2{core::String};
         {
-          return s;
+          return s##1;
         }
       }
     }
     {
       hoisted core::double d;
       if(#0#0 is core::double && (let final dynamic #t9 = d = #0#0{core::double} in true) && (let final dynamic #t10 = #t3 = d in true) || #0#0{dynamic}.<(#C3) as core::bool) {
-        core::double d = #t3{core::double};
+        core::double d##1 = #t3{core::double};
         {
-          return d;
+          return d##1;
         }
       }
     }
     {
       hoisted core::bool b;
       if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C4 || #0#0 is core::bool && (let final dynamic #t11 = b = #0#0{core::bool} in true) && (let final dynamic #t12 = #t4 = b in true)) {
-        invalid-type b = #t4{invalid-type};
+        invalid-type b##1 = #t4{invalid-type};
         {
-          return b;
+          return b##1;
         }
       }
     }
@@ -224,9 +224,9 @@ static method test3(dynamic x) → dynamic {
       #L4:
       case #C1:
         {
-          core::int i3 = #t17{core::int};
+          core::int i3##1 = #t17{core::int};
           {
-            return i3;
+            return i3##1;
           }
         }
     }
@@ -277,11 +277,11 @@ static method test4(dynamic x) → dynamic {
       #L6:
       case #C1:
         {
-          core::int i4 = invalid-expression "pkg/front_end/testcases/patterns/issue51604.dart:59:14: Error: Variable pattern 'i4' doesn't have the same type or finality in all cases.
+          core::int i4##1 = invalid-expression "pkg/front_end/testcases/patterns/issue51604.dart:59:14: Error: Variable pattern 'i4' doesn't have the same type or finality in all cases.
       return i4; // Error.
              ^";
           {
-            return i4;
+            return i4##1;
           }
         }
     }
@@ -409,8 +409,8 @@ static method test7(dynamic x) → dynamic {
         hoisted core::String s7;
         if(#0#0 is core::String && (let final dynamic #t58 = s7 = #0#0{core::String} in true) && s7 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
           {
-            core::String s7 = "foo";
-            return s7;
+            core::String s7##1 = "foo";
+            return s7##1;
           }
         }
       }
@@ -420,8 +420,8 @@ static method test7(dynamic x) → dynamic {
       case #C1:
         {
           {
-            core::int i7 = 1;
-            return i7;
+            core::int i7##1 = 1;
+            return i7##1;
           }
         }
     }

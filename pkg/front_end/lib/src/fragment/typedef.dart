@@ -28,6 +28,9 @@ class TypedefFragment implements Fragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>? typeParameterBuilders =
+      typeParameters?.computeBuilderList;
+
   new({
     required this.metadata,
     required this.name,

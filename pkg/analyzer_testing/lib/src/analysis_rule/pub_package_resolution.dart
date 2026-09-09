@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -222,7 +223,8 @@ class PackageBuilder {
   }
 }
 
-class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
+class PubPackageResolutionTest
+    with MockPackagesMixin, ResourceProviderMixin, ConfigurationFilesMixin {
   /// The byte store that is reused between tests.
   ///
   /// This allows reusing all unlinked and linked summaries for SDK, so that
@@ -243,27 +245,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// The names of packages which should be added to the
   /// [PackageConfigFileBuilder].
   final Set<String> _packagesToAdd = {};
-
-  /// Adds the 'fixnum' package as a dependency to the package-under-test.
-  ///
-  /// This allows `package:fixnum/fixnum.dart` imports to resolve.
-  bool get addFixnumPackageDep => false;
-
-  /// Adds the 'flutter' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:flutter/` imports to resolve.
-  bool get addFlutterPackageDep => false;
-
-  /// Adds the 'meta' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:meta/` imports to resolve.
-  bool get addMetaPackageDep => false;
-
-  /// Adds the 'test_reflective_loader' package as a dependency to the
-  /// package-under-test.
-  ///
-  /// This allows various `package:test_reflective_loader/` imports to resolve.
-  bool get addTestReflectiveLoaderPackageDep => false;
 
   AnalysisContextCollection get contextCollection {
     _createAnalysisContexts();
@@ -296,12 +277,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// Used for writing out a package config file. A `null` value means no
   /// 'languageVersion' is written to the package config file.
+  @override
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
@@ -420,11 +403,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Note: Be sure to `await` any use of this API, to avoid stale analysis
   /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
-    List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
+    List<(String unitPath, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
   ) async {
-    for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
-      result = await resolveFile(convertPath(path));
+    for (var (unitPath, expectedDiagnostics) in unitsAndDiagnostics) {
+      result = await resolveFile(convertPath(unitPath));
       assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
@@ -443,10 +426,18 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
+  @Deprecated('Use "contextFor2"')
   DriverBasedAnalysisContext contextFor(String path) {
     _createAnalysisContexts();
 
     var convertedPath = convertPath(path);
+    return _analysisContextCollection!.contextFor(convertedPath);
+  }
+
+  DriverBasedAnalysisContext contextFor2(File file) {
+    _createAnalysisContexts();
+
+    var convertedPath = convertPath(file.path);
     return _analysisContextCollection!.contextFor(convertedPath);
   }
 
@@ -563,13 +554,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return PackageBuilder._(packagePath, this);
   }
 
-  /// Resolves a Dart source file at [path].
+  /// Resolves a Dart source file at [filePath].
   ///
-  /// [path] must be converted for this file system.
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = contextFor(path);
+  /// [filePath] must be converted for this file system.
+  Future<ResolvedUnitResult> resolveFile(String filePath) async {
+    var file = resourceProvider.getFile(filePath);
+    var analysisContext = contextFor2(file);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+    return await session.getResolvedUnit(filePath) as ResolvedUnitResult;
   }
 
   @mustCallSuper
@@ -587,7 +579,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       }
     }
 
-    writeTestPackageConfig(PackageConfigFileBuilder());
+    writeTestPackageConfig2();
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
   }
 
@@ -648,12 +640,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return buffer.toString();
   }
 
+  @Deprecated('Use writePackageConfig2 instead')
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
     newFile(path, config.toContent());
   }
 
   /// Writes a `package_config.json` file from [config], and for packages that
   /// have been added via [newPackage].
+  @Deprecated('Use writeTestPackageConfig2 instead')
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -698,6 +692,25 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     writePackageConfig(path, configCopy);
   }
 
+  /// Writes a `package_config.json` file from [config], and for packages that
+  /// have been added via [newPackage].
+  @override
+  void writeTestPackageConfig2({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    config = (config ?? PackageConfigFileBuilder()).copy();
+    for (var packageName in _packagesToAdd) {
+      var packagePath = convertPath('/package/$packageName');
+      config.add(name: packageName, rootFolder: getFolder(packagePath));
+    }
+
+    super.writeTestPackageConfig2(
+      config: config,
+      languageVersion: languageVersion,
+    );
+  }
+
   void _addTestFile(String content) {
     testFile.writeAsStringSync(content);
   }
@@ -719,11 +732,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     );
   }
 
-  /// Resolves the file with the [path] into [result].
-  Future<void> _resolveFile(String path) async {
-    var convertedPath = convertPath(path);
-
-    result = await resolveFile(convertedPath);
+  /// Resolves the file with the [filePath] into [result].
+  Future<void> _resolveFile(String filePath) async {
+    result = await resolveFile(convertPath(filePath));
   }
 
   Future<void> _resolveTestFile() => _resolveFile(_testFilePath);

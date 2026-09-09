@@ -60,13 +60,40 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
 
+  @override
+  AssignmentExpression get singleAssignmentExpression {
+    var nodes = _nodes<AstNode>().where(
+      (node) => node is AssignmentExpression || node is DirectAssignment,
+    );
+    return _toAssignmentExpression(nodes.single);
+  }
+
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
+
+  CallInvocation get singleCallInvocation => _single();
+
+  CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  DirectAssignment get singleDirectAssignment => _single();
+
+  DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>
+      _single();
+
+  DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
   IfNull get singleIfNull => _single();
+
+  IfNullAssignment get singleIfNullAssignment => _single();
+
+  ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
+      _single();
+
+  ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
+      _single();
 
   LogicalAnd get singleLogicalAnd => _single();
 
@@ -76,10 +103,36 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
+  ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
+
+  TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
+
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
+  UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
+      _single();
+
+  UnqualifiedNameExpression get singleUnqualifiedNameExpression => _single();
+
+  @override
+  AssignmentExpression assignment(String search) {
+    var node = _node<AstNode>(
+      search,
+      (node) => node is AssignmentExpression || node is AssignmentExpression2,
+    );
+    return _toAssignmentExpression(node);
+  }
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CallInvocation callInvocation(String search) {
+    return _node(search, (node) => node is CallInvocation);
+  }
+
+  CompoundAssignment compoundAssignment(String search) {
+    return _node(search, (node) => node is CompoundAssignment);
   }
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -90,8 +143,38 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is ConstructorTearOff);
   }
 
+  DirectAssignment directAssignment(String search) {
+    return _node(search, (node) => node is DirectAssignment);
+  }
+
+  DotShorthandMethodInvocation dotShorthandMethodInvocation(String search) {
+    return _node(search, (node) => node is DotShorthandMethodInvocation);
+  }
+
+  DotShorthandNameExpression dotShorthandNameExpression(String search) {
+    return _node(search, (node) => node is DotShorthandNameExpression);
+  }
+
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
+  }
+
+  IfNullAssignment ifNullAssignment(String search) {
+    return _node(search, (node) => node is IfNullAssignment);
+  }
+
+  ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
+    String search,
+  ) {
+    return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
+  }
+
+  ImportPrefixedNameExpression importPrefixedNameExpression(String search) {
+    return _node(search, (node) => node is ImportPrefixedNameExpression);
+  }
+
+  IncrementOrDecrementExpression incrementOrDecrement(String search) {
+    return _node(search, (node) => node is IncrementOrDecrementExpression);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -110,24 +193,30 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is NullAssertionExpression);
   }
 
-  PostfixDecrement postfixDecrement(String search) {
-    return _node(search, (node) => node is PostfixDecrement);
+  ReceiverMethodInvocation receiverMethodInvocation(String search) {
+    return _node(search, (node) => node is ReceiverMethodInvocation);
   }
 
-  PostfixIncrement postfixIncrement(String search) {
-    return _node(search, (node) => node is PostfixIncrement);
-  }
-
-  PrefixDecrement prefixDecrement(String search) {
-    return _node(search, (node) => node is PrefixDecrement);
-  }
-
-  PrefixIncrement prefixIncrement(String search) {
-    return _node(search, (node) => node is PrefixIncrement);
+  TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
+    return _node(search, (node) => node is TopLevelGetterDeclaration);
   }
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
     return _node(search, (node) => node is UnaryOperatorInvocation);
+  }
+
+  UnqualifiedFunctionInvocation unqualifiedFunctionInvocation(String search) {
+    return _node(search, (node) => node is UnqualifiedFunctionInvocation);
+  }
+
+  UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (node) => node is UnqualifiedNameAssignmentTarget);
+  }
+
+  UnqualifiedNameExpression unqualifiedNameExpression(String search) {
+    return _node(search, (node) => node is UnqualifiedNameExpression);
   }
 
   @override
@@ -148,6 +237,16 @@ class FindNode2 extends _FindNodeBase {
     bool Function(AstNode) predicate,
   ) {
     return node.thisOrAncestorMatching2(predicate);
+  }
+
+  AssignmentExpression _toAssignmentExpression(AstNode node) {
+    return switch (node) {
+      AssignmentExpression node => node,
+      CompoundAssignmentImpl node => node.assignmentExpression,
+      DirectAssignmentImpl node => node.assignmentExpression,
+      IfNullAssignmentImpl node => node.assignmentExpression,
+      _ => throw StateError('Not an assignment expression: $node'),
+    };
   }
 }
 
@@ -197,6 +296,18 @@ abstract class _FindNodeBase {
 
   CascadeExpression get singleCascadeExpression => _single();
 
+  CascadeIndexAssignmentTarget get singleCascadeIndexAssignmentTarget =>
+      _single();
+
+  CascadeIndexExpression get singleCascadeIndexExpression => _single();
+
+  CascadePropertyAssignmentTarget get singleCascadePropertyAssignmentTarget =>
+      _single();
+
+  CascadePropertyExtraction get singleCascadePropertyExtraction => _single();
+
+  CascadeSection get singleCascadeSection => _single();
+
   CastPattern get singleCastPattern => _single();
 
   CatchClause get singleCatchClause => _single();
@@ -228,7 +339,7 @@ abstract class _FindNodeBase {
 
   DoStatement get singleDoStatement => _single();
 
-  DotShorthandConstructorInvocation
+  DotShorthandConstructorInvocation2
   get singleDotShorthandConstructorInvocation => _single();
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
@@ -293,6 +404,8 @@ abstract class _FindNodeBase {
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
+  FunctionInstantiation get singleFunctionInstantiation => _single();
+
   FunctionReference get singleFunctionReference => _single();
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
@@ -313,7 +426,14 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference get singleImplicitCallReference => _single();
 
+  ImplicitCallTearOff get singleImplicitCallTearOff => _single();
+
+  ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
+      _single();
+
   ImportDirective get singleImportDirective => _single();
+
+  IncrementOrDecrementExpression get singleIncrementOrDecrement => _single();
 
   IndexExpression get singleIndexExpression => _single();
 
@@ -384,15 +504,7 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PostfixDecrement get singlePostfixDecrement => _single();
-
-  PostfixIncrement get singlePostfixIncrement => _single();
-
-  PrefixDecrement get singlePrefixDecrement => _single();
-
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
-
-  PrefixIncrement get singlePrefixIncrement => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
@@ -400,6 +512,10 @@ abstract class _FindNodeBase {
       _single();
 
   PropertyAccess get singlePropertyAccess => _single();
+
+  ReceiverIndexExpression get singleReceiverIndexExpression => _single();
+
+  ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
 
@@ -545,6 +661,32 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is CascadeExpression);
   }
 
+  CascadeIndexAssignmentTarget cascadeIndexAssignmentTarget(String search) {
+    return _node(search, (n) => n is CascadeIndexAssignmentTarget);
+  }
+
+  CascadeIndexExpression cascadeIndexExpression(String search) {
+    return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadeMethodInvocation cascadeMethodInvocation(String search) {
+    return _node(search, (n) => n is CascadeMethodInvocation);
+  }
+
+  CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (n) => n is CascadePropertyAssignmentTarget);
+  }
+
+  CascadePropertyExtraction cascadePropertyExtraction(String search) {
+    return _node(search, (n) => n is CascadePropertyExtraction);
+  }
+
+  CascadeSection cascadeSection(String search) {
+    return _node(search, (n) => n is CascadeSection);
+  }
+
   CaseClause caseClause(String search) {
     return _node(search, (n) => n is CaseClause);
   }
@@ -629,10 +771,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is DoStatement);
   }
 
-  DotShorthandConstructorInvocation dotShorthandConstructorInvocation(
+  DotShorthandConstructorInvocation2 dotShorthandConstructorInvocation(
     String search,
   ) {
-    return _node(search, (n) => n is DotShorthandConstructorInvocation);
+    return _node(search, (n) => n is DotShorthandConstructorInvocation2);
   }
 
   DotShorthandInvocation dotShorthandInvocation(String search) {
@@ -774,6 +916,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is FunctionExpressionInvocation);
   }
 
+  FunctionInstantiation functionInstantiation(String search) {
+    return _node(search, (n) => n is FunctionInstantiation);
+  }
+
   FunctionReference functionReference(String search) {
     return _node(search, (n) => n is FunctionReference);
   }
@@ -814,6 +960,14 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference implicitCallReference(String search) {
     return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  ImplicitCallTearOff implicitCallTearOff(String search) {
+    return _node(search, (n) => n is ImplicitCallTearOff);
+  }
+
+  ImplicitFunctionInstantiation implicitFunctionInstantiation(String search) {
+    return _node(search, (n) => n is ImplicitFunctionInstantiation);
   }
 
   ImportDirective import(String search) {
@@ -1003,6 +1157,14 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  ReceiverIndexExpression receiverIndexExpression(String search) {
+    return _node(search, (n) => n is ReceiverIndexExpression);
+  }
+
+  ReceiverPropertyExtraction receiverPropertyExtraction(String search) {
+    return _node(search, (n) => n is ReceiverPropertyExtraction);
+  }
+
   RecordLiteral recordLiteral(String search) {
     return _node(search, (n) => n is RecordLiteral);
   }
@@ -1126,7 +1288,7 @@ abstract class _FindNodeBase {
   }
 
   VariableDeclaration topVariableDeclarationByName(String name) {
-    for (var declaration in unit.declarations) {
+    for (var declaration in unit.declarations2) {
       if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           if (variable.name.lexeme == name) {
@@ -1261,8 +1423,7 @@ class _TypedNodeVisitor<T extends AstNode>
   }
 }
 
-class _TypedNodeVisitor2<T extends AstNode>
-    extends GeneralizingAstVisitor2<void> {
+class _TypedNodeVisitor2<T extends AstNode> extends UnifyingAstVisitor2<void> {
   final List<T> nodes = [];
 
   @override

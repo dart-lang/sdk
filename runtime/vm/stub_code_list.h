@@ -77,6 +77,7 @@ namespace dart {
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
   V(BoxFloat64x2)                                                              \
+  V(BoxInt32x4)                                                                \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \

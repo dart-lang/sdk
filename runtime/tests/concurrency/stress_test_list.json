@@ -3345,7 +3345,6 @@
   "../../../tests/lib/typed_data/float32x4_unbox_regress_test.dart",
   "../../../tests/lib/typed_data/float64x2_clamp_test.dart",
   "../../../tests/lib/typed_data/float64x2_functional_test.dart",
-  "../../../tests/lib/typed_data/float64x2_typed_list_test.dart",
   "../../../tests/lib/typed_data/int32x4_arithmetic_test.dart",
   "../../../tests/lib/typed_data/int32x4_list_test.dart",
   "../../../tests/lib/typed_data/int32x4_shuffle_test.dart",

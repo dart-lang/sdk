@@ -16,6 +16,7 @@
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
 #include "vm/object_id_ring.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
@@ -865,6 +866,112 @@ ISOLATE_UNIT_TEST_CASE(Service_ReadNativeMemory_NullAddress) {
 
   EXPECT_SUBSTRING("\"error\"", handler.msg());
   EXPECT_SUBSTRING("null pointer", handler.msg());
+}
+
+ISOLATE_UNIT_TEST_CASE(Service_ClassFfiLayout) {
+  const char* kScript =
+      "@pragma('vm:entry-point', 'set')\n"
+      "import 'dart:ffi';\n"
+      "import 'dart:typed_data';\n"
+      "var port;\n"
+      "final class Inner extends Struct {\n"
+      "  @Int32() external int a;\n"
+      "}\n"
+      "final class MyStruct extends Struct {\n"
+      "  @Int32() external int x;\n"
+      "  @Float() external double y;\n"
+      "  external Inner inner;\n"
+      "  @Array(3) external Array<Uint8> tail;\n"
+      "}\n"
+      "MyStruct? instance;\n"
+      "MyStruct? instanceAtOffset;\n"
+      "main() {\n"
+      "  instance = Struct.create<MyStruct>();\n"
+      "  final backing = Uint8List(8 + 16);\n"
+      "  instanceAtOffset = Struct.create<MyStruct>(backing, 8);\n"
+      "}";
+
+  SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib;
+  {
+    TransitionVMToNative transition(thread);
+    lib = TestCase::LoadTestScript(kScript, nullptr);
+    EXPECT_VALID(lib);
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+    EXPECT_VALID(result);
+  }
+
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  const Class& cls = Class::Handle(GetClass(vmlib, "MyStruct"));
+  EXPECT(!cls.IsNull());
+
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  {
+    TransitionVMToNative transition(thread);
+    EXPECT_VALID(port);
+    EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+  }
+  Array& service_msg = Array::Handle();
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', false, "
+                      "['objectId'], ['classes/%" Pd "']]",
+                      cls.id());
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  EXPECT_SUBSTRING("\"ffiLayout\":{\"size\":16,\"fields\":[", handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"x\",\"nativeType\":\"int32\",\"offset\":0,\"size\":4",
+      handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"y\",\"nativeType\":\"float\",\"offset\":4,\"size\":4",
+      handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"inner\",\"nativeType\":\"Inner\",\"offset\":8,"
+      "\"size\":4",
+      handler.msg());
+  EXPECT_SUBSTRING(
+      "\"name\":\"tail\",\"nativeType\":\"Array\",\"offset\":12,\"size\":3,"
+      "\"length\":3,\"arrayElementType\":\"uint8\"",
+      handler.msg());
+
+  Dart_Handle instance_handle;
+  {
+    TransitionVMToNative transition(thread);
+    instance_handle = Dart_GetField(lib, NewString("instanceAtOffset"));
+    EXPECT_VALID(instance_handle);
+  }
+  Instance& instance_at_offset = Instance::Handle();
+  instance_at_offset ^= Api::UnwrapHandle(instance_handle);
+  EXPECT(!instance_at_offset.IsNull());
+  ServiceIdZone& id_zone = isolate->EnsureDefaultServiceIdZone();
+  const char* instance_id = id_zone.GetServiceId(instance_at_offset);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', false, "
+                      "['objectId'], ['%s']]",
+                      instance_id);
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"Instance\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"_offsetInBytes\"", handler.msg());
+  EXPECT_SUBSTRING("\"valueAsString\":\"8\"", handler.msg());
+
+  // Classes that are not FFI compounds do not get an `ffiLayout` at all.
+  const Class& object_cls =
+      Class::Handle(isolate->group()->object_store()->object_class());
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', false, "
+                      "['objectId'], ['classes/%" Pd "']]",
+                      object_cls.id());
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  EXPECT(strstr(handler.msg(), "ffiLayout") == nullptr);
 }
 
 // TODO(zra): Remove when tests are ready to enable.

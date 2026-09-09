@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_link.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:meta/meta.dart';
 
@@ -46,11 +47,11 @@ class FlowAnalysisLog {
 
   /// List of promotion keys bound to `this`, corresponding to the offsets in
   /// [_thisBindingOffsets].
-  final List<int> _thisBindingValues = [];
+  final List<PromotionKey> _thisBindingValues = [];
 
   /// The promotion key bound to `this` at the beginning of flow analysis, prior
   /// to any changes noted in [_thisBindingValues] and [_thisBindingOffsets].
-  int? _initialThisBinding;
+  PromotionKey? _initialThisBinding;
 
   /// Whether the lists [_promotionInfoOffsets], [_promotionInfoValues],
   /// [_thisBindingOffsets], and [_thisBindingValues] have been sorted by offset
@@ -94,7 +95,7 @@ class FlowAnalysisLog {
   /// [offset], the promotion key that is returned is the promotion key for
   /// `this` that was in effect just to the left of [offset].
   @visibleForTesting
-  int? getThisBinding(int offset) {
+  PromotionKey? getThisBinding(int offset) {
     if (!_areListsSorted) {
       _sortList(values: _promotionInfoValues, offsets: _promotionInfoOffsets);
       _sortList(values: _thisBindingValues, offsets: _thisBindingOffsets);
@@ -117,10 +118,10 @@ class FlowAnalysisLog {
   /// [offset], the type that is returned is the promoted type of `this` that
   /// was in effect just to the left of [offset].
   SharedTypeView? lookupPromotedThisType({required int offset}) {
-    int? thisBinding = getThisBinding(offset);
+    PromotionKey? thisBinding = getThisBinding(offset);
     if (thisBinding == null) return null;
     return _reader
-        .get(getPromotionInfo(offset), thisBinding)
+        .get(getPromotionInfo(offset), thisBinding.index)
         ?.model
         .promotedTypes
         .lastOrNull;
@@ -261,7 +262,7 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   }
 
   /// Records that the initial binding for `this` was [thisPromotionKey].
-  void recordInitialThisBinding(int thisPromotionKey) {
+  void recordInitialThisBinding(PromotionKey thisPromotionKey) {
     assert(
       !_areListsSorted,
       'For efficiency, all flow analysis should be completed before sorting '
@@ -283,7 +284,10 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
 
   /// Records that at [offset], the binding for `this` changed to
   /// [thisPromotionKey].
-  void thisBindingChanged(int thisPromotionKey, {required int offset}) {
+  void thisBindingChanged(
+    PromotionKey thisPromotionKey, {
+    required int offset,
+  }) {
     assert(
       !_areListsSorted,
       'For efficiency, all flow analysis should be completed before sorting '

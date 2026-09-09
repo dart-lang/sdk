@@ -1771,7 +1771,6 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   InternalExpression doInvocation({
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,
@@ -6163,9 +6162,8 @@ class DelayedAssignment extends ContextAwareGenerator {
         fileOffset,
         voidContext: voidContext,
       );
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (identical("^=", assignmentOperator)) {
+    } else if (identical("^=", assignmentOperator)) {
+      // Coverage-ignore-block(suite): Not run.
       return generator.buildCompoundAssignment(
         caretName,
         value,
@@ -6179,7 +6177,9 @@ class DelayedAssignment extends ContextAwareGenerator {
         operatorOffset: fileOffset,
         voidContext: voidContext,
       );
-    } else if (identical("~/=", assignmentOperator)) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (identical("~/=", assignmentOperator)) {
       return generator.buildCompoundAssignment(
         mustacheName,
         value,

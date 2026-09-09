@@ -33,7 +33,7 @@ static method test() → void {
 Try using a constructor or factory that is 'const'.
   Color c = const .red(1);
                    ^^^" as{TypeError,ForDynamic} self::Color;
-  self::Color c = invalid-expression "pkg/front_end/testcases/dot_shorthands/const_constructor_nonconst.dart:14:9: Error: 'c' is already declared in this scope.
+  self::Color c##1 = invalid-expression "pkg/front_end/testcases/dot_shorthands/const_constructor_nonconst.dart:14:9: Error: 'c' is already declared in this scope.
   Color c = const .red(1);
         ^" in invalid-expression "pkg/front_end/testcases/dot_shorthands/const_constructor_nonconst.dart:14:20: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.

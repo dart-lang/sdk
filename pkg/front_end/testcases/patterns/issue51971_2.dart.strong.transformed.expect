@@ -47,9 +47,9 @@ static method test1(dynamic x1) → dynamic {
         final synthesized dynamic #1#0 = x1;
         final const synthesized core::int #1#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
         {
-          hoisted core::int a1;
-          if(#1#0 is core::int && (let final dynamic #t3 = a1 = #1#0{core::int} in true) || #1#0 is core::int && (let final dynamic #t4 = a1 = #1#0{core::int} in true) && #1#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
-            return a1;
+          hoisted core::int a1##1;
+          if(#1#0 is core::int && (let final dynamic #t3 = a1##1 = #1#0{core::int} in true) || #1#0 is core::int && (let final dynamic #t4 = a1##1 = #1#0{core::int} in true) && #1#0{core::int}.{core::num::<}(invalid-expression "Read of a non-const variable is not a constant expression."){(core::num) → core::bool}) {
+            return a1##1;
           }
           else {
             return null;
@@ -166,8 +166,8 @@ static method test6(dynamic x6) → dynamic {
     }
     final core::int #t20 = i6;
     final core::int #t21 = n6;
-    for (core::int i6 = #t20, core::int n6 = #t21; i6.{core::num::<}(n6){(core::num) → core::bool}; i6 = i6.{core::num::+}(1){(core::num) → core::int})
-      #t13.{core::Set::add}{Invariant}(i6){(core::int) → core::bool};
+    for (core::int i6##1 = #t20, core::int n6##1 = #t21; i6##1.{core::num::<}(n6##1){(core::num) → core::bool}; i6##1 = i6##1.{core::num::+}(1){(core::num) → core::int})
+      #t13.{core::Set::add}{Invariant}(i6##1){(core::int) → core::bool};
   } =>#t13;
 }
 static method test7(dynamic x7) → dynamic {
@@ -186,9 +186,9 @@ static method test7(dynamic x7) → dynamic {
     }
     final core::int #t28 = i7;
     final core::int #t29 = n7;
-    for (core::int i7 = #t28, core::int n7 = #t29; i7.{core::num::<}(n7){(core::num) → core::bool}; i7 = i7.{core::num::+}(1){(core::num) → core::int}) {
-      if(i7.{core::num::%}(3){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0)
-        return i7;
+    for (core::int i7##1 = #t28, core::int n7##1 = #t29; i7##1.{core::num::<}(n7##1){(core::num) → core::bool}; i7##1 = i7##1.{core::num::+}(1){(core::num) → core::int}) {
+      if(i7##1.{core::num::%}(3){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0)
+        return i7##1;
     }
   }
   return null;

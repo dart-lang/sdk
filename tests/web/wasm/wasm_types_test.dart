@@ -99,6 +99,12 @@ test() {
   Expect.notEquals(7.1, 7.1.toWasmF32().toDouble());
   Expect.equals(8.0, 8.0.toWasmF64().toDouble());
 
+  // Bitcasts
+  Expect.equals(1.5, 0x3FC00000.toWasmI32().asWasmF32.toDouble());
+  Expect.equals(1.5, 0x3FF8000000000000.toWasmI64().asWasmF64.toDouble());
+  Expect.equals(0x3FC00000, 1.5.toWasmF32().asWasmI32.toIntUnsigned());
+  Expect.equals(0x3FF8000000000000, 1.5.toWasmF64().asWasmI64.toInt());
+
   const wasmConst = const WasmFields(
     const WasmI32(2),
     const WasmI64(3),

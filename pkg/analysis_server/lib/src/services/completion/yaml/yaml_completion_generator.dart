@@ -168,6 +168,19 @@ abstract class YamlCompletionGenerator {
           return null;
         }
       } else if (node is YamlList && producer is ListProducer) {
+        // If the YAML parser recovered a missing `-` (the next node starts
+        // at or before the list's own indicator column), the user hasn't
+        // actually typed a `-` yet. Stay at the list producer so that a
+        // `- ` prefix is added to the suggestions, rather than descending
+        // into the element producer as if the dash were already present.
+        var next = path[i + 1];
+        if (next is YamlScalar &&
+            next.value != null &&
+            next.span.start.column <= node.span.start.column) {
+          return producer is ListOrMapProducer
+              ? ListProducer(producer.element)
+              : producer;
+        }
         producer = producer.element;
       } else {
         return producer;

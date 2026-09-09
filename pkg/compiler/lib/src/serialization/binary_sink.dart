@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:kernel/binary/ast_to_binary.dart';
+
 import 'serialization.dart' show DataSink;
 
 /// [DataSink] that writes data as a sequence of bytes.
@@ -33,10 +35,57 @@ class BinaryDataSink implements DataSink {
 
   @override
   void writeString(String value) {
-    List<int> bytes = utf8.encode(value);
+    final bytes = _encodeWtf8(value);
     writeInt(bytes.length);
     _bufferedSink!.addBytes(bytes);
     _length += bytes.length;
+  }
+
+  /// We use WTF-8 encoding for strings in serialized data to ensure we preserve
+  /// Dart strings containing unmatched surrogate pairs and byte order marks.
+  /// The dart:convert UTF-8 encoder does not preserve these through a round
+  /// trip.
+  Uint8List _encodeWtf8(String source) {
+    int end = source.length;
+    if (end == 0) return Uint8List(0);
+    final target = Uint8List(source.length * 4);
+    int i = 0;
+    int index = 0;
+    do {
+      int codeUnit = source.codeUnitAt(i++);
+      while (codeUnit < 128) {
+        // ASCII.
+        target[index++] = codeUnit;
+        if (i >= end) return Uint8List.sublistView(target, 0, index);
+        codeUnit = source.codeUnitAt(i++);
+      }
+      if (codeUnit < 0x800) {
+        // Two-byte sequence (11-bit unicode value).
+        index += 2;
+        target[index - 2] = 0xC0 | (codeUnit >> 6);
+        target[index - 1] = 0x80 | (codeUnit & 0x3F);
+      } else if ((codeUnit & 0xFC00) == 0xD800 &&
+          i < end &&
+          (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
+        // Surrogate pair -> four-byte sequence (non-BMP unicode value).
+        index += 4;
+        int codeUnit2 = source.codeUnitAt(i++);
+        int unicode =
+            0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
+        target[index - 4] = 0xF0 | (unicode >> 18);
+        target[index - 3] = 0x80 | ((unicode >> 12) & 0x3F);
+        target[index - 2] = 0x80 | ((unicode >> 6) & 0x3F);
+        target[index - 1] = 0x80 | (unicode & 0x3F);
+      } else {
+        // Three-byte sequence (16-bit unicode value), including lone
+        // surrogates.
+        index += 3;
+        target[index - 3] = 0xE0 | (codeUnit >> 12);
+        target[index - 2] = 0x80 | ((codeUnit >> 6) & 0x3F);
+        target[index - 1] = 0x80 | (codeUnit & 0x3F);
+      }
+    } while (i < end);
+    return Uint8List.sublistView(target, 0, index);
   }
 
   /// In order to compactly represent ints we only support up to 30 bit values.

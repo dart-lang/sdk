@@ -24,7 +24,7 @@ class AlwaysUsePackageImportsTest extends LintRuleTest {
       name: 'internal_package',
       rootFolder: getFolder('$testPackageRootPath/vendor/internal_package'),
     );
-    writeTestPackageConfig(packageConfigBuilder);
+    writeTestPackageConfig2(config: packageConfigBuilder);
 
     newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
 class C {}

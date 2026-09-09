@@ -38,6 +38,7 @@ import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
+import 'get_fixes_test.dart' as get_fixes;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'import_test.dart' as import_test;
@@ -106,6 +107,7 @@ void main() {
     flutter_outline.main();
     folding.main();
     format.main();
+    get_fixes.main();
     summary.main();
     get_super.main();
     hover.main();

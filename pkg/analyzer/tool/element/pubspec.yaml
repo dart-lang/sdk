@@ -1,0 +1,17 @@
+name: element_generator
+publish_to: none
+
+environment:
+  sdk: ^3.13.0-0
+
+dependencies:
+  analysis_server_client: any
+  analyzer: 14.1.0
+  analyzer_testing: any
+  analyzer_utilities:
+    path: ../../../analyzer_utilities
+  path: any
+
+dependency_overrides:
+  api_summary:
+    path: ../../../../third_party/pkg/tools/pkgs/api_summary

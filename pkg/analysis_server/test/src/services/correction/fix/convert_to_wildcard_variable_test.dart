@@ -171,6 +171,105 @@ void f() {
     // Converting the simple identifier `x` would result in invalid code.
     await assertNoFix();
   }
+
+  Future<void> test_unusedElementParameter_constructor() async {
+    await resolveTestCode('''
+class _C {
+  _C._([int? x]);
+}
+void g() => _C._();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_fieldFormal() async {
+    await resolveTestCode('''
+class _C {
+  final int? x;
+  _C([this.x]);
+}
+void g() => _C();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_instanceMethod() async {
+    await resolveTestCode('''
+class _C {
+  void _m([int? x]) {}
+}
+void g(_C c) => c._m();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_optionalNamed() async {
+    await resolveTestCode('''
+void _f({int? x}) {}
+void g() => _f();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_optionalPositional() async {
+    await resolveTestCode('''
+void _f([int? x]) {}
+void g() => _f();
+''');
+    await assertHasFix('''
+void _f([int? _]) {}
+void g() => _f();
+''');
+  }
+
+  Future<void> test_unusedElementParameter_preWildcards() async {
+    await resolveTestCode('''
+// @dart = 3.4
+// (pre wildcard-variables)
+void _f([int? x]) {}
+void g() => _f();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_staticMethod() async {
+    await resolveTestCode('''
+class _C {
+  static void _m([int? x]) {}
+}
+void g() => _C._m();
+''');
+    await assertHasFix('''
+class _C {
+  static void _m([int? _]) {}
+}
+void g() => _C._m();
+''');
+  }
+
+  Future<void> test_unusedElementParameter_superFormal() async {
+    await resolveTestCode('''
+class _A {
+  _A([int? x]);
+}
+class _B extends _A {
+  _B([super.x]);
+}
+void g() => _B();
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_unusedElementParameter_topLevelFunction() async {
+    await resolveTestCode('''
+void _m([int? x]) {}
+void n() => _m();
+''');
+    await assertHasFix('''
+void _m([int? _]) {}
+void n() => _m();
+''');
+  }
 }
 
 @reflectiveTest

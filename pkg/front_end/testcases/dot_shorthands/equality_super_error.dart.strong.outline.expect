@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class SuperClass extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::SuperClass
+    : super core::Object::•()
+    ;
+}
+class SubClass extends self::SuperClass /*hasConstConstructor*/  {
+  static const field self::SubClass member = const self::SubClass::•();
+  const constructor •() → self::SubClass
+    : super self::SuperClass::•()
+    ;
+  method test() → core::bool
+    ;
+  method testNotEqual() → core::bool
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///equality_super_error.dart:10:25 -> InstanceConstant(const SubClass{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

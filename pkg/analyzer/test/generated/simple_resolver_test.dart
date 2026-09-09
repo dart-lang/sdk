@@ -514,9 +514,15 @@ class A {
         xParameter.declaredFragment!.element as FieldFormalParameterElement;
     expect(xParameterElement.field, result.findElement.field('x'));
 
-    var node1 = result.findNode.simple('x {}');
+    var node1 = result.findNode.unqualifiedNameExpression('x {}');
     assertResolvedNodeText(node1, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
@@ -576,9 +582,16 @@ class C extends B with M1, M2 {
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    var node2 = result.findNode.simple('x;');
+    var node2 = result.findNode.unqualifiedNameExpression('x;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::M2::@getter::x
+    invokeType: dynamic Function()
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
@@ -604,7 +617,7 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNode.simple('x;');
+    var node3 = result.findNodeV1.simple('x;');
     assertResolvedNodeText(node3, r'''
 SimpleIdentifier
   token: x
@@ -1238,12 +1251,54 @@ void main() {
 }
 ''');
 
-    var node4 = result.findNode.simple('f();');
+    var node4 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node4, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1263,12 +1318,28 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    var node5 = result.findNode.simple('f();');
+    var node5 = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node5, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1287,12 +1358,54 @@ void main() {
 }
 ''');
 
-    var node6 = result.findNode.simple('f();');
+    var node6 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node6, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1382,7 +1495,7 @@ main() {
     var g = result.findElement.method('g');
     var parameters = g.formalParameters;
 
-    var invocation = result.findNode.methodInvocation(');');
+    var invocation = result.findNode.unqualifiedFunctionInvocation(');');
 
     var arguments = invocation.argumentList.arguments2;
 

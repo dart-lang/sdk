@@ -666,8 +666,10 @@ class TypedLiteralResolver {
     CollectionLiteralContext? context,
   ) {
     for (var element in elements) {
-      (element as CollectionElementImpl).resolveElement(_resolver, context);
-      _resolver.popRewrite();
+      _resolver.dispatchCollectionElement(
+        element as CollectionElementImpl,
+        context,
+      );
     }
   }
 

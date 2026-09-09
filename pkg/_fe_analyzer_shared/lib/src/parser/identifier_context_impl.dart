@@ -1022,6 +1022,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
         identifier.isA(TokenType.COMMA) ||
         identifier.isA(TokenType.OPEN_CURLY_BRACKET) ||
         identifier.isA(TokenType.CLOSE_CURLY_BRACKET) ||
+        identifier.isA(TokenType.CLOSE_PAREN) ||
         identifier.isA(TokenType.EOF) ||
         looksLikeStatementStart(identifier) ||
         identifier.kind == STRING_TOKEN) {

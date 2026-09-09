@@ -113,6 +113,27 @@ void f() {
 ''');
   }
 
+  Future<void> test_instanceCreation_namedBeforePositional() async {
+    await resolveTestCode('''
+class A {
+  A(int a, {String? s, int? n});
+}
+
+void f() {
+  A(s: '', 0, 1);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, {String? s, int? n});
+}
+
+void f() {
+  A(s: '', 0, n: 1);
+}
+''');
+  }
+
   Future<void> test_instanceCreation_privateNamedParameter() async {
     await resolveTestCode('''
 class A {

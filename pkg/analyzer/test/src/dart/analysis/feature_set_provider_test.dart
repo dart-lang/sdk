@@ -273,11 +273,15 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       var uri = Uri.parse(uriStr);
       var path = convertPath(posixPath);
       expect(
-        provider.getLanguageVersion(
-          path,
-          uri,
-          nonPackageLanguageVersion: ExperimentStatus.currentVersion,
-        ),
+        provider
+            .getFeatureSetAndLanguageVersion(
+              path,
+              uri,
+              nonPackageLanguageVersion: ExperimentStatus.currentVersion,
+              contextFeatures: latestLanguageVersionFeatures,
+              nonPackageFeatureSet: latestLanguageVersionFeatures,
+            )
+            .$2,
         expected,
       );
     }
@@ -472,12 +476,15 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }) {
     path = convertPath(path);
     var uri = sourceFactory.pathToUri(path)!;
-    return provider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
-    );
+    return provider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: contextFeatures,
+          nonPackageFeatureSet: nonPackageFeatureSet,
+          nonPackageLanguageVersion: ExperimentStatus.currentVersion,
+        )
+        .$1;
   }
 
   FeatureSet _getSdkFeatureSet(
@@ -487,12 +494,15 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   }) {
     var uri = Uri.parse(uriStr);
     var path = sourceFactory.forUri2(uri)!.fullName;
-    return provider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
-    );
+    return provider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: contextFeatures,
+          nonPackageFeatureSet: nonPackageFeatureSet,
+          nonPackageLanguageVersion: ExperimentStatus.currentVersion,
+        )
+        .$1;
   }
 
   void _newSdkExperimentsFile(String content) {

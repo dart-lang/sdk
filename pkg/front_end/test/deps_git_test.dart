@@ -42,8 +42,6 @@ Set<String> allowedPackages = {
   "kernel",
   "_fe_analyzer_shared",
   "package_config",
-  "macros",
-  "_macros",
   // package:front_end imports package:yaml for the 'dynamic modules'
   // experiment.
   "yaml",
@@ -59,8 +57,6 @@ Set<String> allowedPackages = {
 };
 
 List<String> allowedRelativePaths = [
-  // For VmTarget for macros.
-  "pkg/vm/lib/modular/",
   // Platform.
   "sdk/lib/",
 ];

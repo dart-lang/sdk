@@ -4,6 +4,7 @@
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import '../helpers/compiler_helper.dart';
 
 String SHOULD_NOT_BE_BOXED_TEST = r'''

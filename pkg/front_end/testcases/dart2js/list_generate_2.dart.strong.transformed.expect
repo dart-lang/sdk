@@ -7,15 +7,15 @@ static method main() → void {
   core::print( block {
     final synthesized _in::JSArray<core::List<core::int>> _list = _in::JSArray::allocateGrowable<core::List<core::int>>(10);
     for (synthesized core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::int) → core::int}) {
-      synthesized core::int i = i;
+      synthesized core::int i##1 = i;
       _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, block {
-        final synthesized core::int _length = i;
-        final synthesized _in::JSArray<core::int> _list = _in::JSArray::allocateGrowable<core::int>(_length);
-        for (synthesized core::int i = 0; i.{core::num::<}(_length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::int) → core::int}) {
-          synthesized core::int i = i;
-          _list.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i, i.{core::num::+}(1){(core::num) → core::int}){(core::int, core::int) → void};
+        final synthesized core::int _length = i##1;
+        final synthesized _in::JSArray<core::int> _list##1 = _in::JSArray::allocateGrowable<core::int>(_length);
+        for (synthesized core::int i##2 = 0; i##2.{core::num::<}(_length){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::int) → core::int}) {
+          synthesized core::int i##3 = i##2;
+          _list##1.{_in::JSArray::[]=}{Invariant,BoundsSafe}(i##2, i##3.{core::num::+}(1){(core::num) → core::int}){(core::int, core::int) → void};
         }
-      } =>_list){(core::int, core::List<core::int>) → void};
+      } =>_list##1){(core::int, core::List<core::int>) → void};
     }
   } =>_list);
 }

@@ -96,10 +96,11 @@ class BinaryExpressionResolver {
     flow?.ifNullExpression_rightBegin(
       _resolver.flowAnalysis.getExpressionInfo(left),
       SharedTypeView(t1),
+      offset: node.operator.offset,
     );
     _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
     right = _resolver.popRewrite()!;
-    flow?.ifNullExpression_end();
+    flow?.ifNullExpression_end(offset: node.end);
     var t2 = right.typeOrThrow;
 
     // - Let `T` be `UP(NonNull(T1), T2)`.
@@ -144,6 +145,7 @@ class BinaryExpressionResolver {
       leftOperand: node.leftOperand,
       rightOperand: node.rightOperand,
       isAnd: true,
+      operatorOffset: node.operator.offset,
     );
   }
 
@@ -153,6 +155,7 @@ class BinaryExpressionResolver {
       leftOperand: node.leftOperand,
       rightOperand: node.rightOperand,
       isAnd: false,
+      operatorOffset: node.operator.offset,
     );
   }
 
@@ -191,10 +194,13 @@ class BinaryExpressionResolver {
 
     // When evaluating exactly a dot shorthand in the RHS, we save the LHS type
     // to provide the context type for the shorthand.
-    if (_resolver.isDotShorthand(node.rightOperand)) {
+    var leftType = left.staticType;
+    if (leftType != null &&
+        left is! SuperExpression &&
+        _resolver.isDotShorthand(node.rightOperand)) {
       _resolver.pushDotShorthandContext(
         node.rightOperand,
-        SharedTypeSchemaView(left.typeOrThrow),
+        SharedTypeSchemaView(leftType),
       );
     }
 
@@ -242,16 +248,28 @@ class BinaryExpressionResolver {
       );
     }
 
-    if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
-      var element = left.element;
+    PromotableElementImpl? unassignedElement(ExpressionImpl expression) {
+      var element = switch (expression) {
+        SimpleIdentifierImpl(:var element) => element,
+        UnqualifiedNameExpressionImpl(
+          resolution: VariableReadResolutionImpl(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
       if (element is PromotableElementImpl &&
-          flowAnalysis.isDefinitelyUnassigned(left, element)) {
+          flowAnalysis.isDefinitelyUnassigned(expression, element)) {
+        return element;
+      }
+      return null;
+    }
+
+    if (right is NullLiteralImpl) {
+      if (unassignedElement(left) != null) {
         reportNullComparison(left, node.operator);
       }
-    } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
-      var element = right.element;
-      if (element is PromotableElementImpl &&
-          flowAnalysis.isDefinitelyUnassigned(right, element)) {
+    } else if (left is NullLiteralImpl) {
+      if (unassignedElement(right) != null) {
         reportNullComparison(node.operator, right);
       }
     }
@@ -262,12 +280,13 @@ class BinaryExpressionResolver {
     required ExpressionImpl leftOperand,
     required ExpressionImpl rightOperand,
     required bool isAnd,
+    required int operatorOffset,
   }) {
     var left = leftOperand;
     var right = rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
-    flow?.logicalBinaryOp_begin();
+    flow?.logicalBinaryOp_begin(offset: node.offset);
     _resolver.analyzeExpression(
       left,
       SharedTypeSchemaView(_typeProvider.boolType),
@@ -281,6 +300,7 @@ class BinaryExpressionResolver {
       _resolver.flowAnalysis.getExpressionInfo(left),
       node,
       isAnd: isAnd,
+      offset: operatorOffset,
     );
     _resolver.checkUnreachableNode(right);
 
@@ -299,6 +319,7 @@ class BinaryExpressionResolver {
       flow?.logicalBinaryOp_end(
         _resolver.flowAnalysis.getExpressionInfo(right),
         isAnd: isAnd,
+        offset: node.end,
       ),
     );
 

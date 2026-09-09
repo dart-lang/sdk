@@ -760,17 +760,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
   }
 
-  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {bool isPart = false}) {
-    if (uri == null) {
-      // Coverage-ignore-block(suite): Not run.
-      _problemReporting.addProblem(
-        diag.expectedUri,
-        uriOffset,
-        noLength,
-        _compilationUnit.fileUri,
-      );
-      return new Uri(scheme: MALFORMED_URI_SCHEME);
-    }
+  Uri _resolve(Uri baseUri, String uri, int uriOffset, {bool isPart = false}) {
     Uri parsedUri;
     try {
       parsedUri = Uri.parse(uri);
@@ -841,7 +831,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
-    LibraryPart part = new LibraryPart(<Expression>[], uri)
+    LibraryPart part = new LibraryPart(<Expression>[], uri, newFileUri)
       ..fileOffset = charOffset;
     _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
@@ -1071,16 +1061,17 @@ class FragmentFactoryImpl implements FragmentFactory {
   void addEnum({
     required OffsetMap offsetMap,
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required Identifier identifier,
     required List<TypeParameterFragment>? typeParameters,
     required List<TypeBuilder>? mixins,
     required List<TypeBuilder>? interfaces,
     required int startOffset,
     required int endOffset,
+    required bool hasErroneousBody,
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
-    Modifiers modifiers = Modifiers.empty;
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= Modifiers.DeclaresConstConstructor;
     }
@@ -1092,6 +1083,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.interfaces = interfaces;
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
+    declarationFragment.hasErroneousBody = hasErroneousBody;
 
     _addFragment(declarationFragment);
 
@@ -2256,6 +2248,27 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
+  FunctionTypeParameterBuilder addFunctionTypeParameter({
+    required FormalParameterKind kind,
+    required TypeBuilder type,
+    required String? name,
+    required int fileOffset,
+  }) {
+    bool isWildcard =
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
+    FunctionTypeParameterBuilder formal = new FunctionTypeParameterBuilder(
+      kind: kind,
+      type: type,
+      name: name,
+      fileOffset: fileOffset,
+      isWildcard: isWildcard,
+    );
+    return formal;
+  }
+
+  @override
   TypeBuilder addNamedType(
     TypeName typeName,
     NullabilityBuilder nullabilityBuilder,
@@ -2284,7 +2297,7 @@ class FragmentFactoryImpl implements FragmentFactory {
   FunctionTypeBuilder addFunctionType(
     TypeBuilder returnType,
     List<SourceStructuralParameterBuilder>? structuralVariableBuilders,
-    List<FormalParameterBuilder>? formals,
+    List<FunctionTypeParameterBuilder>? formals,
     NullabilityBuilder nullabilityBuilder,
     Uri fileUri,
     int charOffset, {

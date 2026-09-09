@@ -23,13 +23,43 @@ List<String> filesInDirectory(
   List<String> excludedNames,
 ) {
   var fileNames = <String>[];
-  for (var entity in Directory(directoryPath).listSync()) {
+  _addFilesInDirectory(
+    directory: Directory(directoryPath),
+    excludedNames: excludedNames,
+    fileNames: fileNames,
+  );
+  return fileNames..sort();
+}
+
+/// Adds the names of the files in the given [directoryPath] that have a `.dart`
+/// extension and are not in the list of [excludedNames] to the list of
+/// [fileNames].
+///
+/// Files in subdirectories
+void _addFilesInDirectory({
+  required Directory directory,
+  required List<String> excludedNames,
+  required List<String> fileNames,
+  String suffix = '',
+}) {
+  for (var entity in directory.listSync()) {
     if (entity is File) {
       var fileName = context.basename(entity.path);
       if (fileName.endsWith('.dart') && !excludedNames.contains(fileName)) {
-        fileNames.add(fileName);
+        if (suffix.isNotEmpty) {
+          fileNames.add('$fileName ($suffix)');
+        } else {
+          fileNames.add(fileName);
+        }
       }
+    } else if (entity is Directory) {
+      var dirName = context.basename(entity.path);
+      _addFilesInDirectory(
+        directory: entity,
+        excludedNames: excludedNames,
+        fileNames: fileNames,
+        suffix: suffix.isEmpty ? dirName : '$suffix/$dirName',
+      );
     }
   }
-  return fileNames..sort();
 }

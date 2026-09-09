@@ -113,7 +113,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType
@@ -165,7 +165,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType

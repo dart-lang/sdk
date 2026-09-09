@@ -957,7 +957,7 @@ class FileState {
   }
 
   static UnlinkedUnit serializeAstUnlinked2(
-    CompilationUnit unit, {
+    CompilationUnitImpl unit, {
     required bool exists,
     required bool isDartCore,
     required OperationPerformanceImpl performance,
@@ -981,69 +981,75 @@ class FileState {
     var parts = <UnlinkedPartDirective>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
-      if (directive is ExportDirective) {
-        var builder = _serializeExport(directive);
-        exports.add(builder);
-      } else if (directive is ImportDirectiveImpl) {
-        var builder = _serializeImport(node: directive, isDocImport: false);
-        imports.add(builder);
-        if (builder.uri == 'dart:core') {
-          hasDartCoreImport = true;
-        }
-      } else if (directive is LibraryDirective) {
-        libraryDirective = UnlinkedLibraryDirective(
-          docImports: buildDocImports(directive),
-          name: directive.name?.tokens.map((e) => e.lexeme).join(),
-        );
-      } else if (directive is PartDirective) {
-        var unlinked = _serializePart(directive);
-        parts.add(unlinked);
-      } else if (directive is PartOfDirective) {
-        var libraryName = directive.libraryName;
-        var uri = directive.uri;
-        if (libraryName != null) {
-          partOfNameDirective ??= UnlinkedPartOfNameDirective(
+      switch (directive) {
+        case ExportDirectiveImpl():
+          var builder = _serializeExport(directive);
+          exports.add(builder);
+        case ImportDirectiveImpl():
+          var builder = _serializeImport(node: directive, isDocImport: false);
+          imports.add(builder);
+          if (builder.uri == 'dart:core') {
+            hasDartCoreImport = true;
+          }
+        case LibraryDirectiveImpl():
+          libraryDirective = UnlinkedLibraryDirective(
             docImports: buildDocImports(directive),
-            name: libraryName.tokens.map((e) => e.lexeme).join(),
-            nameRange: UnlinkedSourceRange(
-              offset: libraryName.offset,
-              length: libraryName.length,
-            ),
+            name: directive.name?.tokens.map((e) => e.lexeme).join(),
           );
-        } else if (uri != null) {
-          partOfUriDirective ??= UnlinkedPartOfUriDirective(
-            docImports: buildDocImports(directive),
-            uri: uri.stringValue,
-            uriRange: UnlinkedSourceRange(
-              offset: uri.offset,
-              length: uri.length,
-            ),
-          );
-        }
+        case PartDirectiveImpl():
+          var unlinked = _serializePart(directive);
+          parts.add(unlinked);
+        case PartOfDirectiveImpl():
+          var libraryName = directive.libraryName;
+          var uri = directive.uri;
+          if (libraryName != null) {
+            partOfNameDirective ??= UnlinkedPartOfNameDirective(
+              docImports: buildDocImports(directive),
+              name: libraryName.tokens.map((e) => e.lexeme).join(),
+              nameRange: UnlinkedSourceRange(
+                offset: libraryName.offset,
+                length: libraryName.length,
+              ),
+            );
+          } else if (uri != null) {
+            partOfUriDirective ??= UnlinkedPartOfUriDirective(
+              docImports: buildDocImports(directive),
+              uri: uri.stringValue,
+              uriRange: UnlinkedSourceRange(
+                offset: uri.offset,
+                length: uri.length,
+              ),
+            );
+          }
       }
     }
 
     var topLevelDeclarations = <String>{};
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is EnumDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is ExtensionDeclaration) {
-        var name = declaration.name;
-        if (name != null) {
-          topLevelDeclarations.add(name.lexeme);
-        }
-      } else if (declaration is ExtensionTypeDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is FunctionDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
-      } else if (declaration is MixinDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          topLevelDeclarations.add(variable.name.lexeme);
-        }
+    for (var declaration in unit.declarations2) {
+      switch (declaration) {
+        case ClassDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case EnumDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case ExtensionDeclarationImpl():
+          var name = declaration.name;
+          if (name != null) {
+            topLevelDeclarations.add(name.lexeme);
+          }
+        case ExtensionTypeDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case FunctionDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case MixinDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelGetterDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelVariableDeclarationImpl():
+          for (var variable in declaration.variables.variables) {
+            topLevelDeclarations.add(variable.name.lexeme);
+          }
+        case TypeAliasImpl():
+          break;
       }
     }
 
@@ -1105,7 +1111,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: true,
-          names: combinator.shownNames.map((e) => e.name).toFixedList(),
+          names: combinator.names.map((e) => e.name.lexeme).toFixedList(),
         );
       } else {
         combinator as HideCombinator;
@@ -1113,7 +1119,7 @@ class FileState {
           keywordOffset: combinator.keyword.offset,
           endOffset: combinator.end,
           isShow: false,
-          names: combinator.hiddenNames.map((e) => e.name).toFixedList(),
+          names: combinator.names.map((e) => e.name.lexeme).toFixedList(),
         );
       }
     }).toFixedList();
@@ -1147,20 +1153,20 @@ class FileState {
     required bool isDocImport,
   }) {
     UnlinkedLibraryImportPrefix? unlinkedPrefix;
-    var prefix = node.prefix;
-    if (prefix != null) {
+    var prefixName = node.prefixName;
+    if (prefixName != null) {
       UnlinkedLibraryImportPrefixName? name;
-      if (!prefix.isSynthetic) {
+      if (!prefixName.isSynthetic) {
         name = UnlinkedLibraryImportPrefixName(
-          name: prefix.name,
-          nameOffset: prefix.offset,
+          name: prefixName.lexeme,
+          nameOffset: prefixName.offset,
         );
       }
 
       unlinkedPrefix = UnlinkedLibraryImportPrefix(
         deferredOffset: node.deferredKeyword?.offset,
         asOffset: node.asKeyword!.offset,
-        nameOffset: prefix.offset,
+        nameOffset: prefixName.offset,
         name: name,
       );
     }
@@ -1383,6 +1389,40 @@ class FileSystemState {
     return _uriToFile[uri];
   }
 
+  (FeatureSet, Version) getFeatureSetAndLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackageImpl? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
+  ) {
+    FeatureSet? featureSet;
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      featureSet = featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    var languageVersion = workspacePackage?.languageVersion;
+
+    if (featureSet != null && languageVersion != null) {
+      return (featureSet, languageVersion);
+    }
+
+    var (packageFeatureSet, packageLanguageVersion) = featureSetProvider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: analysisOptions.contextFeatures,
+          nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
+          nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
+        );
+    featureSet ??= packageFeatureSet;
+    languageVersion ??= packageLanguageVersion;
+
+    return (featureSet, languageVersion);
+  }
+
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
   FileState getFileForPath(String path) {
@@ -1541,45 +1581,6 @@ class FileSystemState {
   AnalysisOptionsImpl _getAnalysisOptions(File file) =>
       _analysisOptionsMap[file];
 
-  FeatureSet _getFeatureSet(
-    String path,
-    Uri uri,
-    WorkspacePackageImpl? workspacePackage,
-    AnalysisOptionsImpl analysisOptions,
-  ) {
-    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
-    if (workspacePackageExperiments != null) {
-      return featureSetProvider.featureSetForExperiments(
-        workspacePackageExperiments,
-      );
-    }
-
-    return featureSetProvider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: analysisOptions.contextFeatures,
-      nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
-    );
-  }
-
-  Version _getLanguageVersion(
-    String path,
-    Uri uri,
-    WorkspacePackageImpl? workspacePackage,
-    AnalysisOptionsImpl analysisOptions,
-  ) {
-    var workspaceLanguageVersion = workspacePackage?.languageVersion;
-    if (workspaceLanguageVersion != null) {
-      return workspaceLanguageVersion;
-    }
-
-    return featureSetProvider.getLanguageVersion(
-      path,
-      uri,
-      nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
-    );
-  }
-
   FileState _newFile(
     File resource,
     String path,
@@ -1589,13 +1590,7 @@ class FileSystemState {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackageImpl? workspacePackage = _workspace?.findPackageFor(path);
     AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
-    FeatureSet featureSet = _getFeatureSet(
-      path,
-      uri,
-      workspacePackage,
-      analysisOptions,
-    );
-    Version packageLanguageVersion = _getLanguageVersion(
+    var (featureSet, packageLanguageVersion) = getFeatureSetAndLanguageVersion(
       path,
       uri,
       workspacePackage,

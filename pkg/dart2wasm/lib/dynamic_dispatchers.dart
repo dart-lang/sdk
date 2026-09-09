@@ -51,14 +51,14 @@ class _DynamicDispatcherCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(signature, name);
+    final builder = callingModule.functions.define(signature, name);
     final dispatcher = _DynamicDispatcherCodeGenerator(
       translator,
       callShape,
-      function,
+      builder,
     );
-    translator.compilationQueue.add(CompilationTask(function, dispatcher));
-    return function;
+    translator.compilationQueue.add(CompilationTask(builder, dispatcher));
+    return builder.function;
   })();
 }
 

@@ -5,6 +5,7 @@
 import 'package:args/args.dart';
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/serialization/strategies.dart';
+
 import 'serialization_test_helper.dart';
 import '../helpers/args_helper.dart';
 

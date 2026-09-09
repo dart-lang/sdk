@@ -95,14 +95,14 @@ static method testGetter2(self::E e) → (core::Object?, core::int)
                                      ^" in e.{self::E::getter}{(core::Object?, core::Object?)} as{TypeError} (core::Object?, core::int);
 static method testSetter(self::E e) → void {
   e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => (a as core::int, b as core::int);
-  e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:35:24: Error: A value of type '(Object?, int)' can't be returned from a function with return type '(int, int)'.
+  e.{self::E::setter} = (core::Object? a##1, core::Object? b##1) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:35:24: Error: A value of type '(Object?, int)' can't be returned from a function with return type '(int, int)'.
  - 'Object' is from 'dart:core'.
   e.setter = (a, b) => (a, b as int); // Error
-                       ^" in (a, b as core::int) as{TypeError} (core::int, core::int);
-  e.{self::E::setter} = (core::Object? a, core::Object? b) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:36:24: Error: A value of type '(int, Object?)' can't be returned from a function with return type '(int, int)'.
+                       ^" in (a##1, b##1 as core::int) as{TypeError} (core::int, core::int);
+  e.{self::E::setter} = (core::Object? a##2, core::Object? b##2) → (core::int, core::int) => invalid-expression "pkg/front_end/testcases/general/combined_member_signature.dart:36:24: Error: A value of type '(int, Object?)' can't be returned from a function with return type '(int, int)'.
  - 'Object' is from 'dart:core'.
   e.setter = (a, b) => (a as int, b); // Error
-                       ^" in (a as core::int, b) as{TypeError} (core::int, core::int);
+                       ^" in (a##2 as core::int, b##2) as{TypeError} (core::int, core::int);
 }
 static method method(self::E e) → void {
   hoisted has-declared-initializer core::Object? a;
@@ -123,7 +123,7 @@ static method method(self::E e) → void {
   }
   self::expect(42, c);
   self::expect(87, d);
-  e.{self::E::setter} = (dynamic a, dynamic b) → (core::int, core::int) => (42, 87);
+  e.{self::E::setter} = (dynamic a##1, dynamic b##1) → (core::int, core::int) => (42, 87);
 }
 static method main() → dynamic {
   self::method(new self::D::•());

@@ -29,16 +29,16 @@ static method main() → dynamic {
   for (core::String s in <core::String>["Hello from for-in!"]) {
     core::print(s);
   }
-  for (core::String s in <core::String>["Hello from for-in without block!"])
-    core::print(s);
-  dynamic s;
+  for (core::String s##1 in <core::String>["Hello from for-in without block!"])
+    core::print(s##1);
+  dynamic s##2;
   for (final dynamic #t1 in <dynamic>["Hello from for-in without decl!"]) {
-    s = #t1;
-    core::print(s);
+    s##2 = #t1;
+    core::print(s##2);
   }
   for (final dynamic #t2 in <dynamic>["Hello from for-in without decl and block!"]) {
-    s = #t2;
-    core::print(s);
+    s##2 = #t2;
+    core::print(s##2);
   }
   core::print("Hello from labeled statement!");
   try {
@@ -49,8 +49,8 @@ static method main() → dynamic {
       rethrow;
     }
   }
-  on core::Object catch(final core::Object e) {
-    core::print(e);
+  on core::Object catch(final core::Object e##1) {
+    core::print(e##1);
   }
   self::foo();
   core::bool done = false;
@@ -64,8 +64,8 @@ static method main() → dynamic {
   try {
     assert(false, "Hello from assert!");
   }
-  on core::Object catch(final core::Object e) {
-    core::print(e);
+  on core::Object catch(final core::Object e##2) {
+    core::print(e##2);
   }
   #L1:
   switch(1) /* core::int */ {

@@ -18,10 +18,12 @@ void main() {
 @reflectiveTest
 class SortChildPropertyLastBulkTest extends BulkFixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   String get lintCode => LintNames.sort_child_properties_last;
 
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/material.dart';
 void f() {
@@ -68,16 +70,13 @@ void f() {
 @reflectiveTest
 class SortChildPropertyLastTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.sortChildPropertyLast;
 
   @override
   String get lintCode => LintNames.sort_child_properties_last;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   /// More coverage in the `sort_child_properties_last_test.dart` assist test.
   Future<void> test_sort() async {

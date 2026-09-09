@@ -4823,6 +4823,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kFloat32x4Cid:
       case kFloat64x2Cid:
+      case kInt32x4Cid:
         __ LoadUnboxedSimd128(result, instance_reg,
                               OffsetInBytes() - kHeapObjectTag);
         break;
@@ -6430,7 +6431,8 @@ void BoxAllocationSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!kAllocateMintRuntimeEntry.can_lazy_deopt() &&
          !kAllocateDoubleRuntimeEntry.can_lazy_deopt() &&
          !kAllocateFloat32x4RuntimeEntry.can_lazy_deopt() &&
-         !kAllocateFloat64x2RuntimeEntry.can_lazy_deopt());
+         !kAllocateFloat64x2RuntimeEntry.can_lazy_deopt() &&
+         !kAllocateInt32x4RuntimeEntry.can_lazy_deopt());
   compiler->GenerateNonLazyDeoptableStubCall(
       InstructionSource(),  // No token position.
       stub, UntaggedPcDescriptors::kOther, locs);
@@ -7498,9 +7500,7 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_RISCV64)
   __ MoveRegister(FAR_TMP, PP);
 #endif
-#if defined(TARGET_ARCH_ARM64)
-  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
-#else
+#if !defined(TARGET_ARCH_ARM64)
   __ ReserveAlignedFrameSpace(0);
 #endif
   auto& entry = move_parameters();
@@ -7518,9 +7518,6 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
   __ MoveRegister(PP, FAR_TMP);
 #endif
   __ MoveRegister(SPREG, saved_sp);
-#if defined(TARGET_ARCH_ARM64)
-  __ SetupCSPFromThread(THR);
-#endif
   __ PopRegisters(spill_set);
 }
 
@@ -8280,6 +8277,7 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         return;
       case kFloat32x4Cid:
       case kFloat64x2Cid:
+      case kInt32x4Cid:
         __ StoreUnboxedSimd128(value, instance_reg,
                                OffsetInBytes() - kHeapObjectTag);
         return;

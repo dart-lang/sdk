@@ -344,9 +344,25 @@ final class ConstantPropagation extends Pass
   void visitStoreStaticField(StoreStaticField instr) {}
 
   @override
+  void visitLoadExternalField(LoadExternalField instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitLoadArrayElement(LoadArrayElement instr) {
     _setNonConstant(instr);
   }
+
+  @override
+  void visitStoreArrayElement(StoreArrayElement instr) {}
+
+  @override
+  void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitCopyArrayElements(CopyArrayElements instr) {}
 
   @override
   void visitThrow(Throw instr) {}
@@ -383,6 +399,9 @@ final class ConstantPropagation extends Pass
       }
     }
   }
+
+  @override
+  void visitSubtypeCheck(SubtypeCheck instr) {}
 
   @override
   void visitTypeParameters(TypeParameters instr) {
@@ -616,12 +635,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
-  void visitAllocateList(AllocateList instr) {
+  void visitAllocateArray(AllocateArray instr) {
     _setNonConstant(instr);
   }
-
-  @override
-  void visitSetListElement(SetListElement instr) {}
 
   @override
   void visitAllocateRecord(AllocateRecord instr) {

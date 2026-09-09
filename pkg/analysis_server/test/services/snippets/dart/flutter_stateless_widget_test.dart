@@ -9,8 +9,25 @@ import 'test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(FlutterStatelessWidgetNotFlutterTest);
     defineReflectiveTests(FlutterStatelessWidgetTest);
   });
+}
+
+@reflectiveTest
+class FlutterStatelessWidgetNotFlutterTest extends DartSnippetProducerTest {
+  @override
+  final generator = FlutterStatelessWidget.new;
+
+  @override
+  String get label => FlutterStatelessWidget.label;
+
+  @override
+  String get prefix => FlutterStatelessWidget.prefix;
+
+  Future<void> test_notValid_notFlutterProject() async {
+    await expectNotValidSnippet('^');
+  }
 }
 
 @reflectiveTest
@@ -25,7 +42,7 @@ class FlutterStatelessWidgetTest extends FlutterSnippetProducerTest {
   String get prefix => FlutterStatelessWidget.prefix;
 
   Future<void> test_noSuperParams() async {
-    writeTestPackageConfig(flutter: true, languageVersion: '2.16');
+    writeTestPackageConfig2(languageVersion: '2.16');
 
     var code = '^';
     var expectedCode = r'''
@@ -42,15 +59,7 @@ class /*0*/MyWidget extends StatelessWidget {
     await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 
-  Future<void> test_notValid_notFlutterProject() async {
-    writeTestPackageConfig();
-
-    await expectNotValidSnippet('^');
-  }
-
   Future<void> test_valid() async {
-    writeTestPackageConfig(flutter: true);
-
     var code = '^';
     var expectedCode = r'''
 import 'package:flutter/widgets.dart';

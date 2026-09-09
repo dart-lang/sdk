@@ -36,18 +36,18 @@ Try correcting the name to the name of an existing method, or defining a method 
   }
   try {
   }
-  on core::Object catch(final core::Object error, final core::StackTrace stackTrace) {
+  on core::Object catch(final core::Object error##1, final core::StackTrace stackTrace) {
     invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:12:11: Error: The method 'notAMethodOnObject' isn't defined for the type 'Object'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnObject'.
     error.notAMethodOnObject();
-          ^^^^^^^^^^^^^^^^^^" in error{<unresolved>}.notAMethodOnObject();
+          ^^^^^^^^^^^^^^^^^^" in error##1{<unresolved>}.notAMethodOnObject();
     invalid-expression "pkg/front_end/testcases/nnbd/issue41520.dart:13:16: Error: The method 'notAMethodOnStackTrace' isn't defined for the type 'StackTrace'.
  - 'StackTrace' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'notAMethodOnStackTrace'.
     stackTrace.notAMethodOnStackTrace();
                ^^^^^^^^^^^^^^^^^^^^^^" in stackTrace{<unresolved>}.notAMethodOnStackTrace();
-    self::_takesObject(error);
+    self::_takesObject(error##1);
     self::_takesStackTrace(stackTrace);
   }
 }

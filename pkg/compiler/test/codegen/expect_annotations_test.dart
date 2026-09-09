@@ -9,7 +9,9 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+
 import '../inference/type_mask_test_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const Map<String, String> MEMORY_SOURCE_FILES = const {
@@ -84,9 +86,10 @@ runTest() async {
     bool expectAssumeDynamic = false,
   }) {
     LibraryEntity mainApp = closedWorld.elementEnvironment.mainLibrary!;
-    final method =
-        closedWorld.elementEnvironment.lookupLibraryMember(mainApp, name)
-            as FunctionEntity;
+    final method = closedWorld.elementEnvironment.lookupLibraryMember(
+      mainApp,
+      name,
+    ) as FunctionEntity;
     Expect.isNotNull(method);
     Expect.equals(
       expectNoInline,

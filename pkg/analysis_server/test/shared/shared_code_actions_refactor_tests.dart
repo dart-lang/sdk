@@ -671,17 +671,13 @@ mixin SharedExtractWidgetRefactorCodeActionsTests
         ClientCapabilitiesHelperMixin {
   final extractWidgetTitle = 'Extract Widget';
 
+  bool get addFlutterPackageDep => true;
+
   String get expectedNewWidgetConstructorDeclaration => '''
 const new({
     super.key,
   });
 ''';
-
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_appliesCorrectEdits() async {
     const content = '''

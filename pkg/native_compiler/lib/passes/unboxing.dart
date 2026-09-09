@@ -7,13 +7,16 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/bit_vector.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 
 /// Insert boxing and unboxing instructions to make sure
 /// IR instructions take expected representation of their inputs.
 final class Unboxing extends Pass {
+  final ObjectLayout objectLayout;
+
   late final BitVector _unboxedPhis = BitVector(graph.instructions.length);
 
-  Unboxing() : super('Unboxing');
+  Unboxing(this.objectLayout) : super('Unboxing');
 
   @override
   void run() {
@@ -52,9 +55,16 @@ final class Unboxing extends Pass {
       BinaryDoubleOp() ||
       UnaryDoubleOp() ||
       Box() ||
-      IndexCheck() => true,
+      IndexCheck() ||
+      LoadExternalField() ||
+      LoadExternalArrayElement() => true,
       LoadArrayElement() => inputIndex == 1,
-      StoreField() => false, // TODO: unboxed fields,
+      StoreArrayElement() =>
+        inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
+      CopyArrayElements() =>
+        inputIndex == 1 || inputIndex == 3 || inputIndex == 4,
+      StoreInstanceField() =>
+        inputIndex == 1 && objectLayout.isUnboxedField(instr.field),
       CallInstruction() => false, // TODO: support unboxed parameters.
       Return() => false, // TODO: support unboxed return values.
       _ => false,
@@ -71,10 +81,13 @@ final class Unboxing extends Pass {
       UnaryDoubleOp() ||
       Unbox() ||
       IndexCheck() => true,
-      LoadArrayElement() => true, // TODO: elements of built-in Lists are boxed.
-      LoadField() => false, // TODO: unboxed fields,
+      LoadArrayElement() => instr.kind != .fixedLengthList,
+      LoadExternalArrayElement() => instr.type is IntType,
+      LoadExternalField() => objectLayout.isUnboxedField(instr.field),
+      LoadInstanceField() => objectLayout.isUnboxedField(instr.field),
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.
+      Constant() => instr.value.isUnboxed,
       _ => false,
     };
   }

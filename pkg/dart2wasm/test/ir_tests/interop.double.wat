@@ -1,8 +1,8 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $BoxedDouble (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value f64))))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param f64) (result externref))
   (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param externref) (result externref))
@@ -43,7 +43,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedDouble))
-        i32.const 97
+        i32.const 100
         call $"doubleValue implicit getter"
         struct.new $BoxedDouble
       else

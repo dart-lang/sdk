@@ -301,12 +301,34 @@ class FormattedMessage implements CfeDiagnosticMessage {
 
   Map<String, Object?> toJson() {
     // This should be kept in sync with package:kernel/problems.md
+
+    List<Uri>? relatedUris;
+    if (relatedInformation != null) {
+      Set<Uri> relatedUrisSet = {};
+      for (FormattedMessage m in relatedInformation!) {
+        if (m.uri != null) relatedUrisSet.add(m.uri!);
+        if (m.involvedFiles != null) relatedUrisSet.addAll(m.involvedFiles!);
+      }
+
+      // Don't include the same uri(s) again.
+      relatedUrisSet.remove(uri);
+      if (involvedFiles != null) {
+        for (Uri uri in involvedFiles!) {
+          relatedUrisSet.remove(uri);
+        }
+      }
+      if (relatedUrisSet.isNotEmpty) {
+        relatedUris = relatedUrisSet.toList(growable: false);
+      }
+    }
+
     return <String, Object?>{
       "ansiFormatted": ansiFormatted.toList(),
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
       "uri": uri?.toString(),
-      "involvedFiles": involvedFiles?.map((u) => u.toString()).toList(),
+      "involvedFiles": involvedFiles.toListOfString(),
+      "relatedUris": relatedUris.toListOfString(),
       "codeName": code.name,
     };
   }
@@ -332,44 +354,42 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   @override
   final List<Uri>? involvedFiles;
 
+  final List<Uri>? relatedUris;
+
   @override
   final String codeName;
 
-  DiagnosticMessageFromJson(
-    this.ansiFormatted,
-    this.plainTextFormatted,
-    this.severity,
-    this.uri,
-    this.involvedFiles,
-    this.codeName,
-  );
+  DiagnosticMessageFromJson({
+    required this.ansiFormatted,
+    required this.plainTextFormatted,
+    required this.severity,
+    required this.uri,
+    required this.involvedFiles,
+    required this.relatedUris,
+    required this.codeName,
+  });
 
   factory DiagnosticMessageFromJson.fromJson(String jsonString) {
     Map<String, Object?> decoded = json.decode(jsonString);
-    List<String> ansiFormatted = new List<String>.from(
-      _asListOfString(decoded["ansiFormatted"]),
-    );
-    List<String> plainTextFormatted = _asListOfString(
-      decoded["plainTextFormatted"],
-    );
+    List<String> ansiFormatted = decoded["ansiFormatted"]._jsonListOfString();
+    List<String> plainTextFormatted = decoded["plainTextFormatted"]
+        ._jsonListOfString();
     CfeSeverity severity = CfeSeverity.values[decoded["severity"] as int];
-    Uri? uri = decoded["uri"] == null
-        ? null
-        : Uri.parse(decoded["uri"] as String);
-    List<Uri>? involvedFiles = decoded["involvedFiles"] == null
-        ? null
-        : _asListOfString(
-            decoded["involvedFiles"],
-          ).map((e) => Uri.parse(e)).toList();
+    Uri? uri = decoded["uri"]._jsonStringAsUriOrNull();
+    List<Uri>? involvedFiles = decoded["involvedFiles"]
+        ._jsonListOfStringAsUriOrNull();
+    List<Uri>? relatedUris = decoded["relatedUris"]
+        ._jsonListOfStringAsUriOrNull();
     String codeName = decoded["codeName"] as String;
 
     return new DiagnosticMessageFromJson(
-      ansiFormatted,
-      plainTextFormatted,
-      severity,
-      uri,
-      involvedFiles,
-      codeName,
+      ansiFormatted: ansiFormatted,
+      plainTextFormatted: plainTextFormatted,
+      severity: severity,
+      uri: uri,
+      involvedFiles: involvedFiles,
+      relatedUris: relatedUris,
+      codeName: codeName,
     );
   }
 
@@ -380,7 +400,8 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
       "plainTextFormatted": plainTextFormatted.toList(),
       "severity": severity.index,
       "uri": uri?.toString(),
-      "involvedFiles": involvedFiles?.map((u) => u.toString()).toList(),
+      "involvedFiles": involvedFiles.toListOfString(),
+      "relatedUris": relatedUris.toListOfString(),
       "codeName": codeName,
     };
   }
@@ -389,9 +410,41 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
     JsonEncoder encoder = new JsonEncoder.withIndent("  ");
     return encoder.convert(this);
   }
+}
 
-  static List<String> _asListOfString(Object? value) {
-    return (value as List<dynamic>).cast<String>();
+extension on dynamic {
+  List<Uri>? _jsonListOfStringAsUriOrNull() {
+    Object? value = this;
+    if (value is! List) return null;
+    return new List<Uri>.generate(
+      value.length,
+      (index) => Uri.parse(value[index]),
+    );
+  }
+
+  List<String> _jsonListOfString() {
+    List<dynamic> jsonList = this as List<dynamic>;
+    return new List<String>.generate(
+      jsonList.length,
+      (index) => jsonList[index],
+    );
+  }
+
+  Uri? _jsonStringAsUriOrNull() {
+    Object? value = this;
+    if (value is! String) return null;
+    return Uri.parse(value);
+  }
+}
+
+extension on List<Uri>? {
+  List<String>? toListOfString() {
+    List<Uri>? data = this;
+    if (data == null) return null;
+    return new List<String>.generate(
+      data.length,
+      (index) => data[index].toString(),
+    );
   }
 }
 

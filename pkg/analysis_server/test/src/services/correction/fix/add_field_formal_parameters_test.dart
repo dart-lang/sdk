@@ -19,6 +19,9 @@ void main() {
 @reflectiveTest
 class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addInitializingFormalNamedParameters;
 
   Future<void> test_enum() async {
@@ -77,7 +80,6 @@ enum MyEnum({required this.value}) {
   }
 
   Future<void> test_flutter_nullable() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -105,7 +107,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_nullable_lint() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -136,8 +137,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_flutter_potentiallyNullable() async {
-    writeTestPackageConfig(flutter: true);
-
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -558,6 +557,9 @@ class A {
 @reflectiveTest
 class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addInitializingFormalParameters;
 
   Future<void> test_enum() async {
@@ -582,7 +584,6 @@ enum MyEnum {
   }
 
   Future<void> test_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 

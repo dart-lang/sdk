@@ -69,6 +69,21 @@ var a = A();
 ''');
   }
 
+  test_constructor_redirecting() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotSubmit
+  A.named(int x);
+
+  A() : this.named(0);
+//      ^^^^^^^^^^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.named' should not be submitted to source control.
+}
+''');
+  }
+
   test_constructorFactory() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');

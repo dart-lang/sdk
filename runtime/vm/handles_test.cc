@@ -4,9 +4,11 @@
 
 #include "vm/handles.h"
 #include "platform/assert.h"
+#include "vm/class_finalizer.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 #include "vm/zone.h"
 
@@ -135,6 +137,70 @@ TEST_CASE(CheckHandleValidity) {
   Dart_DeleteWeakPersistentHandle(
       reinterpret_cast<Dart_WeakPersistentHandle>(handle));
   EXPECT(!Api::IsValid(handle));
+}
+
+TEST_CASE(FieldScriptHandleAllocation) {
+  const char* kScriptChars =
+      "class Foo {\n"
+      "  var field1;\n"
+      "  var field2 = 123;\n"
+      "  void bar() {}\n"
+      "}\n";
+  Dart_Handle lib_handle = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib_handle);
+
+  TransitionNativeToVM transition(thread);
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const Library& lib =
+      Library::Handle(Library::RawCast(Api::UnwrapHandle(lib_handle)));
+  EXPECT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(thread, "Foo"))));
+  EXPECT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
+  const Array& fields = Array::Handle(cls.fields());
+  EXPECT_GT(fields.Length(), 0);
+  Field& field = Field::Handle();
+  field ^= fields.At(0);
+
+  int32_t handle_count = VMHandles::ScopedHandleCount();
+  for (int i = 0; i < 100; i++) {
+    field.Script();
+  }
+  // Field::Script() should not allocate scoped handles.
+  EXPECT_EQ(handle_count, VMHandles::ScopedHandleCount());
+}
+
+TEST_CASE(FunctionScriptHandleAllocation) {
+  const char* kScriptChars =
+      "class Foo {\n"
+      "  void bar() {}\n"
+      "}\n";
+  Dart_Handle lib_handle = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib_handle);
+
+  TransitionNativeToVM transition(thread);
+  EXPECT(ClassFinalizer::ProcessPendingClasses());
+  const Library& lib =
+      Library::Handle(Library::RawCast(Api::UnwrapHandle(lib_handle)));
+  EXPECT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(thread, "Foo"))));
+  EXPECT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(thread);
+  EXPECT(error == Error::null());
+  const Array& functions = Array::Handle(cls.current_functions());
+  EXPECT_GT(functions.Length(), 0);
+  Function& function = Function::Handle();
+  function ^= functions.At(0);
+
+  int32_t handle_count = VMHandles::ScopedHandleCount();
+  for (int i = 0; i < 100; i++) {
+    function.script();
+  }
+  // Function::script() should not allocate scoped handles.
+  EXPECT_EQ(handle_count, VMHandles::ScopedHandleCount());
 }
 
 }  // namespace dart

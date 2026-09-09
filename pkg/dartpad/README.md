@@ -21,9 +21,9 @@ to run said code, while presenting console output to the user.
 
 ## Assets
 
-To launch a _Web Worker_, pre-compiled `worker.wasm` and associated assets are
+To launch a _Web Worker_ pre-compiled wasm worker and associated assets are
 available inside `web/` in `package:dartpad`. You must extract and host these
-files to provide an absolute URL for `DartPad.create`.
+files to provide an absolute URL for `DartPadSdk(assetBaseUrl: myUri)`.
 
 ## Example
 

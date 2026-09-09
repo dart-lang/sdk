@@ -161,6 +161,7 @@ class YieldStatementResolver {
       node,
       node.expression2,
       isYieldStar: node.star != null,
+      suspensionOffset: node.semicolon.offset,
     );
     _resolver.popRewrite();
 

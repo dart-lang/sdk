@@ -21,6 +21,7 @@ void main() {
     defineReflectiveTests(SortMembersSourceCodeActionsTest);
     defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
     defineReflectiveTests(FixAllSourceCodeActionsTest);
+    defineReflectiveTests(FlutterFixAllSourceCodeActionsTest);
   });
 }
 
@@ -281,6 +282,39 @@ class _MyClass {
     );
   }
 
+  /// We should only add dependencies to pubspec to fix diagnostics in the
+  /// current file and not other files.
+  Future<void> test_pubspec() async {
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    // Main file content. We should get a new dependency for this.
+    const content = '''
+import 'package:path/path.dart';
+''';
+
+    // Another file that we're not fixing. We should not get a dependency for
+    // this.
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+import 'package:args/args.dart';
+''');
+
+    var action = await expectCodeActionLiteral(
+      filePath: mainFilePath,
+      content,
+      command: Commands.fixAll,
+    );
+
+    // Expect only 'path', not 'args'.
+    await verifyCommandEdits(action.command!, '''
+>>>>>>>>>> pubspec.yaml
+name: x
+dependencies:
+  path: any
+''');
+  }
+
   Future<void> test_unavailable_outsideAnalysisRoot() async {
     var otherFile = convertPath('/other/file.dart');
     var content = '';
@@ -331,6 +365,70 @@ int? a;
       expectedContent,
       command: Commands.fixAll,
     );
+  }
+}
+
+@reflectiveTest
+class FlutterFixAllSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    failTestOnErrorDiagnostic = false;
+    registerBuiltInFixGenerators();
+  }
+
+  Future<void> test_removeNestedContainers_automatic() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - avoid_unnecessary_containers
+''';
+    const content = '''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Container(
+    child: Row(
+      children: [
+        Container(
+          child: Row(
+            children: [Text('...')],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+''';
+    const expectedContent = '''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Row(
+    children: [
+      Row(
+        children: [Text('...')],
+      ),
+    ],
+  );
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+
+    var action = await expectCodeActionLiteral(
+      content,
+      command: Commands.fixAll,
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    await verifyCodeActionEdits(CodeAction.t1(action), '''
+>>>>>>>>>> lib/test.dart
+$expectedContent''');
   }
 }
 

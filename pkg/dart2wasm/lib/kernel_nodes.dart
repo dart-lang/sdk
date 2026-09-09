@@ -541,6 +541,11 @@ mixin KernelNodes {
     "Object",
     "get:hashCode",
   );
+  late final Procedure objectRuntimeType = index.getProcedure(
+    "dart:core",
+    "Object",
+    "get:runtimeType",
+  );
   late final Procedure objectNoSuchMethod = index.getProcedure(
     "dart:core",
     "Object",

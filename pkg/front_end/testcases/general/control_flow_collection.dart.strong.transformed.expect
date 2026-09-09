@@ -23,15 +23,15 @@ static method main() → dynamic {
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##1 = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i##1 = :sync-for-iterator##1.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic} core::bool)
-          #t1.{core::List::add}{Invariant}(i){(core::int) → void};
+          #t1.{core::List::add}{Invariant}(i##1){(core::int) → void};
       }
     }
-    for (core::int i = 11; i.{core::num::<=}(14){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t1.{core::List::add}{Invariant}(i){(core::int) → void};
+    for (core::int i##2 = 11; i##2.{core::num::<=}(14){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::List::add}{Invariant}(i##2){(core::int) → void};
   } =>#t1;
   final core::Set<core::int> aSet = block {
     final core::Set<core::int> #t2 = new _co::_Set::•<core::int>();
@@ -46,22 +46,22 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool)
         #t2.{core::Set::add}{Invariant}(4){(core::int) → core::bool};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t2.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i##3 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
+        #t2.{core::Set::add}{Invariant}(i##3){(core::int) → core::bool};
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##3 = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i##4 = :sync-for-iterator##3.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic} core::bool)
-          #t2.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
+          #t2.{core::Set::add}{Invariant}(i##4){(core::int) → core::bool};
       }
     }
-    for (core::int i = 11; i.{core::num::<=}(14){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t2.{core::Set::add}{Invariant}(i){(core::int) → core::bool};
+    for (core::int i##5 = 11; i##5.{core::num::<=}(14){(core::num) → core::bool}; i##5 = i##5.{core::num::+}(1){(core::num) → core::int})
+      #t2.{core::Set::add}{Invariant}(i##5){(core::int) → core::bool};
   } =>#t2;
   final core::Map<core::int, core::int> aMap = block {
     final core::Map<core::int, core::int> #t3 = <core::int, core::int>{};
@@ -76,22 +76,22 @@ static method main() → dynamic {
       if(self::oracle() as{TypeError,ForDynamic} core::bool)
         #t3.{core::Map::[]=}{Invariant}(4, 4){(core::int, core::int) → void};
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t3.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
+      synthesized core::Iterator<core::int> :sync-for-iterator##4 = core::_GrowableList::_literal3<core::int>(5, 6, 7).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i##6 = :sync-for-iterator##4.{core::Iterator::current}{core::int};
+        #t3.{core::Map::[]=}{Invariant}(i##6, i##6){(core::int, core::int) → void};
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##5 = core::_GrowableList::_literal3<core::int>(8, 9, 10).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        core::int i##7 = :sync-for-iterator##5.{core::Iterator::current}{core::int};
         if(self::oracle() as{TypeError,ForDynamic} core::bool)
-          #t3.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
+          #t3.{core::Map::[]=}{Invariant}(i##7, i##7){(core::int, core::int) → void};
       }
     }
-    for (core::int i = 11; i.{core::num::<=}(14){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t3.{core::Map::[]=}{Invariant}(i, i){(core::int, core::int) → void};
+    for (core::int i##8 = 11; i##8.{core::num::<=}(14){(core::num) → core::bool}; i##8 = i##8.{core::num::+}(1){(core::num) → core::int})
+      #t3.{core::Map::[]=}{Invariant}(i##8, i##8){(core::int, core::int) → void};
   } =>#t3;
   core::print(aList);
   core::print(aSet);

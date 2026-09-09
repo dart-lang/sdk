@@ -10,6 +10,7 @@ import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/bit_vector.dart';
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -27,6 +28,7 @@ import 'package:native_compiler/runtime/vm_defs.dart';
 abstract base class CodeGenerator extends Pass
     implements InstructionVisitor<void> {
   final BackEndState backEndState;
+  final AsmIntrinsics asmIntrinsics;
 
   late final Assembler _asm;
 
@@ -65,7 +67,7 @@ abstract base class CodeGenerator extends Pass
   /// Metadata describing stack maps for the safepoints in the generated code.
   late final CompressedStackMaps _compressedStackMaps;
 
-  CodeGenerator(this.backEndState) : super('CodeGen');
+  CodeGenerator(this.backEndState, this.asmIntrinsics) : super('CodeGen');
 
   VMOffsets get vmOffsets => backEndState.vmOffsets;
   ObjectLayout get objectLayout => backEndState.objectLayout;
@@ -183,20 +185,22 @@ abstract base class CodeGenerator extends Pass
 
     _asm = createAssembler();
 
-    enterFrame();
-    for (int i = 0, n = blocks.length; i < n; ++i) {
-      _currentBlockIndex = i;
-      final block = currentBlock = blocks[i];
-      generateBlock(block);
-    }
-    _currentBlockIndex = -1;
+    if (!asmIntrinsics.generate(graph.function, _asm)) {
+      enterFrame();
+      for (int i = 0, n = blocks.length; i < n; ++i) {
+        _currentBlockIndex = i;
+        final block = currentBlock = blocks[i];
+        generateBlock(block);
+      }
+      _currentBlockIndex = -1;
 
-    for (final slowPath in _slowPaths) {
-      currentInstruction = _currentInstruction = slowPath.instruction;
-      _asm.bind(slowPath.entry);
-      slowPath.generator();
+      for (final slowPath in _slowPaths) {
+        currentInstruction = _currentInstruction = slowPath.instruction;
+        _asm.bind(slowPath.entry);
+        slowPath.generator();
+      }
+      currentInstruction = _currentInstruction = null;
     }
-    currentInstruction = _currentInstruction = null;
 
     backEndState.consumeGeneratedCode(
       Code(

@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+
 import 'closure.dart';
 import 'scope_visitor.dart';
 

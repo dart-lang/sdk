@@ -20,6 +20,6 @@ static method test(asy::Future<core::int> f) → dynamic {
  - 'List' is from 'dart:core'.
       .whenComplete(() {});
        ^" in f.{asy::Future::then}<core::List<dynamic>>((core::int x) → core::List<dynamic> => <dynamic>[]){((core::int) → FutureOr<core::List<dynamic>>, {onError: core::Function?}) → asy::Future<core::List<dynamic>>}.{asy::Future::whenComplete}(() → Null {}){(() → FutureOr<void>) → asy::Future<core::List<dynamic>>} as{TypeError} asy::Future<core::List<core::int>>;
-  b = f.{asy::Future::then}<core::List<core::int>>((core::int x) → core::List<core::int> => <core::int>[]){((core::int) → FutureOr<core::List<core::int>>, {onError: core::Function?}) → asy::Future<core::List<core::int>>};
+  b = f.{asy::Future::then}<core::List<core::int>>((core::int x##1) → core::List<core::int> => <core::int>[]){((core::int) → FutureOr<core::List<core::int>>, {onError: core::Function?}) → asy::Future<core::List<core::int>>};
 }
 static method main() → dynamic {}

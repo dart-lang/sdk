@@ -17,9 +17,9 @@ expandContractTest() {
   // a1:  aaaabbbbccccddddeeeeffffgggghhhh
   // a2:              abcdefgh
 
-  var a1 = new Int32List(8);
+  var a1 = Int32List(8);
   var buffer = a1.buffer;
-  var a2 = new Int8List.view(buffer, 12, 8);
+  var a2 = Int8List.view(buffer, 12, 8);
 
   initialize(a2);
   Expect.equals('[1, 2, 3, 4, 5, 6, 7, 8]', '$a2');

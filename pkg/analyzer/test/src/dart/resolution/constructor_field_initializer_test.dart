@@ -35,7 +35,8 @@ augment class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: _foo
+  fieldName(v1): SimpleIdentifier
     token: _foo
     element: <testLibrary>::@class::A::@field::_foo
     staticType: null
@@ -43,6 +44,7 @@ ConstructorFieldInitializer
   expression2: IntegerLiteral
     literal: 0
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::_foo
 ''');
   }
 
@@ -57,15 +59,23 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -80,13 +90,14 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  expression2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: FunctionExpression
         parameters: FormalParameterList
@@ -99,9 +110,11 @@ ConstructorFieldInitializer
               ReturnStatement
                 returnKeyword: return
                 expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                  leftOperand: UnqualifiedNameExpression
+                    name: a
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                      type: int
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
@@ -135,9 +148,51 @@ ConstructorFieldInitializer
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    staticType: int
+                  operator: +
+                  rightOperand: IntegerLiteral
+                    literal: 1
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+                    staticType: int
+                  element: dart:core::@class::num::@method::+
+                  staticInvokeType: num Function(num)
+                  staticType: int
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function()
+        staticType: int Function()
+      rightParenthesis: )
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
     element: <null>
     staticInvokeType: int Function()
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -152,13 +207,14 @@ class A {
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  expression2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: FunctionExpression
         parameters: FormalParameterList
@@ -167,9 +223,11 @@ ConstructorFieldInitializer
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                type: int
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
@@ -201,9 +259,45 @@ ConstructorFieldInitializer
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+              staticType: int
+            operator: +
+            rightOperand: IntegerLiteral
+              literal: 1
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+              staticType: int
+            element: dart:core::@class::num::@method::+
+            staticInvokeType: num Function(num)
+            staticType: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function()
+        staticType: int Function()
+      rightParenthesis: )
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
     element: <null>
     staticInvokeType: int Function()
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -221,15 +315,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -247,15 +350,24 @@ class X {}
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: X
+  fieldName(v1): SimpleIdentifier
     token: X
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -273,15 +385,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -301,15 +422,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -327,15 +457,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -353,15 +492,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::x
 ''');
   }
 
@@ -379,15 +527,24 @@ void x() {}
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -405,15 +562,24 @@ var x = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -430,15 +596,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: T
+  fieldName(v1): SimpleIdentifier
     token: T
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 
@@ -455,15 +630,24 @@ const a = 0;
     var node = result.findNode.singleConstructorFieldInitializer;
     assertResolvedNodeText(node, r'''
 ConstructorFieldInitializer
-  fieldName: SimpleIdentifier
+  fieldName2: x
+  fieldName(v1): SimpleIdentifier
     token: x
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
+  fieldElement: <null>
 ''');
   }
 }

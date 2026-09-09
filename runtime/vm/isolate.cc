@@ -1862,9 +1862,6 @@ Isolate::~Isolate() {
 
   free(name_);
   delete field_table_;
-#if defined(DART_INCLUDE_SIMULATOR)
-  delete simulator_;
-#endif
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
@@ -2007,9 +2004,15 @@ ObjectPtr Isolate::CallDeferredLoadHandler(intptr_t id) {
 
 void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
                                   bool is_executable) {
-  Image image(image_buffer);
-  heap()->SetupImagePage(image.object_start(), image.object_size(),
-                         is_executable);
+  if (is_executable) {
+    TextImage image(image_buffer);
+    heap()->SetupImagePage(image.object_start(), image.object_size(),
+                           is_executable);
+  } else {
+    DataImage image(image_buffer);
+    heap()->SetupImagePage(image.object_start(), image.object_size(),
+                           is_executable);
+  }
 }
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {

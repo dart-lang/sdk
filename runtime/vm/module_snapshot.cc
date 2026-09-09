@@ -59,13 +59,8 @@ class ModuleSnapshot : public AllStatic {
     kClosureRefs,
     kArgumentsDescriptorRefs,
     kRecordShapeRefs,
-    kClosureDatas,
-    kFunctions,
     kInts,
     kDoubles,
-    kLists,
-    kMaps,
-    kSets,
     kRecords,
     kInstantiatedClosures,
     kTypeParameters,
@@ -74,6 +69,12 @@ class ModuleSnapshot : public AllStatic {
     kRecordTypes,
     kTypeParameterTypes,
     kTypeArguments,
+    kClosureDatas,
+    kFunctions,
+    kLists,
+    kMaps,
+    kSets,
+    kInstances,
     kCodes,
     kICDatas,
     kSubtypeTestCaches,
@@ -83,7 +84,6 @@ class ModuleSnapshot : public AllStatic {
     kCatchEntryMoves,
     kCompressedStackMaps,
     kCodeSourceMap,
-    kInstances,
   };
 
   // Object pool entry kinds in the module snapshots.
@@ -742,9 +742,13 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     Function& func = Function::Handle(d->zone());
+    FunctionType& signature = FunctionType::Handle(d->zone());
     TypeArguments& type_args = TypeArguments::Handle(d->zone());
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       func ^= refs.At(id);
+      signature = func.signature();
+      signature ^= ClassFinalizer::FinalizeType(signature);
+      func.SetSignature(signature);
       if (func.IsClosureFunction()) {
         const intptr_t local_function_id = func.kernel_offset();
         func.set_kernel_offset(0);
@@ -855,6 +859,19 @@ class ListDeserializationCluster : public DeserializationCluster {
       }
     }
   }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    Array& array = Array::Handle(d->zone());
+    TypeArguments& type_args = TypeArguments::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      array ^= refs.At(id);
+      type_args = array.GetTypeArguments();
+      if (!type_args.IsNull() && !type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(d->thread());
+        array.SetTypeArguments(type_args);
+      }
+    }
+  }
 };
 
 class MapDeserializationCluster : public DeserializationCluster {
@@ -888,8 +905,14 @@ class MapDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     Map& map = Map::Handle(d->zone());
+    TypeArguments& type_args = TypeArguments::Handle(d->zone());
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       map ^= refs.At(id);
+      type_args = map.GetTypeArguments();
+      if (!type_args.IsNull() && !type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(d->thread());
+        map.SetTypeArguments(type_args);
+      }
       map.ComputeAndSetHashMask();
     }
   }
@@ -926,8 +949,14 @@ class SetDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     Set& set = Set::Handle(d->zone());
+    TypeArguments& type_args = TypeArguments::Handle(d->zone());
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       set ^= refs.At(id);
+      type_args = set.GetTypeArguments();
+      if (!type_args.IsNull() && !type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(d->thread());
+        set.SetTypeArguments(type_args);
+      }
       set.ComputeAndSetHashMask();
     }
   }
@@ -973,7 +1002,7 @@ class InstanceDeserializationCluster : public DeserializationCluster {
  public:
   explicit InstanceDeserializationCluster(const Class& cls)
       : DeserializationCluster(
-            "List",
+            "Instance",
             Object::ShouldHaveDeeplyImmutabilityBitSet(cls.id())),
         class_(cls) {}
   ~InstanceDeserializationCluster() {}
@@ -1016,6 +1045,22 @@ class InstanceDeserializationCluster : public DeserializationCluster {
         offset += kCompressedWordSize;
       }
       ASSERT(offset == instance_size);
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    if (class_.host_type_arguments_field_offset() == Class::kNoTypeArguments) {
+      return;
+    }
+    Instance& instance = Instance::Handle(d->zone());
+    TypeArguments& type_args = TypeArguments::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      instance ^= refs.At(id);
+      type_args = instance.GetTypeArguments();
+      if (!type_args.IsNull() && !type_args.IsCanonical()) {
+        type_args = type_args.Canonicalize(d->thread());
+        instance.SetTypeArguments(type_args);
+      }
     }
   }
 
@@ -1293,9 +1338,6 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
       if (owner->IsClass()) {
         owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
       } else {
-        if (owner->IsFunction()) {
-          owner = Function::RawCast(owner)->untag()->signature();
-        }
         flags =
             UntaggedTypeParameter::IsFunctionTypeParameter::update(true, flags);
       }
@@ -1941,11 +1983,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::empty_descriptors());
   AddBaseObject(Object::uninitialized_index());
   AddBaseObject(Object::uninitialized_data());
-  AddBaseObject(StubCode::Subtype1TestCache());
-  AddBaseObject(StubCode::Subtype2TestCache());
-  AddBaseObject(StubCode::Subtype3TestCache());
-  AddBaseObject(StubCode::Subtype4TestCache());
-  AddBaseObject(StubCode::Subtype6TestCache());
+  AddBaseObject(Object::mutable_empty_array());
   AddBaseObject(StubCode::InstantiateTypeArguments());
   AddBaseObject(StubCode::InitAsync());
   AddBaseObject(StubCode::InitAsyncStar());
@@ -1958,6 +1996,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::ReturnAsync());
   AddBaseObject(StubCode::ReturnAsyncNotFuture());
   AddBaseObject(StubCode::ReturnAsyncStar());
+  AddBaseObject(StubCode::CloneSuspendState());
   AddBaseObject(StubCode::CallBootstrapNative());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {

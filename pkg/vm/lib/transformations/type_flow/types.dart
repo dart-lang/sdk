@@ -1082,7 +1082,7 @@ class Closure {
     ) => [
       for (final p in params)
         PositionalParameter(
-          cosmeticName: p.cosmeticName,
+          parameterName: p.parameterName,
           defaultValue: (p.defaultValue != null)
               ? ConstantExpression(
                   (p.defaultValue as ConstantExpression).constant,

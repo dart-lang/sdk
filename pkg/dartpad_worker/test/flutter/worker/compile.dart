@@ -14,10 +14,18 @@ void main() {
       );
     ''');
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.runMain('bin/main.dart');
+    check(result.log).isEmpty();
+    await iframe.checkEvent(
+      (it) => it.isA<LoadModuleEvent>().code
+        ..contains('Hello Flutter')
+        ..contains('MaterialApp'),
+    );
+    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.close();
   });
 
   testFlutterWorkspace('ws.compile() missing semicolon', (ws) async {
@@ -29,11 +37,15 @@ void main() {
       )
     ''');
 
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
     await check(
-      ws.compile(Uri.parse('bin/main.dart')),
+      sandbox.runMain('bin/main.dart'),
     ).throws<CompilationFailedException>(
-      (e) => e.message.contains("Expected ';'"),
+      (e) => e.has((it) => it.message, 'message').contains("Expected ';'"),
     );
+    await iframe.close();
   });
 
   testFlutterWorkspace('ws.compile() with imports', (ws) async {
@@ -51,10 +63,18 @@ void main() {
       }
     ''');
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter')
-      ..codeContains('Hello World')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.runMain('bin/main.dart');
+    check(result.log).isEmpty();
+    await iframe.checkEvent(
+      (it) => it.isA<LoadModuleEvent>().code
+        ..contains('Hello Flutter')
+        ..contains('Hello World')
+        ..contains('MaterialApp'),
+    );
+    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.close();
   });
 }

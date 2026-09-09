@@ -74,6 +74,6 @@ static method main() → dynamic {
     core::print(new self::C::named().{self::C::bar}{dynamic});
     throw "expected exception";
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##1) {
   }
 }

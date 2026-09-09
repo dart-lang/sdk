@@ -126,12 +126,16 @@ extension on CodeAsset {
       LookupInExecutable() => KernelAssetInExecutable(),
       LookupInProcess() => KernelAssetInProcess(),
       DynamicLoadingBundled() => () {
-        final relativeUri = libOutputDirectoryUriFromBin.resolve(
+        if (relocatable) {
+          final relativeUri = libOutputDirectoryUriFromBin.resolve(
+            file!.pathSegments.last,
+          );
+          return KernelAssetRelativePath(relativeUri);
+        }
+        final relativeUri = libOutputDirectoryUri.resolve(
           file!.pathSegments.last,
         );
-        return relocatable
-            ? KernelAssetRelativePath(relativeUri)
-            : KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
+        return KernelAssetAbsolutePath(outputUri.resolveUri(relativeUri));
       }(),
       _ => throw UnsupportedError(
         'Unsupported NativeCodeAsset linkMode ${linkMode.runtimeType} in asset $this',

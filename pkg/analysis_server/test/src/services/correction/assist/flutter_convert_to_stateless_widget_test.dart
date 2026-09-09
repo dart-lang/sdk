@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class FlutterConvertToStatelessWidgetTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterConvertToStatelessWidget;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterConvertToStatelessWidget;
 
   Future<void> test_comment() async {
     await resolveTestCode(r'''

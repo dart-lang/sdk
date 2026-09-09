@@ -190,7 +190,7 @@ final a = 0;
 var x = a as int;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a as')],
+      (result) => [result.findNode.unqualifiedNameExpression('a as')],
     );
   }
 
@@ -232,7 +232,7 @@ final b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -244,7 +244,7 @@ const b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &')],
+      (result) => [result.findNode.unqualifiedNameExpression('a &')],
     );
   }
 
@@ -256,7 +256,10 @@ final b = false;
 var x = a & b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a &'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -276,7 +279,7 @@ final b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -288,7 +291,7 @@ const b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &')],
+      (result) => [result.findNode.unqualifiedNameExpression('a &')],
     );
   }
 
@@ -300,7 +303,10 @@ final b = false;
 var x = a && b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a &'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a &'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -320,7 +326,7 @@ final b = 1;
 var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -332,7 +338,7 @@ const b = 1;
 var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a ??')],
+      (result) => [result.findNode.unqualifiedNameExpression('a ??')],
     );
   }
 
@@ -345,8 +351,8 @@ var x = a ?? b;
 ''',
       (result) => _xInitializer(result),
       (result) => [
-        result.findNode.simple('a ??'),
-        result.findNode.simple('b;'),
+        result.findNode.unqualifiedNameExpression('a ??'),
+        result.findNode.unqualifiedNameExpression('b;'),
       ],
     );
   }
@@ -367,7 +373,7 @@ final b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -379,7 +385,7 @@ const b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |')],
+      (result) => [result.findNode.unqualifiedNameExpression('a |')],
     );
   }
 
@@ -391,7 +397,10 @@ final b = false;
 var x = a | b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a |'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -411,7 +420,7 @@ final b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('b;')],
+      (result) => [result.findNode.unqualifiedNameExpression('b;')],
     );
   }
 
@@ -423,7 +432,7 @@ const b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |')],
+      (result) => [result.findNode.unqualifiedNameExpression('a |')],
     );
   }
 
@@ -435,7 +444,10 @@ final b = false;
 var x = a || b;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a |'), result.findNode.simple('b;')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a |'),
+        result.findNode.unqualifiedNameExpression('b;'),
+      ],
     );
   }
 
@@ -458,9 +470,9 @@ var x = a ? b : c;
 ''',
       (result) => _xInitializer(result),
       (result) => [
-        result.findNode.simple('a ?'),
-        result.findNode.simple('b :'),
-        result.findNode.simple('c;'),
+        result.findNode.unqualifiedNameExpression('a ?'),
+        result.findNode.unqualifiedNameExpression('b :'),
+        result.findNode.unqualifiedNameExpression('c;'),
       ],
     );
   }
@@ -535,7 +547,7 @@ class A {
 }
 
 const A x = .a;
-''', (result) => result.findNode.dotShorthandPropertyAccess('.a'));
+''', (result) => result.findNode.dotShorthandNameExpression('.a'));
   }
 
   test_dotShorthandPropertyAccess_nonConst() async {
@@ -548,7 +560,7 @@ class A {
 A x = .a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNodeV1.simple('a;')],
     );
   }
 
@@ -560,7 +572,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', (result) => result.findNode.functionReference('id<int>'));
+''', (result) => result.findNode.functionInstantiation('id<int>'));
   }
 
   test_functionReference_explicitTypeArguments_nonConst() async {
@@ -574,7 +586,7 @@ class A {
 
 X id<X>(X x) => x;
 ''',
-      (result) => result.findNode.functionReference('id<self.A>'),
+      (result) => result.findNode.functionInstantiation('id<self.A>'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
@@ -587,7 +599,7 @@ class A {
 }
 
 X id<X>(X x) => x;
-''', (result) => result.findNode.simple('id;'));
+''', (result) => result.findNode.unqualifiedNameExpression('id;'));
   }
 
   test_ifElement_then() async {
@@ -606,7 +618,10 @@ final b = 0;
 var x = const [if (a) b];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a)'), result.findNode.simple('b]')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a)'),
+        result.findNode.unqualifiedNameExpression('b]'),
+      ],
     );
   }
 
@@ -657,7 +672,7 @@ final a = 0;
 var x = a is int;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a is')],
+      (result) => [result.findNode.unqualifiedNameExpression('a is')],
     );
   }
 
@@ -707,7 +722,10 @@ final b = 1;
 var x = const [a, b, 2];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -810,7 +828,10 @@ final b = 2;
 var x = const {0: 0, a: 1, b: 2};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a:'), result.findNode.simple('b:')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a:'),
+        result.findNode.unqualifiedNameExpression('b:'),
+      ],
     );
   }
 
@@ -822,7 +843,10 @@ final b = 2;
 var x = const {0: 0, 1: a, 2: b};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b}')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b}'),
+      ],
     );
   }
 
@@ -865,7 +889,10 @@ final b = 0;
 var x = identical(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b)')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b)'),
+      ],
     );
   }
 
@@ -877,7 +904,7 @@ const b = 0;
 var x = foo(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('foo')],
+      (result) => [result.findNode.unqualifiedFunctionInvocation('foo')],
     );
   }
 
@@ -913,7 +940,7 @@ final a = 0;
 var x = (a);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a);')],
+      (result) => [result.findNode.unqualifiedNameExpression('a);')],
     );
   }
 
@@ -924,7 +951,7 @@ const a = 0;
 var x = a++;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.postfixIncrement('a++')],
+      (result) => [result.findNode.incrementOrDecrement('a++')],
     );
   }
 
@@ -938,7 +965,7 @@ import 'a.dart' deferred as p;
 var x = p.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('p.a')],
+      (result) => [result.findNode.importPrefixedNameExpression('p.a')],
     );
   }
 
@@ -1094,7 +1121,7 @@ final a = 0;
 var x = -a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNode.unqualifiedNameExpression('a;')],
     );
   }
 
@@ -1105,7 +1132,7 @@ const a = 0;
 var x = ++a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixIncrement('++a')],
+      (result) => [result.findNode.incrementOrDecrement('++a')],
     );
   }
 
@@ -1139,7 +1166,7 @@ final a = 'abc';
 var x = (a).length;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a).')],
+      (result) => [result.findNode.unqualifiedNameExpression('a).')],
     );
   }
 
@@ -1283,7 +1310,7 @@ final a = 0;
 var x = const (f1: a);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a)')],
+      (result) => [result.findNode.unqualifiedNameExpression('a)')],
     );
   }
 
@@ -1301,7 +1328,10 @@ final b = 1;
 var x = const (a, b, 2);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -1329,7 +1359,10 @@ final b = 1;
 var x = const {a, b, 2};
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a,'), result.findNode.simple('b,')],
+      (result) => [
+        result.findNode.unqualifiedNameExpression('a,'),
+        result.findNode.unqualifiedNameExpression('b,'),
+      ],
     );
   }
 
@@ -1386,7 +1419,7 @@ main() {
 }
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1399,7 +1432,7 @@ class A {
 
   const A() : f = m; // ref
 }
-''', (result) => result.findNode.simple('m; // ref'));
+''', (result) => result.findNode.unqualifiedNameExpression('m; // ref'));
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_instance_late() async {
@@ -1410,7 +1443,7 @@ class const C(int a) {
 }
 ''',
       (result) => result.findNode.variableDeclaration('f =').initializer2!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1430,7 +1463,7 @@ class const C(int a) {
 }
 ''',
       (result) => result.findNode.variableDeclaration('f =').initializer2!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1457,7 +1490,7 @@ class C {
 }
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1484,7 +1517,7 @@ class C(int a) {
 ''',
       (result) =>
           result.findNode.constructorFieldInitializer('f =').expression2,
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1496,7 +1529,7 @@ class C(int a) {
 }
 ''',
       (result) => result.findNode.variableDeclaration('f =').initializer2!,
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1510,7 +1543,7 @@ class C {
 ''',
       (result) =>
           result.findNode.constructorFieldInitializer('f =').expression2,
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1528,7 +1561,7 @@ final a = 0;
 var x = a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a +')],
+      (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
 
@@ -1560,7 +1593,7 @@ final a = [0, 1, 2];
 var x = const [...a];
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a];')],
+      (result) => [result.findNode.unqualifiedNameExpression('a];')],
     );
   }
 
@@ -1578,7 +1611,7 @@ final a = 0;
 var x = 'a $a b';
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a b')],
+      (result) => [result.findNode.unqualifiedNameExpression('a b')],
     );
   }
 

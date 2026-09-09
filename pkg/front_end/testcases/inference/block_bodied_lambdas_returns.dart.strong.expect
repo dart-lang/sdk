@@ -24,24 +24,24 @@ static method main() → dynamic {
   () → core::int d = () → core::int {
     return 0;
   };
-  (core::bool) → Null e = (core::bool b) → Null {
-    if(b) {
+  (core::bool) → Null e = (core::bool b##1) → Null {
+    if(b##1) {
       return;
     }
     else {
       return;
     }
   };
-  (core::bool) → Null f = (core::bool b) → Null {
-    if(b) {
+  (core::bool) → Null f = (core::bool b##2) → Null {
+    if(b##2) {
       return;
     }
     else {
       return null;
     }
   };
-  (core::bool) → core::int? g = (core::bool b) → core::int? {
-    if(b) {
+  (core::bool) → core::int? g = (core::bool b##3) → core::int? {
+    if(b##3) {
       return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:34:7: Error: A value must be explicitly returned from a non-void function.
       return;
       ^" in null;
@@ -50,32 +50,32 @@ static method main() → dynamic {
       return 0;
     }
   };
-  (core::bool) → Null h = (core::bool b) → Null {
-    if(b) {
+  (core::bool) → Null h = (core::bool b##4) → Null {
+    if(b##4) {
       return null;
     }
     else {
       return;
     }
   };
-  (core::bool) → Null i = (core::bool b) → Null {
-    if(b) {
+  (core::bool) → Null i = (core::bool b##5) → Null {
+    if(b##5) {
       return null;
     }
     else {
       return null;
     }
   };
-  (core::bool) → core::int? j = (core::bool b) → core::int? {
-    if(b) {
+  (core::bool) → core::int? j = (core::bool b##6) → core::int? {
+    if(b##6) {
       return null;
     }
     else {
       return 0;
     }
   };
-  (core::bool) → core::int? k = (core::bool b) → core::int? {
-    if(b) {
+  (core::bool) → core::int? k = (core::bool b##7) → core::int? {
+    if(b##7) {
       return 0;
     }
     else {
@@ -84,16 +84,16 @@ static method main() → dynamic {
       ^" in null;
     }
   };
-  (core::bool) → core::int? l = (core::bool b) → core::int? {
-    if(b) {
+  (core::bool) → core::int? l = (core::bool b##8) → core::int? {
+    if(b##8) {
       return 0;
     }
     else {
       return null;
     }
   };
-  (core::bool) → core::int m = (core::bool b) → core::int {
-    if(b) {
+  (core::bool) → core::int m = (core::bool b##9) → core::int {
+    if(b##9) {
       return 0;
     }
     else {

@@ -13,6 +13,7 @@ import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -192,8 +193,25 @@ print(1)
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
+  Future<void> test_pubspec_packageNames() async {
+    registerLintRules();
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+linter:
+  rules:
+    - package_names
+''');
+    var pubspec = newPubspecYamlFile(testPackageRootPath, r'''
+name: fooBar
+version: 0.0.1
+''');
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(await _getFixesAt(pubspec, 'fooBar'), isEmpty);
+  }
+
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('$workspaceRootPath/aaa'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb'))),
@@ -203,7 +221,7 @@ dependencies:
   bbb: any
 ''');
 
-    writePackageConfig(convertPath('$workspaceRootPath/bbb'));
+    writePackageConfig2(convertPath('$workspaceRootPath/bbb'));
     newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
     newFile(
       '$workspaceRootPath/bbb/lib/target.generated.dart',

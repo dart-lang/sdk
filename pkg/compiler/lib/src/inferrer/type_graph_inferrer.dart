@@ -5,6 +5,7 @@
 library;
 
 import 'package:kernel/ast.dart' as ir;
+
 import '../closure.dart';
 import '../common/metrics.dart' show Metrics;
 import '../compiler.dart';
@@ -116,9 +117,9 @@ class TypeGraphInferrer implements TypesInferrer {
     ) {
       createMemberResults(member, typeInformation);
       if (member is JClosureCallMethod) {
-        final info =
-            closedWorld.closureDataLookup.getScopeInfo(member)
-                as ClosureRepresentationInfo;
+        final info = closedWorld.closureDataLookup.getScopeInfo(
+          member,
+        ) as ClosureRepresentationInfo;
         info.forEachFreeVariable(_globalLocalsMap.getLocalsMap(member), (
           Local from,
           FieldEntity to,

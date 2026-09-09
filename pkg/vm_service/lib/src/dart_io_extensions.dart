@@ -9,6 +9,15 @@ import 'dart:typed_data';
 
 import 'vm_service.dart' hide Error;
 
+extension on Map<String, Object?> {
+  DateTime? getDateTime(String key) {
+    return switch (this[key]) {
+      int value => DateTime.fromMicrosecondsSinceEpoch(value),
+      _ => null,
+    };
+  }
+}
+
 extension DartIOExtension on VmService {
   static bool _factoriesRegistered = false;
   static final Map<String, Version> _isolateVersion = {};
@@ -30,8 +39,9 @@ extension DartIOExtension on VmService {
   /// Whether socket profiling is available for the given [isolateId].
   Future<bool> isSocketProfilingAvailable(String isolateId) async {
     final Isolate isolate = await getIsolate(isolateId);
-    return (isolate.extensionRPCs ?? [])
-        .contains('ext.dart.io.getSocketProfile');
+    return (isolate.extensionRPCs ?? []).contains(
+      'ext.dart.io.getSocketProfile',
+    );
   }
 
   /// The _socketProfilingEnabled_ RPC is used to enable/disable the socket profiler
@@ -40,12 +50,16 @@ extension DartIOExtension on VmService {
   ///
   /// If the state of the socket profiler is changed, a `SocketProfilingStateChange`
   /// event will be sent on the `Extension` stream.
-  Future<SocketProfilingState> socketProfilingEnabled(String isolateId,
-      [bool? enabled]) async {
+  Future<SocketProfilingState> socketProfilingEnabled(
+    String isolateId, [
+    bool? enabled,
+  ]) async {
     assert(await isSocketProfilingAvailable(isolateId));
-    return _callHelper('ext.dart.io.socketProfilingEnabled', isolateId, args: {
-      if (enabled != null) 'enabled': enabled,
-    });
+    return _callHelper(
+      'ext.dart.io.socketProfilingEnabled',
+      isolateId,
+      args: {if (enabled != null) 'enabled': enabled},
+    );
   }
 
   /// Removes all statistics associated with prior and current sockets.
@@ -89,16 +103,25 @@ extension DartIOExtension on VmService {
         ((version.major! == 1 && version.minor! > 3) || version.major! >= 2)
             ? 'enabled'
             : 'enable';
-    return _callHelper('ext.dart.io.httpEnableTimelineLogging', isolateId,
-        args: {
-          if (enabled != null) enableKey: enabled,
-        });
+    return _callHelper(
+      'ext.dart.io.httpEnableTimelineLogging',
+      isolateId,
+      args: {if (enabled != null) enableKey: enabled},
+    );
   }
 
   /// Whether HTTP profiling is available for the given [isolateId].
   Future<bool> isHttpProfilingAvailable(String isolateId) async {
     final Isolate isolate = await getIsolate(isolateId);
     return (isolate.extensionRPCs ?? []).contains('ext.dart.io.getHttpProfile');
+  }
+
+  /// Whether WebSocket profiling is available for the given [isolateId].
+  Future<bool> isWebSocketProfilingAvailable(String isolateId) async {
+    final Isolate isolate = await getIsolate(isolateId);
+    return (isolate.extensionRPCs ?? []).contains(
+      'ext.dart.io.getWebSocketProfile',
+    );
   }
 
   /// The `getHttpProfile` RPC is used to retrieve HTTP profiling information
@@ -115,10 +138,14 @@ extension DartIOExtension on VmService {
     DateTime? updatedSince,
   }) async {
     assert(await isHttpProfilingAvailable(isolateId));
-    return _callHelper('ext.dart.io.getHttpProfile', isolateId, args: {
-      if (updatedSince != null)
-        'updatedSince': updatedSince.microsecondsSinceEpoch,
-    });
+    return _callHelper(
+      'ext.dart.io.getHttpProfile',
+      isolateId,
+      args: {
+        if (updatedSince != null)
+          'updatedSince': updatedSince.microsecondsSinceEpoch,
+      },
+    );
   }
 
   /// The `getHttpProfileRequest` RPC is used to retrieve an instance of
@@ -128,9 +155,11 @@ extension DartIOExtension on VmService {
     String id,
   ) async {
     assert(await isHttpProfilingAvailable(isolateId));
-    return _callHelper('ext.dart.io.getHttpProfileRequest', isolateId, args: {
-      'id': id,
-    });
+    return _callHelper(
+      'ext.dart.io.getHttpProfileRequest',
+      isolateId,
+      args: {'id': id},
+    );
   }
 
   /// The `clearHttpProfile` RPC is used to clear previously recorded HTTP
@@ -138,36 +167,60 @@ extension DartIOExtension on VmService {
   /// clearing the profiler state will be ignored by the profiler.
   Future<Success> clearHttpProfile(String isolateId) async {
     assert(await isHttpProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.clearHttpProfile', isolateId);
+  }
+
+  /// The `getWebSocketProfile` RPC is used to retrieve WebSocket profiling
+  /// information collected by `dart:io`.
+  Future<WebSocketProfile> getWebSocketProfile(
+    String isolateId, {
+    DateTime? updatedSince,
+  }) async {
+    assert(await isWebSocketProfilingAvailable(isolateId));
     return _callHelper(
-      'ext.dart.io.clearHttpProfile',
+      'ext.dart.io.getWebSocketProfile',
       isolateId,
+      args: {
+        if (updatedSince != null)
+          'updatedSince': updatedSince.microsecondsSinceEpoch,
+      },
     );
+  }
+
+  /// The `getWebSocketConnection` RPC retrieves a single profiled WebSocket
+  /// connection.
+  Future<WebSocketConnection> getWebSocketConnection(
+    String isolateId,
+    String id,
+  ) async {
+    assert(await isWebSocketProfilingAvailable(isolateId));
+    return _callHelper(
+      'ext.dart.io.getWebSocketConnection',
+      isolateId,
+      args: {'id': id},
+    );
+  }
+
+  /// Clears all WebSocket profiling data.
+  Future<Success> clearWebSocketProfile(String isolateId) async {
+    assert(await isWebSocketProfilingAvailable(isolateId));
+    return _callHelper('ext.dart.io.clearWebSocketProfile', isolateId);
   }
 
   /// The `getOpenFiles` RPC is used to retrieve the list of files currently
   /// opened files by `dart:io` from a given isolate.
-  Future<OpenFileList> getOpenFiles(String isolateId) => _callHelper(
-        'ext.dart.io.getOpenFiles',
-        isolateId,
-      );
+  Future<OpenFileList> getOpenFiles(String isolateId) =>
+      _callHelper('ext.dart.io.getOpenFiles', isolateId);
 
   /// The `getOpenFileById` RPC is used to retrieve information about files
   /// currently opened by `dart:io` from a given isolate.
-  Future<OpenFile> getOpenFileById(String isolateId, int id) => _callHelper(
-        'ext.dart.io.getOpenFileById',
-        isolateId,
-        args: {
-          'id': id,
-        },
-      );
+  Future<OpenFile> getOpenFileById(String isolateId, int id) =>
+      _callHelper('ext.dart.io.getOpenFileById', isolateId, args: {'id': id});
 
   /// The `getSpawnedProcesses` RPC is used to retrieve the list of processed opened
   /// by `dart:io` from a given isolate
   Future<SpawnedProcessList> getSpawnedProcesses(String isolateId) =>
-      _callHelper(
-        'ext.dart.io.getSpawnedProcesses',
-        isolateId,
-      );
+      _callHelper('ext.dart.io.getSpawnedProcesses', isolateId);
 
   /// The `getSpawnedProcessById` RPC is used to retrieve information about a process
   /// spawned by `dart:io` from a given isolate.
@@ -175,24 +228,21 @@ extension DartIOExtension on VmService {
       _callHelper(
         'ext.dart.io.getSpawnedProcessById',
         isolateId,
-        args: {
-          'id': id,
-        },
+        args: {'id': id},
       );
 
-  Future<T> _callHelper<T>(String method, String? isolateId,
-      {Map args = const {}}) {
+  Future<T> _callHelper<T>(
+    String method,
+    String? isolateId, {
+    Map args = const {},
+  }) {
     if (!_factoriesRegistered) {
       _registerFactories();
     }
-    return extensionCallHelper(
-      this,
-      method,
-      {
-        if (isolateId != null) 'isolateId': isolateId,
-        ...args,
-      },
-    );
+    return extensionCallHelper(this, method, {
+      if (isolateId != null) 'isolateId': isolateId,
+      ...args,
+    });
   }
 
   static void _registerFactories() {
@@ -208,6 +258,9 @@ extension DartIOExtension on VmService {
     addTypeFactory('SocketProfilingState', SocketProfilingState.parse);
     addTypeFactory('HttpProfile', HttpProfile.parse);
     addTypeFactory('HttpProfileRequest', HttpProfileRequest.parse);
+    addTypeFactory('WebSocketProfile', WebSocketProfile.parse);
+    addTypeFactory('WebSocketConnection', WebSocketConnection.parse);
+    addTypeFactory('@WebSocketConnection', WebSocketConnectionRef.parse);
     _factoriesRegistered = true;
   }
 }
@@ -276,13 +329,13 @@ class SocketProfile extends Response {
   SocketProfile({required this.sockets});
 
   SocketProfile._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         sockets = List<SocketStatistic>.from(
-            createServiceObject(json['sockets'], const ['SocketStatistic'])
-                    as List? ??
-                []);
+          createServiceObject(json['sockets'], const ['SocketStatistic'])
+                  as List? ??
+              [],
+        );
 }
 
 /// A [Response] containing the enabled state of a service extension.
@@ -314,6 +367,185 @@ class HttpTimelineLoggingState extends _State {
   HttpTimelineLoggingState({required super.enabled});
 
   HttpTimelineLoggingState._fromJson(super.json) : super._fromJson();
+}
+
+/// A collection of WebSocket connections collected by the profiler.
+class WebSocketProfile extends Response {
+  static WebSocketProfile? parse(Map<String, dynamic>? json) =>
+      json == null ? null : WebSocketProfile._fromJson(json);
+
+  WebSocketProfile._fromJson(Map<String, dynamic> json)
+      : timestamp = DateTime.fromMicrosecondsSinceEpoch(json['timestamp']!),
+        connections = json['connections']!
+            .cast<Map<String, dynamic>>()
+            .map<WebSocketConnectionRef>(
+              (e) => WebSocketConnectionRef._fromJson(e),
+            )
+            .toList();
+
+  WebSocketProfile({required this.connections, required this.timestamp});
+
+  @override
+  String get type => 'WebSocketProfile';
+
+  @override
+  String toString() => '[WebSocketProfile]';
+
+  /// Time when this profile snapshot was generated.
+  final DateTime timestamp;
+
+  /// The profiled WebSocket connections.
+  final List<WebSocketConnectionRef> connections;
+}
+
+/// Profiling information for a single WebSocket connection.
+class WebSocketConnectionRef {
+  static WebSocketConnectionRef? parse(Map<String, dynamic>? json) =>
+      json == null ? null : WebSocketConnectionRef._fromJson(json);
+
+  WebSocketConnectionRef._fromJson(Map<String, dynamic> json)
+      : isolateId = json['isolateId']!,
+        id = json['id']!,
+        uri = Uri.parse(json['uri']!),
+        state = json['state']!;
+
+  WebSocketConnectionRef({
+    required this.isolateId,
+    required this.id,
+    required this.uri,
+    required this.state,
+  });
+
+  /// The ID of the isolate owning this connection.
+  final String isolateId;
+
+  /// Unique connection identifier.
+  final String id;
+
+  /// The remote WebSocket endpoint.
+  final Uri uri;
+
+  /// Current lifecycle state.
+  final String state;
+}
+
+/// Complete profiling information for a WebSocket connection.
+class WebSocketConnection extends WebSocketConnectionRef {
+  static WebSocketConnection? parse(Map<String, dynamic>? json) =>
+      json == null ? null : WebSocketConnection._fromJson(json);
+
+  WebSocketConnection._fromJson(super.json)
+      : protocol = json['protocol'],
+        connectTimestamp = DateTime.fromMicrosecondsSinceEpoch(
+          json['connectTimestamp'],
+        ),
+        openTimestamp = json.getDateTime('openTimestamp'),
+        closeTimestamp = json.getDateTime('closeTimestamp'),
+        bytesSent = json['bytesSent'] ?? 0,
+        bytesReceived = json['bytesReceived'] ?? 0,
+        framesSent = json['framesSent'] ?? 0,
+        framesReceived = json['framesReceived'] ?? 0,
+        pingCount = json['pingCount'] ?? 0,
+        pongCount = json['pongCount'] ?? 0,
+        closeCode = json['closeCode'],
+        closeReason = json['closeReason'],
+        error = json['error'],
+        lastUpdated = DateTime.fromMicrosecondsSinceEpoch(json['lastUpdated']),
+        events = List.of(
+          (json['events'] as List? ?? [])
+              .map((e) => WebSocketEvent._fromJson(e)),
+        ),
+        super._fromJson();
+
+  WebSocketConnection({
+    required super.isolateId,
+    required super.id,
+    required super.uri,
+    required super.state,
+    required this.connectTimestamp,
+    required this.lastUpdated,
+    required this.events,
+    this.protocol,
+    this.openTimestamp,
+    this.closeTimestamp,
+    this.closeCode,
+    this.closeReason,
+    this.error,
+    this.bytesSent = 0,
+    this.bytesReceived = 0,
+    this.framesSent = 0,
+    this.framesReceived = 0,
+    this.pingCount = 0,
+    this.pongCount = 0,
+  });
+
+  final String? protocol;
+
+  final DateTime connectTimestamp;
+  final DateTime? openTimestamp;
+  final DateTime? closeTimestamp;
+
+  final int bytesSent;
+  final int bytesReceived;
+
+  final int framesSent;
+  final int framesReceived;
+
+  final int pingCount;
+  final int pongCount;
+
+  final int? closeCode;
+  final String? closeReason;
+
+  final String? error;
+
+  final DateTime lastUpdated;
+
+  final List<WebSocketEvent> events;
+}
+
+/// Describes an event related to a WebSocket connection.
+class WebSocketEvent {
+  static WebSocketEvent? parse(Map<String, dynamic>? json) =>
+      json == null ? null : WebSocketEvent._fromJson(json);
+
+  WebSocketEvent._fromJson(Map<String, dynamic> json)
+      : timestamp = DateTime.fromMicrosecondsSinceEpoch(json['timestamp']!),
+        event = json['event']!,
+        frameNumber = json['frameNumber'],
+        direction = json['direction'],
+        opcode = json['opcode'],
+        payloadSize = json['payloadSize'],
+        errorType = json['errorType'],
+        errorMessage = json['errorMessage'],
+        arguments = json['arguments']?.cast<String, dynamic>();
+
+  WebSocketEvent({
+    required this.event,
+    required this.timestamp,
+    this.frameNumber,
+    this.direction,
+    this.opcode,
+    this.payloadSize,
+    this.errorType,
+    this.errorMessage,
+    this.arguments,
+  });
+
+  /// The title of the recorded event.
+  final String event;
+
+  /// The time at which the event occurred.
+  final DateTime timestamp;
+
+  /// Additional event-specific information.
+  final int? frameNumber;
+  final String? direction;
+  final String? opcode;
+  final int? payloadSize;
+  final String? errorType;
+  final String? errorMessage;
+  final Map<String, dynamic>? arguments;
 }
 
 /// A collection of HTTP request data collected by the profiler.
@@ -428,10 +660,12 @@ class HttpProfileRequest extends HttpProfileRequestRef {
       json == null ? null : HttpProfileRequest._fromJson(json);
 
   HttpProfileRequest._fromJson(super.json)
-      : requestBody =
-            Uint8List.fromList(json['requestBody']?.cast<int>() ?? <int>[]),
-        responseBody =
-            Uint8List.fromList(json['responseBody']?.cast<int>() ?? <int>[]),
+      : requestBody = Uint8List.fromList(
+          json['requestBody']?.cast<int>() ?? <int>[],
+        ),
+        responseBody = Uint8List.fromList(
+          json['responseBody']?.cast<int>() ?? <int>[],
+        ),
         super._fromJson();
 
   HttpProfileRequest({
@@ -493,9 +727,8 @@ class HttpProfileRequestData {
         _proxyDetails = proxyDetails,
         error = null;
 
-  HttpProfileRequestData.buildErrorRequest({
-    required this.error,
-  })  : _connectionInfo = null,
+  HttpProfileRequestData.buildErrorRequest({required this.error})
+      : _connectionInfo = null,
         _contentLength = null,
         _cookies = null,
         _followRedirects = null,
@@ -595,12 +828,7 @@ class HttpProfileProxyData {
         isDirect = json['isDirect'],
         port = json['port'];
 
-  HttpProfileProxyData({
-    this.host,
-    this.username,
-    this.isDirect,
-    this.port,
-  });
+  HttpProfileProxyData({this.host, this.username, this.isDirect, this.port});
 
   /// The URI of the proxy server.
   final String? host;
@@ -661,7 +889,8 @@ class HttpProfileResponseData {
         persistentConnection = json['persistentConnection'],
         reasonPhrase = json['reasonPhrase'],
         redirects = UnmodifiableListView(
-            json['redirects']!.cast<Map<String, dynamic>>()),
+          json['redirects']!.cast<Map<String, dynamic>>(),
+        ),
         statusCode = json['statusCode'];
 
   HttpProfileResponseData({
@@ -753,14 +982,10 @@ class SpawnedProcessRef {
   static SpawnedProcessRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : SpawnedProcessRef._fromJson(json);
 
-  SpawnedProcessRef({
-    required this.id,
-    required this.name,
-  });
+  SpawnedProcessRef({required this.id, required this.name});
 
   SpawnedProcessRef._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         id = json['id'],
         name = json['name'];
@@ -789,15 +1014,15 @@ class SpawnedProcess extends Response implements SpawnedProcessRef {
   }) : _arguments = arguments;
 
   SpawnedProcess._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         id = json['id'],
         name = json['name'],
         pid = json['pid'],
         startedAt = json['startedAt'],
         _arguments = List<String>.from(
-            createServiceObject(json['arguments'], const ['String']) as List),
+          createServiceObject(json['arguments'], const ['String']) as List,
+        ),
         workingDirectory = json['workingDirectory'];
 
   @override
@@ -833,12 +1058,12 @@ class SpawnedProcessList extends Response {
       : _processes = processes;
 
   SpawnedProcessList._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         _processes = List<SpawnedProcessRef>.from(
-            createServiceObject(json['processes'], const ['SpawnedProcessRef'])
-                as List);
+          createServiceObject(json['processes'], const ['SpawnedProcessRef'])
+              as List,
+        );
 
   @override
   String get type => 'SpawnedProcessList';
@@ -854,14 +1079,10 @@ class OpenFileRef {
   static OpenFileRef? parse(Map<String, dynamic>? json) =>
       json == null ? null : OpenFileRef._fromJson(json);
 
-  OpenFileRef({
-    required this.id,
-    required this.name,
-  });
+  OpenFileRef({required this.id, required this.name});
 
   OpenFileRef._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         id = json['id'],
         name = json['name'];
@@ -892,8 +1113,7 @@ class OpenFile extends Response implements OpenFileRef {
   });
 
   OpenFile._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         id = json['id'],
         name = json['name'],
@@ -903,8 +1123,9 @@ class OpenFile extends Response implements OpenFileRef {
         writeCount = json['writeCount'],
         lastReadTime =
             DateTime.fromMillisecondsSinceEpoch(json['lastReadTime']),
-        lastWriteTime =
-            DateTime.fromMillisecondsSinceEpoch(json['lastWriteTime']);
+        lastWriteTime = DateTime.fromMillisecondsSinceEpoch(
+          json['lastWriteTime'],
+        );
 
   @override
   String get type => 'OpenFile';
@@ -943,11 +1164,11 @@ class OpenFileList extends Response {
   OpenFileList({required List<OpenFileRef> files}) : _files = files;
 
   OpenFileList._fromJson(Map<String, dynamic> json)
-      :
-        // TODO(bkonyi): make this part of the vm_service.dart library so we can
+      : // TODO(bkonyi): make this part of the vm_service.dart library so we can
         // call super._fromJson.
         _files = List<OpenFileRef>.from(
-            createServiceObject(json['files'], const ['OpenFileRef']) as List);
+          createServiceObject(json['files'], const ['OpenFileRef']) as List,
+        );
 
   @override
   String get type => 'OpenFileList';

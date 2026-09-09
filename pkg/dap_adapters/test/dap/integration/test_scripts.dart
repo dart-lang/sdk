@@ -235,7 +235,7 @@ final simpleBreakpointProgramWith50ExtraLines =
   }
 ''';
 
-/// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
+/// A Dart script that uses `Isolate.run` to run a short-lived isolate and has
 /// a `debugger()` call after the isolate completes to ensure the app does not
 /// immediately exit.
 const isolateSpawningProgram = '''

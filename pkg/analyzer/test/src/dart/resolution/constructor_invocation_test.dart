@@ -63,7 +63,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -131,7 +131,7 @@ ConstructorInvocation
         correspondingParameter: <null>
     rightParenthesis: )
   staticType: C
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
@@ -198,7 +198,7 @@ ConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -267,7 +267,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -334,7 +334,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -398,7 +398,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -453,7 +453,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -509,7 +509,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -563,7 +563,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -616,7 +616,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -669,16 +669,18 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: s
+      UnqualifiedNameExpression
+        name: s
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::s
+          type: S & int
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: S}
-        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -732,7 +734,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Map<dynamic, dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Map
@@ -796,7 +798,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -868,7 +870,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -949,7 +951,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -1024,7 +1026,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
@@ -1101,7 +1103,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: Foo<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1167,7 +1169,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1223,7 +1225,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1276,7 +1278,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1327,7 +1329,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1378,7 +1380,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1431,7 +1433,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1483,7 +1485,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -1539,7 +1541,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -1600,7 +1602,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1681,7 +1683,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1773,7 +1775,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1846,7 +1848,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1911,7 +1913,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -1978,7 +1980,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2040,67 +2042,67 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g1
-          element: <testLibrary>::@function::g1
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g1
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g1
+          invokeType: A Function()
+          type: A
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::a
-        staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
           A
       NamedArgument
         name: c
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g3
-            element: <testLibrary>::@function::g3
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g3
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: C? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g3
+            invokeType: C? Function()
+            type: C?
           staticType: C?
           typeArgumentTypes
             C?
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g2
-          element: <testLibrary>::@function::g2
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g2
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g2
+          invokeType: B Function()
+          type: B
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::b
-        staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
           B
       NamedArgument
         name: d
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g4
-            element: <testLibrary>::@function::g4
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g4
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: D? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g4
+            invokeType: D? Function()
+            type: D?
           staticType: D?
           typeArgumentTypes
             D?
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
     rightParenthesis: )
   staticType: X
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
@@ -2210,7 +2212,7 @@ ConstructorInvocation
         correspondingParameter: <null>
     rightParenthesis: )
   staticType: C
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
@@ -2267,7 +2269,7 @@ ConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     rightParenthesis: )
   staticType: C
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
@@ -2327,7 +2329,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2397,7 +2399,7 @@ ConstructorInvocation
         literal: ''
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2464,7 +2466,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2524,7 +2526,7 @@ ConstructorInvocation
         literal: ''
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2589,7 +2591,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2656,7 +2658,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
@@ -2709,7 +2711,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -2761,7 +2763,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -2818,7 +2820,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -2871,7 +2873,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2924,7 +2926,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2984,7 +2986,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: InvalidType
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType

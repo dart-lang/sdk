@@ -2,17 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method notCaptured(positional-parameter aNotCaptured) → dynamic
+static method notCaptured(core::int aNotCaptured) → dynamic
   ;
-static method directCaptured(positional-parameter aCaptured) → dynamic
+static method directCaptured(core::int aCaptured) → dynamic
   ;
-static method assertCaptured1(positional-parameter aAssertCaptured1) → dynamic
+static method assertCaptured1(core::int aAssertCaptured1) → dynamic
   ;
-static method assertCaptured2(positional-parameter aAssertCaptured2) → dynamic
+static method assertCaptured2(core::int aAssertCaptured2) → dynamic
   ;
-static method directOverridingAssertCaptured1(positional-parameter aDirectOverridingAssertCaptured1) → dynamic
+static method directOverridingAssertCaptured1(core::int aDirectOverridingAssertCaptured1) → dynamic
   ;
-static method directOverridingAssertCaptured2(positional-parameter aDirectOverridingAssertCaptured2) → dynamic
+static method directOverridingAssertCaptured2(core::int aDirectOverridingAssertCaptured2) → dynamic
   ;
-static method directOverridingAssertCaptured3(positional-parameter aDirectOverridingAssertCaptured3) → dynamic
+static method directOverridingAssertCaptured3(core::int aDirectOverridingAssertCaptured3) → dynamic
   ;

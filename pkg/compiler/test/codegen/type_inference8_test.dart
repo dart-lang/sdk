@@ -63,12 +63,10 @@ Future runTest1() async {
   // 'foo' should always return false
   Expect.equals(falseType, mask);
   // the argument to 'bar' is always false
-  final bar =
-      elementEnvironment.lookupLibraryMember(
-            elementEnvironment.mainLibrary!,
-            'bar',
-          )
-          as FunctionEntity;
+  final bar = elementEnvironment.lookupLibraryMember(
+    elementEnvironment.mainLibrary!,
+    'bar',
+  ) as FunctionEntity;
   elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
     barArg,
   ) {
@@ -119,12 +117,10 @@ Future runTest2() async {
   AbstractValue mask = results.resultOfMember(element).returnType;
   // Can't infer value for foo's return type, it could be either true or false
   Expect.identical(commonMasks.boolType, mask);
-  final bar =
-      elementEnvironment.lookupLibraryMember(
-            elementEnvironment.mainLibrary!,
-            'bar',
-          )
-          as FunctionEntity;
+  final bar = elementEnvironment.lookupLibraryMember(
+    elementEnvironment.mainLibrary!,
+    'bar',
+  ) as FunctionEntity;
   elementEnvironment.forEachParameterAsLocal(results.globalLocalsMap, bar, (
     barArg,
   ) {

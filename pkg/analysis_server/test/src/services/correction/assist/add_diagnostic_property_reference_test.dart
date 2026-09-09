@@ -17,13 +17,10 @@ void main() {
 @reflectiveTest
 class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.addDiagnosticPropertyReference;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.addDiagnosticPropertyReference;
 
   /// Full coverage in fix/add_diagnostic_property_reference_test.dart
   Future<void> test_boolField_debugFillProperties() async {

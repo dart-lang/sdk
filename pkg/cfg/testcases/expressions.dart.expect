@@ -162,6 +162,32 @@ B0 = EntryBlock()
   DirectCall print(v17)
   Return(v10)
 
+--- testIdentical
+B0 = EntryBlock() dominates:(B12, B14, B11)
+  v22 = Constant(false)
+  v34 = Constant(null)
+  v1 = Parameter(x)
+  v2 = Parameter(y)
+  v3 = Parameter(z)
+  v6 = Comparison ===(v1, v2)
+  DirectCall print(v6)
+  v10 = Comparison ===(v2, v3)
+  Branch(v10, true: B11, false: B12)
+B11 = TargetBlock() idom:B0 dominates:(B20, B24, B19)
+  Branch(v6, true: B19, false: B20)
+B19 = TargetBlock() idom:B11
+  Goto(B24)
+B20 = TargetBlock() idom:B11
+  Goto(B24)
+B24 = JoinBlock(B20, B19) idom:B11
+  v36 = Phi(v22, v10)
+  DirectCall print(v36)
+  Goto(B14)
+B12 = TargetBlock() idom:B0
+  Goto(B14)
+B14 = JoinBlock(B12, B24) idom:B0
+  Return(v34)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

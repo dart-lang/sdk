@@ -34,10 +34,10 @@ static method checkFirstLineHasPosition(core::StackTrace stackTrace) → void {
       core::int firstColon = firstLine.{core::String::lastIndexOf}(":", secondColon.{core::num::-}(1){(core::num) → core::int}){(core::Pattern, [core::int?]) → core::int};
       core::String lineText = firstLine.{core::String::substring}(firstColon.{core::num::+}(1){(core::num) → core::int}, secondColon){(core::int, [core::int?]) → core::String};
       core::String posText = firstLine.{core::String::substring}(secondColon.{core::num::+}(1){(core::num) → core::int}, lastParen){(core::int, [core::int?]) → core::String};
-      core::int? line = core::int::tryParse(lineText);
+      core::int? line##1 = core::int::tryParse(lineText);
       core::int? pos = core::int::tryParse(posText);
-      if(!(line == null) && !(pos == null)) {
-        core::print("Found position ${line{core::int}}:${pos{core::int}}");
+      if(!(line##1 == null) && !(pos == null)) {
+        core::print("Found position ${line##1{core::int}}:${pos{core::int}}");
         return;
       }
     }

@@ -24,7 +24,7 @@ static method testIllegalRethrow() → dynamic {
   try
     try {
     }
-    on core::Object catch(final core::Object e) {
+    on core::Object catch(final core::Object e##1) {
     }
   finally {
     invalid-expression "pkg/front_end/testcases/coverage/try_catch_syntax_test.dart:14:5: Error: 'rethrow' can only be used in catch clauses.

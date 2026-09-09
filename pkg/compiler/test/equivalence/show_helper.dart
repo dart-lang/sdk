@@ -5,12 +5,14 @@
 /// Helper program that shows the equivalence-based data on a dart program.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:args/args.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
+
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
@@ -55,20 +57,18 @@ show<T>(
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  Dart2jsCompiledData<T>? data =
-      await computeData<T>(
-            file,
-            entryPoint,
-            const {},
-            dataComputer,
-            options: options,
-            testFrontend: dataComputer.testFrontend,
-            forUserLibrariesOnly: false,
-            skipUnprocessedMembers: true,
-            skipFailedCompilations: true,
-            verbose: verbose,
-          )
-          as Dart2jsCompiledData<T>?;
+  Dart2jsCompiledData<T>? data = await computeData<T>(
+    file,
+    entryPoint,
+    const {},
+    dataComputer,
+    options: options,
+    testFrontend: dataComputer.testFrontend,
+    forUserLibrariesOnly: false,
+    skipUnprocessedMembers: true,
+    skipFailedCompilations: true,
+    verbose: verbose,
+  ) as Dart2jsCompiledData<T>?;
   if (data == null) {
     print('Compilation failed.');
   } else {
