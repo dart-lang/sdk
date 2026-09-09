@@ -73,6 +73,12 @@
   more efficient to convert between possibly-synchronous values at the Dart/JS
   boundary.
 
+#### `dart:mirrors`
+
+- The `dart:mirrors` library is now marked `@deprecated`, and will be removed
+  in a future release. For details, see issue [#44489].
+
+[#44489]: https://github.com/dart-lang/sdk/issues/44489
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
