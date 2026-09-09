@@ -2108,7 +2108,7 @@ typedef void A(int a);
     var hover = await prepareHover('A');
     _assertHover(
       hover,
-      elementDescription: 'typedef A = void Function(int)',
+      elementDescription: 'typedef A = void Function(int a)',
       elementKind: 'type alias',
     );
   }

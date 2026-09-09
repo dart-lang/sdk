@@ -2281,10 +2281,15 @@ abstract class ElementImpl implements Element {
 
   @override
   @trackedIndirectly
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();
@@ -9389,7 +9394,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var elementsStr = conflictingElements
         .map((e) {
           return e.displayString();

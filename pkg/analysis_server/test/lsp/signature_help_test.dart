@@ -630,6 +630,108 @@ void f() {
     );
   }
 
+  Future<void> test_functionType_assignedToVariable() async {
+    var content = '''
+void f(int p1, int p2) {
+  var x = f;
+  x(^);
+}
+''';
+    var expectedLabel = 'x(int p1, int p2)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [
+        ParameterInformation(label: 'int p1'),
+        ParameterInformation(label: 'int p2'),
+      ],
+    );
+  }
+
+  Future<void> test_functionType_constructorTearOff() async {
+    var content = '''
+class C {
+  C(int p1, int p2) {}
+}
+void f() {
+  var x = C.new;
+  x(^);
+}
+''';
+    var expectedLabel = 'x(int p1, int p2)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [
+        ParameterInformation(label: 'int p1'),
+        ParameterInformation(label: 'int p2'),
+      ],
+    );
+  }
+
+  Future<void> test_functionType_methodTearOff() async {
+    var content = '''
+class C {
+  f(int p1, int p2) {}
+}
+void f(C c) {
+  var x = c.f;
+  x(^);
+}
+''';
+    var expectedLabel = 'x(int p1, int p2)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [
+        ParameterInformation(label: 'int p1'),
+        ParameterInformation(label: 'int p2'),
+      ],
+    );
+  }
+
+  Future<void> test_functionType_parameter() async {
+    var content = '''
+void f(String Function(int p1, int p2) x) {
+  x(^);
+}
+''';
+    var expectedLabel = 'x(int p1, int p2)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [
+        ParameterInformation(label: 'int p1'),
+        ParameterInformation(label: 'int p2'),
+      ],
+    );
+  }
+
+  Future<void> test_functionType_typedef() async {
+    var content = '''
+typedef Foo = String Function(int p1, int p2);
+
+void f() {
+  Foo x;
+  x(^);
+}
+''';
+    var expectedLabel = 'x(int p1, int p2)';
+
+    await _expectSignature(
+      content,
+      expectedLabel,
+      expectedParams: [
+        ParameterInformation(label: 'int p1'),
+        ParameterInformation(label: 'int p2'),
+      ],
+    );
+  }
+
   Future<void> test_manualTrigger_invalidLocation() async {
     // If the user invokes signature help, we should show it even if it's a
     // location where we wouldn't automatically trigger (for example in a string).
