@@ -219,13 +219,24 @@ final class Arm64Constraints extends Constraints {
   }
 
   @override
-  InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) =>
-      InstructionConstraints(
+  InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) {
+    if (instr.checkNotInitialized) {
+      final inputs = allocatableRegisters.take(instr.inputCount).toList();
+      return InstructionConstraints(
         null,
-        const [anyCpuRegister, anyCpuRegister],
-        const [anyCpuRegister, anyCpuRegister],
-        Safepoint(), // For write barrier slow path.
+        inputs,
+        // TODO: save registers on slow path
+        allRegistersExcept(null, inputs),
+        Safepoint(),
       );
+    }
+    return InstructionConstraints(
+      null,
+      const [anyCpuRegister, anyCpuRegister],
+      const [anyCpuRegister, anyCpuRegister],
+      Safepoint(), // For write barrier slow path.
+    );
+  }
 
   @override
   InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>
@@ -243,12 +254,23 @@ final class Arm64Constraints extends Constraints {
         ]);
 
   @override
-  InstructionConstraints? visitStoreStaticField(StoreStaticField instr) =>
-      const InstructionConstraints(
+  InstructionConstraints? visitStoreStaticField(StoreStaticField instr) {
+    if (instr.checkNotInitialized) {
+      final inputs = allocatableRegisters.take(instr.inputCount).toList();
+      return InstructionConstraints(
         null,
-        [anyCpuRegister],
-        [anyCpuRegister, anyCpuRegister],
+        inputs,
+        // TODO: save registers on slow path
+        allRegistersExcept(null, inputs),
+        Safepoint(),
       );
+    }
+    return const InstructionConstraints(
+      null,
+      [anyCpuRegister],
+      [anyCpuRegister, anyCpuRegister],
+    );
+  }
 
   @override
   InstructionConstraints? visitLoadExternalField(LoadExternalField instr) =>

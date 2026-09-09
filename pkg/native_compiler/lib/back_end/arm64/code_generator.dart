@@ -1009,30 +1009,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final valueReg = inputReg(instr, 1);
     final scratch1Reg = temporaryReg(instr, 0);
     final scratch2Reg = temporaryReg(instr, 1);
+    final field = instr.field;
+    final memoryOrder = objectLayout.getFieldMemoryOrder(field);
+    final fieldOffset = objectLayout.getFieldOffset(field);
+
     if (instr.checkNotInitialized) {
-      // TODO: not-initialized check for late final fields.
-      _asm.unimplemented(
-        'Unimplemented: code generation for StoreInstanceField.checkNotInitialized',
-      );
-      return;
+      assert(memoryOrder == .relaxed);
+      assert(field.isLate && field.isFinal);
+
+      _asm.ldr(scratch1Reg, _asm.fieldAddress(objectReg, fieldOffset));
+      _asm.loadFromPool(tempReg, SentinelConstant());
+      _asm.cmp(scratch1Reg, tempReg);
+
+      Label slowPath = addSlowPath(() {
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.loadFromPool(tempReg, field.astField);
+        _asm.stp(
+          tempReg,
+          nullReg, // Space for result.
+          RegOffsetAddress(stackPointerReg, 0),
+        );
+        _callRuntime(RuntimeEntry.LateFieldAlreadyInitializedError, 1);
+        _asm.breakpoint();
+      });
+
+      _asm.b(slowPath, .notEqual);
     }
-    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+
     switch (memoryOrder) {
       case .relaxed:
         // TODO: compressed pointers, unboxed fields
-        _asm.str(
-          valueReg,
-          _asm.fieldAddress(
-            objectReg,
-            objectLayout.getFieldOffset(instr.field),
-          ),
-        );
+        _asm.str(valueReg, _asm.fieldAddress(objectReg, fieldOffset));
       case .acquireRelease:
-        _asm.addImmediate(
-          tempReg,
-          objectReg,
-          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
-        );
+        _asm.addImmediate(tempReg, objectReg, fieldOffset - heapObjectTag);
         _asm.stlr(valueReg, tempReg);
     }
     if (!_canSkipWriteBarrier(instr.object, instr.value)) {
@@ -1170,16 +1179,19 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.loadFromPool(tempReg, SentinelConstant());
       _asm.cmp(scratch2Reg, tempReg);
 
-      final done = Label();
       Label slowPath = addSlowPath(() {
-        _asm.unimplemented(
-          'Unimplemented: already initialized late final field in StoreStaticField',
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.loadFromPool(tempReg, field.astField);
+        _asm.stp(
+          tempReg,
+          nullReg, // Space for result.
+          RegOffsetAddress(stackPointerReg, 0),
         );
-        _asm.b(done);
+        _callRuntime(RuntimeEntry.LateFieldAlreadyInitializedError, 1);
+        _asm.breakpoint();
       });
 
       _asm.b(slowPath, .notEqual);
-      _asm.bind(done);
     }
 
     if (isShared) {
