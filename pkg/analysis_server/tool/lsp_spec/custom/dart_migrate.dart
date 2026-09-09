@@ -7,7 +7,7 @@ import '../utils.dart';
 
 /// Classes that support `dart/workspace/migrate`.
 final dartMigrateClasses = <LspEntity>[
-  interface('DartMigrateParams', [
+  interface('DartMigrateParams', baseType: 'WorkDoneProgressParams', [
     field(
       'uris',
       type: 'DocumentUri',

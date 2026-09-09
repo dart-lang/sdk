@@ -621,7 +621,6 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       executable = await getExecutableForCommand(
         mainCommand,
         allowSnapshot: !(useResidentCompiler || hasExperiments),
-        nativeAssets: nativeAssets,
       );
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
@@ -685,6 +684,22 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         } else {
           executable = compiledKernelFile;
         }
+      }
+    } else if (nativeAssets != null) {
+      final executableFile = File(executable.executable);
+      if (await isFileKernelFile(executableFile)) {
+        final concatenated = await concatenateNativeAssetsKernel(
+          kernelFilePath: executable.executable,
+          nativeAssetsYamlUri: Uri.file(nativeAssets),
+          tempDirUri: builder!.tempDirUri!,
+        );
+        if (concatenated == null) {
+          return errorExitCode;
+        }
+        executable = DartExecutableWithPackageConfig(
+          executable: concatenated,
+          packageConfig: executable.packageConfig,
+        );
       }
     }
 

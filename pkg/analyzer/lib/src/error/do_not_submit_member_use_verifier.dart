@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/element_usage_detector.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -19,7 +19,7 @@ class DoNotSubmitElementUsageReporter implements ElementUsageReporter<()> {
 
   @override
   void report(
-    SyntacticEntity errorEntity,
+    SourceRange usageRange,
     String displayName,
     () tagInfo, {
     required bool isInSamePackage,
@@ -28,7 +28,7 @@ class DoNotSubmitElementUsageReporter implements ElementUsageReporter<()> {
     _diagnosticReporter.report(
       diag.invalidUseOfDoNotSubmitMember
           .withArguments(name: displayName)
-          .at(errorEntity),
+          .atSourceRange(usageRange),
     );
   }
 }

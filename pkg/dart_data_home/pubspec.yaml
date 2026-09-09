@@ -1,5 +1,5 @@
 name: dart_data_home
-version: 0.1.0
+version: 0.1.1
 description: >-
   A package providing a standardized way to access a user-specific data
   directory for Dart and Flutter tooling, defaulting to OS-conventions and
@@ -13,7 +13,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  cli_util: ^0.6.0
+  cli_util: '>=0.5.0 <0.7.0'
   path: ^1.9.0
 
 # We use 'any' version constraints here as we get our package versions from

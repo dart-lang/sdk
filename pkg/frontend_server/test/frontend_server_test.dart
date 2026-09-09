@@ -2699,6 +2699,16 @@ e() {
                   compiledResult.status,
                 );
                 expect(result.errorsCount, equals(recompileRestart ? 0 : 1));
+                if (!recompileRestart) {
+                  expect(
+                    compiledResult.output.join('\n'),
+                    allOf(
+                      contains('Const class cannot become non-const'),
+                      contains('IncrementalJavaScriptBundler.invalidate'),
+                      contains('FrontendCompiler.writeJavaScriptBundle'),
+                    ),
+                  );
+                }
 
                 frontendServer.accept();
                 frontendServer.quit();
@@ -3915,6 +3925,7 @@ class OutputParser {
   final StreamController<Result> _receivedResults;
 
   List<String>? _receivedSources;
+  List<String> _receivedOutput = <String>[];
   String? _boundaryKey;
 
   bool _readingSources = false;
@@ -3928,6 +3939,7 @@ class OutputParser {
       }
       _readingSources = false;
       _receivedSources?.clear();
+      _receivedOutput = <String>[];
       return;
     }
 
@@ -3946,6 +3958,7 @@ class OutputParser {
         new Result(
           s.length > bKey.length ? s.substring(bKey.length + 1) : null,
           _receivedSources!,
+          _receivedOutput,
         ),
       );
       _boundaryKey = null;
@@ -3954,6 +3967,7 @@ class OutputParser {
         _receivedSources ??= <String>[];
         _receivedSources!.add(s);
       } else {
+        _receivedOutput.add(s);
         print("> $s");
       }
     }
@@ -3963,8 +3977,9 @@ class OutputParser {
 class Result {
   String? status;
   List<String> sources;
+  List<String> output;
 
-  new(this.status, this.sources);
+  new(this.status, this.sources, [this.output = const <String>[]]);
 
   void expectNoErrors({String? filename}) {
     CompilationResult result = new CompilationResult.parse(status);

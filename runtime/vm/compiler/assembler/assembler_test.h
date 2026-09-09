@@ -25,6 +25,9 @@ void LeaveTestFrame(Assembler* assembler);
 struct RegRegImmTests : AllStatic {
   static const Register kInputReg;
   static const Register kReturnReg;
+  // Staging register for indirect tests to avoid dst/src aliasing bugs.
+  // Must differ from kReturnReg, TMP, and TMP2.
+  static const Register kDistinctReg;
 
   static intptr_t And(intptr_t lhs, intptr_t rhs, OperandSize sz);
   static intptr_t Lsl(intptr_t value, intptr_t shift, OperandSize sz);

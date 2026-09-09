@@ -1874,7 +1874,7 @@ class DartGetWorkspaceFixesResult implements ToJsonable {
   }
 }
 
-class DartMigrateParams implements ToJsonable {
+class DartMigrateParams implements WorkDoneProgressParams, ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DartMigrateParams.canParse,
     DartMigrateParams.fromJson,
@@ -1892,11 +1892,16 @@ class DartMigrateParams implements ToJsonable {
   /// The URIs of the directories (packages or workspaces) to migrate.
   /// Individual file URIs are not supported.
   final List<DocumentUri> uris;
+
+  /// An optional token that a server can use to report work done progress.
+  @override
+  final ProgressToken? workDoneToken;
   DartMigrateParams({
     this.apply,
     this.steps,
     this.targetSdk,
     required this.uris,
+    this.workDoneToken,
   });
   @override
   int get hashCode => Object.hash(
@@ -1904,6 +1909,7 @@ class DartMigrateParams implements ToJsonable {
         lspHashCode(steps),
         targetSdk,
         lspHashCode(uris),
+        workDoneToken,
       );
 
   @override
@@ -1913,7 +1919,8 @@ class DartMigrateParams implements ToJsonable {
         apply == other.apply &&
         const DeepCollectionEquality().equals(steps, other.steps) &&
         targetSdk == other.targetSdk &&
-        const DeepCollectionEquality().equals(uris, other.uris);
+        const DeepCollectionEquality().equals(uris, other.uris) &&
+        workDoneToken == other.workDoneToken;
   }
 
   @override
@@ -1929,6 +1936,9 @@ class DartMigrateParams implements ToJsonable {
       result['targetSdk'] = targetSdk;
     }
     result['uris'] = uris.map((uri) => uri.toString()).toList();
+    if (workDoneToken != null) {
+      result['workDoneToken'] = workDoneToken?.toJson();
+    }
     return result;
   }
 
@@ -1949,8 +1959,12 @@ class DartMigrateParams implements ToJsonable {
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
-      return _canParseListUri(obj, reporter, 'uris',
-          allowsUndefined: false, allowsNull: false);
+      if (!_canParseListUri(obj, reporter, 'uris',
+          allowsUndefined: false, allowsNull: false)) {
+        return false;
+      }
+      return _canParseIntString(obj, reporter, 'workDoneToken',
+          allowsUndefined: true, allowsNull: false);
     } else {
       reporter.reportError('must be of type DartMigrateParams');
       return false;
@@ -1970,11 +1984,15 @@ class DartMigrateParams implements ToJsonable {
     final uris = (urisJson as List<Object?>)
         .map((item) => Uri.parse(item as String))
         .toList();
+    final workDoneTokenJson = json['workDoneToken'];
+    final workDoneToken =
+        workDoneTokenJson == null ? null : _eitherIntString(workDoneTokenJson);
     return DartMigrateParams(
       apply: apply,
       steps: steps,
       targetSdk: targetSdk,
       uris: uris,
+      workDoneToken: workDoneToken,
     );
   }
 }
