@@ -144,8 +144,8 @@ class IncrementalJavaScriptBundler {
       });
       invalidatedLibraryUris = <Uri>{
         for (Library library in partialComponent.libraries)
-          _strongComponents.libraryImportToLibraryBundleImport[library
-              .importUri]!,
+          ?_strongComponents.libraryImportToLibraryBundleImport[library
+              .importUri],
       };
     } else {
       invalidatedLibraryUris = partialComponent.libraries.map(
@@ -266,10 +266,14 @@ class IncrementalJavaScriptBundler {
         continue;
       }
 
-      final Uri libraryOrLibraryBundleImportUri = useStronglyConnectedComponents
+      final Uri? libraryOrLibraryBundleImportUri =
+          useStronglyConnectedComponents
           ? _strongComponents.libraryImportToLibraryBundleImport[library
-                .importUri]!
+                .importUri]
           : library.importUri;
+      if (libraryOrLibraryBundleImportUri == null) {
+        continue;
+      }
       if (visited.containsKey(libraryOrLibraryBundleImportUri)) {
         kernel2JsCompilers[library.importUri.toString()] =
             visited[libraryOrLibraryBundleImportUri]!;
