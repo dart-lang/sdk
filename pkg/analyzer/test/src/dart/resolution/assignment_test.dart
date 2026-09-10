@@ -1926,6 +1926,8 @@ DirectAssignment
     expression: SuperExpression
       superKeyword: super
       staticType: A
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -2043,6 +2045,8 @@ DirectAssignment
       binaryOperator: add
       element: dart:core::@class::num::@method::+
       staticType: int
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: =
   value: IntegerLiteral
     literal: 3
@@ -2219,6 +2223,8 @@ DirectAssignment
         staticType: int
       rightParenthesis: )
       staticType: int
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: b
@@ -2352,6 +2358,10 @@ IfNullAssignment
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: ??=
   value: UnqualifiedNameExpression
     name: y
@@ -2418,6 +2428,8 @@ DirectAssignment
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: y
@@ -2546,6 +2558,10 @@ IfNullAssignment
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: ??=
   value: UnqualifiedNameExpression
     name: y
@@ -2612,6 +2628,8 @@ DirectAssignment
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: y

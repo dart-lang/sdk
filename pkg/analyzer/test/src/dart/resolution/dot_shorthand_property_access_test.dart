@@ -1585,6 +1585,10 @@ IncrementOrDecrementExpression
         type: InvalidType
         recovery: <null>
       staticType: InvalidType
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operator: --
   operation: decrement
   position: postfix
@@ -1705,6 +1709,10 @@ IncrementOrDecrementExpression
         type: InvalidType
         recovery: <null>
       staticType: InvalidType
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operation: decrement
   position: prefix
   correspondingParameter: <null>

@@ -5665,14 +5665,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (parent.writeType == null) return;
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
-      var target = parent.target;
-      var writeType = switch (target) {
-        PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
-        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
-        UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
-        ImportPrefixedAssignmentTargetImpl(:var write) => write?.acceptedType,
-        InvalidExpressionAssignmentTargetImpl() => null,
-      };
+      var writeType = parent.target.write?.acceptedType;
       if (writeType == null) {
         return;
       }

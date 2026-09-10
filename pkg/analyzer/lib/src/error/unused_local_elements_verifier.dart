@@ -181,19 +181,12 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
+    var write = target.write;
+    if (write case MethodIndexWriteResolution(:var element)) {
       _useAssignmentTargetElement(element);
       super.visitDirectAssignment(node);
       return;
     }
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
     if (write case InvalidNamedWriteResolution(:var candidates)) {
       for (var candidate in candidates) {
         candidate = candidate.baseElement;
@@ -687,34 +680,17 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     AssignmentTarget target, {
     required bool readCountsAsUse,
   }) {
-    var indexResolutions = switch (target) {
-      IndexAssignmentTarget(:var read, :var write) => (read, write),
-      _ => null,
-    };
-    if (indexResolutions case (var read, var write)) {
-      if (read case MethodIndexReadResolution(:var element)) {
+    switch (target.read) {
+      case MethodIndexReadResolution(:var element):
         _useAssignmentTargetElement(element);
-      }
-      if (write case MethodIndexWriteResolution(:var element)) {
-        _useAssignmentTargetElement(element);
-      }
-      return;
+      case NamedReadResolution read:
+        _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
+      default:
     }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      ImportPrefixedAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-
-    _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
-
+    var write = target.write;
+    if (write case MethodIndexWriteResolution(:var element)) {
+      _useAssignmentTargetElement(element);
+    }
     if (write case NamedWriteResolutionWithElement(:var element)) {
       element = element.baseElement;
       if (element is! LocalVariableElement) {

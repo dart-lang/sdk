@@ -700,6 +700,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     InvalidExpressionAssignmentTarget node,
   ) {
     _sink.writeEnum(AstNodeTag.InvalidExpressionAssignmentTarget);
+    _sink.writeOptionalObject(node.read, (_) {});
+    _sink.writeOptionalObject(node.write, (_) {});
     _writeNode(node.expression);
   }
 

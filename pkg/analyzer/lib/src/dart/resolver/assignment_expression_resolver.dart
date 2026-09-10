@@ -1026,6 +1026,8 @@ class AssignmentExpressionResolver {
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
     target.expression = _resolver.popRewrite()!;
+    target.read = const InvalidReadResolutionImpl();
+    target.write = const InvalidWriteResolutionImpl();
 
     var readType = target.expression.typeOrThrow;
     _resolveCompoundOperator(
@@ -1068,6 +1070,7 @@ class AssignmentExpressionResolver {
       );
       target.expression = _resolver.popRewrite()!;
     }
+    target.write = const InvalidWriteResolutionImpl();
 
     _resolver.analyzeExpression(
       node.value,
@@ -1090,6 +1093,8 @@ class AssignmentExpressionResolver {
       );
       target.expression = _resolver.popRewrite()!;
     }
+    target.read = const InvalidReadResolutionImpl();
+    target.write = const InvalidWriteResolutionImpl();
 
     var readType = target.expression.typeOrThrow;
     _resolver.analyzeExpression(

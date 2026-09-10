@@ -270,6 +270,58 @@ void f() {
 ''');
   }
 
+  test_assignmentExpression_ifNull_deprecatedGetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+class A {
+  @deprecated
+  int? get x => null;
+  set x(int? value) {}
+}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.x ??= 0;
+//  ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+  (a).x ??= 0;
+//    ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+  a..x ??= 0;
+//   ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_assignmentExpression_ifNull_deprecatedSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+class A {
+  int? get x => null;
+  @deprecated
+  set x(int? value) {}
+}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.x ??= 0;
+//  ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+  (a).x ??= 0;
+//    ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+  a..x ??= 0;
+//   ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_assignmentExpression_simple_deprecatedGetter() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated

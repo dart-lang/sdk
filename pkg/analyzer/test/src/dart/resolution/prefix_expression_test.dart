@@ -222,6 +222,10 @@ IncrementOrDecrementExpression
       element: dart:core::@class::num::@method::+
       operatorResultType: int
       staticType: int
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -790,6 +794,10 @@ IncrementOrDecrementExpression
       element: <testLibrary>::@extension::Ext
       extendedType: C
       staticType: null
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -1640,6 +1648,10 @@ IncrementOrDecrementExpression
     expression: SuperExpression
       superKeyword: super
       staticType: A
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -1698,6 +1710,10 @@ IncrementOrDecrementExpression
             staticType: int
       rightBracket: }
       staticType: int
+    read: InvalidReadResolution
+      type: InvalidType
+    write: InvalidWriteResolution
+      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>

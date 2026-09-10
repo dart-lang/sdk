@@ -47,6 +47,8 @@ class IncrementOrDecrementResolver {
         SharedTypeSchemaView(UnknownInferredType.instance),
       );
       target.expression = _resolver.popRewrite()!;
+      target.read = const InvalidReadResolutionImpl();
+      target.write = const InvalidWriteResolutionImpl();
       // Keep the child's resolution, but don't expose a partially resolved
       // read-modify-write operation for a target that cannot be written.
       node.operatorResultType = InvalidTypeImpl.instance;

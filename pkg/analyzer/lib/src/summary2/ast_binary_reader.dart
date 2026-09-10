@@ -1074,9 +1074,17 @@ class AstBinaryReader {
   }
 
   InvalidExpressionAssignmentTarget _readInvalidExpressionAssignmentTarget() {
-    return InvalidExpressionAssignmentTargetImpl(
-      expression: _readNode() as ExpressionImpl,
+    var read = _reader.readOptionalObject(
+      () => const InvalidReadResolutionImpl(),
     );
+    var write = _reader.readOptionalObject(
+      () => const InvalidWriteResolutionImpl(),
+    );
+    return InvalidExpressionAssignmentTargetImpl(
+        expression: _readNode() as ExpressionImpl,
+      )
+      ..read = read
+      ..write = write;
   }
 
   void _readInvocationExpression(InvocationExpressionImpl node) {

@@ -882,6 +882,8 @@ package:analyzer/dart/ast/ast.dart:
     value (getter: Expression)
   AssignmentTarget (class extends Object implements AstNode, abstract, final, experimental):
     hasRead (getter: bool)
+    read (getter: ReadResolution?)
+    write (getter: WriteResolution?)
   AstNode (class extends Object implements SyntacticEntity, abstract, final):
     LEXICAL_ORDER (static getter: int Function(AstNode, AstNode))
     LEXICAL_ORDER= (static setter: int Function(AstNode, AstNode))
@@ -2034,9 +2036,9 @@ package:analyzer/dart/ast/ast.dart:
     leftBracket (getter: Token)
     resolution (getter: IndexReadResolution?)
     rightBracket (getter: Token)
-  IndexReadResolution (class extends Object, abstract, final, experimental):
+  IndexReadResolution (class extends Object implements ReadResolution, abstract, final, experimental):
     type (getter: DartType)
-  IndexWriteResolution (class extends Object, abstract, final, experimental):
+  IndexWriteResolution (class extends Object implements WriteResolution, abstract, final, experimental):
     acceptedType (getter: DartType)
   InstanceCreationExpression (class extends Object implements Expression, abstract, final):
     argumentList (getter: ArgumentList)
@@ -2066,26 +2068,30 @@ package:analyzer/dart/ast/ast.dart:
     contentsEnd (getter: int)
     contentsOffset (getter: int)
     value (getter: String)
-  InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental)
+  InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental):
+    read (getter: InvalidReadResolution?)
+    write (getter: InvalidWriteResolution?)
   InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
     contextType (getter: DartType?)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
-  InvalidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental):
+  InvalidIndexReadResolution (class extends Object implements IndexReadResolution, InvalidReadResolution, abstract, final, experimental):
     recovery (getter: ValidIndexReadResolution?)
-  InvalidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental):
+  InvalidIndexWriteResolution (class extends Object implements IndexWriteResolution, InvalidWriteResolution, abstract, final, experimental):
     recovery (getter: ValidIndexWriteResolution?)
   InvalidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental):
     candidates (getter: List<Element>)
     recovery (getter: ValidInvocationResolution?)
     type (getter: DartType)
-  InvalidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
+  InvalidNamedReadResolution (class extends Object implements NamedReadResolution, InvalidReadResolution, abstract, final, experimental):
     candidates (getter: List<Element>)
     recovery (getter: NamedReadResolutionWithElement?)
-  InvalidNamedWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental):
+  InvalidNamedWriteResolution (class extends Object implements NamedWriteResolution, InvalidWriteResolution, abstract, final, experimental):
     acceptedType (getter: DartType)
     candidates (getter: List<Element>)
     recovery (getter: NamedWriteResolutionWithElement?)
+  InvalidReadResolution (class extends Object implements ReadResolution, abstract, final, experimental)
+  InvalidWriteResolution (class extends Object implements WriteResolution, abstract, final, experimental)
   InvocationExpression (class extends Object implements Expression, abstract, final):
     argumentList (getter: ArgumentList)
     function (getter: Expression)
@@ -2238,8 +2244,7 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
   NamedFunctionInvocation (class extends Object implements FunctionInvocation, abstract, final, experimental):
     name (getter: Token)
-  NamedReadResolution (class extends Object, abstract, final, experimental):
-    type (getter: DartType)
+  NamedReadResolution (class extends Object implements ReadResolution, abstract, final, experimental)
   NamedReadResolutionWithElement (class extends Object implements NamedReadResolution, abstract, final, experimental):
     element (getter: Element)
   NamedType (class extends Object implements TypeAnnotation, abstract, final):
@@ -2249,8 +2254,7 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
     type (getter: DartType?)
     typeArguments (getter: TypeArgumentList?)
-  NamedWriteResolution (class extends Object, abstract, final, experimental):
-    acceptedType (getter: DartType)
+  NamedWriteResolution (class extends Object implements WriteResolution, abstract, final, experimental)
   NamedWriteResolutionWithElement (class extends Object implements NamedWriteResolution, abstract, final, experimental):
     element (getter: Element)
   NamespaceDirective (class extends Object implements UriBasedDirective, sealed (immediate subtypes: ExportDirective, ImportDirective, NamespaceDirectiveImpl)):
@@ -2393,6 +2397,8 @@ package:analyzer/dart/ast/ast.dart:
     read (getter: NamedReadResolution?)
     write (getter: NamedWriteResolution?)
   PropertyExtraction (class extends Object implements NameExpression, abstract, final, experimental)
+  ReadResolution (class extends Object, abstract, final, experimental):
+    type (getter: DartType)
   ReceiverIndexAssignmentTarget (class extends Object implements IndexAssignmentTarget, abstract, final, experimental):
     question (getter: Token?)
     receiver (getter: Expression)
@@ -2693,6 +2699,8 @@ package:analyzer/dart/ast/ast.dart:
   WithClause (class extends Object implements AstNode, abstract, final):
     mixinTypes (getter: NodeList<NamedType>)
     withKeyword (getter: Token)
+  WriteResolution (class extends Object, abstract, final, experimental):
+    acceptedType (getter: DartType)
   YieldStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression)
     expression2 (getter: Expression, experimental)

@@ -1591,52 +1591,40 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       super.visitIfNullAssignment(node);
       return;
     }
-    switch (target) {
-      case ImportPrefixedAssignmentTargetImpl(:var read):
-      case PropertyAssignmentTargetImpl(:var read):
-        if (read case NamedReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
-      case IndexAssignmentTargetImpl(:var read):
-        if (read case IndexReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
-      case UnqualifiedNameAssignmentTargetImpl():
-        var readElement = switch (target.read) {
-          NamedReadResolutionWithElementImpl(:var element) => element,
-          _ => null,
-        };
-        var writeElement = switch (target.write) {
-          NamedWriteResolutionWithElementImpl(:var element) => element,
-          _ => null,
-        };
-        if (target.read case NamedReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
-        for (var element in {readElement, writeElement}) {
-          if (element == null) continue;
-          _checkForReferenceBeforeDeclaration(
-            nameToken: target.name,
-            element: element,
-          );
-          _checkForInvalidInstanceMemberAccess2(
-            entity: target,
-            name: target.name.lexeme,
-            element: element,
-          );
-          _checkForUnqualifiedReferenceToNonLocalStaticMember2(
-            entity: target,
-            element: element,
-          );
-        }
-        if (writeElement != null) {
-          _checkForAssignmentToPrimaryConstructorParameter(
-            target,
-            element: writeElement,
-          );
-        }
-      case InvalidExpressionAssignmentTargetImpl():
-        throw StateError('Handled above');
+    if (target.read case ReadResolutionImpl(:var type)) {
+      _checkForDeadNullCoalesce(type, node.value);
+    }
+    if (target is UnqualifiedNameAssignmentTargetImpl) {
+      var readElement = switch (target.read) {
+        NamedReadResolutionWithElementImpl(:var element) => element,
+        _ => null,
+      };
+      var writeElement = switch (target.write) {
+        NamedWriteResolutionWithElementImpl(:var element) => element,
+        _ => null,
+      };
+      for (var element in {readElement, writeElement}) {
+        if (element == null) continue;
+        _checkForReferenceBeforeDeclaration(
+          nameToken: target.name,
+          element: element,
+        );
+        _checkForInvalidInstanceMemberAccess2(
+          entity: target,
+          name: target.name.lexeme,
+          element: element,
+        );
+        _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+          entity: target,
+          element: element,
+        );
+      }
+      if (writeElement != null) {
+        _checkForAssignmentToPrimaryConstructorParameter(
+          target,
+          element: writeElement,
+        );
+      }
     }
     _constArgumentsVerifier.visitIfNullAssignment(node);
     super.visitIfNullAssignment(node);
@@ -1755,13 +1743,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       node.target,
       element: writeElement,
     );
-    var readType = switch (node.target) {
-      IndexAssignmentTarget(:var read) => read?.type,
-      PropertyAssignmentTarget(:var read) => read?.type,
-      UnqualifiedNameAssignmentTarget(:var read) => read?.type,
-      ImportPrefixedAssignmentTarget(:var read) => read?.type,
-      _ => null,
-    };
+    var readType = node.target.read?.type;
     if (node.position == IncrementOrDecrementPosition.prefix &&
         readType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(node.target));
