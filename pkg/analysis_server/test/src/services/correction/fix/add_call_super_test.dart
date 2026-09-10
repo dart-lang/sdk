@@ -48,7 +48,7 @@ class B extends A {
     super.a();
   }
 }
-''', matchFixMessage: "Add 'super.a()'");
+''', fixMessageContains: "Add 'super.a()'");
   }
 
   Future<void> test_body_added_parameters() async {
@@ -77,7 +77,7 @@ class B extends A {
     super.m(x);
   }
 }
-''', matchFixMessage: "Add 'super.m(x)'");
+''', fixMessageContains: "Add 'super.m(x)'");
   }
 
   Future<void> test_body_multiple_parameters() async {
@@ -106,7 +106,7 @@ class B extends A {
     super.m(x, y);
   }
 }
-''', matchFixMessage: "Add 'super.m(x, y)'");
+''', fixMessageContains: "Add 'super.m(x, y)'");
   }
 
   Future<void> test_body_optional() async {
@@ -142,7 +142,7 @@ class B extends A {
     return x = y;
   }
 }
-''', matchFixMessage: "Add 'super.a(x, y: y)'");
+''', fixMessageContains: "Add 'super.a(x, y: y)'");
   }
 
   Future<void> test_body_parameters() async {
@@ -171,7 +171,7 @@ class B extends A {
     super.a(i);
   }
 }
-''', matchFixMessage: "Add 'super.a(i)'");
+''', fixMessageContains: "Add 'super.a(i)'");
   }
 
   Future<void> test_body_renamed_parameters() async {
@@ -200,7 +200,7 @@ class B extends A {
     super.m(x, z);
   }
 }
-''', matchFixMessage: "Add 'super.m(x, z)'");
+''', fixMessageContains: "Add 'super.m(x, z)'");
   }
 
   Future<void> test_body_required() async {
@@ -236,7 +236,7 @@ class B extends A {
     return x = y;
   }
 }
-''', matchFixMessage: "Add 'super.a(x, y: y)'");
+''', fixMessageContains: "Add 'super.a(x, y: y)'");
   }
 
   Future<void> test_expression_async() async {
@@ -266,7 +266,7 @@ class B extends A {
     return 3;
   }
 }
-''', matchFixMessage: "Add 'super.m()'");
+''', fixMessageContains: "Add 'super.m()'");
   }
 
   Future<void> test_expression_parameters() async {
@@ -296,7 +296,7 @@ class B extends A {
     return x + y;
   }
 }
-''', matchFixMessage: "Add 'super.a(x, y)'");
+''', fixMessageContains: "Add 'super.a(x, y)'");
   }
 
   Future<void> test_expression_positional() async {
@@ -326,6 +326,6 @@ class B extends A {
     return x + y;
   }
 }
-''', matchFixMessage: "Add 'super.a(x, y)'");
+''', fixMessageContains: "Add 'super.a(x, y)'");
   }
 }

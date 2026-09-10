@@ -90,8 +90,8 @@ void f() {
     expect(errors, hasLength(1));
     var fixes = errors.first.fixes;
     expect(fixes, hasLength(4));
-    expect(fixes[0].message, matches('Import library'));
-    expect(fixes[1].message, matches("Import library .+ with 'show'"));
+    expect(fixes[0].message, matches("Add 'import' of "));
+    expect(fixes[1].message, matches("Add 'import' of .+ with 'show'"));
     expect(fixes[2].message, matches('Create class'));
     expect(fixes[3].message, matches('Create mixin'));
   }
@@ -244,15 +244,15 @@ dependencies:
       file,
       'Foo()',
     )).single.fixes.map((f) => f.message).toList();
-    expect(fixes, contains("Import library 'package:bbb/target.dart'"));
+    expect(fixes, contains("Add 'import' of 'package:bbb/target.dart'"));
     expect(
       fixes,
-      contains("Import library 'package:bbb/target.generated.dart'"),
+      contains("Add 'import' of 'package:bbb/target.generated.dart'"),
     );
 
     // Context: http://dartbug.com/39401
     expect(
-      fixes.contains("Import library 'package:bbb/target.template.dart'"),
+      fixes.contains("Add 'import' of 'package:bbb/target.template.dart'"),
       isFalse,
     );
   }

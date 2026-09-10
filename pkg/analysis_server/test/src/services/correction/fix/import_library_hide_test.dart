@@ -594,7 +594,7 @@ import 'lib.dart' as lib;
 void f(String s, lib.C c) {
   s.m();
 }
-''', matchFixMessage: "Import 'E' from lib.dart");
+''', fixMessageContains: "Import 'E' from lib.dart");
   }
 
   Future<void> test_static_samePackage() async {
