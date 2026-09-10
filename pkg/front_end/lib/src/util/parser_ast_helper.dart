@@ -579,12 +579,14 @@ abstract class AbstractParserAstListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     PrimaryConstructorBodyEnd data = new PrimaryConstructorBodyEnd(
       ParserAstType.END,
       beginToken: beginToken,
+      thisToken: thisToken,
       beginInitializers: beginInitializers,
       endToken: endToken,
     );
@@ -4945,6 +4947,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
   @override
   final Token beginToken;
+  final Token thisToken;
   final Token? beginInitializers;
   @override
   final Token endToken;
@@ -4952,6 +4955,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
   new(
     ParserAstType type, {
     required this.beginToken,
+    required this.thisToken,
     this.beginInitializers,
     required this.endToken,
   }) : super("PrimaryConstructorBody", type);
@@ -4959,6 +4963,7 @@ class PrimaryConstructorBodyEnd extends ParserAstNode
   @override
   Map<String, Object?> get deprecatedArguments => {
     "beginToken": beginToken,
+    "thisToken": thisToken,
     "beginInitializers": beginInitializers,
     "endToken": endToken,
   };

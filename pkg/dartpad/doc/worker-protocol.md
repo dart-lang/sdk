@@ -225,8 +225,8 @@ Parent directories will be automatically created.
 {
   "workspaceId": 42,
   "uri": "bin/hello.dart",
-  // Bytes that should be written to the file as base64
-  "base64": "<base64-encoded bytes>",
+  // Bytes that should be written to the file as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */,
 }
 ```
 
@@ -265,7 +265,7 @@ Parent directories will be automatically created.
 **Result:**
 ```js
 {
-  "base64": "<bytes from the file encoded as base64>"
+  "bytes": /* Uint8Array instance from the file */
 }
 ```
 
@@ -355,8 +355,8 @@ Import a tar archive (uncompressed) into the workspace.
   "workspaceId": 42,
   // Path where to extract the archive.
   "uri": ".",
-  // Base64 encoded tar archive.
-  "base64": "<base64-encoded-tar>"
+  // Tar archive as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */
 }
 ```
 
@@ -380,8 +380,8 @@ Export a directory as a tar archive (uncompressed).
 **Result:**
 ```js
 {
-  // Base64 encoded tar archive.
-  "base64": "<base64-encoded-tar>"
+  // Tar archive as a special `bytes` parameter.
+  "bytes": /* Uint8Array instance */
 }
 ```
 

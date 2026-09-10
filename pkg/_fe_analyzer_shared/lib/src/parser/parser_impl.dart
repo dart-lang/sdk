@@ -3899,7 +3899,8 @@ class Parser {
   }
 
   Token parsePrimaryConstructorBody(Token token, Token? augmentToken) {
-    Token beginToken = token;
+    Token beginToken = augmentToken ?? token;
+    Token thisToken = token;
     listener.beginPrimaryConstructorBody(token, augmentToken);
 
     Token? beforeInitializers = token;
@@ -3929,6 +3930,7 @@ class Parser {
 
     listener.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beforeInitializers?.next,
       token,
     );

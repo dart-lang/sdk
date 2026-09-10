@@ -1,0 +1,29 @@
+augment class Class1 {
+  augment factory fact() => Class1();
+  augment factory redirect() = Class1;
+  augment new() {}
+  augment new named() {}
+}
+
+augment class Class2 {
+  augment new() {}
+}
+
+augment class Class3() {
+  augment this;
+}
+
+augment class Class4();
+
+class Class1 {
+  factory fact();
+  factory redirect();
+  new();
+  new named();
+}
+
+class Class2();
+
+class Class3();
+
+class Class4();

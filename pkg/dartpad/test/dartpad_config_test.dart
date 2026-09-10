@@ -30,7 +30,7 @@ void main() {
         decoded.summaryModules,
       ).deepEquals({'/flutter.dill': 'flutter_web'});
       check(decoded.modes.length).equals(1);
-      check(decoded.modes.first.mode).equals('app');
+      check(decoded.modes.first.mode).equals('flutter');
       check(
         decoded.modes.first.entrypointWrapperTemplate,
       ).equals('void main() => {{entrypoint}}.main();');

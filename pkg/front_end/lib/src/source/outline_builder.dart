@@ -2020,6 +2020,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -4930,7 +4931,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();

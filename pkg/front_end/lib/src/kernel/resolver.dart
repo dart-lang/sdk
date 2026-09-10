@@ -733,7 +733,7 @@ class Resolver {
     required SourceConstructorBuilder constructorBuilder,
     required FunctionBodyBuildingContext functionBodyBuildingContext,
     required Uri fileUri,
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
     _benchmarker
@@ -777,7 +777,7 @@ class Resolver {
     try {
       BuildPrimaryConstructorBodyResult result = bodyBuilder
           .buildPrimaryConstructorBody(
-            startToken: startToken,
+            thisToken: thisToken,
             metadata: metadata,
           );
       _finishFunction(
@@ -802,7 +802,7 @@ class Resolver {
     on DebugAbort {
       rethrow;
     } catch (e, s) {
-      throw new Crash(fileUri, startToken.charOffset, e, s);
+      throw new Crash(fileUri, thisToken.charOffset, e, s);
     }
     _benchmarker
         // Coverage-ignore(suite): Not run.

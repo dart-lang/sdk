@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -23,7 +24,7 @@ import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
-import 'util/message_port.dart';
+import 'util/parameters_ext.dart';
 
 final class Worker {
   final ResourceProvider _rp;
@@ -263,7 +264,7 @@ class _Workspace {
 
   Object? _writeFileFromBytes(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
       file.parent.createRecursively();
@@ -292,7 +293,7 @@ class _Workspace {
   Object? _readFileAsBytes(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
     try {
-      return {'base64': base64.encode(_rp.getFile(path).readAsBytesSync())};
+      return {'bytes': _rp.getFile(path).readAsBytesSync()};
     } on FileSystemException catch (e) {
       throw FileNotFoundException(
         e.message,
@@ -386,7 +387,7 @@ class _Workspace {
 
   Object? _importTarArchive(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final bytes = params.bytesAsUint8List;
 
     await _rp.getFolder(path).extractTarStream(Stream.value(bytes));
 
@@ -404,7 +405,7 @@ class _Workspace {
     }
 
     return {
-      'base64': base64.encode(await collectBytes(folder.createTarStream())),
+      'bytes': Uint8List.fromList(await collectBytes(folder.createTarStream())),
     };
   }
 
@@ -567,10 +568,7 @@ class _Workspace {
   }
 
   Object? _connectSandbox(Parameters params) async {
-    final port = params['port'].value;
-    if (port is! MessagePort) {
-      throw RpcException.invalidParams('port must be a MessagePort');
-    }
+    final port = params.portAsMessagePort;
     final sandboxId = _worker._nextSandboxId++;
     final sandbox = _sandboxes[sandboxId] = Sandbox(
       port: port,

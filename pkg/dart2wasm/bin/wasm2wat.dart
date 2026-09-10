@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
 
+import 'package:wasm_builder/source_map.dart'
+    show DebugInfoDeserializer, SourceMapDecoder;
 import 'package:wasm_builder/src/serialize/printer.dart';
 import 'package:wasm_builder/wasm_builder.dart';
 
@@ -19,6 +23,7 @@ void main(List<String> args) {
 
   final sort = result.flag('sort');
   final writeWat = result.flag('write');
+  final printSourcePositions = result.flag('print-source-positions');
   final outputFile = result['output'] as String?;
   final wasmFiles = result.rest;
   if (outputFile != null && wasmFiles.length != 1) {
@@ -53,13 +58,44 @@ void main(List<String> args) {
     typeFilters: typeFilters,
     globalFilters: globalFilters,
     printInSortedOrder: sort,
+    preferMultiline: result.flag('prefer-multiline'),
+    printSourcePositions: printSourcePositions,
+    sourceFileProvider: (uri) {
+      if (!uri.isScheme('file')) return null;
+      final file = File(uri.toFilePath());
+      return file.existsSync() ? file.readAsLinesSync() : null;
+    },
   );
 
   for (final input in wasmFiles) {
     final wasmBytes = File(input).readAsBytesSync();
 
+    DebugInfoDeserializer? debugInfoDeserializer;
+    if (printSourcePositions) {
+      final sourceMapUrl = Module.deserializeSourceMapUrl(
+        Deserializer(wasmBytes),
+      );
+      File? mapFile;
+      if (sourceMapUrl != null) {
+        if (sourceMapUrl.isAbsolute && sourceMapUrl.isScheme('file')) {
+          mapFile = File(sourceMapUrl.toFilePath());
+        } else if (!sourceMapUrl.isAbsolute) {
+          mapFile = File(
+            path.join(path.dirname(input), sourceMapUrl.toFilePath()),
+          );
+        }
+      }
+      if (mapFile != null && mapFile.existsSync()) {
+        final mapJson = jsonDecode(mapFile.readAsStringSync());
+        debugInfoDeserializer = SourceMapDecoder.fromJson(mapJson);
+      }
+    }
+
     final deserializer = Deserializer(wasmBytes);
-    final module = Module.deserialize(deserializer);
+    final module = Module.deserialize(
+      deserializer,
+      debugInfoDeserializer: debugInfoDeserializer,
+    );
     final wat = module.printAsWat(settings: settings);
     if (outputFile != null) {
       File(outputFile).writeAsStringSync(wat);
@@ -112,6 +148,12 @@ final argParser = ArgParser()
     help:
         'Prefer to print global initializers & type definitions as multi line.',
     defaultsTo: /* wami equivalent is false */ false,
+  )
+  ..addFlag(
+    'print-source-positions',
+    abbr: 'p',
+    help: 'Print source file positions as comments for instructions.',
+    defaultsTo: false,
   )
   ..addOption(
     'output',

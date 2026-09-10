@@ -2845,10 +2845,12 @@ class AstBuilder extends StackListener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
-    assert(optional('this', beginToken));
+    assert(optional('augment', beginToken) || optional('this', beginToken));
+    assert(optional('this', thisToken));
 
     var body = pop() as FunctionBodyImpl;
     var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
@@ -2862,7 +2864,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         augmentKeyword: modifiers.augmentKeyword,
-        thisKeyword: beginToken,
+        thisKeyword: thisToken,
         colon: colon,
         initializers: initializers,
         body: body,

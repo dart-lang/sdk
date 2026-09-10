@@ -2489,11 +2489,13 @@ class ForwardingListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beginInitializers,
       endToken,
     );
