@@ -240,21 +240,23 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.unpromotedThisType;
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(thisType ?? InvalidTypeImpl.instance),
-        isSuper: true,
-      ),
-    );
     if (thisType == null ||
         node.thisOrAncestorOfType2<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      thisType = InvalidTypeImpl.instance;
     } else {
-      node.recordStaticType(thisType, resolver: _resolver);
+      _resolver.flowAnalysis.storeExpressionInfo(
+        node,
+        _resolver.flowAnalysis.flow?.thisOrSuper(
+          SharedTypeView(
+            _resolver.isThisAccessible ? thisType : InvalidTypeImpl.instance,
+          ),
+          isSuper: true,
+        ),
+      );
     }
+    node.recordStaticType(thisType, resolver: _resolver);
   }
 
   void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
@@ -268,7 +270,9 @@ class StaticTypeAnalyzer {
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(staticType),
+        SharedTypeView(
+          _resolver.isThisAccessible ? staticType : InvalidTypeImpl.instance,
+        ),
         isSuper: false,
       ),
     );

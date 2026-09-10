@@ -132,6 +132,14 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
+    if (isThisAccessible) {
+      _resolverVisitor.flow.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(
+          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
+        ),
+      );
+    }
     _resolverVisitor.withThisAccessibility(
       isThisAccessible,
       () => _resolverVisitor.analyzeExpression(

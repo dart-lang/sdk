@@ -2178,6 +2178,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       returnedType = _withUnpromotedThisType(parameterType, () {
         flowAnalysis.flow?.thisBinding_begin(
           targetInfo,
+          thisType: SharedTypeView(parameterType),
           offset: afterExpressionOffset,
         );
         try {
@@ -2913,6 +2914,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
         node.initializers.accept2(this);
         node.factoryRedirectionTarget?.accept2(this);
+        if (!element.isFactory) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(returnType),
+            offset: node.body.offset,
+          );
+        }
         withThisAccessibility(
           !element.isFactory,
           () => node.body.resolve(
@@ -2930,6 +2938,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           false,
           offset: node.body.flowEndOffset,
         );
+        if (!element.isFactory) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
         node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -4222,6 +4233,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           offset: enterOffset,
         );
 
+        if (!element.isStatic) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
+            offset: node.body.offset,
+          );
+        }
         withThisAccessibility(
           !element.isStatic,
           () => node.body.resolve(
@@ -4242,6 +4260,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           false,
           offset: node.body.flowEndOffset,
         );
+        if (!element.isStatic) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
         node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -4631,6 +4652,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         }
 
         node.initializers.accept2(this);
+        if (primaryConstructorDeclaration != null) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(_unpromotedThisType!),
+            offset: node.body.offset,
+          );
+        }
         withThisAccessibility(
           true,
           () => node.body.resolve(
@@ -4645,6 +4673,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             false,
             offset: node.body.flowEndOffset,
           );
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
           node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);

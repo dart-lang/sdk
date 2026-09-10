@@ -23637,7 +23637,7 @@ sealed class FunctionBody implements AstNode {
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
 
-  /// Queries the promoted type of `this` at the given [offset].
+  /// Queries the type of `this` at the given [offset].
   ///
   /// The offset is relative to the beginning of the source file, but must refer
   /// to a location within the function body in order for the response to be
@@ -23647,13 +23647,12 @@ sealed class FunctionBody implements AstNode {
   /// directly; the query must be made using the enclosing non-local function
   /// body.
   ///
-  /// If `this` has not been promoted at the given offset, or is not meaningful
-  /// at the given offset, `null` is returned.
-  ///
-  /// Throws an exception if resolution hasn't been performed, or if the query
-  /// is made on the body of a local function or function literal.
+  /// Returns `null` if:
+  /// - resolution has not been performed,
+  /// - the query is made on the body of a local function or function literal,
+  /// - or `this` is not meaningful at the given offset.
   @experimental
-  DartType? lookupPromotedThisType({required int offset});
+  DartType? lookupThisType({required int offset});
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -23694,15 +23693,9 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   }
 
   @override
-  DartType? lookupPromotedThisType({required int offset}) {
-    if (flowAnalysisLog == null) {
-      throw StateError(
-        'Resolution has not been performed, or the query was made on a local '
-        'function body',
-      );
-    }
-    return flowAnalysisLog!
-        .lookupPromotedThisType(offset: offset)
+  DartType? lookupThisType({required int offset}) {
+    return flowAnalysisLog
+        ?.lookupThisType(offset: offset)
         ?.unwrapTypeView<TypeImpl>();
   }
 

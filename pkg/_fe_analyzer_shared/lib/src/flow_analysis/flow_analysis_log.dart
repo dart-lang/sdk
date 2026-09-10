@@ -45,13 +45,9 @@ class FlowAnalysisLog {
   /// yet.
   final List<int> _thisBindingOffsets = [];
 
-  /// List of promotion keys bound to `this`, corresponding to the offsets in
-  /// [_thisBindingOffsets].
-  final List<PromotionKey> _thisBindingValues = [];
-
-  /// The promotion key bound to `this` at the beginning of flow analysis, prior
-  /// to any changes noted in [_thisBindingValues] and [_thisBindingOffsets].
-  PromotionKey? _initialThisBinding;
+  /// List of promotion keys bound to `this`, and the corresponding unpromoted
+  /// types, corresponding to the offsets in [_thisBindingOffsets].
+  final List<(PromotionKey, SharedTypeView)?> _thisBindingValues = [];
 
   /// Whether the lists [_promotionInfoOffsets], [_promotionInfoValues],
   /// [_thisBindingOffsets], and [_thisBindingValues] have been sorted by offset
@@ -85,28 +81,24 @@ class FlowAnalysisLog {
     );
   }
 
-  /// Retrieves the promotion key for `this` that was in effect at the given
-  /// source code [offset].
-  ///
-  /// If there was no reference to `this` that was relevant to flow analysis in
-  /// the code that was analyzed, `null` is returned.
+  /// Retrieves the promotion key for `this`, and the corresponding unpromoted
+  /// type, that was in effect at the given source code [offset].
   ///
   /// If one or more changes to the binding of `this` occurred precisely at
   /// [offset], the promotion key that is returned is the promotion key for
   /// `this` that was in effect just to the left of [offset].
   @visibleForTesting
-  PromotionKey? getThisBinding(int offset) {
+  (PromotionKey, SharedTypeView)? getThisBinding(int offset) {
     if (!_areListsSorted) {
       _sortList(values: _promotionInfoValues, offsets: _promotionInfoOffsets);
       _sortList(values: _thisBindingValues, offsets: _thisBindingOffsets);
       _areListsSorted = true;
     }
-    return _lookupInList(
-          values: _thisBindingValues,
-          offsets: _thisBindingOffsets,
-          offset: offset,
-        ) ??
-        _initialThisBinding;
+    return _lookupInList<(PromotionKey, SharedTypeView)?>(
+      values: _thisBindingValues,
+      offsets: _thisBindingOffsets,
+      offset: offset,
+    );
   }
 
   /// Retrieves the promoted type of `this` that was in effect at the given
@@ -117,14 +109,15 @@ class FlowAnalysisLog {
   /// If one or more changes to the promotion of `this` occurred precisely at
   /// [offset], the type that is returned is the promoted type of `this` that
   /// was in effect just to the left of [offset].
-  SharedTypeView? lookupPromotedThisType({required int offset}) {
-    PromotionKey? thisBinding = getThisBinding(offset);
+  SharedTypeView? lookupThisType({required int offset}) {
+    (PromotionKey, SharedTypeView)? thisBinding = getThisBinding(offset);
     if (thisBinding == null) return null;
     return _reader
-        .get(getPromotionInfo(offset), thisBinding.index)
-        ?.model
-        .promotedTypes
-        .lastOrNull;
+            .get(getPromotionInfo(offset), thisBinding.$1.index)
+            ?.model
+            .promotedTypes
+            .lastOrNull ??
+        thisBinding.$2;
   }
 
   /// Binary searches in [offsets] to find the given [offset], and returns the
@@ -261,31 +254,13 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
     _promotionInfoValues.add(promotionInfo);
   }
 
-  /// Records that the initial binding for `this` was [thisPromotionKey].
-  void recordInitialThisBinding(PromotionKey thisPromotionKey) {
-    assert(
-      !_areListsSorted,
-      'For efficiency, all flow analysis should be completed before sorting '
-      'the flow analysis logs.',
-    );
-    // Note: no call to `checkOffset` because the initial `this` binding is
-    // deliberately set lazily.
-    assert(
-      _thisBindingOffsets.isEmpty,
-      'The initial `this` binding should be established before any other '
-      '`this` bindings are recorded.',
-    );
-    assert(
-      _initialThisBinding == null,
-      'The initial `this` binding should only be set once.',
-    );
-    _initialThisBinding = thisPromotionKey;
-  }
-
-  /// Records that at [offset], the binding for `this` changed to
-  /// [thisPromotionKey].
+  /// Records that at [offset], the binding for `this` changed to [binding].
+  ///
+  /// [binding] should either be a pair consisting of the promotion key for
+  /// `this` and the corresponding unpromoted type, or `null` in the case where
+  /// there is no binding for `this` in effect.
   void thisBindingChanged(
-    PromotionKey thisPromotionKey, {
+    (PromotionKey, SharedTypeView)? binding, {
     required int offset,
   }) {
     assert(
@@ -293,13 +268,8 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
       'For efficiency, all flow analysis should be completed before sorting '
       'the flow analysis logs.',
     );
-    assert(
-      _initialThisBinding != null,
-      'The initial `this` binding should be established before any other '
-      '`this` bindings are recorded.',
-    );
     checkOffset(offset);
     _thisBindingOffsets.add(offset);
-    _thisBindingValues.add(thisPromotionKey);
+    _thisBindingValues.add(binding);
   }
 }

@@ -3264,7 +3264,7 @@ extension on AstNode {
       currentNode = currentNode.parent;
     }
     // ignore: experimental_member_use
-    return outermostFunctionBody?.lookupPromotedThisType(offset: offset);
+    return outermostFunctionBody?.lookupThisType(offset: offset);
   }
 }
 

@@ -84,6 +84,13 @@ class VariableDeclarationResolver {
         offset: beforeInitializerOffset,
       );
     }
+    if (bindsThis) {
+      _resolver.flowAnalysis.flow?.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(_resolver.thisType!),
+        offset: initializer.offset,
+      );
+    }
 
     var contextType =
         element is PropertyInducingElementImpl &&
@@ -109,6 +116,9 @@ class VariableDeclarationResolver {
           .unwrapTypeView();
     }
 
+    if (bindsThis) {
+      _resolver.flowAnalysis.flow?.thisBinding_end(offset: initializer.end);
+    }
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
