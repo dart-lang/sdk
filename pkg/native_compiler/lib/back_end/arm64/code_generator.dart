@@ -2803,7 +2803,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
           valueCanBeSmi: _canBeSmi(instr.operand),
         );
         // Suspend.
-        _asm.mov(SuspendStub.argumentReg, nullReg);
+        _asm.loadConstant(
+          SuspendStub.argumentReg,
+          ConstantValue.fromBool(true),
+        );
         _asm.callVmStub(StubCode.SuspendSyncStarAtYield);
         break;
     }
