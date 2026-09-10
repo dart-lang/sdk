@@ -31559,7 +31559,8 @@ WarningCode:
       }
       ```
       TODO(brianwilkerson): Highlight the identifier without the colon.
-  multipleCombinators:
+  multipleCombinatorsDeprecated:
+    sharedName: multipleCombinators
     type: staticWarning
     parameters: none
     problemMessage: "Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results."

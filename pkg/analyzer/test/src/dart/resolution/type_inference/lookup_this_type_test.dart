@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The tests in this file verify that the [FunctionBody.lookupPromotedThisType]
+/// The tests in this file verify that the [FunctionBody.lookupThisType]
 /// method can be reliably used to query the type of `this` at any offset within
 /// a function body, without requiring an explicit reference to `this` to be
 /// present in the AST.
@@ -21,40 +21,36 @@ import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LookupPromotedThisTypeTest);
-    defineReflectiveTests(LookupPromotedThisTypeTestWithAnonymousMethods);
+    defineReflectiveTests(LookupThisTypeTest);
+    defineReflectiveTests(LookupThisTypeTestWithAnonymousMethods);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Test cases that are run with anonymous methods disabled.
 @reflectiveTest
-class LookupPromotedThisTypeTest extends PubPackageResolutionTest {
-  static final _promotedThisTypeExpectation = RegExp(
-    r'/\*this:\s*([^*]*?)\s*\*/',
-  );
+class LookupThisTypeTest extends PubPackageResolutionTest {
+  static final _thisTypeExpectation = RegExp(r'/\*this:\s*([^*]*?)\s*\*/');
 
-  Future<void> assertPromotedThisTypes(String code) async {
+  Future<void> assertThisTypes(String code) async {
     // These markers identify the ranges to rewrite in the original test code,
     // preserving any diagnostic expectations that it contains.
-    var expectedMarkers = _promotedThisTypeExpectation
-        .allMatches(code)
-        .toList();
+    var expectedMarkers = _thisTypeExpectation.allMatches(code).toList();
 
     if (expectedMarkers.isEmpty) {
-      fail('Expected at least one promoted-this type marker.');
+      fail('Expected at least one this type marker.');
     }
 
     var result = await resolveTestCodeWithDiagnostics(code);
 
     // These markers provide query offsets in the code that was actually
     // resolved, after diagnostic expectations have been removed.
-    var resolvedMarkers = _promotedThisTypeExpectation
+    var resolvedMarkers = _thisTypeExpectation
         .allMatches(result.content)
         .toList();
     if (resolvedMarkers.length != expectedMarkers.length) {
       fail(
-        'Expected ${expectedMarkers.length} promoted-this type markers in the '
+        'Expected ${expectedMarkers.length} this type markers in the '
         'resolved code, found ${resolvedMarkers.length}.',
       );
     }
@@ -79,9 +75,7 @@ class LookupPromotedThisTypeTest extends PubPackageResolutionTest {
         fail('No enclosing function body at offset ${resolvedMarker.start}.');
       }
 
-      var type = outermostBody.lookupPromotedThisType(
-        offset: resolvedMarker.start,
-      );
+      var type = outermostBody.lookupThisType(offset: resolvedMarker.start);
       var typeText = type == null ? 'null' : typeString(type);
 
       actualCode
@@ -103,9 +97,9 @@ class LookupPromotedThisTypeTest extends PubPackageResolutionTest {
 
   test_thisPromotion_inFactoryConstructor() async {
     // Factory constructors don't have access to `this`, but it's still
-    // important to make sure that querying the promoted type of `this` doesn't
+    // important to make sure that querying the type of `this` doesn't
     // lead to a crash.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   factory C() {
     /*this: null*/
@@ -116,18 +110,18 @@ class C {
   }
 
   test_thisPromotion_inForLoop() async {
-    // This test verifies that the `lookupPromotedThisType` query properly
+    // This test verifies that the `lookupThisType` query properly
     // understands that in a `for` loop, the "updaters" part executes *after*
     // the body.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    for (int i = 0; i < 10 /*this: null*/; /*this: D*/ i++) {
-      /*this: null*/
+    for (int i = 0; i < 10 /*this: C*/; /*this: D*/ i++) {
+      /*this: C*/
       this as D;
       /*this: D*/
     }
-    /*this: null*/
+    /*this: C*/
   }
 }
 class D extends C {}
@@ -135,14 +129,14 @@ class D extends C {}
   }
 
   test_thisPromotion_inGenerativeConstructor() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   C() {
-    /*this: null*/
+    /*this: C*/
     if (this is D) {
       /*this: D*/
     }
-    /*this: null*/
+    /*this: C*/
   }
 }
 class D extends C {}
@@ -150,14 +144,14 @@ class D extends C {}
   }
 
   test_thisPromotion_inMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    /*this: null*/
+    /*this: C*/
     if (this is D) {
       /*this: D*/
     }
-    /*this: null*/
+    /*this: C*/
   }
 }
 class D extends C {}
@@ -165,13 +159,13 @@ class D extends C {}
   }
 
   test_thisPromotion_inPatternAssignment() async {
-    // This test verifies that the `lookupPromotedThisType` query properly
+    // This test verifies that the `lookupThisType` query properly
     // understands that in a pattern assignment, the pattern executes *after*
     // the RHS.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    (/*this: null*/ _ as D /*this: D*/) = /*this: null*/ this;
+    (/*this: C*/ _ as D /*this: D*/) = /*this: C*/ this;
     /*this: D*/
   }
 }
@@ -180,13 +174,13 @@ class D extends C {}
   }
 
   test_thisPromotion_inPatternVariableDeclaration() async {
-    // This test verifies that the `lookupPromotedThisType` query properly
+    // This test verifies that the `lookupThisType` query properly
     // understands that in a pattern variable declaration, the pattern executes
     // *after* the initializer.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    var (/*this: null*/ _ as D /*this: D*/) = /*this: null*/ this;
+    var (/*this: C*/ _ as D /*this: D*/) = /*this: C*/ this;
     /*this: D*/
   }
 }
@@ -195,14 +189,14 @@ class D extends C {}
   }
 
   test_thisPromotion_inPrimaryConstructorBody() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C() {
   this {
-    /*this: null*/
+    /*this: C*/
     if (this is D) {
       /*this: D*/
     }
-    /*this: null*/
+    /*this: C*/
   }
 }
 class D extends C {}
@@ -211,9 +205,9 @@ class D extends C {}
 
   test_thisPromotion_inStaticMethod() async {
     // Static methods don't have access to `this`, but it's still important to
-    // make sure that querying the promoted type of `this` doesn't lead to a
+    // make sure that querying the type of `this` doesn't lead to a
     // crash.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   static f() {
     /*this: null*/
@@ -224,9 +218,9 @@ class C {
 
   test_thisPromotion_inTopLevelFunction() async {
     // `this` isn't meaningful in a top level function, but it's still important
-    // to make sure that querying the promoted type of `this` doesn't lead to a
+    // to make sure that querying the type of `this` doesn't lead to a
     // crash.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 f() {
   /*this: null*/
 }
@@ -238,11 +232,11 @@ f() {
     // be visited after all other arguments, so a promotion in a
     // non-function-literal argument can affect the type of `this` in an earlier
     // function literal argument.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    g /*this: null*/ (
-      () { /*this: D*/ }, /*this: null*/ this as D /*this: D*/)
+    g /*this: C*/ (
+      () { /*this: D*/ }, /*this: C*/ this as D /*this: D*/)
       /*this: D*/ ;
   }
 }
@@ -256,11 +250,11 @@ g(Object? x, Object? y) {}
     // be visited after all other arguments, so a promotion in a
     // non-function-literal argument can affect the type of `this` in an earlier
     // function literal argument.
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    g(0 /*this: null*/,
-      () { /*this: D*/ }, /*this: null*/ this as D /*this: D*/)
+    g(0 /*this: C*/,
+      () { /*this: D*/ }, /*this: C*/ this as D /*this: D*/)
       /*this: D*/ ;
   }
 }
@@ -272,11 +266,10 @@ g(Object? x, Object? y, Object? z) {}
 
 /// Test cases that are run with anonymous methods enabled.
 ///
-/// This class extends [LookupPromotedThisTypeTest] so that the test cases there will get
-/// exercised both with and without anonymous methods enabled.
+/// This class extends [LookupThisTypeTest] so that the test cases there will
+/// get exercised both with and without anonymous methods enabled.
 @reflectiveTest
-class LookupPromotedThisTypeTestWithAnonymousMethods
-    extends LookupPromotedThisTypeTest {
+class LookupThisTypeTestWithAnonymousMethods extends LookupThisTypeTest {
   @override
   List<Feature> get experimentalFeatures => [
     ...super.experimentalFeatures,
@@ -284,28 +277,28 @@ class LookupPromotedThisTypeTestWithAnonymousMethods
   ];
 
   test_thisPromotion_expressionBodiedAnonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    /*this: null*/
+    /*this: C*/
     (0 as num).=> [
-      /*this: null*/
+      /*this: num*/
       this as int,
       /*this: int*/
     ];
-    /*this: null*/
+    /*this: C*/
   }
 }
 ''');
   }
 
   test_thisPromotion_inFactoryConstructor_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   factory C() {
     /*this: null*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
@@ -317,60 +310,60 @@ class C {
   }
 
   test_thisPromotion_inGenerativeConstructor_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   C() {
-    /*this: null*/
+    /*this: C*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
-    /*this: null*/
+    /*this: C*/
   }
 }
 ''');
   }
 
   test_thisPromotion_inMethod_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
-    /*this: null*/
+    /*this: C*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
-    /*this: null*/
+    /*this: C*/
   }
 }
 ''');
   }
 
   test_thisPromotion_inPrimaryConstructorBody_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C() {
   this {
-    /*this: null*/
+    /*this: C*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
-    /*this: null*/
+    /*this: C*/
   }
 }
 ''');
   }
 
   test_thisPromotion_inStaticMethod_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   static f() {
     /*this: null*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
@@ -381,11 +374,11 @@ class C {
   }
 
   test_thisPromotion_inTopLevelFunction_anonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 f() {
     /*this: null*/
     (0 as num).{
-      /*this: null*/
+      /*this: num*/
       this as int;
       /*this: int*/
     };
@@ -395,7 +388,7 @@ f() {
   }
 
   test_thisPromotion_nonThisBindingAnonymousMethod() async {
-    await assertPromotedThisTypes(r'''
+    await assertThisTypes(r'''
 class C {
   f() {
     this as D;

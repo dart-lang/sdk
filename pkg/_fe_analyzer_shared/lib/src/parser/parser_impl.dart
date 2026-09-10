@@ -350,6 +350,9 @@ class Parser {
   /// `true` if the 'augmentations' feature is enabled.
   final bool isAugmentationsFeatureEnabled;
 
+  /// `true` if the 'single-combinators' feature is enabled.
+  final bool _isSingleCombinatorsFeatureEnabled;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -365,7 +368,9 @@ class Parser {
            .isExperimentEnabled(ExperimentalFlag.anonymousMethods),
        isAugmentationsFeatureEnabled = experimentalFeatures.isExperimentEnabled(
          ExperimentalFlag.augmentations,
-       );
+       ),
+       _isSingleCombinatorsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.singleCombinators);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -1210,8 +1215,14 @@ class Parser {
     while (true) {
       String? value = next.stringValue;
       if (identical('hide', value)) {
+        if (count > 0 && _isSingleCombinatorsFeatureEnabled) {
+          reportRecoverableError(next, diag.multipleCombinators);
+        }
         token = parseHide(token);
       } else if (identical('show', value)) {
+        if (count > 0 && _isSingleCombinatorsFeatureEnabled) {
+          reportRecoverableError(next, diag.multipleCombinators);
+        }
         token = parseShow(token);
       } else {
         listener.endCombinators(count);

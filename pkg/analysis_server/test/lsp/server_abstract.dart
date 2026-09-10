@@ -499,6 +499,12 @@ mixin ClientCapabilitiesHelperMixin {
     experimentalCapabilities['commands'] = supportedCommands;
   }
 
+  void setClosingLabelsSupport([bool supported = true]) {
+    // This is defined as an object for potential future configurability. It
+    // just has to be non-null to enable the feature.
+    experimentalCapabilities['closingLabels'] = {};
+  }
+
   void setCompletionItemDeprecatedFlagSupport() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,

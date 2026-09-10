@@ -1840,7 +1840,7 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token?)
     star (getter: Token?)
     isPotentiallyMutatedInScope (method: bool Function(VariableElement))
-    lookupPromotedThisType (method: DartType? Function({required int offset}), experimental)
+    lookupThisType (method: DartType? Function({required int offset}), experimental)
   FunctionCallInvocationResolution (class extends Object implements StaticInvocationResolution, abstract, final, experimental):
     invokeType (getter: FunctionType)
     type (getter: DartType)

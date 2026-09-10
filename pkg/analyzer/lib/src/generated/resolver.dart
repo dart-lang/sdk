@@ -261,6 +261,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// If there is no `this` binding, `null`.
   TypeImpl? _unpromotedThisType;
 
+  /// Whether the code currently being resolved can access `this` without a
+  /// compile-time error.
+  bool _isThisAccessible = false;
+
   /// The cascade whose section is currently being resolved.
   CascadeExpressionImpl? _activeCascadeExpression;
 
@@ -417,6 +421,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   bool get isInferenceUpdate1Enabled =>
       _featureSet.isEnabled(Feature.inference_update_1);
+
+  /// Whether the code currently being resolved can access `this` without a
+  /// compile-time error.
+  bool get isThisAccessible => _isThisAccessible;
 
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
@@ -2170,10 +2178,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       returnedType = _withUnpromotedThisType(parameterType, () {
         flowAnalysis.flow?.thisBinding_begin(
           targetInfo,
+          thisType: SharedTypeView(parameterType),
           offset: afterExpressionOffset,
         );
         try {
-          return body.resolve(this, contextType);
+          return withThisAccessibility(
+            true,
+            () => body.resolve(this, contextType),
+          );
         } finally {
           flowAnalysis.flow?.thisBinding_end(offset: node.body.flowEndOffset);
         }
@@ -2902,7 +2914,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
         node.initializers.accept2(this);
         node.factoryRedirectionTarget?.accept2(this);
-        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        if (!element.isFactory) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(returnType),
+            offset: node.body.offset,
+          );
+        }
+        withThisAccessibility(
+          !element.isFactory,
+          () => node.body.resolve(
+            this,
+            returnType is DynamicType ? null : returnType,
+          ),
+        );
         elementResolver.visitConstructorDeclaration(node);
 
         if (node.factoryKeyword != null) {
@@ -2913,6 +2938,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           false,
           offset: node.body.flowEndOffset,
         );
+        if (!element.isFactory) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
         node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -4205,7 +4233,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           offset: enterOffset,
         );
 
-        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        if (!element.isStatic) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
+            offset: node.body.offset,
+          );
+        }
+        withThisAccessibility(
+          !element.isStatic,
+          () => node.body.resolve(
+            this,
+            returnType is DynamicType ? null : returnType,
+          ),
+        );
         elementResolver.visitMethodDeclaration(node);
 
         if (!node.isSetter) {
@@ -4219,6 +4260,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           false,
           offset: node.body.flowEndOffset,
         );
+        if (!element.isStatic) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
         node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -4608,7 +4652,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         }
 
         node.initializers.accept2(this);
-        node.body.resolve(this, returnType is DynamicType ? null : returnType);
+        if (primaryConstructorDeclaration != null) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(_unpromotedThisType!),
+            offset: node.body.offset,
+          );
+        }
+        withThisAccessibility(
+          true,
+          () => node.body.resolve(
+            this,
+            returnType is DynamicType ? null : returnType,
+          ),
+        );
 
         if (primaryConstructorDeclaration != null) {
           flowAnalysis.executableDeclaration_exit(
@@ -4616,6 +4673,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             false,
             offset: node.body.flowEndOffset,
           );
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
           node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);
@@ -5093,13 +5151,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitThisExpression(
-    ThisExpression node, {
+    covariant ThisExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+    if (!isThisAccessible) {
+      diagnosticReporter.report(diag.invalidReferenceToThis.at(node));
+    }
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitThisExpression(node as ThisExpressionImpl);
+    typeAnalyzer.visitThisExpression(node);
     _insertImplicitCallTearOff(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -5395,6 +5456,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
     inferenceLogWriter?.exitStatement(node);
+  }
+
+  /// Executes [operation] with the given value of [isThisAccessible].
+  T withThisAccessibility<T>(bool isThisAccessible, T Function() operation) {
+    var previous = _isThisAccessible;
+    _isThisAccessible = isThisAccessible;
+    try {
+      return operation();
+    } finally {
+      _isThisAccessible = previous;
+    }
   }
 
   /// Wraps a generic function value after inference has selected type arguments.

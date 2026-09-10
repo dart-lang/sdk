@@ -36,11 +36,49 @@ typedef _ProducersGenerators =
     );
 
 class ImportLibrary extends MultiCorrectionProducer {
+  /// The kinds of elements that a type-like reference can resolve to.
+  static const _typeKinds = [
+    ElementKind.CLASS,
+    ElementKind.ENUM,
+    ElementKind.EXTENSION_TYPE,
+    ElementKind.FUNCTION_TYPE_ALIAS,
+    ElementKind.MIXIN,
+    ElementKind.TYPE_ALIAS,
+  ];
+
+  /// The kinds of elements that a documentation comment reference can resolve
+  /// to.
+  ///
+  /// A documentation comment reference such as `[foo]` names a declaration
+  /// without saying what kind of declaration it is, so it can resolve to a
+  /// top-level function or variable as well as to anything in [_typeKinds].
+  static const _commentReferenceKinds = [
+    ..._typeKinds,
+    ElementKind.FUNCTION,
+    ElementKind.TOP_LEVEL_VARIABLE,
+  ];
+
   final _ImportKind _importKind;
+
+  /// Initialize a newly created instance that will add an import for a
+  /// declaration referenced from a documentation comment reference.
+  ///
+  /// Covers the same declarations as [ImportLibrary.forTypeOrMember], since a
+  /// documentation comment reference names a declaration without saying what
+  /// kind of declaration it is. Extensions referenced from a documentation
+  /// comment are handled separately, by
+  /// [ImportLibrary.forExtensionCommentReference].
+  new forCommentReference({required super.context})
+    : _importKind = .forCommentReference;
 
   /// Initialize a newly created instance that will add an import for an
   /// extension.
   new forExtension({required super.context}) : _importKind = .forExtension;
+
+  /// Initialize a newly created instance that will add an import for an
+  /// extension referenced from a documentation comment reference.
+  new forExtensionCommentReference({required super.context})
+    : _importKind = .forExtensionCommentReference;
 
   /// Initialize a newly created instance that will add an import for a member
   /// of an extension.
@@ -62,9 +100,14 @@ class ImportLibrary extends MultiCorrectionProducer {
     : _importKind = .forTopLevelVariable;
 
   /// Initialize a newly created instance that will add an import for a
-  /// type-like declaration (class, enum, mixin, typedef), a constructor, a
-  /// static member of a declaration, or an enum value.
-  new forType({required super.context}) : _importKind = .forType;
+  /// type-like declaration, or for a member reached through one.
+  ///
+  /// The type-like declarations are classes, enums, extension types, mixins,
+  /// and typedefs; the members reached through one are constructors, static
+  /// members, and enum values. Extensions are not included; they are handled by
+  /// [ImportLibrary.forExtension].
+  new forTypeOrMember({required super.context})
+    : _importKind = .forTypeOrMember;
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
@@ -74,6 +117,10 @@ class ImportLibrary extends MultiCorrectionProducer {
     }
     return [for (var name in names) ...?(await name.producers)];
   }
+
+  bool get shouldSuggestDocImports =>
+      _importKind == .forCommentReference ||
+      _importKind == .forExtensionCommentReference;
 
   /// A map of all the diagnostic codes that this fix can be applied to and the
   /// generators that can be used to apply the fix.
@@ -88,12 +135,14 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   Future<List<_PrefixedName>> _allPossibleNames() async {
     return switch (_importKind) {
+      .forCommentReference => _namesForType(_commentReferenceKinds),
       .forExtension => _namesForExtension(),
+      .forExtensionCommentReference => _namesForExtension(),
       .forExtensionMember => await _namesForExtensionMember(),
       .forExtensionType => _namesForExtensionType(),
       .forFunction => _namesForFunction(),
       .forTopLevelVariable => _namesForTopLevelVariable(),
-      .forType => _namesForType(),
+      .forTypeOrMember => _namesForType(),
     };
   }
 
@@ -148,13 +197,14 @@ class ImportLibrary extends MultiCorrectionProducer {
     return (importCombinator, importCombinatorMultiple);
   }
 
-  /// Returns a list of two or four import correction producers.
+  /// Returns a list of import correction producers, two or four of them when
+  /// [fixKindDoc] is `null`, and three or six when it is not.
   ///
   /// For each import path used in the return values, one returned correction
   /// producer uses a 'show' combinator, and one does not.
   ///
-  /// If [includeRelativeFix] is `false`, only two correction producers, with
-  /// absolute import paths, are returned. Otherwise, correction producers with
+  /// If [includeRelativeFix] is `false`, only correction producers with
+  /// absolute import paths are returned. Otherwise, correction producers with
   /// absolute import paths and correction producers with relative paths are
   /// returned. If the `always_use_package_imports` lint rule is enabled then
   /// only correction producers using the package import are returned. If the
@@ -162,6 +212,12 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// producers using the relative path are returned. Otherwise, correction
   /// producers using both types of paths are returned in the order: absolute
   /// imports, relative imports.
+  ///
+  /// If [fixKindDoc] is non-`null`, one further correction producer is returned
+  /// for each import path, adding an `@docImport` directive to the library's
+  /// documentation comment rather than a regular import directive. Pass `null`
+  /// when a doc import wouldn't resolve the diagnostic, so that no such
+  /// correction is offered.
   List<ResolvedCorrectionProducer> _importLibrary(
     FixKind fixKind,
     FixKind fixKindShow,
@@ -169,6 +225,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     String name, {
     required String? prefix,
     required bool includeRelativeFix,
+    FixKind? fixKindDoc,
   }) {
     if (!includeRelativeFix) {
       return [
@@ -180,6 +237,14 @@ class ImportLibrary extends MultiCorrectionProducer {
           show: name,
           context: context,
         ),
+        if (fixKindDoc != null)
+          _ImportAbsoluteLibrary(
+            fixKindDoc,
+            library,
+            prefix,
+            isDocImport: true,
+            context: context,
+          ),
       ];
     }
     var codeStyleOptions = getCodeStyleOptions(unitResult.file);
@@ -195,6 +260,14 @@ class ImportLibrary extends MultiCorrectionProducer {
           show: name,
           context: context,
         ),
+        if (fixKindDoc != null)
+          _ImportAbsoluteLibrary(
+            fixKindDoc,
+            library,
+            prefix,
+            isDocImport: true,
+            context: context,
+          ),
       ],
       if (useRelativeUris || !usePackageUris) ...[
         _ImportRelativeLibrary(fixKind, library, prefix, context: context),
@@ -205,6 +278,14 @@ class ImportLibrary extends MultiCorrectionProducer {
           show: name,
           context: context,
         ),
+        if (fixKindDoc != null)
+          _ImportRelativeLibrary(
+            fixKindDoc,
+            library,
+            prefix,
+            isDocImport: true,
+            context: context,
+          ),
       ],
     ];
   }
@@ -297,6 +378,8 @@ class ImportLibrary extends MultiCorrectionProducer {
       // Compute the fix kind.
       FixKind fixKind;
       FixKind fixKindShow;
+      FixKind? fixKindDoc;
+      var suggestDoc = shouldSuggestDocImports && prefix.isEmptyOrNull;
       if (declaration.hasOrInheritsDeprecated ||
           libraryElement.hasOrInheritsDeprecated) {
         fixKind = prefix.isEmptyOrNull
@@ -305,6 +388,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKindShow = prefix.isEmptyOrNull
             ? DartFixKind.importLibraryProject4Show
             : DartFixKind.importLibraryProject4PrefixedShow;
+        if (suggestDoc) {
+          fixKindDoc = DartFixKind.importLibraryProject4Doc;
+        }
       } else if (libraryElement.isInSdk) {
         fixKind = prefix.isEmptyOrNull
             ? DartFixKind.importLibrarySdk
@@ -312,6 +398,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKindShow = prefix.isEmptyOrNull
             ? DartFixKind.importLibrarySdkShow
             : DartFixKind.importLibrarySdkPrefixedShow;
+        if (suggestDoc) {
+          fixKindDoc = DartFixKind.importLibrarySdkDoc;
+        }
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
         fixKind = prefix.isEmptyOrNull
@@ -320,6 +409,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKindShow = prefix.isEmptyOrNull
             ? DartFixKind.importLibraryProject3Show
             : DartFixKind.importLibraryProject3PrefixedShow;
+        if (suggestDoc) {
+          fixKindDoc = DartFixKind.importLibraryProject3Doc;
+        }
       } else if (declaration.library != libraryElement) {
         // Ugly: exports.
         fixKind = prefix.isEmptyOrNull
@@ -328,6 +420,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKindShow = prefix.isEmptyOrNull
             ? DartFixKind.importLibraryProject2Show
             : DartFixKind.importLibraryProject2PrefixedShow;
+        if (suggestDoc) {
+          fixKindDoc = DartFixKind.importLibraryProject2Doc;
+        }
       } else {
         // Good: direct declaration.
         fixKind = prefix.isEmptyOrNull
@@ -336,6 +431,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         fixKindShow = prefix.isEmptyOrNull
             ? DartFixKind.importLibraryProject1Show
             : DartFixKind.importLibraryProject1PrefixedShow;
+        if (suggestDoc) {
+          fixKindDoc = DartFixKind.importLibraryProject1Doc;
+        }
       }
       // If both files are in the same package's 'lib' folder, also include a
       // relative import.
@@ -351,6 +449,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           name,
           prefix: prefix,
           includeRelativeFix: includeRelativeUri,
+          fixKindDoc: fixKindDoc,
         ),
       );
     }
@@ -643,15 +742,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     return const [];
   }
 
-  List<_PrefixedName> _namesForType() {
-    const kinds = [
-      ElementKind.CLASS,
-      ElementKind.ENUM,
-      ElementKind.EXTENSION_TYPE,
-      ElementKind.FUNCTION_TYPE_ALIAS,
-      ElementKind.MIXIN,
-      ElementKind.TYPE_ALIAS,
-    ];
+  List<_PrefixedName> _namesForType([List<ElementKind> kinds = _typeKinds]) {
     var targetNode = node;
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
@@ -772,12 +863,19 @@ class ImportLibrary extends MultiCorrectionProducer {
 }
 
 /// A correction processor that can add an import using an absolute URI.
-class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
+class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer
+    with _ImportLibraryMixin {
+  @override
   final FixKind _fixKind;
+  @override
   final String? _prefix;
+  @override
   final Uri _library;
   final String? _show;
+  @override
+  final bool _isDocImport;
 
+  @override
   String _uriText = '';
 
   new(
@@ -785,45 +883,33 @@ class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
     this._library,
     this._prefix, {
     this._show,
+    this._isDocImport = false,
     required super.context,
   });
 
   @override
-  CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+  String _docImport(DartFileEditBuilderImpl builder) =>
+      builder.docImportLibraryWithAbsoluteUri(_library);
 
   @override
-  List<String> get fixArguments => [
-    _uriText,
-    if (_prefix != null && _prefix.isNotEmpty) _prefix,
-  ];
-
-  @override
-  FixKind get fixKind => _fixKind;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
-    await builder.addDartFileEdit(file, (builder) {
-      if (builder is DartFileEditBuilderImpl) {
-        _uriText = builder.importLibraryWithAbsoluteUri(
-          _library,
-          prefix: _prefix,
-          showName: _show,
-          useShow: _show != null,
-        );
-      }
-    });
-  }
+  String _import(DartFileEditBuilderImpl builder) =>
+      builder.importLibraryWithAbsoluteUri(
+        _library,
+        prefix: _prefix,
+        showName: _show,
+        useShow: _show != null,
+      );
 }
 
 enum _ImportKind {
+  forCommentReference(ImportLibrary.forCommentReference),
   forExtension(ImportLibrary.forExtension),
+  forExtensionCommentReference(ImportLibrary.forExtensionCommentReference),
   forExtensionMember(ImportLibrary.forExtensionMember),
   forExtensionType(ImportLibrary.forExtensionType),
   forFunction(ImportLibrary.forFunction),
   forTopLevelVariable(ImportLibrary.forTopLevelVariable),
-  forType(ImportLibrary.forType);
+  forTypeOrMember(ImportLibrary.forTypeOrMember);
 
   final ImportLibrary Function({required CorrectionProducerContext context}) fn;
 
@@ -940,6 +1026,55 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
   }
 }
 
+/// Shared behavior for correction producers that add an import for a
+/// library, either as a regular import directive or, when [_isDocImport] is
+/// `true`, as a `/// @docImport` documentation comment on the library
+/// directive.
+mixin _ImportLibraryMixin on ResolvedCorrectionProducer {
+  @override
+  /// There may be many import options that can be the right choice.
+  CorrectionApplicability get applicability => .singleLocation;
+
+  @override
+  List<String> get fixArguments => [
+    _uriText,
+    if (_prefix != null && _prefix.isNotEmpty) _prefix,
+  ];
+
+  @override
+  FixKind get fixKind => _fixKind;
+
+  FixKind get _fixKind;
+
+  bool get _isDocImport;
+
+  // ignore: unused_element referenced in doc comments below.
+  Uri get _library;
+
+  String? get _prefix;
+
+  String get _uriText;
+
+  set _uriText(String value);
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    await builder.addDartFileEdit(file, (builder) {
+      if (builder is DartFileEditBuilderImpl) {
+        _uriText = _isDocImport ? _docImport(builder) : _import(builder);
+      }
+    });
+  }
+
+  /// Adds a `/// @docImport` for [_library] and returns the URI text that was
+  /// written.
+  String _docImport(DartFileEditBuilderImpl builder);
+
+  /// Adds an import for [_library] and returns the URI text that was
+  /// written.
+  String _import(DartFileEditBuilderImpl builder);
+}
+
 /// A correction processor that can add a prefix to an identifier defined in a
 /// library that is already imported but that is imported with a prefix.
 class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
@@ -1010,12 +1145,19 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 }
 
 /// A correction processor that can add an import using a relative URI.
-class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
+class _ImportRelativeLibrary extends ResolvedCorrectionProducer
+    with _ImportLibraryMixin {
+  @override
   final FixKind _fixKind;
+  @override
   final String? _prefix;
+  @override
   final Uri _library;
   final String? _show;
+  @override
+  final bool _isDocImport;
 
+  @override
   String _uriText = '';
 
   new(
@@ -1023,36 +1165,22 @@ class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
     this._library,
     this._prefix, {
     this._show,
+    this._isDocImport = false,
     required super.context,
   });
 
   @override
-  CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+  String _docImport(DartFileEditBuilderImpl builder) =>
+      builder.docImportLibraryWithRelativeUri(_library);
 
   @override
-  List<String> get fixArguments => [
-    _uriText,
-    if (_prefix != null && _prefix.isNotEmpty) _prefix,
-  ];
-
-  @override
-  FixKind get fixKind => _fixKind;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
-    await builder.addDartFileEdit(file, (builder) {
-      if (builder is DartFileEditBuilderImpl) {
-        _uriText = builder.importLibraryWithRelativeUri(
-          _library,
-          prefix: _prefix,
-          showName: _show,
-          useShow: _show != null,
-        );
-      }
-    });
-  }
+  String _import(DartFileEditBuilderImpl builder) =>
+      builder.importLibraryWithRelativeUri(
+        _library,
+        prefix: _prefix,
+        showName: _show,
+        useShow: _show != null,
+      );
 }
 
 /// Information needed to generate producers for a given [name] and [prefix].

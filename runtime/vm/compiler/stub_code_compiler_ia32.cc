@@ -391,6 +391,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #endif
 }
 
+void StubCodeCompiler::GenerateInterpretedFfiCallbackTrampolineStub() {
+  __ Breakpoint();  // currently only used in ARM64 runtimes.
+}
+
 void StubCodeCompiler::GenerateSharedStubGeneric(
     bool save_fpu_registers,
     intptr_t self_code_stub_offset_from_thread,

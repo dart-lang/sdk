@@ -713,6 +713,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       (arguments) => Parameter(node.name);
 
   @override
+  Instantiator visitRestParameter(RestParameter node) =>
+      (arguments) => RestParameter(node.name);
+
+  @override
   Instantiator visitAccess(PropertyAccess node) {
     Instantiator makeReceiver = visit(node.receiver);
     Instantiator makeSelector = visit(node.selector);

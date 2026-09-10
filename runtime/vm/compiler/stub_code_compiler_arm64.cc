@@ -483,16 +483,20 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR, R20, R21, R22 (callee-saved) and LR on the real C stack (CSP).
-  // Keeps it aligned.
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
+  // Save THR, R20, R21, R22, R23 (callee-saved) and LR on
+  // the real C stack (CSP). Keeps it aligned.
   SPILLS_LR_TO_FRAME(__ stp(
       FP, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
-  __ mov(FP, CSP);
+  __ MoveRegister(FP, CSP);
   __ stp(R20, THR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
   __ stp(R22, R21, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
-
-  COMPILE_ASSERT(!IsArgumentRegister(THR));
+  // Unlike the other callee-saved registers, R23 is either never modified, if
+  // DART_DYNAMIC_MODULES is not enabled, or restored immediately after
+  // the call to DLRT_GetFfiCallbackMetadata, since the two slots allocated here
+  // are then used to store the persistent handle to the FFI callback function
+  // and the entry point to DLRT_DoInterpretedFfiCallback.
+  __ stp(R23, THR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 8);
 
   RegisterSet argument_registers;
   argument_registers.AddAllArgumentRegisters();
@@ -504,42 +508,95 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
+#if defined(DART_DYNAMIC_MODULES)
+    // Store the address of the native stack delta in R23 so it persists
+    // across the call to DLRT_GetFfiCallbackMetadata.
+    COMPILE_ASSERT(IsCalleeSavedRegister(R23));
+    __ mov(R23, CSP);
+#endif
+
+    const intptr_t extra_pushed = target::CallbackMetadata::InstanceSize();
     __ mov(SP, CSP);
     // This saves too much: we only need the D half of Q registers.
-    __ PushRegistersAligned(argument_registers, 5 * target::kWordSize);
-    __ mov(R0, R9);
-    __ mov(R1, SP);
+    __ PushRegistersAligned(argument_registers, extra_pushed);
+    __ mov(CSP, SP);
 
+    __ mov(R0, R9);
+    __ mov(R1, CSP);
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
-    __ mov(CSP, SP);
     __ CallCFunction(R4);  // DLRT_GetFfiCallbackMetadata
-    __ mov(SP, CSP);
 
+    COMPILE_ASSERT(!IsArgumentRegister(THR));  // otherwise overwritten by pop.
     __ mov(THR, R0);
-    COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
-    __ ldr(R10, Address(CSP, 0 * target::kWordSize));  // entry_point
-    COMPILE_ASSERT(!IsCalleeSavedRegister(R11) && !IsArgumentRegister(R11));
-    __ ldr(R11, Address(CSP, 1 * target::kWordSize));  // is_tail
-    COMPILE_ASSERT(IsCalleeSavedRegister(R20));
-    __ ldr(R20, Address(CSP, 2 * target::kWordSize));  // epilogue
-    COMPILE_ASSERT(IsCalleeSavedRegister(R21));
-    __ ldr(R21, Address(CSP, 3 * target::kWordSize));  // isolate
-    COMPILE_ASSERT(IsCalleeSavedRegister(R22));
-    __ ldr(R22, Address(CSP, 4 * target::kWordSize));  // isolate_group
 
-    __ PopRegistersAligned(argument_registers, 5 * target::kWordSize);
+#if defined(DART_DYNAMIC_MODULES)
+    // Move the address of the native stack delta to SP and restore R23
+    // before retrieving the CallbackMetadata fields, during which
+    // the last two slots in the native stack delta are overwritten.
+    __ mov(SP, R23);
+    __ ldr(R23, Address(SP, 0 * target::kWordSize));
+#endif
+
+    // The entry point and type fields are only needed until the second-level
+    // trampoline is called, so can use non-callee-saved registers.
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R11) && !IsArgumentRegister(R11));
+    ASSERT_EQUAL(
+        target::CallbackMetadata::type_offset(),
+        target::CallbackMetadata::entry_point_offset() + target::kWordSize);
+    __ ldp(R10, R11,
+           Address(CSP, target::CallbackMetadata::entry_point_offset(),
+                   Address::PairOffset));
+    // The epilogue, caller isolate, and caller isolate group are needed after
+    // the call, so must be callee-saved.
+    COMPILE_ASSERT(IsCalleeSavedRegister(R20));
+    COMPILE_ASSERT(IsCalleeSavedRegister(R21));
+    ASSERT_EQUAL(
+        target::CallbackMetadata::caller_isolate_offset(),
+        target::CallbackMetadata::epilogue_offset() + target::kWordSize);
+    __ ldp(R20, R21,
+           Address(CSP, target::CallbackMetadata::epilogue_offset(),
+                   Address::PairOffset));
+    COMPILE_ASSERT(IsCalleeSavedRegister(R22));
+    // The function_handle is copied to the native stack delta before the
+    // second-level trampoline call if DART_DYNAMIC_MODULES is enabled and
+    // ignored otherwise, so use a non-callee-saved register.
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R12) && !IsArgumentRegister(R12));
+    ASSERT_EQUAL(target::CallbackMetadata::function_handle_offset(),
+                 target::CallbackMetadata::caller_isolate_group_offset() +
+                     target::kWordSize);
+    __ ldp(R22, R12,
+           Address(CSP, target::CallbackMetadata::caller_isolate_group_offset(),
+                   Address::PairOffset));
+#if defined(DART_DYNAMIC_MODULES)
+    // Store the function handle and runtime entry point in the allocated space
+    // at the top of the trampoline stack delta.
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R13) && !IsArgumentRegister(R13));
+    __ ldr(
+        R13,
+        Address(CSP,
+                target::CallbackMetadata::interpreted_runtime_entry_offset()));
+    __ stp(R12, R13, Address(SP, 0 * target::kWordSize, Address::PairOffset));
+#endif
+
+    __ mov(SP, CSP);
+    __ PopRegistersAligned(argument_registers, extra_pushed);
     __ mov(CSP, SP);
   }
 
   Label tail;
+  // CallbackMetadata::type either contains 0 (sync) or 1 (async). Async
+  // callbacks are run in a temporary isolate, so the epilogue is tail called.
   __ cbnz(&tail, R11);
 
   {
     __ blr(R10);  // entry_point
     __ stp(R0, R1, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
-    __ fstp(V0, V1, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
-    __ fstp(V2, V3, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
+    __ fstp(V0, V1, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+            kDWord);
+    __ fstp(V2, V3, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+            kDWord);
     __ mov(R0, THR);
     __ mov(R1, R21);
     __ mov(R2, R22);
@@ -550,6 +607,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ ldp(R0, R1, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+    // Don't restore R23 here, since either it was unused or already restored
+    // before overwriting the two slots at the top of the native stack delta
+    // with the function handle and runtime entry point.
+    __ AddImmediate(CSP, CSP, 2 * target::kWordSize);
     __ ldp(R22, R21,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
@@ -565,6 +626,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blr(R10);
     __ mov(R0, THR);
     __ mov(R1, R20);
+    // Don't restore R23 here, since either it was unused or already restored
+    // before overwriting the two slots at the top of the native stack delta
+    // with the function handle and runtime entry point.
+    __ AddImmediate(CSP, CSP, 2 * target::kWordSize);
     __ ldp(R22, R21,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     __ ldp(R20, THR,
@@ -579,14 +644,115 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
-                       FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
-                           FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
   ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
   while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
+#endif
+}
+
+void StubCodeCompiler::GenerateInterpretedFfiCallbackTrampolineStub() {
+  // This trampoline isn't called if the simulator is in use, it instead
+  // calls DLRT_DoInterpretedFfiCallback directly.
+#if defined(DART_DYNAMIC_MODULES)
+  Label body;
+
+  // Use the C stack for stack operations below.
+  SPILLS_LR_TO_FRAME(__ stp(
+      FP, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
+  __ MoveRegister(FP, CSP);
+
+  // Current stack picture (offsets are number of words):
+  //
+  //     ---------------- CSP/FP
+  //   0 LR (return link for second-level trampoline)
+  //   1 FP (from first-level trampoline)
+  //   2 function_handle (from CallbackMetadata)        \
+  //   3 DLRT_DoInterpretedFfiCallback entry point      |
+  //   4 R22 \                                          |
+  //   5 R21 |  callee-saved registers/saved THR        | native stack delta
+  //   6 R20 |  from first-level trampoline             |
+  //   7 THR /                                          |
+  //   8 LR (return link for first-level trampoline)    |
+  //   9 FP (from caller of first-level trampoline)     /
+  //     --------------- native caller's CSP
+
+  // Offsets from FP. Note that unlike the diagram above, these are expected
+  // by uses below to be in terms of bytes, not words.
+  const intptr_t function_handle_offset = 2 * target::kWordSize;
+  const intptr_t caller_stack_offset =
+      (2 + FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta) *
+      target::kWordSize;
+
+  // Store the parts of the CallbackContext to the stack in reverse order.
+  // The asserts check the assumptions in the pre-indexing stores below hold,
+  // otherwise CSP needs to be adjusted properly between stores.
+  ASSERT_EQUAL(18 * target::kWordSize, target::CallbackContext::InstanceSize());
+  ASSERT_EQUAL(17 * target::kWordSize, target::CallbackContext::sp_offset());
+  ASSERT_EQUAL(16 * target::kWordSize,
+               target::CallbackContext::return_struct_pointer_offset());
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
+  __ add(R10, FP, compiler::Operand(caller_stack_offset));
+  __ stp(R8, R10, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  ASSERT_EQUAL(8, target::CallbackContext::kNumDoubleArguments);
+  ASSERT_EQUAL(8 * target::kWordSize,
+               target::CallbackContext::double_arguments_offset());
+  __ fstp(V6, V7, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+          kDWord);
+  __ fstp(V4, V5, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+          kDWord);
+  __ fstp(V2, V3, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+          kDWord);
+  __ fstp(V0, V1, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex),
+          kDWord);
+  ASSERT_EQUAL(8, target::CallbackContext::kNumIntegerArguments);
+  ASSERT_EQUAL(0 * target::kWordSize,
+               target::CallbackContext::integer_arguments_offset());
+  __ stp(R6, R7, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ stp(R4, R5, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ stp(R2, R3, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+  __ stp(R0, R1, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+
+  // Calling DLRT_DoInterpretedFfiCallback:
+  // thread (arg 1)
+  __ mov(R0, THR);
+  // CallbackContext* (arg 2)
+  __ mov(R1, CSP);
+  // const PersistentHandle* (arg 3), DLRT_DoInterpretedFfiCallback entry point
+  __ ldp(R2, R10, Address(FP, function_handle_offset, Address::PairOffset));
+
+  __ CallCFunction(R10);  // DLRT_DoInterpretedFfiTrampoline
+
+  // Set the result registers according to the values in the CallbackContext.
+  // Just use offset operations since these aren't contiguous.
+  __ ldp(R0, R1,
+         Address(CSP,
+                 target::CallbackContext::integer_arguments_offset() +
+                     (0 * target::kWordSize),
+                 Address::PairOffset));
+  __ fldp(V0, V1,
+          Address(CSP,
+                  target::CallbackContext::double_arguments_offset() +
+                      (0 * target::kWordSize),
+                  Address::PairOffset),
+          kDWord);
+  __ fldp(V2, V3,
+          Address(CSP,
+                  target::CallbackContext::double_arguments_offset() +
+                      (2 * target::kWordSize),
+                  Address::PairOffset),
+          kDWord);
+  // Now pop the CallbackContext off the stack.
+  __ AddImmediate(CSP, CSP, target::CallbackContext::InstanceSize());
+
+  RESTORES_LR_FROM_FRAME(__ ldp(
+      FP, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
+  __ ret();
+#else
+  __ Breakpoint();  // not used unless dynamic modules are enabled.
 #endif
 }
 

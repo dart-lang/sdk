@@ -9236,7 +9236,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(getExpressionInfo(receiver));
+      flow.thisBinding_begin(
+        getExpressionInfo(receiver),
+        thisType: new SharedTypeView(node.variable.type),
+      );
     }
     ExpressionInferenceResult bodyResult = inferExpression(
       node.body,
@@ -9474,7 +9477,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isParameterless) {
-      flow.thisBinding_begin(receiverInfo);
+      flow.thisBinding_begin(
+        receiverInfo,
+        thisType: new SharedTypeView(node.variable.type),
+      );
     }
 
     flowAnalysis.labeledStatement_begin(internalLabel);

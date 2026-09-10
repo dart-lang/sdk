@@ -32,6 +32,7 @@ acov
 across
 activated
 actively
+acts
 adequate
 adi
 adjusts
@@ -529,6 +530,7 @@ dirname
 dirtify
 dirtifying
 dirty
+disables
 disagrees
 disallow
 disambiguating
@@ -1582,6 +1584,7 @@ relativize
 relax
 relaxes
 released
+reliable
 reliably
 relink
 reload

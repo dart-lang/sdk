@@ -11,12 +11,91 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibrarySdkDocTest);
     defineReflectiveTests(ImportLibrarySdkPrefixedTest);
     defineReflectiveTests(ImportLibrarySdkPrefixedWithShowTest);
     defineReflectiveTests(ImportLibrarySdkPriorityTest);
     defineReflectiveTests(ImportLibrarySdkTest);
     defineReflectiveTests(ImportLibrarySdkWithShowTest);
   });
+}
+
+@reflectiveTest
+class ImportLibrarySdkDocTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.importLibrarySdkDoc;
+
+  Future<void> test_withClass_commentReference() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    await resolveTestCode('''
+/// [Completer]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+library;
+
+/// [Completer]
+void f() {}
+''');
+  }
+
+  Future<void>
+  test_withClass_commentReference_existingLibraryDirective_docImports_directivesOrdering() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.comment_references, LintNames.directives_ordering],
+    );
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {
+  const Test(int p);
+}
+''');
+    await resolveTestCode('''
+/// @docImport 'dart:math';
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+  }
+
+  Future<void>
+  test_withClass_commentReference_existingLibraryDirective_docImports_directivesOrdering2() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.comment_references, LintNames.directives_ordering],
+    );
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {
+  const Test(int p);
+}
+''');
+    await resolveTestCode('''
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+///
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -97,6 +176,23 @@ void f() {
     await assertFixPriorityOrder([
       DartFixKind.importLibrarySdk,
       DartFixKind.importLibrarySdkShow,
+      DartFixKind.importLibraryProject1,
+    ]);
+  }
+
+  Future<void> test_sdksFirst_project1Doc() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/lib.dart', '''
+class Completer {}
+''');
+    await resolveTestCode('''
+/// [Completer]
+void f() {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.importLibrarySdkDoc,
+      DartFixKind.importLibrarySdk,
+      DartFixKind.importLibraryProject1Doc,
       DartFixKind.importLibraryProject1,
     ]);
   }
@@ -390,15 +486,13 @@ void f() {
   Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestCode('''
 @pi
-void f() {
-}
+void f() {}
 ''');
     await assertHasFix('''
 import 'dart:math';
 
 @pi
-void f() {
-}
+void f() {}
 ''');
   }
 }

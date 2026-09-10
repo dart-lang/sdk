@@ -1466,6 +1466,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   Never visitParameter(js.Parameter node) => unreachable(node);
 
   @override
+  Never visitRestParameter(js.RestParameter node) => unreachable(node);
+
+  @override
   js.Expression visitPostfix(js.Postfix node) {
     if (node.op == "++" || node.op == "--") {
       js.Expression argument = node.argument;

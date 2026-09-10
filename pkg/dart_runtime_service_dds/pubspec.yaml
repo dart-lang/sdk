@@ -15,12 +15,13 @@ dependencies:
   dtd: any
   json_rpc_2: any
   logging: any
+  meta: any
   path: any
   shelf: any
   shelf_proxy: any
+  stream_channel: any
   vm_service: any
   web_socket_channel: any
 
 dev_dependencies:
-  stream_channel: any
   test: any

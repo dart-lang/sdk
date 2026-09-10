@@ -695,19 +695,6 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    var params = PublishClosingLabelsParams(
-      uri: uriConverter.toClientUri(path),
-      labels: labels,
-    );
-    var message = NotificationMessage(
-      method: CustomMethods.publishClosingLabels,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    );
-    sendLspNotification(message);
-  }
-
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     if (errors.isEmpty && !_filesWithClientDiagnostics.contains(path)) {
       // Don't sent empty set if client is already empty.
@@ -904,9 +891,12 @@ class LspAnalysisServer extends AnalysisServer {
   bool shouldSendClosingLabelsFor(String file) {
     // Closing labels should only be sent for open (priority) files in the
     // workspace.
-    return (initializationOptions?.closingLabels ?? false) &&
-        priorityFiles.contains(file) &&
-        isAnalyzed(file);
+    var enabled =
+        // Legacy way for Dart-Code sending them
+        (initializationOptions?.closingLabels ?? false) ||
+        // New way (for Dart-Code + LSP-over-Legacy).
+        (_clientCapabilities?.closingLabels ?? false);
+    return enabled && priorityFiles.contains(file) && isAnalyzed(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -1274,7 +1264,15 @@ class LspInitializationOptions {
   final String? remoteName;
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
+
+  /// Whether closing labels have been enabled by initialization options.
+  ///
+  /// This is a legacy option that is supported for old versions of the
+  /// Dart-Code VS Code extension prior to October 2026. Once sufficient time
+  /// has passed this can be removed. The replacement is in the client
+  /// capabilities (in `experimental`, where other custom fields go).
   final bool closingLabels;
+
   final bool outline;
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
@@ -1358,7 +1356,7 @@ class LspServerContextManagerCallbacks
         unit,
       ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
 
-      analysisServer.publishClosingLabels(path, labels);
+      analysisServer.publishLspClosingLabels(path, labels);
     }
     if (analysisServer.shouldSendOutlineFor(path)) {
       var outline = DartUnitOutlineComputer(

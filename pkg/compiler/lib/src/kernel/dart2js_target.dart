@@ -230,7 +230,7 @@ class Dart2jsTarget extends Target {
         ),
         ir.ListLiteral(arguments.positional)..fileOffset = offset,
         ir.MapLiteral(
-            List<ir.MapLiteralEntry>.from(
+            List<ir.MapLiteralEntry>.of(
               arguments.named.map((ir.NamedExpression arg) {
                 return ir.MapLiteralEntry(
                   ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,

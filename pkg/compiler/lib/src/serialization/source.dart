@@ -847,7 +847,7 @@ class DataSourceReader {
               (int index) => ir.StructuralParameter(),
               growable: false,
             );
-        functionTypeVariables = List<ir.StructuralParameter>.from(
+        functionTypeVariables = List<ir.StructuralParameter>.of(
           functionTypeVariables,
         )..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {

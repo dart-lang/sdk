@@ -42,8 +42,18 @@ class VariableDeclarationResolver {
     }
 
     var element = node.declaredFragment!.element;
-    var isTopLevel =
-        element is FieldElement || element is TopLevelVariableElement;
+    bool isTopLevel;
+    bool bindsThis;
+    if (element is FieldElementImpl) {
+      isTopLevel = true;
+      bindsThis = !element.isStatic && element.isLate;
+    } else if (element is TopLevelVariableElement) {
+      isTopLevel = true;
+      bindsThis = false;
+    } else {
+      isTopLevel = false;
+      bindsThis = false;
+    }
 
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
     if (element is FieldElementImpl &&
@@ -74,13 +84,26 @@ class VariableDeclarationResolver {
         offset: beforeInitializerOffset,
       );
     }
+    if (bindsThis) {
+      _resolver.flowAnalysis.flow?.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(_resolver.thisType!),
+        offset: initializer.offset,
+      );
+    }
 
     var contextType =
         element is PropertyInducingElementImpl &&
             element.isTypeInferredFromInitializer
         ? UnknownInferredType.instance
         : element.type;
-    _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
+    _resolver.withThisAccessibility(
+      bindsThis || _resolver.isThisAccessible,
+      () => _resolver.analyzeExpression(
+        initializer!,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
       _resolver.flowAnalysis.getExpressionInfo(initializer),
@@ -93,6 +116,9 @@ class VariableDeclarationResolver {
           .unwrapTypeView();
     }
 
+    if (bindsThis) {
+      _resolver.flowAnalysis.flow?.thisBinding_end(offset: initializer.end);
+    }
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);

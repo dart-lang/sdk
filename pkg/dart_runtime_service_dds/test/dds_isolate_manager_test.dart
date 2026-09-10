@@ -31,6 +31,10 @@ final class FakeVmService extends Fake implements vm.VmService {
       (throw vm.SentinelException.parse('Sentinel', const <String, Object?>{}));
 
   @override
+  Future<vm.FlagList> getFlagList() async =>
+      vm.FlagList(flags: const <vm.Flag>[]);
+
+  @override
   Future<vm.Response> callMethod(
     String method, {
     Map<String, dynamic>? args,

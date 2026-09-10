@@ -1667,6 +1667,30 @@ class FieldTable : public AllStatic {
   static word OffsetOf(const dart::Field& field);
 };
 
+class CallbackMetadata : public AllStatic {
+ public:
+  static word InstanceSize();
+  static word entry_point_offset();
+  static word type_offset();
+  static word epilogue_offset();
+  static word caller_isolate_offset();
+  static word caller_isolate_group_offset();
+  static word function_handle_offset();
+  static word interpreted_runtime_entry_offset();
+};
+
+class CallbackContext : public AllStatic {
+ public:
+  static const word kNumIntegerArguments;
+  static const word kNumDoubleArguments;
+
+  static word InstanceSize();
+  static word integer_arguments_offset();
+  static word double_arguments_offset();
+  static word return_struct_pointer_offset();
+  static word sp_offset();
+};
+
 void UnboxFieldIfSupported(const dart::Field& field,
                            const dart::AbstractType& type);
 

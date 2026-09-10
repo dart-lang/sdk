@@ -36,10 +36,7 @@ void f(N? n) {
 ''');
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Hide others to use 'N' from 'lib1.dart'",
-        "Hide others to use 'N' from 'lib2.dart'",
-      ],
+      fixMessagesContains: ["'lib1.dart'", "'lib2.dart'"],
     );
     await assertHasFix('''
 import 'lib1.dart' hide N;
@@ -48,7 +45,7 @@ import 'lib2.dart';
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
     await assertHasFix('''
 import 'lib1.dart';
 import 'lib2.dart' hide N;
@@ -56,7 +53,7 @@ import 'lib2.dart' hide N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_double_aliased() async {
@@ -74,10 +71,7 @@ void f(i.N? n) {
 ''');
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Hide others to use 'N' from 'lib1.dart' as i",
-        "Hide others to use 'N' from 'lib2.dart' as i",
-      ],
+      fixMessagesContains: ["'lib1.dart'", "'lib2.dart'"],
     );
     await assertHasFix('''
 import 'lib1.dart' as i;
@@ -86,7 +80,7 @@ import 'lib2.dart' as i hide N;
 void f(i.N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as i");
+''', fixMessageContains: "'lib1.dart'");
     await assertHasFix('''
 import 'lib1.dart' as i hide N;
 import 'lib2.dart' as i;
@@ -94,7 +88,7 @@ import 'lib2.dart' as i;
 void f(i.N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as i");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_double_constant() async {
@@ -117,7 +111,7 @@ import 'lib2.dart' hide foo;
 void f() {
   print(foo);
 }
-''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_double_doubleExportedByImport() async {
@@ -142,7 +136,7 @@ import 'lib4.dart';
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib4.dart'",
+      fixMessageContains: "'lib4.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -192,7 +186,7 @@ import 'lib3.dart';
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
+      fixMessageContains: "'lib3.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -225,7 +219,7 @@ void foo(int i) {
   print(E(i.isDivisibleByThree));
 }
 ''',
-      matchFixMessage: "Hide others to use 'E' from 'lib1.dart'",
+      fixMessageContains: "'lib1.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -252,7 +246,7 @@ import 'lib2.dart' hide bar;
 void foo() {
   bar();
 }
-''', matchFixMessage: "Hide others to use 'bar' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_double_mixin() async {
@@ -273,7 +267,7 @@ import 'lib2.dart' hide M;
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
+      fixMessageContains: "'lib1.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -300,7 +294,7 @@ import 'lib2.dart';
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_double_oneHide_sort() async {
@@ -324,7 +318,7 @@ import 'lib2.dart';
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_double_oneShow() async {
@@ -347,7 +341,7 @@ import 'lib2.dart' hide N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_double_variable() async {
@@ -370,7 +364,7 @@ import 'lib2.dart' hide foo;
 void f() {
   print(foo);
 }
-''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_multiLevelParts() async {
@@ -440,7 +434,7 @@ part 'level2_other.dart';
 part 'test.dart';
 ''',
       target: join(testPackageLibPath, 'level1.dart'),
-      matchFixMessage: "Hide others to use 'A' from 'lib2.dart'",
+      fixMessageContains: "'lib2.dart'",
     );
   }
 
@@ -468,7 +462,7 @@ import 'lib2.dart';
 void foo() {
   bar();
 }
-''', matchFixMessage: "Hide others to use 'bar' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_part() async {
@@ -492,10 +486,7 @@ void f(N? n) {
 ''');
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Hide others to use 'N' from 'lib1.dart'",
-        "Hide others to use 'N' from 'lib2.dart'",
-      ],
+      fixMessagesContains: ["'lib1.dart'", "'lib2.dart'"],
     );
     await assertHasFix('''
 part of 'other.dart';
@@ -505,7 +496,7 @@ import 'lib2.dart';
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
     await assertHasFix('''
 part of 'other.dart';
 import 'lib1.dart';
@@ -514,7 +505,7 @@ import 'lib2.dart' hide N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_show_prefixed() async {
@@ -537,7 +528,7 @@ import 'lib2.dart' as l hide N;
 void f(l.N? n) {
   print(n);
 }
-''', matchFixMessage: "Hide others to use 'N' from 'lib1.dart' as l");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_static_member() async {
@@ -562,7 +553,7 @@ void f() {
   var _ = [N.new];
 }
 ''',
-      matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
+      fixMessageContains: "'lib2.dart'",
       filter: (error) => error.diagnosticCode == diag.ambiguousImport,
     );
   }
@@ -589,7 +580,7 @@ void f() {
   var _ = [l.N.new];
 }
 ''',
-      matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
+      fixMessageContains: "'lib2.dart'",
       filter: (error) => error.diagnosticCode == diag.ambiguousImport,
     );
   }
@@ -616,7 +607,7 @@ import 'lib3.dart' hide M;
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib1.dart'",
+      fixMessageContains: "'lib1.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -629,7 +620,7 @@ import 'lib3.dart' hide M;
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib2.dart'",
+      fixMessageContains: "'lib2.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -642,7 +633,7 @@ import 'lib3.dart';
 
 class C with M {}
 ''',
-      matchFixMessage: "Hide others to use 'M' from 'lib3.dart'",
+      fixMessageContains: "'lib3.dart'",
       filter: (error) {
         return error.diagnosticCode == diag.ambiguousImport;
       },
@@ -671,7 +662,7 @@ import 'lib2.dart' hide foo;
 void f() {
   print(foo);
 }
-''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart'");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_triple_twoAliased() async {
@@ -696,7 +687,7 @@ import 'lib2.dart' as lib hide foo;
 void f() {
   print(lib.foo);
 }
-''', matchFixMessage: "Hide others to use 'foo' from 'lib1.dart' as lib");
+''', fixMessageContains: "'lib1.dart'");
   }
 }
 
@@ -725,7 +716,7 @@ import 'lib2.dart' show N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_double_aliased() async {
@@ -743,10 +734,7 @@ void f(l.N? n) {
 ''');
     await assertHasFixesWithoutApplying(
       expectedNumberOfFixesForKind: 2,
-      matchFixMessages: [
-        "Remove show to use 'N' from 'lib1.dart' as l",
-        "Remove show to use 'N' from 'lib2.dart' as l",
-      ],
+      fixMessagesContains: ["'lib1.dart'", "'lib2.dart'"],
     );
     await assertHasFix('''
 import 'lib1.dart' as l hide N;
@@ -755,7 +743,7 @@ import 'lib2.dart' as l show N;
 void f(l.N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart' as l");
+''', fixMessageContains: "'lib2.dart'");
     await assertHasFix('''
 import 'lib1.dart' as l show N;
 import 'lib2.dart' as l hide N;
@@ -763,7 +751,7 @@ import 'lib2.dart' as l hide N;
 void f(l.N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib1.dart' as l");
+''', fixMessageContains: "'lib1.dart'");
   }
 
   Future<void> test_double_equal_importUris() async {
@@ -819,18 +807,18 @@ void f(N? n) {
   print(n);
 }
 ''');
-    await assertHasFixesWithoutApplying(
-      expectedNumberOfFixesForKind: 1,
-      matchFixMessages: ["Remove show to use 'N' from 'lib2.dart'"],
-    );
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 import 'lib1.dart' show M;
 import 'lib2.dart';
 
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+''',
+      expectedNumberOfFixesForKind: 1,
+      fixMessageContains: "'lib2.dart'",
+    );
   }
 
   Future<void> test_moreShow_sort() async {
@@ -859,7 +847,7 @@ void f(N? n, O? o) {
 }
 ''',
       filter: (error) => error.diagnosticCode == diag.ambiguousImport,
-      matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
+      fixMessageContains: "'lib2.dart'",
     );
   }
 
@@ -887,7 +875,7 @@ import 'lib2.dart' show N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_multipleCombinators2() async {
@@ -912,7 +900,7 @@ import 'lib2.dart' show N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_multipleCombinators3() async {
@@ -938,7 +926,7 @@ import 'lib2.dart' show N;
 void f(N? n) {
   print(n);
 }
-''', matchFixMessage: "Remove show to use 'N' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_one_show() async {
@@ -961,7 +949,7 @@ import 'lib2.dart';
 void f() {
   print(foo);
 }
-''', matchFixMessage: "Remove show to use 'foo' from 'lib2.dart'");
+''', fixMessageContains: "'lib2.dart'");
   }
 
   Future<void> test_triple_twoAliased() async {
@@ -986,6 +974,6 @@ import 'lib2.dart' as lib;
 void f() {
   print(lib.foo);
 }
-''', matchFixMessage: "Remove show to use 'foo' from 'lib2.dart' as lib");
+''', fixMessageContains: "'lib2.dart'");
   }
 }

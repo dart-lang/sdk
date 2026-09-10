@@ -73,6 +73,10 @@
   more efficient to convert between possibly-synchronous values at the Dart/JS
   boundary.
 
+- Added extension methods `R Function(JSArray<E>).toJSVarArgs` and `R
+  Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
+  arguments as an array rather than as separate arguments to the Dart function.
+
 #### `dart:mirrors`
 
 - The `dart:mirrors` library is now marked `@deprecated`, and will be removed

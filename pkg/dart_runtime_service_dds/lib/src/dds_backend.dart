@@ -19,9 +19,11 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'dds_client.dart';
 import 'dds_isolate_manager.dart';
 import 'dds_rpcs.dart';
 import 'dds_stream_manager.dart';
+import 'rpc_extensions.dart';
 
 final _logger = Logger('DartRuntimeServiceDdsBackend');
 
@@ -81,6 +83,14 @@ class DartRuntimeServiceDdsBackend
 
   @override
   shelf.Handler get httpHandler => _httpHandler;
+
+  @override
+  ClientManager<DartRuntimeServiceDdsBackend> clientManagerBuilder() {
+    return DdsClientManager(
+      backend: this,
+      eventStreamMethods: frontend.eventStreams,
+    );
+  }
 
   /// Sets the external DevTools URI to redirect DevTools requests to.
   void setExternalDevToolsUri(Uri uri) {
@@ -258,6 +268,13 @@ class DartRuntimeServiceDdsBackend
     required Uri httpUri,
     required Uri wsUri,
   }) async {
+    try {
+      await _vmServiceClient.yieldControlToDds(uri: httpUri);
+    } on vm.RPCError catch (e, st) {
+      _logger.severe('Failed to yield control to DDS', e, st);
+      rethrow;
+    }
+
     final hostedDtd = _hostedDartToolingDaemon;
     final secret = hostedDtd?.secret;
     if (hostedDtd != null && secret != null) {

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -78,17 +79,28 @@ void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
 
 void sendAnalysisNotificationClosingLabels(
   LegacyAnalysisServer server,
-  String file,
+  String filePath,
   LineInfo lineInfo,
   CompilationUnit dartUnit,
 ) {
-  _sendNotification(server, () {
-    var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
-    var params = protocol.AnalysisClosingLabelsParams(file, labels);
-    server.sendNotification(
-      params.toNotification(clientUriConverter: server.uriConverter),
-    );
-  });
+  var labels = DartUnitClosingLabelsComputer(lineInfo, dartUnit).compute();
+
+  var useLspLabels = server.editorClientCapabilities.closingLabels;
+  if (useLspLabels) {
+    // Send LSP closing labels.
+    var lspLabels = labels
+        .map((l) => toClosingLabel(dartUnit.lineInfo, l))
+        .toList();
+    server.publishLspClosingLabels(filePath, lspLabels);
+  } else {
+    // Send Legacy closing labels.
+    _sendNotification(server, () {
+      var params = protocol.AnalysisClosingLabelsParams(filePath, labels);
+      server.sendNotification(
+        params.toNotification(clientUriConverter: server.uriConverter),
+      );
+    });
+  }
 }
 
 void sendAnalysisNotificationFlushResults(

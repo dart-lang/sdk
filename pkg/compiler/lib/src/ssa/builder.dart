@@ -868,7 +868,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     });
 
     _addImplicitInstantiation(thisType);
-    List<InterfaceType> instantiatedTypes = List<InterfaceType>.from(
+    List<InterfaceType> instantiatedTypes = List<InterfaceType>.of(
       _currentImplicitInstantiations,
     );
 
@@ -3704,12 +3704,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     )!;
     localsHandler.updateLocal(switchTarget, graph.addConstantNull(closedWorld));
 
-    var switchCases = List<ir.SwitchCase?>.from(switchStatement.cases);
+    var switchCases = List<ir.SwitchCase?>.of(switchStatement.cases);
     if (!hasDefault) {
       // Use null as the marker for a synthetic default clause.
       // The synthetic default is added because otherwise there would be no
       // good place to give a default value to the local.
-      switchCases = List<ir.SwitchCase?>.from(switchCases);
+      switchCases = List<ir.SwitchCase?>.of(switchCases);
       switchCases.add(null);
     }
 
@@ -4898,9 +4898,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     ir.Arguments arguments,
   ) {
     // Visit arguments in source order, then re-order and fill in defaults.
-    List<HInstruction?> values = List.from(
-      _visitPositionalArguments(arguments),
-    );
+    List<HInstruction?> values = List.of(_visitPositionalArguments(arguments));
 
     if (target.namedParameters.isNotEmpty) {
       // Only anonymous factory or extension type literal constructors involving
@@ -6803,7 +6801,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     )..sourceInformation = sourceInformation;
 
     if (_currentImplicitInstantiations.isNotEmpty) {
-      instruction.instantiatedTypes = List<InterfaceType>.from(
+      instruction.instantiatedTypes = List<InterfaceType>.of(
         _currentImplicitInstantiations,
       );
     }

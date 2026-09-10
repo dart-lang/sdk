@@ -1,5 +1,5 @@
 name: dap_adapters
-version: 1.0.0
+version: 1.0.1-dev
 description: >-
   Dart Debug Adapter Protocol (DAP) adapters translating the DAP protocol
   to the Dart VM Service protocol.

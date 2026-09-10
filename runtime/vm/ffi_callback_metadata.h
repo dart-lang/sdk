@@ -114,6 +114,10 @@ class FfiCallbackMetadata {
     // safe because Instructions objects are never moved by the GC.
     uword target_entry_point_;
 
+    // A persistent handle to the callback's function if the callback target
+    // is interpreted, otherwise nullptr.
+    PersistentHandle* function_handle_;
+
     // For async callbacks, this is the send port. For sync callbacks this
     // is a persistent handle to the callback's closure, or null.
     uint64_t context_;
@@ -121,31 +125,27 @@ class FfiCallbackMetadata {
     Metadata(Isolate* target_isolate,
              TrampolineType trampoline_type,
              uword target_entry_point,
+             PersistentHandle* function_handle,
              uint64_t context)
         : target_isolate_(target_isolate),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
+          function_handle_(function_handle),
           context_(context) {}
 
     Metadata(IsolateGroup* target_isolate_group,
              TrampolineType trampoline_type,
              uword target_entry_point,
+             PersistentHandle* function_handle,
              uint64_t context)
         : target_isolate_group_(target_isolate_group),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
+          function_handle_(function_handle),
           context_(context) {}
 
    public:
     friend class FfiCallbackMetadata;
-    bool IsSameCallback(const Metadata& other) const {
-      // Not checking the list links, because they can change when other
-      // callbacks are deleted.
-      return target_isolate_ == other.target_isolate_ &&
-             trampoline_type_ == other.trampoline_type_ &&
-             target_entry_point_ == other.target_entry_point_ &&
-             context_ == other.context_;
-    }
 
     // Whether the callback is still alive.
     bool IsLive() const {
@@ -181,6 +181,12 @@ class FfiCallbackMetadata {
              trampoline_type_ ==
                  TrampolineType::kSyncIsolateGroupBoundStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
+    }
+
+    // The persistent handle to the FFI callback function if available.
+    PersistentHandle* function_handle() const {
+      ASSERT(IsLive());
+      return function_handle_;
     }
 
     bool is_isolate_group_bound() const {
@@ -233,12 +239,14 @@ class FfiCallbackMetadata {
     MetadataEntry(Isolate* target_isolate,
                   TrampolineType trampoline_type,
                   uword target_entry_point,
+                  PersistentHandle* function_handle,
                   uint64_t context,
                   MetadataEntry* list_prev,
                   MetadataEntry* list_next)
         : metadata_(target_isolate,
                     trampoline_type,
                     target_entry_point,
+                    function_handle,
                     context),
           list_prev_(list_prev),
           list_next_(list_next) {}
@@ -246,12 +254,14 @@ class FfiCallbackMetadata {
     MetadataEntry(IsolateGroup* target_isolate_group,
                   TrampolineType trampoline_type,
                   uword target_entry_point,
+                  PersistentHandle* function_handle,
                   uint64_t context,
                   MetadataEntry* list_prev,
                   MetadataEntry* list_next)
         : metadata_(target_isolate_group,
                     trampoline_type,
                     target_entry_point,
+                    function_handle,
                     context),
           list_prev_(list_prev),
           list_next_(list_next) {}
@@ -347,8 +357,8 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 6;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 260;
-  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 6;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 288;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 8;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
   static constexpr intptr_t kNativeCallbackSharedStubSize = 210;
@@ -360,6 +370,8 @@ class FfiCallbackMetadata {
 #else
 #error What architecture?
 #endif
+
+  static bool IsInterpretedTrampolineEntryPoint(uword entry_point);
 
   // Visible for testing.
 #if defined(TESTING)
@@ -383,6 +395,7 @@ class FfiCallbackMetadata {
                                  IsolateGroup* target_isolate_group,
                                  TrampolineType trampoline_type,
                                  uword target_entry_point,
+                                 PersistentHandle* function_handle,
                                  uint64_t context,
                                  MetadataEntry** list_head);
   Trampoline CreateSyncFfiCallbackImpl(Isolate* isolate,
@@ -394,7 +407,7 @@ class FfiCallbackMetadata {
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
   static PersistentHandle* CreatePersistentHandle(IsolateGroup* isolate_group,
-                                                  const Closure& closure);
+                                                  const Object& obj);
 
   static FfiCallbackMetadata* singleton_;
 

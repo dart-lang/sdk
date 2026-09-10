@@ -1050,7 +1050,7 @@ class CompilerOptions implements DiagnosticOptions {
         "[librariesSpecificationUri] should be a file: $librariesSpecificationUri",
       );
     }
-    Map<fe.ExperimentalFlag, bool> experimentalFlags = Map.from(
+    Map<fe.ExperimentalFlag, bool> experimentalFlags = Map.of(
       fe.defaultExperimentalFlags,
     );
     experimentalFlags.addAll(explicitExperimentalFlags);

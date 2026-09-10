@@ -54,7 +54,7 @@ class VariableScope {
   VariableScope.deepCopyOf(VariableScope other)
     : variables = other.variables == null
           ? null
-          : Map<Local, TypeInformation>.from(other.variables!),
+          : Map<Local, TypeInformation>.of(other.variables!),
       tryBlock = other.tryBlock,
       copyOf = other.copyOf ?? other,
       _level = other._level,

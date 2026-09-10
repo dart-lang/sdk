@@ -259,7 +259,11 @@ class U<T> {
   test_combinatorName() {
     var names = _computeReferencedNames('''
 import 'a.dart' show A hide B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart' show C hide D;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
   }

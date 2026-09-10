@@ -1317,6 +1317,10 @@ class ServerContextManagerCallbacks
       AnalysisService.CLOSING_LABELS,
       path,
     )) {
+      // Closing labels are controlled by the subscription for the legacy server
+      // even if we are configured to send the notifications over LSP. For
+      // the real LSP server, closing labels are are automatically sent for all
+      // open (priority files).
       _runDelayed(() {
         sendAnalysisNotificationClosingLabels(
           analysisServer,

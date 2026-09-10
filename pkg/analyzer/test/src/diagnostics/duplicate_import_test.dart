@@ -133,13 +133,13 @@ class B {}
     await resolveFileWithDiagnostics(lib2, r'''
 library L;
 import 'lib1.dart' as M show A hide B;
-//                      ^^^^^^^^^^^^^
-// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+//                             ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'lib1.dart' as M show A hide B;
 //     ^^^^^^^^^^^
 // [diag.duplicateImport] Duplicate import.
-//                      ^^^^^^^^^^^^^
-// [diag.multipleCombinators] Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results.
+//                             ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 M.A a = M.A();
 ''');
   }

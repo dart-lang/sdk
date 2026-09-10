@@ -11676,8 +11676,23 @@ multipleClauses = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments multipleCombinators =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_combinators',
+      problemMessage:
+          "At most one 'show' or 'hide' combinator can be used on an import or "
+          "export directive.",
+      correctionMessage:
+          "Try combining all of the combinators into a single combinator.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'multiple_combinators',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
-multipleCombinators = DiagnosticWithoutArgumentsImpl(
+multipleCombinatorsDeprecated = DiagnosticWithoutArgumentsImpl(
   name: 'multiple_combinators',
   problemMessage:
       "Using multiple 'hide' or 'show' combinators is never necessary and often "
@@ -11685,7 +11700,7 @@ multipleCombinators = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a single combinator.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'multiple_combinators',
+  uniqueName: 'multiple_combinators_deprecated',
   expectedTypes: [],
 );
 

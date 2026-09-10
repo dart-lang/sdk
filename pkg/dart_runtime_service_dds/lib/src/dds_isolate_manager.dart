@@ -139,6 +139,8 @@ final class DdsRunningIsolate {
   String toString() => 'DdsRunningIsolate(name: $name id: $id)';
 }
 
+final _logger = Logger('DdsIsolateManager');
+
 /// An [IsolateManager] implementation for DDS that coordinates isolate
 /// lifecycle events and enforces multi-client resume permissions across
 /// connected tooling.
@@ -201,11 +203,23 @@ final class DdsIsolateManager extends IsolateManager {
                     isolate.running();
                   }
                 })
-                .catchError((_) {}),
+                .catchError((Object e, StackTrace st) {
+                  // Isolates can terminate between getVM and getIsolate,
+                  // resulting in an RPCError or SentinelException.
+                  if (e is! vm.RPCError && e is! vm.SentinelException) {
+                    _logger.warning(
+                      'Failed to fetch initial state for isolate $id',
+                      e,
+                      st,
+                    );
+                  }
+                }),
           );
         }
       }
-    } catch (_) {}
+    } on vm.RPCError catch (e, st) {
+      _logger.warning('Failed to fetch VM isolate list', e, st);
+    }
 
     await _determineRequireUserPermissionToResumeFromFlags();
   }
@@ -228,7 +242,9 @@ final class DdsIsolateManager extends IsolateManager {
       if (pauseOnStart == true) mask |= PauseTypeMasks.pauseOnStartMask;
       if (pauseOnExit == true) mask |= PauseTypeMasks.pauseOnExitMask;
       requireUserPermissionToResumeMask = mask;
-    } catch (_) {}
+    } on vm.RPCError catch (e, st) {
+      _logger.warning('Failed to query VM flags for pause policies', e, st);
+    }
   }
 
   /// Handles incoming isolate lifecycle and pause events received from the

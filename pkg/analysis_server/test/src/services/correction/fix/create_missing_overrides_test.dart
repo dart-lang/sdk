@@ -1168,7 +1168,7 @@ class B implements A {
       filter: (error) =>
           error.diagnosticCode ==
           diag.nonAbstractClassInheritsAbstractMemberOne,
-      matchFixMessage: 'Create 1 missing override',
+      fixMessageContains: 'Create 1 missing override',
     );
   }
 
