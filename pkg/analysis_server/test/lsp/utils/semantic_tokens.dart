@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 
 /// A helper enum to combine both standard and custom modifiers so that they
 /// can all be used as DotShorthands for improved readability in test
@@ -90,11 +91,12 @@ enum AllSemanticTokenTypes {
 }
 
 mixin SemanticTokensTestMixin {
-  String get eol;
-
   /// Decode tokens according to the LSP spec and pair with relevant file contents.
   List<Token> decodeSemanticTokens(String content, SemanticTokens tokens) {
-    var contentLines = content.split(eol).map((line) => '$line$eol').toList();
+    var contentLines = content
+        .split(testEol)
+        .map((line) => '$line$testEol')
+        .toList();
     var results = <Token>[];
 
     var lastLine = 0;

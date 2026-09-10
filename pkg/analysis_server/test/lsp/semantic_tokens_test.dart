@@ -2547,7 +2547,7 @@ void f() {
   }
 
   /// Initializes the server with [content] in [uri] and then checks the
-  ///  semantic tokens for the marked range match [expected].
+  /// semantic tokens for the marked range match [expected].
   ///
   /// [content] will be normalized for the line endings being used for the test
   /// run.

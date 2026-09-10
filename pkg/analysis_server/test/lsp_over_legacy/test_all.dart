@@ -26,6 +26,7 @@ import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'inlay_hint_test.dart' as inlay_hint;
 import 'references_test.dart' as references;
+import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'signature_help_test.dart' as signature_help;
 import 'type_definition_test.dart' as type_definition;
 import 'type_hierarchy_test.dart' as type_hierarchy;
@@ -57,6 +58,7 @@ void main() {
     implementation.main();
     inlay_hint.main();
     references.main();
+    semantic_tokens.main();
     signature_help.main();
     type_definition.main();
     type_hierarchy.main();
