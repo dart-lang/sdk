@@ -1996,7 +1996,7 @@ class RestParameter extends Parameter {
       visitor.visitRestParameter(this, arg);
 
   @override
-  This _clone() => This();
+  RestParameter _clone() => RestParameter(name);
 }
 
 class This extends Parameter {

@@ -1288,6 +1288,9 @@ extension FunctionToJSExportedDartFunctionVarArgs<
     on R Function(JSArray<E>) {
   /// Converts this [Function] to a [JSFunction] that passes all of its
   /// arguments as a [List] to this function.
+  ///
+  /// This is less efficient than [FunctionToJSExportedDartFunction.toJS], and
+  /// should only be used when var args specifically are necessary.
   external JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs;
 }
 
@@ -1302,6 +1305,10 @@ extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
     on R Function(T, JSArray<E>) {
   /// Converts this [Function] to a [JSFunction] that passes the `this` value
   /// along with all of its arguments as a [List] to this function.
+  ///
+  /// This is less efficient than
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis], and should only be
+  /// used when var args specifically are necessary.
   external JSExportedDartFunction<R Function(T, JSArray<E>)>
   get toJSCaptureThisVarArgs;
 }
