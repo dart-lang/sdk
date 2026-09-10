@@ -8,12 +8,51 @@ import 'package:path/path.dart' as path;
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'sdk.dart';
+import 'telemetry/project_cache.dart';
+import 'telemetry/pubspec_scanner.dart';
+
+export 'telemetry/pubspec_scanner.dart' show PubspecTelemetry;
 
 const String _dartDirectoryName = '.dart';
 
 const String analyticsDisabledNoticeMessage =
     'Analytics reporting disabled. '
     'In order to enable it, run: dart --enable-analytics';
+
+/// Safely retrieves or computes pubspec telemetry for [dir] using [cache].
+///
+/// If [dir] is `null`, defaults to [Directory.current].
+/// If [cache] is `null`, defaults to a newly instantiated [ProjectTelemetryCache].
+///
+/// Uses [ProjectTelemetryCache] to avoid re-scanning on every CLI invocation.
+/// Returns `null` if no pubspec is found or if any error occurs, guaranteeing
+/// that telemetry collection never crashes the CLI.
+PubspecTelemetry? collectPubspecTelemetry({
+  Directory? dir,
+  ProjectTelemetryCache? cache,
+}) {
+  try {
+    final targetDir = dir ?? Directory.current;
+    final pubspecFile = findPubspecFile(targetDir);
+    if (pubspecFile == null) return null;
+
+    final rootPath = pubspecFile.parent.path;
+    final projectCache = cache ?? ProjectTelemetryCache();
+
+    final cached = projectCache.get(rootPath);
+    if (cached != null) {
+      return cached;
+    }
+
+    final scanned = scanPubspecTelemetry(pubspecFile.parent);
+    if (scanned != null) {
+      projectCache.set(rootPath, scanned);
+    }
+    return scanned;
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Create the `Analytics` instance to be used to report analytics.
 Analytics createUnifiedAnalytics({bool disableAnalytics = false}) {
