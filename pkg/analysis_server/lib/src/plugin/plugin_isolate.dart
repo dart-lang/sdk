@@ -214,7 +214,9 @@ class PluginIsolate {
   /// Sets the analysis roots, which may be subdirectories of the context roots.
   void setAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
     _analysisRoots = params;
-    _updatePluginRoots();
+    if (contextRoots.isNotEmpty) {
+      _updatePluginRoots();
+    }
   }
 
   /// Starts a new isolate that is running the plugin.
@@ -247,6 +249,60 @@ class PluginIsolate {
     return doneFuture;
   }
 
+  /// Computes the effective analysis roots for this plugin by intersecting
+  /// any client-specified [_analysisRoots] with [contextRoots].
+  AnalysisSetAnalysisRootsParams _computeEffectiveAnalysisRoots() {
+    var analysisRoots = _analysisRoots;
+    if (analysisRoots == null) {
+      return AnalysisSetAnalysisRootsParams([
+        for (var contextRoot in contextRoots) contextRoot.root.path,
+      ], const []);
+    }
+
+    var effectiveIncluded = <String>{};
+    var effectiveExcluded = <String>{};
+
+    for (var contextRoot in contextRoots) {
+      var pathContext = contextRoot.resourceProvider.pathContext;
+      var contextPath = contextRoot.root.path;
+
+      // Skip if the context root is completely excluded by client excluded
+      // paths.
+      var isContextExcluded = analysisRoots.excluded.any(
+        (e) => pathContext.isWithin(e, contextPath) || e == contextPath,
+      );
+      if (isContextExcluded) continue;
+
+      // Check if any client included path contains this context root.
+      var isContextCovered = analysisRoots.included.any(
+        (i) => pathContext.isWithin(i, contextPath) || i == contextPath,
+      );
+      if (isContextCovered) {
+        effectiveIncluded.add(contextPath);
+      } else {
+        // Check for subpaths within this context root.
+        for (var clientIncluded in analysisRoots.included) {
+          if (pathContext.isWithin(contextPath, clientIncluded)) {
+            effectiveIncluded.add(clientIncluded);
+          }
+        }
+      }
+
+      // Add client exclusions that fall inside this context root.
+      for (var clientExcluded in analysisRoots.excluded) {
+        if (pathContext.isWithin(contextPath, clientExcluded)) {
+          effectiveExcluded.add(clientExcluded);
+        }
+      }
+      effectiveExcluded.addAll(contextRoot.excludedPaths);
+    }
+
+    return AnalysisSetAnalysisRootsParams(
+      effectiveIncluded.toList(),
+      effectiveExcluded.toList(),
+    );
+  }
+
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
     return ServerIsolateChannel(
@@ -274,15 +330,13 @@ class PluginIsolate {
     );
 
     // If analysis roots have been set by the client, send an
-    // `analysis.setAnalysisRoots` request to the plugin. But if not, go ahead
-    // and send this request using the context roots. New plugins only respect
-    // the `analysis.setAnalysisRoots` request, and not the
-    // `analysis.setContextRoots` request.
-    var analysisRoots =
-        _analysisRoots ??
-        AnalysisSetAnalysisRootsParams([
-          for (var contextRoot in contextRoots) contextRoot.root.path,
-        ], []);
+    // `analysis.setAnalysisRoots` request to the plugin containing the
+    // intersection of the client analysis roots and this plugin's context
+    // roots. But if not, go ahead and send this request using the context
+    // roots. Plugin isolates running on the analysis_server_plugin version
+    // >= 0.3.16 only respect the `analysis.setAnalysisRoots` request, and not
+    // the `analysis.setContextRoots` request.
+    var analysisRoots = _computeEffectiveAnalysisRoots();
     sendRequest(analysisRoots);
   }
 }
