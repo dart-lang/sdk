@@ -144,8 +144,6 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'format',
           enabledExperiments: '',
-          pubspecHasFlutterSdk: false,
-          pubspecEnvironmentSdk: '^3.0.0',
         ),
       ]);
     });
@@ -174,9 +172,9 @@ void main() {
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
         test(experiment.name, () async {
-          final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
+              final p = project(mainSrc: experiment.validation);
               await pub.withHttpClient(client: http.Client(), () async {
                 final analytics = await p.runLocalWithFakeAnalytics([
                   'run',

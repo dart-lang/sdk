@@ -72,7 +72,12 @@ dependencies:
         },
       ]);
 
-      final telemetry = collectPubspecTelemetry(dir: tempDir, cache: cache);
+      final now = 1752000000;
+      final telemetry = collectPubspecTelemetry(
+        dir: tempDir,
+        cache: cache,
+        nowSeconds: now,
+      );
       expect(telemetry, isNotNull);
       expect(telemetry!.publicDependencies, {'path'});
       expect(telemetry.hasFlutterSdk, isFalse);
@@ -125,10 +130,7 @@ dependencies:
           dir: tempDir,
           cache: cache,
         );
-        expect(rootTelemetry, isNotNull);
-        expect(rootTelemetry!.publicDependencies, {'path'});
-        expect(rootTelemetry.hasFlutterSdk, isFalse);
-        expect(rootTelemetry.environmentSdk, '^3.5.0');
+        expect(rootTelemetry, isNull);
       },
     );
 

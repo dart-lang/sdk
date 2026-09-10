@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_data_home/dart_data_home.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import 'pubspec_scanner.dart';
@@ -21,7 +20,6 @@ import 'pubspec_scanner.dart';
 /// - Silent failure guarantee via complete `try-catch` isolation.
 class ProjectTelemetryCache {
   static const int _maxProjects = 100;
-  static const int _ttlSeconds = 60 * 60 * 24; // 24 hours
   static const int supportedVersion = 1;
 
   final File cacheFile;
@@ -36,13 +34,9 @@ class ProjectTelemetryCache {
             ),
           );
 
-  /// Retrieves cached telemetry for [projectPath] if it exists and was
-  /// evaluated within the last 24 hours. Returns `null` on cache miss,
-  /// expiration, or any filesystem/parsing error.
-  PubspecTelemetry? get(
-    String projectPath, {
-    @visibleForTesting int? nowSeconds,
-  }) {
+  /// Retrieves the raw cache entry for [projectPath]. Returns `null` on cache miss
+  /// or any filesystem/parsing error.
+  ProjectCacheEntry? getEntry(String projectPath) {
     try {
       if (!cacheFile.existsSync()) {
         return null;
@@ -53,29 +47,24 @@ class ProjectTelemetryCache {
       );
       if (doc == null) return null;
 
-      final key = _hashPath(projectPath);
+      final key = hash(projectPath);
       final entry = doc.projects[key];
       if (entry == null) return null;
 
-      final now = nowSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      if (now - entry.lastEvaluated >= _ttlSeconds ||
-          now < entry.lastEvaluated) {
-        return null; // Expired or future timestamp anomaly
-      }
-
-      return entry.toTelemetry();
+      return entry;
     } catch (_) {
       return null; // Fail silently
     }
   }
 
   /// Writes or updates the cache entry for [projectPath] with [telemetry],
-  /// updating `last_evaluated` to now and evicting the oldest entries if the
+  /// updating `last_sent_seconds` to now and evicting the oldest entries if the
   /// total exceeds 100 projects.
   void set(
     String projectPath,
     PubspecTelemetry telemetry, {
-    @visibleForTesting int? nowSeconds,
+    required String contentHash,
+    int? nowSeconds,
   }) {
     try {
       var doc = ProjectCacheDocument();
@@ -92,19 +81,21 @@ class ProjectTelemetryCache {
         }
       }
 
-      final key = _hashPath(projectPath);
+      final key = hash(projectPath);
       final now = nowSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
       doc.projects[key] = ProjectCacheEntry.fromTelemetry(
         telemetry,
-        evaluatedAtSeconds: now,
+        sentAtSeconds: now,
+        contentHash: contentHash,
       );
 
-      // LRU Eviction: if exceeding 100 projects, remove oldest by last_evaluated
+      // LRU Eviction: if exceeding 100 projects, remove oldest by last_sent_seconds
       if (doc.projects.length > _maxProjects) {
         final entries = doc.projects.entries.toList()
           ..sort(
-            (a, b) => a.value.lastEvaluated.compareTo(b.value.lastEvaluated),
+            (a, b) =>
+                a.value.lastSentSeconds.compareTo(b.value.lastSentSeconds),
           );
 
         while (entries.length > _maxProjects) {
@@ -125,7 +116,7 @@ class ProjectTelemetryCache {
   }
 
   /// Computes a 64-bit FNV-1a hash of [input] and returns it as a 16-char hex string.
-  static String _hashPath(String input) {
+  static String hash(String input) {
     var hash = 0xcbf29ce484222325;
     for (var i = 0; i < input.length; i++) {
       hash = (hash ^ input.codeUnitAt(i)) * 0x100000001b3;
@@ -137,13 +128,15 @@ class ProjectTelemetryCache {
 /// A strongly-typed model representing an individual project entry in the
 /// telemetry disk cache.
 final class ProjectCacheEntry {
-  final int lastEvaluated;
+  final int lastSentSeconds;
+  final String contentHash;
   final Set<String> publicDependencies;
   final bool hasFlutterSdk;
   final String? environmentSdk;
 
   const ProjectCacheEntry({
-    required this.lastEvaluated,
+    required this.lastSentSeconds,
+    required this.contentHash,
     required this.publicDependencies,
     required this.hasFlutterSdk,
     this.environmentSdk,
@@ -151,9 +144,11 @@ final class ProjectCacheEntry {
 
   factory ProjectCacheEntry.fromTelemetry(
     PubspecTelemetry telemetry, {
-    required int evaluatedAtSeconds,
+    required int sentAtSeconds,
+    required String contentHash,
   }) => ProjectCacheEntry(
-    lastEvaluated: evaluatedAtSeconds,
+    lastSentSeconds: sentAtSeconds,
+    contentHash: contentHash,
     publicDependencies: telemetry.publicDependencies,
     hasFlutterSdk: telemetry.hasFlutterSdk,
     environmentSdk: telemetry.environmentSdk,
@@ -166,7 +161,8 @@ final class ProjectCacheEntry {
   );
 
   Map<String, Object?> toJson() => {
-    'last_evaluated': lastEvaluated,
+    'last_sent_seconds': lastSentSeconds,
+    'content_hash': contentHash,
     'public_dependencies': publicDependencies.toList()..sort(),
     'has_flutter_sdk': hasFlutterSdk,
     'environment_sdk': environmentSdk,
@@ -174,13 +170,15 @@ final class ProjectCacheEntry {
 
   static ProjectCacheEntry? fromJson(Object? json) => switch (json) {
     {
-      'last_evaluated': int lastEvaluated,
+      'last_sent_seconds': int lastSentSeconds,
+      'content_hash': String contentHash,
       'public_dependencies': List<dynamic> publicDeps,
       'has_flutter_sdk': bool hasFlutterSdk,
       'environment_sdk': String? environmentSdk,
     } =>
       ProjectCacheEntry(
-        lastEvaluated: lastEvaluated,
+        lastSentSeconds: lastSentSeconds,
+        contentHash: contentHash,
         publicDependencies: publicDeps.whereType<String>().toSet(),
         hasFlutterSdk: hasFlutterSdk,
         environmentSdk: environmentSdk,
