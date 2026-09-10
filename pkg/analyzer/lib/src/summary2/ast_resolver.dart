@@ -118,6 +118,7 @@ class AstResolver {
     ExpressionImpl Function() getNode, {
     TypeImpl contextType = UnknownInferredType.instance,
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
   }) {
     ExpressionImpl node = getNode();
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
@@ -131,7 +132,13 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
+    _resolverVisitor.withThisAccessibility(
+      isThisAccessible,
+      () => _resolverVisitor.analyzeExpression(
+        node,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();

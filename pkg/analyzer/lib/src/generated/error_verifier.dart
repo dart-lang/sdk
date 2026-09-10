@@ -2497,12 +2497,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitThisExpression(ThisExpression node) {
-    _checkForInvalidReferenceToThis(node);
-    super.visitThisExpression(node);
-  }
-
-  @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
     checkForUseOfVoidResult(node.expression2);
@@ -6434,15 +6428,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             .withArguments(modifier: keyword.lexeme)
             .at(keyword),
       );
-    }
-  }
-
-  /// Verify that the usage of the given 'this' is valid.
-  ///
-  /// See [diag.invalidReferenceToThis].
-  void _checkForInvalidReferenceToThis(ThisExpression expression) {
-    if (!_thisContext.allowsThis) {
-      diagnosticReporter.report(diag.invalidReferenceToThis.at(expression));
     }
   }
 
