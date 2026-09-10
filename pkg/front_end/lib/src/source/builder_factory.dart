@@ -1192,10 +1192,8 @@ class BuilderFactory {
     required String name,
     required UriOffsetLength uriOffset,
     required FieldDeclaration? fieldDeclaration,
-    required GetterDeclaration? getterDeclaration,
-    required List<GetterDeclaration> getterAugmentations,
-    required SetterDeclaration? setterDeclaration,
-    required List<SetterDeclaration> setterAugmentations,
+    required List<GetterDeclaration> getterDeclarations,
+    required List<SetterDeclaration> setterDeclarations,
     required bool isStatic,
     required bool inPatch,
   }) {
@@ -1245,10 +1243,8 @@ class BuilderFactory {
       libraryBuilder: _enclosingLibraryBuilder,
       declarationBuilder: _declarationBuilder,
       fieldDeclaration: fieldDeclaration,
-      getterDeclaration: getterDeclaration,
-      getterAugmentations: getterAugmentations,
-      setterDeclaration: setterDeclaration,
-      setterAugmentations: setterAugmentations,
+      getterDeclarations: getterDeclarations,
+      setterDeclarations: setterDeclarations,
       isStatic: isStatic,
       nameScheme: nameScheme,
       references: references,
@@ -1256,14 +1252,8 @@ class BuilderFactory {
 
     fieldDeclaration?.createFieldEncoding(propertyBuilder);
 
-    getterDeclaration?.createGetterEncoding(
-      _problemReporting,
-      propertyBuilder,
-      propertyEncodingStrategy,
-      _typeParameterFactory,
-    );
-    for (GetterDeclaration augmentation in getterAugmentations) {
-      augmentation.createGetterEncoding(
+    for (GetterDeclaration getterDeclaration in getterDeclarations) {
+      getterDeclaration.createGetterEncoding(
         _problemReporting,
         propertyBuilder,
         propertyEncodingStrategy,
@@ -1271,14 +1261,8 @@ class BuilderFactory {
       );
     }
 
-    setterDeclaration?.createSetterEncoding(
-      _problemReporting,
-      propertyBuilder,
-      propertyEncodingStrategy,
-      _typeParameterFactory,
-    );
-    for (SetterDeclaration augmentation in setterAugmentations) {
-      augmentation.createSetterEncoding(
+    for (SetterDeclaration setterDeclaration in setterDeclarations) {
+      setterDeclaration.createSetterEncoding(
         _problemReporting,
         propertyBuilder,
         propertyEncodingStrategy,
@@ -2648,10 +2632,14 @@ class _PropertyPreBuilder extends _PreBuilder {
       isStatic: isStatic,
       uriOffset: uriOffset,
       fieldDeclaration: _getterDeclaration?.declarations.field,
-      getterDeclaration: _getterDeclaration?.declarations.getter,
-      getterAugmentations: _getterAugmentations,
-      setterDeclaration: _setterDeclaration?.declarations.setter,
-      setterAugmentations: _setterAugmentations,
+      getterDeclarations: [
+        ?_getterDeclaration?.declarations.getter,
+        ..._getterAugmentations,
+      ],
+      setterDeclarations: [
+        ?_setterDeclaration?.declarations.setter,
+        ..._setterAugmentations,
+      ],
     );
   }
 }
