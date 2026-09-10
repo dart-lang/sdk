@@ -513,6 +513,11 @@ abstract class AnalysisServer {
   lsp.LspClientCapabilities? get editorClientCapabilities;
 
   /// The initialization options provided by the client for LSP initialization.
+  ///
+  /// These are only ever set for the LSP server and always null for
+  /// LSP-over-Legacy. We now favor using [editorClientCapabilities]
+  /// for clients to indicate their capabilities and preferences (and
+  /// [lspClientConfiguration] for the users config/preferences).
   lsp.LspInitializationOptions? get initializationOptions;
 
   /// The configuration (user/workspace settings) from the LSP client.

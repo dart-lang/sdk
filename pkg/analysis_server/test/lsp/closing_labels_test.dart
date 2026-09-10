@@ -9,12 +9,16 @@ import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClosingLabelsTest);
+    defineReflectiveTests(ClientCapabilities_ClosingLabelsTest);
+    defineReflectiveTests(LegacyInitializationOptions_ClosingLabelsTest);
   });
 }
 
-@reflectiveTest
-class ClosingLabelsTest extends AbstractLspAnalysisServerTest {
+/// Base class for closing labels test that relies on subclasses to enable
+/// closing labels using either the original (now deprecated) initialization
+/// options, or the (newer, available to LSP-over-Legacy clients) client
+/// capability.
+abstract class AbstractClosingLabelsTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
@@ -35,7 +39,7 @@ Widget build(BuildContext context) {
   );                      // /Row      6:3
 }
 ''';
-    await initialize(initializationOptions: {'closingLabels': true});
+    await initialize();
 
     var labelsUpdateBeforeChange = waitForClosingLabels(mainFileUri);
     await openFile(mainFileUri, initialContent);
@@ -75,7 +79,7 @@ Widget build(BuildContext context) {
   );                      // /Row      6:3
 }
 ''';
-    await initialize(initializationOptions: {'closingLabels': true});
+    await initialize();
 
     var closingLabelsUpdate = waitForClosingLabels(mainFileUri);
     await openFile(mainFileUri, content);
@@ -96,5 +100,28 @@ Widget build(BuildContext context) {
     expect(second.range.start.character, equals(14));
     expect(second.range.end.line, equals(5));
     expect(second.range.end.character, equals(5));
+  }
+}
+
+@reflectiveTest
+class ClientCapabilities_ClosingLabelsTest extends AbstractClosingLabelsTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Enable closing labels via the client capabilities.
+    setClosingLabelsSupport();
+  }
+}
+
+@reflectiveTest
+class LegacyInitializationOptions_ClosingLabelsTest
+    extends AbstractClosingLabelsTest {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Enable closing labels via the legacy initialization options.
+    defaultInitializationOptions = {'closingLabels': true};
   }
 }
