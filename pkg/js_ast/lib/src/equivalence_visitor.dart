@@ -259,8 +259,15 @@ class EquivalenceVisitor implements NodeVisitor1<bool, Node> {
 
   @override
   bool visitParameter(Parameter node, Node arg) {
-    if (arg is! Parameter) return failAt(node, arg);
+    if (arg is! Parameter || arg is RestParameter) return failAt(node, arg);
     Parameter other = arg;
+    return testValues(node, node.name, other, other.name);
+  }
+
+  @override
+  bool visitRestParameter(RestParameter node, Node arg) {
+    if (arg is! RestParameter) return failAt(node, arg);
+    RestParameter other = arg;
     return testValues(node, node.name, other, other.name);
   }
 
