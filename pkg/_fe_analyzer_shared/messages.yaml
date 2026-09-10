@@ -289,6 +289,16 @@ multipleLibraryDirectives:
     library foo;
     library bar;
 
+multipleCombinators:
+  type: syntacticError
+  experiments: single-combinators
+  parameters: none
+  problemMessage: "At most one 'show' or 'hide' combinator can be used on an import or export directive."
+  correctionMessage: "Try combining all of the combinators into a single combinator."
+  analyzerCode: multipleCombinators
+  hasPublishedDocs: true
+  script: "import 'dart:core' show int show num;"
+
 multipleExtends:
   type: syntacticError
   parameters: none

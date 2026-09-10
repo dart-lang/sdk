@@ -8937,13 +8937,24 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     return !_currentLibrary.featureSet.isEnabled(Feature.class_modifiers);
   }
 
+  /// Reports when multiple combinator clauses are specified on [node], _when
+  /// [Feature.single_combinators] is not enabled.
+  ///
+  /// (When that experiment _is_ enabled, a compile-time parse error is emitted
+  /// by the parser.)
   void _reportForMultipleCombinators(NamespaceDirective node) {
+    if (_currentLibrary.featureSet.isEnabled(Feature.single_combinators)) {
+      return;
+    }
     var combinators = node.combinators;
     if (combinators.length > 1) {
       var offset = combinators.beginToken!.offset;
       var length = combinators.endToken!.end - offset;
       diagnosticReporter.report(
-        diag.multipleCombinators.atOffset(offset: offset, length: length),
+        diag.multipleCombinatorsDeprecated.atOffset(
+          offset: offset,
+          length: length,
+        ),
       );
     }
   }

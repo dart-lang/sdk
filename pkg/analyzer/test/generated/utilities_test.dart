@@ -676,6 +676,8 @@ enum E2<U> with M2 implements I2 {one, two}
 @myA1
 @myA2
 export 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart';
 ''');
     var export_a = parseResult.findNode.export('a.dart');
@@ -1121,6 +1123,8 @@ class A implements I, J {}
 @myA1
 @myA2
 import 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'b.dart';
 ''');
     var import_a = parseResult.findNode.import('a.dart');

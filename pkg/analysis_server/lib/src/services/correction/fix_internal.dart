@@ -1273,6 +1273,7 @@ final _builtInNonLintMultiGenerators = {
   diag.deprecatedMemberUseWithMessage: [DataDriven.new],
   diag.deprecatedExportUse: [DataDriven.new],
   diag.multipleCombinators: [MergeCombinators.new],
+  diag.multipleCombinatorsDeprecated: [MergeCombinators.new],
   diag.overrideOnNonOverridingMethod: [DataDriven.new],
 };
 

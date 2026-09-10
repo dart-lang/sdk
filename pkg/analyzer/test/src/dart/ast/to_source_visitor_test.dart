@@ -1478,6 +1478,8 @@ $code
     var code = "export 'a.dart' show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleExportDirective;
     _assertSource(code, node);
@@ -2566,6 +2568,8 @@ $code
     var code = "import 'a.dart' show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     _assertSource(code, node);
@@ -2621,6 +2625,8 @@ $code
     var code = "import 'a.dart' as p show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                          ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     _assertSource(code, node);

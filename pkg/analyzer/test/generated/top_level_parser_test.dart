@@ -405,6 +405,8 @@ CompilationUnit
   void test_import_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'import1_lib.dart' show hide, show hide ugly;
+//                                        ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3341,6 +3343,8 @@ CompilationUnit
   void test_parseExportDirective_hide_show() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 export 'lib/lib.dart' hide A show B;
+//                           ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3419,6 +3423,8 @@ CompilationUnit
   void test_parseExportDirective_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 export 'lib/lib.dart' show B hide A;
+//                           ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4546,6 +4552,8 @@ CompilationUnit
   void test_parseImportDirective_prefix_hide_show() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'lib/lib.dart' as a hide A show B;
+//                                ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4583,6 +4591,8 @@ CompilationUnit
   void test_parseImportDirective_prefix_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'lib/lib.dart' as a show B hide A;
+//                                ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
