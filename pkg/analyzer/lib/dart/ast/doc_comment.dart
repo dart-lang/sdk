@@ -233,6 +233,28 @@ enum DocDirectiveType {
   /// are included. This also allows us to parse (erroneous) dangling end tags.
   endTemplate.end('endtemplate', openingTag: 'template'),
 
+  /// A [DocDirective] that inserts the contents of an external file.
+  ///
+  /// This directive has one required argument: the path to the example file.
+  /// Optional named arguments can specify the language and indentation behavior.
+  ///
+  /// ```none
+  /// {@example /examples/my_example.dart lang=dart indent=strip}
+  /// ```
+  ///
+  /// See documentation at
+  /// <https://github.com/dart-lang/dartdoc/blob/main/doc/directives.md#example>.
+  example(
+    'example',
+    positionalParameters: [
+      DocDirectiveParameter('path', DocDirectiveParameterFormat.uri),
+    ],
+    namedParameters: [
+      DocDirectiveParameter('lang', DocDirectiveParameterFormat.any),
+      DocDirectiveParameter('indent', DocDirectiveParameterFormat.any),
+    ],
+  ),
+
   /// A [DocDirective] declaring a block of HTML content which is to be inserted
   /// after all other processing, including Markdown parsing.
   ///
