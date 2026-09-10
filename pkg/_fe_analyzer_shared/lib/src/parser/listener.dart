@@ -375,6 +375,7 @@ abstract class Listener implements UnescapeErrorListener {
   /// - body
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {

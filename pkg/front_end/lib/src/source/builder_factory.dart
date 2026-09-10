@@ -621,6 +621,7 @@ class BuilderFactory {
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
+          isPotentiallyAugment: false,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
           isConst: fragment.modifiers.isConst,
@@ -637,6 +638,7 @@ class BuilderFactory {
           name: fragment.name,
           displayName: fragment.constructorName.fullName,
           isAugment: fragment.modifiers.isAugment,
+          isPotentiallyAugment: true,
           inPatch: fragment.enclosingDeclaration.isPatch,
           inLibrary: inLibrary,
           isConst: fragment.modifiers.isConst,
@@ -1438,7 +1440,7 @@ sealed class _ConstructorPreBuilder<T extends _ConstructorDeclaration>
     ProblemReporting problemReporting,
     _Declaration declaration,
   ) {
-    if (declaration.isAugment) {
+    if (declaration.isAugment || declaration.isPotentiallyAugment) {
       if (declaration is T && declaration.kind == _declaration.kind) {
         // Example:
         //
@@ -1518,6 +1520,10 @@ abstract class _Declaration {
     required this.inLibrary,
     this.isStatic = true,
   });
+
+  /// Returns `true` if this declaration can be augmenting without an explicit
+  /// modifier.
+  bool get isPotentiallyAugment => false;
 
   UriOffsetLength get uriOffset;
 
@@ -1857,11 +1863,15 @@ class _GenerativeConstructorDeclaration extends _ConstructorDeclaration
   final String _name;
   final ConstructorDeclaration _declaration;
 
+  @override
+  final bool isPotentiallyAugment;
+
   new(
     this._declaration, {
     required String name,
     required super.displayName,
     required super.isAugment,
+    required this.isPotentiallyAugment,
     required super.inPatch,
     required super.inLibrary,
     required super.isConst,

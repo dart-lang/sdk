@@ -158,7 +158,7 @@ abstract class BodyBuilder {
   });
 
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   });
 
@@ -1667,11 +1667,11 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
-    assert(startToken.isA(Keyword.THIS));
-    Token token = startToken;
+    assert(thisToken.isA(Keyword.THIS));
+    Token token = thisToken;
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
