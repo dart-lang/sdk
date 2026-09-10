@@ -375,6 +375,33 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  void resolveImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTargetImpl node,
+  ) {
+    var hasRead = node.hasRead;
+    var result = _resolveTargetPrefixElement(
+      target: node.importPrefix.element as PrefixElement,
+      nameToken: node.name,
+      hasRead: hasRead,
+      hasWrite: true,
+      forAnnotation: false,
+    );
+    if (hasRead) {
+      var resolution = _propertyReadWriteTargetResult(result);
+      node.read = resolution.read;
+      node.write = resolution.write;
+    } else {
+      node.read = null;
+      node.write =
+          _createNamedWriteResolutionWithElement(result.writeElement2) ??
+          InvalidNamedWriteResolutionImpl(
+            acceptedType: InvalidTypeImpl.instance,
+            candidates: [?result.writeElement2, ?result.readElement2],
+            recovery: null,
+          );
+    }
+  }
+
   NamedReadResolutionImpl resolveImportPrefixedNameExpression(
     ImportPrefixedNameExpressionImpl node,
   ) {
@@ -401,9 +428,10 @@ class PropertyElementResolver with ScopeHelpers {
             .at(node),
       );
     }
-    var recoveryElement = element == null
-        ? result.writeElementRequested2
-        : null;
+    var recoveryElement = result.readElementRecovery2;
+    if (element == null) {
+      recoveryElement ??= result.writeElementRequested2;
+    }
     return _createNamedReadResolutionWithElement(
           element,
           type: result.getType as TypeImpl? ?? _namedReadType(element),
@@ -416,25 +444,6 @@ class PropertyElementResolver with ScopeHelpers {
           ),
           type: InvalidTypeImpl.instance,
         );
-  }
-
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })
-  resolveImportPrefixedPropertyReadWriteTarget(
-    ReceiverPropertyAssignmentTargetImpl node,
-    PrefixElement prefix,
-  ) {
-    var result = _resolveTargetPrefixElement(
-      target: prefix,
-      nameToken: node.propertyName,
-      hasRead: true,
-      hasWrite: true,
-      forAnnotation: false,
-    );
-    return _propertyReadWriteTargetResult(result);
   }
 
   IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(

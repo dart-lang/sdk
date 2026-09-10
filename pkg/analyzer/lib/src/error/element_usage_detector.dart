@@ -129,6 +129,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
+    } else if (node is ImportPrefixedAssignmentTarget) {
+      errorEntity = node.name;
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
@@ -321,11 +323,13 @@ class ElementUsageDetector<TagInfo extends Object> {
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
+      ImportPrefixedAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (read case NamedReadResolutionWithElement(:var element)) {
@@ -702,11 +706,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
+      ImportPrefixedAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (read case NamedReadResolutionWithElement(:var element)) {
@@ -771,6 +777,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (write case NamedWriteResolutionWithElement(:var element)) {
@@ -921,11 +928,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     )) {
       checkUsage(element, target, usageRange: _assignmentTargetRange(target));
     }
-    if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case NamedReadResolutionWithElement(:var element)) {
+    if (target
+        case UnqualifiedNameAssignmentTarget(:var read, :var write) ||
+            ImportPrefixedAssignmentTarget(:var read, :var write)) {
+      if (read case NamedReadResolutionWithElement(:var element)) {
         checkUsage(element, target, usageRange: _assignmentTargetRange(target));
       }
-      if (target.write case NamedWriteResolutionWithElement(:var element)) {
+      if (write case NamedWriteResolutionWithElement(:var element)) {
         checkUsage(element, target, usageRange: _assignmentTargetRange(target));
       }
     }
@@ -954,11 +963,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
+      ImportPrefixedAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (read case NamedReadResolutionWithElement(:var element)) {
@@ -1164,6 +1175,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
+    ImportPrefixedAssignmentTarget(:var name) => name.sourceRange,
     PropertyAssignmentTarget(:var propertyName) => propertyName.sourceRange,
     PrefixedIdentifier(:var identifier) => identifier.sourceRange,
     PropertyAccess(:var propertyName) => propertyName.sourceRange,

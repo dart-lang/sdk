@@ -1248,13 +1248,12 @@ void f() {
     var node = result.findNode.incrementOrDecrement('x++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ReceiverPropertyAssignmentTarget
-    receiver: SimpleIdentifier
-      token: p
+  target: ImportPrefixedAssignmentTarget
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
       element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::x
       invokeType: int Function()
@@ -1269,16 +1268,17 @@ IncrementOrDecrementExpression
   operatorResultType: int
   staticType: int
 V1: PostfixExpression
-  operand: PropertyAccess
-    target: SimpleIdentifier
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: null
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: x
       element: <null>
       staticType: null
+    element: <null>
     staticType: null
   operator: ++
   readElement: package:test/a.dart::@getter::x

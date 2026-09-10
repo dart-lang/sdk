@@ -308,6 +308,26 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   void visitImportDirective(ImportDirective node) {}
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    var readElement = node.read.elementOrRecovery;
+    var writeElement = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => element,
+      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
+      _ => null,
+    };
+    var prefixFragment = import.prefix;
+    if (prefixFragment != null &&
+        node.importPrefix.element == prefixFragment.element &&
+        (importedElements.contains(readElement?.baseElement) ||
+            importedElements.contains(writeElement?.baseElement))) {
+      var offset = node.importPrefix.offset;
+      _addResult(offset, node.importPrefix.period.end - offset);
+    }
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -1969,6 +1989,40 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
       );
     }
     node.iterable2.accept2(this);
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    node.importPrefix.accept2(this);
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+
+    if (kind == null) {
+      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
+        if (candidates.any(_matches)) {
+          kind = SearchResultKind.REFERENCE;
+        }
+      }
+    }
+
+    if (kind != null) {
+      _addResultImpl(node.name, kind, isQualified: true);
+    }
   }
 
   @override

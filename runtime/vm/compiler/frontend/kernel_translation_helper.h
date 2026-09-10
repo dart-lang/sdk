@@ -986,6 +986,7 @@ struct DirectCallMetadata {
     kFlagCheckReceiverForNull = 1 << 0,
     kFlagClosure = 1 << 1,
   };
+  static constexpr intptr_t kClosureIdShift = 2;
 
   DirectCallMetadata(const Function& target, bool check_receiver_for_null)
       : target_(target), check_receiver_for_null_(check_receiver_for_null) {}
@@ -1219,6 +1220,7 @@ class TableSelectorMetadataHelper : public MetadataHelper {
  private:
   static constexpr uint8_t kCalledOnNullBit = 1 << 0;
   static constexpr uint8_t kTornOffBit = 1 << 1;
+  static constexpr intptr_t kCallCountShift = 2;
 
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 

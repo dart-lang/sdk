@@ -671,6 +671,9 @@ abstract class AstVisitor2<R> {
   R? visitImportDirective(ImportDirective node);
 
   @experimental
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node);
+
+  @experimental
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   );

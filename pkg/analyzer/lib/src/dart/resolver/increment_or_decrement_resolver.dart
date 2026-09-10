@@ -72,13 +72,11 @@ class IncrementOrDecrementResolver {
         }
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        readType = target.read!.type;
+        writeAcceptedType = target.write!.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
-        var importResult = _resolveImportPrefixedPropertyTarget(target);
-        if (importResult != null) {
-          readType = importResult.$1;
-          writeAcceptedType = importResult.$2;
-          break;
-        }
         _assignmentResolver.analyzePropertyTargetReceiver(node, target);
         var result = _resolver.resolveReceiverPropertyReadWriteAssignmentTarget(
           target,
@@ -211,27 +209,6 @@ class IncrementOrDecrementResolver {
       return InvocationInferrer.computeInvokeReturnType(element.type);
     }
     return fallback;
-  }
-
-  (TypeImpl, TypeImpl)? _resolveImportPrefixedPropertyTarget(
-    ReceiverPropertyAssignmentTargetImpl target,
-  ) {
-    // TODO(scheglov): Fold import prefixes into the ordinary property-target
-    // receiver analysis instead of resolving them through a separate path.
-    var receiver = target.receiver;
-    if (receiver is! SimpleIdentifierImpl ||
-        receiver.scopeLookupResult?.getter is! PrefixElementImpl) {
-      return null;
-    }
-    var prefix = receiver.scopeLookupResult!.getter as PrefixElementImpl;
-    receiver.element = prefix;
-    var result = _resolver.resolveImportPrefixedPropertyReadWriteTarget(
-      target,
-      prefix,
-    );
-    target.read = result.read;
-    target.write = result.write;
-    return (result.read.type, result.write.acceptedType);
   }
 
   void _resolveOperator(

@@ -852,6 +852,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
@@ -975,6 +976,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         switch (target.write) {
@@ -1203,6 +1205,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
@@ -1234,6 +1237,45 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    covariant ImportPrefixedAssignmentTargetImpl node,
+  ) {
+    if (node.hasRead) {
+      _recordNamedPropertyReadWriteTarget(
+        propertyName: node.name,
+        read: node.read,
+        write: node.write,
+      );
+    } else {
+      switch (node.write) {
+        case SetterInvocationResolutionImpl(:var element):
+          recordRelationToken(
+            element,
+            IndexRelationKind.IS_INVOKED_BY,
+            node.name,
+          );
+        case InvalidNamedWriteResolutionImpl(:var candidates)
+            when candidates.isNotEmpty:
+          for (var element in candidates) {
+            recordRelationToken(
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              node.name,
+            );
+          }
+        default:
+          assembler.addNameRelation(
+            node.name.lexeme,
+            IndexRelationKind.IS_WRITTEN_BY,
+            node.name.offset,
+            true,
+          );
+      }
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitIncrementOrDecrementExpression(
     covariant IncrementOrDecrementExpressionImpl node,
   ) {
@@ -1244,6 +1286,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
+      case ImportPrefixedAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);

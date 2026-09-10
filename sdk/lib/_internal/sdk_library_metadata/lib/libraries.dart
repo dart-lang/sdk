@@ -159,7 +159,7 @@ const Map<String, LibraryInfo> libraries = const {
   'mirrors': const LibraryInfo(
     'mirrors/mirrors.dart',
     categories: 'Client,Server',
-    maturity: Maturity.UNSTABLE,
+    maturity: Maturity.DEPRECATED,
     dart2jsPatchPath: '_internal/js_runtime/lib/mirrors_patch_cfe.dart',
   ),
   'nativewrappers': const LibraryInfo(

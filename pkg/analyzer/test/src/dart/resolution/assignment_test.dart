@@ -710,10 +710,27 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('= 0');
+    var node = result.findNode.directAssignment('= 0');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ImportPrefixedAssignmentTarget
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: v
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@setter::v
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -726,7 +743,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::value
     staticType: int
@@ -3053,10 +3070,33 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+CompoundAssignment
+  target: ImportPrefixedAssignmentTarget
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: x
+    read: GetterInvocationResolution
+      element: package:test/a.dart::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -3069,7 +3109,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int

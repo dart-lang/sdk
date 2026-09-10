@@ -369,6 +369,14 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
   void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
     names.add(node.name.lexeme);
     super.visitImportPrefixedNameExpression(node);

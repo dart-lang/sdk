@@ -1211,6 +1211,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    covariant ImportPrefixedAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('ImportPrefixedAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {

@@ -282,9 +282,8 @@ class AstRewriter {
       // `C.new = foo`; do not rewrite.
       return node;
     }
-    // An import-prefixed read/write occurrence still uses the legacy target
-    // shape until there is a canonical import-prefixed assignment target.
-    // Rewriting it as a read expression would lose the write resolution.
+    // Only rewrite value occurrences here. Assignment targets are specialized
+    // separately by ResolutionVisitor once their qualifier is known.
     if (node.identifier.inSetterContext()) {
       return node;
     }

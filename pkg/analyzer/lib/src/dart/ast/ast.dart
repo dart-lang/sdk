@@ -3156,6 +3156,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
         UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+        ImportPrefixedAssignmentTargetImpl target => target.read?.type,
         InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
       };
 
@@ -3167,6 +3168,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
 
@@ -3176,6 +3178,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
         UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+        ImportPrefixedAssignmentTargetImpl target => target.read?.type,
         InvalidExpressionAssignmentTargetImpl target =>
           target.expression.staticType,
       };
@@ -3185,6 +3188,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         PropertyAssignmentTargetImpl target => target.propertyAccess,
         IndexAssignmentTargetImpl target => target.indexExpression,
         UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+        ImportPrefixedAssignmentTargetImpl target => target.prefixedIdentifier,
         InvalidExpressionAssignmentTargetImpl target =>
           V1Projection.toV1Expression(target.expression),
       };
@@ -3196,6 +3200,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl target => target._legacyReadElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() => null,
@@ -3209,6 +3214,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
 
@@ -3219,6 +3225,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() => null,
@@ -14099,6 +14106,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
       PropertyAssignmentTargetImpl(:var write) => write,
       IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      ImportPrefixedAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
     if (write case SetterInvocationResolutionImpl(:var element)) {
@@ -27855,6 +27863,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
       PropertyAssignmentTargetImpl(:var write) => write,
       IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      ImportPrefixedAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
     if (write case SetterInvocationResolutionImpl(:var element)) {
@@ -29802,6 +29811,213 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 }
 
+/// An assignment target selected through an import prefix.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ImportPrefixedAssignmentTarget
+    implements AssignmentTarget {
+  /// The namespace qualifier selecting the imported declaration.
+  ImportPrefixReference get importPrefix;
+
+  /// The written name of the imported declaration.
+  Token get name;
+
+  /// The read operation, or `null` for a direct assignment or before resolution.
+  NamedReadResolution? get read;
+
+  /// The write operation, or `null` before resolution.
+  NamedWriteResolution? get write;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
+    implements ImportPrefixedAssignmentTarget {
+  @generated
+  ImportPrefixReferenceImpl _importPrefix;
+
+  @generated
+  @override
+  final Token name;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  NamedReadResolutionImpl? read;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
+  @override
+  NamedWriteResolutionImpl? write;
+
+  PrefixedIdentifierImpl? _prefixedIdentifier;
+
+  @generated
+  ImportPrefixedAssignmentTargetImpl({
+    required ImportPrefixReferenceImpl importPrefix,
+    required this.name,
+  }) : _importPrefix = importPrefix {
+    _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return importPrefix.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  /// The cached identifier used only by the V1 compatibility projection.
+  PrefixedIdentifierImpl get prefixedIdentifier {
+    var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
+      prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
+      period: importPrefix.period,
+      identifier: SimpleIdentifierImpl.v1Projection(token: name),
+    );
+    result.prefix.element = importPrefix.element;
+    return result;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ImportPrefixedAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name);
+
+  Element? get _legacyReadElement => switch (read) {
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+    _ => null,
+  };
+
+  Element? get _legacyWriteElement => switch (write) {
+    NamedWriteResolutionWithElementImpl(:var element) => element,
+    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ImportPrefixedAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitImportPrefixedAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'importPrefix'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ImportPrefixedAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+  }) {
+    if (visitImportPrefix != null) {
+      visitImportPrefix(importPrefix);
+    } else {
+      importPrefix.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ImportPrefixedAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+      return importPrefix;
+    }
+    return null;
+  }
+}
+
 /// A direct invocation of a top-level function through an import prefix.
 ///
 /// The [importPrefix] owns the written `prefix.` qualifier, while [name]
@@ -30499,6 +30715,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     PropertyAssignmentTargetImpl target => target.propertyAccess,
     IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+    ImportPrefixedAssignmentTargetImpl target => target.prefixedIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
     ),
@@ -30509,6 +30726,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl target => target._legacyReadElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() => null,
@@ -30518,6 +30736,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     PropertyAssignmentTargetImpl target => target.read?.type,
     IndexAssignmentTargetImpl target => target.read?.type,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+    ImportPrefixedAssignmentTargetImpl target => target.read?.type,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
 
@@ -30526,6 +30745,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() => null,
@@ -30536,6 +30756,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target => target.write?.acceptedType,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
 

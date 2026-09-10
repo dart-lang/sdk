@@ -943,6 +943,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _visitNode(node.importPrefix);
+    sink.write(node.name.lexeme);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {

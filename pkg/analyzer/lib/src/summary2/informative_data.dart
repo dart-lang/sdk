@@ -2113,6 +2113,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {

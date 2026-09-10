@@ -183,6 +183,12 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
     usedElement = parent.element;
   } else if (parent is NamedType) {
     usedElement = parent.element;
+  } else if (parent is ImportPrefixedAssignmentTarget) {
+    usedElement = switch (parent.write) {
+      NamedWriteResolutionWithElement(:var element) => element,
+      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
+      _ => parent.read.elementOrRecovery,
+    };
   }
   if (usedElement == null) {
     return null;
@@ -703,6 +709,40 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    bool matches(Element candidate) {
+      return candidate == element ||
+          candidate is PropertyAccessorElement && candidate.variable == element;
+    }
+
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => matches(element),
+      _ => false,
+    };
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => MatchKind.READ_WRITE,
+      (true, false) => MatchKind.READ,
+      (false, true) => MatchKind.WRITE,
+      (false, false) => null,
+    };
+    if (node.write case InvalidNamedWriteResolution(
+      :var candidates,
+    ) when kind == null && candidates.any(matches)) {
+      kind = MatchKind.REFERENCE;
+    }
+    if (kind != null) {
+      references.add(MatchInfo(node.name.offset, node.name.length, kind));
+    }
+    node.importPrefix.accept2(this);
   }
 
   @override

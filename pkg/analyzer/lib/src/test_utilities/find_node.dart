@@ -163,6 +163,10 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is IfNullAssignment);
   }
 
+  ImportPrefixedAssignmentTarget importPrefixedAssignmentTarget(String search) {
+    return _node(search, (node) => node is ImportPrefixedAssignmentTarget);
+  }
+
   ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
     String search,
   ) {

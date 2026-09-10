@@ -1471,6 +1471,23 @@ dart:core
 ''');
   }
 
+  test_locate_ImportPrefixedAssignmentTarget() async {
+    newFile('$testPackageLibPath/a.dart', 'int value = 0;');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+void f() {
+  p.value += 1;
+}
+''');
+    var node = result.findNode.importPrefixedAssignmentTarget('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@setter::value
+''');
+    _assertElement(ElementLocatorV2.locate(node.importPrefix), r'''
+<testLibraryFragment>::@prefix::p
+''');
+  }
+
   test_locate_ImportPrefixedNameExpression() async {
     newFile('$testPackageLibPath/a.dart', 'const value = 1;');
     var result = await resolveTestCodeWithDiagnostics('''

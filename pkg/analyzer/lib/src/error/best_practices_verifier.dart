@@ -679,6 +679,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _invalidAccessVerifier.verifyImportPrefixedAssignmentTarget(node);
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {
@@ -1978,6 +1986,20 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    var readElement = node.read.elementOrRecovery;
+    var writeElement = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.name, element: element);
+    }
+  }
+
   void verifyNamedArgument(NamedArgument node) {
     var element = node.correspondingParameter;
     if (element == null) {
@@ -2358,6 +2380,9 @@ class _InvalidAccessVerifier {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
     } else if (node is NameExpression) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is ImportPrefixedAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is UnqualifiedNameAssignmentTarget) {

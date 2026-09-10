@@ -1655,17 +1655,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })
-  resolveImportPrefixedPropertyReadWriteTarget(
-    ReceiverPropertyAssignmentTargetImpl node,
-    PrefixElement prefix,
+  void resolveImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTargetImpl node,
   ) {
-    return _propertyElementResolver
-        .resolveImportPrefixedPropertyReadWriteTarget(node, prefix);
+    _propertyElementResolver.resolveImportPrefixedAssignmentTarget(node);
   }
 
   IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
@@ -5605,6 +5598,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
         IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
         UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
+        ImportPrefixedAssignmentTargetImpl(:var write) => write?.acceptedType,
         InvalidExpressionAssignmentTargetImpl() => null,
       };
       if (writeType == null) {
