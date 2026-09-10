@@ -1813,71 +1813,32 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
 #endif
 }
 
-struct CallbackContext {
-  uword integer_arguments[8];
-  uword double_arguments[8];
-  uword r8;
-  uword sp;
-};
-
 #if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-
-extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
-                                        uword trampoline) {
-  // Assumptions in ffi_trampolines_arm64.S
-  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
-  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
-#elif defined(DART_TARGET_OS_MACOS)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2013);
-#else
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
-#endif
-
-  CallbackMetadata out;
-  Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
-  if (thread == nullptr) {
-    // If GetFfiCallbackMetadata returned a null thread, it means that the async
-    // callback was invoked after it was deleted. In this case, do nothing.
-    return;
-  }
-
-  Simulator* sim = Simulator::Current();
-  ASSERT(sim != nullptr);
-  sim->DoRedirectedFfiCallback(thread, ctxt, &out);
-}
-
-#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-
-// Compare FfiCallbackTrampolineStub.
-void Simulator::DoRedirectedFfiCallback(Thread* thread,
-                                        CallbackContext* ctxt,
-                                        CallbackMetadata* out) {
+// Compare FfiCallbackTrampolineStub sans DART_DYNAMIC_MODULES-specific code.
+void Simulator::DoCompiledFfiCallback(Thread* thread,
+                                      CallbackContext* ctxt,
+                                      const CallbackMetadata* metadata) {
   // The C caller might not be using frame pointers, so we just hard-code a
   // maximum frame size instead of using FP-SP like we do for callouts.
   constexpr intptr_t kStackSlotsCopied = 128;
 
   {
-    // <copy stack arguments>
-    // stp lr, thr, [sp, -16]!
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
     uword* sp_in = reinterpret_cast<uword*>(ctxt->sp);
     for (intptr_t i = kStackSlotsCopied - 1; i >= 0; i--) {
       *--sp = sp_in[i];
     }
-    *--sp = get_register(THR);
+    const uword* const delta_start = sp;
+    *--sp = get_register(FP);
     *--sp = get_register(LR);
+    *--sp = get_register(THR);
     *--sp = get_register(R20);
     *--sp = get_register(R21);
     *--sp = get_register(R22);
-    *--sp = get_register(R23);
+    sp -= 2;  // Push slots only used in InterpretedFfiCallbackTrampoline.
+    ASSERT_EQUAL(delta_start - sp,
+                 FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
-    COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   6);
   }
 
   set_register(nullptr, R0, ctxt->integer_arguments[0]);
@@ -1896,11 +1857,11 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
   set_vregisterd(V5, 0, ctxt->double_arguments[5]);
   set_vregisterd(V6, 0, ctxt->double_arguments[6]);
   set_vregisterd(V7, 0, ctxt->double_arguments[7]);
-  set_register(nullptr, R8, ctxt->r8);
+  set_register(nullptr, R8, ctxt->return_struct_pointer);
   set_register(nullptr, THR, reinterpret_cast<uword>(thread));
 
   set_register(nullptr, LR, kEndSimulatingPC);
-  set_pc(out->entry_point);
+  set_pc(metadata->entry_point);
   Execute();
 
   ctxt->integer_arguments[0] = get_register(R0);
@@ -1914,21 +1875,43 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     // ldp lr, thr, [sp], 16!
     // <drop arguments>
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
-    set_register(nullptr, R23, *sp++);
+    auto* const delta_end = sp;
+    sp += 2;  // Pop slots only used in InterpretedFfiCallbackTrampoline.
     set_register(nullptr, R22, *sp++);
     set_register(nullptr, R21, *sp++);
     set_register(nullptr, R20, *sp++);
-    set_register(nullptr, LR, *sp++);
     set_register(nullptr, THR, *sp++);
+    set_register(nullptr, LR, *sp++);
+    set_register(nullptr, FP, *sp++);
+    ASSERT_EQUAL(sp - delta_end,
+                 FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
     sp += kStackSlotsCopied;
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
-    COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   6);
+  }
+}
+
+void Simulator::DoRedirectedFfiCallback(Thread* thread,
+                                        CallbackContext* ctxt,
+                                        const CallbackMetadata* metadata) {
+  // If this is an interpreted callback, then just call
+  // DLRT_DoInterpretedFfiCallback directly.
+  if (FfiCallbackMetadata::IsInterpretedTrampolineEntryPoint(
+          metadata->entry_point)) {
+#if defined(DART_DYNAMIC_MODULES)
+    auto* const function_handle =
+        reinterpret_cast<PersistentHandle*>(metadata->function_handle);
+    DLRT_DoInterpretedFfiCallback(thread, ctxt, function_handle);
+#else
+    UNREACHABLE();  // Should never reach here otherwise.
+#endif
+  } else {
+    DoCompiledFfiCallback(thread, ctxt, metadata);
   }
 
-  auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
+  auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
   epilogue(thread);
 }
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 void Simulator::ClobberVolatileRegisters() {
   // Clear atomic reservation.

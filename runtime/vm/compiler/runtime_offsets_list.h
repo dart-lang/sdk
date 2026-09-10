@@ -87,6 +87,8 @@
   ARRAY_SIZEOF(WeakArray, InstanceSize, element_offset)                        \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
+  CONSTANT(CallbackContext, kNumIntegerArguments)                              \
+  CONSTANT(CallbackContext, kNumDoubleArguments)                               \
   CONSTANT(Context, kMaxElements)                                              \
   CONSTANT(Class, kNoTypeArguments)                                            \
   CONSTANT(Function, kKindBitsPos)                                             \
@@ -195,6 +197,17 @@
   FIELD(Array, length_offset)                                                  \
   FIELD(Array, tags_offset)                                                    \
   FIELD(Array, type_arguments_offset)                                          \
+  FIELD(CallbackContext, integer_arguments_offset)                             \
+  FIELD(CallbackContext, double_arguments_offset)                              \
+  FIELD(CallbackContext, return_struct_pointer_offset)                         \
+  FIELD(CallbackContext, sp_offset)                                            \
+  FIELD(CallbackMetadata, entry_point_offset)                                  \
+  FIELD(CallbackMetadata, type_offset)                                         \
+  FIELD(CallbackMetadata, epilogue_offset)                                     \
+  FIELD(CallbackMetadata, caller_isolate_offset)                               \
+  FIELD(CallbackMetadata, caller_isolate_group_offset)                         \
+  FIELD(CallbackMetadata, function_handle_offset)                              \
+  FIELD(CallbackMetadata, interpreted_runtime_entry_offset)                    \
   FIELD(Class, declaration_type_offset)                                        \
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
@@ -489,6 +502,8 @@
   SIZEOF(Array, header_size, UntaggedArray)                                    \
   SIZEOF(Bool, InstanceSize, UntaggedBool)                                     \
   SIZEOF(Bytecode, InstanceSize, UntaggedBytecode)                             \
+  SIZEOF(CallbackContext, InstanceSize, CallbackContext)                       \
+  SIZEOF(CallbackMetadata, InstanceSize, CallbackMetadata)                     \
   SIZEOF(Capability, InstanceSize, UntaggedCapability)                         \
   SIZEOF(Class, InstanceSize, UntaggedClass)                                   \
   SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \

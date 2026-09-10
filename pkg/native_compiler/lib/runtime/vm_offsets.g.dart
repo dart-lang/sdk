@@ -15,6 +15,8 @@ base class VMOffsets {
   int get SuspendState_frame_capacity_offset => throw 'Unknown';
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
+  int get CallbackContext_kNumIntegerArguments => throw 'Unknown';
+  int get CallbackContext_kNumDoubleArguments => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
   int get Class_kNoTypeArguments => throw 'Unknown';
   int get Function_kKindBitsPos => throw 'Unknown';
@@ -128,6 +130,17 @@ base class VMOffsets {
   int get Array_length_offset => throw 'Unknown';
   int get Array_tags_offset => throw 'Unknown';
   int get Array_type_arguments_offset => throw 'Unknown';
+  int get CallbackContext_integer_arguments_offset => throw 'Unknown';
+  int get CallbackContext_double_arguments_offset => throw 'Unknown';
+  int get CallbackContext_return_struct_pointer_offset => throw 'Unknown';
+  int get CallbackContext_sp_offset => throw 'Unknown';
+  int get CallbackMetadata_entry_point_offset => throw 'Unknown';
+  int get CallbackMetadata_type_offset => throw 'Unknown';
+  int get CallbackMetadata_epilogue_offset => throw 'Unknown';
+  int get CallbackMetadata_caller_isolate_offset => throw 'Unknown';
+  int get CallbackMetadata_caller_isolate_group_offset => throw 'Unknown';
+  int get CallbackMetadata_function_handle_offset => throw 'Unknown';
+  int get CallbackMetadata_interpreted_runtime_entry_offset => throw 'Unknown';
   int get Class_declaration_type_offset => throw 'Unknown';
   int get Class_num_type_arguments_offset => throw 'Unknown';
   int get Class_super_type_offset => throw 'Unknown';
@@ -449,6 +462,8 @@ base class VMOffsets {
   int get Array_header_size => throw 'Unknown';
   int get Bool_InstanceSize => throw 'Unknown';
   int get Bytecode_InstanceSize => throw 'Unknown';
+  int get CallbackContext_InstanceSize => throw 'Unknown';
+  int get CallbackMetadata_InstanceSize => throw 'Unknown';
   int get Capability_InstanceSize => throw 'Unknown';
   int get Class_InstanceSize => throw 'Unknown';
   int get ClosureData_InstanceSize => throw 'Unknown';
@@ -653,6 +668,10 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Array_kMaxElements => 0x7ffffffffffffff;
   @override
   int get Array_kMaxNewSpaceElements => 0x7ffd;
+  @override
+  int get CallbackContext_kNumIntegerArguments => 0x8;
+  @override
+  int get CallbackContext_kNumDoubleArguments => 0x8;
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
@@ -869,6 +888,28 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Array_tags_offset => 0x0;
   @override
   int get Array_type_arguments_offset => 0x8;
+  @override
+  int get CallbackContext_integer_arguments_offset => 0x0;
+  @override
+  int get CallbackContext_double_arguments_offset => 0x40;
+  @override
+  int get CallbackContext_return_struct_pointer_offset => 0x80;
+  @override
+  int get CallbackContext_sp_offset => 0x88;
+  @override
+  int get CallbackMetadata_entry_point_offset => 0x0;
+  @override
+  int get CallbackMetadata_type_offset => 0x8;
+  @override
+  int get CallbackMetadata_epilogue_offset => 0x10;
+  @override
+  int get CallbackMetadata_caller_isolate_offset => 0x18;
+  @override
+  int get CallbackMetadata_caller_isolate_group_offset => 0x20;
+  @override
+  int get CallbackMetadata_function_handle_offset => 0x28;
+  @override
+  int get CallbackMetadata_interpreted_runtime_entry_offset => 0x30;
   @override
   int get Class_declaration_type_offset => 0x68;
   @override
@@ -1291,14 +1332,14 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Thread_suspend_state_await_entry_point_offset => 0x658;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x658;
+      0x660;
   @override
   int get Thread_suspend_state_init_async_entry_point_offset => 0x650;
   @override
   int get Thread_suspend_state_return_async_entry_point_offset => 0x668;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x668;
+      0x670;
   @override
   int get Thread_suspend_state_init_async_star_entry_point_offset => 0x678;
   @override
@@ -1309,7 +1350,7 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x690;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x690;
+      0x698;
   @override
   int get Thread_suspend_state_handle_exception_entry_point_offset => 0x6a0;
   @override
@@ -1485,6 +1526,10 @@ final class Arm64VMOffsets extends VMOffsets {
   int get Bool_InstanceSize => 0x10;
   @override
   int get Bytecode_InstanceSize => 0x70;
+  @override
+  int get CallbackContext_InstanceSize => 0x90;
+  @override
+  int get CallbackMetadata_InstanceSize => 0x38;
   @override
   int get Capability_InstanceSize => 0x10;
   @override
@@ -1696,6 +1741,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Array_kMaxElements => 0x7ffffffffffffff;
   @override
   int get Array_kMaxNewSpaceElements => 0x7ffd;
+  @override
+  int get CallbackContext_kNumIntegerArguments => 0x8;
+  @override
+  int get CallbackContext_kNumDoubleArguments => 0x8;
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
@@ -1912,6 +1961,28 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Array_tags_offset => 0x0;
   @override
   int get Array_type_arguments_offset => 0x8;
+  @override
+  int get CallbackContext_integer_arguments_offset => 0x0;
+  @override
+  int get CallbackContext_double_arguments_offset => 0x40;
+  @override
+  int get CallbackContext_return_struct_pointer_offset => 0x80;
+  @override
+  int get CallbackContext_sp_offset => 0x88;
+  @override
+  int get CallbackMetadata_entry_point_offset => 0x0;
+  @override
+  int get CallbackMetadata_type_offset => 0x8;
+  @override
+  int get CallbackMetadata_epilogue_offset => 0x10;
+  @override
+  int get CallbackMetadata_caller_isolate_offset => 0x18;
+  @override
+  int get CallbackMetadata_caller_isolate_group_offset => 0x20;
+  @override
+  int get CallbackMetadata_function_handle_offset => 0x28;
+  @override
+  int get CallbackMetadata_interpreted_runtime_entry_offset => 0x30;
   @override
   int get Class_declaration_type_offset => 0x60;
   @override
@@ -2328,14 +2399,14 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Thread_suspend_state_await_entry_point_offset => 0x658;
   @override
   int get Thread_suspend_state_await_with_type_check_entry_point_offset =>
-      0x658;
+      0x660;
   @override
   int get Thread_suspend_state_init_async_entry_point_offset => 0x650;
   @override
   int get Thread_suspend_state_return_async_entry_point_offset => 0x668;
   @override
   int get Thread_suspend_state_return_async_not_future_entry_point_offset =>
-      0x668;
+      0x670;
   @override
   int get Thread_suspend_state_init_async_star_entry_point_offset => 0x678;
   @override
@@ -2346,7 +2417,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Thread_suspend_state_init_sync_star_entry_point_offset => 0x690;
   @override
   int get Thread_suspend_state_suspend_sync_star_at_start_entry_point_offset =>
-      0x690;
+      0x698;
   @override
   int get Thread_suspend_state_handle_exception_entry_point_offset => 0x6a0;
   @override
@@ -2522,6 +2593,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get Bool_InstanceSize => 0x10;
   @override
   int get Bytecode_InstanceSize => 0x58;
+  @override
+  int get CallbackContext_InstanceSize => 0x90;
+  @override
+  int get CallbackMetadata_InstanceSize => 0x38;
   @override
   int get Capability_InstanceSize => 0x10;
   @override
@@ -3157,6 +3232,7 @@ enum StubCode {
   CallNativeThroughSafepoint,
   FfiCallTrampoline,
   FfiCallbackTrampoline,
+  InterpretedFfiCallbackTrampoline,
   InitStaticField,
   InitLateStaticField,
   InitLateFinalStaticField,
