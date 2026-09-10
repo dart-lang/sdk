@@ -839,11 +839,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   String get displayName {
     var className = enclosingElement.name ?? '<null>';
     var name = this.name ?? '<null>';
-    if (name != 'new') {
-      return '$className.$name';
-    } else {
-      return className;
-    }
+    return '$className.$name';
   }
 
   @override
@@ -1179,13 +1175,9 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   String get displayName {
-    var className = enclosingFragment.name;
+    var className = enclosingFragment.name ?? '<null>';
     var name = this.name;
-    if (name != 'new') {
-      return '$className.$name';
-    } else {
-      return className ?? '<null>';
-    }
+    return '$className.$name';
   }
 
   @override
@@ -2281,10 +2273,15 @@ abstract class ElementImpl implements Element {
 
   @override
   @trackedIndirectly
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();
@@ -9389,7 +9386,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var elementsStr = conflictingElements
         .map((e) {
           return e.displayString();

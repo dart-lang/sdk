@@ -142,58 +142,11 @@ class _ContextLocator {
   /// therefore use one context and select their path-local options through the
   /// context's options map.
   void _addIncludedFiles(List<File> includedFiles) {
-    var fileLocationByParent = <Folder, _RootLocation>{};
+    var rootsByFolder = <Folder, ContextRootImpl>{};
 
     for (var file in includedFiles) {
-      var parent = file.parent;
-
-      // Files with the same parent have the same context location, so reuse it.
-      var location = fileLocationByParent.putIfAbsent(
-        parent,
-        () => _contextRootLocation(
-          parent,
-          defaultRootFolder: () => _fileSystemRoot(parent),
-        ),
-      );
-      var optionsFile = _effectiveOptionsFile(location);
-      var enabledLegacyPlugins = _getEnabledLegacyPlugins(
-        location.workspace,
-        optionsFile,
-      );
-
-      ContextRootImpl? existingRoot;
-      for (var root in _roots) {
-        if (root.root.isOrContains(file.path) &&
-            _hasSameResolution(root, location) &&
-            const SetEquality<String>().equals(
-              _getEnabledLegacyPlugins(root.workspace, root.optionsFile),
-              enabledLegacyPlugins,
-            )) {
-          existingRoot = root;
-          break;
-        }
-      }
-
-      var rootFolder = enabledLegacyPlugins.isEmpty
-          ? location.resolutionRootFolder
-          : location.contextRootFolder;
-      var optionsApplyToWholeContext =
-          _defaultOptionsFile != null ||
-          (location.optionsFile == null &&
-              location.workspace is WorkspaceWithDefaultAnalysisOptions) ||
-          (optionsFile?.parent.isOrContains(rootFolder.path) ?? false);
-      var root = existingRoot;
-      root ??= _createContextRoot(
-        rootFolder: rootFolder,
-        optionsFile: optionsApplyToWholeContext ? optionsFile : null,
-        location: location,
-        useWorkspaceDefaultOptions: false,
-      );
-      _addOptionsMapping(
-        root,
-        optionsFile,
-        mappingFolder: optionsApplyToWholeContext ? root.root : null,
-      );
+      var folder = file.parent;
+      var root = rootsByFolder[folder] ??= _rootForFolder(folder);
       if (!root.isAnalyzed(file.path)) {
         root.included.add(file);
       }
@@ -851,6 +804,69 @@ class _ContextLocator {
     if (second == null) return first;
     var pathContext = _resourceProvider.pathContext;
     return pathContext.isWithin(first.root, second.root) ? second : first;
+  }
+
+  /// Returns an existing or newly created context root for [folder].
+  ///
+  /// Searches [_roots] for a root that contains [folder], shares the same
+  /// workspace resolution semantics, and has identical enabled legacy plugins.
+  /// If none exists, creates a new root (partitioned at the resolution root, or
+  /// at the folder if legacy plugins are present) and adds it to [_roots].
+  ///
+  /// Also registers the path-local options mapping for [folder] on the root.
+  ContextRootImpl _rootForFolder(Folder folder) {
+    var location = _contextRootLocation(
+      folder,
+      defaultRootFolder: () => _fileSystemRoot(folder),
+    );
+    var optionsFile = _effectiveOptionsFile(location);
+    var enabledLegacyPlugins = _getEnabledLegacyPlugins(
+      location.workspace,
+      optionsFile,
+    );
+
+    ContextRootImpl? existingRoot;
+    for (var root in _roots) {
+      if (root.root.isOrContains(folder.path) &&
+          _hasSameResolution(root, location) &&
+          const SetEquality<String>().equals(
+            _getEnabledLegacyPlugins(root.workspace, root.optionsFile),
+            enabledLegacyPlugins,
+          )) {
+        existingRoot = root;
+        break;
+      }
+    }
+
+    // When reusing a context, use its root to determine whether these options
+    // apply to the whole context or only to a nested folder.
+    Folder rootFolder;
+    if (existingRoot != null) {
+      rootFolder = existingRoot.root;
+    } else if (enabledLegacyPlugins.isEmpty) {
+      rootFolder = location.resolutionRootFolder;
+    } else {
+      rootFolder = location.contextRootFolder;
+    }
+
+    var optionsApplyToWholeContext =
+        _defaultOptionsFile != null ||
+        (location.optionsFile == null &&
+            location.workspace is WorkspaceWithDefaultAnalysisOptions) ||
+        (optionsFile?.parent.isOrContains(rootFolder.path) ?? false);
+    var root = existingRoot;
+    root ??= _createContextRoot(
+      rootFolder: rootFolder,
+      optionsFile: optionsApplyToWholeContext ? optionsFile : null,
+      location: location,
+      useWorkspaceDefaultOptions: false,
+    );
+    _addOptionsMapping(
+      root,
+      optionsFile,
+      mappingFolder: optionsApplyToWholeContext ? root.root : null,
+    );
+    return root;
   }
 
   /// Returns whether [first] and [second] define the same workspace-wide

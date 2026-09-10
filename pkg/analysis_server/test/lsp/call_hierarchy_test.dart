@@ -890,7 +890,7 @@ class Bar {
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -934,7 +934,7 @@ class Bar {
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1014,7 +1014,7 @@ class Bar {
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1056,7 +1056,7 @@ class Bar {
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1172,7 +1172,7 @@ class Bar {}
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1495,7 +1495,7 @@ class Bar {}
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1608,7 +1608,7 @@ class Bar();
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1648,7 +1648,7 @@ class Bar();
         CallHierarchyOutgoingCall(
           // Target of the call.
           to: CallHierarchyItem(
-            name: 'Bar',
+            name: 'Bar.new',
             detail: 'Bar',
             kind: SymbolKind.Constructor,
             uri: otherFileUri,
@@ -1780,7 +1780,7 @@ class Foo {
     await expectResults(
       mainCode: code,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: mainFileUri,
@@ -1801,7 +1801,7 @@ class Foo {
     await expectResults(
       mainCode: code,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: mainFileUri,
@@ -1922,7 +1922,7 @@ class Foo {
     await expectResults(
       mainCode: code,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: mainFileUri,
@@ -1971,7 +1971,7 @@ class Foo {
       mainCode: mainCode,
       otherCode: otherCode,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: otherFileUri,
@@ -2027,7 +2027,7 @@ class Foo {}
       mainCode: code,
       otherCode: otherCode,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: otherFileUri,
@@ -2214,7 +2214,7 @@ class Foo {}
       mainCode: code,
       otherCode: otherCode,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: otherFileUri,
@@ -2428,7 +2428,7 @@ class [!Foo!](String a) {
     await expectResults(
       mainCode: code,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: mainFileUri,
@@ -2448,7 +2448,7 @@ class [!Fo^o!](String a) {
     await expectResults(
       mainCode: code,
       expectedResult: CallHierarchyItem(
-        name: 'Foo',
+        name: 'Foo.new',
         detail: 'Foo', // Containing class name
         kind: SymbolKind.Constructor,
         uri: mainFileUri,

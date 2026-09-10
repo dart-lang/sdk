@@ -12809,8 +12809,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -12830,8 +12830,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,

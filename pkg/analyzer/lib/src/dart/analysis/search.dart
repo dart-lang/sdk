@@ -1566,10 +1566,16 @@ class _FindLibraryDeclarations {
       className = enclosing.name;
     }
 
-    // For constructors, include the class name as part of the searched name.
-    var filteredName = element is ConstructorElement
-        ? element.displayName
-        : name;
+    String filteredName;
+    switch (element) {
+      case ConstructorElement():
+        // Include the class name for constructors, omit the `new` name.
+        filteredName = element.name == 'new'
+            ? element.enclosingElement.displayName
+            : element.displayName;
+      default:
+        filteredName = name;
+    }
     if (matcher.score(filteredName) < 0) {
       return;
     }

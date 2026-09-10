@@ -15,11 +15,11 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     var result = await sandbox.run('main.dart', mode: 'console');
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code.contains('Hello World 1!'),
+      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello World 1!')),
     );
-    await iframe.checkEvent((it) => it.isA<RunEvent>());
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     // Update the main file and recompile!
     await ws.writeFileFromText(
@@ -28,10 +28,11 @@ void main() {
     );
 
     result = await sandbox.hotReload();
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
     await iframe.checkEvent(
-      (it) =>
-          it.isA<HotReloadEvent>().code.isNotNull().contains('Hello World 2!'),
+      .it()..isA<HotReloadEvent>(
+        .it()..code.isNotNull().contains('Hello World 2!'),
+      ),
     );
 
     await iframe.close();
@@ -57,20 +58,20 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     var result = await sandbox.run('bin/main.dart', mode: 'console');
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code.contains('Hello 1!'),
+      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello 1!')),
     );
-    await iframe.checkEvent((it) => it.isA<RunEvent>());
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     await ws.writeFileFromText('lib/sayhello.dart', '''
       void sayHello() => print('Hello 2!');
     ''');
 
     result = await sandbox.hotReload();
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
     await iframe.checkEvent(
-      (it) => it.isA<HotReloadEvent>().code.isNotNull().contains('Hello 2!'),
+      .it()..isA<HotReloadEvent>(.it()..code.isNotNull().contains('Hello 2!')),
     );
 
     await iframe.close();
@@ -86,9 +87,9 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     var result = await sandbox.run('main.dart', mode: 'console');
-    check(result.log).isEmpty();
-    await iframe.checkEvent((it) => it.isA<LoadModuleEvent>());
-    await iframe.checkEvent((it) => it.isA<RunEvent>());
+    check(result.log).isEmpty;
+    await iframe.checkEvent(.it()..isA<LoadModuleEvent>());
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     // Recompilation is rejected, because this cannot be hot-reloaded
     await ws.writeFileFromText(
@@ -97,9 +98,11 @@ void main() {
     );
 
     await check(sandbox.hotReload()).throws<HotReloadRejectedException>(
-      (e) => e
-          .has((it) => it.message, 'message')
-          .contains('Enum class cannot be redefined'),
+      .it()
+        ..has(
+          (it) => it.message,
+          'message',
+        ).contains('Enum class cannot be redefined'),
     );
 
     // Recompilation is successful
@@ -109,8 +112,8 @@ void main() {
     );
 
     result = await sandbox.hotReload();
-    check(result.log).isEmpty();
-    await iframe.checkEvent((it) => it.isA<HotReloadEvent>());
+    check(result.log).isEmpty;
+    await iframe.checkEvent(.it()..isA<HotReloadEvent>());
 
     await iframe.close();
   });

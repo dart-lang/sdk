@@ -45,7 +45,7 @@ void main() => testFlutterIntegration('sandbox.runApp (flutter)', (ctx) async {
   printOnFailure('# Running code in sandbox');
   await ctx.sandbox.run('main.dart', mode: 'flutter');
 
-  await ctx.checkConsole((m) => m.contains('Hello 1!'));
+  await ctx.checkConsole(.it()..contains('Hello 1!'));
 
   await ctx.ws.writeFileFromText('main.dart', r'''
     import 'dart:async';
@@ -72,5 +72,5 @@ void main() => testFlutterIntegration('sandbox.runApp (flutter)', (ctx) async {
   printOnFailure('# hotReload in sandbox');
   await ctx.sandbox.hotReload();
 
-  await ctx.checkConsole((m) => m.contains('Hello 2!'));
+  await ctx.checkConsole(.it()..contains('Hello 2!'));
 });

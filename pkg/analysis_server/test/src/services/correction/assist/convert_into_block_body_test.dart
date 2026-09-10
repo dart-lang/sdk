@@ -247,7 +247,7 @@ class C() {
     await assertHasAssist('''
 class C() {
   this : x = 2 {
-    // TODO: implement C
+    // TODO: implement C.new
     throw UnimplementedError();
   }
 

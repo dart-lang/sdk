@@ -337,10 +337,14 @@ class DartdevRunner extends CommandRunner<int> {
         final path = commandNames.join('/');
         final experiments = topLevelResults.enabledExperiments
           ..sort((a, b) => a.compareTo(b));
+        final pubspecTelemetry = collectPubspecTelemetry();
         unifiedAnalytics.send(
           Event.dartCliCommandExecuted(
             name: path,
             enabledExperiments: experiments.join(','),
+            pubspecHasFlutterSdk: pubspecTelemetry?.hasFlutterSdk,
+            pubspecDependencies: pubspecTelemetry?.publicDependencies,
+            pubspecEnvironmentSdk: pubspecTelemetry?.environmentSdk,
           ),
         );
       }

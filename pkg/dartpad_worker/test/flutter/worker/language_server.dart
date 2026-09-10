@@ -115,9 +115,10 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
-        (d) => d.isA<Map>()['message'].isA<String>().contains('TypoWidget'),
-      ),
+      .it()
+        ..isA<Map>()['diagnostics'].isA<List>().any(
+          .it()..isA<Map>()['message'].isA<String>().contains('TypoWidget'),
+        ),
     );
 
     await ls.stop();

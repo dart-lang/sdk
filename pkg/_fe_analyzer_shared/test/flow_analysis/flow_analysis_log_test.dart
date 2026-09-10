@@ -34,7 +34,7 @@ main() {
 
     test('Empty log with no initial `this` binding', () {
       var logBuilder = FlowAnalysisLogBuilder();
-      check(logBuilder.finish().getThisBinding(0)).isNull();
+      check(logBuilder.finish().getThisBinding(0)).isNull;
     });
 
     test('Empty log with initial `this` binding', () {
@@ -143,7 +143,7 @@ main() {
         ..allowOutOfOrderOffsets()
         ..promotionInfoChanged(flowModel2.promotionInfo, offset: 10);
       var log = logBuilder.finish();
-      check(log.getPromotionInfo(5)).isNull();
+      check(log.getPromotionInfo(5)).isNull;
       check(log.getPromotionInfo(15)).identicalTo(flowModel2.promotionInfo);
       check(log.getPromotionInfo(25)).identicalTo(flowModel1.promotionInfo);
     });
@@ -152,7 +152,7 @@ main() {
   group('This promotion:', () {
     test('when no use of `this` was recorded', () {
       var logBuilder = FlowAnalysisLogBuilder();
-      check(logBuilder.finish().lookupPromotedThisType(offset: 10)).isNull();
+      check(logBuilder.finish().lookupPromotedThisType(offset: 10)).isNull;
     });
 
     test('via PromotionInfo', () {
@@ -188,7 +188,7 @@ main() {
         ..recordInitialThisBinding(PromotionKey(0))
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10)
         ..promotionInfoChanged(flowModel2.promotionInfo, offset: 20);
-      check(logBuilder.finish().lookupPromotedThisType(offset: 5)).isNull();
+      check(logBuilder.finish().lookupPromotedThisType(offset: 5)).isNull;
       check(
         logBuilder.finish().lookupPromotedThisType(offset: 15),
       ).equals(SharedTypeView(Type('num')));
@@ -218,7 +218,7 @@ main() {
       check(
         logBuilder.finish().lookupPromotedThisType(offset: 15),
       ).equals(SharedTypeView(Type('int')));
-      check(logBuilder.finish().lookupPromotedThisType(offset: 25)).isNull();
+      check(logBuilder.finish().lookupPromotedThisType(offset: 25)).isNull;
     });
   });
 }

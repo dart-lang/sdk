@@ -32,5 +32,5 @@ void main() => testDartIntegration('dartpad', (ctx) async {
   );
   check(result.log).isNotNull();
 
-  await ctx.checkConsole((m) => m.contains('Hello from DartPad!'));
+  await ctx.checkConsole(.it()..contains('Hello from DartPad!'));
 });

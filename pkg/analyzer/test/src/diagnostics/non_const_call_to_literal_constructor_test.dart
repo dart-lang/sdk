@@ -42,7 +42,7 @@ class const A() {
 }
 A a = .new();
 //    ^^^^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
 ''');
   }
 
@@ -55,7 +55,7 @@ class const A() {
 }
 var a = A();
 //      ^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
 ''');
   }
 
@@ -68,7 +68,7 @@ class A {
 }
 var a = A.named();
 //      ^^^^^^^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A.named constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.named' is marked as '@literal'.
 ''');
   }
 
@@ -113,7 +113,7 @@ class A {
 }
 A a = .named();
 //    ^^^^^^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A.named constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.named' is marked as '@literal'.
 ''');
   }
 
@@ -126,7 +126,7 @@ class A {
 }
 A a = .new();
 //    ^^^^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
 ''');
   }
 
@@ -139,7 +139,35 @@ class A {
 }
 var a = A();
 //      ^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the A constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
+''');
+  }
+
+  test_class_secondaryConstructor_prefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+import 'test.dart' as p;
+class A {
+  @literal
+  const A();
+}
+var a = p.A();
+//      ^^^^^
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
+''');
+  }
+
+  test_class_secondaryConstructor_typeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+class A<T> {
+  @literal
+  const A.named();
+}
+typedef Alias = A<int>;
+var a = Alias.named();
+//      ^^^^^^^^^^^^^
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'A.named' is marked as '@literal'.
 ''');
   }
 
@@ -163,7 +191,7 @@ class A {
 }
 var a = new A();
 //      ^^^^^^^
-// [diag.nonConstCallToLiteralConstructorUsingNew] This instance creation must be 'const', because the A constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructorUsingNew] This instance creation must be 'const', because 'A.new' is marked as '@literal'.
 ''');
   }
 
@@ -187,7 +215,7 @@ extension type const E(int i) {
 }
 E e = E.zero();
 //    ^^^^^^^^
-// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because the E.zero constructor is marked as '@literal'.
+// [diag.nonConstCallToLiteralConstructor] This instance creation must be 'const', because 'E.zero' is marked as '@literal'.
 ''');
   }
 }

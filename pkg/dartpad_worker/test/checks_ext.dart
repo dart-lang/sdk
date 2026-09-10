@@ -23,8 +23,8 @@ extension UriChecks on Subject<Uri> {
 }
 
 extension ResourceChecks on Subject<Resource> {
-  void get exists => has((r) => r.exists, 'exists').isTrue();
-  void get doesNotExist => has((r) => r.exists, 'exists').isFalse();
+  void get exists => has((r) => r.exists, 'exists').isTrue;
+  void get doesNotExist => has((r) => r.exists, 'exists').isFalse;
 }
 
 extension FolderChecks on Subject<Folder> {
@@ -55,7 +55,7 @@ extension CompileResultChecks on Subject<CompileResult> {
 
   /// Compilation was successful and logs are empty (indicating no warnings)
   void successEmptyLog() {
-    log.isEmpty();
+    log.isEmpty;
     code.isNotNull();
   }
 }

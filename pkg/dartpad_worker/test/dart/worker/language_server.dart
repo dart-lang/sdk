@@ -60,11 +60,13 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
-        (d) => d.isA<Map>()['message'].isA<String>().contains(
-          'Expected to find \';\'',
+      .it()
+        ..isA<Map>()['diagnostics'].isA<List>().any(
+          .it()
+            ..isA<Map>()['message'].isA<String>().contains(
+              'Expected to find \';\'',
+            ),
         ),
-      ),
     );
 
     await ls.stop();
@@ -144,7 +146,7 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().isNotEmpty(),
+      .it()..isA<Map>()['diagnostics'].isA<List>().isNotEmpty,
     );
 
     // Fix it
@@ -156,7 +158,7 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().isEmpty(),
+      .it()..isA<Map>()['diagnostics'].isA<List>().isEmpty,
     );
 
     await ls.stop();
@@ -200,10 +202,11 @@ linter:
       });
 
       await diagnosticsQueue.emitsThrough(
-        (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
-          (d) =>
-              d.isA<Map>()['code'].isA<String>().equals('prefer_single_quotes'),
-        ),
+        .it()
+          ..isA<Map>()['diagnostics'].isA<List>().any(
+            .it()
+              ..isA<Map>()['code'].isA<String>().equals('prefer_single_quotes'),
+          ),
       );
     } finally {
       await ls.stop();
@@ -257,9 +260,10 @@ linter:
       });
 
       check(codeActions).isA<List>().any(
-        (action) => action.isA<Map>()['title'].isA<String>().contains(
-          'Convert to expression body',
-        ),
+        .it()
+          ..isA<Map>()['title'].isA<String>().contains(
+            'Convert to expression body',
+          ),
       );
     } finally {
       await ls.stop();
@@ -334,9 +338,10 @@ linter:
       });
 
       check(codeActions).isA<List>().any(
-        (action) => action.isA<Map>()['title'].isA<String>().contains(
-          'Convert to single quoted string',
-        ),
+        .it()
+          ..isA<Map>()['title'].isA<String>().contains(
+            'Convert to single quoted string',
+          ),
       );
     } finally {
       await ls.stop();

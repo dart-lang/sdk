@@ -5437,6 +5437,7 @@ package:analyzer/dart/element/element.dart:
   ConstructorElement (class extends Object implements ExecutableElement, abstract):
     new (constructor: ConstructorElement Function())
     baseElement (getter: ConstructorElement)
+    displayName (getter: String)
     enclosingElement (getter: InterfaceElement)
     firstFragment (getter: ConstructorFragment)
     fragments (getter: List<ConstructorFragment>)
@@ -5506,7 +5507,7 @@ package:analyzer/dart/element/element.dart:
     session (getter: AnalysisSession?)
     sinceSdkVersion (getter: Version?)
     accept (method: T? Function<T>(ElementVisitor2<T>))
-    displayString (method: String Function({bool multiline, bool preferTypeAlias}))
+    displayString (method: String Function({bool includePositionalParameterNames, bool multiline, bool preferTypeAlias}))
     getExtendedDisplayName (method: String Function({String? shortName}))
     isAccessibleIn (method: bool Function(LibraryElement))
     isDeprecatedWithKind (method: bool Function(String))
@@ -6289,7 +6290,7 @@ package:analyzer/dart/element/type.dart:
     accept (method: R Function<R>(TypeVisitor<R>))
     acceptWithArgument (method: R Function<R, A>(TypeVisitorWithArgument<R, A>, A))
     asInstanceOf (method: InterfaceType? Function(InterfaceElement))
-    getDisplayString (method: String Function({deprecated bool withNullability}))
+    getDisplayString (method: String Function({bool includePositionalParameterNames, deprecated bool withNullability}))
   DynamicType (class extends Object implements DartType, abstract):
     new (constructor: DynamicType Function())
   FunctionType (class extends Object implements DartType, abstract):

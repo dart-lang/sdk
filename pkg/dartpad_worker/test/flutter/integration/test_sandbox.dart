@@ -40,5 +40,5 @@ void main() => testFlutterIntegration('sandbox.runApp (flutter)', (ctx) async {
   printOnFailure('# Running code in sandbox');
   await ctx.sandbox.run('main.dart', mode: 'flutter');
 
-  await ctx.checkConsole((m) => m.contains('Hello from Flutter!'));
+  await ctx.checkConsole(.it()..contains('Hello from Flutter!'));
 });

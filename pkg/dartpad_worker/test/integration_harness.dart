@@ -32,17 +32,17 @@ final class TestContext {
     Condition<String> condition, {
     Duration timeLimit = const Duration(seconds: 5),
   }) async {
-    if (consoleLog.any((line) => softCheck(line, condition) == null)) {
+    if (consoleLog.any((line) => condition.softCheckSync(line) == null)) {
       return;
     }
 
     await sandbox.console
-        .firstWhere((message) => softCheck(message, condition) == null)
+        .firstWhere((message) => condition.softCheckSync(message) == null)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(
             'Expected console message with $timeLimit that '
-            '${describe(condition).join('\n')}',
+            '${condition.describeSync().join('\n')}',
           ),
         );
   }

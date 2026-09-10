@@ -340,6 +340,60 @@ void f() {
 ''');
   }
 
+  test_assignmentTarget_importPrefixed_deprecatedGetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get value => 0;
+
+set value(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart' as prefix;
+
+void f() {
+  prefix.value = 0;
+  prefix.value += 1;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value++;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  ++prefix.value;
+//         ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_assignmentTarget_importPrefixed_deprecatedSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+int get value => 0;
+
+@deprecated
+set value(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart' as prefix;
+
+void f() {
+  prefix.value = 0;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value += 1;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value++;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  ++prefix.value;
+//         ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_call() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
@@ -433,7 +487,7 @@ class MyAnnotation {
 import 'package:aaa/a.dart';
 
 @MyAnnotation()
-// [diag.deprecatedMemberUse][column 2][length 12] 'MyAnnotation' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse][column 2][length 12] 'MyAnnotation.new' is deprecated and shouldn't be used.
 void g() {}
 ''');
   }
@@ -498,7 +552,7 @@ void f() {
 //      ^^^^
 // [diag.deprecatedMemberUseImplicit] The implicitly referenced type 'A' is deprecated and shouldn't be used.
 //       ^^^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -578,7 +632,7 @@ import 'package:aaa/a.dart';
 void f() {
   wantA(.new());
 //       ^^^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -1296,6 +1350,7 @@ void f() {
   A();
 //^
 // [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -1371,7 +1426,7 @@ import 'package:aaa/a.dart';
 void f() {
   A();
 //^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -1390,7 +1445,7 @@ import 'package:aaa/a.dart';
 void f() {
   A();
 //^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -1409,7 +1464,7 @@ import 'package:aaa/a.dart';
 f() {
   return new A(1);
 //           ^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -2333,7 +2388,7 @@ import 'package:aaa/a.dart';
 class A {
   factory A.two() = B;
 //                  ^
-// [diag.deprecatedMemberUse] 'B' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'B.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -2503,7 +2558,7 @@ import 'package:aaa/a.dart';
 class B extends A {
   B();
 //^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -2522,7 +2577,7 @@ import 'package:aaa/a.dart';
 class B extends A {
   B.named(int x) {
 //^^^^^^^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
     print(x);
   }
 }
@@ -2562,7 +2617,7 @@ import 'package:aaa/a.dart';
 class B extends A {
   B() : super();
 //      ^^^^^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }
@@ -2600,7 +2655,7 @@ import 'package:aaa/a.dart';
 class B extends A {
   B() : super() {}
 //      ^^^^^
-// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+// [diag.deprecatedMemberUse] 'A.new' is deprecated and shouldn't be used.
 }
 ''');
   }

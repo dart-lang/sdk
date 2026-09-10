@@ -19,7 +19,7 @@ void main() {
 
     // Check that the package_config.json file was created
     final pkgConfig = await ws.readFileAsText('.dart_tool/package_config.json');
-    check(pkgConfig).isNotEmpty();
+    check(pkgConfig).isNotEmpty;
   });
 
   testDartWorkspace('pub get (fetch package:foo)', (ws) async {
@@ -103,9 +103,10 @@ void main() {
     ''');
 
     await check(ws.pub(command: 'get')).throws<PubException>(
-      (e) => e.message.contains(
-        'could not find package foo_bar_package_that_does_not_exist',
-      ),
+      .it()
+        ..message.contains(
+          'could not find package foo_bar_package_that_does_not_exist',
+        ),
     );
 
     // TODO(jonasfj): Enable this when pub has stopped using globals, currently

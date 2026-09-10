@@ -3186,7 +3186,7 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 //                                                       ^^^^^^^^^^^^^^
-// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.
+// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList.new', and occurs here.
 }
 ''');
   }
@@ -5391,7 +5391,7 @@ class B {
   final l;
   const B(Object o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const b = B('');
@@ -5437,7 +5437,7 @@ class B {
   final l;
   const B(String o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const y = B(x);
@@ -5743,7 +5743,7 @@ class A {
 class B extends A {
   const B(int i) : super(i);
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 main() {
   print(const B(2)); // (1)
@@ -5845,7 +5845,7 @@ class A {
 class B extends A {
   const B() : super();
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 const b = const B();
 //        ^^^^^^^^^
@@ -7632,7 +7632,7 @@ class A<T> {
   final Object f;
   const A(): f = T;
 //               ^
-// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [context 1] The error is in the field initializer of 'A.new', and occurs here.
 // [diag.invalidConstant] Invalid constant value.
 }
 const a = const A<int>();
@@ -8249,14 +8249,14 @@ class C {
 class D extends C {
   const D(d) : super(d);
 //      ^
-// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+// [context 1] The evaluated constructor 'C.new' is called by 'D.new' and 'D.new' is defined here.
 //                   ^
 // [context 3] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }
 class E extends D {
   const E(e) : super(e);
 //      ^
-// [context 2] The evaluated constructor 'D' is called by 'E' and 'E' is defined here.
+// [context 2] The evaluated constructor 'D.new' is called by 'E.new' and 'E.new' is defined here.
 }
 const f = const E('0.0');
 //        ^^^^^^^^^^^^^^

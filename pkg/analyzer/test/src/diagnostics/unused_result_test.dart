@@ -152,7 +152,7 @@ class A() {
 void f() {
   A();
 //^^^
-// [diag.unusedResult] The value of 'A' should be used.
+// [diag.unusedResult] The value of 'A.new' should be used.
 }
 ''');
   }
@@ -185,7 +185,7 @@ class A {
 void f() {
   A();
 //^^^
-// [diag.unusedResult] The value of 'A' should be used.
+// [diag.unusedResult] The value of 'A.new' should be used.
 }
 ''');
   }
