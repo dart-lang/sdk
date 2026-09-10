@@ -245,13 +245,14 @@ analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/sdk/issues/46277
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
 analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
+dap_adapters/test/dap/integration/*: Slow, Pass
 dartdev/test/*: Slow, Pass
-dds/test/dap/integration/*: Slow, Pass
 dds/test/devtools_server/server_connection_api_test: Slow, Pass
 dds/test/devtools_server/server_connection_vm_service_test: Slow, Pass
 test_runner/test/update_error_cmdline_test: Slow, Pass
 
 [ $runtime != vm ]
+dap_adapters/test/*: SkipByDesign # Only meant to run on vm
 dart2js_info/test/*: SkipByDesign # Only meant to run on vm
 dds/test/*: SkipByDesign # Only meant to run on vm
 dev_compiler/test/options/*: SkipByDesign
