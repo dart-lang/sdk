@@ -363,6 +363,24 @@ class {
     );
   }
 
+  test_declarations_constructor_unnamed_doesNotMatchNew() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'new',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, '');
+  }
+
   test_declarations_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';

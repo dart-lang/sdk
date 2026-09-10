@@ -164,14 +164,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
 
     String displayName = element.displayName;
-    if (element is ConstructorElement) {
-      // TODO(jwren): We should modify ConstructorElement.displayName,
-      // or have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      displayName = element.name == null
-          ? '${element.displayName}.new'
-          : element.displayName;
-    } else if (element is LibraryElement) {
+    if (element is LibraryElement) {
       displayName = element.uri.toString();
     } else if (node is MethodInvocation &&
         displayName == MethodElement.CALL_METHOD_NAME) {
@@ -651,14 +644,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
 
     String displayName = element.displayName;
-    if (element is ConstructorElement) {
-      // TODO(jwren): We should modify ConstructorElement.displayName,
-      // or have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      displayName = element.name == null
-          ? '${element.displayName}.new'
-          : element.displayName;
-    } else if (element is LibraryElement) {
+    if (element is LibraryElement) {
       displayName = element.uri.toString();
     } else if (node is MethodInvocation &&
         displayName == MethodElement.CALL_METHOD_NAME) {

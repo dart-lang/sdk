@@ -218,6 +218,13 @@ abstract class ConstructorElement implements ExecutableElement {
   @override
   ConstructorElement get baseElement;
 
+  /// The name of the enclosing interface followed by `.` and [name].
+  ///
+  /// For example, `A.new` for an unnamed constructor and `A.named` for a named
+  /// constructor.
+  @override
+  String get displayName;
+
   @override
   InterfaceElement get enclosingElement;
 

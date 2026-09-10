@@ -106,7 +106,7 @@ class C {
 //    ^^^^^
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //       ^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
 

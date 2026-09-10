@@ -1361,29 +1361,18 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   /// Check that the constructor invocation is const if the constructor is
   /// marked with [literal].
   void _checkForLiteralConstructorUse(ConstructorInvocation node) {
-    var constructorReference = node.constructorReference;
-    var constructor = constructorReference.element;
+    var constructor = node.constructorReference.element;
     if (constructor == null) {
       return;
     }
     if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
-      // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
-      // have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      var typeReference = constructorReference.typeReference;
-      var fullConstructorName = [
-        if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
-        typeReference.name.lexeme,
-      ].join('.');
-      if (constructorReference.selector case var selector?) {
-        fullConstructorName = '$fullConstructorName.${selector.name2.lexeme}';
-      }
       var warning = node.keyword?.keyword == Keyword.NEW
           ? diag.nonConstCallToLiteralConstructorUsingNew
           : diag.nonConstCallToLiteralConstructor;
       _diagnosticReporter.report(
-        warning.withArguments(constructorName: fullConstructorName).at(node),
+        warning
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
       );
     }
   }

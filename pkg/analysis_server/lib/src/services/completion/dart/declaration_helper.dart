@@ -2118,12 +2118,15 @@ class DeclarationHelper {
       importData: importData,
     );
 
-    // Use the constructor element's name without the interface type to
-    // calculate the matcher score for dot shorthands.
+    // Match the source spelling: dot shorthands use the constructor name,
+    // while ordinary unnamed constructor invocations use the class name.
     var elementName = element.name;
-    var matcherName = suggestingDotShorthand && elementName != null
-        ? elementName
-        : element.displayName;
+    var matcherName = element.displayName;
+    if (suggestingDotShorthand && elementName != null) {
+      matcherName = elementName;
+    } else if (elementName == 'new') {
+      matcherName = element.enclosingElement.displayName;
+    }
 
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);

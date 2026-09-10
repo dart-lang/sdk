@@ -273,7 +273,7 @@ class C {
 //^^^^^
 // [diag.constFactory] Only redirecting factory constructors can be declared to be 'const'.
 //                     ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
   }
@@ -305,7 +305,7 @@ class C {
 //                           ^^
 // [diag.externalFactoryWithBody] External factories can't have a body.
 //                              ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
   }
@@ -397,7 +397,7 @@ class C {
 //                   ^^^^^^^^
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //                      ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
   }
@@ -466,7 +466,7 @@ class C {
 //                     ^^
 // [diag.externalFactoryWithBody] External factories can't have a body.
 //                        ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
   }
@@ -674,7 +674,7 @@ class C {
 //             ^^^^^^^^
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //                ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
   }
@@ -1085,7 +1085,7 @@ enum E {
 //                   ^^^^^^^^
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //                      ^^^^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E' because it has a return type of 'E'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'Null' can't be returned from the constructor 'E.new' because it has a return type of 'E'.
 }
 ''');
   }

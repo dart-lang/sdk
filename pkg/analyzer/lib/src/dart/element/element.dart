@@ -839,11 +839,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   String get displayName {
     var className = enclosingElement.name ?? '<null>';
     var name = this.name ?? '<null>';
-    if (name != 'new') {
-      return '$className.$name';
-    } else {
-      return className;
-    }
+    return '$className.$name';
   }
 
   @override
@@ -1179,13 +1175,9 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   String get displayName {
-    var className = enclosingFragment.name;
+    var className = enclosingFragment.name ?? '<null>';
     var name = this.name;
-    if (name != 'new') {
-      return '$className.$name';
-    } else {
-      return className ?? '<null>';
-    }
+    return '$className.$name';
   }
 
   @override

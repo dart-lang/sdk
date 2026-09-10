@@ -84,8 +84,8 @@ class C<T> {
   final t;
   const C(dynamic x) : t = x as T;
 //                         ^^^^^^
-// [context 1] The error is in the field initializer of 'C', and occurs here.
-// [context 2] The error is in the field initializer of 'C', and occurs here.
+// [context 1] The error is in the field initializer of 'C.new', and occurs here.
+// [context 2] The error is in the field initializer of 'C.new', and occurs here.
 }
 
 main() {
@@ -106,8 +106,8 @@ class C<T> {
   final t;
   const C(dynamic x) : t = x as List<T>;
 //                         ^^^^^^^^^^^^
-// [context 1] The error is in the field initializer of 'C', and occurs here.
-// [context 2] The error is in the field initializer of 'C', and occurs here.
+// [context 1] The error is in the field initializer of 'C.new', and occurs here.
+// [context 2] The error is in the field initializer of 'C.new', and occurs here.
 }
 
 main() {
@@ -146,7 +146,7 @@ class A {
 class B extends A {
   const B(int i) : super(i);
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 main() {
   print(const B(2)); // (1)
@@ -317,7 +317,7 @@ enum E {
   final int x;
   const E({int? x}) : x = x as int;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'E', and occurs here.
+// [context 1] The error is in the field initializer of 'E.new', and occurs here.
 }
 ''');
   }
@@ -452,7 +452,7 @@ class C {
 class D extends C {
   const D(d) : super(d);
 //      ^
-// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+// [context 1] The evaluated constructor 'C.new' is called by 'D.new' and 'D.new' is defined here.
 //                   ^
 // [context 2] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }

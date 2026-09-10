@@ -5437,6 +5437,7 @@ package:analyzer/dart/element/element.dart:
   ConstructorElement (class extends Object implements ExecutableElement, abstract):
     new (constructor: ConstructorElement Function())
     baseElement (getter: ConstructorElement)
+    displayName (getter: String)
     enclosingElement (getter: InterfaceElement)
     firstFragment (getter: ConstructorFragment)
     fragments (getter: List<ConstructorFragment>)
