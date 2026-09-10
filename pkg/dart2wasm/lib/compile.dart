@@ -34,6 +34,7 @@ import 'package:vm/transformations/type_flow/transformer.dart'
 import 'package:vm/transformations/type_flow/utils.dart' as tfa_utils;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'package:wasm_builder/source_map.dart' show SourceMapBuilder;
 import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 
 import 'compiler_options.dart' as compiler;
@@ -629,12 +630,15 @@ Future<CompilationResult> _runCodegenPhase(
   modules.forEach((moduleMetadata, module) {
     if (moduleMetadata.skipEmit) return;
     final serializer = Serializer();
-    module.serialize(serializer);
+    final sourceMapBuilder = generateSourceMaps
+        ? SourceMapBuilder(module.debugInfoTables)
+        : null;
+    module.serialize(serializer, sourceMapBuilder);
     writeFutures.add(
       ioManager.writeWasmModule(serializer.data, moduleMetadata.moduleName),
     );
-    if (generateSourceMaps) {
-      final sourceMapJson = serializer.sourceMapSerializer.serializeAsJson();
+    if (sourceMapBuilder != null) {
+      final sourceMapJson = sourceMapBuilder.toJson();
       if (moduleMetadata.isMain && classNames != null) {
         addMinifiedClassNames(sourceMapJson, classNames);
       }

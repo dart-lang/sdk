@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../source_map.dart';
+import 'dart:typed_data';
+
+import '../../debug_info.dart';
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -27,11 +29,8 @@ class Instructions implements Serializable {
   /// A string trace.
   late final trace = _traceLines.join();
 
-  /// Mappings for the instructions in `_instructions` to their source code.
-  ///
-  /// Since we add mappings as we generate instructions, this will be sorted
-  /// based on [SourceMapping.instructionOffset].
-  final List<SourceMapping>? _sourceMappings;
+  /// Debug info bytecode indexed by instruction index.
+  final Uint8List? debugInfo;
 
   /// Create a new instruction sequence.
   Instructions(
@@ -40,7 +39,7 @@ class Instructions implements Serializable {
     List<Instruction> instructions,
     Map<Instruction, StackTrace>? stackTraces,
     List<String> traceLines,
-    this._sourceMappings,
+    this.debugInfo,
   ) : locals = locals.isEmpty ? const [] : locals.toList(growable: false),
       instructions = instructions.toList(growable: false),
       _stackTraces = stackTraces == null
@@ -65,39 +64,52 @@ class Instructions implements Serializable {
   }
 
   /// Serializes the instructions into [s].
+  ///
+  /// If [recordDebugInfo] is true and [debugInfo] is present, converts the
+  /// instruction-offset based [debugInfo] into function-body-relative
+  /// byte-offset based debug info and returns it.
   @override
-  void serialize(Serializer s) {
-    final sourceMappings = _sourceMappings;
-    int sourceMappingIdx = 0;
-    for (
-      int instructionIdx = 0;
-      instructionIdx < instructions.length;
-      instructionIdx += 1
-    ) {
-      final i = instructions[instructionIdx];
-      if (_stackTraces != null) s.debugTrace(_stackTraces[i]!);
+  Uint8List? serialize(Serializer s, [bool recordDebugInfo = false]) {
+    final debugInfo = this.debugInfo;
+    if (recordDebugInfo && debugInfo != null && debugInfo.isNotEmpty) {
+      final reader = DebugInfoReader(debugInfo);
+      final writer = DebugInfoWriter();
+      bool hasMapping = reader.moveNext();
+      final bodyStart = s.offset;
 
-      if (sourceMappings != null) {
-        // Skip to the mapping that covers the current instruction.
-        while (sourceMappingIdx < sourceMappings.length - 1 &&
-            sourceMappings[sourceMappingIdx + 1].instructionOffset <=
-                instructionIdx) {
-          sourceMappingIdx += 1;
-        }
+      for (int i = 0; i < instructions.length; i++) {
+        final instr = instructions[i];
+        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
 
-        if (sourceMappingIdx < sourceMappings.length) {
-          final mapping = sourceMappings[sourceMappingIdx];
-          if (mapping.instructionOffset <= instructionIdx) {
-            s.sourceMapSerializer.addMapping(s.offset, mapping.sourceInfo);
-            sourceMappingIdx += 1;
+        final relOffset = s.offset - bodyStart;
+        while (hasMapping && reader.offset <= i) {
+          if (reader.hasSourcePosition) {
+            writer.setSourcePositionWithIndices(
+              relOffset,
+              reader.fileIndex,
+              reader.line,
+              reader.col,
+              reader.nameIndex,
+            );
+          } else {
+            writer.clearSourcePosition(relOffset);
           }
+          hasMapping = reader.moveNext();
         }
+
+        instr.serialize(s);
       }
 
-      i.serialize(s);
+      writer.clearSourcePosition(s.offset - bodyStart);
+      return writer.build();
+    } else {
+      for (int i = 0; i < instructions.length; i++) {
+        final instr = instructions[i];
+        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
+        instr.serialize(s);
+      }
+      return null;
     }
-
-    s.sourceMapSerializer.addMapping(s.offset, null);
   }
 
   void printInitializerTo(IrPrinter p) {
@@ -118,8 +130,66 @@ class Instructions implements Serializable {
 
   void printTo(IrPrinter p) {
     p.beginLabeledBlock(null);
+
+    final debugInfo = this.debugInfo;
+    final reader =
+        (p.printSourcePositions && debugInfo != null && debugInfo.isNotEmpty)
+        ? DebugInfoReader(debugInfo, p.module.debugInfoTables)
+        : null;
+    bool hasMapping = reader?.moveNext() ?? false;
+
+    Uri? currentFileUri;
+    int? currentLine;
+    int? currentCol;
+    bool currentHasPosition = false;
+
+    Uri? lastPrintedFileUri;
+    int? lastPrintedLine;
+    int? lastPrintedCol;
+
     for (int k = 0; k < instructions.length; ++k) {
       final i = instructions[k];
+
+      if (reader != null) {
+        while (hasMapping && reader.offset <= k) {
+          currentHasPosition = reader.hasSourcePosition;
+          if (currentHasPosition) {
+            currentFileUri = reader.fileUri;
+            currentLine = reader.line;
+            currentCol = reader.col;
+          } else {
+            currentFileUri = null;
+            currentLine = null;
+            currentCol = null;
+          }
+          hasMapping = reader.moveNext();
+        }
+
+        if (currentHasPosition && currentFileUri != null) {
+          final lineChanged =
+              currentFileUri != lastPrintedFileUri ||
+              currentLine != lastPrintedLine;
+          final colChanged = currentCol != lastPrintedCol;
+          if (lineChanged || colChanged) {
+            lastPrintedFileUri = currentFileUri;
+            lastPrintedLine = currentLine;
+            lastPrintedCol = currentCol;
+            p.printSourcePosition(
+              currentFileUri,
+              currentLine!,
+              currentCol!,
+              printUrl: lineChanged,
+            );
+          }
+        } else {
+          if (lastPrintedFileUri != null) {
+            p.printUnmapped();
+          }
+          lastPrintedFileUri = null;
+          lastPrintedLine = null;
+          lastPrintedCol = null;
+        }
+      }
 
       final isTry =
           i is BeginNoEffectTry ||

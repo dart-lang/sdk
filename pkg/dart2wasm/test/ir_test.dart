@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:io' as io;
 import 'dart:typed_data';
@@ -9,6 +10,8 @@ import 'dart:typed_data';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:wasm_builder/source_map.dart'
+    show DebugInfoDeserializer, SourceMapDecoder;
 import 'package:wasm_builder/src/ir/ir.dart';
 import 'package:wasm_builder/src/serialize/deserializer.dart';
 import 'package:wasm_builder/src/serialize/printer.dart';
@@ -105,7 +108,18 @@ void main(List<String> args) async {
           .toList();
 
       for (final file in [wasmFile, ...deferredModuleWasmFiles]) {
-        final module = parseModule(file.readAsBytesSync());
+        DebugInfoDeserializer? debugInfoDeserializer;
+        if (settings.printSourcePositions) {
+          final mapFile = File('${file.path}.map');
+          if (mapFile.existsSync()) {
+            final mapJson = jsonDecode(mapFile.readAsStringSync());
+            debugInfoDeserializer = SourceMapDecoder.fromJson(mapJson);
+          }
+        }
+        final module = parseModule(
+          file.readAsBytesSync(),
+          debugInfoDeserializer,
+        );
         final wat = module.printAsWat(settings: settings);
         final watFile = File(
           path.join(
@@ -167,9 +181,15 @@ Iterable<String> listIrTests() {
       .where((path) => path.endsWith('.dart'));
 }
 
-Module parseModule(Uint8List wasmBytes) {
+Module parseModule(
+  Uint8List wasmBytes, [
+  DebugInfoDeserializer? debugInfoDeserializer,
+]) {
   final deserializer = Deserializer(wasmBytes);
-  return Module.deserialize(deserializer);
+  return Module.deserialize(
+    deserializer,
+    debugInfoDeserializer: debugInfoDeserializer,
+  );
 }
 
 (ModulePrintSettings, List<String>) parseSettings(String dartCode) {
@@ -178,14 +198,19 @@ Module parseModule(Uint8List wasmBytes) {
   const globalFilter = '// globalFilter=';
   const typeFilter = '// typeFilter=';
   const compilerOption = '// compilerOption=';
+  const printSourcePositionsPrefix = '// printSourcePositions';
 
   final functionFilters = <RegExp>[];
   final tableFilters = <RegExp>[];
   final globalFilters = <RegExp>[];
   final typeFilters = <RegExp>[];
   final compilerOptions = <String>[];
+  bool printSourcePositions = false;
 
   for (final line in dartCode.split('\n')) {
+    if (line.startsWith(printSourcePositionsPrefix)) {
+      printSourcePositions = true;
+    }
     for (final (prefix, regexpList) in [
       (functionFilter, functionFilters),
       (tableFilter, tableFilters),
@@ -217,6 +242,12 @@ Module parseModule(Uint8List wasmBytes) {
       preferMultiline: true,
       scrubAbsoluteUris: true,
       printInSortedOrder: true,
+      printSourcePositions: printSourcePositions,
+      sourceFileProvider: (uri) {
+        if (!uri.isScheme('file')) return null;
+        final file = File(uri.toFilePath());
+        return file.existsSync() ? file.readAsLinesSync() : null;
+      },
     ),
     compilerOptions,
   );
