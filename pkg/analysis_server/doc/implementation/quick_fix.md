@@ -40,7 +40,7 @@ code to compute a quick fix can't perform any potentially lengthy computations
 such as searching all of the user's code or accessing the network. That, in
 turn, generally means that fixes can only support localized changes. They can
 add or remove text in the library in which the diagnostic was reported, but
-generally can't do more than that. 
+generally can't do more than that.
 
 ### Describing the fix
 
@@ -86,7 +86,7 @@ a file named `add_final.dart` in that directory that contains the following
 (with the year updated appropriately):
 
 ```dart
-// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -96,6 +96,9 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddFinal extends CorrectionProducer {
+  @override
+  CorrectionApplicability get applicability => .singleLocation;
+
   @override
   FixKind get fixKind => DartFixKind.ADD_FINAL;
 
@@ -107,6 +110,9 @@ class AddFinal extends CorrectionProducer {
 
 The `compute` method is where the fix will be built. We'll come back to it in
 "Implementing the fix, part 2".
+
+The `applicability` getter tells the framework how this fix can be applied. The
+`singleLocation` value specifies that this is a single-site fix.
 
 The `fixKind` getter is how you associate the fix kind we created earlier with
 the fix produced by the `compute` method.
@@ -136,11 +142,10 @@ some tests. Even if you don't normally use a test-driven approach to coding, we
 recommend it when writing fixes because writing the tests can help you think of
 corner cases that the implementation will need to handle. The corresponding
 tests are in the directory `analysis_server/test/src/services/correction/fix`,
-so we'll
-create a file named `add_final_test.dart` that contains the following:
+so we'll create a file named `add_final_test.dart` that contains the following:
 
 ```dart
-// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -198,6 +203,11 @@ the lint over the code, use the correction producer you wrote to build a fix,
 apply the fix to the file, and textually compare the results with the second
 piece of code.
 
+The framework expects that the test code will produce a single diagnostic. If
+that expectation is violated the test will fail with a message of "Expected one
+diagnostic, found: ...". If this happens, update the code so that the other
+diagnostics will not be reported.
+
 ### Registering the fix
 
 Before we can run the test, we need to register the correction producer so that
@@ -221,13 +231,19 @@ do that so that producers can't accidentally carry state over from one use to
 the next. These functions are usually a tear-off of one of the correction
 producer's constructors.
 
-The last step is to add your correction producer to the appropriate map. If
-you're adding a fix for a lint, then you'd add an entry like
+Add your correction producer to the appropriate map. If you're adding a fix for
+a lint, then you'd add an entry like
 
 ```dart
-LintNames.could_be_final: [
-  AddFinal.new,
-],
+diag.couldBeFinal: [AddFinal.new],
+```
+
+If this is the first fix for the diagnostic, update the file
+`analysis_server/lib/src/services/correction/error_fix_status.yaml` to record
+that the diagnostic has a fix. You can verify that the file is updated correctly
+by running
+```
+dart pkg/analysis_server/tool/presubmit/verify_error_fix_status.dart
 ```
 
 At this point you should be able to run the test and see it failing.
@@ -480,13 +496,12 @@ This is different than the original fix kind in the following ways:
 - the message is worded in a way that makes it clear that multiple locations
   will be changed.
 
-The second step is to implement a couple of additional getters in your
-`CorrectionProducer`. First, let the framework know that your fix can be used in
-this way:
+The second step is to update your `CorrectionProducer`. First, let the framework
+know that your fix can be used in this way by changing the `applicability`:
 
 ```dart
 @override
-bool get canBeAppliedToFile => true;
+CorrectionApplicability get applicability => .acrossSingleFile;
 ```
 
 Then specify the fix kind associated with the fix-in-file fix:
@@ -507,9 +522,9 @@ List<Object> get multiFixArguments => ['first', 'second'];
 That's it; the fix-in-file fix should now appear.
 
 You should, of course, write tests for the fix. Those tests will be similar in
-structure to those written to test the single application use case, but will be
-in a subclass of `FixInFileProcessorTest`. They should be added to the test file
-you created earlier for the single-site fixes
+some respects to those written to test the single application use case, but will
+be in a subclass of `FixInFileProcessorTest`. They should be added to the test
+file you created earlier for the single-site fixes
 (`analysis_server/test/src/services/correction/fix/add_final_test.dart`).
 
 The most important distinction between the two is that for the fix-in-file tests
@@ -519,6 +534,18 @@ of the region of code impacted by the fix. For example, if the fix reverses the
 order of two arguments in an argument list (such as by converting `m(a, b)` to
 `m(b, a)`), then make one of the arguments be an invocation of `m` whose
 arguments would also need to be swapped (such as `m(a, m(b, c)`).
+
+The other difference is that instead of using `assertHasFix`, these tests
+typically use:
+
+```dart
+var fixes = await getFixesForFirstError();
+expect(fixes, hasLength(1));
+assertProduces(fixes.first, expectedCode);
+```
+
+If test code produces multiple diagnostics, then `getFixesForFirstError` can be
+passed a closure to filter the list to the one with which the fix is associated.
 
 ## Bulk fixes
 
@@ -550,11 +577,11 @@ of conflicts automatically, but can't handle everything.
 ### Enabling the fix
 
 If you decide that you do want your fix to be supported by `dart fix`, the only
-change that's required is to implement the following getter:
+change that's required is to update the `applicability`:
 
 ```dart
 @override
-bool get canBeAppliedInBulk => true;
+CorrectionApplicability get applicability => .automatically;
 ```
 
 You should, of course, write tests for bulk application of the fix. Those tests

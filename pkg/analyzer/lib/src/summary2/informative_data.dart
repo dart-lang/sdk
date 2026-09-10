@@ -1944,7 +1944,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
   }
 
   @override
@@ -2021,6 +2021,17 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.period);
     node.constructorName.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    _tokenOrNull(node.constKeyword);
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);
   }
 
@@ -2102,6 +2113,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -2112,9 +2131,23 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _tokenOrNull(node.operator);
+    super.visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -2228,34 +2261,10 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPostfixDecrement(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPostfixIncrement(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPrefixDecrement(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept2(this);
     _tokenOrNull(node.period);
     node.identifier.accept2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPrefixIncrement(node);
   }
 
   @override
@@ -2301,7 +2310,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _tokenOrNull(node.operator);
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
     super.visitReceiverPropertyExtraction(node);
   }
 
@@ -2444,6 +2453,11 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _tokenOrNull(node.name);
   }
 

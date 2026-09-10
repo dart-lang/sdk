@@ -5,6 +5,8 @@
 // This is a helper script which performs IL matching for AOT IL tests.
 // See runtime/docs/infra/il_tests.md for more information.
 
+// ignore_for_file: deprecated_member_use
+
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';

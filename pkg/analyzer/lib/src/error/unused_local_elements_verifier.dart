@@ -13,8 +13,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart'
-    show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
@@ -24,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor2] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
+class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -80,12 +78,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitCascadeMethodInvocation(node);
-  }
-
-  @override
-  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitCascadePropertyExtraction(node);
   }
 
   @override
@@ -199,13 +191,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
     if (write case InvalidNamedWriteResolution(:var candidates)) {
       for (var candidate in candidates) {
-        if (candidate is SubstitutedExecutableElementImpl) {
-          candidate = candidate.baseElement;
-        }
+        candidate = candidate.baseElement;
         _useIdentifierElement(candidate);
       }
       super.visitDirectAssignment(node);
@@ -230,6 +221,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    _useIdentifierElement(node.element);
+    usedElements.addElement(node.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     usedElements.addElement(node.memberName.element?.enclosingElement);
     _addParametersForArguments(node.argumentList);
@@ -240,15 +241,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      usedElements.addElement(element.enclosingElement);
-    }
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitDotShorthandNameExpression(node);
   }
 
   @override
@@ -318,6 +310,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+    super.visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
@@ -365,34 +369,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitNode(AstNode node) {
+    if (node is NameExpression) {
+      _visitNameExpression(node);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
     super.visitPatternField(node);
-  }
-
-  @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPostfixDecrement(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPostfixIncrement(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPrefixDecrement(node);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPrefixIncrement(node);
   }
 
   @override
@@ -405,12 +393,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
-  }
-
-  @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -446,11 +428,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (node.inCommentReference2) {
       return;
     }
-    var element = node.writeOrReadElement2;
-    // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
+    var element = node.writeOrReadElement2?.baseElement;
     var variable = element.tryCast<PropertyAccessorElement>()?.variable;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
@@ -486,20 +464,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (enclosingElement is EnumElement && element.name == 'values') {
-        // If the 'values' static accessor of the enum is accessed, then all of
-        // the enum values have been read.
-        for (var field in enclosingElement.fields) {
-          if (field.isEnumConstant) {
-            usedElements.readMembers.add(field.getter!);
-          }
+      } else {
+        if (_recordEnumValuesUse(element)) {
+          return;
         }
-      } else if ((enclosingElement is InterfaceElement ||
-              enclosingElement is ExtensionElement) &&
-          !identical(element, _enclosingExec)) {
-        usedElements.members.add(element);
-        if (isIdentifierRead) {
-          _addMemberAndCorrespondingGetter(element);
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+          if (isIdentifierRead) {
+            _addMemberAndCorrespondingGetter(element);
+          }
         }
       }
     }
@@ -587,6 +562,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  /// Records that reading an enum's synthetic `values` getter reads every
+  /// constant declared by the enum.
+  bool _recordEnumValuesUse(Element? element) {
+    var enclosingElement = element?.enclosingElement;
+    if (enclosingElement is! EnumElement || element?.name != 'values') {
+      return false;
+    }
+    for (var field in enclosingElement.fields) {
+      if (field.isEnumConstant) {
+        usedElements.readMembers.add(field.getter!);
+      }
+    }
+    return true;
+  }
+
   void _recordNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution case ExecutableInvocationResolution(:var element)) {
       _useIdentifierElement(element);
@@ -595,9 +585,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _useAssignmentTargetElement(Element element) {
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
+    element = element.baseElement;
 
     // A write alone does not make a local variable's value used.
     if (element is LocalVariableElement) {
@@ -654,9 +642,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     required bool readCountsAsUse,
   }) {
     if (read case NamedReadResolutionWithElement(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
-        element = element.baseElement;
-      }
+      element = element.baseElement;
       var variable = element.tryCast<PropertyAccessorElement>()?.variable;
       if (element is PropertyAccessorElement &&
           variable is TopLevelVariableElement) {
@@ -672,21 +658,26 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         if (readCountsAsUse) {
           usedElements.addElement(element);
         }
-      } else if (readCountsAsUse ||
-          element is! PropertyAccessorElement ||
-          !element.isOriginVariable) {
-        _useIdentifierElement(element);
-        if (element is ExecutableElement) {
-          for (var parameter in element.formalParameters) {
-            usedElements.addElement(parameter);
-          }
+      } else {
+        if (_recordEnumValuesUse(element)) {
+          return;
         }
-        var enclosingElement = element.enclosingElement;
-        if ((enclosingElement is InterfaceElement ||
-                enclosingElement is ExtensionElement) &&
-            !identical(element, _enclosingExec)) {
-          usedElements.members.add(element);
-          _addMemberAndCorrespondingGetter(element);
+        if (readCountsAsUse ||
+            element is! PropertyAccessorElement ||
+            !element.isOriginVariable) {
+          _useIdentifierElement(element);
+          if (element is ExecutableElement) {
+            for (var parameter in element.formalParameters) {
+              usedElements.addElement(parameter);
+            }
+          }
+          var enclosingElement = element.enclosingElement;
+          if ((enclosingElement is InterfaceElement ||
+                  enclosingElement is ExtensionElement) &&
+              !identical(element, _enclosingExec)) {
+            usedElements.members.add(element);
+            _addMemberAndCorrespondingGetter(element);
+          }
         }
       }
     }
@@ -712,20 +703,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
+      ImportPrefixedAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
+      ImportPrefixedAssignmentTarget(:var write) => write,
       _ => null,
     };
 
     _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
 
     if (write case NamedWriteResolutionWithElement(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
-        element = element.baseElement;
-      }
+      element = element.baseElement;
       if (element is! LocalVariableElement) {
         _useIdentifierElement(element);
         var enclosingElement = element.enclosingElement;
@@ -738,13 +729,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
-    usedElements.addMember(node.element);
-    _useReadWriteAssignmentTarget(
-      node.target,
-      readCountsAsUse: node.parent2 is! ExpressionStatement,
+  void _visitNameExpression(NameExpression node) {
+    // The omitted qualifier also refers to the enclosing declaration.
+    if (node case DotShorthandNameExpression(
+      resolution: NamedReadResolutionWithElement(:var element),
+    )) {
+      usedElements.addElement(element.enclosingElement);
+    }
+
+    _useNamedReadResolution(
+      node.resolution,
+      // TODO(scheglov): Revise the useful-read heuristic and remove the
+      // distinction between unqualified and qualified reads.
+      readCountsAsUse:
+          node is! UnqualifiedNameExpression || _isUsefulRead(node),
     );
   }
 
@@ -757,6 +755,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (!node.inGetterContext()) {
       return false;
     }
+    return _isUsefulRead(node);
+  }
+
+  static bool _isUsefulRead(AstNode node) {
     // Check if useless reading.
     AstNode parent = node.parent2!;
 
@@ -1344,9 +1346,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
           return const [];
         }
 
-        return overridden.map(
-          (e) => (e is SubstitutedExecutableElementImpl) ? e.baseElement : e,
-        );
+        return overridden.map((e) => e.baseElement);
       }
     }
     return [];
@@ -1576,9 +1576,8 @@ class UsedLocalElements {
   void addElement(Element? element) {
     if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
-    } else if (element is SubstitutedExecutableElementImpl) {
-      elements.add(element.baseElement);
     } else if (element != null) {
+      element = element.baseElement;
       elements.add(element);
       var enclosingElement = element.enclosingElement;
       if (element is ConstructorElementImpl &&
@@ -1590,24 +1589,14 @@ class UsedLocalElements {
   }
 
   void addMember(Element? element) {
-    // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
-
     if (element != null) {
-      members.add(element);
+      members.add(element.baseElement);
     }
   }
 
   void addReadMember(Element? element) {
-    // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
-
     if (element != null) {
-      readMembers.add(element);
+      readMembers.add(element.baseElement);
     }
   }
 

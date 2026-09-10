@@ -149,9 +149,15 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: a@34
+    type: InvalidType
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: a
   element: a@34
   staticType: InvalidType
@@ -364,7 +370,13 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: (int, String)
     equals: =
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: (int, String)
+      staticType: (int, String)
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: (int, String)

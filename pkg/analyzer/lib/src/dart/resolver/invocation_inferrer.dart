@@ -7,6 +7,7 @@ library;
 
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -258,9 +259,9 @@ class ConstructorInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [DotShorthandConstructorInvocation].
+/// nodes of type [DotShorthandConstructorInvocation2].
 class DotShorthandConstructorInvocationInferrer
-    extends FullInvocationInferrer<DotShorthandConstructorInvocationImpl> {
+    extends FullInvocationInferrer<DotShorthandConstructorInvocation2Impl> {
   DotShorthandConstructorInvocationInferrer({
     required super.resolver,
     required super.node,
@@ -271,7 +272,7 @@ class DotShorthandConstructorInvocationInferrer
   }) : super._();
 
   @override
-  SimpleIdentifierImpl get _errorEntity => node.constructorName;
+  Token get _errorEntity => node.name;
 
   @override
   bool get _isConst => node.isConst;
@@ -302,7 +303,7 @@ class DotShorthandConstructorInvocationInferrer
         node.element!.baseElement,
         constructedType as InterfaceType,
       );
-      node.constructorName.element = constructorElement;
+      node.element = constructorElement;
       return constructorElement.formalParameters;
     }
     return null;

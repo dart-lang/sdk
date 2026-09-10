@@ -222,9 +222,7 @@ class SelectorInfo {
       outputSets.length,
       (i) => _upperBound(outputSets[i], ensureBoxed: false),
     );
-    if (outputs case [
-      w.RefType(heapType: w.HeapType.none, nullable: final nullable),
-    ]) {
+    if (outputs case [w.RefType(heapType: w.HeapType.none, :final nullable)]) {
       // All functions are guaranteed to return null or are unreachable.
       // => Prune signature to not return anything
       // => Tell callers to synthesize `null` or emit `unreachable`.
@@ -420,7 +418,7 @@ class DispatchTable {
   /// in the dispatch table (instead of adding more slots to static call table).
   late final Map<Reference, int> _tableIndexForReference;
 
-  late final w.TableBuilder _definedWasmTable;
+  late final w.Table _definedWasmTable;
   late final WasmTableImporter _importedWasmTables = WasmTableImporter(
     translator,
     'dispatch',

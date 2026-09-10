@@ -182,6 +182,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_this_alias.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -486,6 +487,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unnecessaryToListInSpreads: [RemoveToList.new],
   diag.unnecessaryThis: [RemoveThisExpression.new],
+  diag.unnecessaryThisAlias: [RemoveThisAlias.new],
   diag.unnecessaryTypeNameInConstructor: [RemoveTypeName.new],
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
   diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
@@ -881,6 +883,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateFunction.new,
     CreateMethod.method,
   ],
+  diag.undefinedMethodOnTypeLiteral: [
+    ChangeTo.method,
+    CreateExtensionMethod.new,
+    CreateFunction.new,
+    CreateMethod.method,
+  ],
   diag.undefinedNamedParameter: [
     AddMissingParameterNamed.new,
     ConvertFlutterChild.new,
@@ -1231,6 +1239,13 @@ final _builtInNonLintMultiGenerators = {
     CreateMixin.new,
   ],
   diag.undefinedMethod: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  diag.undefinedMethodOnTypeLiteral: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,

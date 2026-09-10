@@ -489,10 +489,16 @@ class NullSafetyDeadCodeVerifier {
     }
 
     target = target?.unParenthesized2;
-    if (target is SimpleIdentifier) {
-      var element = target.element;
-      if (element is PromotableElementImpl &&
-          flowAnalysis.isDefinitelyUnassigned(target, element)) {
+    var element = switch (target) {
+      SimpleIdentifier(:var element) => element,
+      UnqualifiedNameExpression(
+        resolution: VariableReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (target != null && element is PromotableElementImpl) {
+      if (flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent2;
         while (parent is MethodInvocation ||
             parent is PropertyAccess ||

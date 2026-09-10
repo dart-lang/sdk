@@ -150,22 +150,18 @@ template("application_snapshot") {
 
     depfile = "$output.d"
 
-    scheme = "org-dartlang-sdk"
-
     script = "$_dart_root/build/gn_run_binary.py"
     is_product_flag = dart_runtime_mode == "release"
 
     args = [
       rebase_path(gen_kernel_exe, root_build_dir),
-      "--packages=" + scheme + ":///" + rebase_path(package_config, "//"),
+      "--packages=" + rebase_path(package_config, root_build_dir),
       "--platform=" + rebase_path(platform_dill, root_build_dir),
       "--no-aot",
       "--no-embed-sources",
       "--no-link-platform",
       "--output=" + rebase_path(output, root_build_dir),
       "--depfile=" + rebase_path(depfile, root_build_dir),
-      "--filesystem-root=" + rebase_path("//", root_build_dir),
-      "--filesystem-scheme=" + scheme,
 
       # Ensure the compiled application (e.g. kernel-service, frontend-server,
       # ...) will use this SDK hash when consuming/producing kernel.
@@ -179,7 +175,7 @@ template("application_snapshot") {
       "-Ddart.vm.tsan=$is_tsan",
     ]
     args += gen_kernel_args
-    args += [ scheme + ":///" + rebase_path(main_dart, "//") ]
+    args += [ rebase_path(main_dart, root_build_dir) ]
   }
 
   # Create a snapshot from kernel built above.

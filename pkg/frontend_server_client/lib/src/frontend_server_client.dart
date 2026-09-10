@@ -100,18 +100,15 @@ class FrontendServerClient {
       for (final source in additionalSources) ...['--source', source],
       if (nativeAssets != null) ...['--native-assets', nativeAssets],
     ];
-
     final dartExecutable = p.join(
       sdk,
       'bin',
       Platform.isWindows ? 'dart.exe' : 'dart',
     );
-    final dartAotRuntimePath = p.join(sdk, 'bin', 'dartaotruntime');
-    final feServerAppJitSnapshotPath = p.join(
+    final dartAotRuntimePath = p.join(
       sdk,
       'bin',
-      'snapshots',
-      'frontend_server.dart.snapshot',
+      Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
     );
     final feServerAotSnapshotPath = p.join(
       sdk,
@@ -122,28 +119,42 @@ class FrontendServerClient {
 
     late final Process feServer;
     if (frontendServerPath != null) {
+      if (!File(frontendServerPath).existsSync()) {
+        throw ArgumentError.value(
+          frontendServerPath,
+          'frontendServerPath',
+          'Frontend server snapshot does not exist',
+        );
+      }
       feServer = await Process.start(dartExecutable, <String>[
         if (debug) '--observe',
         frontendServerPath,
         ...commonArguments,
       ]);
-    } else if (File(feServerAotSnapshotPath).existsSync()) {
+    } else {
       if (debug) {
         throw ArgumentError(
           'The debug argument cannot be set to true when the '
           'frontendServerPath argument is omitted.',
         );
       }
+      if (!File(feServerAotSnapshotPath).existsSync()) {
+        throw ArgumentError.value(
+          sdk,
+          'sdkRoot',
+          'Frontend server AOT snapshot does not exist at '
+              '"$feServerAotSnapshotPath"',
+        );
+      }
+      if (!File(dartAotRuntimePath).existsSync()) {
+        throw ArgumentError.value(
+          sdk,
+          'sdkRoot',
+          'Dart AOT runtime does not exist at "$dartAotRuntimePath"',
+        );
+      }
       feServer = await Process.start(dartAotRuntimePath, <String>[
         feServerAotSnapshotPath,
-        ...commonArguments,
-      ]);
-    } else {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      feServer = await Process.start(dartExecutable, <String>[
-        if (debug) '--observe',
-        feServerAppJitSnapshotPath,
         ...commonArguments,
       ]);
     }

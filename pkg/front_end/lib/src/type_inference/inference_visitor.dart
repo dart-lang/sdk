@@ -11652,11 +11652,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         assert(checkStack(node, stackBase, [/*empty*/]));
-
-        if (body is Block) {
-          body.scope = case_.switchCaseBodyScopeProviderInfo?.scope;
-        }
-
         PatternSwitchCase replacement = extern.createPatternSwitchCase(
           caseOffsets: case_.caseOffsets,
           patternGuards: patternGuards,
@@ -11668,6 +11663,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               variable.createDeclaration(),
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
+          jointVariableScope: case_.switchCaseBodyScopeProviderInfo?.scope,
           fileOffset: case_.fileOffset,
         )..scope = case_.switchCaseScopeProviderInfo?.scope;
         case_.registerSwitchCase(replacement);
@@ -11909,6 +11905,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void handle_ifCaseStatement_afterPattern({required InternalStatement node}) {
     if (node is InternalIfCaseStatement) {
+      _contextAllocationStrategy.handleAfterCaseHeads([]);
+    }
+  }
+
+  @override
+  void handle_ifCaseElement_afterPattern(InternalNode node) {
+    if (node is IfCaseElement) {
       _contextAllocationStrategy.handleAfterCaseHeads([]);
     }
   }
@@ -13579,7 +13582,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void dispatchCollectionElement(InternalNode element, Object? context) {
-    _contextAllocationStrategy.handleAfterCaseHeads([]);
     context as ElementInferenceContext;
     element as InternalElement;
     pushRewrite(inferElement(element, context));

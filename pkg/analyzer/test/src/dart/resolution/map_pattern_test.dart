@@ -629,7 +629,13 @@ PatternVariableDeclaration
     matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Map<bool, int>
+    staticType: Map<bool, int>
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Map<bool, int>

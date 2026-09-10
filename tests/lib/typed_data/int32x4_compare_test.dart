@@ -99,44 +99,102 @@ void testEquality(bool testingEqual) {
   check(Int32x4(_min, 2, _max, 4), Int32x4(0, 2, 0, 4));
 }
 
-void testAnyTrue() {
-  // Exhaustive over all 16 zero/non-zero lane combinations: anyTrue is true
-  // iff at least one lane is non-zero.
-  for (int bits = 0; bits < 16; bits++) {
-    final v = Int32x4(
-      (bits & 1) != 0 ? 1 : 0,
-      (bits & 2) != 0 ? 1 : 0,
-      (bits & 4) != 0 ? 1 : 0,
-      (bits & 8) != 0 ? 1 : 0,
-    );
-    Expect.equals(bits != 0, v.anyTrue);
+void testAnyTrueAndAllTrue() {
+  // For the full 16-combination matrix:
+  // - anyTrue is true iff at least one lane is non-zero (disjunction of the
+  //   lane flags).
+  // - allTrue is true iff every lane is non-zero (conjunction of the flags).
+  // - a lane counts as non-zero for any set bit, so each combination is filled
+  //   from several lane-value sets, including one with a distinct bit per lane
+  //   (no bit in common) and the int32 extremes.
+  const laneValueSets = [
+    (1, 2, 4, 8),
+    (-1, -1, -1, -1),
+    (1, 2147483647, -2147483648, 8),
+  ];
+  for (final vals in laneValueSets) {
+    for (int bits = 0; bits < 16; bits++) {
+      final v = Int32x4(
+        (bits & 1) != 0 ? vals.$1 : 0,
+        (bits & 2) != 0 ? vals.$2 : 0,
+        (bits & 4) != 0 ? vals.$3 : 0,
+        (bits & 8) != 0 ? vals.$4 : 0,
+      );
+      // Expected result: at least one lane non-zero.
+      Expect.equals(bits != 0, v.anyTrue);
+      // Equivalent to the disjunction of the lane flags.
+      Expect.equals(v.flagX || v.flagY || v.flagZ || v.flagW, v.anyTrue);
+      // Expected result: every lane non-zero.
+      Expect.equals(bits == 0xf, v.allTrue);
+      // Equivalent to the conjunction of the lane flags.
+      Expect.equals(v.flagX && v.flagY && v.flagZ && v.flagW, v.allTrue);
+    }
   }
 
-  // anyTrue is "any bit set in any lane", not "signMask != 0" (which only
-  // checks the sign bit). Int32x4(1, 0, 0, 0) distinguishes them: it is
-  // non-zero but the sign bit is clear, so signMask is 0 while anyTrue is true.
+  // Both look at any set bit, not the sign bit that signMask reads. Lanes with
+  // only low bits set have signMask 0 but are still non-zero.
   final lowBit = Int32x4(1, 0, 0, 0);
   Expect.equals(0, lowBit.signMask);
   Expect.isTrue(lowBit.anyTrue);
+  Expect.isFalse(lowBit.allTrue);
 
-  // All lanes non-zero -> true.
-  Expect.isTrue(Int32x4(-1, -1, -1, -1).anyTrue);
+  final lowBits = Int32x4(1, 1, 1, 1);
+  Expect.equals(0, lowBits.signMask);
+  Expect.isTrue(lowBits.allTrue);
 
-  // Consistent with the comparison mask: a match makes anyTrue true.
+  // Typically applied to a comparison mask.
   final a = Int32x4(1, 2, 3, 4);
+  Expect.isTrue(a.equal(a).allTrue);
   Expect.isFalse(a.equal(Int32x4(5, 6, 7, 8)).anyTrue);
   Expect.isTrue(a.equal(Int32x4(0, 2, 0, 0)).anyTrue);
-  Expect.isTrue(a.equal(a).anyTrue);
+  Expect.isFalse(a.equal(Int32x4(1, 2, 3, 0)).allTrue);
+}
 
-  // Equivalent to the disjunction of the lane flags.
-  final m = a.equal(Int32x4(0, 2, 0, 4));
-  Expect.equals(m.flagX || m.flagY || m.flagZ || m.flagW, m.anyTrue);
+void testComparisons() {
+  const lanes = [-2147483648, -1, 0, 1, 2147483647];
+  for (final p in lanes) {
+    for (final q in lanes) {
+      final a = Int32x4(p, p, p, p);
+      final b = Int32x4(q, q, q, q);
+
+      final lt = a.lessThan(b);
+      final le = a.lessThanOrEqual(b);
+      final gt = a.greaterThan(b);
+      final ge = a.greaterThanOrEqual(b);
+
+      final expLt = p < q ? -1 : 0;
+      final expLe = p <= q ? -1 : 0;
+      final expGt = p > q ? -1 : 0;
+      final expGe = p >= q ? -1 : 0;
+
+      Expect.equals(expLt, lt.x);
+      Expect.equals(expLt, lt.y);
+      Expect.equals(expLt, lt.z);
+      Expect.equals(expLt, lt.w);
+
+      Expect.equals(expLe, le.x);
+      Expect.equals(expLe, le.y);
+      Expect.equals(expLe, le.z);
+      Expect.equals(expLe, le.w);
+
+      Expect.equals(expGt, gt.x);
+      Expect.equals(expGt, gt.y);
+      Expect.equals(expGt, gt.z);
+      Expect.equals(expGt, gt.w);
+
+      Expect.equals(expGe, ge.x);
+      Expect.equals(expGe, ge.y);
+      Expect.equals(expGe, ge.z);
+      Expect.equals(expGe, ge.w);
+    }
+  }
 }
 
 void main() {
   for (int i = 0; i < 20; i++) {
     testEquality(true); // equal
     testEquality(false); // notEqual
-    testAnyTrue();
+    testAnyTrueAndAllTrue();
+    testComparisons();
   }
 }

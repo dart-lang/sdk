@@ -19,6 +19,14 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
   late final int startOffset;
   late final int endOffset;
 
+  /// Whether the enum declaration had no explicit body.
+  ///
+  /// This is used to avoid cascading errors for declarations like
+  ///
+  ///     enum E
+  ///
+  late final bool hasErroneousBody;
+
   final List<EnumElementFragment> enumElements = [];
 
   @override

@@ -1722,6 +1722,8 @@ undefined_method:
 undefined_method_on_function_type:
   status: needsFix
   since: 2.15
+undefined_method_on_type_literal:
+  status: hasFix
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
@@ -1951,6 +1953,10 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
+deprecated_member_use_implicit:
+  status: needsEvaluation
+deprecated_member_use_implicit_with_message:
+  status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix
 import_deferred_library_with_load_function:
@@ -2638,7 +2644,7 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_this_alias:
-  status: needsEvaluation
+  status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:

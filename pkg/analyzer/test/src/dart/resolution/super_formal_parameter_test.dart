@@ -238,9 +238,16 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.simple('a; // ref');
+    var node = result.findNode.unqualifiedNameExpression('a; // ref');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::A::@getter::a
   staticType: int
@@ -259,9 +266,15 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.simple('a; }');
+    var node = result.findNode.unqualifiedNameExpression('a; }');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
   staticType: int

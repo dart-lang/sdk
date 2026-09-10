@@ -172,6 +172,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
             case kDoubleCid:
             case kFloat32x4Cid:
             case kFloat64x2Cid:
+            case kInt32x4Cid:
               from_box_cid = field_cid;
               break;
             default:
@@ -186,6 +187,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
             case kDoubleCid:
             case kFloat32x4Cid:
             case kFloat64x2Cid:
+            case kInt32x4Cid:
               to_box_cid = field_cid;
               break;
             default:
@@ -310,6 +312,12 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
             value = Float64x2::New(unboxed_value);
             break;
           }
+          case kInt32x4Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Int32x4::New(unboxed_value);
+            break;
+          }
           case kIntegerCid: {
             const auto unboxed_value =
                 before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
@@ -332,7 +340,8 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
             break;
           }
           case kFloat32x4Cid:
-          case kFloat64x2Cid: {
+          case kFloat64x2Cid:
+          case kInt32x4Cid: {
             const auto unboxed_value =
                 before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
             after.RawSetUnboxedFieldAtOffset<simd128_value_t>(to.offset,
@@ -371,6 +380,8 @@ static const char* BoxCidToCString(intptr_t box_cid) {
       return "float32x4";
     case kFloat64x2Cid:
       return "float64x2";
+    case kInt32x4Cid:
+      return "int32x4";
     case kIntegerCid:
       return "int64";
   }
@@ -2360,7 +2371,8 @@ ErrorPtr ProgramReloadContext::InvalidateSuspendStates(
   Error& error = Error::Handle(zone);
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  for (intptr_t i = 0, n = suspend_states.length(); i < n; ++i) {
+  for (intptr_t i = 0, n = suspend_states.length(); i < n; i++) {
+    HANDLESCOPE(thread);
     const SuspendState& suspend_state = *suspend_states[i];
     ASSERT(suspend_state.pc() != 0);
     code = suspend_state.GetCodeObject();
@@ -2464,8 +2476,8 @@ class FieldInvalidator {
 
   void CheckInstances(const GrowableArray<const Instance*>& instances) {
     Thread* thread = Thread::Current();
-    HANDLESCOPE(thread);
-    for (intptr_t i = 0; i < instances.length(); i++) {
+    for (intptr_t i = 0, n = instances.length(); i < n; i++) {
+      HANDLESCOPE(thread);
       CheckInstance(*instances[i]);
     }
   }

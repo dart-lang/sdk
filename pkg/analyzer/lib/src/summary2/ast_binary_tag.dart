@@ -54,6 +54,7 @@ enum AstNodeTag {
   IfNullAssignment,
   ImplicitCallReference,
   ImportPrefixReference,
+  IncrementOrDecrementExpression,
   ReceiverIndexAssignmentTarget,
   IndexExpression,
   ReceiverIndexExpression,
@@ -78,10 +79,6 @@ enum AstNodeTag {
   NullAwareElement,
   NullLiteral,
   ParenthesizedExpression,
-  PostfixDecrement,
-  PostfixIncrement,
-  PrefixDecrement,
-  PrefixIncrement,
   PrefixedIdentifier,
   PropertyAccess,
   ReceiverPropertyAssignmentTarget,
@@ -119,6 +116,13 @@ enum AstNodeTag {
   ReceiverMethodInvocation,
   DotShorthandMethodInvocation,
   DotShorthandNameExpression,
+  DotShorthandConstructorInvocation2,
+  UnqualifiedNameExpression,
+  ImportPrefixedNameExpression,
+  ImplicitFunctionInstantiation,
+  ImplicitCallTearOff,
+  FunctionInstantiation,
+  ImportPrefixedAssignmentTarget,
 }
 
 enum DirectiveUriKind {
@@ -129,6 +133,8 @@ enum DirectiveUriKind {
   withRelativeUriString,
   withNothing,
 }
+
+enum DotShorthandContextResolutionTag { valid, invalid }
 
 enum ElementTag {
   null_,

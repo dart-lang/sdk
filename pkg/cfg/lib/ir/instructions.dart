@@ -1111,14 +1111,41 @@ enum ArrayKind {
   uint32List,
   int64List,
   uint64List,
-  // TODO: add FP typed data lists
-  // float32List,
-  // float64List,
-  // TODO: add SIMD typed data lists
-  // float32x4List,
-  // int32x4List,
-  // float64x2List,
-  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+  float32List,
+  float64List,
+  float32x4List,
+  float64x2List,
+  int32x4List,
+  // Typed data list views reference elements through indirection.
+  // On the VM this also includes external typed data lists.
+  int8ListView,
+  uint8ListView,
+  uint8ClampedListView,
+  int16ListView,
+  uint16ListView,
+  int32ListView,
+  uint32ListView,
+  int64ListView,
+  uint64ListView,
+  float32ListView,
+  float64ListView,
+  float32x4ListView,
+  float64x2ListView,
+  int32x4ListView,
+  // ByteData provides access to elements of different types via byte offsets.
+  int8ByteData,
+  uint8ByteData,
+  int16ByteData,
+  uint16ByteData,
+  int32ByteData,
+  uint32ByteData,
+  int64ByteData,
+  uint64ByteData,
+  float32ByteData,
+  float64ByteData,
+  float32x4ByteData,
+  float64x2ByteData,
+  int32x4ByteData,
 }
 
 /// Load value from an array element.

@@ -121,7 +121,7 @@
       local.tee $var0
       global.get $1
       local.get $var0
-      struct.get $Object $field0
+      struct.get $Object $#classId
       i32.const 373
       i32.add
       call_indirect $M.dispatch0 (param (ref $Object) (ref null $#Top))

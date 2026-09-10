@@ -890,7 +890,13 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: (int, String)
+    staticType: (int, String)
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int, String)

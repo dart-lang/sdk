@@ -547,6 +547,11 @@ abstract class AstVisitor2<R> {
     DotShorthandConstructorInvocation node,
   );
 
+  @experimental
+  R? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  );
+
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
   @experimental
@@ -621,6 +626,9 @@ abstract class AstVisitor2<R> {
 
   R? visitFunctionExpression(FunctionExpression node);
 
+  @experimental
+  R? visitFunctionInstantiation(FunctionInstantiation node);
+
   R? visitFunctionReference(FunctionReference node);
 
   R? visitFunctionTypeAlias(FunctionTypeAlias node);
@@ -654,14 +662,29 @@ abstract class AstVisitor2<R> {
 
   R? visitImplicitCallReference(ImplicitCallReference node);
 
+  @experimental
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node);
+
+  @experimental
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node);
+
   R? visitImportDirective(ImportDirective node);
+
+  @experimental
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node);
 
   @experimental
   R? visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   );
 
+  @experimental
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node);
+
   R? visitImportPrefixReference(ImportPrefixReference node);
+
+  @experimental
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node);
 
   R? visitIndexExpression(IndexExpression node);
 
@@ -766,19 +789,7 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  @experimental
-  R? visitPostfixDecrement(PostfixDecrement node);
-
-  @experimental
-  R? visitPostfixIncrement(PostfixIncrement node);
-
-  @experimental
-  R? visitPrefixDecrement(PrefixDecrement node);
-
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
-  @experimental
-  R? visitPrefixIncrement(PrefixIncrement node);
 
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 
@@ -899,6 +910,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
+
+  @experimental
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
 
   R? visitVariableDeclaration(VariableDeclaration node);
 

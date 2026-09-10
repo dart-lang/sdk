@@ -303,7 +303,7 @@ void nonPrefix() {}
 f() {
   nonPrefix.Class<int>();
 //          ^^^^^
-// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -336,7 +336,7 @@ void nonPrefix() {}
 f() {
   nonPrefix.Class();
 //          ^^^^^
-// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'Class' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -356,7 +356,7 @@ void NonType<T>() {}
 f() {
   NonType<int>.named();
 //             ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -367,7 +367,7 @@ void NonType() {}
 f() {
   NonType.named();
 //        ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -402,7 +402,7 @@ void NonType<T>() {}
 f() {
   prefix.NonType<int>.named();
 //                    ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -415,7 +415,7 @@ void NonType() {}
 f() {
   prefix.NonType.named();
 //               ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'named' isn't defined for the type 'void Function()'.
 }
 ''');
   }

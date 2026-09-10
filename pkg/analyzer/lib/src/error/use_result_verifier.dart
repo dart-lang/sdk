@@ -72,6 +72,15 @@ class UseResultVerifier {
     }
   }
 
+  void checkNameExpression(Expression node, NamedReadResolution? resolution) {
+    if (node.parent2 is CallInvocation) {
+      return;
+    }
+    if (resolution case NamedReadResolutionWithElement(:var element)) {
+      _check(node, element);
+    }
+  }
+
   void checkPropertyAccess(PropertyAccess node) {
     var element = node.propertyName.element;
     if (element == null) {
@@ -230,8 +239,8 @@ class UseResultVerifier {
         parent is IfElement ||
         parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixIncrement ||
-        parent is PrefixDecrement ||
+        (parent is IncrementOrDecrementExpression &&
+            parent.position == IncrementOrDecrementPosition.prefix) ||
         parent is SpreadElement ||
         parent is UnaryOperatorInvocation) {
       return _isUsed(parent);

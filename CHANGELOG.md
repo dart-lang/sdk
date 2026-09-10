@@ -5,6 +5,7 @@
 ### Libraries
 
 #### `dart:ffi`
+
 - Added `NativeFinalizer.callback`, which returns the finalization callback the
   finalizer was created with.
   For more details, see SDK issue [#63811][]
@@ -22,6 +23,12 @@
   `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
 - Added `Int32x4.notEqual`, a lane-wise inequality comparison that returns `-1`
   in each lane where the operands differ and `0` elsewhere.
+- Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
+  non-zero.
+- Added the signed lane-wise ordered comparisons `Int32x4.lessThan`,
+  `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
+  `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
+  comparison holds and `0` elsewhere.
 
 #### `dart:js_interop`
 
@@ -70,6 +77,12 @@
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+#### `dart:mirrors`
+
+- The `dart:mirrors` library is now marked `@deprecated`, and will be removed
+  in a future release. For details, see issue [#44489].
+
+[#44489]: https://github.com/dart-lang/sdk/issues/44489
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
@@ -89,9 +102,68 @@ formatting Dart 3.13 code:
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
 
+## 3.13.3
+
+**Released on:** 2026-09-01
+
+This is a patch release that:
+
+- Fixes an issue where Windows to Linux cross compilation
+  produced incorrect executables if the applicatios used
+  build hooks to link native code. (issue [#63953][])
+
+[#63953]: https://github.com/dart-lang/sdk/issues/63953
+
+## 3.13.2
+
+**Released on:** 2026-08-25
+
+This is a patch release that:
+
+- Fixes incorrect dart2wasm compilation of constructor invocations when
+  the class was determined to be not allocatable. (issue [#63809][])
+- Deprecates the legacy analyzer plugin system. (issue [#62164][])
+- Fixes dart2js compiler crash when compiling code with
+  nested constants in `record_use`. (issue [#64070][])
+- Fixes a `dart format` crash and incorrect formatting with
+  enums that use primary constructors.
+  (issues [dart-lang/dart_style#1885][], [dart-lang/dart_style#1888][])
+
+[#63809]: https://github.com/dart-lang/sdk/issues/63809
+[#62164]: https://github.com/dart-lang/sdk/issues/62164
+[#64070]: https://github.com/dart-lang/sdk/issues/64070
+
+[dart-lang/dart_style#1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart-lang/dart_style#1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+
+## 3.13.1
+
+**Released on:** 2026-08-18
+
+This is a patch release that:
+
+- Fixes `dart fix --apply --code=migrate_design_widgets` to
+  replace URIs in both import and export statements. (issue [#63968][])
+- Fixes dart2wasm compiler crash in no-such-method forwarders.
+  (issue [#63904][])
+- Fixes dart2wasm compilation error if 3rd party `Type` implementations exist.
+  (issue [#63843][])
+- Fixes dart2wasm compiler crash if dynamic getter calls are used that
+  target a getter implementation that was inferred to never return.
+- Fixes dart2wasm compiler crash if named parameters in hierarchy have
+  mixed "required"-ness. (issue [#60583][])
+- Fixes `closure.hashCode` sometimes returning `null`. (issue [#64035][])
+
+[#63968]: https://github.com/dart-lang/sdk/issues/63968
+[#63904]: https://github.com/dart-lang/sdk/issues/63904
+[#63843]: https://github.com/dart-lang/sdk/issues/63843
+[#60583]: https://github.com/dart-lang/sdk/issues/60583
+[#64035]: https://github.com/dart-lang/sdk/issues/64035
+
 ## 3.13.0
 
-**Released on:** Unreleased
+**Released on:** 2026-08-12
 
 ### Language
 

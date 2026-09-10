@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class DotShorthandInvocationResolutionTest extends PubPackageResolutionTest {
   test_assert_lhs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   final int x;
   const C.named(this.x);
@@ -29,6 +29,44 @@ class CAssert {
 //           ^^^^^^^^^^^^^^^
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
+''');
+
+    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandConstructorInvocation2
+  constKeyword: const
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  element: <null>
+  staticType: dynamic
+V1: DotShorthandConstructorInvocation
+  constKeyword: const
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  staticType: dynamic
 ''');
   }
 
@@ -55,6 +93,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -113,6 +154,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<dynamic>
+    lookupType: C<dynamic>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C<dynamic> Function(int)
@@ -180,6 +224,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -229,6 +276,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -273,6 +323,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -322,6 +375,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -350,7 +406,7 @@ V1: DotShorthandInvocation
   }
 
   test_equality_extensionOverride() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f() {
@@ -361,10 +417,41 @@ void f() {
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_equality_extensionOverride_neq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 extension E on int {}
 
 void f() {
@@ -374,6 +461,37 @@ void f() {
 //        ^^^^^^^^^
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -399,6 +517,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::instances
     invokeType: List<C> Function()
@@ -420,7 +541,7 @@ V1: DotShorthandInvocation
   }
 
   test_equality_super() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -433,10 +554,41 @@ class B extends A {
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_equality_super_neq() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
@@ -449,10 +601,41 @@ class B extends A {
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_error_context_invalid() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C { }
 
 void main() {
@@ -462,10 +645,39 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: C Function()
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_error_context_none() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var c = .member();
 //        ^^^^^^^^^
@@ -473,10 +685,39 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_error_notStatic() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C foo() => C();
 }
@@ -488,10 +729,40 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_error_unresolved() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C { }
 
 void main() {
@@ -501,10 +772,40 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_error_unresolved_new() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.named();
 }
@@ -515,6 +816,36 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type 'C'.
   print(c);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -539,6 +870,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::C::@method::one
     invokeType: C Function()
@@ -560,7 +894,7 @@ V1: DotShorthandInvocation
   }
 
   test_functionExpression() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C();
 }
@@ -570,6 +904,37 @@ void main() {
 //            ^^^^^^^^^
 // [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibrary>::@class::C::@method::member
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: false
+  staticInvokeType: C Function()
+  staticType: C
 ''');
   }
 
@@ -595,6 +960,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -652,6 +1020,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -722,6 +1093,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -779,6 +1153,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -877,6 +1254,9 @@ CallInvocation
             leftParenthesis: (
             rightParenthesis: )
           isDotShorthand: true
+          shorthandContext: ValidDotShorthandContextResolution
+            contextType: C
+            lookupType: C
           resolution: ExecutableInvocationResolution
             element: <testLibrary>::@class::C::@method::one
             invokeType: C Function()
@@ -885,6 +1265,9 @@ CallInvocation
           staticType: C
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function(C)
@@ -935,7 +1318,7 @@ V1: FunctionExpressionInvocation
   }
 
   test_functionExpression_nested() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member(C c) => C();
   static C one() => C(); 
@@ -946,6 +1329,68 @@ void main() {
 //      ^^^^^^^^^^^^^^^
 // [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
 }
+''');
+
+    var node = result.findNode.dotShorthandMethodInvocation('.member');
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DotShorthandMethodInvocation
+        period: .
+        name: one
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        isDotShorthand: true
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C
+          lookupType: C
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::C::@method::one
+          invokeType: C Function()
+          type: C
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::c
+        staticType: C
+    rightParenthesis: )
+  isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::member
+    invokeType: C Function(C)
+    type: C
+  staticType: C
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibrary>::@class::C::@method::member
+    staticType: C Function(C)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      DotShorthandInvocation
+        period: .
+        memberName: SimpleIdentifier
+          token: one
+          element: <testLibrary>::@class::C::@method::one
+          staticType: C Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        isDotShorthand: true
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::c
+        staticInvokeType: C Function()
+        staticType: C
+    rightParenthesis: )
+  isDotShorthand: false
+  staticInvokeType: C Function(C)
+  staticType: C
 ''');
   }
 
@@ -974,6 +1419,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C>
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1019,6 +1467,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<FutureOr<C>>
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1071,6 +1522,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: CMixin
+    lookupType: CMixin
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@method::mixinOne
     invokeType: CMixin Function()
@@ -1114,14 +1568,9 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      DotShorthandConstructorInvocation
+      DotShorthandConstructorInvocation2
         period: .
-        constructorName: SimpleIdentifier
-          token: new
-          element: SubstitutedConstructorElementImpl
-            baseElement: <testLibrary>::@class::C::@constructor::new
-            substitution: {T: C<dynamic>}
-          staticType: null
+        name: new
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -1132,6 +1581,9 @@ DotShorthandMethodInvocation
                 leftParenthesis: (
                 rightParenthesis: )
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: C<dynamic>
+                lookupType: C<dynamic>
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::C::@method::member
                 invokeType: C<int> Function()
@@ -1142,12 +1594,21 @@ DotShorthandMethodInvocation
               staticType: C<int>
           rightParenthesis: )
         isDotShorthand: true
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<C<dynamic>>
+          lookupType: C<C<dynamic>>
+        element: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new
+          substitution: {T: C<dynamic>}
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@method::memberType::@formalParameter::u
           substitution: {U: C<C<dynamic>>, V: dynamic}
         staticType: C<C<dynamic>>
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<C<dynamic>>>
+    lookupType: C<C<C<dynamic>>>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::memberType
     invokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
@@ -1208,7 +1669,7 @@ V1: DotShorthandInvocation
   }
 
   test_postfixOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -1224,10 +1685,39 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_prefixOperator() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member() => C(1);
   int x;
@@ -1243,6 +1733,35 @@ void main() {
   print(c);
 }
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: null
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_privateClass_otherLibrary_constructor() async {
@@ -1256,7 +1775,7 @@ typedef Public = _Private;
 final Public p = _Private();
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1268,6 +1787,70 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.dotShorthandMethodInvocation('.new');
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+
+    var namedNode = result.findNode.dotShorthandMethodInvocation('.named');
+    assertResolvedNodeText(namedNode, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1281,7 +1864,7 @@ typedef Public = _Private;
 final Public p = _Private();
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1290,6 +1873,38 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: instance
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1311,7 +1926,22 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+  element: <testLibrary>::@class::_Private::@constructor::new
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
@@ -1351,6 +1981,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::_Private::@method::instance
     invokeType: _Private Function()
@@ -1384,7 +2019,7 @@ typedef Public = _Private;
 final Public p = _Private.one;
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1393,6 +2028,38 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'a' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.dotShorthandMethodInvocation('.a');
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1407,7 +2074,7 @@ typedef Public = _Private;
 final Public p = _Private.one;
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1416,6 +2083,38 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: instance
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1438,7 +2137,22 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+  element: <testLibrary>::@enum::_Private::@constructor::a
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: a
@@ -1479,6 +2193,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@enum::_Private::@method::instance
     invokeType: _Private Function()
@@ -1511,7 +2230,7 @@ typedef Public = _Private;
 final Public p = _Private(1);
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1523,6 +2242,90 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.dotShorthandMethodInvocation('.new');
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: new
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+
+    var namedNode = result.findNode.dotShorthandMethodInvocation('.named');
+    assertResolvedNodeText(namedNode, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1536,7 +2339,7 @@ typedef Public = _Private;
 final Public p = _Private(1);
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1545,6 +2348,38 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: instance
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1564,7 +2399,27 @@ void main() {
 
     var node = result.findNode.singleDotShorthandConstructorInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandConstructorInvocation
+DotShorthandConstructorInvocation2
+  period: .
+  name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@extensionType::_Private::@constructor::new::@formalParameter::i
+        staticType: int
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+  element: <testLibrary>::@extensionType::_Private::@constructor::new
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
@@ -1572,7 +2427,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@extensionType::_Private::@constructor::new::@formalParameter::i
@@ -1609,6 +2464,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@method::instance
     invokeType: _Private Function()
@@ -1642,7 +2502,7 @@ typedef Public = _Private;
 final Public p = C();
 ''');
 
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void main() {
   var x = p;
@@ -1651,6 +2511,38 @@ void main() {
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'instance' isn't defined for the context type '_Private'.
   print(x);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: instance
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: instance
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -1680,6 +2572,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::_Private::@method::instance
     invokeType: _Private Function()
@@ -1703,7 +2600,7 @@ V1: DotShorthandInvocation
   }
 
   test_requiredParameters_missing() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C member({required int x}) => C(x);
   int x;
@@ -1716,6 +2613,37 @@ void main() {
 // [diag.missingRequiredArgument] The named parameter 'x' is required, but there's no corresponding argument.
   print(c);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::member
+    invokeType: C Function({required int x})
+    type: C
+  staticType: C
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibrary>::@class::C::@method::member
+    staticType: C Function({required int x})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: C Function({required int x})
+  staticType: C
 ''');
   }
 
@@ -1743,6 +2671,9 @@ DotShorthandMethodInvocation
         literal: "String"
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<bool>
+    lookupType: C<bool>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::foo
     invokeType: C<String> Function(String)
@@ -1771,7 +2702,7 @@ V1: DotShorthandInvocation
   }
 
   test_typeParameters_notAssignable() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 class C<T> {
   static C<int> member() => C(1);
 
@@ -1787,21 +2718,114 @@ void main() {
 }
 
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<bool>
+    lookupType: C<bool>
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::member
+    invokeType: C<int> Function()
+    type: C<int>
+  staticType: C<int>
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <testLibrary>::@class::C::@method::member
+    staticType: C<int> Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: C<int> Function()
+  staticType: C<int>
+''');
   }
 
   test_undefinedInvocation_message() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo();
 //          ^^^
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
 ''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: int
+    lookupType: int
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
   }
 
   test_undefinedInvocation_message_equalityRhs() async {
-    await resolveTestCodeWithDiagnostics(r'''
+    var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo();
 //                     ^^^
 // [diag.dotShorthandUndefinedInvocation] The static method or constructor 'foo' isn't defined for the context type 'int'.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: int
+    lookupType: int
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 }

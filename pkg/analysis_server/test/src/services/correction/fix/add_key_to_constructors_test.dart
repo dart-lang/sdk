@@ -58,10 +58,10 @@ class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 
+  @override
+  List<String> get lintCodes => [LintNames.use_key_in_widget_constructors];
+
   Future<void> test_file() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.use_key_in_widget_constructors],
-    );
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 

@@ -198,6 +198,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -239,6 +247,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -290,6 +306,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -331,14 +355,16 @@ void f(Function a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Function
       staticType: Function
     rightParenthesis: )
     staticType: Function
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionInterfaceCallTearOffResolution
     type: Function
   staticType: Function
@@ -372,14 +398,16 @@ T f<T extends Function>(T a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: T
       staticType: T
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionInterfaceCallTearOffResolution
     type: T
   staticType: T
@@ -413,14 +441,16 @@ void f(int Function(String) a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function(String)
       staticType: int Function(String)
     rightParenthesis: )
     staticType: int Function(String)
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionCallTearOffResolution
     type: int Function(String)
     associatedFunctionType: int Function(String)
@@ -455,14 +485,16 @@ T f<T extends int Function(String)>(T a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: T
       staticType: T
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionCallTearOffResolution
     type: T
     associatedFunctionType: int Function(String)
@@ -533,7 +565,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -574,7 +606,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -615,7 +647,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function()
@@ -771,7 +803,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -808,7 +840,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
@@ -844,7 +876,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
     invokeType: int Function()
@@ -885,7 +917,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: X
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -966,7 +998,14 @@ RegularFormalParameter
   defaultClause: FormalParameterDefaultClause
     separator: =
     value2: CascadeExpression
-      target2: SimpleIdentifier
+      target2: UnqualifiedNameExpression
+        name: b
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+          recovery: <null>
+        staticType: InvalidType
+      target(v1): SimpleIdentifier
         token: b
         element: <null>
         staticType: InvalidType
@@ -974,7 +1013,7 @@ RegularFormalParameter
         CascadeSection
           operator: ?..
           body: CascadePropertyExtraction
-            propertyName: foo
+            name: foo
             resolution: InvalidNamedReadResolution
               type: InvalidType
               candidates
@@ -1010,7 +1049,13 @@ void f(A? a) {
     var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -1018,7 +1063,7 @@ CascadeExpression
     CascadeSection
       operator: ?..
       body: CascadePropertyExtraction
-        propertyName: foo
+        name: foo
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
           invokeType: int Function()
@@ -1027,7 +1072,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: CascadePropertyExtraction
-        propertyName: bar
+        name: bar
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::bar
           invokeType: int Function()
@@ -1094,7 +1139,7 @@ CascadeExpression
       operator: ..
       body: PropertyAccess
         target2: CascadePropertyExtraction
-          propertyName: foo
+          name: foo
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::foo
             invokeType: int? Function()
@@ -1177,7 +1222,7 @@ CascadeExpression
       body: PropertyAccess
         target2: PropertyAccess
           target2: CascadePropertyExtraction
-            propertyName: foo
+            name: foo
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::foo
               invokeType: A? Function()
@@ -1262,7 +1307,7 @@ CascadeExpression
       operator: ?..
       body: PropertyAccess
         target2: CascadePropertyExtraction
-          propertyName: baz
+          name: baz
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::baz
             invokeType: A? Function()
@@ -1320,14 +1365,16 @@ augment class A {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -1369,14 +1416,16 @@ augment class A {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -1418,14 +1467,16 @@ void f(B b) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: b
-      element: <testLibrary>::@function::f::@formalParameter::b
+    expression2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: B
       staticType: B
     rightParenthesis: )
     staticType: B
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::A::@getter::foo
@@ -1471,14 +1522,16 @@ void f(B b) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: b
-      element: <testLibrary>::@function::f::@formalParameter::b
+    expression2: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: B
       staticType: B
     rightParenthesis: )
     staticType: B
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: double Function()
@@ -1514,14 +1567,16 @@ void f(dynamic a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: dynamic
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: hash
+  name: hash
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1555,14 +1610,16 @@ void f(dynamic a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: dynamic
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1596,14 +1653,16 @@ void f(dynamic a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: dynamic
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: runtimeType
+  name: runtimeType
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1637,14 +1696,16 @@ void f(dynamic a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: dynamic
       staticType: dynamic
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: toString
+  name: toString
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1683,14 +1744,16 @@ void f(E e) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: e
-      element: <testLibrary>::@function::f::@formalParameter::e
+    expression2: UnqualifiedNameExpression
+      name: e
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::e
+        type: E
       staticType: E
     rightParenthesis: )
     staticType: E
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::E::@getter::foo
     invokeType: int Function()
@@ -1734,14 +1797,16 @@ void f(E e) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: e
-      element: <testLibrary>::@function::f::@formalParameter::e
+    expression2: UnqualifiedNameExpression
+      name: e
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::e
+        type: E
       staticType: E
     rightParenthesis: )
     staticType: E
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M::@getter::foo
     invokeType: int Function()
@@ -1829,14 +1894,16 @@ augment extension E {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
     invokeType: int Function()
@@ -1927,14 +1994,16 @@ augment extension E<U> {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<int>
       staticType: A<int>
     rightParenthesis: )
     staticType: A<int>
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
@@ -2200,14 +2269,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
     invokeType: int Function()
@@ -2245,14 +2316,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
     invokeType: int Function()
@@ -2290,14 +2363,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
     invokeType: int Function()
@@ -2337,14 +2412,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -2431,14 +2508,16 @@ augment mixin A {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::A::@getter::foo
     invokeType: int Function()
@@ -2480,14 +2559,16 @@ augment mixin A {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::A::@getter::foo
     invokeType: int Function()
@@ -2978,7 +3059,13 @@ PropertyAccess
   target2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
+      staticType: Object?
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -3032,7 +3119,7 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -3089,7 +3176,7 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     staticType: C
   operator: ?.
-  propertyName: x
+  name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::x
     invokeType: int Function()
@@ -3135,14 +3222,14 @@ ReceiverPropertyExtraction
       rightParenthesis: )
       staticType: String
     operator: .
-    propertyName: length
+    name: length
     resolution: GetterInvocationResolution
       element: dart:core::@class::String::@getter::length
       invokeType: int Function()
       type: int
     staticType: int
   operator: .
-  propertyName: isEven
+  name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
     invokeType: bool Function()
@@ -3187,14 +3274,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
@@ -3233,14 +3322,17 @@ void f() {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: never
-      element: <testLibrary>::@getter::never
+    expression2: UnqualifiedNameExpression
+      name: never
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::never
+        invokeType: Never Function()
+        type: Never
       staticType: Never
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: foo
+  name: foo
   resolution: <null>
   staticType: Never
 V1: PropertyAccess
@@ -3277,14 +3369,16 @@ void f(A? a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     rightParenthesis: )
     staticType: A?
   operator: ?.
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -3320,14 +3414,16 @@ void f(Null a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
       staticType: Null
     rightParenthesis: )
     staticType: Null
   operator: ?.
-  propertyName: foo
+  name: foo
   resolution: <null>
   staticType: Never?
 V1: PropertyAccess
@@ -3377,7 +3473,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: (int, {int foo})
   operator: .
-  propertyName: foo
+  name: foo
   resolution: RecordFieldReadResolution
     type: int
   staticType: int
@@ -3422,7 +3518,7 @@ ReceiverPropertyExtraction
   receiver: SimpleStringLiteral
     literal: 'foo'
   operator: .
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()
@@ -3455,7 +3551,7 @@ ReceiverPropertyExtraction
   receiver: SimpleStringLiteral
     literal: 'a'
   operator: ?.
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()
@@ -3493,7 +3589,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: C
   operator: ?.
-  propertyName: x
+  name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::x
     invokeType: int Function()
@@ -3535,11 +3631,33 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a.f;
 ''');
 
-    var node = result.findNode.functionReference('b?.a.f');
-    assertResolvedNodeText(node, r'''FunctionReference
-  function2: PropertyAccess
+    var node = result.findNode.implicitFunctionInstantiation('b?.a.f');
+    assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: PropertyAccess
       target2: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@getter::a
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::A::@getter::f
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
         staticType: B?
@@ -3683,14 +3801,16 @@ class A<T extends dynamic> {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: t
-      element: <testLibrary>::@class::A::@method::f::@formalParameter::t
+    expression2: UnqualifiedNameExpression
+      name: t
+      resolution: VariableReadResolution
+        element: <testLibrary>::@class::A::@method::f::@formalParameter::t
+        type: T
       staticType: T
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: foo
+  name: foo
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -3728,14 +3848,16 @@ class C<T> {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: t
-      element: <testLibrary>::@class::C::@method::f::@formalParameter::t
+    expression2: UnqualifiedNameExpression
+      name: t
+      resolution: VariableReadResolution
+        element: <testLibrary>::@class::C::@method::f::@formalParameter::t
+        type: T
       staticType: T
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -3793,14 +3915,17 @@ void f() {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <null>
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: InvalidNamedReadResolution
+        type: InvalidType
+        candidates
+        recovery: <null>
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates

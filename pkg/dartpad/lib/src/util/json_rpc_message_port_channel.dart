@@ -11,6 +11,8 @@ import 'dart:typed_data';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web/web.dart' as web;
 
+import '../message_port/message_port.dart';
+
 /// Returns a [StreamChannel] adapter that communicates JSON-RPC 2.0 over a
 /// [web.MessagePort].
 ///
@@ -27,6 +29,11 @@ import 'package:web/web.dart' as web;
 /// they do not get encoded as JSON, and instead are sent separately.
 /// When reconstituting messages `port` and `bytes` will be inserted into
 /// `params` and `result`.
+///
+/// When a [web.MessagePort] appears in `'port'` it will be wrapped in a
+/// [MessagePort] before being injected into `params` or `result`.
+/// Similarly, when sending a [web.MessagePort], it is expected that it is
+/// wrapped in a [MessagePort] wrapper.
 ///
 /// This is an implementation of the "JSON-RPC 2.0 over MessagePort" as
 /// specified in `doc/worker-protocol.md`.
@@ -87,9 +94,8 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
     // If params.port or result.port is a MessagePort, we transfer it!
     for (final k in ['params', 'result']) {
       if (m[k] case final Map v) {
-        final p = v['port'] as Object?;
-        if (p.isA<web.MessagePort>()) {
-          port = p as web.MessagePort;
+        if (v['port'] case MessagePort p) {
+          port = p.asTransferableMessagePort();
           v.remove('port');
         }
       }
@@ -115,7 +121,7 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
       if (error['data'] case final Map data) {
         if (data['request'] case final Map request) {
           if (request['params'] case final Map params) {
-            if ((params['port'] as JSAny?).isA<web.MessagePort>()) {
+            if (params['port'] is MessagePort) {
               params.remove('port');
             }
             if (params['bytes'] is Uint8List) {
@@ -141,7 +147,9 @@ Object? _dartifyMessage(JSAny? data) {
   final payload = jsonDecode((data['payload'] as JSString).toDart);
 
   if (data['port'].isA<web.MessagePort>()) {
-    final port = data['port'] as web.MessagePort;
+    final port = MessagePortExt.fromMessagePort(
+      data['port'] as web.MessagePort,
+    );
     if (payload is! Map) {
       throw const FormatException('port not allowed in batch mode');
     }

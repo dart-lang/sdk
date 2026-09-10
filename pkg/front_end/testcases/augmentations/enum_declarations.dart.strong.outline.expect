@@ -1,11 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/augmentations/enum_declarations.dart:39:14: Error: An enum declaration can't be empty.
-// augment enum Enum {
-//              ^^^^
-//
 import self as self;
 import "dart:core" as core;
 

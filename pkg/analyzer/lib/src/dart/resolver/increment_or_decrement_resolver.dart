@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -40,7 +39,7 @@ class IncrementOrDecrementResolver {
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
   void resolve(IncrementOrDecrementExpressionImpl node) {
-    var isPrefix = _isPrefix(node);
+    var isPrefix = node.position == IncrementOrDecrementPosition.prefix;
     var target = node.target;
     if (target is InvalidExpressionAssignmentTargetImpl) {
       _resolver.analyzeExpression(
@@ -73,13 +72,11 @@ class IncrementOrDecrementResolver {
         }
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        readType = target.read!.type;
+        writeAcceptedType = target.write!.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
-        var importResult = _resolveImportPrefixedPropertyTarget(target);
-        if (importResult != null) {
-          readType = importResult.$1;
-          writeAcceptedType = importResult.$2;
-          break;
-        }
         _assignmentResolver.analyzePropertyTargetReceiver(node, target);
         var result = _resolver.resolveReceiverPropertyReadWriteAssignmentTarget(
           target,
@@ -214,44 +211,6 @@ class IncrementOrDecrementResolver {
     return fallback;
   }
 
-  /// Return the name of the method invoked by the given [expression].
-  String _getOperator(IncrementOrDecrementExpression expression) {
-    return switch (expression) {
-      PrefixIncrement() || PostfixIncrement() => TokenType.PLUS.lexeme,
-      PrefixDecrement() || PostfixDecrement() => TokenType.MINUS.lexeme,
-      _ => throw StateError('Expected an increment or decrement expression'),
-    };
-  }
-
-  bool _isPrefix(IncrementOrDecrementExpression expression) {
-    return switch (expression) {
-      PrefixIncrement() || PrefixDecrement() => true,
-      PostfixIncrement() || PostfixDecrement() => false,
-      _ => throw StateError('Expected an increment or decrement expression'),
-    };
-  }
-
-  (TypeImpl, TypeImpl)? _resolveImportPrefixedPropertyTarget(
-    ReceiverPropertyAssignmentTargetImpl target,
-  ) {
-    // TODO(scheglov): Fold import prefixes into the ordinary property-target
-    // receiver analysis instead of resolving them through a separate path.
-    var receiver = target.receiver;
-    if (receiver is! SimpleIdentifierImpl ||
-        receiver.scopeLookupResult?.getter is! PrefixElementImpl) {
-      return null;
-    }
-    var prefix = receiver.scopeLookupResult!.getter as PrefixElementImpl;
-    receiver.element = prefix;
-    var result = _resolver.resolveImportPrefixedPropertyReadWriteTarget(
-      target,
-      prefix,
-    );
-    target.read = result.read;
-    target.write = result.write;
-    return (result.read.type, result.write.acceptedType);
-  }
-
   void _resolveOperator(
     IncrementOrDecrementExpressionImpl node, {
     required bool isPrefix,
@@ -259,7 +218,7 @@ class IncrementOrDecrementResolver {
     required AstNode errorEntity,
   }) {
     var operator = node.operator;
-    var methodName = _getOperator(node);
+    var methodName = node.operation.binaryOperatorName;
 
     if (node.target case ReceiverPropertyAssignmentTarget(
       read: ExecutableTearOffResolution(),

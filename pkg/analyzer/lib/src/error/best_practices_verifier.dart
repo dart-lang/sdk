@@ -14,8 +14,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart'
-    show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -43,7 +41,7 @@ import 'package:meta/meta.dart';
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
-class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
+class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
   InterfaceElement? _enclosingClass;
@@ -233,13 +231,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _elementUsageFrontierDetector.propertyExtraction(node);
-    _invalidAccessVerifier.verifyPropertyExtraction(node);
-    super.visitCascadePropertyExtraction(node);
-  }
-
-  @override
   void visitCastPattern(CastPattern node) {
     var type = node.type.type;
     var matchedValueType = node.matchedValueType;
@@ -424,6 +415,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation2(node);
+    _elementUsageFrontierDetector.dotShorthandConstructorInvocation2(node);
+    _checkForLiteralConstructorUseInDotShorthand2(node);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
     _elementUsageFrontierDetector.dotShorthandInvocation(node);
@@ -436,13 +437,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    _elementUsageFrontierDetector.dotShorthandNameExpression(node);
-    _invalidAccessVerifier.verifyDotShorthandNameExpression(node);
-    super.visitDotShorthandNameExpression(node);
   }
 
   @override
@@ -685,6 +679,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _invalidAccessVerifier.verifyImportPrefixedAssignmentTarget(node);
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {
@@ -692,6 +694,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    covariant IncrementOrDecrementExpressionImpl node,
+  ) {
+    _elementUsageFrontierDetector.incrementOrDecrement(node);
+    node.visitChildren2(this);
   }
 
   @override
@@ -857,6 +867,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitNode(AstNode node) {
+    if (node is NameExpression) {
+      _elementUsageFrontierDetector.nameExpression(node);
+      _invalidAccessVerifier.verifyNameExpression(node);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitNullAssertionExpression(NullAssertionExpression node) {
     if (node.operand.typeOrThrow.isDartCoreNull) {
       _diagnosticReporter.report(diag.nullCheckAlwaysFails.at(node));
@@ -869,30 +888,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _elementUsageFrontierDetector.patternField(node);
     _invalidAccessVerifier.verifyPatternField(node as PatternFieldImpl);
     super.visitPatternField(node);
-  }
-
-  @override
-  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
-    _elementUsageFrontierDetector.incrementOrDecrement(node);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
-    _elementUsageFrontierDetector.incrementOrDecrement(node);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
-    _elementUsageFrontierDetector.incrementOrDecrement(node);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
-    _elementUsageFrontierDetector.incrementOrDecrement(node);
-    node.visitChildren2(this);
   }
 
   @override
@@ -929,13 +924,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _nullSafeApiVerifier.namedFunctionInvocation(node, node.receiver);
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
-  }
-
-  @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    _elementUsageFrontierDetector.propertyExtraction(node);
-    _invalidAccessVerifier.verifyPropertyExtraction(node);
-    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -1418,6 +1406,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _checkForLiteralConstructorUseInDotShorthand2(
+    DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var constructor = node.element;
+    if (constructor == null) return;
+    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
+      _diagnosticReporter.report(
+        diag.nonConstCallToLiteralConstructor
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
+      );
+    }
+  }
+
   /// Checks that the imported library does not define a `loadLibrary` function.
   ///
   /// Only call this for a deferred [importElement].
@@ -1741,6 +1743,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
           element,
         _ => null,
       };
+    } else if (expression is NameExpression) {
+      element = expression.resolution.elementOrRecovery;
+      // An executable name expression is a tear-off, not a value read from a
+      // declaration carrying `doNotStore`.
+      if (element is LocalFunctionElement ||
+          element is TopLevelFunctionElement ||
+          element is MethodElement) {
+        element = null;
+      }
     } else if (expression is Identifier) {
       element = expression.element;
       // Tear-off.
@@ -1958,16 +1969,6 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
-  void verifyDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _verify(node: node, nameToken: node.name, element: element);
-  }
-
   void verifyImport(ImportDirective node) {
     var importedLibrary = node.libraryImport?.importedLibrary;
     if (importedLibrary != null &&
@@ -1982,6 +1983,20 @@ class _InvalidAccessVerifier {
             .withArguments(name: node.uri.stringValue!)
             .at(node),
       );
+    }
+  }
+
+  void verifyImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    var readElement = node.read.elementOrRecovery;
+    var writeElement = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.name, element: element);
     }
   }
 
@@ -2034,6 +2049,11 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyNameExpression(NameExpression node) {
+    var element = node.resolution.elementOrRecovery;
+    _verify(node: node, nameToken: node.name, element: element);
+  }
+
   void verifyPatternField(PatternFieldImpl node) {
     var element = node.element;
     if (element == null) {
@@ -2062,12 +2082,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
@@ -2077,16 +2092,6 @@ class _InvalidAccessVerifier {
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.propertyName, element: element);
     }
-  }
-
-  void verifyPropertyExtraction(PropertyExtraction node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _verify(node: node, nameToken: node.propertyName, element: element);
   }
 
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
@@ -2120,12 +2125,7 @@ class _InvalidAccessVerifier {
   void verifyUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
@@ -2379,18 +2379,18 @@ class _InvalidAccessVerifier {
     } else if (node is PropertyAssignmentTarget) {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
-    } else if (node is PropertyExtraction) {
-      name = node.propertyName.lexeme;
-      errorEntity = node.propertyName;
+    } else if (node is NameExpression) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is ImportPrefixedAssignmentTarget) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is UnqualifiedNameAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {
-      name = node.name.lexeme;
-      errorEntity = node.name;
-    } else if (node is DotShorthandNameExpression) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
@@ -2428,10 +2428,18 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
+    var element = node.element?.baseElement;
+    if (_parameters.contains(element)) {
+      _usedParameters.add(element as FormalParameterElement);
     }
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element.baseElement,
+      _ => null,
+    };
     if (_parameters.contains(element)) {
       _usedParameters.add(element as FormalParameterElement);
     }

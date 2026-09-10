@@ -3237,7 +3237,7 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return zextw(rd, rn);
       }
       slli(rd, rn, XLEN - 32);
-      return srli(rd, rn, XLEN - 32);
+      return srli(rd, rd, XLEN - 32);
     case kFourBytes:
       return sextw(rd, rn);
 #elif XLEN == 32
@@ -3253,13 +3253,13 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return zexth(rd, rn);
       }
       slli(rd, rn, XLEN - 16);
-      return srli(rd, rn, XLEN - 16);
+      return srli(rd, rd, XLEN - 16);
     case kTwoBytes:
       if (Supports(RV_Zbb)) {
         return sexth(rd, rn);
       }
       slli(rd, rn, XLEN - 16);
-      return srai(rd, rn, XLEN - 16);
+      return srai(rd, rd, XLEN - 16);
     case kUnsignedByte:
       return andi(rd, rn, kMaxUint8);
     case kByte:
@@ -3267,7 +3267,7 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return sextb(rd, rn);
       }
       slli(rd, rn, XLEN - 8);
-      return srai(rd, rn, XLEN - 8);
+      return srai(rd, rd, XLEN - 8);
     default:
       UNIMPLEMENTED();
       break;
@@ -4271,7 +4271,7 @@ void Assembler::LslImmediate(Register rd,
 
     // Clear upper bits in addition to the shift.
     slli(rd, rn, shift + (XLEN / 2));
-    return srli(rd, rn, XLEN / 2);
+    return srli(rd, rd, XLEN / 2);
   }
 #endif
   slli(rd, rn, shift);
@@ -4816,6 +4816,9 @@ void Assembler::ExtractBitField(Register dst,
                                 Register src,
                                 intptr_t low_bit,
                                 intptr_t width) {
+  // The assembler rejects zero-bit shifts, so the field's position
+  // decides how many of the two shifts below are needed.
+  ASSERT(width > 0);
   ASSERT((0 <= low_bit) && (low_bit + width <= XLEN));
   if (width == 1) {
     if (low_bit == 0) {
@@ -4826,10 +4829,16 @@ void Assembler::ExtractBitField(Register dst,
       return;
     }
   }
-  if (low_bit + width < XLEN) {
+  if (width == XLEN) {
+    // The whole register, so no shift at all.
+    MoveRegister(dst, src);
+  } else if (low_bit + width == XLEN) {
+    // The field is already at the top, so there are no high bits to discard.
+    srli(dst, src, low_bit);
+  } else {
     slli(dst, src, XLEN - (low_bit + width));
+    srli(dst, dst, XLEN - width);
   }
-  srli(dst, dst, XLEN - width);
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {

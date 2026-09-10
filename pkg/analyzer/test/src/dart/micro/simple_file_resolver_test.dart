@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -1362,6 +1363,38 @@ main() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_top_level_setter_importPrefixed() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', '''
+int get foo => 0;
+set foo(int value) {}
+''');
+    var b = newFile('/workspace/dart/test/lib/b.dart', '''
+import 'a.dart' as p;
+void f() {
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  ++p.foo;
+  p.foo--;
+}
+''');
+    await resolveFile(b);
+    var element = await _findElement(
+      a.readAsStringSync().indexOf('foo(int'),
+      a,
+    );
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(b.path, [
+        CiderSearchInfo(CharacterLocation(3, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(4, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(6, 7), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(7, 5), 3, MatchKind.WRITE),
+      ]),
+    ]);
+  }
+
   test_findReferences_top_level_variable() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 const int C = 42;
@@ -1969,7 +2002,10 @@ var b = a;
 
     var result = await resolveTestFile();
     {
-      var element = result.findNode.simple('a;').element!;
+      var resolution =
+          result.findNode.unqualifiedNameExpression('a;').resolution
+              as NamedReadResolutionWithElement;
+      var element = resolution.element;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
 
@@ -1978,7 +2014,10 @@ var b = a;
     createFileResolver();
     result = await resolveTestFile();
     {
-      var element = result.findNode.simple('a;').element!;
+      var resolution =
+          result.findNode.unqualifiedNameExpression('a;').resolution
+              as NamedReadResolutionWithElement;
+      var element = resolution.element;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
   }

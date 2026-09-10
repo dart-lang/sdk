@@ -213,7 +213,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _visitToken(node.propertyName);
+    _visitToken(node.name);
   }
 
   @override
@@ -473,6 +473,17 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.period);
     _visitNode(node.constructorName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitToken(node.period);
+    _visitToken(node.name);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
   }
@@ -776,6 +787,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _visitNode(node.operand);
+    _visitNode(node.typeArguments);
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     _visitNode(node.function2);
     _visitNode(node.typeArguments);
@@ -902,6 +919,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    node.operand.accept2(this);
+  }
+
+  @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _visitNode(node.operand);
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('import ');
@@ -916,6 +943,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    _visitNode(node.importPrefix);
+    sink.write(node.name.lexeme);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     ImportPrefixedFunctionInvocation node,
   ) {
@@ -926,9 +961,29 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     sink.write(node.name.lexeme);
     sink.write('.');
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    switch (node.position) {
+      case IncrementOrDecrementPosition.prefix:
+        sink.write(node.operator.lexeme);
+        _visitNode(node.target);
+      case IncrementOrDecrementPosition.postfix:
+        _visitNode(node.target);
+        sink.write(node.operator.lexeme);
+    }
   }
 
   @override
@@ -1302,34 +1357,10 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _visitNode(node.target);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _visitNode(node.target);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    sink.write(node.operator.lexeme);
-    _visitNode(node.target);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _visitNode(node.prefix);
     sink.write('.');
     _visitNode(node.identifier);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    sink.write(node.operator.lexeme);
-    _visitNode(node.target);
   }
 
   @override
@@ -1409,7 +1440,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
-    sink.write(node.propertyName.lexeme);
+    sink.write(node.name.lexeme);
   }
 
   @override
@@ -1758,6 +1789,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
     UnqualifiedNameAssignmentTarget node,
   ) {
     sink.write(node.name.lexeme);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _visitToken(node.name);
   }
 
   @override

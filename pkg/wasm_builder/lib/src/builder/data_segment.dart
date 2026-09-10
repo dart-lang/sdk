@@ -8,16 +8,20 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
 /// A data segment builder in a module builder.
-class DataSegmentBuilder extends ir.BaseDataSegment
-    with Builder<ir.DataSegment> {
+class DataSegmentBuilder with Builder<ir.DataSegment> {
+  final ir.DataSegment dataSegment;
   final BytesBuilder content;
 
-  DataSegmentBuilder(
-    super.index,
-    Uint8List initialContent,
-    super.memory,
-    super.offset,
-  ) : content = BytesBuilder()..add(initialContent);
+  DataSegmentBuilder(this.dataSegment, [Uint8List? initialContent])
+    : content = BytesBuilder() {
+    if (initialContent != null && initialContent.isNotEmpty) {
+      content.add(initialContent);
+    }
+  }
+
+  int get index => dataSegment.index;
+  ir.Memory? get memory => dataSegment.memory;
+  int? get offset => dataSegment.offset;
 
   bool get isActive => memory != null;
   bool get isPassive => memory == null;
@@ -33,6 +37,8 @@ class DataSegmentBuilder extends ir.BaseDataSegment
   }
 
   @override
-  ir.DataSegment forceBuild() =>
-      ir.DataSegment(index, content.toBytes(), memory, offset);
+  ir.DataSegment forceBuild() {
+    dataSegment.content = content.toBytes();
+    return dataSegment;
+  }
 }

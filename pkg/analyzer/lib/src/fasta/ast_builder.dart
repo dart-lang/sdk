@@ -878,9 +878,7 @@ class AstBuilder extends StackListener {
       if (receiver == null &&
           (dot.type == TokenType.PERIOD_PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
-        push(
-          CascadePropertyExtractionImpl(propertyName: identifierOrInvoke.token),
-        );
+        push(CascadePropertyExtractionImpl(name: identifierOrInvoke.token));
       } else if (receiver is SimpleIdentifierImpl &&
           identical('.', dot.stringValue)) {
         push(
@@ -899,7 +897,7 @@ class AstBuilder extends StackListener {
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
             operator: dot,
-            propertyName: identifierOrInvoke.token,
+            name: identifierOrInvoke.token,
           ),
         );
       } else {
@@ -3775,19 +3773,15 @@ class AstBuilder extends StackListener {
     }
     reportErrorIfSuper(rhs);
     var propertyTarget = switch (lhs) {
-      CascadePropertyExtractionImpl(:var propertyName) =>
-        CascadePropertyAssignmentTargetImpl(propertyName: propertyName),
-      ReceiverPropertyExtractionImpl(
-        :var receiver,
-        :var operator,
-        :var propertyName,
-      ) =>
+      CascadePropertyExtractionImpl(:var name) =>
+        CascadePropertyAssignmentTargetImpl(propertyName: name),
+      ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
         ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: operator,
-          propertyName: propertyName,
+          propertyName: name,
         ),
-      PropertyAccessImpl(target2: var receiver?, operator: var operator)
+      PropertyAccessImpl(target2: var receiver?, :var operator)
           when operator.type == TokenType.PERIOD &&
               _isSupportedPropertyReceiver(receiver) =>
         ReceiverPropertyAssignmentTargetImpl(
@@ -5945,20 +5939,13 @@ class AstBuilder extends StackListener {
         operator,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PostfixIncrementImpl(
-        target: _toIncrementOrDecrementTarget(expression),
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.postfix,
         operator: operator,
-      ),
-      TokenType.MINUS_MINUS => PostfixDecrementImpl(
         target: _toIncrementOrDecrementTarget(expression),
-        operator: operator,
       ),
-      _ => throw StateError(
-        'Unexpected postfix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override
@@ -5975,20 +5962,13 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PrefixIncrementImpl(
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.prefix,
         operator: operator,
         target: _toIncrementOrDecrementTarget(expression),
       ),
-      TokenType.MINUS_MINUS => PrefixDecrementImpl(
-        operator: operator,
-        target: _toIncrementOrDecrementTarget(expression),
-      ),
-      _ => throw StateError(
-        'Unexpected prefix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override
@@ -6674,7 +6654,7 @@ class AstBuilder extends StackListener {
       case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
-      case PropertyAccessImpl(target2: var target?, operator: var operator)
+      case PropertyAccessImpl(target2: var target?, :var operator)
           when operator.type == TokenType.PERIOD:
         return _isSupportedPropertyReceiver(target);
       case ReceiverPropertyExtractionImpl(:var receiver):
@@ -6790,7 +6770,7 @@ class AstBuilder extends StackListener {
       return ReceiverPropertyAssignmentTargetImpl(
         receiver: expression.receiver,
         operator: expression.operator,
-        propertyName: expression.propertyName,
+        propertyName: expression.name,
       );
     }
 

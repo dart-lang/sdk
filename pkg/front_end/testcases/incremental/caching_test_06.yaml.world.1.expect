@@ -1,0 +1,9 @@
+main = a::main;
+library from "org-dartlang-test:///a.dart" as a {
+
+  import "dart:core";
+
+  static method main() → void {
+    dart.core::print("hello");
+  }
+}

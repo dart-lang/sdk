@@ -1579,8 +1579,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(
                 THR, compiler::target::Thread::
                          call_native_through_safepoint_entry_point_offset()));
-      __ lx(target, compiler::Address(
-                        THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ LoadFromOffset(target, THR,
+                        kPropagateErrorRuntimeEntry.OffsetFromThread());
       __ jalr(temp1);
 #if defined(DEBUG)
       // We should never return with normal controlflow from this.

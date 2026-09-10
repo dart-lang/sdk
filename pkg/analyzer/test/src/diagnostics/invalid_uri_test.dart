@@ -24,10 +24,29 @@ class C {
 }
 ''');
 
-    var node = result.findNode.simple('x; // ref');
+    var node = result.findNode.importPrefixedNameExpression('top.x; // ref');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: x
+ImportPrefixedNameExpression
+  importPrefix: ImportPrefixReference
+    name: top
+    period: .
+    element: <testLibraryFragment>::@prefix::top
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::x
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: top
+    element: <testLibraryFragment>::@prefix::top
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@getter::x
+    staticType: int
   element: <testLibrary>::@getter::x
   staticType: int
 ''');

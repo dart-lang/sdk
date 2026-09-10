@@ -573,6 +573,13 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxFloat64x2, 0) {
   RuntimeAllocationEpilogue(thread);
 }
 
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt32x4, 0) {
+  const auto val = thread->unboxed_simd128_runtime_arg();
+  arguments.SetReturn(
+      Object::Handle(zone, Int32x4::New(val, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
+}
+
 DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
@@ -854,7 +861,7 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   }
 }
 
-// Instantiate type.
+// Assert supertype-subtype relationship.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
 // Arg2: type to be a subtype of the other

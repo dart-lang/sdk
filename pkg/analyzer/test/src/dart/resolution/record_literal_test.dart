@@ -210,8 +210,18 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: FunctionReference
-        function2: SimpleIdentifier
+      fieldExpression2: ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
+          name: f
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::f
+            type: void Function<T>()
+          staticType: void Function<T>()
+        staticType: void Function()
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): FunctionReference
+        function: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
           staticType: void Function<T>()
@@ -234,8 +244,19 @@ final (void Function(), ) x = (f, );
 RecordLiteral
   leftParenthesis: (
   fields2
+    ImplicitFunctionInstantiation
+      operand: UnqualifiedNameExpression
+        name: f
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@function::f
+          type: void Function<T>()
+        staticType: void Function<T>()
+      staticType: void Function()
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     FunctionReference
-      function2: SimpleIdentifier
+      function: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
         staticType: void Function<T>()
@@ -259,6 +280,19 @@ test(dynamic d) => f((d, d));
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedNameExpression
+      name: d
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::d
+        type: dynamic
+      staticType: dynamic
+    UnqualifiedNameExpression
+      name: d
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::d
+        type: dynamic
+      staticType: dynamic
+  fields(v1)
     SimpleIdentifier
       token: d
       element: <testLibrary>::@function::test::@formalParameter::d
@@ -290,8 +324,18 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: ImplicitCallReference
-        expression2: SimpleIdentifier
+      fieldExpression2: ImplicitCallTearOff
+        operand: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::a
+            invokeType: A Function()
+            type: A
+          staticType: A
+        element: <testLibrary>::@class::A::@method::call
+        staticType: void Function()
+      fieldExpression(v1): ImplicitCallReference
+        expression: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: A
@@ -317,8 +361,19 @@ final (void Function(), ) x = (a, );
 RecordLiteral
   leftParenthesis: (
   fields2
+    ImplicitCallTearOff
+      operand: UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: A Function()
+          type: A
+        staticType: A
+      element: <testLibrary>::@class::A::@method::call
+      staticType: void Function()
+  fields(v1)
     ImplicitCallReference
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: A
@@ -343,7 +398,14 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: SimpleIdentifier
+      fieldExpression2: UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+      fieldExpression(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -363,6 +425,14 @@ final (int, ) x = (a, );
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::a
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+  fields(v1)
     SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -1034,7 +1104,14 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: SimpleIdentifier
+      fieldExpression2: UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+      fieldExpression(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -1054,6 +1131,14 @@ final (Object?, ) x = (a, );
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::a
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+  fields(v1)
     SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -1323,6 +1408,19 @@ test(dynamic d) => f((d, d));
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedNameExpression
+      name: d
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::d
+        type: dynamic
+      staticType: dynamic
+    UnqualifiedNameExpression
+      name: d
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::d
+        type: dynamic
+      staticType: dynamic
+  fields(v1)
     SimpleIdentifier
       token: d
       element: <testLibrary>::@function::test::@formalParameter::d

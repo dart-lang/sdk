@@ -34,6 +34,28 @@ int f(A a) => a();
 ''');
   }
 
+  test_cascadePropertyAssignment_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+extension E1 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+extension E2 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+void f(C x) {
+  x..foo += 1;
+//   ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on C' and 'extension E2 on C', and neither is more specific.
+}
+''');
+  }
+
   test_getter_getter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
@@ -58,7 +80,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -99,7 +121,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::a
     invokeType: void Function()
@@ -142,7 +164,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -185,7 +207,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates

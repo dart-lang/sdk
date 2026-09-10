@@ -1079,6 +1079,40 @@ String m3() {
     );
   }
 
+  Future<void> test_functionType_parameterName() async {
+    content = '''
+void f(void Function(int i) x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i)',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i)',
+    );
+  }
+
+  Future<void> test_functionType_parameterName_returnType() async {
+    content = '''
+void f(void Function(int i) Function() x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i) Function()',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i) Function()',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}
@@ -5971,7 +6005,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String prefix,
     required String label,
   }) async {
-    var (snippet: snippet, defaults: defaults) = await expectSnippet(
+    var (:snippet, :defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,

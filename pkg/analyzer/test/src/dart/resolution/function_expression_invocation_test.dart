@@ -268,9 +268,11 @@ CallInvocation
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: AsExpression
-      expression2: SimpleIdentifier
-        token: main
-        element: <testLibrary>::@function::main
+      expression2: UnqualifiedNameExpression
+        name: main
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@function::main
+          type: dynamic Function()
         staticType: dynamic Function()
       asOperator: as
       type: NamedType
@@ -334,9 +336,11 @@ CallInvocation
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: AsExpression
-      expression2: SimpleIdentifier
-        token: main
-        element: <testLibrary>::@function::main
+      expression2: UnqualifiedNameExpression
+        name: main
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@function::main
+          type: dynamic Function()
         staticType: dynamic Function()
       asOperator: as
       type: NamedType
@@ -709,10 +713,12 @@ CallInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: a
+      UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: int
         correspondingParameter: <null>
-        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: int
     rightParenthesis: )
   resolution: FunctionTypeInvocationResolution
@@ -869,15 +875,21 @@ CallInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: a
+      UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
         correspondingParameter: dart:core::@function::identical::@formalParameter::a
-        element: <testLibrary>::@getter::a
         staticType: int
-      SimpleIdentifier
-        token: b
+      UnqualifiedNameExpression
+        name: b
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::b
+          invokeType: int Function()
+          type: int
         correspondingParameter: dart:core::@function::identical::@formalParameter::b
-        element: <testLibrary>::@getter::b
         staticType: int
     rightParenthesis: )
   resolution: FunctionTypeInvocationResolution
@@ -1271,9 +1283,11 @@ CallInvocation
   receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -1284,9 +1298,11 @@ CallInvocation
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression2: SimpleIdentifier
-          token: foo
-          element: <testLibrary>::@function::foo
+        expression2: UnqualifiedNameExpression
+          name: foo
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::foo
+            type: void Function()
           staticType: void Function()
     rightBracket: }
     staticType: void Function()

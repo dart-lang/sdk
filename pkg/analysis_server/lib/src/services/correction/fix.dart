@@ -1707,6 +1707,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove invalid returned values in file',
   );
+  static const removeThisAlias = FixKind(
+    'dart.fix.remove.thisAlias',
+    DartFixKindPriority.standard,
+    'Remove this alias',
+  );
+  static const removeThisAliasMulti = FixKind(
+    'dart.fix.remove.thisAlias.multi',
+    DartFixKindPriority.inFile,
+    'Remove this aliases in file',
+  );
   static const removeThisExpression = FixKind(
     'dart.fix.remove.thisExpression',
     DartFixKindPriority.standard,

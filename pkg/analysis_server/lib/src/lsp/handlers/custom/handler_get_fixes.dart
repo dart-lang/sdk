@@ -53,8 +53,9 @@ class GetFixesHandler
     );
 
     var result = await operation.compute();
-    return await result.mapResult((edit) async {
-      return success(DartGetWorkspaceFixesResult(edit: edit));
+    return await result.mapResult((result) async {
+      var (edit, details) = result;
+      return success(DartGetWorkspaceFixesResult(edit: edit, details: details));
     });
   }
 }

@@ -2438,6 +2438,19 @@ class B extends A {
 ''');
   }
 
+  test_getter_isUsed_negation_receiverPropertyExtraction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get _getter => 0;
+}
+
+void f() {
+  var a = A();
+  -(a)._getter;
+}
+''');
+  }
+
   test_getter_notUsed_invocation_subclass() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

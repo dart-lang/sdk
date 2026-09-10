@@ -655,6 +655,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _sink.writeln('DotShorthandConstructorInvocation2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
+      if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
+      }
+      _writeElement('element', node.element);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
@@ -676,6 +696,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
         _writeInvocationResolution('resolution', node.resolution);
       }
       _writeParameterElement(node);
@@ -693,6 +717,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
         _writeNamedReadResolution('resolution', node.resolution);
       }
       _writeParameterElement(node);
@@ -1013,6 +1041,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _sink.writeln('FunctionInstantiation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeln('FunctionReference');
     _sink.withIndent(() {
@@ -1139,12 +1178,48 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    _sink.writeln('ImplicitCallTearOff');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _sink.writeln('ImplicitFunctionInstantiation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _sink.writeln('ImportDirective');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _elementPrinter.writeLibraryImport('libraryImport', node.libraryImport);
+      }
+    });
+  }
+
+  @override
+  void visitImportPrefixedAssignmentTarget(
+    covariant ImportPrefixedAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('ImportPrefixedAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
       }
     });
   }
@@ -1166,11 +1241,42 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) {
+    _sink.writeln('ImportPrefixedNameExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeln('ImportPrefixReference');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
+    });
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _sink.writeln('IncrementOrDecrementExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('operation: ${node.operation.name}');
+      _sink.writelnWithIndent('position: ${node.position.name}');
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('operatorResultType', node.operatorResultType);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1585,18 +1691,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _sink.writeln('PostfixDecrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
   void visitPostfixExpression(PostfixExpression node) {
     _sink.writeln('PostfixExpression');
     _sink.withIndent(() {
@@ -1609,30 +1703,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
         _writeType('writeType', node.writeType);
       }
       _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _sink.writeln('PostfixIncrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _sink.writeln('PrefixDecrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1661,18 +1731,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
         _writeType('writeType', node.writeType);
       }
       _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _sink.writeln('PrefixIncrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
       _writeType('staticType', node.staticType);
     });
   }
@@ -2185,6 +2243,21 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    _sink.writeln('UnqualifiedNameExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {
@@ -2505,6 +2578,27 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writelnWithIndent('offset: ${docImport.offset}');
       _writeNode('import', docImport.import);
     });
+  }
+
+  void _writeDotShorthandContextResolution(
+    String name,
+    DotShorthandContextResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case ValidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: ValidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+          _writeType('lookupType', resolution.lookupType);
+        });
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+        });
+    }
   }
 
   void _writeElement(String name, Element? element) {

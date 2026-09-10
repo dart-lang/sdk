@@ -875,15 +875,15 @@ class IsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
+    final builder = callingModule.functions.define(
       translator.typesBuilder.defineFunction(
         signature.inputs,
         signature.outputs,
       ),
       name,
     )..isPure = true;
-    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
-    return function;
+    translator.compilationQueue.add(CompilationTask(builder, inliningCodeGen));
+    return builder.function;
   })();
 }
 
@@ -1045,7 +1045,7 @@ class AsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
+    final builder = callingModule.functions.define(
       translator.typesBuilder.defineFunction(
         signature.inputs,
         signature.outputs,
@@ -1055,7 +1055,7 @@ class AsCheckerCallTarget extends CallTarget {
 
     translator.compilationQueue.add(
       CompilationTask(
-        function,
+        builder,
         AsCheckerCodeGenerator(
           translator,
           signature,
@@ -1067,7 +1067,7 @@ class AsCheckerCallTarget extends CallTarget {
       ),
     );
 
-    return function;
+    return builder.function;
   })();
 }
 
@@ -1390,25 +1390,29 @@ class RuntimeTypeInformation {
           entry == null ? invalidClassId : entry.$1,
         ),
     ]);
-    final typeRowDisplacementSubstTable = translator.constants
-        .makeArrayOf(wasmI16, [
-          for (final entry in table)
-            translator.constants.makeWasmI32(
-              entry == null ? noSubstitutionIndex : entry.$2,
-            ),
-        ]);
+    final typeRowDisplacementSubstTable = translator.constants.makeArrayOf(
+      wasmI16,
+      [
+        for (final entry in table)
+          translator.constants.makeWasmI32(
+            entry == null ? noSubstitutionIndex : entry.$2,
+          ),
+      ],
+    );
     final canonicalSubstitutionTable = translator.constants.makeArrayOf(
       arrayOfType,
       [for (final sustitution in _substitutionTableByIndex) sustitution],
     );
 
-    final typeRowDisplacementOffsets = translator.constants
-        .makeArrayOf(wasmI32, [
-          for (int classId = 0; classId < translator.classes.length; ++classId)
-            translator.constants.makeWasmI32(
-              rowForSuperclass[classId]?.offset ?? -1,
-            ),
-        ]);
+    final typeRowDisplacementOffsets = translator.constants.makeArrayOf(
+      wasmI32,
+      [
+        for (int classId = 0; classId < translator.classes.length; ++classId)
+          translator.constants.makeWasmI32(
+            rowForSuperclass[classId]?.offset ?? -1,
+          ),
+      ],
+    );
 
     final typeNames = translator.options.minify
         ? NullConstant()

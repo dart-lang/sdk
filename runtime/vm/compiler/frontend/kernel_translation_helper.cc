@@ -1773,11 +1773,13 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
                                          &H.metadata_payloads(), md_offset);
 
   *target_name = helper_->ReadCanonicalNameReference();
-  const intptr_t flags = helper_->ReadByte();
+  const uint32_t flags_and_closure_id = helper_->ReadUInt();
   *check_receiver_for_null =
-      ((flags & DirectCallMetadata::kFlagCheckReceiverForNull) != 0);
-  if ((flags & DirectCallMetadata::kFlagClosure) != 0) {
-    const intptr_t id = helper_->ReadUInt();
+      ((flags_and_closure_id & DirectCallMetadata::kFlagCheckReceiverForNull) !=
+       0);
+  if ((flags_and_closure_id & DirectCallMetadata::kFlagClosure) != 0) {
+    const intptr_t id =
+        flags_and_closure_id >> DirectCallMetadata::kClosureIdShift;
     if (closure_id != nullptr) {
       *closure_id = id;
     }
@@ -2127,10 +2129,10 @@ TableSelectorMetadata* TableSelectorMetadataHelper::GetTableSelectorMetadata(
 
 void TableSelectorMetadataHelper::ReadTableSelectorInfo(
     TableSelectorInfo* info) {
-  info->call_count = helper_->ReadUInt();
-  uint8_t flags = helper_->ReadByte();
-  info->called_on_null = (flags & kCalledOnNullBit) != 0;
-  info->torn_off = (flags & kTornOffBit) != 0;
+  const uint32_t flags_and_call_count = helper_->ReadUInt();
+  info->call_count = flags_and_call_count >> kCallCountShift;
+  info->called_on_null = (flags_and_call_count & kCalledOnNullBit) != 0;
+  info->torn_off = (flags_and_call_count & kTornOffBit) != 0;
 }
 
 UnboxingInfoMetadataHelper::UnboxingInfoMetadataHelper(

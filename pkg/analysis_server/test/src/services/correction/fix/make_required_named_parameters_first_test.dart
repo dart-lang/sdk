@@ -117,10 +117,12 @@ void f({required int a, int? b}) {}
 
 @reflectiveTest
 class MakeRequiredNamedParametersInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [
+    LintNames.always_put_required_named_parameters_first,
+  ];
+
   Future<void> test_file() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.always_put_required_named_parameters_first],
-    );
     await resolveTestCode(r'''
 void f({int? c, required int a, required int b}) {}
 ''');

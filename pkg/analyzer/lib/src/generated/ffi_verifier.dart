@@ -264,7 +264,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         }
       } else if (enclosingElement.isAddressOfExtension &&
           element.name == 'address') {
-        var errorNode = node.propertyName;
+        var errorNode = node.name;
         _validateAddressPosition(node, errorNode);
         _validateAddressReceiver(
           node,
@@ -1502,7 +1502,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     ReceiverPropertyExtraction node,
     Element element,
   ) {
-    var errorNode = node.propertyName;
+    var errorNode = node.name;
     _validateAddressPosition(node, errorNode);
     var extensionName = element.enclosingElement?.name;
     _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
@@ -2101,6 +2101,10 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
     var referencedElement = switch (argument) {
       IdentifierImpl() => argument.element?.nonSynthetic,
+      NameExpressionImpl(
+        resolution: NamedReadResolutionWithElementImpl(:var element),
+      ) =>
+        element.nonSynthetic,
       _ => null,
     };
 

@@ -2710,6 +2710,44 @@ const c = _;
 ''');
   }
 
+  test_visitImplicitFunctionInstantiation_constructor() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+class C<T> {
+  C(T value);
+}
+const C<int> Function(int) c = C.new;
+const same = identical(c, C<int>.new);
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'same'), r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::same
+''');
+  }
+
+  test_visitImplicitFunctionInstantiation_constructor_typeAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+class C<T, U> {
+  C(T value);
+}
+typedef A<T> = C<T, String>;
+const C<int, String> Function(int) c = A.new;
+''');
+    assertDartObjectText(_topLevelVar(unitResult, 'c'), r'''
+C<int, String> Function(int)
+  element: <testLibrary>::@class::C::@constructor::new
+  typeArguments
+    int
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_visitInterpolationExpression_list() async {
     await resolveTestCodeWithDiagnostics(r'''
 const x = '${const [2]}';

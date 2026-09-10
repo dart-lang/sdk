@@ -705,6 +705,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: foo @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::A::@getter::foo
+                        invokeType: A Function()
+                        type: A
+                      staticType: A
+                  elements(v1)
                     SimpleIdentifier
                       token: foo @-1
                       element: <testLibrary>::@enum::A::@getter::foo

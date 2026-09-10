@@ -12,7 +12,12 @@ void main() {
       final config = DartPadConfig(
         dartSdkPath: '/sdk/path',
         summaryModules: {'/flutter.dill': 'flutter_web'},
-        bootstrapCode: 'void main() => {{entrypoint}}.main();',
+        modes: [
+          DartPadRunMode(
+            mode: 'flutter',
+            entrypointWrapperTemplate: 'void main() => {{entrypoint}}.main();',
+          ),
+        ],
         flutterSdkPath: '/flutter/sdk',
         trackCreationLocations: true,
       );
@@ -24,21 +29,23 @@ void main() {
       check(
         decoded.summaryModules,
       ).deepEquals({'/flutter.dill': 'flutter_web'});
+      check(decoded.modes.length).equals(1);
+      check(decoded.modes.first.mode).equals('app');
       check(
-        decoded.bootstrapCode,
+        decoded.modes.first.entrypointWrapperTemplate,
       ).equals('void main() => {{entrypoint}}.main();');
       check(decoded.flutterSdkPath).equals('/flutter/sdk');
-      check(decoded.trackCreationLocations).isTrue();
+      check(decoded.trackCreationLocations).isTrue;
     });
 
     test('.fromJson({})', () {
       final config = DartPadConfig.fromJson({});
 
       check(config.dartSdkPath).equals('/sdk');
-      check(config.summaryModules).isEmpty();
-      check(config.bootstrapCode).isNull();
-      check(config.flutterSdkPath).isNull();
-      check(config.trackCreationLocations).isFalse();
+      check(config.summaryModules).isEmpty;
+      check(config.modes).isEmpty;
+      check(config.flutterSdkPath).isNull;
+      check(config.trackCreationLocations).isFalse;
     });
 
     test('.copyWith()', () {
@@ -46,6 +53,7 @@ void main() {
         dartSdkPath: '/original/sdk',
         flutterSdkPath: '/original/flutter',
         pubHostedUrl: 'https://pub.dev',
+        modes: [DartPadRunMode(mode: 'console')],
       );
 
       final copy = original.copyWith(
@@ -61,7 +69,7 @@ void main() {
       check(copy.dartSdkPath).equals('/original/sdk');
 
       // Verifies defaults are also kept intact
-      check(copy.summaryModules).isEmpty();
+      check(copy.summaryModules).isEmpty;
     });
   });
 }

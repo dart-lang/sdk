@@ -552,7 +552,13 @@ FunctionExpression
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: item
+            resolution: VariableReadResolution
+              element: item@43
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: item
             element: item@43
             staticType: int
@@ -706,6 +712,13 @@ FunctionExpression
         rightBracket: >
       leftBracket: [
       elements2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@29
+            type: T
+          staticType: T
+      elements(v1)
         SimpleIdentifier
           token: a
           element: a@29

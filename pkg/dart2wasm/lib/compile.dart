@@ -440,6 +440,10 @@ Future<CompilationResult> _runTfaPhase(
     );
   }
 
+  if (!options.translatorOptions.enableMultiModuleStressTestMode) {
+    _pruneLibraryDependencies(component);
+  }
+
   final librariesToTransform = component.libraries;
   final constantEvaluator = ConstantEvaluator(
     options,
@@ -820,6 +824,20 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
     return patchInvokeMainInternal(mainInvoke0);
   }
   throw 'Main method has unexpected type: $mainMethodType';
+}
+
+/// Removes all import/export library dependencies except for deferred imports
+/// (which are used for partitioning the application into deferred units).
+void _pruneLibraryDependencies(Component component) {
+  for (final library in component.libraries) {
+    final deferredDependencies = <LibraryDependency>[];
+    for (final dependency in library.dependencies) {
+      if (dependency.isDeferred) {
+        deferredDependencies.add(dependency);
+      }
+    }
+    library.dependencies = deferredDependencies;
+  }
 }
 
 class _RecordClassesRepository extends MetadataRepository<RecordShape> {

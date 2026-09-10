@@ -17,12 +17,14 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/omitted_type_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/extension_type/declaration.dart';
@@ -37,6 +39,7 @@ import 'source_builder_mixins.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_method_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
 
@@ -191,6 +194,40 @@ class SourceExtensionTypeDeclarationBuilder
       memberBuilders: _memberBuilders,
       typeParameterFactory: libraryBuilder.typeParameterFactory,
     );
+    for (SourceMemberBuilder memberBuilder in _memberBuilders) {
+      if (memberBuilder is SourceMethodBuilder) {
+        if (memberBuilder.isAbstract) {
+          libraryBuilder.addProblem(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.fileOffset,
+            memberBuilder.name.length,
+            memberBuilder.fileUri,
+          );
+        }
+      } else if (memberBuilder is SourcePropertyBuilder) {
+        if (memberBuilder.declaresAbstractGetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.getterUriOffset!,
+          );
+        }
+        if (memberBuilder.declaresAbstractSetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionTypeWithAbstractMember.withArguments(
+              extensionTypeName: name,
+              methodName: memberBuilder.name,
+            ),
+            memberBuilder.setterUriOffset!,
+          );
+        }
+      }
+    }
   }
 
   @override

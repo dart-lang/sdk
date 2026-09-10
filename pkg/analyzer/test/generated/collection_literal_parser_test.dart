@@ -133,10 +133,12 @@ ListLiteral
             literal: 10
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
             target: UnqualifiedNameAssignmentTarget
               name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -562,10 +564,12 @@ SetOrMapLiteral
             literal: 10
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
             target: UnqualifiedNameAssignmentTarget
               name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++

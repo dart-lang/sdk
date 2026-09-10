@@ -592,7 +592,14 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
+      type: int
+    correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
+    staticType: int
+  rightHandSide(v1): SimpleIdentifier
     token: a
     correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
@@ -633,7 +640,14 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: SimpleIdentifier
+  rightHandSide2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
+      type: int
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
+    staticType: int
+  rightHandSide(v1): SimpleIdentifier
     token: a
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a

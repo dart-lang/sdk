@@ -36,13 +36,13 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -71,13 +71,13 @@ class B extends A {
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -100,13 +100,13 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
-      additionalEnabledCodes: ['some_fake_lint_that_doesnt_exist'],
+      additionalLintCodes: ['some_fake_lint_that_doesnt_exist'],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -128,13 +128,13 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
-    var processor = BulkFixProcessor(
+    var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
-      additionalEnabledCodes: [LintNames.unnecessary_new],
+      additionalLintCodes: [LintNames.unnecessary_new],
     );
 
     await processor.fixErrors([analysisContext]);
@@ -183,7 +183,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(

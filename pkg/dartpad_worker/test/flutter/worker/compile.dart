@@ -14,10 +14,22 @@ void main() {
       );
     ''');
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello Flutter')
+          ..code.contains('MaterialApp'),
+      ),
+    );
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('flutter')),
+    );
+    await iframe.close();
   });
 
   testFlutterWorkspace('ws.compile() missing semicolon', (ws) async {
@@ -29,11 +41,15 @@ void main() {
       )
     ''');
 
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
     await check(
-      ws.compile(Uri.parse('bin/main.dart')),
+      sandbox.run('bin/main.dart', mode: 'flutter'),
     ).throws<CompilationFailedException>(
-      (e) => e.message.contains("Expected ';'"),
+      .it()..has((it) => it.message, 'message').contains("Expected ';'"),
     );
+    await iframe.close();
   });
 
   testFlutterWorkspace('ws.compile() with imports', (ws) async {
@@ -51,10 +67,20 @@ void main() {
       }
     ''');
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter')
-      ..codeContains('Hello World')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello Flutter')
+          ..code.contains('Hello World')
+          ..code.contains('MaterialApp'),
+      ),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
+    await iframe.close();
   });
 }

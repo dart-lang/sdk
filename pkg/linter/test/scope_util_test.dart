@@ -31,8 +31,8 @@ class ResolveNameInScopeTest extends PubPackageResolutionTest {
   late FindNode findNode;
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var result = await super.resolveFile(path);
+  Future<ResolvedUnitResult> resolveFile(String filePath) async {
+    var result = await super.resolveFile(filePath);
 
     findElement = FindElement(result.unit);
     findNode = FindNode(result.content, result.unit);

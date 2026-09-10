@@ -12,6 +12,7 @@ import 'package:pub/pub.dart';
 
 import '../core.dart';
 import '../native_assets.dart';
+import '../resident_frontend_utils.dart';
 import '../vm_interop_handler.dart';
 
 /// Implement `dart test`.
@@ -116,10 +117,20 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      final testExecutable = await getExecutableForCommand(
-        'test:test',
-        nativeAssets: nativeAssets,
-      );
+      final testExecutable = await getExecutableForCommand('test:test');
+      var executablePath = testExecutable.executable;
+      if (nativeAssets != null &&
+          await isFileKernelFile(File(executablePath))) {
+        final concatenated = await concatenateNativeAssetsKernel(
+          kernelFilePath: executablePath,
+          nativeAssetsYamlUri: Uri.file(nativeAssets),
+          tempDirUri: builder!.tempDirUri!,
+        );
+        if (concatenated == null) {
+          return DartdevCommand.errorExitCode;
+        }
+        executablePath = concatenated;
+      }
       final argsRestNoExperimentOrSuppressAnalytics = args.rest
           .where(
             (e) =>
@@ -128,10 +139,10 @@ Run "${runner!.executableName} help" to see global options.''');
           )
           .toList();
       log.trace(
-        'dart $testExecutable ${argsRestNoExperimentOrSuppressAnalytics.join(' ')}',
+        'dart $executablePath ${argsRestNoExperimentOrSuppressAnalytics.join(' ')}',
       );
       VmInteropHandler.run(
-        testExecutable.executable,
+        executablePath,
         argsRestNoExperimentOrSuppressAnalytics,
         packageConfigOverride: testExecutable.packageConfig!,
         useExecProcess: true,
@@ -141,6 +152,9 @@ Run "${runner!.executableName} help" to see global options.''');
         //
         // See https://github.com/dart-lang/sdk/issues/53576
         markMainIsolateAsSystemIsolate: true,
+        scriptUriOverride: executablePath != testExecutable.executable
+            ? testExecutable.executable
+            : null,
         deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
       );
       return 0;

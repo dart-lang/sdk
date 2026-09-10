@@ -2377,6 +2377,22 @@ main(A p) {
 ''');
   }
 
+  test_searchReferences_ClassElement_reference_importCombinator_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart' show A;
+''');
+    var result = await resolveTestCode('''
+class A {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart' show A;
+                        ^ REFERENCE qualified
+''');
+  }
+
   test_searchReferences_ClassElement_reference_instanceCreation() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;
@@ -4705,6 +4721,36 @@ void use(A a, A? nullableA, B b, B? nullableB) {
 }
 ''',
     );
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget_cascade_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+  a..x = 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementReferencesText(field, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+       ^ WRITE qualified
+  a..x = 2;
+     ^ WRITE qualified
+}
+''');
   }
 
   test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
@@ -7065,6 +7111,36 @@ main() {
 }
 math.Random bar() => null;
 ^^^^^
+''');
+  }
+
+  test_searchReferences_ImportElement_withPrefix_assignmentTargets() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var result = await resolveTestCode('''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  p.x += 1;
+  p.x ??= 2;
+  ++p.x;
+  p.x--;
+}
+''');
+    var element = result.findElement.import('package:test/a.dart');
+    await assertLibraryImportReferencesText(element, r'''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  ^^
+  p.x += 1;
+  ^^
+  p.x ??= 2;
+  ^^
+  ++p.x;
+    ^^
+  p.x--;
+  ^^
+}
 ''');
   }
 
@@ -9707,6 +9783,55 @@ import 'test.dart' show foo;
 
 int get foo => 0;
 void set foo(_) {}
+''',
+    );
+  }
+
+  test_searchReferences_TopLevelVariableElement_importPrefixedWrites() async {
+    newFile(testFile.path, '''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+  p.value += 1;
+  p.value ??= 2;
+  ++p.value;
+  p.value--;
+}
+''');
+    var result = await resolveFileCode('$testPackageLibPath/a.dart', '''
+int? get value => 0;
+set value(num? value) {}
+''');
+    var variable = result.findElement.topVar('value');
+    await assertElementsReferencesText(
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+      },
+      r'''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+    ^^^^^ variable WRITE qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value += 1;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value ??= 2;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  ++p.value;
+      ^^^^^ variable READ_WRITE qualified
+      ^^^^^ getter INVOCATION qualified
+      ^^^^^ setter INVOCATION qualified
+  p.value--;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+}
 ''',
     );
   }

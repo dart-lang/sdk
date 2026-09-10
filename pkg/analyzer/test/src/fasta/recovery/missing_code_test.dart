@@ -781,7 +781,7 @@ CompilationUnit
                     CascadeSection
                       operator: ..
                       body: CascadePropertyExtraction
-                        propertyName: <empty> <synthetic>
+                        name: <empty> <synthetic>
                   cascadeSections
                     PropertyAccess
                       operator: ..

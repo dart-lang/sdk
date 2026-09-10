@@ -317,6 +317,10 @@ class AssignmentExpressionResolver {
         target.write = targetResult.write;
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        readType = target.read!.type;
+        writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
         var targetResult = _resolver
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
@@ -536,6 +540,9 @@ class AssignmentExpressionResolver {
           return;
         }
         writeAcceptedType = resolution.acceptedType;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
         var resolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
           target,
@@ -658,6 +665,10 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
         readExpressionInfo = targetResult.readExpressionInfo;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        readType = target.read!.type;
+        writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
         var targetResult = _resolver
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
@@ -1250,7 +1261,7 @@ class AssignmentExpressionShared {
   void checkFinalForEachIdentifier(ForEachPartsWithIdentifierImpl node) {
     if (_resolver.flowAnalysis.flow == null) return;
     if (node.write case VariableWriteResolutionImpl(
-      element: PromotableElementImpl element,
+      :PromotableElementImpl element,
     )) {
       _checkFinalAlreadyAssigned(
         node,

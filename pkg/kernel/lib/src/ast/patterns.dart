@@ -1830,6 +1830,9 @@ class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;
 
+  // TODO(cstefantsova): Serialize this field.
+  final Scope? jointVariableScope;
+
   @override
   Scope? scope;
 
@@ -1841,6 +1844,7 @@ class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
     required this.hasLabel,
     required this.jointVariableDeclarations,
     required this.jointVariableFirstUseOffsets,
+    required this.jointVariableScope,
   }) {
     setParents(patternGuards, this);
     setParents(jointVariableDeclarations, this);
@@ -2402,6 +2406,7 @@ final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
   hasLabel: false,
   jointVariableDeclarations: [],
   jointVariableFirstUseOffsets: null,
+  jointVariableScope: null,
 );
 
 final SwitchExpressionCase dummySwitchExpressionCase = new SwitchExpressionCase(

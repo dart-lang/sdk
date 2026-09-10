@@ -932,7 +932,7 @@ var B = 0;
 
     configuration.libraryConfiguration.unitConfiguration.nodeSelector =
         (result) {
-          return result.findNode.simple('B;');
+          return result.findNode.unqualifiedNameExpression('B;');
         };
 
     // We have a result only for "a".
@@ -947,9 +947,12 @@ var B = 0;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: int Function()
+        type: int
       staticType: int
 [status] idle
 ''');
@@ -973,9 +976,12 @@ var B = 1.2;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: double Function()
+        type: double
       staticType: double
 [status] idle
 ''');

@@ -6204,13 +6204,30 @@ var t = dynamic<int>;
 ''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('dynamic<int>;');
+    var node = result.findNode.functionInstantiation('dynamic<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: dynamic
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: dynamic
     element: <null>
-    staticType: null
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -6565,10 +6582,37 @@ void g() {
 ''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('Never<core.int>)');
+    var node = result.findNode.functionInstantiation('Never<core.int>)');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: core
+      element: <testLibraryFragment>::@prefix::core
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: Never
+      element: Never
+      staticType: InvalidType
+    element: Never
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        importPrefix: ImportPrefixReference
+          name: core
+          period: .
+          element: <testLibraryFragment>::@prefix::core
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  correspondingParameter: <testLibrary>::@function::f::@formalParameter::x
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: core
       element: <testLibraryFragment>::@prefix::core
@@ -6943,13 +6987,30 @@ var t = Never<int>;
 ''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('Never<int>;');
+    var node = result.findNode.functionInstantiation('Never<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: Never
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: Never
     element: <null>
-    staticType: null
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -7567,13 +7628,31 @@ class C<T> {
 ''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('T<int>)');
+    var node = result.findNode.functionInstantiation('T<int>)');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: T
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  correspondingParameter: <testLibrary>::@class::C::@method::f::@formalParameter::x
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: T
     element: <null>
-    staticType: null
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -7928,13 +8007,30 @@ class C<T> {
 ''');
 
     // TODO(scheglov): This should be `TypeLiteral`.
-    var node = result.findNode.functionReference('T<int>;');
+    var node = result.findNode.functionInstantiation('T<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: T
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: T
     element: <null>
-    staticType: null
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments

@@ -742,12 +742,16 @@ class BuilderFactory {
   ) {
     String name = fragment.name;
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(name);
+    List<EnumElementFragment> enumElements = [];
+
     _createDeclarationBuilder(
       introductory: fragment,
       augmentations: augmentations,
       reference: indexedClass?.reference,
-      createDeclaration: (fragment) =>
-          new EnumDeclaration(fragment, _loader.target.underscoreEnumType),
+      createDeclaration: (EnumFragment fragment) {
+        enumElements.addAll(fragment.enumElements);
+        return new EnumDeclaration(fragment, _loader.target.underscoreEnumType);
+      },
       createBuilder:
           ({
             required augmentations,
@@ -759,7 +763,7 @@ class BuilderFactory {
             name: name,
             typeParameters: nominalParameters,
             underscoreEnumTypeBuilder: _loader.target.underscoreEnumType,
-            enumElements: fragment.enumElements,
+            enumElements: enumElements,
             libraryBuilder: _enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
             startOffset: fragment.startOffset,
@@ -778,6 +782,13 @@ class BuilderFactory {
       typeParametersMismatchMessage: diag.patchClassTypeParametersMismatch,
       typeParametersIntroductoryMessage: diag.patchClassOrigin,
     );
+
+    if (!fragment.hasErroneousBody && enumElements.isEmpty) {
+      _problemReporting.addProblem2(
+        diag.enumDeclarationEmpty,
+        fragment.uriOffset,
+      );
+    }
   }
 
   void _createExtensionBuilderFromFragments(
@@ -1099,7 +1110,7 @@ class BuilderFactory {
           }) => new SourceClassBuilder(
             modifiers: modifiers,
             name: name,
-            typeParameters: fragment.typeParameters?.builders,
+            typeParameters: fragment.typeParameterBuilders,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: _enclosingLibraryBuilder,
@@ -1137,20 +1148,20 @@ class BuilderFactory {
     );
     fragment.nominalParameterNameSpace.addTypeParameters(
       _problemReporting,
-      fragment.typeParameters?.builders,
+      fragment.typeParameterBuilders,
       ownerName: name,
       allowNameConflict: false,
     );
     LookupScope typeParameterScope = TypeParameterScope.fromList(
       fragment.enclosingScope,
-      fragment.typeParameters?.builders,
+      fragment.typeParameterBuilders,
     );
     DeclarationNameSpaceBuilder nameSpaceBuilder =
         new DeclarationNameSpaceBuilder.empty();
     SourceClassBuilder classBuilder = new SourceClassBuilder(
       modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
       name: name,
-      typeParameters: fragment.typeParameters?.builders,
+      typeParameters: fragment.typeParameterBuilders,
       typeParameterScope: typeParameterScope,
       nameSpaceBuilder: nameSpaceBuilder,
       libraryBuilder: _enclosingLibraryBuilder,

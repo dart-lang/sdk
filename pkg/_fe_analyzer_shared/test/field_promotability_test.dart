@@ -12,7 +12,7 @@ main() {
     var f = Field('_f', isFinal: true);
     var c = Class(fields: [f]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(f.nonPromotabilityReason).equals(null);
   });
 
@@ -23,7 +23,7 @@ main() {
     // map of *private* field names that are unpromotable, so even though `f`
     // is not promotable, the returned map is empty.
     var nonPromotabilityInfo = _TestFieldPromotability().run([c]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(
       f.nonPromotabilityReason,
     ).equals(PropertyNonPromotabilityReason.isNotPrivate);
@@ -122,7 +122,7 @@ main() {
     var getter = Getter('_f', isAbstract: true);
     var d = Class(isAbstract: true, getters: [getter]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(f.nonPromotabilityReason).equals(null);
     check(getter.nonPromotabilityReason).equals(null);
   });
@@ -136,7 +136,7 @@ main() {
     var d = Class(getters: [getter]);
     // Therefore the map returned by `_TestFieldPromotability.run` is empty.
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(
       f.nonPromotabilityReason,
     ).equals(PropertyNonPromotabilityReason.isNotPrivate);
@@ -180,7 +180,7 @@ main() {
     var d = Class(isAbstract: true, getters: [getter]);
     var e = Class(isAbstract: true, implements: [d]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(f.nonPromotabilityReason).equals(null);
     check(getter.nonPromotabilityReason).equals(null);
   });
@@ -208,7 +208,7 @@ main() {
     var d = Class(extendsOrMixesIn: [c]);
     var e = Class(extendsOrMixesIn: [d], implements: [c]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
-    check(nonPromotabilityInfo).isEmpty();
+    check(nonPromotabilityInfo).isEmpty;
     check(f.nonPromotabilityReason).equals(null);
   });
 

@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "5f2a1632af9509358d1325e546f47d3a0a22b912",
+  "co19_rev": "046695b58f38ee8e7500adf0e91d2524331b62bc",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -102,12 +102,12 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "f341ba401f765c8e4b5194e785352d8eea92ba20",
+  "boringssl_rev": "c66572ad4dcdbd388a2802378a7e422a7f7d82e1",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "21f1838f3a9b138ac377efb953ca5a53c8832e75",
+  "devtools_rev": "98217413399f2d56838f0f7497a3ba48adf6f35c",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
-  "flutter_rev": "ad80825c24d770a19e33f67800fc0338a3b89ec7",
+  "flutter_rev": "a38c5c628774a5e5a4e11ceeee6d5bc6a509eef0",
   "icu_rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",
@@ -138,11 +138,11 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "38fe1793bf894cac95bd14e688df8246c87b904a",
   "protobuf_rev": "cde8e2865fe5a349cc9f476e0c89f4e4a23ac15c",
-  "pub_rev": "7654d523a42e764fad77c9e7b63a9686b88c9323", # rolled manually
+  "pub_rev": "0382a52acba89ff0080d559bb22f4017962bbd1d", # rolled manually
   "shelf_rev": "fb3f931d2c158d794e83c1b76b7be4b625db3c28",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "55b186ddcad50fe4808226e0b681875dda6dd123",
+  "test_rev": "c80d53dbd489d61e0481fc484cd6f9a3b53603fb",
   "tools_rev": "441ff2986fd495c88b59bb15dd6b35904ad329b7",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
   "web_rev": "6b84f811cd67a5fd05f4dac24cb56542bcfc92e4",
@@ -158,9 +158,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "153.0.8010.5",
+  "chrome_tag": "154.0.8037.0",
   "download_firefox": False,
-  "firefox_tag": "154.0",
+  "firefox_tag": "155.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -586,7 +586,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "u_fSMsPU22VvUsvSoFqxC8RjRhpErOdWDkryN7NzlP8C",
+      "version": "VObjlh3xw2P9sEbC_t_Xy0tpw7FtsjQjp2GwzRV3984C",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -597,7 +597,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "ZsxUUK2SfA-TrNvb8eTBxNftQSqDU5z-cdDoS4_nWTgC",
+      "version": "PDJz3b3CL31uoLOkDb0mm8FidqJ1eCJryoRFd9iVmbIC",
       }
     ],
     "condition": 'download_fuchsia_deps',

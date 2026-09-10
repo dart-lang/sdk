@@ -153,6 +153,16 @@ class LibraryAnalyzer {
     });
     var parsedUnit = fileAnalysis.unit;
     var node = parsedUnit.nodeCovering2(offset: offset);
+    // Resolution can replace the node at the completion offset. Select the
+    // stable enclosing resolution root while the parsed tree still owns it.
+    var nodeToResolve = node?.thisOrAncestorMatching2((e) {
+      return e.parent2 is ClassBody ||
+          e.parent2 is ClassDeclaration ||
+          e.parent2 is CompilationUnit ||
+          e.parent2 is EnumBody ||
+          e.parent2 is ExtensionDeclaration ||
+          e.parent2 is MixinDeclaration;
+    });
     var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
@@ -210,14 +220,6 @@ class LibraryAnalyzer {
         resolverVisitor.inferenceHelper.dataForTesting!,
       );
 
-      var nodeToResolve = node?.thisOrAncestorMatching2((e) {
-        return e.parent2 is ClassBody ||
-            e.parent2 is ClassDeclaration ||
-            e.parent2 is CompilationUnit ||
-            e.parent2 is EnumBody ||
-            e.parent2 is ExtensionDeclaration ||
-            e.parent2 is MixinDeclaration;
-      });
       if (nodeToResolve != null && nodeToResolve is! Directive) {
         var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
         if (canResolveNode) {

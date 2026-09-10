@@ -1,8 +1,8 @@
 (module $M1
   (type $#Top <...>)
   (type $Foo (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $i (mut i64)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)

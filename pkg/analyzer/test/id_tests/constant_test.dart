@@ -83,14 +83,19 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
-    if (node is Identifier) {
-      var element = node.element;
-      if (element is PropertyAccessorElement && element.isOriginVariable) {
-        var variable = element.variable;
-        if (variable.isOriginDeclaration && variable.isConst) {
-          var value = variable.computeConstantValue();
-          if (value != null) return _stringify(value);
-        }
+    var element = switch (node) {
+      Identifier(:var element) => element,
+      UnqualifiedNameExpression(
+        resolution: NamedReadResolutionWithElement(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
+      var variable = element.variable;
+      if (variable.isOriginDeclaration && variable.isConst) {
+        var value = variable.computeConstantValue();
+        if (value != null) return _stringify(value);
       }
     }
     return null;

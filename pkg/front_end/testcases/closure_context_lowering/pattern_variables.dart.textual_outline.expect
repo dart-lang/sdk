@@ -11,3 +11,7 @@ joinedVariableSwitchExpression(dynamic x) {}
 joinedVariableIfCaseStatement(dynamic x) {}
 
 joinedVariableIfCaseElement(dynamic x) {}
+
+staleSwitchCaseBuilderTest(dynamic x, (String, int) r) {}
+
+mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) {}

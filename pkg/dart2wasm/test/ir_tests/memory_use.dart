@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // functionFilter=main
+// functionFilter=mem
 // compilerOption=--no-minify
 // compilerOption=--enable-experimental-wasm-interop
 
@@ -24,4 +25,10 @@ void main() {
   print(memory.loadFloat32(0, align: 2, offset: 1).toDouble());
 
   memory.storeInt32(memory.size, WasmI32.fromInt(32), offset: 10);
+
+  // Ensure we don't import memory as a procedure when TFA replaces this with an
+  // unconditional throw (https://dart-review.googlesource.com/c/sdk/+/546240).
+  memory.storeInt64(0, alwaysOne == 1 ? throw 'a' : WasmI64.fromInt(42));
 }
+
+int get alwaysOne => 1;

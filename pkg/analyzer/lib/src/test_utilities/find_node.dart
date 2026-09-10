@@ -92,6 +92,9 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
       _single();
 
+  ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
+      _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -108,6 +111,8 @@ class FindNode2 extends _FindNodeBase {
 
   UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
       _single();
+
+  UnqualifiedNameExpression get singleUnqualifiedNameExpression => _single();
 
   @override
   AssignmentExpression assignment(String search) {
@@ -158,10 +163,22 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is IfNullAssignment);
   }
 
+  ImportPrefixedAssignmentTarget importPrefixedAssignmentTarget(String search) {
+    return _node(search, (node) => node is ImportPrefixedAssignmentTarget);
+  }
+
   ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
     String search,
   ) {
     return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
+  }
+
+  ImportPrefixedNameExpression importPrefixedNameExpression(String search) {
+    return _node(search, (node) => node is ImportPrefixedNameExpression);
+  }
+
+  IncrementOrDecrementExpression incrementOrDecrement(String search) {
+    return _node(search, (node) => node is IncrementOrDecrementExpression);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -178,22 +195,6 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression nullAssertion(String search) {
     return _node(search, (node) => node is NullAssertionExpression);
-  }
-
-  PostfixDecrement postfixDecrement(String search) {
-    return _node(search, (node) => node is PostfixDecrement);
-  }
-
-  PostfixIncrement postfixIncrement(String search) {
-    return _node(search, (node) => node is PostfixIncrement);
-  }
-
-  PrefixDecrement prefixDecrement(String search) {
-    return _node(search, (node) => node is PrefixDecrement);
-  }
-
-  PrefixIncrement prefixIncrement(String search) {
-    return _node(search, (node) => node is PrefixIncrement);
   }
 
   ReceiverMethodInvocation receiverMethodInvocation(String search) {
@@ -216,6 +217,10 @@ class FindNode2 extends _FindNodeBase {
     String search,
   ) {
     return _node(search, (node) => node is UnqualifiedNameAssignmentTarget);
+  }
+
+  UnqualifiedNameExpression unqualifiedNameExpression(String search) {
+    return _node(search, (node) => node is UnqualifiedNameExpression);
   }
 
   @override
@@ -338,7 +343,7 @@ abstract class _FindNodeBase {
 
   DoStatement get singleDoStatement => _single();
 
-  DotShorthandConstructorInvocation
+  DotShorthandConstructorInvocation2
   get singleDotShorthandConstructorInvocation => _single();
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
@@ -403,6 +408,8 @@ abstract class _FindNodeBase {
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
+  FunctionInstantiation get singleFunctionInstantiation => _single();
+
   FunctionReference get singleFunctionReference => _single();
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
@@ -423,7 +430,14 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference get singleImplicitCallReference => _single();
 
+  ImplicitCallTearOff get singleImplicitCallTearOff => _single();
+
+  ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
+      _single();
+
   ImportDirective get singleImportDirective => _single();
+
+  IncrementOrDecrementExpression get singleIncrementOrDecrement => _single();
 
   IndexExpression get singleIndexExpression => _single();
 
@@ -494,15 +508,7 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PostfixDecrement get singlePostfixDecrement => _single();
-
-  PostfixIncrement get singlePostfixIncrement => _single();
-
-  PrefixDecrement get singlePrefixDecrement => _single();
-
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
-
-  PrefixIncrement get singlePrefixIncrement => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
@@ -769,10 +775,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is DoStatement);
   }
 
-  DotShorthandConstructorInvocation dotShorthandConstructorInvocation(
+  DotShorthandConstructorInvocation2 dotShorthandConstructorInvocation(
     String search,
   ) {
-    return _node(search, (n) => n is DotShorthandConstructorInvocation);
+    return _node(search, (n) => n is DotShorthandConstructorInvocation2);
   }
 
   DotShorthandInvocation dotShorthandInvocation(String search) {
@@ -914,6 +920,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is FunctionExpressionInvocation);
   }
 
+  FunctionInstantiation functionInstantiation(String search) {
+    return _node(search, (n) => n is FunctionInstantiation);
+  }
+
   FunctionReference functionReference(String search) {
     return _node(search, (n) => n is FunctionReference);
   }
@@ -954,6 +964,14 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference implicitCallReference(String search) {
     return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  ImplicitCallTearOff implicitCallTearOff(String search) {
+    return _node(search, (n) => n is ImplicitCallTearOff);
+  }
+
+  ImplicitFunctionInstantiation implicitFunctionInstantiation(String search) {
+    return _node(search, (n) => n is ImplicitFunctionInstantiation);
   }
 
   ImportDirective import(String search) {

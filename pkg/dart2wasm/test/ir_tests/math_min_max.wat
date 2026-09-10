@@ -1,11 +1,11 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $BoxedDouble (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value f64))))
   (type $BoxedInt (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value i64))))
   (func $doubleA implicit getter (result f64) <...>)
   (func $doubleB implicit getter (result f64) <...>)
@@ -76,12 +76,12 @@
     block $label0 (result (ref $#Top))
       call $"numIntA implicit getter"
       local.tee $var0
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 59
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 59
       i32.ne
       i32.or
@@ -104,11 +104,11 @@
         br $label0
       end
       local.get $var0
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 100
       i32.ne
       local.get $var1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 100
       i32.ne
       i32.or
@@ -172,12 +172,12 @@
     block $label0 (result (ref $#Top))
       call $"numIntA implicit getter"
       local.tee $var0
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 59
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 59
       i32.ne
       i32.or
@@ -200,11 +200,11 @@
         br $label0
       end
       local.get $var0
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 100
       i32.ne
       local.get $var1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       i32.const 100
       i32.ne
       i32.or

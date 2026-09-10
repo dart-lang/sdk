@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -131,6 +132,41 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
         .toList();
     var analyzer = ImportAnalyzer(libraryResult, sourcePath, ranges);
 
+    // Group referenced declarations by library for import analysis.
+    var elementsByReferencingLibrary = <LibraryElement, Set<Element>>{};
+    for (var element in analyzer.movingDeclarations) {
+      var matches = await searchEngine.searchReferences(element);
+      for (var match in matches) {
+        if (match.isResolved) {
+          elementsByReferencingLibrary
+              .putIfAbsent(match.libraryElement, () => {})
+              .add(element);
+        }
+      }
+    }
+
+    // References in the source library are handled separately below.
+    elementsByReferencingLibrary.remove(libraryResult.element);
+
+    // Resolve each library once to find imports for moved declarations.
+    var prefixesByReferencingLibrary = <LibraryElement, Set<String>>{};
+    for (var entry in elementsByReferencingLibrary.entries) {
+      var referencingLibrary = entry.key;
+      var resolvedLibrary = await referencingLibrary.session
+          .getResolvedLibraryByElement(referencingLibrary);
+      if (resolvedLibrary is! ResolvedLibraryResult) {
+        return ComputeStatusFailure();
+      }
+      var referenceAnalyzer = ImportAnalyzer.referencesIn(resolvedLibrary);
+      var prefixes = <String>{};
+      for (var element in entry.value) {
+        for (var import in referenceAnalyzer.importsUsedToReference(element)) {
+          prefixes.add(import.prefix?.element.name ?? '');
+        }
+      }
+      prefixesByReferencingLibrary[referencingLibrary] = prefixes;
+    }
+
     await builder.addDartFileEdit(destinationFilePath, (builder) {
       // TODO(dantup): Ensure the range inserted and deleted match (allowing for
       //  whitespace), including handling of leading/trailing comments etc.
@@ -167,46 +203,11 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
         builder.addDeletion(sourceRange);
       }
     });
-    var libraries = <LibraryElement, Set<Element>>{};
-    for (var element2 in analyzer.movingDeclarations) {
-      var element = element2;
-      var matches = await searchEngine.searchReferences(element);
-      for (var match in matches) {
-        if (match.isResolved) {
-          libraries.putIfAbsent(match.libraryElement, () => {}).add(element2);
-        }
-      }
-    }
-
-    /// Don't update the library from which the code is being moved because
-    /// that's already been done.
-    libraries.remove(libraryResult.element);
-    for (var entry in libraries.entries) {
-      var library = entry.key;
-      var prefixes = <String>{};
-      for (var element in entry.value) {
-        // Search for prefixes for the element.
-        prefixes.addAll(
-          await searchEngine.searchPrefixesUsedInLibrary(library, element),
-        );
-        // And also for the getter if this might be something like a top-level
-        // variable.
-        if (element case PropertyInducingElement(:var getter?)) {
-          prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, getter),
-          );
-        }
-        // And setters.
-        if (element case PropertyInducingElement(:var setter?)) {
-          prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, setter),
-          );
-        }
-      }
-      await builder.addDartFileEdit(library.firstFragment.source.fullName, (
+    for (var entry in prefixesByReferencingLibrary.entries) {
+      await builder.addDartFileEdit(entry.key.firstFragment.source.fullName, (
         builder,
       ) {
-        for (var prefix in prefixes) {
+        for (var prefix in entry.value) {
           builder.importLibrary(destinationImportUri, prefix: prefix);
         }
       });

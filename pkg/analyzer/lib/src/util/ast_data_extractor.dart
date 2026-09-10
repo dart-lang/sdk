@@ -150,7 +150,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    var propertyName = node.propertyName;
+    var propertyName = node.name;
     computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
   }
 
@@ -238,7 +238,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     // The property name is token-valued, but is a source location to which
     // `IdKind.node` annotations can be attached.
-    var propertyName = node.propertyName;
+    var propertyName = node.name;
     computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
     super.visitReceiverPropertyExtraction(node);
   }

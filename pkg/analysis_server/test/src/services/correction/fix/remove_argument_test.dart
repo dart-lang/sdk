@@ -169,6 +169,26 @@ void g() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47403')
+  Future<void> test_named_multiline_onlyArgument() async {
+    await resolveTestCode('''
+void test({bool foo = true}) {}
+
+void main() {
+  test(
+    foo: true,
+  );
+}
+''');
+    await assertHasFix('''
+void test({bool foo = true}) {}
+
+void main() {
+  test();
+}
+''');
+  }
+
   Future<void> test_optional_positional() async {
     await resolveTestCode('''
 void g(int x, [int y = 0]) {}

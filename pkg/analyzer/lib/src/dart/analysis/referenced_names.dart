@@ -249,8 +249,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
     names.add(node.propertyName.lexeme);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    names.add(node.name.lexeme);
   }
 
   @override
@@ -273,6 +280,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitCombinatorName(CombinatorName node) {
+    names.add(node.name.lexeme);
   }
 
   @override
@@ -357,6 +369,31 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    names.add(switch (node.operation) {
+      IncrementOrDecrementOperation.increment => '+',
+      IncrementOrDecrementOperation.decrement => '-',
+    });
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -395,30 +432,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -428,7 +441,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyExtraction(node);
   }
 
@@ -477,6 +490,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     UnqualifiedNameAssignmentTarget node,
   ) {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    var name = node.name.lexeme;
+    if (localScope.contains(name) || importPrefixNames.contains(name)) {
+      return;
+    }
+    names.add(name);
   }
 
   void _addCompoundAssignmentOperator(Token operator) {

@@ -1040,6 +1040,42 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     ldr(result, RegExtRegAddress(result, classId, Extend.UXTX, scaled: true));
   }
 
+  /// Load array element from `[base + index*elemSize + offset]`.
+  @override
+  void loadIndexed(
+    Register result,
+    Register base,
+    Register index,
+    int offset, [
+    OperandSize elemSize = .s64,
+  ]) {
+    if (offset == 0) {
+      ldr(result, RegExtRegAddress(base, index, .UXTX, scaled: true), elemSize);
+    } else {
+      add(
+        result,
+        base,
+        ShiftedRegOperand(index, .LSL, elemSize.log2sizeInBytes),
+      );
+      ldr(result, address(result, offset), elemSize);
+    }
+  }
+
+  void loadAcquire(
+    Register result,
+    Register base,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+    Register scratch = temp2Reg,
+  ]) {
+    if (offset != 0) {
+      addImmediate(scratch, base, offset, .s64, scratch);
+      ldar(result, scratch, sz);
+    } else {
+      ldar(result, base, sz);
+    }
+  }
+
   @override
   void combineHashes(Register hash, Register other) {
     // hash += other

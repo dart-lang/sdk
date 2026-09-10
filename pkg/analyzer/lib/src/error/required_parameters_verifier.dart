@@ -83,6 +83,20 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var constructorElement = node.element;
+    if (constructorElement != null) {
+      _check(
+        parameters: constructorElement.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node.name,
+      );
+    }
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _check(
       parameters: _executableElement(node.memberName.element)?.formalParameters,

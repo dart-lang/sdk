@@ -9,10 +9,10 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show DeprecatedElementUsageSet, normalizeDeprecationMessage;
 import 'package:analyzer/src/error/element_usage_detector.dart' // ignore: implementation_imports
@@ -59,10 +59,11 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
 
   @override
   void report(
-    SyntacticEntity usageSite,
+    SourceRange usageRange,
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
+    bool isImplicitTypeReference = false,
   }) {
     if (!isInSamePackage) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
@@ -71,13 +72,13 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
 
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
       _rule.reportAtSourceRange(
-        usageSite.sourceRange,
+        usageRange,
         arguments: [displayName, message],
         diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithMessage,
       );
     } else {
       _rule.reportAtSourceRange(
-        usageSite.sourceRange,
+        usageRange,
         arguments: [displayName],
         diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithoutMessage,
       );

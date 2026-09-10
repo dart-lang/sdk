@@ -77,9 +77,11 @@ library
               assertKeyword: assert @42
               leftParenthesis: ( @48
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: it @49
-                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                leftOperand: UnqualifiedNameExpression
+                  name: it @49
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                    type: int
                   staticType: int
                 operator: > @52
                 rightOperand: IntegerLiteral
@@ -201,9 +203,11 @@ library
               assertKeyword: assert @61
               leftParenthesis: ( @67
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: it @68
-                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                leftOperand: UnqualifiedNameExpression
+                  name: it @68
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                    type: int
                   staticType: int
                 operator: >= @71
                 rightOperand: IntegerLiteral
@@ -376,9 +380,11 @@ library
               assertKeyword: assert @48
               leftParenthesis: ( @54
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: it @55
-                  element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
+                leftOperand: UnqualifiedNameExpression
+                  name: it @55
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
+                    type: int
                   staticType: int
                 operator: > @58
                 rightOperand: IntegerLiteral
@@ -469,9 +475,11 @@ library
               assertKeyword: assert @42
               leftParenthesis: ( @48
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: it @49
-                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                leftOperand: UnqualifiedNameExpression
+                  name: it @49
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                    type: int
                   staticType: int
                 operator: > @52
                 rightOperand: IntegerLiteral
@@ -4857,9 +4865,12 @@ library
                         staticType: null
                       element: <testLibrary>::@extensionType::E::@getter::foo
                   initializer: expression_1
-                    SimpleIdentifier
-                      token: foo @56
-                      element: <testLibrary>::@extensionType::E::@getter::foo
+                    UnqualifiedNameExpression
+                      name: foo @56
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@extensionType::E::@getter::foo
+                        invokeType: int Function()
+                        type: int
                       staticType: int
           getters
             #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
@@ -6410,7 +6421,13 @@ library
                 element: <testLibrary>::@extensionType::A::@field::it
                 staticType: null
               equals: = @55
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: a @57
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+                  type: int
+                staticType: int
+              expression(v1): SimpleIdentifier
                 token: a @57
                 element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
                 staticType: int

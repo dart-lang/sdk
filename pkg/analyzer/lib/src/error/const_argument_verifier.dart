@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -17,6 +17,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);
+
+  void checkNameExpression(NameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      _checkTearoff(node, element);
+    }
+  }
 
   void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution is StaticInvocationResolution) {
@@ -101,15 +107,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _checkTearoff(node, element);
-  }
-
-  @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
@@ -149,15 +146,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _checkTearoff(node, element);
   }
 
   @override
@@ -266,6 +254,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         case VariableElement():
           return element.isConst;
       }
+    } else if (expression is NameExpression) {
+      var element = expression.resolution.elementOrRecovery;
+      return switch (element) {
+        GetterElement() => element.variable.isConst,
+        VariableElement() => element.isConst,
+        _ => false,
+      };
     }
     return false;
   }
@@ -273,6 +268,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is FunctionInstantiation) return true;
+    if (node is ImplicitFunctionInstantiation) return true;
     if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
@@ -284,6 +281,9 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;
       if (node.element is MethodElement) return true;
+    }
+    if (node is NameExpression) {
+      return node.resolution is ExecutableTearOffResolution;
     }
     return false;
   }

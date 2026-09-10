@@ -143,7 +143,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target2: CascadePropertyExtraction
-    propertyName: call
+    name: call
     resolution: FunctionCallTearOffResolution
       type: void Function<X extends int?>() Function()
         alias: <testLibrary>::@typeAlias::F
@@ -192,7 +192,13 @@ void f(A a) {
     var node = result.findNode.singleCascadeExpression;
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -775,6 +781,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: double
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -813,6 +834,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: double
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -851,6 +887,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -889,6 +940,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1255,6 +1321,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: double
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1293,6 +1374,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: double
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: dynamic
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: dynamic
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1331,6 +1427,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: double
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1369,6 +1480,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: dynamic
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: dynamic
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1407,6 +1533,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: dynamic
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: dynamic
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1445,6 +1586,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1483,6 +1639,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: dynamic
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: dynamic
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1521,6 +1692,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1551,15 +1737,19 @@ CascadeMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: b
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
-        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
-      SimpleIdentifier
-        token: c
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -1610,6 +1800,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int
+          correspondingParameter: <null>
+          staticType: int
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1627,6 +1825,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
@@ -1665,6 +1878,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: Never
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: Never
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1705,6 +1933,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: Never
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        staticType: Never
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1747,6 +1990,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <null>
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: <null>
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
@@ -1915,6 +2173,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
@@ -1950,6 +2223,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1967,6 +2248,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
@@ -2009,6 +2305,21 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
+        staticType: int
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: int
+        correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
@@ -2102,12 +2413,14 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: s
+      UnqualifiedNameExpression
+        name: s
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::s
+          type: S & int
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::test::@formalParameter::t
           substitution: {T: S}
-        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -3275,7 +3588,7 @@ class C {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3312,7 +3625,7 @@ int x = 0;
 main() {
   C.foo(x);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3331,6 +3644,15 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: x
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::x
+          invokeType: int Function()
+          type: int
+        correspondingParameter: <null>
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: x
         correspondingParameter: <null>
@@ -3353,7 +3675,7 @@ class C extends S {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3389,7 +3711,7 @@ class C {}
 main() {
   C.foo<int>();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3428,7 +3750,7 @@ MethodInvocation
 class C<T> {
   static main() => C.T();
 //                   ^
-// [diag.undefinedMethod] The method 'T' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'T' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3509,7 +3831,7 @@ main() {
   var v = () {};
   v.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Null Function()'.
 }
 ''');
 
@@ -3753,7 +4075,7 @@ main() {
 // ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 //   ^^^^^^^^
-// [diag.undefinedMethod] The method 'toString' isn't defined for the type 'A'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'toString' isn't defined for the type 'A'.
 }
 ''');
   }
@@ -5222,7 +5544,7 @@ var v = C()..foo(0) = 0;
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: CascadePropertyExtraction
-    propertyName: foo
+    name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
       invokeType: double Function(int) Function()
@@ -5610,10 +5932,12 @@ CallInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: c
+      UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
         correspondingParameter: <null-name>@null
-        element: <testLibrary>::@function::f::@formalParameter::c
         staticType: C
     rightParenthesis: )
   resolution: FunctionTypeInvocationResolution
@@ -6074,7 +6398,13 @@ MethodInvocation
   target2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
+      staticType: Object?
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -7293,9 +7623,12 @@ UnqualifiedFunctionInvocation
       NamedArgument
         name: p
         colon: :
-        argumentExpression2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@getter::a
+        argumentExpression2: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::a
+            invokeType: int Function()
+            type: int
           staticType: int
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::p
     rightParenthesis: )
@@ -7707,6 +8040,15 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -7736,10 +8078,13 @@ ReceiverMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: a
+      UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
         correspondingParameter: dart:core::@class::String::@method::codeUnitAt::@formalParameter::index
-        element: <testLibrary>::@getter::a
         staticType: int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -8919,7 +9264,13 @@ void f(A? a) {
     var node = result.findNode.cascade('a?..');
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -8990,7 +9341,13 @@ void f(A? a) {
     var node = result.findNode.cascade('a?..');
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -8998,7 +9355,7 @@ CascadeExpression
     CascadeSection
       operator: ?..
       body: CascadePropertyExtraction
-        propertyName: foo
+        name: foo
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
           invokeType: int Function()
@@ -9149,6 +9506,14 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: <null>
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
@@ -9250,10 +9615,10 @@ void g() {
 }
 ''');
 
-    var node = result.findNode.singleImplicitCallReference;
+    var node = result.findNode.singleImplicitCallTearOff;
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: ReceiverMethodInvocation
+ImplicitCallTearOff
+  operand: ReceiverMethodInvocation
     receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -9275,7 +9640,11 @@ ImplicitCallReference
       invokeType: C Function()
       type: C
     staticType: C
-  expression(v1): MethodInvocation
+  correspondingParameter: <testLibrary>::@function::f::@formalParameter::callback
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: MethodInvocation
     target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
@@ -9323,9 +9692,13 @@ void f() {
 ReceiverMethodInvocation
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: never
-      element: <testLibrary>::@getter::never
+    expression2: UnqualifiedNameExpression
+      name: never
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::never
+        invokeType: Never Function()
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     rightParenthesis: )
@@ -9374,9 +9747,11 @@ void f(Null a) {
 ReceiverMethodInvocation
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
       staticType: Null
     rightParenthesis: )
     staticType: Null
@@ -9711,6 +10086,14 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: double
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        staticType: double
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
@@ -9744,6 +10127,14 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        staticType: int
+    arguments(v1)
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
@@ -9782,10 +10173,12 @@ ReceiverMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: b
+      UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
-        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -9953,7 +10346,7 @@ CallInvocation
         rightParenthesis: )
         staticType: B?
       operator: ?.
-      propertyName: a
+      name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
         invokeType: A Function()
@@ -10463,12 +10856,14 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: o
+      UnqualifiedNameExpression
+        name: o
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::o
+          type: dynamic
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
-        element: <testLibrary>::@function::f::@formalParameter::o
         staticType: dynamic
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -10517,12 +10912,14 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: o
+      UnqualifiedNameExpression
+        name: o
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::o
+          type: List<void>
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::foo::@formalParameter::value
           substitution: {T: Object}
-        element: <testLibrary>::@function::f::@formalParameter::o
         staticType: List<void>
     rightParenthesis: )
   resolution: ExecutableInvocationResolution

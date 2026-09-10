@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_extensions.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/utilities/package_config.dart';
@@ -48,8 +49,14 @@ class MigrationRunner({
   ///
   /// When `null`, the runner executes a single version step.
   final Version? targetSdk,
+
+  /// The progress reporter used to emit stage updates to the client.
+  ProgressReporter? progressReporter,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
+
+  final ProgressReporter _progressReporter =
+      progressReporter ?? ProgressReporter.noop;
 
   this : super(server);
 
@@ -68,9 +75,14 @@ class MigrationRunner({
   Future<ErrorOr<List<SourceFileEdit>>> computeEdits(
     List<MigrationStep> steps,
   ) async {
-    return await pauseSchedulerWithTemporaryOverlays(
-      () => _computeMigrationEdits(steps),
-    );
+    await _progressReporter.begin('Migrating package(s)');
+    try {
+      return await pauseSchedulerWithTemporaryOverlays(
+        () => _computeMigrationEdits(steps),
+      );
+    } finally {
+      await _progressReporter.end();
+    }
   }
 
   Future<void> _applyAndRecordEdits(ChangeBuilder builder) async {
@@ -177,6 +189,10 @@ class MigrationRunner({
           continue;
         }
 
+        if (!runPrepare && !runBump && !runCleanup) {
+          continue;
+        }
+
         var currentVersion = initialVersion;
 
         // Perform sequential version bumps until the target SDK is reached.
@@ -210,6 +226,7 @@ class MigrationRunner({
             var prepareAndBumpOutcome = await _executePrepareAndBump(
               versionSummary: versionSummary,
               pubspec: pubspec,
+              currentVersion: currentVersion,
               targetVersion: nextVersion,
               runPrepare: runPrepare,
               runBump: runBump,
@@ -268,6 +285,8 @@ class MigrationRunner({
     required PubspecTarget pubspec,
     required Version targetVersion,
   }) async {
+    _reportProgress('${pubspec.displayName}: $targetVersion (cleanup)');
+
     if (!cleanUpLintsRegistry.containsKey(targetVersion)) {
       return ExecutionOutcome.success;
     }
@@ -308,6 +327,7 @@ class MigrationRunner({
   Future<ExecutionOutcome> _executePrepareAndBump({
     required VersionMigrationSummary versionSummary,
     required PubspecTarget pubspec,
+    required Version currentVersion,
     required Version targetVersion,
     required bool runPrepare,
     required bool runBump,
@@ -338,6 +358,11 @@ class MigrationRunner({
     }
 
     // Run preparatory fixes.
+    if (runPrepare) {
+      _reportProgress(
+        '${pubspec.displayName}: $currentVersion -> $targetVersion (prepare)',
+      );
+    }
     var builder = await _createBuilder();
     var lintCodes =
         preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
@@ -362,6 +387,9 @@ class MigrationRunner({
 
     // Bump version constraint.
     if (runBump) {
+      _reportProgress(
+        '${pubspec.displayName}: $currentVersion -> $targetVersion (bump)',
+      );
       await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
 
       var bumpSuccess = _bumpPackageConfig(
@@ -420,6 +448,11 @@ class MigrationRunner({
     return currentVersion >= Version(targetSdk.major, targetSdk.minor, 0);
   }
 
+  /// Reports progress with the current stage [message].
+  void _reportProgress(String message) {
+    _progressReporter.report(message);
+  }
+
   /// Runs bulk fixes for the given [lintCodes] in the specified migration
   /// step.
   ///
@@ -436,12 +469,12 @@ class MigrationRunner({
       var workspace = DartChangeWorkspace([context.driver.currentSession]);
       // TODO(kallentu): Use an IterativeBulkFixProcessor to loop until code
       // stabilizes.
-      var processor = BulkFixProcessor(
+      var processor = BulkFixProcessor.withAdditionalLints(
         server.instrumentationService,
         workspace,
         byteStore: server.byteStore,
         builder: builder,
-        additionalEnabledCodes: lintCodes,
+        additionalLintCodes: lintCodes,
       );
 
       // TODO(kallentu): Check for and report unfixed preparatory step

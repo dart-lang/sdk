@@ -1,6 +1,10 @@
 // Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+/// @docImport '../dartpad.dart';
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -9,6 +13,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:stream_channel/stream_channel.dart';
 
 import 'exceptions.dart' show rethrowAsDartPadException;
+import 'message_port/message_port.dart';
 import 'shared.dart';
 
 export 'exceptions.dart' hide rethrowAsDartPadException;
@@ -17,7 +22,7 @@ export 'exceptions.dart' hide rethrowAsDartPadException;
 base class WorkerClient {
   final rpc.Peer _peer;
   final _languageServers = <int, LanguageServer>{};
-  final _hotReloadCompilers = <int, HotReloadCompiler>{};
+  final _sandboxes = <int, Sandbox>{};
   final _watchers = <int, Sink<FileChangeEvent>>{};
 
   /// Creates a client that communicates over [channel].
@@ -29,6 +34,16 @@ base class WorkerClient {
     _peer.registerMethod('workspace/languageServer/message', _handleLsMessage);
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
+    _peer.registerMethod('workspace/sandbox/console', _handleSandboxConsole);
+    _peer.registerMethod('workspace/sandbox/error', _handleSandboxError);
+    _peer.registerMethod(
+      'workspace/sandbox/unhandledRejection',
+      _handleSandboxUnhandledRejection,
+    );
+    _peer.registerMethod(
+      'workspace/sandbox/extensionEvent',
+      _handleSandboxExtensionEvent,
+    );
     _peer.listen();
   }
 
@@ -43,7 +58,7 @@ base class WorkerClient {
   ///
   /// A [Workspace] is allocated a unique folder [Workspace.workspaceFolder].
   /// Disposing of a workspace using [Workspace.dispose] deletes the
-  /// _workspace folder_ and any [LanguageServer] and [HotReloadCompiler]
+  /// _workspace folder_ and any [LanguageServer] and [Sandbox]
   /// started within said workspace.
   ///
   /// Workspaces are not isolated, and file operations may interfere with other
@@ -55,6 +70,31 @@ base class WorkerClient {
       (result['workspaceId'] as num).toInt(),
       Uri.parse(result['workspaceFolder'] as String),
     );
+  }
+
+  void _handleSandboxConsole(rpc.Parameters params) {
+    final id = (params['sandboxId'].value as num).toInt();
+    final message = params['message'].asString;
+    _sandboxes[id]?._consoleController.add(message);
+  }
+
+  void _handleSandboxError(rpc.Parameters params) {
+    final id = (params['sandboxId'].value as num).toInt();
+    final message = params['message'].asString;
+    _sandboxes[id]?._errorController.add(message);
+  }
+
+  void _handleSandboxUnhandledRejection(rpc.Parameters params) {
+    final id = (params['sandboxId'].value as num).toInt();
+    final message = params['message'].asString;
+    _sandboxes[id]?._unhandledRejectionController.add(message);
+  }
+
+  void _handleSandboxExtensionEvent(rpc.Parameters params) {
+    final id = (params['sandboxId'].value as num).toInt();
+    final kind = params['kind'].asString;
+    final data = params['data'].asMap.cast<String, Object?>();
+    _sandboxes[id]?._extensionEventController.add((kind: kind, data: data));
   }
 
   void _handleLsMessage(rpc.Parameters params) {
@@ -96,6 +136,11 @@ base class WorkerClient {
 final class Workspace {
   final WorkerClient _client;
   final int id;
+
+  /// Folder owned by this workspace.
+  ///
+  /// All relative paths given to methods on this class will be resolved
+  /// relative to [workspaceFolder].
   final Uri workspaceFolder;
 
   Workspace._(this._client, this.id, this.workspaceFolder);
@@ -108,14 +153,17 @@ final class Workspace {
     });
   }
 
+  /// Write [text] to file at [uri] in this workspace.
   Future<void> writeFileFromText(String uri, String text) =>
       _request('workspace/writeFileFromText', {'uri': uri, 'text': text});
 
+  /// Write [bytes] to file at [uri] in this workspace.
   Future<void> writeFileFromBytes(String uri, Uint8List bytes) => _request(
     'workspace/writeFileFromBytes',
     {'uri': uri, 'base64': base64.encode(bytes)},
   );
 
+  /// Read file at [uri] in this workspace as UTF-8 string.
   Future<String> readFileAsText(String uri) async {
     final result = await _request<Map>('workspace/readFileAsText', {
       'uri': uri,
@@ -123,6 +171,7 @@ final class Workspace {
     return result['text'] as String;
   }
 
+  /// Read file at [uri] in this workspace as bytes.
   Future<Uint8List> readFileAsBytes(String uri) async {
     final result = await _request<Map>('workspace/readFileAsBytes', {
       'uri': uri,
@@ -130,11 +179,13 @@ final class Workspace {
     return base64.decode(result['base64'] as String);
   }
 
+  /// Extract [tarArchive] into folder at [uri] in this workspace.
   Future<void> importTarArchive(String uri, Uint8List tarArchive) => _request(
     'workspace/importTarArchive',
     {'uri': uri, 'base64': base64.encode(tarArchive)},
   );
 
+  /// Export files from [uri] in this workspace to a tar-archive.
   Future<Uint8List> exportTarArchive(String uri) async {
     final result = await _request<Map>('workspace/exportTarArchive', {
       'uri': uri,
@@ -142,6 +193,7 @@ final class Workspace {
     return base64.decode(result['base64'] as String);
   }
 
+  /// Delete file or folder at [uri] in this workspace.
   Future<void> deleteFileSystemEntity(String uri) =>
       _request('workspace/deleteFileSystemEntity', {'uri': uri});
 
@@ -174,9 +226,15 @@ final class Workspace {
     }
   }
 
+  /// Create a folder at [uri] in this workspace.
   Future<void> createFolder(String uri) =>
       _request('workspace/createFolder', {'uri': uri});
 
+  /// List folder at [uri] in this workspace.
+  ///
+  /// Returns a list of entries on the form:
+  ///  * `path`, `path/to/file` relative to [uri] given.
+  ///  * `type`, `'file'` or `'folder'`.
   Future<List<({String path, String type})>> listDirectory({
     required String uri,
     bool recursive = false,
@@ -197,15 +255,20 @@ final class Workspace {
   WorkspaceWatcher watch(String uri) =>
       WorkspaceWatcher._(this, Uri.parse(uri));
 
-  Future<CompileResult> compile(Uri entrypoint) async {
-    final c = await startHotReloadCompiler(entrypoint);
-    try {
-      return await c.compile();
-    } finally {
-      await c.close();
-    }
-  }
-
+  /// Invoke a `dart pub` [command] with [args].
+  ///
+  /// The following commands are supported:
+  ///  * `get`,
+  ///  * `add`,
+  ///  * `downgrade`,
+  ///  * `outdated`,
+  ///  * `upgrade`,
+  ///  * `remove`, and,
+  ///  * `unpack`.
+  ///
+  /// Throws [PubCommandFailedException], if the command exited non-zero.
+  ///
+  /// Returns a `log` containing lines from stdout.
   Future<({String log})> pub({
     String uri = '',
     required String command,
@@ -219,17 +282,9 @@ final class Workspace {
     return (log: result['log'] as String);
   }
 
-  Future<HotReloadCompiler> startHotReloadCompiler(Uri uri) async {
-    final result = await _request<Map>('workspace/startHotReloadCompiler', {
-      'uri': uri.toString(),
-    });
-    final id = (result['hotReloadCompilerId'] as num).toInt();
-
-    final c = HotReloadCompiler._(this, id);
-    _client._hotReloadCompilers[id] = c;
-    return c;
-  }
-
+  /// Start a language server talking the [LSP] protocol.
+  ///
+  /// [LSP]: https://microsoft.github.io/language-server-protocol/
   Future<LanguageServer> startLanguageServer() async {
     final result = await _request<Map>('workspace/startLanguageServer');
     final lsId = (result['languageServerId'] as num).toInt();
@@ -239,8 +294,46 @@ final class Workspace {
     return ls;
   }
 
+  /// Connect to a [SandboxedIframe] using a [MessagePort].
+  ///
+  /// A [SandboxedIframe] can only be connected to one [Workspace].
+  ///
+  /// Once connected, you get a [Sandbox] object for controlling compilation
+  /// and execution within the sandboxed iframe.
+  ///
+  /// You may pass [SandboxedIframe.port] directly, or use
+  /// [MessagePort.asBinaryChannel] / [MessagePort.fromBinaryChannel] to proxy
+  /// the message port over a different transport layer.
+  Future<Sandbox> connectSandboxedIframe(MessagePort port) async {
+    final result = await _request<Map>('workspace/connectSandbox', {
+      'port': port,
+    });
+    final id = result['sandboxId'] as int;
+    final modes = (result['modes'] as List).cast<String>();
+    return _client._sandboxes[id] = Sandbox._(this, id, modes);
+  }
+
+  /// Destroy this workspace and all resources held by it.
+  ///
+  /// While sandboxes are controlled through the worker, the [SandboxedIframe]
+  /// will have to be removed using [SandboxedIframe.close].
   Future<void> dispose() async {
-    await _client._peer.request<void>('workspace/dispose', {'workspaceId': id});
+    try {
+      await _client._peer.request<void>('workspace/dispose', {
+        'workspaceId': id,
+      });
+    } finally {
+      final sandboxes = _client._sandboxes.values
+          .where((s) => s._workspace == this)
+          .toList();
+      for (final s in sandboxes) {
+        try {
+          s._cleanup();
+        } catch (_) {
+          // ignore
+        }
+      }
+    }
   }
 }
 
@@ -299,48 +392,12 @@ final class LanguageServer {
   }
 }
 
-final class HotReloadCompiler {
-  final Workspace workspace;
-  final int id;
-
-  HotReloadCompiler._(this.workspace, this.id);
-
-  /// Compile the _entrypoint_ this [HotReloadCompiler] was started with.
-  ///
-  /// Calling compile a second time may throw [HotReloadRejectedException], if
-  /// code changes are such that a hot-reload is not possible.
-  Future<CompileResult> compile() async {
-    final result = await workspace._request<Map>(
-      'workspace/hotReloadCompiler/compile',
-      {'hotReloadCompilerId': id},
-    );
-
-    return (
-      code: result['code'] as String,
-      compiledLibraryUris: (result['compiledLibraryUris'] as List)
-          .cast<String>(),
-      log: result['log'] as String,
-    );
-  }
-
-  /// Release resources associated with this [HotReloadCompiler].
-  Future<void> close() async {
-    try {
-      await workspace._request<Map>('workspace/hotReloadCompiler/close', {
-        'hotReloadCompilerId': id,
-      });
-    } catch (_) {
-      // Ignore if already closed
-    } finally {
-      _cleanup();
-    }
-  }
-
-  void _cleanup() {
-    workspace._client._hotReloadCompilers.remove(id);
-  }
-}
-
+/// A client object for watching for file changes inside a [Workspace].
+///
+/// A [WorkspaceWatcher] object does not listen for events until someone
+/// subscribes to [changes] for events. Events are not garenteed until [ready]
+/// is resolved, and [ready] will not resolve until someone subscribes to
+/// [changes].
 final class WorkspaceWatcher {
   final Workspace workspace;
 
@@ -436,5 +493,137 @@ extension on rpc.Peer {
     } on rpc.RpcException catch (e) {
       rethrowAsDartPadException(e);
     }
+  }
+}
+
+/// A client for running Dart code from a [Workspace] inside a
+/// [SandboxedIframe].
+///
+/// The [Sandbox] client object controls what is going on inside the `<iframe>`,
+/// communication is proxied by the [Workspace] it is connected to, and methods
+/// like [run] resolve paths given relative to the
+/// connected [Workspace].
+final class Sandbox {
+  final Workspace _workspace;
+  final int _id;
+
+  /// The available _run modes_ for this sandbox.
+  ///
+  /// {@template run_modes}
+  /// A [DartPadSdk] defines one or more _modes_ that code a run using.
+  ///
+  /// The [DartPadSdk] for **Dart** defines _run modes_:
+  ///  * `mode: 'console'` for running `main()` as a console app.
+  ///
+  /// The [DartPadSdk] for **Flutter** defines _run modes_:
+  ///  * `mode: 'console'` for running `main()` as a console app.
+  ///  * `mode: 'flutter'` for wrapping a `main()` that calls `runApp()` in a
+  ///    manner that configures the flutter engine.
+  /// {@endtemplate}
+  final List<String> modes;
+
+  Sandbox._(this._workspace, this._id, this.modes);
+
+  final _consoleController = StreamController<String>.broadcast();
+  final _errorController = StreamController<String>.broadcast();
+  final _unhandledRejectionController = StreamController<String>.broadcast();
+  final _extensionEventController =
+      StreamController<({String kind, Map<String, Object?> data})>.broadcast();
+
+  /// A stream of console messages produced by the running application.
+  Stream<String> get console => _consoleController.stream;
+
+  /// A stream of messages from `window.onerror`.
+  // TODO(jonasfj): Consider folding errors and unhandledRejections into console
+  //                output, and then instead wrap dart entrypoint in a Zone
+  //                that catches errors, pretty prints them and communicates
+  //                them out in a completely different unhandleException stream.
+  //                window.onerror doesn't get pretty messages.
+  Stream<String> get errors => _errorController.stream;
+
+  /// A stream of unhandled JS promise rejections from the running application.
+  Stream<String> get unhandledRejections =>
+      _unhandledRejectionController.stream;
+
+  /// A stream of developer extension events fired by the running application.
+  Stream<({String kind, Map<String, Object?> data})> get extensionEvents =>
+      _extensionEventController.stream;
+
+  /// Compiles and runs a Dart entrypoint in the sandbox.
+  ///
+  /// The [path] should be relative to the workspace folder (e.g.,
+  /// `'bin/main.dart'` or `'lib/main.dart'`).
+  ///
+  /// The [mode] must be one of the supported [modes].
+  ///
+  /// {@macro run_modes}
+  Future<({String log})> run(String path, {required String mode}) async {
+    final result = await _workspace._request<Map>('workspace/sandbox/run', {
+      'sandboxId': _id,
+      'path': path,
+      'mode': mode,
+    });
+    return (log: result['log'] as String);
+  }
+
+  /// Hot restarts the currently running application in the sandbox.
+  ///
+  /// This recompiles the entrypoint and fully reloads the application state.
+  Future<({String log})> hotRestart() async {
+    final result = await _workspace._request<Map>(
+      'workspace/sandbox/hotRestart',
+      {'sandboxId': _id},
+    );
+    return (log: result['log'] as String);
+  }
+
+  /// Hot reloads the currently running application in the sandbox.
+  ///
+  /// This recompiles the application incrementally, preserving its state.
+  Future<({String log})> hotReload() async {
+    final result = await _workspace._request<Map>(
+      'workspace/sandbox/hotReload',
+      {'sandboxId': _id},
+    );
+    return (log: result['log'] as String);
+  }
+
+  /// Invokes a Dart developer extension method in the sandbox.
+  ///
+  /// [method] is the name of the extension method (e.g.,
+  /// `'ext.flutter.reassemble'`).
+  /// [args] are passed as parameters to the extension method.
+  Future<String> invokeExtension(
+    String method,
+    Map<String, String> args,
+  ) async {
+    final result = await _workspace._request<Map>(
+      'workspace/sandbox/invokeExtension',
+      {'sandboxId': _id, 'method': method, 'args': args},
+    );
+    return result['result'] as String;
+  }
+
+  /// Release resources associated with this [Sandbox].
+  ///
+  /// This does not remove the `<iframe>`.
+  Future<void> close() async {
+    try {
+      await _workspace._request<Map>('workspace/sandbox/close', {
+        'sandboxId': _id,
+      });
+    } catch (_) {
+      // Ignore if already closed
+    } finally {
+      _cleanup();
+    }
+  }
+
+  void _cleanup() {
+    _consoleController.close().ignore();
+    _errorController.close().ignore();
+    _unhandledRejectionController.close().ignore();
+    _extensionEventController.close().ignore();
+    _workspace._client._sandboxes.remove(_id);
   }
 }

@@ -245,7 +245,16 @@ class FileByteStore implements ByteStore {
   int get writeCount => _writeCount;
 
   /// Returns the future that completes when all file writes are done.
-  Future<void> flush() => _pool.waitForIdle();
+  ///
+  /// On Windows this is a no-op because writing a large number of files can be
+  /// very slow and cause `dart analyze` and analysis_server shutdowns to take
+  /// a long time.
+  Future<void> flush() {
+    return Platform.isWindows
+        // No-op on Windows, see https://github.com/dart-lang/sdk/issues/64190
+        ? Future.value()
+        : _pool.waitForIdle();
+  }
 
   @override
   Uint8List? get(String key) {

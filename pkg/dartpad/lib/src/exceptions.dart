@@ -16,32 +16,28 @@ enum _ErrorCode {
   fileWriteConflict(4002),
   fileDeletionFailed(4003),
   languageServerNotFound(5001),
-  compilationFailed(6001),
-  packageConfigNotFound(6020),
-  hotReloadCompilerNotFound(6100),
-  hotReloadRejected(6101),
-  pubCommandFailed(7001),
-  pubUsage(7064),
-  pubData(7065),
-  pubNoInput(7066),
-  pubNoUser(7067),
-  pubNoHost(7068),
-  pubUnavailable(7069),
-  pubSoftware(7070),
-  pubOs(7071),
-  pubOsFile(7072),
-  pubCantCreate(7073),
-  pubIo(7074),
-  pubTempFail(7075),
-  pubProtocol(7076),
-  pubNoPerm(7077),
-  pubConfig(7078),
-  moduleLoaderNotAvailable(8001),
-  flutterLoaderNotAvailable(8002),
-  moduleLoadingFailed(8100),
-  executionFailed(8200),
-  hotRestartFailed(8300),
-  hotReloadFailed(8400);
+  pubCommandFailed(6001),
+  pubUsage(6064),
+  pubData(6065),
+  pubNoInput(6066),
+  pubNoUser(6067),
+  pubNoHost(6068),
+  pubUnavailable(6069),
+  pubSoftware(6070),
+  pubOs(6071),
+  pubOsFile(6072),
+  pubCantCreate(6073),
+  pubIo(6074),
+  pubTempFail(6075),
+  pubProtocol(6076),
+  pubNoPerm(6077),
+  pubConfig(6078),
+  sandboxNotFound(7001),
+  invalidSandboxState(7002),
+  compilationFailed(7101),
+  packageConfigNotFound(7102),
+  hotReloadRejected(7103),
+  executionFailed(7201);
 
   const _ErrorCode(this.code);
   final int code;
@@ -57,10 +53,6 @@ final _exceptionRegistry = <_ErrorCode, _MakeException>{
   .fileWriteConflict: FileWriteConflictException.new,
   .fileDeletionFailed: FileDeletionFailedException.new,
   .languageServerNotFound: LanguageServerNotFoundException.new,
-  .compilationFailed: CompilationFailedException.new,
-  .packageConfigNotFound: PackageConfigNotFoundException.new,
-  .hotReloadCompilerNotFound: HotReloadCompilerNotFoundException.new,
-  .hotReloadRejected: HotReloadRejectedException.new,
   .pubCommandFailed: PubCommandFailedException.new,
   .pubUsage: PubUsageException.new,
   .pubData: PubDataException.new,
@@ -77,12 +69,12 @@ final _exceptionRegistry = <_ErrorCode, _MakeException>{
   .pubProtocol: PubProtocolException.new,
   .pubNoPerm: PubNoPermException.new,
   .pubConfig: PubConfigException.new,
-  .moduleLoaderNotAvailable: ModuleLoaderNotAvailableException.new,
-  .flutterLoaderNotAvailable: FlutterLoaderNotAvailableException.new,
-  .moduleLoadingFailed: ModuleLoadingFailedException.new,
+  .sandboxNotFound: SandboxNotFoundException.new,
+  .invalidSandboxState: InvalidSandboxStateException.new,
+  .compilationFailed: CompilationFailedException.new,
+  .packageConfigNotFound: PackageConfigNotFoundException.new,
+  .hotReloadRejected: HotReloadRejectedException.new,
   .executionFailed: ExecutionFailedException.new,
-  .hotRestartFailed: HotRestartFailedException.new,
-  .hotReloadFailed: HotReloadFailedException.new,
 }.map((key, value) => MapEntry(key.code, value));
 
 /// Throw a [DartPadException] for [RpcException] depending on error code.
@@ -169,51 +161,6 @@ final class LanguageServerNotFoundException extends LanguageServerException {
 
   @override
   String toString() => 'LanguageServerNotFoundException($code: $message)';
-}
-
-/// Common base class for exceptions related to compilation.
-abstract final class CompilationException extends DartPadException {
-  CompilationException._(super.message, super.e, {super.data}) : super._();
-
-  @override
-  String toString() => 'CompilationException($code: $message)';
-}
-
-/// Failed to compile code, usually due to an issue in the code being
-/// compiled.
-final class CompilationFailedException extends CompilationException {
-  CompilationFailedException(String message, {super.data})
-    : super._(message, .compilationFailed);
-
-  @override
-  String toString() => 'CompilationFailedException($code: $message)';
-}
-
-/// Unable to find `.dart_tool/package_config.json` in any parent directory.
-final class PackageConfigNotFoundException extends CompilationException {
-  PackageConfigNotFoundException(String message, {super.data})
-    : super._(message, .packageConfigNotFound);
-
-  @override
-  String toString() => 'PackageConfigNotFoundException($code: $message)';
-}
-
-/// The `hotReloadCompilerId` does not exist in this workspace.
-final class HotReloadCompilerNotFoundException extends CompilationException {
-  HotReloadCompilerNotFoundException(String message, {super.data})
-    : super._(message, .hotReloadCompilerNotFound);
-
-  @override
-  String toString() => 'HotReloadCompilerNotFoundException($code: $message)';
-}
-
-/// The hot reload request was rejected by the compiler.
-final class HotReloadRejectedException extends CompilationException {
-  HotReloadRejectedException(String message, {super.data})
-    : super._(message, .hotReloadRejected);
-
-  @override
-  String toString() => 'HotReloadRejectedException($code: $message)';
 }
 
 /// Common base class for pub related exceptions.
@@ -373,31 +320,50 @@ abstract final class SandboxException extends DartPadException {
   String toString() => 'SandboxException($code: $message)';
 }
 
-/// The DDC module loader is has not been loaded into the sandbox.
-final class ModuleLoaderNotAvailableException extends SandboxException {
-  ModuleLoaderNotAvailableException(String message, {super.data})
-    : super._(message, .moduleLoaderNotAvailable);
+/// Sandbox with the given `sandboxId` was not found.
+final class SandboxNotFoundException extends SandboxException {
+  SandboxNotFoundException(String message, {super.data})
+    : super._(message, .sandboxNotFound);
 
   @override
-  String toString() => 'ModuleLoaderNotAvailableException($code: $message)';
+  String toString() => 'SandboxNotFoundException($code: $message)';
 }
 
-/// The flutter loader has not been loaded into the sandbox.
-final class FlutterLoaderNotAvailableException extends SandboxException {
-  FlutterLoaderNotAvailableException(String message, {super.data})
-    : super._(message, .flutterLoaderNotAvailable);
+/// Sandbox methods have not been called in correct order.
+final class InvalidSandboxStateException extends SandboxException {
+  InvalidSandboxStateException(String message, {super.data})
+    : super._(message, .invalidSandboxState);
 
   @override
-  String toString() => 'FlutterLoaderNotAvailableException($code: $message)';
+  String toString() => 'InvalidSandboxStateException($code: $message)';
 }
 
-/// Failed to load module into the sandbox.
-final class ModuleLoadingFailedException extends SandboxException {
-  ModuleLoadingFailedException(String message, {super.data})
-    : super._(message, .moduleLoadingFailed);
+/// Failed to compile code, usually due to an issue in the code being
+/// compiled.
+final class CompilationFailedException extends SandboxException {
+  CompilationFailedException(String message, {super.data})
+    : super._(message, .compilationFailed);
 
   @override
-  String toString() => 'ModuleLoadingFailedException($code: $message)';
+  String toString() => 'CompilationFailedException($code: $message)';
+}
+
+/// Unable to find `.dart_tool/package_config.json` in any parent directory.
+final class PackageConfigNotFoundException extends SandboxException {
+  PackageConfigNotFoundException(String message, {super.data})
+    : super._(message, .packageConfigNotFound);
+
+  @override
+  String toString() => 'PackageConfigNotFoundException($code: $message)';
+}
+
+/// The hot reload request was rejected by the compiler.
+final class HotReloadRejectedException extends SandboxException {
+  HotReloadRejectedException(String message, {super.data})
+    : super._(message, .hotReloadRejected);
+
+  @override
+  String toString() => 'HotReloadRejectedException($code: $message)';
 }
 
 /// Error happened when running `main()` from user-code.
@@ -407,22 +373,4 @@ final class ExecutionFailedException extends SandboxException {
 
   @override
   String toString() => 'ExecutionFailedException($code: $message)';
-}
-
-/// Hot-restart failed.
-final class HotRestartFailedException extends SandboxException {
-  HotRestartFailedException(String message, {super.data})
-    : super._(message, .hotRestartFailed);
-
-  @override
-  String toString() => 'HotRestartFailedException($code: $message)';
-}
-
-/// Hot-reload failed.
-final class HotReloadFailedException extends SandboxException {
-  HotReloadFailedException(String message, {super.data})
-    : super._(message, .hotReloadFailed);
-
-  @override
-  String toString() => 'HotReloadFailedException($code: $message)';
 }

@@ -14,11 +14,19 @@ void main() {
       );
     ''');
 
-    final c = await ws.startHotReloadCompiler(Uri.parse('bin/main.dart'));
-    check(await c.compile())
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter 1!')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello Flutter 1!')
+          ..code.contains('MaterialApp'),
+      ),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     // Update the main file and recompile!
     await ws.writeFileFromText('bin/main.dart', '''
@@ -29,10 +37,17 @@ void main() {
       );
     ''');
 
-    check(await c.compile())
-      ..log.isEmpty()
-      ..codeContains('Hello Flutter 2!')
-      ..codeContains('MaterialApp');
+    result = await sandbox.hotReload();
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<HotReloadEvent>(
+        .it()
+          ..code.isNotNull().contains('Hello Flutter 2!')
+          ..code.isNotNull().contains('MaterialApp'),
+      ),
+    );
+
+    await iframe.close();
   });
 
   testFlutterWorkspace('recompile lib/main.dart entrypoint', (ws) async {
@@ -44,11 +59,21 @@ void main() {
       );
     ''');
 
-    final c = await ws.startHotReloadCompiler(Uri.parse('lib/main.dart'));
-    check(await c.compile())
-      ..log.isEmpty()
-      ..codeContains('Hello Lib Main!')
-      ..codeContains('MaterialApp');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    final result = await sandbox.run('lib/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello Lib Main!')
+          ..code.contains('MaterialApp'),
+      ),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
+
+    await iframe.close();
   });
 
   testFlutterWorkspace('recompile with imports', (ws) async {
@@ -71,19 +96,27 @@ void main() {
       }
     ''');
 
-    final c = await ws.startHotReloadCompiler(Uri.parse('bin/main.dart'));
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    check(await c.compile())
-      ..codeContains('Hello 1!')
-      ..log.isEmpty();
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello 1!')),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     await ws.writeFileFromText('lib/sayhello.dart', '''
       void sayHello() => print('Hello 2!');
     ''');
 
-    check(await c.compile())
-      ..codeContains('Hello 2!')
-      ..log.isEmpty();
+    result = await sandbox.hotReload();
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<HotReloadEvent>(.it()..code.isNotNull().contains('Hello 2!')),
+    );
+
+    await iframe.close();
   });
 
   testFlutterWorkspace('rejects enum -> class change', (ws) async {
@@ -96,10 +129,15 @@ void main() {
       );
     ''');
 
-    final c = await ws.startHotReloadCompiler(Uri.parse('bin/main.dart'));
-    check(await c.compile())
-      ..codeContains('Hello Flutter 1!')
-      ..log.isEmpty();
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello Flutter 1!')),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
 
     // Recompilation is rejected, because this cannot be hot-reloaded
     await ws.writeFileFromText('bin/main.dart', '''
@@ -111,8 +149,12 @@ void main() {
       );
     ''');
 
-    await check(c.compile()).throws<HotReloadRejectedException>(
-      (e) => e.message.contains('Enum class cannot be redefined'),
+    await check(sandbox.hotReload()).throws<HotReloadRejectedException>(
+      .it()
+        ..has(
+          (it) => it.message,
+          'message',
+        ).contains('Enum class cannot be redefined'),
     );
 
     // Recompilation is successful
@@ -124,8 +166,15 @@ void main() {
         const MaterialApp(home: Center(child: Text('Hello Flutter 2!'))),
       );
     ''');
-    check(await c.compile())
-      ..codeContains('Hello Flutter 2!')
-      ..log.isEmpty();
+
+    result = await sandbox.hotReload();
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<HotReloadEvent>(
+        .it()..code.isNotNull().contains('Hello Flutter 2!'),
+      ),
+    );
+
+    await iframe.close();
   });
 }

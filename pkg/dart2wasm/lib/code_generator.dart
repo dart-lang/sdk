@@ -2177,6 +2177,7 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticGet(StaticGet node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateStaticGetterIntrinsic(
       node,
+      expectedType,
     );
     if (intrinsicResult != null) return intrinsicResult;
 

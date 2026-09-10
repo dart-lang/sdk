@@ -120,7 +120,14 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value2: SimpleIdentifier
+          value2: UnqualifiedNameExpression
+            name: x
+            resolution: InvalidNamedReadResolution
+              type: InvalidType
+              candidates
+              recovery: <null>
+            staticType: InvalidType
+          value(v1): SimpleIdentifier
             token: x
             element: <null>
             staticType: InvalidType

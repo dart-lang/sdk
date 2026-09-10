@@ -2281,10 +2281,15 @@ abstract class ElementImpl implements Element {
 
   @override
   @trackedIndirectly
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();
@@ -6514,8 +6519,8 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   set isFinal(bool value) => _firstFragment.isFinal = value;
 
-  /// The identifiers that reference this element.
-  List<SimpleIdentifier> get references => _firstFragment.references;
+  /// The name tokens that reference this element.
+  List<Token> get references => _firstFragment.references;
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {
@@ -6550,8 +6555,8 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 
   shared.JoinedPatternVariableInconsistency inconsistency;
 
-  /// The identifiers that reference this element.
-  final List<SimpleIdentifier> references = [];
+  /// The name tokens that reference this element.
+  final List<Token> references = [];
 
   JoinPatternVariableFragmentImpl({
     required super.name,
@@ -9389,7 +9394,11 @@ class MultiplyDefinedElementImpl extends ElementImpl
   }
 
   @override
-  String displayString({bool multiline = false, bool preferTypeAlias = false}) {
+  String displayString({
+    bool multiline = false,
+    bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
+  }) {
     var elementsStr = conflictingElements
         .map((e) {
           return e.displayString();

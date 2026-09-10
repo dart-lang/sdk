@@ -54,9 +54,12 @@ library
             #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f02 (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::A::@field::f02
               initializer: expression_1
-                SimpleIdentifier
-                  token: f01 @55
-                  element: <testLibrary>::@class::A::@getter::f01
+                UnqualifiedNameExpression
+                  name: f01 @55
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@class::A::@getter::f01
+                    invokeType: int Function()
+                    type: int
                   staticType: int
               inducedGetter: #F5
           constructors
@@ -83,9 +86,12 @@ library
             #F10 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f12 (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@class::A#1::@field::f12
               initializer: expression_3
-                SimpleIdentifier
-                  token: f11 @118
-                  element: <testLibrary>::@class::A#1::@getter::f11
+                UnqualifiedNameExpression
+                  name: f11 @118
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@class::A#1::@getter::f11
+                    invokeType: int Function()
+                    type: int
                   staticType: int
               inducedGetter: #F11
           constructors
@@ -112,9 +118,12 @@ library
             #F16 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f22 (nameOffset:175) (firstTokenOffset:175) (offset:175)
               element: <testLibrary>::@class::A#2::@field::f22
               initializer: expression_5
-                SimpleIdentifier
-                  token: f21 @181
-                  element: <testLibrary>::@class::A#2::@getter::f21
+                UnqualifiedNameExpression
+                  name: f21 @181
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@class::A#2::@getter::f21
+                    invokeType: int Function()
+                    type: int
                   staticType: int
               inducedGetter: #F17
           constructors
@@ -586,6 +595,21 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -665,6 +689,28 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E#1::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: d @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E#1::@getter::d
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: e @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E#1::@getter::e
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: c @-1
                       element: <testLibrary>::@enum::E#1::@getter::c

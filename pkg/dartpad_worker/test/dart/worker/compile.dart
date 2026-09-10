@@ -5,32 +5,50 @@
 import '../../worker_harness.dart';
 
 void main() {
-  testDartWorkspace('ws.compile() hello world', (ws) async {
+  testDartWorkspace('sandbox.runMain() hello world', (ws) async {
     await ws.writeFileFromText(
       'bin/main.dart',
       "void main() => print('Hello World');",
     );
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello World')
-      ..codeContains('main');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    final result = await sandbox.run('bin/main.dart', mode: 'console');
+    check(result.log).isEmpty;
+
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello World')
+          ..code.contains('main'),
+      ),
+    );
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('console')),
+    );
+    await iframe.close();
   });
 
-  testDartWorkspace('ws.compile() missing semicolon', (ws) async {
+  testDartWorkspace('sandbox.runMain() missing semicolon', (ws) async {
     await ws.writeFileFromText(
       'bin/main.dart',
       "void main() => print('Hello World')",
     );
 
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
     await check(
-      ws.compile(Uri.parse('bin/main.dart')),
+      sandbox.run('bin/main.dart', mode: 'console'),
     ).throws<CompilationFailedException>(
-      (e) => e.message.contains("Expected ';'"),
+      .it()..has((e) => e.message, 'message').contains("Expected ';'"),
     );
+
+    await iframe.close();
   });
 
-  testDartWorkspace('ws.compile() with imports', (ws) async {
+  testDartWorkspace('sandbox.runMain() with imports', (ws) async {
     await ws.writeFileFromText('lib/sayhello.dart', '''
       void sayHello() => print('Hello World');
     ''');
@@ -44,9 +62,20 @@ void main() {
       }
     ''');
 
-    check(await ws.compile(Uri.parse('bin/main.dart')))
-      ..log.isEmpty()
-      ..codeContains('Hello World')
-      ..codeContains('main');
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    final result = await sandbox.run('bin/main.dart', mode: 'console');
+    check(result.log).isEmpty;
+
+    await iframe.checkEvent(
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello World')
+          ..code.contains('main'),
+      ),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
+    await iframe.close();
   });
 }

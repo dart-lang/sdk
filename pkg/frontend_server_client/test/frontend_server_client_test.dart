@@ -64,6 +64,7 @@ String get message => p.join('hello', 'world');
 
   tearDown(() async {
     await client?.shutdown();
+    client = null;
   });
 
   test('can compile, recompile, and hot reload a vm app', () async {
@@ -389,6 +390,63 @@ void main() {
     client!.accept();
     expect(result.errorCount, greaterThan(0));
   });
+
+  test('can compile when specifying an explicit sdkRoot', () async {
+    final entrypoint = p.join(packageRoot, 'bin', 'simple.dart');
+    await File(entrypoint).writeAsString('void main() => print("ok");');
+    client = await FrontendServerClient.start(
+      entrypoint,
+      p.join(packageRoot, 'out.dill'),
+      vmPlatformDill,
+      packagesJson: packagesJsonPath,
+      sdkRoot: sdkDir,
+    );
+    final result = await client!.compile();
+    client!.accept();
+    expect(result.errorCount, 0);
+    expect(result.dillOutput, isNotNull);
+    final dartExe = p.join(
+      sdkDir,
+      'bin',
+      Platform.isWindows ? 'dart.exe' : 'dart',
+    );
+    final processResult = await Process.run(dartExe, [result.dillOutput!]);
+    expect(processResult.stdout, startsWith('ok'));
+    expect(processResult.exitCode, 0);
+  });
+
+  test('throws ArgumentError if frontendServerPath does not exist', () async {
+    final entrypoint = p.join(packageRoot, 'bin', 'simple.dart');
+    await File(entrypoint).writeAsString('void main() => print("ok");');
+    expect(
+      () => FrontendServerClient.start(
+        entrypoint,
+        p.join(packageRoot, 'out.dill'),
+        vmPlatformDill,
+        packagesJson: packagesJsonPath,
+        frontendServerPath: p.join(packageRoot, 'non_existent_snapshot'),
+      ),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
+  test(
+    'throws ArgumentError if AOT snapshot does not exist in sdkRoot',
+    () async {
+      final entrypoint = p.join(packageRoot, 'bin', 'simple.dart');
+      await File(entrypoint).writeAsString('void main() => print("ok");');
+      expect(
+        () => FrontendServerClient.start(
+          entrypoint,
+          p.join(packageRoot, 'out.dill'),
+          vmPlatformDill,
+          packagesJson: packagesJsonPath,
+          sdkRoot: p.join(packageRoot, 'non_existent_sdk'),
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+    },
+  );
 }
 
 Future<Isolate> waitForIsolatesAndResume(VmService vmService) async {

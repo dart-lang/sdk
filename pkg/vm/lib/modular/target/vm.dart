@@ -50,6 +50,8 @@ class VmTarget extends Target {
   Class? _closure;
   Class? _syncStarIterable;
 
+  DartLibrarySupport? _dartLibrarySupport;
+
   VmTarget(this.flags);
 
   @override
@@ -612,9 +614,15 @@ class VmTarget extends Target {
   }
 
   @override
-  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
+  DartLibrarySupport get dartLibrarySupport =>
+      _dartLibrarySupport ??= flags.supportMirrors && flags.supportFfi
       ? const DefaultDartLibrarySupport()
-      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+      : CustomizedDartLibrarySupport(
+          unsupported: {
+            if (!flags.supportMirrors) 'mirrors',
+            if (!flags.supportFfi) 'ffi',
+          },
+        );
 
   @override
   bool isSupportedPragma(String pragmaName) =>

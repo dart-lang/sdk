@@ -211,9 +211,12 @@ void f({a = b?[0]}) {}
     var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: b
-    element: <null>
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
@@ -255,9 +258,12 @@ typedef void F({a = b?[0]});
     var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: b
-    element: <null>
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
@@ -301,9 +307,11 @@ void f(A a) {
     var node = result.findNode.receiverIndexExpression('a[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   leftBracket: [
   index: IntegerLiteral
@@ -412,9 +420,11 @@ void f(A<double> a) {
     var node = result.findNode.receiverIndexExpression('a[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<double>
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
@@ -506,17 +516,22 @@ void f(List<int> a) {
     var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: List<int>
     staticType: List<int>
   leftBracket: [
-  index: SimpleIdentifier
-    token: b
+  index: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
       substitution: {E: int}
-    element: <null>
     staticType: InvalidType
   rightBracket: ]
   resolution: MethodIndexReadResolution
@@ -557,9 +572,11 @@ void f(Null a) {
     var node = result.findNode.receiverIndexExpression('a?[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Null
     staticType: Null
   question: ?
   leftBracket: [
@@ -601,9 +618,11 @@ void f(A? a) {
     var node = result.findNode.receiverIndexExpression('a?[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
     staticType: A?
   question: ?
   leftBracket: [
@@ -649,9 +668,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: ReceiverIndexExpression
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     question: ?
     leftBracket: [
@@ -666,7 +687,7 @@ ReceiverPropertyExtraction
       type: String
     staticType: String
   operator: .
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()
@@ -710,9 +731,11 @@ void f(A? a) {
     var node = result.findNode.receiverIndexExpression('a?[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
     staticType: A?
   question: ?
   leftBracket: [
@@ -850,9 +873,11 @@ ReceiverIndexExpression
   receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -938,9 +963,11 @@ void f(dynamic a) {
     var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
     staticType: dynamic
   leftBracket: [
   index: IntegerLiteral
@@ -979,9 +1006,12 @@ void f() {
     var node = result.findNode.singleReceiverIndexExpression;
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <null>
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -1111,9 +1141,11 @@ void f(Null a) {
     assertResolvedNodeText(compound, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
       staticType: Null
     question: ?
     leftBracket: [
@@ -1165,9 +1197,11 @@ V1: AssignmentExpression
     assertResolvedNodeText(ifNull, r'''
 IfNullAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Null
       staticType: Null
     question: ?
     leftBracket: [
@@ -1229,9 +1263,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     question: ?
     leftBracket: [
@@ -1302,9 +1338,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 IfNullAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     question: ?
     leftBracket: [
@@ -1460,9 +1498,9 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a[0];
 ''');
 
-    var node = result.findNode.functionReference('b?.a[0]');
-    assertResolvedNodeText(node, r'''FunctionReference
-  function2: ReceiverIndexExpression
+    var node = result.findNode.implicitFunctionInstantiation('b?.a[0]');
+    assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
+  operand: ReceiverIndexExpression
     receiver: PropertyAccess
       target2: SimpleIdentifier
         token: b
@@ -1485,7 +1523,11 @@ int Function(int)? f(B? b) => b?.a[0];
       invokeType: T Function<T>(T) Function(int)
       type: T Function<T>(T)
     staticType: T Function<T>(T)
-  function(v1): IndexExpression
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: IndexExpression
     target: PropertyAccess
       target: SimpleIdentifier
         token: b
@@ -1526,9 +1568,11 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -1589,7 +1633,13 @@ void f(A? a) {
     var node = result.findNode.cascade('a?..');
     assertResolvedNodeText(node, r'''
 CascadeExpression
-  target2: SimpleIdentifier
+  target2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  target(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -1610,10 +1660,12 @@ CascadeExpression
             invokeType: void Function(int, A)
             acceptedType: A
         operator: =
-        value: SimpleIdentifier
-          token: a
+        value: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
         staticType: A
     CascadeSection
@@ -1632,10 +1684,12 @@ CascadeExpression
             invokeType: void Function(int, A)
             acceptedType: A
         operator: =
-        value: SimpleIdentifier
-          token: a
+        value: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
         staticType: A
   cascadeSections
@@ -1704,9 +1758,11 @@ void f(A<double> a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<double>
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
@@ -1782,9 +1838,12 @@ void f(N x) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     leftBracket: [
@@ -1845,9 +1904,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     question: ?
     leftBracket: [
@@ -1916,9 +1977,11 @@ DirectAssignment
     receiver: SwitchExpression
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: Object?
         staticType: Object?
       rightParenthesis: )
       leftBracket: {

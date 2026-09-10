@@ -160,9 +160,15 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('v; // return');
+    var node = result.findNode.unqualifiedNameExpression('v; // return');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@15
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@15
   staticType: int
@@ -176,9 +182,15 @@ f() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@12
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@12
   staticType: int
@@ -192,9 +204,15 @@ f() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@18
+    type: List<int>
+  staticType: List<int>
+V1: SimpleIdentifier
   token: v
   element: v@18
   staticType: List<int>
@@ -208,9 +226,15 @@ main() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@15
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@15
   staticType: int
@@ -352,7 +376,9 @@ import 'a.dart' as helper;
 main() {
   helper.hashCode;
 }''');
-    assertTypeDynamic(result.findNode.prefixed('helper.hashCode'));
+    assertTypeDynamic(
+      result.findNode.importPrefixedNameExpression('helper.hashCode'),
+    );
   }
 
   test_objectAccessInference_disabled_for_local_getter() async {
@@ -361,7 +387,9 @@ dynamic get hashCode => null;
 main() {
   hashCode; // marker
 }''');
-    assertTypeDynamic(result.findNode.simple('hashCode; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('hashCode; // marker'),
+    );
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {

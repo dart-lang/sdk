@@ -99,6 +99,22 @@ class DeprecatedFunctionalityVerifier {
     );
   }
 
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var element = node.element;
+    if (element == null) return;
+    _checkForDeprecatedOptional(
+      element: element,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
+    _checkForDeprecatedInstantiate(
+      element: element.enclosingElement,
+      errorNode: node.name,
+    );
+  }
+
   void dotShorthandInvocation(DotShorthandInvocation node) {
     var element = node.memberName.element;
     if (element is! ExecutableElement) return;
@@ -200,7 +216,7 @@ class DeprecatedFunctionalityVerifier {
 
   void _checkForDeprecatedInstantiate({
     required InterfaceElement element,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (element.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.report(

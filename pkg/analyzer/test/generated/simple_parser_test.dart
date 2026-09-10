@@ -214,7 +214,7 @@ CompilationUnit
                   receiver: ThisExpression
                     thisKeyword: this
                   operator: .
-                  propertyName: <empty> <synthetic>
+                  name: <empty> <synthetic>
                 expression(v1): PropertyAccess
                   target: ThisExpression
                     thisKeyword: this

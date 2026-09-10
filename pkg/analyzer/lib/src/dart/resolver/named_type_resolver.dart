@@ -263,7 +263,7 @@ class NamedTypeResolver with ScopeHelpers {
         } else {
           var invocation = node.parent2?.parent2;
           var isConst = switch (invocation) {
-            ConstructorInvocation(isConst: var isConst) => isConst,
+            ConstructorInvocation(:var isConst) => isConst,
             _ => false,
           };
           diagnosticReporter.report(
@@ -297,7 +297,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (!node.name.isSynthetic) {
       var invocation = node.parent2?.parent2;
       var isConst = switch (invocation) {
-        ConstructorInvocation(isConst: var isConst) => isConst,
+        ConstructorInvocation(:var isConst) => isConst,
         _ => false,
       };
       var diagnostic = (isConst ? diag.constWithNonType : diag.newWithNonType)
