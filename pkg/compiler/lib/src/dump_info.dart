@@ -239,8 +239,8 @@ class DumpInfoProgramData {
       entityCode,
       entityCodeSize,
       constantCode,
-      Set.from(dumpInfoRegistry._serializedImpactMembers),
-      Map.from(dumpInfoRegistry._impactRegistry),
+      Set.of(dumpInfoRegistry._serializedImpactMembers),
+      Map.of(dumpInfoRegistry._impactRegistry),
       neededClasses: neededClasses,
       neededClassTypes: neededClassTypes,
     );

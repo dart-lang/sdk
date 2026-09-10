@@ -65,7 +65,7 @@ void generatePermutedNames(
     for (int i = 0; i < bits.length; i++) {
       if (bits[i] == 1) {
         names.putIfAbsent(i, () => []);
-        names[i]!.add(List.from(bits));
+        names[i]!.add(List.of(bits));
       }
     }
     return;
