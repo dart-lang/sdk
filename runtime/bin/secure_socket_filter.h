@@ -53,7 +53,6 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
     kFirstEncrypted = kReadEncrypted
   };
 
-  static const intptr_t kApproximateSize;
   static constexpr int kSSLFilterNativeFieldIndex = 0;
 
   SSLFilter()
@@ -65,13 +64,21 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
         handshake_complete_(nullptr),
         bad_certificate_callback_(nullptr),
         in_handshake_(false),
-        hostname_(nullptr) {}
+        hostname_(nullptr) {
+    for (int i = 0; i < kNumBuffers; ++i) {
+      buffers_[i] = nullptr;
+      dart_buffer_objects_[i] = nullptr;
+    }
+  }
 
   ~SSLFilter();
 
   char* hostname() const { return hostname_; }
   bool is_server() const { return is_server_; }
   bool is_client() const { return !is_server_; }
+  intptr_t ApproximateSize() const {
+    return sizeof(SSLFilter) + (2 * encrypted_buffer_size_);
+  }
 
   Dart_Handle Init(Dart_Handle dart_this);
   void Connect(const char* hostname,
@@ -118,7 +125,6 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   static Dart_Port TrustEvaluateReplyPort();
 
  private:
-  static const intptr_t kInternalBIOSize;
   static bool library_initialized_;
   static Mutex* mutex_;  // To protect library initialization.
   static Dart_Port trust_evaluate_reply_port_;

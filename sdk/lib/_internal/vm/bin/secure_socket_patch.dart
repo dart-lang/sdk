@@ -13,7 +13,7 @@ class SecureSocket {
 @patch
 class _SecureFilter {
   @patch
-  factory _SecureFilter._() => _SecureFilterImpl._();
+  factory _SecureFilter._(int bufferSize) => _SecureFilterImpl._(bufferSize);
 }
 
 @patch
@@ -62,19 +62,24 @@ class _SecureSocket extends _Socket implements SecureSocket {
 @pragma("vm:entry-point")
 base class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
+  static const int _encryptedBufferOverhead = 2 * 1024;
+
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
-  // SIZE and ENCRYPTED_SIZE are referenced from C++.
+  // bufferSize and encryptedBufferSize are referenced from C++.
   @pragma("vm:entry-point")
-  static final int SIZE = 8 * 1024;
+  final int bufferSize;
   @pragma("vm:entry-point")
-  static final int ENCRYPTED_SIZE = 10 * 1024;
+  final int encryptedBufferSize;
 
-  _SecureFilterImpl._() {
+  _SecureFilterImpl._(this.bufferSize)
+    : encryptedBufferSize = bufferSize + _encryptedBufferOverhead {
     buffers = <_ExternalBuffer>[
       for (int i = 0; i < _RawSecureSocket.bufferCount; ++i)
         _ExternalBuffer(
-          _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE,
+          _RawSecureSocket._isBufferEncrypted(i)
+              ? encryptedBufferSize
+              : bufferSize,
         ),
     ];
   }
@@ -216,7 +221,11 @@ class SecurityContext {
 
 base class _SecurityContext extends NativeFieldWrapperClass1
     implements SecurityContext {
+  static const int _minSecureSocketBufferSize = 8 * 1024;
+  static const int _maxSecureSocketBufferSize = 1024 * 1024;
+
   bool _allowLegacyUnsafeRenegotiation = false;
+  int _secureSocketBufferSize = _minSecureSocketBufferSize;
 
   _SecurityContext(bool withTrustedRoots) {
     _createNativeContext();
@@ -224,6 +233,18 @@ base class _SecurityContext extends NativeFieldWrapperClass1
       _trustBuiltinRoots();
     }
   }
+
+  set secureSocketBufferSize(int size) {
+    RangeError.checkValueInInterval(
+      size,
+      _minSecureSocketBufferSize,
+      _maxSecureSocketBufferSize,
+      'secureSocketBufferSize',
+    );
+    _secureSocketBufferSize = size;
+  }
+
+  int get secureSocketBufferSize => _secureSocketBufferSize;
 
   set allowLegacyUnsafeRenegotiation(bool allow) {
     _allowLegacyUnsafeRenegotiation = allow;
