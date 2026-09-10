@@ -76,6 +76,18 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   }
 }
 
+const _commandsWithPubspecTelemetry = {
+  'analyze',
+  'build',
+  'compile',
+  'create',
+  'doc',
+  'fix',
+  'pub',
+  'run',
+  'test',
+};
+
 class DartdevRunner extends CommandRunner<int> {
   static const String dartdevDescription =
       'A command-line utility for Dart development';
@@ -337,7 +349,14 @@ class DartdevRunner extends CommandRunner<int> {
         final path = commandNames.join('/');
         final experiments = topLevelResults.enabledExperiments
           ..sort((a, b) => a.compareTo(b));
-        final pubspecTelemetry = collectPubspecTelemetry();
+
+        final rootCommand = commandNames.firstOrNull;
+        final shouldCollectPubspec = _commandsWithPubspecTelemetry.contains(
+          rootCommand,
+        );
+        final pubspecTelemetry = shouldCollectPubspec
+            ? collectPubspecTelemetry()
+            : null;
         unifiedAnalytics.send(
           Event.dartCliCommandExecuted(
             name: path,
