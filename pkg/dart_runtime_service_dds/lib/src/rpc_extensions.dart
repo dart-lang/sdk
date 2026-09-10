@@ -49,4 +49,14 @@ extension DdsPrivateVmServiceExtensions on vm.VmService {
     );
     return (response.json ?? response.toJson()).cast<String, Object?>();
   }
+
+  /// Invokes the private `_yieldControlToDDS` RPC to transfer control of the VM
+  /// Service to DDS listening at [uri].
+  Future<Map<String, Object?>> yieldControlToDds({required Uri uri}) async {
+    final response = await callMethod(
+      '_yieldControlToDDS',
+      args: <String, Object?>{'uri': uri.toString()},
+    );
+    return (response.json ?? response.toJson()).cast<String, Object?>();
+  }
 }
