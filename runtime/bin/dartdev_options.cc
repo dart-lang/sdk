@@ -213,22 +213,8 @@ bool Options::ParseDartDevArguments(int argc,
         // It is irrelevant for the vm.
         dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
-      } else if (IsOption(argv[i], "serve-observatory")) {
-        // This flag is currently set by default in vmservice_io.dart, so we
-        // ignore it. --no-serve-observatory is a VM flag so we don't need to
-        // handle that case here.
-        skipVmOption = true;
-      } else if (IsOption(argv[i], "print-dtd-uri")) {
-        skipVmOption = true;
       } else if (IsOption(argv[i], "executable-name")) {
         skipVmOption = true;
-      } else if (IsOption(argv[i], "enable-experiment")) {
-        dart_options->AddArgument(argv[i]);
-      } else if (IsOption(argv[i], "resident")) {
-        resident_ = true;
-      } else if (IsOption(argv[i], "resident-compiler-info-file")) {
-        resident_compiler_info_file_path_ = OptionProcessor::ProcessOption(
-            argv[i], "--resident-compiler-info-file");
       }
     } else if (Options::ProcessVMOptions(argv[i], nullptr)) {
       // These (e.g. `-D`, `--enable-experiment` etc) were added already and not
@@ -359,9 +345,6 @@ void Options::PrintUsage() {
   }
 }
 // clang-format on
-
-bool Options::resident_ = false;
-const char* Options::resident_compiler_info_file_path_ = nullptr;
 
 dart::SimpleHashMap* Options::environment_ = nullptr;
 bool Options::ProcessEnvironmentOption(const char* arg,
