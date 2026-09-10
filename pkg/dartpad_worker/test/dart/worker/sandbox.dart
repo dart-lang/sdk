@@ -28,7 +28,7 @@ void main() {
     final extensionEventFuture = sandbox.extensionEvents.first;
     iframe.emitExtensionEvent('ext.testEvent', {'key': 'value'});
     await check(extensionEventFuture).completes(
-      (it) => it
+      .it()
         ..kind.equals('ext.testEvent')
         ..data.deepEquals({'key': 'value'}),
     );
@@ -39,9 +39,11 @@ void main() {
     });
     check(result).equals('success');
     await iframe.checkEvent(
-      (it) => it.isA<InvokeExtensionEvent>()
-        ..method.equals('ext.myMethod')
-        ..parameters.deepEquals({'arg': 'val'}),
+      .it()..isA<InvokeExtensionEvent>(
+        .it()
+          ..method.equals('ext.myMethod')
+          ..parameters.deepEquals({'arg': 'val'}),
+      ),
     );
 
     // Test close

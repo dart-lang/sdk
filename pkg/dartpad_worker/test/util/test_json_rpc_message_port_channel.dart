@@ -213,12 +213,11 @@ void main() {
         client.sendRequest('sendBytes', {
           'bytes': Uint8List.fromList([42, 42, 42]),
         }),
-      ).completes((v) => v.isA<bool>().isTrue());
+      ).completes(.it()..isA<bool>().isTrue);
 
       // Verify that we can receive bytes
       await check(client.sendRequest('receiveBytes')).completes(
-        (v) =>
-            v.isA<Map>()['bytes'].isA<Uint8List>().deepEquals([1, 2, 3, 4, 5]),
+        .it()..isA<Map>()['bytes'].isA<Uint8List>().deepEquals([1, 2, 3, 4, 5]),
       );
 
       // Verify that we can send a port
@@ -226,7 +225,7 @@ void main() {
         client.sendRequest('sendPort', {
           'port': MessagePortExt.fromMessagePort(web.MessageChannel().port1),
         }),
-      ).completes((v) => v.isA<bool>().isTrue());
+      ).completes(.it()..isA<bool>().isTrue);
 
       // Verify that we can receive a port
       final r = await client.sendRequest('receivePort') as Map;

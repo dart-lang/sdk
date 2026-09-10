@@ -15,14 +15,18 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     final result = await sandbox.run('bin/main.dart', mode: 'console');
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code
-        ..contains('Hello World')
-        ..contains('main'),
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello World')
+          ..code.contains('main'),
+      ),
     );
-    await iframe.checkEvent((it) => it.isA<RunEvent>()..mode.equals('console'));
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('console')),
+    );
     await iframe.close();
   });
 
@@ -38,7 +42,7 @@ void main() {
     await check(
       sandbox.run('bin/main.dart', mode: 'console'),
     ).throws<CompilationFailedException>(
-      (it) => it.has((e) => e.message, 'message').contains("Expected ';'"),
+      .it()..has((e) => e.message, 'message').contains("Expected ';'"),
     );
 
     await iframe.close();
@@ -62,14 +66,16 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     final result = await sandbox.run('bin/main.dart', mode: 'console');
-    check(result.log).isEmpty();
+    check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code
-        ..contains('Hello World')
-        ..contains('main'),
+      .it()..isA<LoadModuleEvent>(
+        .it()
+          ..code.contains('Hello World')
+          ..code.contains('main'),
+      ),
     );
-    await iframe.checkEvent((it) => it.isA<RunEvent>());
+    await iframe.checkEvent(.it()..isA<RunEvent>());
     await iframe.close();
   });
 }

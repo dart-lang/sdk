@@ -23,7 +23,7 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await ctx.checkConsole((m) => m.contains('Hello World'));
+    await ctx.checkConsole(.it()..contains('Hello World'));
   });
 
   testDartIntegration('sandbox handles unhandled error', (ctx) async {
@@ -45,7 +45,7 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(errorFuture).completes((r) => r.contains('Error\n'));
+    await check(errorFuture).completes(.it()..contains('Error\n'));
   });
 
   testDartIntegration('sandbox handles unhandled promise rejection', (
@@ -79,7 +79,7 @@ void main() {
 
     await check(
       rejectionFuture,
-    ).completes((r) => r.contains('unhandled rejection in sandbox'));
+    ).completes(.it()..contains('unhandled rejection in sandbox'));
   });
 
   testDartIntegration('sandbox handles extension event', (ctx) async {
@@ -101,10 +101,11 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(eventFuture).completes((r) {
-      r.kind.equals('my.custom.event');
-      r.data.deepEquals({'foo': 'bar', '__destinationStream': 'Extension'});
-    });
+    await check(eventFuture).completes(
+      .it()
+        ..kind.equals('my.custom.event')
+        ..data.deepEquals({'foo': 'bar', '__destinationStream': 'Extension'}),
+    );
   });
 
   testDartIntegration('sandbox handles invokeExtension', (ctx) async {
@@ -129,7 +130,7 @@ void main() {
     await ctx.sandbox.run('main.dart', mode: 'console');
 
     // Wait for registration!
-    await ctx.checkConsole((m) => m.contains('extension registered'));
+    await ctx.checkConsole(.it()..contains('extension registered'));
 
     final response = await ctx.sandbox.invokeExtension('ext.dartpad.test', {});
 

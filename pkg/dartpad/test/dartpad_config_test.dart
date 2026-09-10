@@ -35,17 +35,17 @@ void main() {
         decoded.modes.first.entrypointWrapperTemplate,
       ).equals('void main() => {{entrypoint}}.main();');
       check(decoded.flutterSdkPath).equals('/flutter/sdk');
-      check(decoded.trackCreationLocations).isTrue();
+      check(decoded.trackCreationLocations).isTrue;
     });
 
     test('.fromJson({})', () {
       final config = DartPadConfig.fromJson({});
 
       check(config.dartSdkPath).equals('/sdk');
-      check(config.summaryModules).isEmpty();
-      check(config.modes).isEmpty();
-      check(config.flutterSdkPath).isNull();
-      check(config.trackCreationLocations).isFalse();
+      check(config.summaryModules).isEmpty;
+      check(config.modes).isEmpty;
+      check(config.flutterSdkPath).isNull;
+      check(config.trackCreationLocations).isFalse;
     });
 
     test('.copyWith()', () {
@@ -69,7 +69,7 @@ void main() {
       check(copy.dartSdkPath).equals('/original/sdk');
 
       // Verifies defaults are also kept intact
-      check(copy.summaryModules).isEmpty();
+      check(copy.summaryModules).isEmpty;
     });
   });
 }

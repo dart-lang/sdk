@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
-import 'package:checks/context.dart';
 import 'package:dartpad/src/message_port/json_rpc_binary_channel.dart';
 import 'package:dartpad/src/message_port/message_port.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -158,16 +157,16 @@ final class FakeSandboxedIframe {
     Condition<SandboxEvent> condition, {
     Duration timeLimit = const Duration(seconds: 5),
   }) async {
-    if (events.any((e) => softCheck(e, condition) == null)) {
+    if (events.any((e) => condition.softCheckSync(e) == null)) {
       return;
     }
     await _eventStreamController.stream
-        .firstWhere((e) => softCheck(e, condition) == null)
+        .firstWhere((e) => condition.softCheckSync(e) == null)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(
             'Expected SandboxEvent within $timeLimit that '
-            '${describe(condition).join('\n')}',
+            '${condition.describeSync().join('\n')}',
           ),
         );
   }

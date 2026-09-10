@@ -26,7 +26,7 @@ void main() => testDartIntegration('hotRestart', (ctx) async {
   final r1 = await ctx.sandbox.run('bin/main.dart', mode: 'console');
   check(r1.log).isNotNull();
 
-  await ctx.checkConsole((m) => m.contains('Hello 1!'));
+  await ctx.checkConsole(.it()..contains('Hello 1!'));
 
   await ctx.ws.writeFileFromText('bin/main.dart', '''
       void main() {
@@ -38,5 +38,5 @@ void main() => testDartIntegration('hotRestart', (ctx) async {
   final r2 = await ctx.sandbox.hotRestart();
   check(r2.log).isNotNull();
 
-  await ctx.checkConsole((m) => m.contains('Hello 2!'));
+  await ctx.checkConsole(.it()..contains('Hello 2!'));
 });

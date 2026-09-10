@@ -1561,7 +1561,7 @@ test(String? s) => s?.contains(f());
     late bool fCalled;
     late String fValue;
     _callHandlers['f'] = nullaryFunction(() {
-      check(fCalled).isFalse();
+      check(fCalled).isFalse;
       fCalled = true;
       return fValue;
     });
@@ -1592,7 +1592,7 @@ test(String? s) => (s)?.contains(f());
       );
     late bool fCalled;
     _callHandlers['f'] = nullaryFunction(() {
-      check(fCalled).isFalse();
+      check(fCalled).isFalse;
       fCalled = true;
       return 'bcd';
     });
@@ -1614,7 +1614,7 @@ test(String s) => int.parse(s);
     )[result.findNode.methodInvocation('int.parse(s)')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('s);')]!,
     );
-    check(astNodes).not((s) => s.containsNode(result.findNode.simple('int')));
+    check(astNodes).not(.it()..containsNode(result.findNode.simple('int')));
     check(runInterpreter(result, ['123'])).equals(123);
   }
 
@@ -2244,7 +2244,7 @@ test() {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
-      (s) => s.instructions.any((s) => s.opcode.equals(Opcode.writeLocal)),
+      .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(runInterpreter(result, [])).identicalTo(123);
   }
@@ -2274,7 +2274,7 @@ test() {
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
-      (s) => s.instructions.any((s) => s.opcode.equals(Opcode.writeLocal)),
+      .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(() => runInterpreter(result, [])).throws<SoundnessError>()
       ..address.equals(
@@ -2368,15 +2368,15 @@ test(Object? o) sync* {
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(2);
-        check(namedArguments).isEmpty();
+        check(namedArguments).isEmpty;
         return f(positionalArguments[0] as T, positionalArguments[1] as U);
       };
 
   static CallHandler nullaryFunction(Object? Function() f) =>
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
-        check(positionalArguments).isEmpty();
-        check(namedArguments).isEmpty();
+        check(positionalArguments).isEmpty;
+        check(namedArguments).isEmpty;
         return f();
       };
 
@@ -2384,7 +2384,7 @@ test(Object? o) sync* {
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(3);
-        check(namedArguments).isEmpty();
+        check(namedArguments).isEmpty;
         return f(
           positionalArguments[0] as T,
           positionalArguments[1] as U,
@@ -2396,7 +2396,7 @@ test(Object? o) sync* {
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(1);
-        check(namedArguments).isEmpty();
+        check(namedArguments).isEmpty;
         return f(positionalArguments[0] as T);
       };
 }

@@ -15,7 +15,7 @@ void main() {
     await ws.writeFileFromText('main.dart', 'void main() {}');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
         ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
     );
@@ -33,7 +33,7 @@ void main() {
     await ws.writeFileFromText('main.dart', 'void main() { print("hello"); }');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
         ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
     );
@@ -51,7 +51,7 @@ void main() {
     await ws.deleteFileSystemEntity('main.dart');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileRemovedEvent>()
         ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
     );
@@ -67,7 +67,7 @@ void main() {
     await ws.createFolder('lib');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
         ..uri.equals(ws.workspaceFolder.resolve('lib')),
     );
@@ -75,7 +75,7 @@ void main() {
     await ws.deleteFileSystemEntity('lib');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileRemovedEvent>()
         ..uri.equals(ws.workspaceFolder.resolve('lib')),
     );
@@ -97,7 +97,7 @@ void main() {
     );
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
         ..uri.path.endsWith('main.dart'),
     );
@@ -127,14 +127,14 @@ void main() {
     // the specific files we care about, ignoring the rest.
 
     await check(changes).emitsThrough(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
         ..uri.path.startsWith('/pub-cache/')
         ..uri.path.endsWith('pubspec.yaml'),
     );
 
     await check(changes).emitsThrough(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
         ..uri.path.endsWith('pubspec.lock'),
     );
