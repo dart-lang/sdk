@@ -243,7 +243,7 @@ class StaticTypeAnalyzer {
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(thisType ?? _dynamicType),
+        SharedTypeView(thisType ?? InvalidTypeImpl.instance),
         isSuper: true,
       ),
     );
