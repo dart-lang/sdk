@@ -298,17 +298,80 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
   return false;
 }
 
+struct SourceReportCodeInfo : public ValueObject {
+ public:
+  SourceReportCodeInfo(const Script& script,
+                       intptr_t script_index,
+                       const Function& function,
+                       const Object& code_or_bytecode,
+                       bool report_lines)
+      : script(script),
+        script_index(script_index),
+        function(function),
+        begin_pos(function.token_pos()),
+        end_pos(function.end_token_pos()),
+        code_or_bytecode_(code_or_bytecode),
+        report_lines_(report_lines) {
+    ASSERT(!script.IsNull());
+    ASSERT(script_index >= 0);
+    ASSERT(!code_or_bytecode.IsNull());
+    ASSERT_EQUAL(function.HasBytecode(), code_or_bytecode.IsBytecode());
+  }
+
+  const Script& script;
+  const intptr_t script_index;
+  const Function& function;
+  const TokenPosition begin_pos;
+  const TokenPosition end_pos;
+
+  DART_FORCE_INLINE bool HasBytecode() const {
+#if defined(DART_DYNAMIC_MODULES)
+    return code_or_bytecode_.IsBytecode();
+#else
+    return false;
+#endif
+  }
+
+  const Code& Code() const { return Code::Cast(code_or_bytecode_); }
+
+#if defined(DART_DYNAMIC_MODULES)
+  const Bytecode& Bytecode() const { return Bytecode::Cast(code_or_bytecode_); }
+#endif
+
+  bool Contains(const TokenPosition& token_pos) const {
+    return token_pos.IsWithin(begin_pos, end_pos);
+  }
+
+  intptr_t GetTokenOffset(const TokenPosition& token_pos) const {
+    return token_pos.Pos() - begin_pos.Pos();
+  }
+
+  intptr_t GetTokenPosOrLine(const TokenPosition& token_pos) const {
+    if (!report_lines_) {
+      return token_pos.Pos();
+    }
+    intptr_t line = -1;
+    const bool found = script.GetTokenLocation(token_pos, &line);
+    ASSERT(found);
+    return line;
+  }
+
+ private:
+  const Object& code_or_bytecode_;
+  const bool report_lines_;
+};
+
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
-                                      const Function& function,
-                                      const Code& code) {
-  ASSERT(!code.IsNull());
-  const TokenPosition& begin_pos = function.token_pos();
-  const TokenPosition& end_pos = function.end_token_pos();
+                                      const SourceReportCodeInfo& info) {
+  if (info.HasBytecode()) {
+    // TODO(sstrickl): Handle call site data for bytecode.
+    return;
+  }
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new (zone()) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
+  info.function.RestoreICDataMap(ic_data_array, /*clone_ic_data=*/false);
   const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone(), code.pc_descriptors());
+      PcDescriptors::Handle(zone(), info.Code().pc_descriptors());
 
   JSONArray sites(jsobj, "callSites");
 
@@ -321,7 +384,7 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (ic_data != nullptr) {
       const TokenPosition& token_pos = iter.TokenPos();
-      if (!token_pos.IsWithin(begin_pos, end_pos)) {
+      if (!info.Contains(token_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
@@ -330,30 +393,14 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
   }
 }
 
-intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
-                                         const TokenPosition& token_pos) {
-  if (!report_lines_) {
-    return token_pos.Pos();
-  }
-  intptr_t line = -1;
-  const bool found = script.GetTokenLocation(token_pos, &line);
-  ASSERT(found);
-  return line;
-}
-
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
-                                     const Script& script,
-                                     intptr_t script_index,
-                                     const Function& function,
+                                     const SourceReportCodeInfo& info,
                                      bool report_branch_coverage) {
-  const TokenPosition& begin_pos = function.token_pos();
-  const TokenPosition& end_pos = function.end_token_pos();
-
   bool const_constructor_hit = false;
-  if (function.IsFunction() && function.is_const()) {
+  if (info.function.IsFunction() && info.function.is_const()) {
     for (TokenPosition hit :
-         script_table_entries_[script_index]->const_constructor_hits) {
-      if (hit == begin_pos) {
+         script_table_entries_[info.script_index]->const_constructor_hits) {
+      if (hit == info.begin_pos) {
         const_constructor_hit = true;
         break;
       }
@@ -364,25 +411,25 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const int kCoverageMiss = 1;
   const int kCoverageHit = 2;
 
-  intptr_t func_length = function.SourceSize() + 1;
+  intptr_t func_length = info.function.SourceSize() + 1;
   GrowableArray<char> coverage(func_length);
   coverage.SetLength(func_length);
   for (int i = 0; i < func_length; i++) {
     coverage[i] = kCoverageNone;
   }
 
-  if (function.WasExecuted() || const_constructor_hit) {
+  if (info.function.WasExecuted() || const_constructor_hit) {
     coverage[0] = kCoverageHit;
   } else {
     coverage[0] = kCoverageMiss;
   }
 
   auto update_coverage = [&](TokenPosition token_pos, bool was_executed) {
-    if (!(token_pos.IsReal() && token_pos.IsWithin(begin_pos, end_pos))) {
+    if (!token_pos.IsReal() || !info.Contains(token_pos)) {
       return;
     }
 
-    const intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+    const intptr_t token_offset = info.GetTokenOffset(token_pos);
     if (was_executed) {
       coverage[token_offset] = kCoverageHit;
     } else {
@@ -393,7 +440,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   };
 
   // Merge the coverage from coverage_array attached to the function.
-  const auto& coverage_array = TypedData::Handle(function.GetCoverageArray());
+  const auto& coverage_array =
+      TypedData::Handle(info.function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
       bool is_branch_coverage;
@@ -410,82 +458,76 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   JSONObject cov(jsobj, report_branch_coverage ? "branchCoverage" : "coverage");
   {
     JSONArray hits(&cov, "hits");
-    TokenPosition pos = begin_pos;
+    TokenPosition pos = info.begin_pos;
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageHit) {
         // Add the token position or line number of the hit.
-        hits.AddValue(GetTokenPosOrLine(script, pos));
+        hits.AddValue(info.GetTokenPosOrLine(pos));
       }
       pos = pos.Next();
     }
   }
   {
     JSONArray misses(&cov, "misses");
-    TokenPosition pos = begin_pos;
+    TokenPosition pos = info.begin_pos;
     for (int i = 0; i < func_length; i++) {
       if (coverage[i] == kCoverageMiss) {
         // Add the token position or line number of the miss.
-        misses.AddValue(GetTokenPosOrLine(script, pos));
+        misses.AddValue(info.GetTokenPosOrLine(pos));
       }
       pos = pos.Next();
     }
   }
 }
 
-void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
-                                                const Script& script,
-                                                const Function& func,
-                                                const Code& code) {
-  const TokenPosition& begin_pos = func.token_pos();
-  const TokenPosition& end_pos = func.end_token_pos();
-  intptr_t func_length = func.SourceSize() + 1;
+void SourceReport::PrintPossibleBreakpointsData(
+    JSONObject* jsobj,
+    const SourceReportCodeInfo& info) {
+  intptr_t func_length = info.function.SourceSize() + 1;
 
   BitVector possible(zone(), func_length);
 
-  if (func.HasBytecode()) {
+  if (info.HasBytecode()) {
 #if defined(DART_DYNAMIC_MODULES)
-    const auto& bytecode = Bytecode::Handle(zone(), func.GetBytecode());
     // Currently, every source position is a possible breakpoint.
-    bytecode::BytecodeSourcePositionsIterator iter(zone(), bytecode);
+    bytecode::BytecodeSourcePositionsIterator iter(zone(), info.Bytecode());
     while (iter.MoveNext()) {
       const TokenPosition& token_pos = iter.TokenPos();
-      if (!token_pos.IsWithin(begin_pos, end_pos)) {
+      if (!info.Contains(token_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      const intptr_t token_offset = info.GetTokenOffset(token_pos);
       possible.Add(token_offset);
     }
 #else
     UNREACHABLE();
 #endif
   } else {
-    ASSERT(!code.IsNull());
-
     const uint8_t kSafepointKind = (UntaggedPcDescriptors::kIcCall |
                                     UntaggedPcDescriptors::kUnoptStaticCall |
                                     UntaggedPcDescriptors::kRuntimeCall);
 
     const PcDescriptors& descriptors =
-        PcDescriptors::Handle(zone(), code.pc_descriptors());
+        PcDescriptors::Handle(zone(), info.Code().pc_descriptors());
 
     PcDescriptors::Iterator iter(descriptors, kSafepointKind);
     while (iter.MoveNext()) {
       const TokenPosition& token_pos = iter.TokenPos();
-      if (!token_pos.IsWithin(begin_pos, end_pos)) {
+      if (!info.Contains(token_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      const intptr_t token_offset = info.GetTokenOffset(token_pos);
       possible.Add(token_offset);
     }
   }
   JSONArray bpts(jsobj, "possibleBreakpoints");
-  TokenPosition pos = begin_pos;
+  TokenPosition pos = info.begin_pos;
   for (int i = 0; i < func_length; i++) {
     if (possible.Contains(i)) {
       // Add the token position or line number.
-      bpts.AddValue(GetTokenPosOrLine(script, pos));
+      bpts.AddValue(info.GetTokenPosOrLine(pos));
     }
     pos = pos.Next();
   }
@@ -548,37 +590,6 @@ void SourceReport::PrintScriptTable(JSONArray* scripts) {
   }
 }
 
-void SourceReport::VisitCodeOrBytecode(JSONObject* jsobj,
-                                       const Script& script,
-                                       intptr_t script_index,
-                                       const Function& func,
-                                       const Code& code,
-                                       CompileMode compile_mode) {
-  ASSERT(!code.IsNull() || func.HasBytecode());
-  // TODO(sstrickl): Handle call site data for bytecode.
-  if (IsReportRequested(kCallSites) && !code.IsNull()) {
-    PrintCallSitesData(jsobj, func, code);
-  }
-  if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(jsobj, script, script_index, func,
-                      /* report_branch_coverage */ false);
-  }
-  if (IsReportRequested(kBranchCoverage)) {
-    PrintCoverageData(jsobj, script, script_index, func,
-                      /* report_branch_coverage */ true);
-  }
-  if (IsReportRequested(kPossibleBreakpoints)) {
-    PrintPossibleBreakpointsData(jsobj, script, func, code);
-  }
-  if (IsReportRequested(kProfile)) {
-    if (auto* const profile_function = profile_.FindFunction(func)) {
-      if (profile_function->NumSourcePositions() > 0) {
-        PrintProfileData(jsobj, profile_function);
-      }
-    }
-  }
-}
-
 void SourceReport::VisitFunction(JSONArray* jsarr,
                                  const Function& func,
                                  CompileMode compile_mode) {
@@ -587,9 +598,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
   }
 
   const Script& script = Script::Handle(zone(), func.script());
-  const TokenPosition begin_pos = func.token_pos();
-  const TokenPosition end_pos = func.end_token_pos();
-
   const intptr_t script_index = GetScriptIndex(script);
   if (script_index < 0) {
     return;
@@ -598,13 +606,18 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
   auto& code = Code::Handle(zone(), func.unoptimized_code());
   auto& err = Error::Handle(zone());
   bool is_compiled = !code.IsNull();
+  const Object* code_or_bytecode = &code;
+#if defined(DART_DYNAMIC_MODULES)
   if (func.HasBytecode()) {
     ASSERT(code.IsNull());
     // We treat unexecuted bytecode as "uncompiled" unless force compilation was
     // requested, to match the reports for compiled code.
     is_compiled = func.WasExecuted() || compile_mode == kForceCompile;
-  } else if (code.IsNull() &&
-             (func.HasCode() || (compile_mode == kForceCompile))) {
+    code_or_bytecode = &Bytecode::Handle(zone(), func.GetBytecode());
+  }
+#endif
+  if (code_or_bytecode->IsNull() &&
+      (func.HasCode() || (compile_mode == kForceCompile))) {
     err = Compiler::EnsureUnoptimizedCode(thread(), func);
     if (err.IsNull()) {
       is_compiled = true;
@@ -616,14 +629,34 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
 
   JSONObject range(jsarr);
   range.AddProperty("scriptIndex", script_index);
-  range.AddProperty("startPos", begin_pos);
-  range.AddProperty("endPos", end_pos);
+  range.AddProperty("startPos", func.token_pos());
+  range.AddProperty("endPos", func.end_token_pos());
   range.AddProperty("compiled", is_compiled);
   if (!err.IsNull()) {
     range.AddProperty("error", err);
   }
   if (is_compiled) {
-    VisitCodeOrBytecode(&range, script, script_index, func, code, compile_mode);
+    SourceReportCodeInfo info(script, script_index, func, *code_or_bytecode,
+                              report_lines_);
+    if (IsReportRequested(kCallSites)) {
+      PrintCallSitesData(&range, info);
+    }
+    if (IsReportRequested(kCoverage)) {
+      PrintCoverageData(&range, info, /*report_branch_coverage=*/false);
+    }
+    if (IsReportRequested(kBranchCoverage)) {
+      PrintCoverageData(&range, info, /*report_branch_coverage=*/true);
+    }
+    if (IsReportRequested(kPossibleBreakpoints)) {
+      PrintPossibleBreakpointsData(&range, info);
+    }
+    if (IsReportRequested(kProfile)) {
+      if (auto* const profile_function = profile_.FindFunction(func)) {
+        if (profile_function->NumSourcePositions() > 0) {
+          PrintProfileData(&range, profile_function);
+        }
+      }
+    }
   }
 }
 
@@ -642,6 +675,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Function& func = Function::Handle(zone());
   Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
+  auto& err = Error::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
   CompileMode compile_mode = compile_mode_;
   if (compile_mode == kForceCompile && IsLibraryAlreadyCompiled(lib)) {
@@ -649,59 +683,47 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   }
   while (it.HasNext()) {
     cls = it.GetNextClass();
+
+    if (!cls.is_finalized() && compile_mode == kForceCompile) {
+      err = cls.EnsureIsFinalized(thread());
+    }
+
     if (!cls.is_finalized()) {
-      if (compile_mode == kForceCompile) {
-        Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
-        if (!err.IsNull()) {
-          // Emit an uncompiled range for this class with error information.
-          script = cls.script();
-          const intptr_t script_index = GetScriptIndex(script);
-          if (script_index < 0) {
-            continue;
-          }
-          JSONObject range(jsarr);
-          range.AddProperty("scriptIndex", script_index);
-          range.AddProperty("startPos", cls.token_pos());
-          range.AddProperty("endPos", cls.end_token_pos());
-          range.AddProperty("compiled", false);
-          range.AddProperty("error", err);
-          continue;
-        }
-        ASSERT(cls.is_finalized());
-      } else {
-        cls.EnsureDeclarationLoaded();
-        // Emit one range for the whole uncompiled class.
-        script = cls.script();
-        const intptr_t script_index = GetScriptIndex(script);
-        if (script_index < 0) {
-          continue;
-        }
-        JSONObject range(jsarr);
-        range.AddProperty("scriptIndex", script_index);
-        range.AddProperty("startPos", cls.token_pos());
-        range.AddProperty("endPos", cls.end_token_pos());
-        range.AddProperty("compiled", false);
+      // Either compilation is not forced or there was an error when
+      // finalizing the class, so emit one range for the whole uncompiled
+      // class with any appropriate error information.
+      script = cls.script();
+      const intptr_t script_index = GetScriptIndex(script);
+      if (script_index < 0) {
         continue;
       }
-    }
-
-    functions = cls.current_functions();
-    for (int i = 0; i < functions.Length(); i++) {
-      func ^= functions.At(i);
-      // Skip getter functions of static const field.
-      if (func.kind() == UntaggedFunction::kImplicitStaticGetter) {
-        field ^= func.accessor_field();
-        if (field.is_const() && field.is_static()) {
-          continue;
-        }
+      JSONObject range(jsarr);
+      range.AddProperty("scriptIndex", script_index);
+      range.AddProperty("startPos", cls.token_pos());
+      range.AddProperty("endPos", cls.end_token_pos());
+      range.AddProperty("compiled", false);
+      if (!err.IsNull()) {
+        range.AddProperty("error", err);
       }
-      VisitFunction(jsarr, func, compile_mode);
-    }
+    } else {
+      functions = cls.current_functions();
+      for (int i = 0; i < functions.Length(); i++) {
+        func ^= functions.At(i);
+        // Skip getter functions of static const field.
+        if (func.kind() == UntaggedFunction::kImplicitStaticGetter) {
+          field ^= func.accessor_field();
+          if (field.is_const() && field.is_static()) {
+            continue;
+          }
+        }
+        VisitFunction(jsarr, func, compile_mode);
+      }
 
-    fields = cls.fields();
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field ^= fields.At(i);
-      VisitField(jsarr, field, compile_mode);
+      fields = cls.fields();
+      for (intptr_t i = 0; i < fields.Length(); i++) {
+        field ^= fields.At(i);
+        VisitField(jsarr, field, compile_mode);
+      }
     }
   }
 }
