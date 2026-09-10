@@ -340,6 +340,60 @@ void f() {
 ''');
   }
 
+  test_assignmentTarget_importPrefixed_deprecatedGetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get value => 0;
+
+set value(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart' as prefix;
+
+void f() {
+  prefix.value = 0;
+  prefix.value += 1;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value++;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  ++prefix.value;
+//         ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_assignmentTarget_importPrefixed_deprecatedSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+int get value => 0;
+
+@deprecated
+set value(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart' as prefix;
+
+void f() {
+  prefix.value = 0;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value += 1;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  prefix.value++;
+//       ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+  ++prefix.value;
+//         ^^^^^
+// [diag.deprecatedMemberUse] 'value' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_call() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 class A {
