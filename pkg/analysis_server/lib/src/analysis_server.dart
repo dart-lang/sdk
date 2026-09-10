@@ -1017,6 +1017,19 @@ abstract class AnalysisServer {
     }
   }
 
+  void publishLspClosingLabels(String path, List<lsp.ClosingLabel> labels) {
+    var params = lsp.PublishClosingLabelsParams(
+      uri: uriConverter.toClientUri(path),
+      labels: labels,
+    );
+    var message = lsp.NotificationMessage(
+      method: lsp.CustomMethods.publishClosingLabels,
+      params: params,
+      jsonrpc: lsp.jsonRpcVersion,
+    );
+    sendLspNotification(message);
+  }
+
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   Future<void> reanalyze() async {

@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'apply_code_action_test.dart' as apply_code_action;
 import 'call_hierarchy_test.dart' as call_hierarchy;
+import 'closing_labels_test.dart' as closing_labels;
 import 'code_action_assists_test.dart' as code_action_assists;
 import 'code_action_fixes_test.dart' as code_action_fixes;
 import 'code_action_refactors_test.dart' as code_action_refactors;
@@ -36,6 +37,7 @@ void main() {
   defineReflectiveSuite(() {
     apply_code_action.main();
     call_hierarchy.main();
+    closing_labels.main();
     code_action_assists.main();
     code_action_fixes.main();
     code_action_refactors.main();

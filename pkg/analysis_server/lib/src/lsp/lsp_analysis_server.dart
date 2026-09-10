@@ -695,19 +695,6 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    var params = PublishClosingLabelsParams(
-      uri: uriConverter.toClientUri(path),
-      labels: labels,
-    );
-    var message = NotificationMessage(
-      method: CustomMethods.publishClosingLabels,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    );
-    sendLspNotification(message);
-  }
-
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     if (errors.isEmpty && !_filesWithClientDiagnostics.contains(path)) {
       // Don't sent empty set if client is already empty.
@@ -1369,7 +1356,7 @@ class LspServerContextManagerCallbacks
         unit,
       ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
 
-      analysisServer.publishClosingLabels(path, labels);
+      analysisServer.publishLspClosingLabels(path, labels);
     }
     if (analysisServer.shouldSendOutlineFor(path)) {
       var outline = DartUnitOutlineComputer(
