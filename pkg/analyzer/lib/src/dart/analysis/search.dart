@@ -311,11 +311,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   void visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => node.write?.element,
-    };
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
     var prefixFragment = import.prefix;
     if (prefixFragment != null &&
         node.importPrefix.element == prefixFragment.element &&
@@ -351,7 +348,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
-    var element = node.resolution.elementOrRecovery?.baseElement;
+    var element = node.resolution?.elementOrRecovery?.baseElement;
     var prefixFragment = import.prefix;
     if (importedElements.contains(element) &&
         prefixFragment != null &&
@@ -450,7 +447,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    var element = node.resolution.elementOrRecovery?.baseElement;
+    var element = node.resolution?.elementOrRecovery?.baseElement;
     if (import.prefix == null && importedElements.contains(element)) {
       _addResult(node.name.offset, 0);
     }
@@ -1974,11 +1971,7 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => node.write?.element,
-    };
+    var element = node.write?.elementOrRecovery;
     if (elements.contains(element)) {
       _addResultImpl(
         node.identifier2,
@@ -2005,8 +1998,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
     };
 
     if (kind == null) {
-      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
-        if (candidates.any(_matches)) {
+      if (node.write case InvalidNamedWriteResolution(:var recoveryElement)) {
+        if (_matches(recoveryElement)) {
           kind = SearchResultKind.REFERENCE;
         }
       }
@@ -2131,8 +2124,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
     };
 
     if (kind == null) {
-      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
-        if (candidates.any(_matches)) {
+      if (node.write case InvalidNamedWriteResolution(:var recoveryElement)) {
+        if (_matches(recoveryElement)) {
           kind = SearchResultKind.REFERENCE;
         }
       }
@@ -2211,8 +2204,10 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
       case ExecutableTearOffResolutionImpl resolution:
         element = resolution.element;
         kind = SearchResultKind.REFERENCE;
-      case InvalidNamedReadResolutionImpl(recovery: var recovery?):
-        element = recovery.element;
+      case InvalidNamedReadResolutionImpl(
+        recoveryElement: var recoveryElement?,
+      ):
+        element = recoveryElement;
         kind = SearchResultKind.REFERENCE;
       case DynamicPropertyReadResolutionImpl():
       case FunctionCallTearOffResolutionImpl():

@@ -440,11 +440,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    return switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => node.write?.element,
-    };
+    return node.write?.elementOrRecovery;
   }
 
   @override
@@ -456,7 +452,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    return node.write?.element ?? node.read.elementOrRecovery;
+    return node.write?.element ?? node.read?.elementOrRecovery;
   }
 
   @override
@@ -516,7 +512,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return switch (node) {
       IncrementOrDecrementExpression(:var element) => element,
       Identifier() => _visitIdentifier(node),
-      NameExpression(:var resolution) => resolution.elementOrRecovery,
+      NameExpression(:var resolution) => resolution?.elementOrRecovery,
       StringLiteral() => _visitStringLiteral(node),
       _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
     };
@@ -660,25 +656,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   Element? _visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return node.write?.elementOrRecovery;
   }
 
   Element? _visitIndexExpression2(IndexExpression2 node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return node.resolution?.elementOrRecovery;
   }
 
   Element? _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

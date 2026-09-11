@@ -425,9 +425,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -464,9 +462,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -655,9 +651,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -696,9 +690,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -734,9 +726,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -768,9 +758,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -805,9 +793,7 @@ DotShorthandNameExpression
     contextType: C
     lookupType: C
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -844,9 +830,7 @@ DotShorthandNameExpression
     contextType: C
     lookupType: C
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -883,9 +867,7 @@ DotShorthandNameExpression
     contextType: C
     lookupType: C
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -1571,9 +1553,7 @@ IncrementOrDecrementExpression
         shorthandContext: InvalidDotShorthandContextResolution
           contextType: null
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       leftBracket: [
       index: IntegerLiteral
@@ -1582,13 +1562,10 @@ IncrementOrDecrementExpression
         staticType: int
       rightBracket: ]
       resolution: InvalidIndexReadResolution
-        type: InvalidType
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: --
   operation: decrement
   position: postfix
@@ -1652,9 +1629,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -1695,9 +1670,7 @@ IncrementOrDecrementExpression
         shorthandContext: InvalidDotShorthandContextResolution
           contextType: null
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       leftBracket: [
       index: IntegerLiteral
@@ -1706,13 +1679,10 @@ IncrementOrDecrementExpression
         staticType: int
       rightBracket: ]
       resolution: InvalidIndexReadResolution
-        type: InvalidType
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: decrement
   position: prefix
   correspondingParameter: <null>
@@ -1775,9 +1745,7 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -1821,9 +1789,7 @@ DotShorthandNameExpression
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -1912,9 +1878,7 @@ DotShorthandNameExpression
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -2003,9 +1967,7 @@ DotShorthandNameExpression
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -2097,9 +2059,7 @@ DotShorthandNameExpression
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
@@ -2330,9 +2290,7 @@ DotShorthandNameExpression
     contextType: int
     lookupType: int
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: DotShorthandPropertyAccess
   period: .
@@ -2362,9 +2320,7 @@ DotShorthandNameExpression
     contextType: int
     lookupType: int
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
   staticType: InvalidType
 V1: DotShorthandPropertyAccess

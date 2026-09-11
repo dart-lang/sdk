@@ -885,8 +885,7 @@ ReceiverIndexExpression
     staticType: int
   rightBracket: ]
   resolution: InvalidIndexReadResolution
-    type: InvalidType
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: IndexExpression
   target: SimpleIdentifier
@@ -930,11 +929,9 @@ CompoundAssignment
       staticType: int
     rightBracket: ]
     read: InvalidIndexReadResolution
-      type: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: +=
   value: BinaryOperatorInvocation
     leftOperand: IntegerLiteral
@@ -1017,8 +1014,7 @@ DirectAssignment
     rightBracket: ]
     read: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: BinaryOperatorInvocation
     leftOperand: IntegerLiteral

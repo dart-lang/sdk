@@ -214,9 +214,7 @@ ReceiverIndexExpression
   receiver: UnqualifiedNameExpression
     name: b
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
@@ -226,8 +224,7 @@ ReceiverIndexExpression
     staticType: int
   rightBracket: ]
   resolution: InvalidIndexReadResolution
-    type: InvalidType
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: IndexExpression
   target: SimpleIdentifier
@@ -261,9 +258,7 @@ ReceiverIndexExpression
   receiver: UnqualifiedNameExpression
     name: b
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
@@ -273,8 +268,7 @@ ReceiverIndexExpression
     staticType: int
   rightBracket: ]
   resolution: InvalidIndexReadResolution
-    type: InvalidType
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: IndexExpression
   target: SimpleIdentifier
@@ -526,9 +520,7 @@ ReceiverIndexExpression
   index: UnqualifiedNameExpression
     name: b
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
       substitution: {E: int}
@@ -559,6 +551,145 @@ V1: IndexExpression
     baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   staticType: int
+''');
+  }
+
+  test_read_invalid_noParameters() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator []() => 0;
+//             ^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]' should declare exactly 1 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[[]];
+}
+''');
+    var node = result.findNode.receiverIndexExpression('foo[[]]');
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: A
+    staticType: A
+  leftBracket: [
+  index: ListLiteral
+    leftBracket: [
+    rightBracket: ]
+    correspondingParameter: <null>
+    staticType: List<dynamic>
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <testLibrary>::@class::A::@method::[]
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::f::@formalParameter::foo
+    staticType: A
+  leftBracket: [
+  index: ListLiteral
+    leftBracket: [
+    rightBracket: ]
+    correspondingParameter: <null>
+    staticType: List<dynamic>
+  rightBracket: ]
+  element: <testLibrary>::@class::A::@method::[]
+  staticType: InvalidType
+''');
+  }
+
+  test_read_invalid_twoParameters_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  int operator [](List<T> index, int extra) => 0;
+//             ^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]' should declare exactly 1 parameters, but 2 found.
+}
+
+void f(A<int> foo) {
+  foo[[]];
+}
+''');
+    var node = result.findNode.receiverIndexExpression('foo[[]]');
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: A<int>
+    staticType: A<int>
+  leftBracket: [
+  index: ListLiteral
+    leftBracket: [
+    rightBracket: ]
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      substitution: {T: int}
+    staticType: List<int>
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]
+      substitution: {T: int}
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::f::@formalParameter::foo
+    staticType: A<int>
+  leftBracket: [
+  index: ListLiteral
+    leftBracket: [
+    rightBracket: ]
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      substitution: {T: int}
+    staticType: List<int>
+  rightBracket: ]
+  element: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@class::A::@method::[]
+    substitution: {T: int}
+  staticType: InvalidType
+''');
+  }
+
+  test_read_invalid_twoParameters_indexType_cascade() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index, int extra) => 0;
+//             ^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]' should declare exactly 1 parameters, but 2 found.
+}
+
+void f(A foo) {
+  foo..['bar'];
+//      ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+}
+''');
+    var node = result.findNode.cascadeIndexExpression("['bar']");
+    assertResolvedNodeText(node, r'''
+CascadeIndexExpression
+  leftBracket: [
+  index: SimpleStringLiteral
+    literal: 'bar'
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <testLibrary>::@class::A::@method::[]
+  staticType: InvalidType
+V1: IndexExpression
+  period: ..
+  leftBracket: [
+  index: SimpleStringLiteral
+    literal: 'bar'
+  rightBracket: ]
+  element: <testLibrary>::@class::A::@method::[]
+  staticType: InvalidType
 ''');
   }
 
@@ -1009,9 +1140,7 @@ ReceiverIndexExpression
   receiver: UnqualifiedNameExpression
     name: a
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   leftBracket: [
   index: IntegerLiteral
@@ -1020,8 +1149,7 @@ ReceiverIndexExpression
     staticType: int
   rightBracket: ]
   resolution: InvalidIndexReadResolution
-    type: InvalidType
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: IndexExpression
   target: SimpleIdentifier

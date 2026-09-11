@@ -987,9 +987,7 @@ class AstBinaryReader {
         return const DynamicIndexReadResolutionImpl();
       case IndexReadResolutionTag.invalid:
         return InvalidIndexReadResolutionImpl(
-          recovery: _reader.readOptionalObject(
-            () => _readIndexReadResolution() as MethodIndexReadResolutionImpl,
-          ),
+          recoveryElement: _reader.readElement() as InternalMethodElement?,
         );
       case IndexReadResolutionTag.method:
         return MethodIndexReadResolutionImpl(
@@ -1005,9 +1003,7 @@ class AstBinaryReader {
         return const DynamicIndexWriteResolutionImpl();
       case IndexWriteResolutionTag.invalid:
         return InvalidIndexWriteResolutionImpl(
-          recovery: _reader.readOptionalObject(
-            () => _readIndexWriteResolution() as MethodIndexWriteResolutionImpl,
-          ),
+          recoveryElement: _reader.readElement() as InternalMethodElement?,
         );
       case IndexWriteResolutionTag.method:
         return MethodIndexWriteResolutionImpl(
@@ -1276,16 +1272,8 @@ class AstBinaryReader {
           type: _reader.readRequiredType(),
         );
       case NamedReadResolutionTag.invalid:
-        var type = _reader.readRequiredType();
-        var candidates = _reader.readElementList<Element>();
-        var recovery = _reader.readOptionalObject(() {
-          return _readNamedReadResolution()
-              as NamedReadResolutionWithElementImpl;
-        });
         return InvalidNamedReadResolutionImpl(
-          candidates: candidates,
-          recovery: recovery,
-          type: type,
+          recoveryElement: _reader.readElement(),
         );
       case NamedReadResolutionTag.recordFieldRead:
         return RecordFieldReadResolutionImpl(type: _reader.readRequiredType());
@@ -1317,16 +1305,8 @@ class AstBinaryReader {
   NamedWriteResolutionImpl _readNamedWriteResolution() {
     switch (_reader.readEnum(NamedWriteResolutionTag.values)) {
       case NamedWriteResolutionTag.invalid:
-        var acceptedType = _reader.readType()!;
-        var candidates = _reader.readElementList<Element>();
-        var recovery = _reader.readOptionalObject(() {
-          return _readNamedWriteResolution()
-              as NamedWriteResolutionWithElementImpl;
-        });
         return InvalidNamedWriteResolutionImpl(
-          acceptedType: acceptedType,
-          candidates: candidates,
-          recovery: recovery,
+          recoveryElement: _reader.readElement(),
         );
       case NamedWriteResolutionTag.setterInvocation:
         return SetterInvocationResolutionImpl(

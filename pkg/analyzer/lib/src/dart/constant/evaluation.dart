@@ -952,7 +952,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   Constant visitDotShorthandNameExpression(
     covariant DotShorthandNameExpressionImpl node,
   ) {
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
     return _getConstantValue(
       errorNode: node,
       expression: node,
@@ -1061,7 +1061,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       errorNode: node,
       expression: node,
       identifier: identifier,
-      element: node.resolution.elementOrRecovery,
+      element: node.resolution?.elementOrRecovery,
     );
   }
 
@@ -1537,7 +1537,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     covariant UnqualifiedNameExpressionImpl node,
   ) {
     var identifier = node.simpleIdentifier;
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
     if (element case FormalParameterElement element) {
       var value = _lexicalEnvironment?[element.baseElement];
       if (value != null) {
@@ -2080,6 +2080,15 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }) {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.baseElement;
+
+    // Invalid name lookup can retain a declaration that has no readable value.
+    // In particular, recovering a type declaration must not create a type literal.
+    if (expression is NameExpression &&
+        expression.resolution is InvalidNamedReadResolution &&
+        element is! VariableElement &&
+        element is! ExecutableElement) {
+      element = null;
+    }
 
     var variableElement = element is PropertyAccessorElement
         ? element.variable

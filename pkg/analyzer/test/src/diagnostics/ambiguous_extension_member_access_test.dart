@@ -82,9 +82,7 @@ ReceiverPropertyExtraction
   operator: .
   name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral
@@ -166,9 +164,7 @@ ReceiverPropertyExtraction
   operator: .
   name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral
@@ -209,9 +205,7 @@ ReceiverPropertyExtraction
   operator: .
   name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral

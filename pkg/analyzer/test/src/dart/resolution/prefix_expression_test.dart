@@ -223,9 +223,7 @@ IncrementOrDecrementExpression
       operatorResultType: int
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -573,13 +571,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operation: increment
   position: prefix
   element: <null>
@@ -795,9 +789,7 @@ IncrementOrDecrementExpression
       extendedType: C
       staticType: null
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -844,15 +836,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: int
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
   operation: increment
   position: prefix
   element: <null>
@@ -1649,9 +1635,7 @@ IncrementOrDecrementExpression
       superKeyword: super
       staticType: A
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -1711,9 +1695,7 @@ IncrementOrDecrementExpression
       rightBracket: }
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>

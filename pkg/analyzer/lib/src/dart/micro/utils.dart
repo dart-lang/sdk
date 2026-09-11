@@ -185,8 +185,8 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
     usedElement = parent.element;
   } else if (parent is ImportPrefixedAssignmentTarget) {
     usedElement = switch (parent.write) {
-      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => parent.write?.element ?? parent.read.elementOrRecovery,
+      InvalidNamedWriteResolution(:var recoveryElement) => recoveryElement,
+      _ => parent.write?.element ?? parent.read?.elementOrRecovery,
     };
   }
   if (usedElement == null) {
@@ -604,8 +604,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
             MatchInfo(entity.offset, entity.length, MatchKind.WRITE),
           );
         }
-      case InvalidNamedWriteResolution(:var candidates):
-        if (candidates.any(_matches)) {
+      case InvalidNamedWriteResolution(:var recoveryElement):
+        if (_matches(recoveryElement)) {
           references.add(
             MatchInfo(target.offset, target.length, MatchKind.REFERENCE),
           );
@@ -673,8 +673,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       (false, false) => null,
     };
     if (node.write case InvalidNamedWriteResolution(
-      :var candidates,
-    ) when kind == null && candidates.any(_matches)) {
+      :var recoveryElement,
+    ) when kind == null && _matches(recoveryElement)) {
       kind = MatchKind.REFERENCE;
     }
     if (kind != null) {
@@ -813,7 +813,16 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     SyntacticEntity entity,
     NamedReadResolution? resolution,
   ) {
-    var readElement = resolution.elementOrRecovery;
+    if (resolution case InvalidNamedReadResolution(:var recoveryElement)) {
+      if (_matches(recoveryElement)) {
+        references.add(
+          MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
+        );
+      }
+      return;
+    }
+
+    var readElement = resolution?.element;
     if (readElement == element) {
       references.add(
         MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),

@@ -6892,7 +6892,9 @@ class A {
     item;
     ^^^^ IS_REFERENCED_BY
     this.item;
+         ^^^^ IS_REFERENCED_BY qualified
     (this).item;
+           ^^^^ IS_REFERENCED_BY qualified
   }
 }
 ''');
@@ -6906,9 +6908,7 @@ class A {
   void f() {
     item;
     this.item;
-         ^^^^ IS_READ_BY qualified
     (this).item;
-           ^^^^ IS_READ_BY qualified
   }
 }
 ''',

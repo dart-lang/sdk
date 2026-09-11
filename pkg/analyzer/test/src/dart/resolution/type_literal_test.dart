@@ -6210,9 +6210,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: dynamic
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6993,9 +6991,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: Never
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -7634,9 +7630,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: T
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -8013,9 +8007,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: T
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <

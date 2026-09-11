@@ -102,11 +102,7 @@ class FunctionReferenceResolver {
       case InternalExecutableElement():
         resolution = ExecutableTearOffResolutionImpl(element: element);
       default:
-        resolution = InvalidNamedReadResolutionImpl(
-          candidates: [?element],
-          recovery: null,
-          type: InvalidTypeImpl.instance,
-        );
+        resolution = InvalidNamedReadResolutionImpl(recoveryElement: element);
     }
     var expression = UnqualifiedNameExpressionImpl(name: operand.token)
       ..scopeLookupResult = operand.scopeLookupResult

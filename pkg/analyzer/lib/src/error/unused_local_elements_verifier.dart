@@ -187,11 +187,8 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       super.visitDirectAssignment(node);
       return;
     }
-    if (write case InvalidNamedWriteResolution(:var candidates)) {
-      for (var candidate in candidates) {
-        candidate = candidate.baseElement;
-        _useIdentifierElement(candidate);
-      }
+    if (write case InvalidNamedWriteResolution(:var recoveryElement)) {
+      _useIdentifierElement(recoveryElement?.baseElement);
       super.visitDirectAssignment(node);
       return;
     }
@@ -617,15 +614,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   void _useIndexReadResolution(IndexReadResolution? resolution) {
-    var element = switch (resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
+    usedElements.addMember(resolution?.elementOrRecovery);
   }
 
   void _useNamedReadResolution(

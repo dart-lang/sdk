@@ -2569,14 +2569,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
       flowAnalysis.getExpressionInfo(node.index),
     );
-    var readElement = switch (resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var readElement = resolution?.elementOrRecovery;
     checkIndexExpressionIndex(
       node.index,
       readElement: readElement,
@@ -4770,14 +4763,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
       flowAnalysis.getExpressionInfo(node.index),
     );
-    var readElement = switch (resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var readElement = resolution?.elementOrRecovery;
     checkIndexExpressionIndex(
       node.index,
       readElement: readElement,
@@ -6640,7 +6626,7 @@ class SwitchExhaustiveness {
     if (expression is ParenthesizedExpression) {
       return _referencedElement(expression.expression2);
     } else if (expression is NameExpression) {
-      return expression.resolution.elementOrRecovery;
+      return expression.resolution?.elementOrRecovery;
     } else if (expression is PrefixedIdentifier) {
       return expression.element;
     } else if (expression is PropertyAccess) {

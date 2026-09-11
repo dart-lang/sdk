@@ -362,7 +362,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   void _recordNamedReadDependency(NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
     if (element is GetterElementImpl) {
       element = element.variable;
     }

@@ -152,9 +152,7 @@ SetOrMapLiteral
         contextType: E
         lookupType: E
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
   elements(v1)
     DotShorthandPropertyAccess

@@ -994,16 +994,13 @@ class _IndexContributor extends UnifyingAstVisitor2 {
               target,
               false,
             );
-          case InvalidNamedWriteResolutionImpl(:var candidates)
-              when candidates.isNotEmpty:
-            for (var element in candidates) {
-              recordRelation(
-                element,
-                IndexRelationKind.IS_REFERENCED_BY,
-                target,
-                false,
-              );
-            }
+          case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              target,
+              false,
+            );
           default:
             assembler.addNameRelation(
               target.name.lexeme,
@@ -1254,15 +1251,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
             IndexRelationKind.IS_INVOKED_BY,
             node.name,
           );
-        case InvalidNamedWriteResolutionImpl(:var candidates)
-            when candidates.isNotEmpty:
-          for (var element in candidates) {
-            recordRelationToken(
-              element,
-              IndexRelationKind.IS_REFERENCED_BY,
-              node.name,
-            );
-          }
+        case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+          recordRelationToken(
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            node.name,
+          );
         default:
           assembler.addNameRelation(
             node.name.lexeme,
@@ -1827,8 +1821,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           kind = IndexRelationKind
               .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
         }
-      case InvalidNamedReadResolutionImpl(recovery: var recovery?):
-        element = recovery.element;
+      case InvalidNamedReadResolutionImpl(
+        recoveryElement: var recoveryElement?,
+      ):
+        element = recoveryElement;
         kind = IndexRelationKind.IS_REFERENCED_BY;
       case DynamicPropertyReadResolutionImpl():
       case FunctionCallTearOffResolutionImpl():
@@ -1908,14 +1904,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   void _visitIndexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var element = node.resolution?.elementOrRecovery;
     if (element is MethodElement) {
       recordRelationToken(
         element,

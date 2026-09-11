@@ -189,22 +189,8 @@ class AssignmentExpressionResolver {
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
       _resolver.flowAnalysis.getExpressionInfo(target.index),
     );
-    var readElement = switch (result?.read) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    var writeElement = switch (result?.write) {
-      MethodIndexWriteResolutionImpl(:var element) => element,
-      InvalidIndexWriteResolutionImpl(
-        recovery: MethodIndexWriteResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var readElement = result?.read?.elementOrRecovery;
+    var writeElement = result?.write?.elementOrRecovery;
     _resolver.checkIndexExpressionIndex(
       target.index,
       readElement: readElement,
@@ -424,14 +410,7 @@ class AssignmentExpressionResolver {
         var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
           _resolver.flowAnalysis.getExpressionInfo(target.index),
         );
-        var writeElement = switch (resolution) {
-          MethodIndexWriteResolutionImpl(:var element) => element,
-          InvalidIndexWriteResolutionImpl(
-            recovery: MethodIndexWriteResolutionImpl(:var element),
-          ) =>
-            element,
-          _ => null,
-        };
+        var writeElement = resolution?.elementOrRecovery;
         _resolver.checkIndexExpressionIndex(
           target.index,
           readElement: null,
@@ -500,14 +479,7 @@ class AssignmentExpressionResolver {
         var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
           _resolver.flowAnalysis.getExpressionInfo(target.index),
         );
-        var writeElement = switch (resolution) {
-          MethodIndexWriteResolutionImpl(:var element) => element,
-          InvalidIndexWriteResolutionImpl(
-            recovery: MethodIndexWriteResolutionImpl(:var element),
-          ) =>
-            element,
-          _ => null,
-        };
+        var writeElement = resolution?.elementOrRecovery;
         _resolver.checkIndexExpressionIndex(
           target.index,
           readElement: null,
@@ -774,22 +746,8 @@ class AssignmentExpressionResolver {
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
       _resolver.flowAnalysis.getExpressionInfo(target.index),
     );
-    var readElement = switch (result?.read) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    var writeElement = switch (result?.write) {
-      MethodIndexWriteResolutionImpl(:var element) => element,
-      InvalidIndexWriteResolutionImpl(
-        recovery: MethodIndexWriteResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var readElement = result?.read.elementOrRecovery;
+    var writeElement = result?.write.elementOrRecovery;
     _resolver.checkIndexExpressionIndex(
       target.index,
       readElement: readElement,

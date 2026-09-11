@@ -29721,9 +29721,7 @@ library
                   leftOperand: UnqualifiedNameExpression
                     name: augmented @91
                     resolution: InvalidNamedReadResolution
-                      type: InvalidType
-                      candidates
-                      recovery: <null>
+                      recoveryElement: <null>
                     staticType: InvalidType
                   operator: + @101
                   rightOperand: IntegerLiteral

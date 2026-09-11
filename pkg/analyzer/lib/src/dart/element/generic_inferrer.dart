@@ -656,7 +656,7 @@ class GenericInferrer {
       _reportNamedInferenceFailure(
         diagnosticReporter: diagnosticReporter,
         errorEntity: errorEntity,
-        element: errorEntity.resolution.elementOrRecovery,
+        element: errorEntity.resolution?.elementOrRecovery,
         name: errorEntity.name.lexeme,
       );
     } else if (errorEntity is Expression) {

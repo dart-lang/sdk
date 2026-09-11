@@ -404,7 +404,7 @@ class _Collector {
   }
 
   void _nameExpression(AstNode node, NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
 
     if (element is FormalParameterElement) {
       var enclosing = element.enclosingElement;

@@ -2954,9 +2954,7 @@ DotShorthandConstructorInvocation2
       UnqualifiedNameExpression
         name: unknown
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         correspondingParameter: <null>
         staticType: InvalidType
     rightParenthesis: )

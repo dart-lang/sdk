@@ -2219,9 +2219,7 @@ PrimaryConstructorBody
       condition2: UnqualifiedNameExpression
         name: x
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       condition(v1): SimpleIdentifier
         token: x
@@ -2236,9 +2234,7 @@ PrimaryConstructorBody
           expression2: UnqualifiedNameExpression
             name: y
             resolution: InvalidNamedReadResolution
-              type: InvalidType
-              candidates
-              recovery: <null>
+              recoveryElement: <null>
             staticType: InvalidType
           expression(v1): SimpleIdentifier
             token: y
@@ -2442,9 +2438,7 @@ FieldDeclaration
         initializer2: UnqualifiedNameExpression
           name: foo
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         initializer(v1): SimpleIdentifier
           token: foo
@@ -2479,9 +2473,7 @@ FieldDeclaration
         initializer2: UnqualifiedNameExpression
           name: foo
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         initializer(v1): SimpleIdentifier
           token: foo

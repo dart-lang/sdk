@@ -1345,9 +1345,9 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     switch (resolution) {
       case DynamicIndexReadResolutionImpl():
         _sink.writeEnum(IndexReadResolutionTag.dynamic_);
-      case InvalidIndexReadResolutionImpl(:var recovery):
+      case InvalidIndexReadResolutionImpl(:var recoveryElement):
         _sink.writeEnum(IndexReadResolutionTag.invalid);
-        _sink.writeOptionalObject(recovery, _writeIndexReadResolution);
+        _sink.writeElement(recoveryElement);
       case MethodIndexReadResolutionImpl(:var element, :var type):
         _sink.writeEnum(IndexReadResolutionTag.method);
         _sink.writeElement(element);
@@ -1359,9 +1359,9 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     switch (resolution) {
       case DynamicIndexWriteResolutionImpl():
         _sink.writeEnum(IndexWriteResolutionTag.dynamic_);
-      case InvalidIndexWriteResolutionImpl(:var recovery):
+      case InvalidIndexWriteResolutionImpl(:var recoveryElement):
         _sink.writeEnum(IndexWriteResolutionTag.invalid);
-        _sink.writeOptionalObject(recovery, _writeIndexWriteResolution);
+        _sink.writeElement(recoveryElement);
       case MethodIndexWriteResolutionImpl(:var element):
         _sink.writeEnum(IndexWriteResolutionTag.method);
         _sink.writeElement(element);
@@ -1420,11 +1420,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
         _sink.writeType(resolution.type);
       case InvalidNamedReadResolutionImpl():
         _sink.writeEnum(NamedReadResolutionTag.invalid);
-        _sink.writeType(resolution.type);
-        _sink.writeList(resolution.candidates, _sink.writeElement);
-        _sink.writeOptionalObject(resolution.recovery, (recovery) {
-          _writeNamedReadResolution(recovery);
-        });
+        _sink.writeElement(resolution.recoveryElement);
       case RecordFieldReadResolutionImpl():
         _sink.writeEnum(NamedReadResolutionTag.recordFieldRead);
         _sink.writeType(resolution.type);
@@ -1439,11 +1435,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     switch (resolution) {
       case InvalidNamedWriteResolutionImpl():
         _sink.writeEnum(NamedWriteResolutionTag.invalid);
-        _sink.writeType(resolution.acceptedType);
-        _sink.writeList(resolution.candidates, _sink.writeElement);
-        _sink.writeOptionalObject(resolution.recovery, (recovery) {
-          _writeNamedWriteResolution(recovery);
-        });
+        _sink.writeElement(resolution.recoveryElement);
       case SetterInvocationResolutionImpl():
         _sink.writeEnum(NamedWriteResolutionTag.setterInvocation);
         _sink.writeElement(resolution.element);

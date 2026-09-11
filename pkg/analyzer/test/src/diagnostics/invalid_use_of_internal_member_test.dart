@@ -420,6 +420,29 @@ int g() => foo((x) => 2*x, 7);
 ''');
   }
 
+  test_outsidePackage_getterOnly_assignment_importPrefixed() async {
+    newFile('$fooPackageRootPath/lib/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+int get foo => 0;
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'package:foo/a.dart' as p;
+
+void f() {
+  p.foo = 1;
+//  ^^^
+// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
+  p.foo += 1;
+//  ^^^
+// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
+}
+''');
+  }
+
   test_outsidePackage_inCommentReference() async {
     newFile('$fooPackageRootPath/lib/src/a.dart', '''
 import 'package:meta/meta.dart';

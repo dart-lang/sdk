@@ -1285,10 +1285,7 @@ IncrementOrDecrementExpression
       element: <testLibrary>::@extension::E::@method::v
       type: dynamic Function()
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@extension::E::@method::v
-      recovery: <null>
+      recoveryElement: <testLibrary>::@extension::E::@method::v
   operator: ++
   operation: increment
   position: postfix

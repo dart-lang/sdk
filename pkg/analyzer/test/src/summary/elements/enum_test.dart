@@ -22699,9 +22699,7 @@ library
                 UnqualifiedNameExpression
                   name: foo @46
                   resolution: InvalidNamedReadResolution
-                    type: InvalidType
-                    candidates
-                    recovery: <null>
+                    recoveryElement: <null>
                   staticType: InvalidType
               inducedGetter: #F7
           constructors

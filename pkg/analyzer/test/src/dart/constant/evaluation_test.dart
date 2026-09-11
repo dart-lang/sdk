@@ -3813,6 +3813,19 @@ Type
 ''');
   }
 
+  test_visitSimpleIdentifier_extensionName() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+const foo = E;
+//          ^
+// [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+    assertDartObjectText(_topLevelVar(result, 'foo'), r'''
+<null>
+''');
+  }
+
   test_visitSimpleIdentifier_extensionTypeName() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const a = E;

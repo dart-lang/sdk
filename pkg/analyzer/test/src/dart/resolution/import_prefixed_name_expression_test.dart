@@ -87,12 +87,9 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::p
   name: value
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: multiplyDefinedElement
-        package:test/a.dart::@getter::value
-        package:test/b.dart::@getter::value
-    recovery: <null>
+    recoveryElement: multiplyDefinedElement
+      package:test/a.dart::@getter::value
+      package:test/b.dart::@getter::value
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -396,9 +393,7 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::p
   name: missing
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -608,12 +603,7 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::prefix
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: package:test/a.dart::@setter::foo
-    recovery: ExecutableTearOffResolution
-      element: package:test/a.dart::@setter::foo
-      type: void Function(int)
+    recoveryElement: package:test/a.dart::@setter::foo
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier

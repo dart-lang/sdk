@@ -1337,17 +1337,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       if (_withResolution) {
         switch (node.read) {
           case InvalidReadResolutionImpl(:var type):
+            expect(type, isA<InvalidType>());
             _sink.writelnWithIndent('read: InvalidReadResolution');
-            _sink.withIndent(() {
-              _writeType('type', type);
-            });
         }
         switch (node.write) {
           case InvalidWriteResolutionImpl(:var acceptedType):
+            expect(acceptedType, isA<InvalidType>());
             _sink.writelnWithIndent('write: InvalidWriteResolution');
-            _sink.withIndent(() {
-              _writeType('acceptedType', acceptedType);
-            });
         }
       }
     });
@@ -2686,11 +2682,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.withIndent(() {
           _writeType('type', resolution.type);
         });
-      case InvalidIndexReadResolutionImpl(:var recovery):
+      case InvalidIndexReadResolutionImpl(:var recoveryElement):
+        expect(resolution.type, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidIndexReadResolution');
         _sink.withIndent(() {
-          _writeType('type', resolution.type);
-          _writeIndexReadResolution('recovery', recovery);
+          _writeElement('recoveryElement', recoveryElement);
         });
       case MethodIndexReadResolutionImpl():
         _sink.writelnWithIndent('$name: MethodIndexReadResolution');
@@ -2714,11 +2710,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.withIndent(() {
           _writeType('acceptedType', resolution.acceptedType);
         });
-      case InvalidIndexWriteResolutionImpl(:var recovery):
+      case InvalidIndexWriteResolutionImpl(:var recoveryElement):
+        expect(resolution.acceptedType, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidIndexWriteResolution');
         _sink.withIndent(() {
-          _writeType('acceptedType', resolution.acceptedType);
-          _writeIndexWriteResolution('recovery', recovery);
+          _writeElement('recoveryElement', recoveryElement);
         });
       case MethodIndexWriteResolutionImpl():
         _sink.writelnWithIndent('$name: MethodIndexWriteResolution');
@@ -2927,16 +2923,10 @@ Expected parent: (${parent.runtimeType}) $parent
           _writeType('type', resolution.type);
         });
       case InvalidNamedReadResolutionImpl():
+        expect(resolution.type, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidNamedReadResolution');
         _sink.withIndent(() {
-          _writeType('type', resolution.type);
-          _sink.writelnWithIndent('candidates');
-          _sink.withIndent(() {
-            for (var candidate in resolution.candidates) {
-              _writeElement('candidate', candidate);
-            }
-          });
-          _writeNamedReadResolution('recovery', resolution.recovery);
+          _writeElement('recoveryElement', resolution.recoveryElement);
         });
       case RecordFieldReadResolutionImpl():
         _sink.writelnWithIndent('$name: RecordFieldReadResolution');
@@ -2960,21 +2950,10 @@ Expected parent: (${parent.runtimeType}) $parent
       case null:
         _sink.writelnWithIndent('$name: <null>');
       case InvalidNamedWriteResolutionImpl():
+        expect(resolution.acceptedType, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidNamedWriteResolution');
         _sink.withIndent(() {
-          _writeType('acceptedType', resolution.acceptedType);
-          _sink.writelnWithIndent('candidates');
-          _sink.withIndent(() {
-            for (var candidate in resolution.candidates) {
-              _writeElement('candidate', candidate);
-            }
-          });
-          var recovery = resolution.recovery;
-          if (recovery == null) {
-            _sink.writelnWithIndent('recovery: <null>');
-          } else {
-            _writeNamedWriteResolution('recovery', recovery);
-          }
+          _writeElement('recoveryElement', resolution.recoveryElement);
         });
       case SetterInvocationResolutionImpl():
         _sink.writelnWithIndent('$name: SetterInvocationResolution');

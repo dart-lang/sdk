@@ -5371,12 +5371,7 @@ extension E2 on int {
 UnqualifiedNameExpression
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: <testLibrary>::@extension::E2::@setter::foo
-    recovery: ExecutableTearOffResolution
-      element: <testLibrary>::@extension::E2::@setter::foo
-      type: void Function(int)
+    recoveryElement: <testLibrary>::@extension::E2::@setter::foo
   staticType: InvalidType
 V1: SimpleIdentifier
   token: foo

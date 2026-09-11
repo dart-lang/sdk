@@ -6456,15 +6456,9 @@ final class CascadePropertyAssignmentTargetImpl
   ChildEntities get _childEntities2 =>
       ChildEntities()..addToken('propertyName', propertyName);
 
-  Element? get _legacyReadElement => switch (read) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => read?.element,
-  };
+  Element? get _legacyReadElement => read?.elementOrRecovery;
 
-  Element? get _legacyWriteElement => switch (write) {
-    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => write?.element,
-  };
+  Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -15937,11 +15931,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
     ..addToken('period', period)
     ..addToken('name', name);
 
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates, :var recovery) =>
-      recovery?.element ?? candidates.firstOrNull,
-    _ => resolution?.element,
-  };
+  Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -20978,10 +20968,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     identifier.element = writeElement;
   }
 
-  Element? get writeElement => switch (_write) {
-    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => _write?.element,
-  };
+  Element? get writeElement => _write?.elementOrRecovery;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
@@ -30077,15 +30064,9 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
     ..addNode('importPrefix', importPrefix)
     ..addToken('name', name);
 
-  Element? get _legacyReadElement => switch (read) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => read?.element,
-  };
+  Element? get _legacyReadElement => read?.elementOrRecovery;
 
-  Element? get _legacyWriteElement => switch (write) {
-    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => write?.element,
-  };
+  Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -30514,10 +30495,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
     ..addNode('importPrefix', importPrefix)
     ..addToken('name', name);
 
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => resolution?.element,
-  };
+  Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -31130,10 +31108,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 
   InternalMethodElement? get _legacyReadElement => switch (read) {
     MethodIndexReadResolutionImpl(:var element) => element,
-    InvalidIndexReadResolutionImpl(
-      recovery: MethodIndexReadResolutionImpl(:var element),
-    ) =>
-      element,
+    InvalidIndexReadResolutionImpl(:var recoveryElement) => recoveryElement,
     _ => null,
   };
 
@@ -31154,10 +31129,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 
   InternalMethodElement? get _legacyWriteElement => switch (write) {
     MethodIndexWriteResolutionImpl(:var element) => element,
-    InvalidIndexWriteResolutionImpl(
-      recovery: MethodIndexWriteResolutionImpl(:var element),
-    ) =>
-      element,
+    InvalidIndexWriteResolutionImpl(:var recoveryElement) => recoveryElement,
     _ => null,
   };
 
@@ -31318,10 +31290,7 @@ sealed class IndexExpression2Impl extends ExpressionImpl
 
   InternalMethodElement? get _legacyReadElement => switch (resolution) {
     MethodIndexReadResolutionImpl(:var element) => element,
-    InvalidIndexReadResolutionImpl(
-      recovery: MethodIndexReadResolutionImpl(:var element),
-    ) =>
-      element,
+    InvalidIndexReadResolutionImpl(:var recoveryElement) => recoveryElement,
     _ => null,
   };
 
@@ -32940,20 +32909,23 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidIndexReadResolution
     implements IndexReadResolution, InvalidReadResolution {
-  /// A complete hypothetical valid resolution used for recovery.
-  ValidIndexReadResolution? get recovery;
+  /// The method retained for diagnostics, navigation, and error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []`.
+  MethodElement? get recoveryElement;
 }
 
 final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
     implements InvalidReadResolutionImpl, InvalidIndexReadResolution {
   @override
-  final MethodIndexReadResolutionImpl? recovery;
+  final InternalMethodElement? recoveryElement;
 
-  InvalidIndexReadResolutionImpl({required this.recovery});
+  InvalidIndexReadResolutionImpl({required this.recoveryElement});
 
   @override
   TypeImpl get indexContextType =>
-      recovery?.indexContextType ?? UnknownInferredType.instance;
+      recoveryElement?.formalParameters.firstOrNull?.type ??
+      UnknownInferredType.instance;
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
@@ -32964,23 +32936,26 @@ final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidIndexWriteResolution
     implements IndexWriteResolution, InvalidWriteResolution {
-  /// A complete hypothetical valid resolution used for recovery.
-  ValidIndexWriteResolution? get recovery;
+  /// The method retained for diagnostics, navigation, and error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []=`.
+  MethodElement? get recoveryElement;
 }
 
 final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
     implements InvalidWriteResolutionImpl, InvalidIndexWriteResolution {
   @override
-  final MethodIndexWriteResolutionImpl? recovery;
+  final InternalMethodElement? recoveryElement;
 
-  InvalidIndexWriteResolutionImpl({required this.recovery});
+  InvalidIndexWriteResolutionImpl({required this.recoveryElement});
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
 
   @override
   TypeImpl get indexContextType =>
-      recovery?.indexContextType ?? UnknownInferredType.instance;
+      recoveryElement?.formalParameters.firstOrNull?.type ??
+      UnknownInferredType.instance;
 }
 
 /// An unsuccessful invocation resolution.
@@ -33021,27 +32996,22 @@ final class InvalidInvocationResolutionImpl extends InvocationResolutionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidNamedReadResolution
     implements NamedReadResolution, InvalidReadResolution {
-  List<Element> get candidates;
-
-  NamedReadResolutionWithElement? get recovery;
+  /// The declaration retained for diagnostics, navigation, and error recovery.
+  ///
+  /// It need not support reading. An ambiguous lookup is represented by a
+  /// [MultiplyDefinedElement].
+  Element? get recoveryElement;
 }
 
 final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
     implements InvalidReadResolutionImpl, InvalidNamedReadResolution {
   @override
-  final List<Element> candidates;
+  final Element? recoveryElement;
+
+  InvalidNamedReadResolutionImpl({required this.recoveryElement});
 
   @override
-  final NamedReadResolutionWithElementImpl? recovery;
-
-  @override
-  final TypeImpl type;
-
-  InvalidNamedReadResolutionImpl({
-    required List<Element> candidates,
-    required this.recovery,
-    required this.type,
-  }) : candidates = List.unmodifiable(candidates);
+  TypeImpl get type => InvalidTypeImpl.instance;
 }
 
 /// An unsuccessful named write resolution.
@@ -33052,27 +33022,22 @@ abstract final class InvalidNamedWriteResolution
   @override
   DartType get acceptedType;
 
-  List<Element> get candidates;
-
-  NamedWriteResolutionWithElement? get recovery;
+  /// The declaration retained for diagnostics, navigation, and error recovery.
+  ///
+  /// It need not support writing. An ambiguous lookup is represented by a
+  /// [MultiplyDefinedElement].
+  Element? get recoveryElement;
 }
 
 final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
     implements InvalidWriteResolutionImpl, InvalidNamedWriteResolution {
   @override
-  final TypeImpl acceptedType;
+  final Element? recoveryElement;
+
+  InvalidNamedWriteResolutionImpl({required this.recoveryElement});
 
   @override
-  final List<Element> candidates;
-
-  @override
-  final NamedWriteResolutionWithElementImpl? recovery;
-
-  InvalidNamedWriteResolutionImpl({
-    required this.acceptedType,
-    required List<Element> candidates,
-    required this.recovery,
-  }) : candidates = List.unmodifiable(candidates);
+  TypeImpl get acceptedType => InvalidTypeImpl.instance;
 }
 
 /// An unsuccessful read resolution.
@@ -45016,10 +44981,7 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => resolution?.element,
-  };
+  Element? get _legacyReadElement => resolution?.elementOrRecovery;
 }
 
 /// The resolution of a read operation.
@@ -45770,10 +45732,7 @@ final class ReceiverPropertyAssignmentTargetImpl
 
   Element? get _legacyReadElement => read?.element;
 
-  Element? get _legacyWriteElement => switch (write) {
-    InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => write?.element,
-  };
+  Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -55377,23 +55336,11 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
 
   /// The read element exposed by the V1 compatibility projection.
   @DoNotGenerate(reason: 'Implements the legacy invalid-read element policy')
-  Element? get _legacyReadElement {
-    return switch (read) {
-      InvalidNamedReadResolutionImpl(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => read?.element,
-    };
-  }
+  Element? get _legacyReadElement => read?.elementOrRecovery;
 
   /// The element exposed by the V1 compatibility projection.
   @DoNotGenerate(reason: 'Implements the legacy invalid-write element policy')
-  Element? get _legacyWriteElement {
-    return switch (write) {
-      InvalidNamedWriteResolutionImpl(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => write?.element,
-    };
-  }
+  Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -55528,10 +55475,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => resolution?.element,
-  };
+  Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')

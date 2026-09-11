@@ -620,10 +620,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: E
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: <testLibrary>::@extension::E
-      recovery: <null>
+      recoveryElement: <testLibrary>::@extension::E
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1376,9 +1373,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: foo
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4878,9 +4873,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: foo
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6786,9 +6779,7 @@ FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: foo
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <

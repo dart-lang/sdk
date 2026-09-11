@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -319,11 +320,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     node.visitChildren2(this);
-    if (node.write case InvalidNamedWriteResolution(:var candidates)) {
-      for (var element in candidates) {
-        _addElement(element);
-      }
-    } else if (node.write?.element case var element?) {
+    if (node.write?.elementOrRecovery case var element?) {
       _addElement(element);
     }
   }
@@ -615,10 +612,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   void _addReadResolution(NamedReadResolution? resolution) {
     // Keep one manifest slot per syntactic name, even when resolution fails.
-    _addElement(switch (resolution) {
-      InvalidNamedReadResolution(:var candidates) => candidates.firstOrNull,
-      _ => resolution?.element,
-    });
+    _addElement(resolution?.elementOrRecovery);
   }
 
   void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

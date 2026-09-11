@@ -2076,20 +2076,18 @@ package:analyzer/dart/ast/ast.dart:
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
   InvalidIndexReadResolution (class extends Object implements IndexReadResolution, InvalidReadResolution, abstract, final, experimental):
-    recovery (getter: ValidIndexReadResolution?)
+    recoveryElement (getter: MethodElement?)
   InvalidIndexWriteResolution (class extends Object implements IndexWriteResolution, InvalidWriteResolution, abstract, final, experimental):
-    recovery (getter: ValidIndexWriteResolution?)
+    recoveryElement (getter: MethodElement?)
   InvalidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental):
     candidates (getter: List<Element>)
     recovery (getter: ValidInvocationResolution?)
     type (getter: DartType)
   InvalidNamedReadResolution (class extends Object implements NamedReadResolution, InvalidReadResolution, abstract, final, experimental):
-    candidates (getter: List<Element>)
-    recovery (getter: NamedReadResolutionWithElement?)
+    recoveryElement (getter: Element?)
   InvalidNamedWriteResolution (class extends Object implements NamedWriteResolution, InvalidWriteResolution, abstract, final, experimental):
     acceptedType (getter: DartType)
-    candidates (getter: List<Element>)
-    recovery (getter: NamedWriteResolutionWithElement?)
+    recoveryElement (getter: Element?)
   InvalidReadResolution (class extends Object implements ReadResolution, abstract, final, experimental)
   InvalidWriteResolution (class extends Object implements WriteResolution, abstract, final, experimental)
   InvocationExpression (class extends Object implements Expression, abstract, final):

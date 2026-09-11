@@ -1488,9 +1488,7 @@ IfStatement
         expression2: UnqualifiedNameExpression
           name: a
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         expression(v1): SimpleIdentifier
           token: a
