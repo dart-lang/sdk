@@ -132,6 +132,180 @@ class Test extends Base {
 ''');
   }
 
+  Future<void> test_class_nonFinal_single() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+
+  new({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_nonFinal_excludesLate() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+  late int b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+  late int b;
+
+  new({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_nonFinal_hasPrivate() async {
+    await resolveTestCode('''
+class Test {
+  int _a;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  int _a;
+
+  new({required this._a});
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode ==
+            diag.notInitializedNonNullableInstanceField;
+      },
+    );
+  }
+
+  Future<void>
+  test_class_nonFinal_hasPrivate_unsupportedPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.11
+class Test {
+  int _a;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.11
+class Test {
+  int _a;
+
+  Test({required int a}) : _a = a;
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode ==
+            diag.notInitializedNonNullableInstanceField;
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_nullableNotTouched() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+  int? b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+  int? b;
+
+  new({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_flutter_nonFinal() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  int a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  int a;
+
+  new({super.key, required this.a});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
+  }
+
+  Future<void> test_class_flutter_inheritedNonFinal() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+
+  new({super.key, required this.a});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_mixedWithFinal() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  int b;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  final int a;
+  int b;
+
+  new({required this.a, required this.b});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'b'");
+      },
+    );
+  }
+
   Future<void> test_class_hasSuperClass_withOptionalNamed() async {
     await resolveTestCode('''
 class A {
@@ -543,6 +717,28 @@ class Test {
 ''',
       filter: (error) {
         return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_mixedWithFinal() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  int b;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  final int a;
+  int b;
+
+  new(this.a, this.b);
+}
+''',
+      filter: (error) {
+        return error.message.contains("'b'");
       },
     );
   }
