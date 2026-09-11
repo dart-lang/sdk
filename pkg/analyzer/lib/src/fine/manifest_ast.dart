@@ -261,10 +261,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -312,10 +309,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -325,15 +319,12 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     node.visitChildren2(this);
-    switch (node.write) {
-      case InvalidNamedWriteResolution(:var candidates):
-        for (var element in candidates) {
-          _addElement(element);
-        }
-      case NamedWriteResolutionWithElement(:var element):
+    if (node.write case InvalidNamedWriteResolution(:var candidates)) {
+      for (var element in candidates) {
         _addElement(element);
-      case null:
-      case DynamicPropertyWriteResolution():
+      }
+    } else if (node.write?.element case var element?) {
+      _addElement(element);
     }
   }
 
@@ -485,10 +476,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -629,8 +617,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
     // Keep one manifest slot per syntactic name, even when resolution fails.
     _addElement(switch (resolution) {
       InvalidNamedReadResolution(:var candidates) => candidates.firstOrNull,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => resolution?.element,
     });
   }
 

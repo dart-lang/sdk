@@ -233,10 +233,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     if (element != null) {
       ExpressionImpl? cascadeTarget;
       for (
@@ -639,10 +636,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
@@ -2101,10 +2095,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
     var referencedElement = switch (argument) {
       IdentifierImpl() => argument.element?.nonSynthetic,
-      NameExpressionImpl(
-        resolution: NamedReadResolutionWithElementImpl(:var element),
-      ) =>
-        element.nonSynthetic,
+      NameExpressionImpl() => argument.resolution?.element?.nonSynthetic,
       _ => null,
     };
 

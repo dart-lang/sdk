@@ -6458,14 +6458,12 @@ final class CascadePropertyAssignmentTargetImpl
 
   Element? get _legacyReadElement => switch (read) {
     InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => read?.element,
   };
 
   Element? get _legacyWriteElement => switch (write) {
     InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedWriteResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => write?.element,
   };
 
   @generated
@@ -15942,8 +15940,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   Element? get _legacyReadElement => switch (resolution) {
     InvalidNamedReadResolutionImpl(:var candidates, :var recovery) =>
       recovery?.element ?? candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => resolution?.element,
   };
 
   @generated
@@ -20983,8 +20980,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   Element? get writeElement => switch (_write) {
     InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedWriteResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => _write?.element,
   };
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
@@ -30082,15 +30078,13 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
     ..addToken('name', name);
 
   Element? get _legacyReadElement => switch (read) {
-    NamedReadResolutionWithElementImpl(:var element) => element,
     InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => null,
+    _ => read?.element,
   };
 
   Element? get _legacyWriteElement => switch (write) {
-    NamedWriteResolutionWithElementImpl(:var element) => element,
     InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    _ => null,
+    _ => write?.element,
   };
 
   @generated
@@ -30522,8 +30516,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
 
   Element? get _legacyReadElement => switch (resolution) {
     InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => resolution?.element,
   };
 
   @generated
@@ -37176,6 +37169,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 abstract final class MethodIndexReadResolution
     implements ValidIndexReadResolution {
   /// The selected substituted `operator []` method.
+  @override
   MethodElement get element;
 
   /// The substituted function type used for this invocation.
@@ -37205,6 +37199,7 @@ final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
 abstract final class MethodIndexWriteResolution
     implements ValidIndexWriteResolution {
   /// The selected substituted `operator []=` method.
+  @override
   MethodElement get element;
 
   /// The substituted function type used for this invocation.
@@ -38641,6 +38636,7 @@ sealed class NamedReadResolutionImpl extends ReadResolutionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedReadResolutionWithElement
     implements NamedReadResolution {
+  @override
   Element get element;
 }
 
@@ -39029,6 +39025,7 @@ sealed class NamedWriteResolutionImpl extends WriteResolutionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedWriteResolutionWithElement
     implements NamedWriteResolution {
+  @override
   Element get element;
 }
 
@@ -45021,8 +45018,7 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
 
   Element? get _legacyReadElement => switch (resolution) {
     InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => resolution?.element,
   };
 }
 
@@ -45033,12 +45029,22 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ReadResolution {
+  /// The selected declaration, including any substitution for this occurrence,
+  /// or `null` if the read does not select a declaration.
+  ///
+  /// Dynamic access, record-field reads, function `call` tear-offs, and invalid
+  /// resolutions return `null`. Candidates and recovery elements are excluded.
+  Element? get element;
+
   /// The static type of the value produced if the read executes.
   DartType get type;
 }
 
 sealed class ReadResolutionImpl implements ReadResolution {
   const ReadResolutionImpl();
+
+  @override
+  Element? get element => null;
 
   @override
   TypeImpl get type;
@@ -45762,21 +45768,11 @@ final class ReceiverPropertyAssignmentTargetImpl
     ..addToken('operator', operator)
     ..addToken('propertyName', propertyName);
 
-  Element? get _legacyReadElement => switch (read) {
-    null => null,
-    DynamicPropertyReadResolutionImpl() => null,
-    FunctionCallTearOffResolutionImpl() => null,
-    FunctionInterfaceCallTearOffResolutionImpl() => null,
-    InvalidNamedReadResolutionImpl() => null,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    RecordFieldReadResolutionImpl() => null,
-  };
+  Element? get _legacyReadElement => read?.element;
 
   Element? get _legacyWriteElement => switch (write) {
-    null => null,
-    DynamicPropertyWriteResolutionImpl() => null,
     InvalidNamedWriteResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedWriteResolutionWithElementImpl(:var element) => element,
+    _ => write?.element,
   };
 
   @generated
@@ -55383,12 +55379,9 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   @DoNotGenerate(reason: 'Implements the legacy invalid-read element policy')
   Element? get _legacyReadElement {
     return switch (read) {
-      null => null,
-      DynamicPropertyReadResolutionImpl() => null,
       InvalidNamedReadResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      _ => null,
+      _ => read?.element,
     };
   }
 
@@ -55396,11 +55389,9 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   @DoNotGenerate(reason: 'Implements the legacy invalid-write element policy')
   Element? get _legacyWriteElement {
     return switch (write) {
-      null => null,
-      DynamicPropertyWriteResolutionImpl() => null,
       InvalidNamedWriteResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElementImpl(:var element) => element,
+      _ => write?.element,
     };
   }
 
@@ -55539,8 +55530,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
 
   Element? get _legacyReadElement => switch (resolution) {
     InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
+    _ => resolution?.element,
   };
 
   @generated
@@ -57573,6 +57563,13 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 abstract final class WriteResolution {
   /// The type accepted by the write operation.
   DartType get acceptedType;
+
+  /// The selected declaration, including any substitution for this occurrence,
+  /// or `null` if the write does not select a declaration.
+  ///
+  /// Dynamic and invalid resolutions return `null`. Candidates and recovery
+  /// elements are excluded.
+  Element? get element;
 }
 
 sealed class WriteResolutionImpl implements WriteResolution {
@@ -57580,6 +57577,9 @@ sealed class WriteResolutionImpl implements WriteResolution {
 
   @override
   TypeImpl get acceptedType;
+
+  @override
+  Element? get element => null;
 }
 
 /// A yield statement.

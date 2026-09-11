@@ -67,9 +67,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void cascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, node);
-    }
+    checkUsage(node.resolution?.element, node);
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
@@ -303,16 +301,8 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     var target = node.target;
-    if (target.read
-        case NamedReadResolutionWithElement(:var element) ||
-            MethodIndexReadResolution(element: Element element)) {
-      checkUsage(element, target);
-    }
-    if (target.write
-        case NamedWriteResolutionWithElement(:var element) ||
-            MethodIndexWriteResolution(element: Element element)) {
-      checkUsage(element, target);
-    }
+    checkUsage(target.read?.element, target);
+    checkUsage(target.write?.element, target);
     checkUsage(node.element, node);
   }
 
@@ -709,11 +699,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target.write
-        case NamedWriteResolutionWithElement(:var element) ||
-            MethodIndexWriteResolution(element: Element element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
   }
 
   void dotShorthandConstructorInvocation(
@@ -814,8 +804,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     var element = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     checkUsage(element, node, usageRange: node.sourceRange);
   }
@@ -991,16 +980,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void _checkAssignmentTarget(AssignmentTarget target) {
-    if (target.read
-        case NamedReadResolutionWithElement(:var element) ||
-            MethodIndexReadResolution(element: Element element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target.write
-        case NamedWriteResolutionWithElement(:var element) ||
-            MethodIndexWriteResolution(element: Element element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    checkUsage(
+      target.read?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {

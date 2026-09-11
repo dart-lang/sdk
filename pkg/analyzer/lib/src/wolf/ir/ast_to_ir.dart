@@ -1365,10 +1365,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     UnqualifiedNameAssignmentTarget node,
   ) {
     var write = node.write;
-    if (write is! NamedWriteResolutionWithElement) {
+    var element = write?.element;
+    if (element == null) {
       throw UnimplementedError('TODO(paulberry): ${write.runtimeType}');
     }
-    var element = write.element;
     switch (element) {
       case FormalParameterElement():
       case LocalVariableElement():
