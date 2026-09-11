@@ -4398,6 +4398,24 @@ abstract final class Int32x4 {
   @Since("3.14")
   Int32x4 abs();
 
+  /// Lane-wise left shift by [shiftAmount] bits.
+  ///
+  /// Returns a new [Int32x4] where each 32-bit lane is shifted left by
+  /// `shiftAmount % 32` bits, shifting in zero bits from the low end. A
+  /// negative [shiftAmount] is also taken modulo 32, so it is a valid shift
+  /// rather than an error.
+  @Since("3.14")
+  Int32x4 operator <<(int shiftAmount);
+
+  /// Lane-wise arithmetic (sign-extending) right shift by [shiftAmount] bits.
+  ///
+  /// Returns a new [Int32x4] where each 32-bit lane is shifted right by
+  /// `shiftAmount % 32` bits, shifting in copies of the sign bit from the high
+  /// end. A negative [shiftAmount] is also taken modulo 32, so it is a valid
+  /// shift rather than an error.
+  @Since("3.14")
+  Int32x4 operator >>(int shiftAmount);
+
   /// Lane-wise integer equality comparison.
   ///
   /// The result for a lane is a 32-bit signed integer which is -1

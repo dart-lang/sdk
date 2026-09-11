@@ -4033,6 +4033,16 @@ final class _Int32x4 implements Int32x4 {
 
   Int32x4 abs() => Int32x4(x.abs(), y.abs(), z.abs(), w.abs());
 
+  Int32x4 operator <<(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return Int32x4(x << n, y << n, z << n, w << n);
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return Int32x4(x >> n, y >> n, z >> n, w >> n);
+  }
+
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_equal")

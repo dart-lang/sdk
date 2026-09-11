@@ -36,6 +36,8 @@
 - Added `Int32x4.abs`, which replaces each lane with its absolute value using
   two's complement, so the absolute value of the minimum 32-bit integer yields
   itself.
+- Added the lane-wise shift operators `<<` (left) and `>>` (arithmetic right) to
+  `Int32x4`.
 
 #### `dart:js_interop`
 
