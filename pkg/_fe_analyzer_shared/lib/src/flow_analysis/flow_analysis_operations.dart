@@ -13,15 +13,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 /// representation of variables and types.
 abstract interface class FlowAnalysisOperations<Variable extends Object>
     implements FlowAnalysisTypeOperations {
-  /// If `true`, disables an assertion used by [FlowAnalysis.thisOrSuper] and
-  /// [FlowAnalysis.whyNotPromotedImplicitThis] to verify that the static type
-  /// of `this` makes sense. The assertion in question helps ensure that the
-  /// flow analysis log (if used) will contain correct information about the
-  /// type of `this`.
-  ///
-  /// TODO(paulberry): fix all assertion failures and remove this flag.
-  bool get disableThisTypeAssertion;
-
   /// Whether the given [variable] was declared with the `final` modifier.
   bool isFinal(Variable variable);
 

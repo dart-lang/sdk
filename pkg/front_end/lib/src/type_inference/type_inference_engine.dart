@@ -506,12 +506,6 @@ class OperationsCfe
   }
 
   @override
-  bool get disableThisTypeAssertion =>
-      // It's ok for the CFE to disable this assertion, because it doesn't use
-      // the flow analysis log.
-      true;
-
-  @override
   SharedTypeView get doubleType {
     throw new UnimplementedError('TODO(paulberry)');
   }

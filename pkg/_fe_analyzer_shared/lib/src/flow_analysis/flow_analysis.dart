@@ -1748,7 +1748,10 @@ abstract class FlowAnalysis<
   /// pseudo-expression `super`.
   ///
   /// Returns the expression info for the `this` or `super` expression.
-  ExpressionInfo thisOrSuper(
+  ///
+  /// `null` is returned in the event that there is no binding for `this` (which
+  /// should only happen in error recovery scenarios).
+  ExpressionInfo? thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   });
@@ -3337,7 +3340,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo thisOrSuper(
+  ExpressionInfo? thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
@@ -6062,9 +6065,7 @@ class _FlowAnalysisImpl<
 
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
-  late final List<PromotionKey> _thisPromotionKeys = [
-    promotionKeyStore.makeTemporaryKey(),
-  ];
+  final List<PromotionKey> _thisPromotionKeys = [];
 
   final List<SharedTypeView> _unpromotedThisTypes = [];
 
@@ -6090,11 +6091,6 @@ class _FlowAnalysisImpl<
     required bool enableLog,
   }) : promotionKeyStore = _assignedVariables.promotionKeyStore,
        _logBuilder = enableLog ? new FlowAnalysisLogBuilder() : null {
-    assert(
-      !(enableLog && operations.disableThisTypeAssertion),
-      'The flow analysis log is not guaranteed to contain reliable `this` '
-      'promotion information when `disableThisTypeAssertion` is `true`.',
-    );
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -6109,8 +6105,10 @@ class _FlowAnalysisImpl<
   @override
   SharedTypeView? get promotedTypeOfThis {
     if (!typeAnalyzerOptions.thisPromotionEnabled) return null;
+    PromotionKey? promotionKey = _thisPromotionKeys.lastOrNull;
+    if (promotionKey == null) return null;
     return _current.promotionInfo
-        ?.get(this, _thisPromotionKeys.last)
+        ?.get(this, promotionKey)
         ?.promotedTypes
         .lastOrNull;
   }
@@ -7866,7 +7864,7 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo thisOrSuper(
+  ExpressionInfo? thisOrSuper(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
@@ -8098,7 +8096,8 @@ class _FlowAnalysisImpl<
     if (typeAnalyzerOptions.thisPromotionEnabled) {
       return () => {};
     }
-    _Reference reference = _thisOrSuperReference(staticType, isSuper: false);
+    _Reference? reference = _thisOrSuperReference(staticType, isSuper: false);
+    if (reference == null) return () => {};
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
       reference.promotionKey,
@@ -9012,7 +9011,7 @@ class _FlowAnalysisImpl<
     _logBuilder?.promotionInfoChanged(value.promotionInfo, offset: offset);
   }
 
-  _Reference _thisOrSuperReference(
+  _Reference? _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
@@ -9023,14 +9022,15 @@ class _FlowAnalysisImpl<
               : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
           operations.errorType;
       assert(
-        operations.disableThisTypeAssertion || staticType == expectedType,
+        staticType == expectedType,
         'Incorrect `this` or `super` type. Got $staticType, expected '
         '$expectedType.',
       );
       return true;
     }());
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
-    PromotionKey promotionKey = _thisPromotionKeys.last;
+    PromotionKey? promotionKey = _thisPromotionKeys.lastOrNull;
+    if (promotionKey == null) return null;
     return new TrivialVariableReference(
       promotionKey: promotionKey,
       model: _current,

@@ -947,6 +947,7 @@ abstract class FieldFragmentDeclaration {
     required Uri fileUri,
     InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
+    required BodyBuilderContext bodyBuilderContext,
   });
 
   BodyBuilderContext createBodyBuilderContext();
@@ -1008,6 +1009,7 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required Uri fileUri,
     InternalExpression? initializer,
     required InternalThisVariable? internalThisVariable,
+    required BodyBuilderContext bodyBuilderContext,
   }) {
     if (_fieldInitializerCache != null) {
       if (!hasBodyBeenBuilt) {
@@ -1026,6 +1028,8 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
               initializer: initializer,
               inferenceDefaultType: inferenceDefaultType,
               internalThisVariable: internalThisVariable,
+              thisType:
+                  internalThisVariable?.type ?? bodyBuilderContext.thisType,
             );
         Expression inferredInitializer =
             inferredFieldInitializer.expressionInferenceResult.expression;
