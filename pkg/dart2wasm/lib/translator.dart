@@ -162,7 +162,9 @@ class Translator with KernelNodes {
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
   late final FunctionRegistry functionRegistry = FunctionRegistry();
-  late final RecognizedMethods recognizedMethods = CommonRecognizedMethods();
+  late final RecognizedMethods recognizedMethods = CommonRecognizedMethods(
+    requireMethods: false,
+  );
 
   late final DeferredModuleLoadingMap loadingMap;
 

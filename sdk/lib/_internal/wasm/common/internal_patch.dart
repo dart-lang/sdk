@@ -41,7 +41,6 @@ abstract class WasmTypedDataBase {}
 //
 // Important: this is unsafe and must be used with care.
 @patch
-@pragma("wasm:entry-point")
 @pragma("wasm:intrinsic")
 external T unsafeCast<T>(Object? v);
 
