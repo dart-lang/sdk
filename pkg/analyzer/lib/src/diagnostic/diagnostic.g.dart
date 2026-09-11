@@ -328,17 +328,21 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String name: the name of the ambiguous type
-/// String libraries: the names of the libraries that the type is found
+/// String kind: the kind of conflicting declarations, or 'name' for other
+///              conflicts
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
+    required String kind,
     required String name,
     required String libraries,
   })
 >
 ambiguousImport = DiagnosticWithArguments(
   name: 'ambiguous_import',
-  problemMessage: "The name '{0}' is defined in the libraries {1}.",
+  problemMessage: "The {0} '{1}' is defined in the libraries {2}.",
   correctionMessage:
       "Try using 'as prefix' for one of the import directives, or hiding the "
       "name from all but one of the imports.",
@@ -346,7 +350,11 @@ ambiguousImport = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'ambiguous_import',
   withArguments: _withArgumentsAmbiguousImport,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// No parameters.
@@ -18881,10 +18889,11 @@ LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousImport({
+  required String kind,
   required String name,
   required String libraries,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousImport, [name, libraries]);
+  return LocatableDiagnosticImpl(diag.ambiguousImport, [kind, name, libraries]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({

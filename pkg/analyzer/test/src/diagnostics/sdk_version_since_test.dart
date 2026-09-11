@@ -310,72 +310,352 @@ void f(A a) {
 ''');
   }
 
-  test_class_getterSetter_readWrite_both() async {
+  test_class_getter_compoundAssignment() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
 
 class A {
-  @Since('2.15')
+  @Since('3.5')
   int get foo => 0;
-  @Since('2.15')
-  set foo(int _) {}
 }
 ''');
 
-    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
     await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
-  a.foo += 0;
-//  ^^^
-// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+  (a).foo += 0;
+//    ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
   }
 
-  test_class_getterSetter_readWrite_getter() async {
+  test_class_getter_directAssignment() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
 
 class A {
-  @Since('2.15')
+  @Since('3.5')
   int get foo => 0;
-  set foo(int _) {}
 }
 ''');
 
-    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
     await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
-  a.foo += 0;
-//  ^^^
-// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+  (a).foo = 0;
+//    ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
 }
 ''');
   }
 
-  test_class_getterSetter_readWrite_setter() async {
+  test_class_getter_ifNullAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int? get foo => null;
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_compoundAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  @Since('3.6')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo += 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_compoundAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  @Since('3.5')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo += 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_compoundAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo += 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_compoundAssignment_setter() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
 
 class A {
   int get foo => 0;
-  @Since('2.15')
+  @Since('3.5')
   set foo(int _) {}
 }
 ''');
 
-    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
     await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
 void f(A a) {
-  a.foo += 0;
-//  ^^^
-// [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+  (a).foo += 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_directAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  @Since('3.6')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_directAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  @Since('3.5')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_directAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int get foo => 0;
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo = 0;
+}
+''');
+  }
+
+  test_class_getterSetter_directAssignment_setter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  int get foo => 0;
+  @Since('3.5')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_ifNullAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int? get foo => null;
+  @Since('3.6')
+  set foo(int? _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_ifNullAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int? get foo => null;
+  @Since('3.5')
+  set foo(int? _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_ifNullAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  int? get foo => null;
+  set foo(int? _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_getterSetter_ifNullAssignment_setter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  int? get foo => null;
+  @Since('3.5')
+  set foo(int? _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
   }
@@ -671,6 +951,74 @@ void f(A a) {
   a.foo = 0;
 //  ^^^
 // [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_setter_compoundAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo += 0;
+//    ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_setter_directAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  set foo(int _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo = 0;
+//    ^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_class_setter_ifNullAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+class A {
+  @Since('3.5')
+  set foo(int? _) {}
+}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f(A a) {
+  (a).foo ??= 0;
+//    ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
   }
@@ -1133,15 +1481,36 @@ void f() {
 ''');
   }
 
-  test_topLevelGetter_invalidWrite() async {
+  test_topLevelGetter_compoundAssignment() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
 
-@Since('2.15')
+@Since('3.5')
 int get foo => 0;
 ''');
 
-    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetter_directAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
     await resolveTestCodeWithDiagnostics('''
 import 'dart:foo';
 
@@ -1149,6 +1518,347 @@ void f() {
   foo = 0;
 //^^^
 // [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+}
+''');
+  }
+
+  test_topLevelGetter_ifNullAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int? get foo => null;
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_compoundAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+@Since('3.6')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_compoundAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_compoundAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_compoundAssignment_setter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+int get foo => 0;
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_directAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+@Since('3.6')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_directAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_directAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int get foo => 0;
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+}
+''');
+  }
+
+  test_topLevelGetterSetter_directAssignment_setter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+int get foo => 0;
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_ifNullAssignment_both_differentVersions() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int? get foo => null;
+@Since('3.6')
+set foo(int? _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+// [diag.sdkVersionSince] This API is available since SDK 3.6.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_ifNullAssignment_both_sameVersion() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int? get foo => null;
+@Since('3.5')
+set foo(int? _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_ifNullAssignment_getter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+int? get foo => null;
+set foo(int? _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetterSetter_ifNullAssignment_setter() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+int? get foo => null;
+@Since('3.5')
+set foo(int? _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelSetter_compoundAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo += 0;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelSetter_directAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+set foo(int _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelSetter_ifNullAssignment() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('3.5')
+set foo(int? _) {}
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=3.4.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo ??= 0;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
   }

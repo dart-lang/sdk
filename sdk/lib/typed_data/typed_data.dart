@@ -2683,8 +2683,8 @@ abstract final class Float32x4 {
 
   /// Creates a `Float32x4` with all values being zero.
   ///
-  /// The created value has the same [Float32x4.x], [Float32x4.y], [Float32x4.z]
-  /// and [Float32x4.w] value, which is the 32-bit floating point zero value.
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// 32-bit floating point zero value.
   external factory Float32x4.zero();
 
   /// Creates a `Float32x4` with 32-bit float values from the provided bits.
@@ -4344,6 +4344,13 @@ abstract final class Int32x4 {
   /// low 32 bits of [value].
   external factory Int32x4.splat(int value);
 
+  /// Creates an `Int32x4` with all values being zero.
+  ///
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// 32-bit integer zero value.
+  @Since("3.14")
+  external factory Int32x4.zero();
+
   external factory Int32x4.bool(bool x, bool y, bool z, bool w);
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 
@@ -4366,6 +4373,30 @@ abstract final class Int32x4 {
 
   /// Subtraction operator.
   Int32x4 operator -(Int32x4 other);
+
+  /// Returns a new [Int32x4] value where each lane is the negation of
+  /// the value of the corresponding lane of this `Int32x4`.
+  ///
+  /// Negating a value is equivalent to subtracting it from zero,
+  /// which leaves the zero value unchanged and changes the sign of all
+  /// other values _if the negated value can be represented in the result_.
+  ///
+  /// An [Int32x4] represents its values as two's complement 32-bit integers,
+  /// so the result of negating a value `n` is effectively the same as
+  /// `(-n).toSigned(32)`, so negating the minimal value, -0x80000000,
+  /// yields the same value again.
+  /// For all values other than zero and -0x80000000, negating changes the sign
+  /// of the value.
+  @Since("3.14")
+  Int32x4 operator -();
+
+  /// Returns a new [Int32x4] where each lane's value is the [int.abs()]
+  /// of the corresponding lane in this value, converted to 32-bits
+  /// as by `.toSigned(32)` ([int.toSigned]).
+  /// _That makes the `abs` of the minimal 32-bit signed value, -0x80000000,
+  /// be the same negative value again._
+  @Since("3.14")
+  Int32x4 abs();
 
   /// Lane-wise integer equality comparison.
   ///
@@ -4782,6 +4813,11 @@ abstract final class Int32x4 {
 abstract final class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);
+
+  /// Creates a `Float64x2` with all values being zero.
+  ///
+  /// The created value has the same [x] and [y] value, which is the 64-bit
+  /// floating point zero value.
   external factory Float64x2.zero();
 
   /// Uses the "x" and "y" lanes from [v].

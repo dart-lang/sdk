@@ -123,7 +123,11 @@ class LspClientCapabilities {
   /// This turned out to not be the case, so to avoid sending prompts that
   /// might not be seen, we will only use this functionality if we _know_ the
   /// client supports it via a custom flag in 'experimental' that is passed by
-  /// the Dart-Code VS Code extension since version v3.58.0 (2023-01-25).
+  /// the Dart-Code VS Code extension since version v3.58 (2023-01-25).
+  ///
+  // TODO(dantup): When IntelliJ switches to full LSP, ensure that it supports
+  //  showMesasgeRequest (required to keep analytics prompts working) and also
+  //  sets this.
   final bool supportsShowMessageRequest;
 
   /// A set of commands that exist on the client that the server may call.

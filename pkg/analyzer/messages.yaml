@@ -1157,9 +1157,10 @@ CompileTimeErrorCode:
   ambiguousImport:
     type: compileTimeError
     parameters:
-      String name: the name of the ambiguous type
-      String libraries: the names of the libraries that the type is found
-    problemMessage: "The name '#name' is defined in the libraries #libraries."
+      String kind: the kind of conflicting declarations, or 'name' for other conflicts
+      String name: the ambiguous name
+      String libraries: the names of the libraries containing the conflicting declarations
+    problemMessage: "The #kind '#name' is defined in the libraries #libraries."
     correctionMessage: "Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports."
     hasPublishedDocs: true
     documentation: |-
@@ -1167,6 +1168,9 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when a name is referenced that is
       declared in two or more imported libraries.
+
+      When all of the conflicting declarations are getters or all are setters,
+      the message identifies that kind of declaration.
 
       #### Example
 

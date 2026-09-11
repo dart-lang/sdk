@@ -1,12 +1,17 @@
-## 0.3.23-dev
+## 0.3.24-dev
+
+- Require version `14.5.0-dev` of the `analyzer` package.
+- Require version `0.14.18-dev` of the `analyzer_plugin` package.
+
+## 0.3.23
 
 - Improve performance of plugin analysis in cases where all of the enabled
   plugin rules in a given plugin isolate are "parse-only" rules which have a
   `true` value for `canUseParsedResult`.
 - Improve performance of plugin analysis in cases where plugins are enabled
   in subdirectories of a workspace.
-- Require version `14.4.0-dev` of the `analyzer` package.
-- Require version `0.14.17-dev` of the `analyzer_plugin` package.
+- Require version `14.4.0` of the `analyzer` package.
+- Require version `0.14.17` of the `analyzer_plugin` package.
 
 ## 0.3.22
 

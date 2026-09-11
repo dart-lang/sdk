@@ -3981,6 +3981,10 @@ class Int32x4 {
 
   @patch
   @pragma("vm:prefer-inline")
+  factory Int32x4.zero() => Int32x4.splat(0);
+
+  @patch
+  @pragma("vm:prefer-inline")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) {
     return _Int32x4FromBools(x, y, z, w);
   }
@@ -4024,6 +4028,10 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_sub")
   external Int32x4 operator -(Int32x4 other);
+
+  Int32x4 operator -() => Int32x4(-x, -y, -z, -w);
+
+  Int32x4 abs() => Int32x4(x.abs(), y.abs(), z.abs(), w.abs());
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)

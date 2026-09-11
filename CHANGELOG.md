@@ -29,6 +29,13 @@
   `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
   `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
   comparison holds and `0` elsewhere.
+- Added the `Int32x4.zero()` constructor, which creates an `Int32x4` with all
+  four lanes set to zero.
+- Added the unary negation operator `-` to `Int32x4`, which arithmetically
+  negates each lane using two's complement.
+- Added `Int32x4.abs`, which replaces each lane with its absolute value using
+  two's complement, so the absolute value of the minimum 32-bit integer yields
+  itself.
 
 #### `dart:js_interop`
 

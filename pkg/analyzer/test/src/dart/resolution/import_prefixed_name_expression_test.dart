@@ -74,7 +74,7 @@ import 'b.dart' as p;
 void f() {
   p.value;
 //  ^^^^^
-// [diag.ambiguousImport] The name 'value' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+// [diag.ambiguousImport] The getter 'value' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
     assertResolvedNodeText(

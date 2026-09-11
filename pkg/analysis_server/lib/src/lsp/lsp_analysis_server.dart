@@ -1267,10 +1267,14 @@ class LspInitializationOptions {
 
   /// Whether closing labels have been enabled by initialization options.
   ///
-  /// This is a legacy option that is supported for old versions of the
-  /// Dart-Code VS Code extension prior to October 2026. Once sufficient time
-  /// has passed this can be removed. The replacement is in the client
-  /// capabilities (in `experimental`, where other custom fields go).
+  /// This is a legacy option that is still here to support older versions of
+  /// the Dart-Code VS Code extension prior to v3.144 (releasing ~2026-10-01).
+  /// Once sufficient time has passed since then (or the number of users on
+  /// Dart-Code versions earlier than v3.144 is low), this can be removed.
+  ///
+  /// The replacement for this (which Dart-Code uses since v3.144 and
+  /// LSP-over-Legacy always used) is in the client capabilities
+  /// (`experimental.closingLabels`).
   final bool closingLabels;
 
   final bool outline;

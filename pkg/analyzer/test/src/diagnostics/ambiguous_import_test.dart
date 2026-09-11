@@ -31,7 +31,7 @@ import 'b.dart';
 
 @foo
 // [diag.invalidAnnotation][column 1][length 4] Annotation must be either a const variable reference or const constructor invocation.
-// [diag.ambiguousImport][column 2][length 3] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+// [diag.ambiguousImport][column 2][length 3] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 class A {}
 ''');
   }
@@ -302,7 +302,7 @@ import 'b.dart';
 void f() {
   x;
 //^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+// [diag.ambiguousImport] The getter 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
   }
@@ -323,67 +323,7 @@ import 'b.dart' as p;
 void f() {
   p.x;
 //  ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-}
-''');
-  }
-
-  test_variable_write() async {
-    newFile('$testPackageLibPath/a.dart', '''
-var x;
-''');
-
-    newFile('$testPackageLibPath/b.dart', '''
-var x;
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart';
-import 'b.dart';
-
-void f() {
-  x = 0;
-//^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  x += 1;
-//^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  ++x;
-//  ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  x++;
-//^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-}
-''');
-  }
-
-  test_variable_write_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', '''
-var x;
-''');
-
-    newFile('$testPackageLibPath/b.dart', '''
-var x;
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-
-void f() {
-  p.x = 0;
-//  ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  p.x += 1;
-//  ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  ++p.x;
-//    ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
-  p.x++;
-//  ^
-// [diag.ambiguousImport] The name 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+// [diag.ambiguousImport] The getter 'x' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
   }

@@ -1622,6 +1622,8 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(t, t, t, t);
   }
 
+  NativeInt32x4.zero() : this._truncated(0, 0, 0, 0);
+
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
     : this.x = x ? -1 : 0,
       this.y = y ? -1 : 0,
@@ -1717,6 +1719,17 @@ final class NativeInt32x4 implements Int32x4 {
       JS("int", "(-#) | 0", y),
       JS("int", "(-#) | 0", z),
       JS("int", "(-#) | 0", w),
+    );
+  }
+
+  Int32x4 abs() {
+    // Avoid going through the typed array by "| 0" the result, which also
+    // gives two's complement wrapping so abs(-0x80000000) yields itself.
+    return NativeInt32x4._truncated(
+      JS("int", "Math.abs(#) | 0", x),
+      JS("int", "Math.abs(#) | 0", y),
+      JS("int", "Math.abs(#) | 0", z),
+      JS("int", "Math.abs(#) | 0", w),
     );
   }
 

@@ -9339,7 +9339,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
     this.libraryFragment,
     this.name,
     this.conflictingElements,
-  );
+  ) : assert(conflictingElements.isNotEmpty);
 
   @override
   MultiplyDefinedElementImpl get baseElement => this;

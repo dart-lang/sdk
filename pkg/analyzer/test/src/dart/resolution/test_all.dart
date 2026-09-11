@@ -121,6 +121,8 @@ import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
+import 'unqualified_name_assignment_target_test.dart'
+    as unqualified_name_assignment_target;
 import 'variable_declaration_statement_test.dart'
     as variable_declaration_statement;
 import 'variance_test.dart' as variance_test;
@@ -233,6 +235,7 @@ main() {
     try_statement.main();
     type_inference.main();
     type_literal.main();
+    unqualified_name_assignment_target.main();
     variable_declaration_statement.main();
     variance_test.main();
     while_statement.main();

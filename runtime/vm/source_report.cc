@@ -332,7 +332,7 @@ struct SourceReportCodeInfo : public ValueObject {
 #endif
   }
 
-  const Code& Code() const { return Code::Cast(code_or_bytecode_); }
+  const dart::Code& Code() const { return Code::Cast(code_or_bytecode_); }
 
 #if defined(DART_DYNAMIC_MODULES)
   const Bytecode& Bytecode() const { return Bytecode::Cast(code_or_bytecode_); }

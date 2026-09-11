@@ -3816,6 +3816,141 @@ workspaces
 ''');
   }
 
+  test_packageConfigWorkspace_multipleFiles_sharedOptions_differentPackageIncludes() {
+    configuration
+      ..withIncludedPaths = true
+      ..withOptionFilesForContext = true
+      ..withLegacyPlugins = true;
+
+    newAnalysisOptionsYamlFile('/home', '''
+include: package:settings/options.yaml
+''');
+
+    var fooRoot = newFolder('/home/foo');
+    var fooSettings = newFolder('/settings/foo');
+    newPubspecYamlFile(fooRoot.path, 'name: foo');
+    newPackageConfigJsonFileFromBuilder(
+      fooRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: fooRoot)
+        ..add(name: 'settings', rootFolder: fooSettings),
+    );
+    newFile('${fooSettings.path}/lib/options.yaml', '''
+analyzer:
+  plugins:
+    - foo_plugin
+''');
+    var fooA = newFile('${fooRoot.path}/lib/a.dart', '');
+    var fooB = newFile('${fooRoot.path}/test/b.dart', '');
+
+    // These local plugins match the package-specific include from the shared
+    // options file, so this file should reuse the package's existing context.
+    newAnalysisOptionsYamlFile('${fooRoot.path}/nested', '''
+analyzer:
+  plugins:
+    - foo_plugin
+''');
+    var fooC = newFile('${fooRoot.path}/nested/c.dart', '');
+
+    var barRoot = newFolder('/home/bar');
+    var barSettings = newFolder('/settings/bar');
+    newPubspecYamlFile(barRoot.path, 'name: bar');
+    newPackageConfigJsonFileFromBuilder(
+      barRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'bar', rootFolder: barRoot)
+        ..add(name: 'settings', rootFolder: barSettings),
+    );
+    newFile('${barSettings.path}/lib/options.yaml', '''
+analyzer:
+  plugins:
+    - bar_plugin
+''');
+    var barA = newFile('${barRoot.path}/lib/a.dart', '');
+    var barB = newFile('${barRoot.path}/test/b.dart', '');
+    newAnalysisOptionsYamlFile('${barRoot.path}/nested', '''
+analyzer:
+  plugins:
+    - bar_plugin
+''');
+    var barC = newFile('${barRoot.path}/nested/c.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        fooA.path,
+        fooB.path,
+        fooC.path,
+        barA.path,
+        barB.path,
+        barC.path,
+      ],
+      withFineDependencies: true,
+    );
+    // A pre-existing bug causes the drivers to report no legacy plugins, so
+    // the expectation below has no `legacyPlugins` sections. We leave this
+    // unfixed because legacy plugin support is scheduled for removal:
+    // https://github.com/dart-lang/sdk/issues/64188
+    _assertCollectionText(collection, r'''
+contexts
+  /home/foo
+    includedPaths
+      /home/foo/lib/a.dart
+      /home/foo/test/b.dart
+      /home/foo/nested/c.dart
+    packagesFile: /home/foo/.dart_tool/package_config.json
+    optionsFile: /home/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/foo/lib/a.dart
+        uri: package:foo/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/foo/test/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/foo/nested/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+  /home/bar
+    includedPaths
+      /home/bar/lib/a.dart
+      /home/bar/test/b.dart
+      /home/bar/nested/c.dart
+    packagesFile: /home/bar/.dart_tool/package_config.json
+    optionsFile: /home/analysis_options.yaml
+    workspace: workspace_1
+    analyzedFiles
+      /home/bar/lib/a.dart
+        uri: package:bar/a.dart
+        analysisOptions_2
+        workspacePackage_1_0
+      /home/bar/test/b.dart
+        analysisOptions_2
+        workspacePackage_1_0
+      /home/bar/nested/c.dart
+        analysisOptions_3
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/analysis_options.yaml
+  analysisOptions_1: /home/foo/nested/analysis_options.yaml
+  analysisOptions_2: /home/analysis_options.yaml
+  analysisOptions_3: /home/bar/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/foo
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/foo
+  workspace_1: PackageConfigWorkspace
+    root: /home/bar
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/bar
+''');
+  }
+
   test_packageConfigWorkspace_multiplePackageConfigs() async {
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';

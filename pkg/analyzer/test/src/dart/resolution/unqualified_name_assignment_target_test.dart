@@ -9,39 +9,38 @@ import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImportPrefixedAssignmentTargetResolutionTest);
+    defineReflectiveTests(UnqualifiedNameAssignmentTargetResolutionTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ImportPrefixedAssignmentTargetResolutionTest
+class UnqualifiedNameAssignmentTargetResolutionTest
     extends PubPackageResolutionTest {
   test_compound_topLevelGetter_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter instead of unused imports.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'b.dart'.
+import 'c.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo += 1;
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -49,7 +48,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: package:test/c.dart::@setter::foo
       recovery: <null>
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
@@ -64,16 +62,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -93,30 +83,25 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Also report the missing setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -142,16 +127,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -173,30 +150,25 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetterFunction_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Also report the missing setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo() => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -222,16 +194,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -253,33 +217,29 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetterSetter_ambiguous_differentLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -287,9 +247,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -297,9 +254,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: +=
   value: IntegerLiteral
@@ -311,16 +265,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -342,33 +288,29 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetterSetter_ambiguous_mixedReadKinds() async {
+    // TODO(scheglov): Report the ambiguous read as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo() => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.ambiguousImport] The name 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -376,9 +318,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@function::foo
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -386,9 +325,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@function::foo
       recovery: <null>
   operator: +=
   value: IntegerLiteral
@@ -400,16 +336,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -431,6 +359,7 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelGetterSetter_ambiguous_sameLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', '''
 int get foo => 0;
 set foo(int value) {}
@@ -441,25 +370,20 @@ set foo(int value) {}
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'b.dart' as p;
-import 'a.dart' as p;
+import 'b.dart';
+import 'a.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -467,9 +391,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@getter::foo
           package:test/a.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -477,9 +398,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/a.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
       recovery: <null>
   operator: +=
   value: IntegerLiteral
@@ -491,16 +409,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -526,21 +436,17 @@ V1: AssignmentExpression
 int get foo => 0;
 set foo(num value) {}
 ''');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo += 1;
+  foo += 1;
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -559,16 +465,8 @@ CompoundAssignment
   operatorResultType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -591,25 +489,21 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/b.dart' and 'package:test/c.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -621,7 +515,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/c.dart::@setter::foo
-        candidate: package:test/a.dart::@getter::foo
       recovery: <null>
   operator: +=
   value: IntegerLiteral
@@ -633,16 +526,8 @@ CompoundAssignment
   operatorResultType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -662,30 +547,26 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelSetter_ambiguous_missingGetter() async {
-    // TODO(scheglov): Report the missing getter instead of an undefined prefixed name.
+    // TODO(scheglov): Report a missing getter instead of an undefined name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/b.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo += 1;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -711,16 +592,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -742,29 +615,25 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelVariable_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int foo = 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo = 0;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo += 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo += 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.compoundAssignment('p.foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -772,9 +641,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -782,9 +648,6 @@ CompoundAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@setter::foo
           package:test/b.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: +=
   value: IntegerLiteral
@@ -796,16 +659,8 @@ CompoundAssignment
   operatorResultType: InvalidType
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: +=
@@ -832,27 +687,23 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
+import 'a.dart';
 //     ^^^^^^^^
 // [diag.unusedImport] Unused import: 'a.dart'.
-import 'b.dart' as p;
+import 'b.dart';
 //     ^^^^^^^^
 // [diag.unusedImport] Unused import: 'b.dart'.
-import 'c.dart' as p;
+import 'c.dart';
 
 void f() {
-  p.foo = 0;
+  foo = 0;
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: SetterInvocationResolution
@@ -865,16 +716,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -892,29 +735,25 @@ V1: AssignmentExpression
   }
 
   test_direct_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Report the missing setter instead of getter ambiguity.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo = 0;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo = 0;
+//^^^
+// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -931,16 +770,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -966,26 +797,22 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  p.foo = 0;
-//  ^^^
+  foo = 0;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -994,9 +821,6 @@ DirectAssignment
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: =
   value: IntegerLiteral
@@ -1005,16 +829,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1044,24 +860,20 @@ set foo(int value) {}
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'b.dart' as p;
-import 'a.dart' as p;
+import 'b.dart';
+import 'a.dart';
 
 void f() {
-  p.foo = 0;
-//  ^^^
+  foo = 0;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -1070,9 +882,6 @@ DirectAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/a.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
       recovery: <null>
   operator: =
   value: IntegerLiteral
@@ -1081,16 +890,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1115,25 +916,21 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
 
 void f() {
-  p.foo = 0;
-//  ^^^
+  foo = 0;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/b.dart' and 'package:test/c.dart'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -1142,7 +939,6 @@ DirectAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/c.dart::@setter::foo
-        candidate: package:test/a.dart::@getter::foo
       recovery: <null>
   operator: =
   value: IntegerLiteral
@@ -1151,16 +947,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1181,21 +969,17 @@ V1: AssignmentExpression
 
   test_direct_topLevelSetter_contextType() async {
     newFile('$testPackageLibPath/a.dart', 'set foo(List<int> value) {}');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo = [];
+  foo = [];
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = []');
+    var node = result.findNode.directAssignment('foo = []');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: SetterInvocationResolution
@@ -1209,16 +993,8 @@ DirectAssignment
     staticType: List<int>
   staticType: List<int>
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1241,24 +1017,20 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/b.dart', 'int foo = 0;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo = 0;
-//  ^^^
+  foo = 0;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 0');
+    var node = result.findNode.directAssignment('foo = 0');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -1267,9 +1039,6 @@ DirectAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@setter::foo
           package:test/b.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: =
   value: IntegerLiteral
@@ -1278,16 +1047,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1306,81 +1067,21 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_direct_topLevelVariable_deferred() async {
-    newFile('$testPackageLibPath/a.dart', 'int foo = 0;');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' deferred as p;
-void f() {
-  p.foo = 1;
-}
-''');
-
-    var node = result.findNode.directAssignment('p.foo = 1');
-    assertResolvedNodeText(node, r'''
-DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
-    name: foo
-    read: <null>
-    write: SetterInvocationResolution
-      element: package:test/a.dart::@setter::foo
-      acceptedType: int
-  operator: =
-  value: IntegerLiteral
-    literal: 1
-    correspondingParameter: package:test/a.dart::@setter::foo::@formalParameter::value
-    staticType: int
-  staticType: int
-V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
-    element: <null>
-    staticType: null
-  operator: =
-  rightHandSide: IntegerLiteral
-    literal: 1
-    correspondingParameter: package:test/a.dart::@setter::foo::@formalParameter::value
-    staticType: int
-  readElement: <null>
-  readType: null
-  writeElement: package:test/a.dart::@setter::foo
-  writeType: int
-  element: <null>
-  staticType: int
-''');
-  }
-
   test_direct_topLevelVariable_final() async {
-    // TODO(scheglov): Report assignment to final instead of an undefined prefixed name.
     newFile('$testPackageLibPath/a.dart', 'final foo = 0;');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo = 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo = 1;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -1395,16 +1096,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1423,23 +1116,19 @@ V1: AssignmentExpression
 
   test_direct_unresolved() async {
     newFile('$testPackageLibPath/a.dart', '');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo = 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo = 1;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
 ''');
 
-    var node = result.findNode.directAssignment('p.foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
@@ -1453,16 +1142,8 @@ DirectAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: =
@@ -1480,30 +1161,29 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter instead of unused imports.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'b.dart'.
+import 'c.dart';
 
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo ??= 1;
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -1511,7 +1191,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: package:test/c.dart::@setter::foo
       recovery: <null>
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
@@ -1523,16 +1202,8 @@ IfNullAssignment
     staticType: int
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1552,30 +1223,25 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Also report the missing setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo ??= 1;
+//^^^
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -1598,16 +1264,8 @@ IfNullAssignment
     staticType: int
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1629,25 +1287,21 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Report a missing setter instead of a final variable.
     newFile('$testPackageLibPath/a.dart', 'int? get foo => null;');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo ??= 1;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -1665,16 +1319,8 @@ IfNullAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1692,33 +1338,29 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetterSetter_ambiguous_differentLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo ??= 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -1726,9 +1368,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -1736,9 +1375,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: ??=
   value: IntegerLiteral
@@ -1747,16 +1383,8 @@ IfNullAssignment
     staticType: int
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1778,6 +1406,7 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetterSetter_ambiguous_sameLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', '''
 int get foo => 0;
 set foo(int value) {}
@@ -1788,25 +1417,20 @@ set foo(int value) {}
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'b.dart' as p;
-import 'a.dart' as p;
+import 'b.dart';
+import 'a.dart';
 
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo ??= 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -1814,9 +1438,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@getter::foo
           package:test/a.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -1824,9 +1445,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/a.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
       recovery: <null>
   operator: ??=
   value: IntegerLiteral
@@ -1835,16 +1453,8 @@ IfNullAssignment
     staticType: int
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1870,21 +1480,17 @@ V1: AssignmentExpression
 int? get foo => null;
 set foo(num? value) {}
 ''');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo ??= 1;
+  foo ??= 1;
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -1900,16 +1506,8 @@ IfNullAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -1932,25 +1530,21 @@ V1: AssignmentExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
 
 void f() {
-  p.foo ??= 1;
-//  ^^^
+  foo ??= 1;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/b.dart' and 'package:test/c.dart'.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -1962,7 +1556,6 @@ IfNullAssignment
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/c.dart::@setter::foo
-        candidate: package:test/a.dart::@getter::foo
       recovery: <null>
   operator: ??=
   value: IntegerLiteral
@@ -1971,16 +1564,8 @@ IfNullAssignment
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -2000,31 +1585,29 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelSetter_missingGetter() async {
-    // TODO(scheglov): Report the missing getter instead of an undefined prefixed name.
+    // TODO(scheglov): Report a missing getter instead of an undefined name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo ??= 1;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo ??= 1;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
 }
 ''');
 
-    var node = result.findNode.ifNullAssignment('p.foo ??= 1');
+    var node = result.findNode.ifNullAssignment('foo ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
       candidates
         candidate: package:test/a.dart::@setter::foo
-      recovery: <null>
+      recovery: ExecutableTearOffResolution
+        element: package:test/a.dart::@setter::foo
+        type: void Function(int)
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
       acceptedType: int
@@ -2035,16 +1618,8 @@ IfNullAssignment
     staticType: int
   staticType: InvalidType
 V1: AssignmentExpression
-  leftHandSide: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  leftHandSide: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ??=
@@ -2066,21 +1641,17 @@ V1: AssignmentExpression
 int get foo => 0;
 set foo(num value) {}
 ''');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  p.foo--;
+  foo--;
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo--');
+    var node = result.findNode.incrementOrDecrement('foo--');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -2096,16 +1667,8 @@ IncrementOrDecrementExpression
   operatorResultType: int
   staticType: int
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: --
@@ -2119,30 +1682,29 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelGetter_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter instead of unused imports.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'b.dart'.
+import 'c.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo++;
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2150,7 +1712,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: package:test/c.dart::@setter::foo
       recovery: <null>
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
@@ -2162,16 +1723,8 @@ IncrementOrDecrementExpression
   operatorResultType: dynamic
   staticType: InvalidType
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2187,30 +1740,25 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Also report the missing setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  foo++;
+//^^^
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2233,16 +1781,8 @@ IncrementOrDecrementExpression
   operatorResultType: dynamic
   staticType: InvalidType
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2260,33 +1800,29 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelGetterSetter_ambiguous_differentLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo++;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2294,9 +1830,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -2304,9 +1837,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: ++
   operation: increment
@@ -2315,16 +1845,8 @@ IncrementOrDecrementExpression
   operatorResultType: dynamic
   staticType: InvalidType
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2342,6 +1864,7 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelGetterSetter_ambiguous_sameLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', '''
 int get foo => 0;
 set foo(int value) {}
@@ -2352,25 +1875,20 @@ set foo(int value) {}
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'b.dart' as p;
-import 'a.dart' as p;
+import 'b.dart';
+import 'a.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo++;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2378,9 +1896,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@getter::foo
           package:test/a.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -2388,9 +1903,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/a.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
       recovery: <null>
   operator: ++
   operation: increment
@@ -2399,16 +1911,8 @@ IncrementOrDecrementExpression
   operatorResultType: dynamic
   staticType: InvalidType
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2431,25 +1935,21 @@ V1: PostfixExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
+  foo++;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/b.dart' and 'package:test/c.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -2461,7 +1961,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/c.dart::@setter::foo
-        candidate: package:test/a.dart::@getter::foo
       recovery: <null>
   operator: ++
   operation: increment
@@ -2470,16 +1969,8 @@ IncrementOrDecrementExpression
   operatorResultType: int
   staticType: int
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2495,29 +1986,25 @@ V1: PostfixExpression
   }
 
   test_postfixIncrement_topLevelVariable_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int foo = 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo = 0;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  p.foo++;
-//  ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  foo++;
+//^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('p.foo++');
+    var node = result.findNode.incrementOrDecrement('foo++');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2525,9 +2012,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -2535,9 +2019,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@setter::foo
           package:test/b.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operator: ++
   operation: increment
@@ -2546,16 +2027,8 @@ IncrementOrDecrementExpression
   operatorResultType: dynamic
   staticType: InvalidType
 V1: PostfixExpression
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   operator: ++
@@ -2573,31 +2046,30 @@ V1: PostfixExpression
   }
 
   test_prefixIncrement_topLevelGetter_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter instead of unused imports.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'a.dart'.
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'b.dart'.
+import 'c.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  ++foo;
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2605,7 +2077,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: package:test/c.dart::@setter::foo
       recovery: <null>
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
@@ -2617,16 +2088,8 @@ IncrementOrDecrementExpression
   staticType: InvalidType
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: multiplyDefinedElement
@@ -2641,31 +2104,26 @@ V1: PrefixExpression
   }
 
   test_prefixIncrement_topLevelGetter_ambiguous_missingSetter() async {
-    // TODO(scheglov): Report the missing setter instead of an undefined prefixed name.
+    // TODO(scheglov): Also report the missing setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+  ++foo;
+//  ^^^
 // [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2688,16 +2146,8 @@ IncrementOrDecrementExpression
   staticType: InvalidType
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: multiplyDefinedElement
@@ -2714,34 +2164,30 @@ V1: PrefixExpression
   }
 
   test_prefixIncrement_topLevelGetterSetter_ambiguous_differentLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int get foo => 0;');
     newFile('$testPackageLibPath/b.dart', 'int get foo => 1;');
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/d.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
-import 'd.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  ++foo;
+//  ^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/c.dart' and 'package:test/d.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2749,9 +2195,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -2759,9 +2202,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/c.dart::@setter::foo
           package:test/d.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operation: increment
   position: prefix
@@ -2770,16 +2210,8 @@ IncrementOrDecrementExpression
   staticType: InvalidType
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: multiplyDefinedElement
@@ -2796,6 +2228,7 @@ V1: PrefixExpression
   }
 
   test_prefixIncrement_topLevelGetterSetter_ambiguous_sameLibraries() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', '''
 int get foo => 0;
 set foo(int value) {}
@@ -2806,26 +2239,21 @@ set foo(int value) {}
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'b.dart' as p;
-import 'a.dart' as p;
+import 'b.dart';
+import 'a.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  ++foo;
+//  ^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -2833,9 +2261,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@getter::foo
           package:test/a.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -2843,9 +2268,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/a.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
       recovery: <null>
   operation: increment
   position: prefix
@@ -2854,16 +2276,8 @@ IncrementOrDecrementExpression
   staticType: InvalidType
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: multiplyDefinedElement
@@ -2884,22 +2298,18 @@ V1: PrefixExpression
 int get foo => 0;
 set foo(num value) {}
 ''');
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as p;
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
 void f() {
-  ++p.foo;
+  ++foo;
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -2915,16 +2325,8 @@ IncrementOrDecrementExpression
   staticType: int
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: package:test/a.dart::@getter::foo
@@ -2942,26 +2344,22 @@ V1: PrefixExpression
     newFile('$testPackageLibPath/c.dart', 'set foo(int value) {}');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
-import 'c.dart' as p;
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
+  ++foo;
+//  ^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/b.dart' and 'package:test/c.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
@@ -2973,7 +2371,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/b.dart::@setter::foo
           package:test/c.dart::@setter::foo
-        candidate: package:test/a.dart::@getter::foo
       recovery: <null>
   operation: increment
   position: prefix
@@ -2982,16 +2379,8 @@ IncrementOrDecrementExpression
   staticType: int
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: package:test/a.dart::@getter::foo
@@ -3006,30 +2395,26 @@ V1: PrefixExpression
   }
 
   test_prefixIncrement_topLevelVariable_ambiguous() async {
+    // TODO(scheglov): Report the ambiguous getter as well as the setter.
     newFile('$testPackageLibPath/a.dart', 'int foo = 0;');
     newFile('$testPackageLibPath/b.dart', 'int foo = 0;');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as p;
-import 'b.dart' as p;
+import 'a.dart';
+import 'b.dart';
 
 void f() {
-  ++p.foo;
-//    ^^^
-// [diag.ambiguousImport] The getter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+  ++foo;
+//  ^^^
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
 
-    var node = result.findNode.incrementOrDecrement('++p.foo');
+    var node = result.findNode.incrementOrDecrement('++foo');
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ImportPrefixedAssignmentTarget
-    importPrefix: ImportPrefixReference
-      name: p
-      period: .
-      element: <testLibraryFragment>::@prefix::p
+  target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
       type: InvalidType
@@ -3037,9 +2422,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@getter::foo
           package:test/b.dart::@getter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
       recovery: <null>
     write: InvalidNamedWriteResolution
       acceptedType: InvalidType
@@ -3047,9 +2429,6 @@ IncrementOrDecrementExpression
         candidate: multiplyDefinedElement
           package:test/a.dart::@setter::foo
           package:test/b.dart::@setter::foo
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
       recovery: <null>
   operation: increment
   position: prefix
@@ -3058,16 +2437,8 @@ IncrementOrDecrementExpression
   staticType: InvalidType
 V1: PrefixExpression
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
-      element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+  operand: SimpleIdentifier
+    token: foo
     element: <null>
     staticType: null
   readElement: multiplyDefinedElement
