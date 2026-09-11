@@ -294,150 +294,147 @@ abstract class RecognizedMethods {
 /// Recognized methods shared by all back-ends.
 class CommonRecognizedMethods implements RecognizedMethods {
   final LibraryIndex index;
+  final bool requireMethods;
 
-  CommonRecognizedMethods() : index = GlobalContext.instance.coreLibraries;
+  CommonRecognizedMethods({this.requireMethods = true})
+    : index = GlobalContext.instance.coreLibraries;
 
   @override
   late final instanceInvocations = <ast.Member, RecognizedCallMatcher>{
-    index.getProcedure('dart:core', 'num', '+'): const BinaryNumOp(
+    // Note: `const` is omitted on the values of null-aware map entries to work
+    // around a prebuilt SDK CFE bug in `_translateNullAwareMapEntry`.
+    ?getProcedure('dart:core', 'num', '+'): BinaryNumOp(
       BinaryIntOpcode.add,
       BinaryDoubleOpcode.add,
     ),
-    index.getProcedure('dart:core', 'num', '-'): const BinaryNumOp(
+    ?getProcedure('dart:core', 'num', '-'): BinaryNumOp(
       BinaryIntOpcode.sub,
       BinaryDoubleOpcode.sub,
     ),
-    index.getProcedure('dart:core', 'num', '*'): const BinaryNumOp(
+    ?getProcedure('dart:core', 'num', '*'): BinaryNumOp(
       BinaryIntOpcode.mul,
       BinaryDoubleOpcode.mul,
     ),
-    index.getProcedure('dart:core', 'num', '%'): const BinaryNumOp(
+    ?getProcedure('dart:core', 'num', '%'): BinaryNumOp(
       BinaryIntOpcode.mod,
       BinaryDoubleOpcode.mod,
     ),
-    index.getProcedure('dart:core', 'num', '~/'): const BinaryNumOp(
+    ?getProcedure('dart:core', 'num', '~/'): BinaryNumOp(
       BinaryIntOpcode.truncatingDiv,
       BinaryDoubleOpcode.truncatingDiv,
     ),
-    index.getProcedure('dart:core', 'num', 'remainder'): const BinaryNumOp(
+    ?getProcedure('dart:core', 'num', 'remainder'): BinaryNumOp(
       BinaryIntOpcode.rem,
       BinaryDoubleOpcode.rem,
     ),
-    index.getProcedure('dart:core', 'num', '/'): const NumDiv(),
-    index.getProcedure('dart:core', 'num', 'toDouble'): const NumToDouble(),
-    index.getProcedure('dart:core', 'num', 'toInt'): const NumToInt(),
-    index.getProcedure('dart:core', 'num', '=='): const NumComparison(
+    ?getProcedure('dart:core', 'num', '/'): NumDiv(),
+    ?getProcedure('dart:core', 'num', 'toDouble'): NumToDouble(),
+    ?getProcedure('dart:core', 'num', 'toInt'): NumToInt(),
+    ?getProcedure('dart:core', 'num', '=='): NumComparison(
       ComparisonOpcode.intEqual,
       ComparisonOpcode.doubleEqual,
     ),
-    index.getProcedure('dart:core', 'num', '<'): const NumComparison(
+    ?getProcedure('dart:core', 'num', '<'): NumComparison(
       ComparisonOpcode.intLess,
       ComparisonOpcode.doubleLess,
     ),
-    index.getProcedure('dart:core', 'num', '<='): const NumComparison(
+    ?getProcedure('dart:core', 'num', '<='): NumComparison(
       ComparisonOpcode.intLessOrEqual,
       ComparisonOpcode.doubleLessOrEqual,
     ),
-    index.getProcedure('dart:core', 'num', '>'): const NumComparison(
+    ?getProcedure('dart:core', 'num', '>'): NumComparison(
       ComparisonOpcode.intGreater,
       ComparisonOpcode.doubleGreater,
     ),
-    index.getProcedure('dart:core', 'num', '>='): const NumComparison(
+    ?getProcedure('dart:core', 'num', '>='): NumComparison(
       ComparisonOpcode.intGreaterOrEqual,
       ComparisonOpcode.doubleGreaterOrEqual,
     ),
-    index.getProcedure('dart:core', 'int', '|'): const BinaryIntOp(
-      BinaryIntOpcode.bitOr,
-    ),
-    index.getProcedure('dart:core', 'int', '&'): const BinaryIntOp(
-      BinaryIntOpcode.bitAnd,
-    ),
-    index.getProcedure('dart:core', 'int', '^'): const BinaryIntOp(
-      BinaryIntOpcode.bitXor,
-    ),
-    index.getProcedure('dart:core', 'int', '<<'): const BinaryIntOp(
+    ?getProcedure('dart:core', 'int', '|'): BinaryIntOp(BinaryIntOpcode.bitOr),
+    ?getProcedure('dart:core', 'int', '&'): BinaryIntOp(BinaryIntOpcode.bitAnd),
+    ?getProcedure('dart:core', 'int', '^'): BinaryIntOp(BinaryIntOpcode.bitXor),
+    ?getProcedure('dart:core', 'int', '<<'): BinaryIntOp(
       BinaryIntOpcode.shiftLeft,
     ),
-    index.getProcedure('dart:core', 'int', '>>'): const BinaryIntOp(
+    ?getProcedure('dart:core', 'int', '>>'): BinaryIntOp(
       BinaryIntOpcode.shiftRight,
     ),
-    index.getProcedure('dart:core', 'int', '>>>'): const BinaryIntOp(
+    ?getProcedure('dart:core', 'int', '>>>'): BinaryIntOp(
       BinaryIntOpcode.unsignedShiftRight,
     ),
-    index.getProcedure('dart:core', 'int', 'unary-'): const UnaryIntOp(
-      UnaryIntOpcode.neg,
-    ),
-    index.getProcedure('dart:core', 'int', '~'): const UnaryIntOp(
-      UnaryIntOpcode.bitNot,
-    ),
-    index.getProcedure('dart:core', 'int', 'abs'): const UnaryIntOp(
-      UnaryIntOpcode.abs,
-    ),
-    index.getProcedure('dart:core', 'double', '+'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'int', 'unary-'): UnaryIntOp(UnaryIntOpcode.neg),
+    ?getProcedure('dart:core', 'int', '~'): UnaryIntOp(UnaryIntOpcode.bitNot),
+    ?getProcedure('dart:core', 'int', 'abs'): UnaryIntOp(UnaryIntOpcode.abs),
+    ?getProcedure('dart:core', 'double', '+'): BinaryDoubleOp(
       BinaryDoubleOpcode.add,
     ),
-    index.getProcedure('dart:core', 'double', '-'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'double', '-'): BinaryDoubleOp(
       BinaryDoubleOpcode.sub,
     ),
-    index.getProcedure('dart:core', 'double', '*'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'double', '*'): BinaryDoubleOp(
       BinaryDoubleOpcode.mul,
     ),
-    index.getProcedure('dart:core', 'double', '%'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'double', '%'): BinaryDoubleOp(
       BinaryDoubleOpcode.mod,
     ),
-    index.getProcedure('dart:core', 'double', '/'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'double', '/'): BinaryDoubleOp(
       BinaryDoubleOpcode.div,
     ),
-    index.getProcedure('dart:core', 'double', '~/'): const BinaryDoubleOp(
+    ?getProcedure('dart:core', 'double', '~/'): BinaryDoubleOp(
       BinaryDoubleOpcode.truncatingDiv,
     ),
-    index.getProcedure('dart:core', 'double', 'remainder'):
-        const BinaryDoubleOp(BinaryDoubleOpcode.rem),
-    index.getProcedure('dart:core', 'double', 'unary-'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'remainder'): BinaryDoubleOp(
+      BinaryDoubleOpcode.rem,
+    ),
+    ?getProcedure('dart:core', 'double', 'unary-'): UnaryDoubleOp(
       UnaryDoubleOpcode.neg,
     ),
-    index.getProcedure('dart:core', 'double', 'abs'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'abs'): UnaryDoubleOp(
       UnaryDoubleOpcode.abs,
     ),
-    index.getProcedure('dart:core', 'double', 'round'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'round'): UnaryDoubleOp(
       UnaryDoubleOpcode.round,
     ),
-    index.getProcedure('dart:core', 'double', 'ceil'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'ceil'): UnaryDoubleOp(
       UnaryDoubleOpcode.ceil,
     ),
-    index.getProcedure('dart:core', 'double', 'floor'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'floor'): UnaryDoubleOp(
       UnaryDoubleOpcode.floor,
     ),
-    index.getProcedure('dart:core', 'double', 'truncate'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'truncate'): UnaryDoubleOp(
       UnaryDoubleOpcode.truncate,
     ),
-    index.getProcedure('dart:core', 'double', 'roundToDouble'):
-        const UnaryDoubleOp(UnaryDoubleOpcode.roundToDouble),
-    index.getProcedure('dart:core', 'double', 'ceilToDouble'):
-        const UnaryDoubleOp(UnaryDoubleOpcode.ceilToDouble),
-    index.getProcedure('dart:core', 'double', 'floorToDouble'):
-        const UnaryDoubleOp(UnaryDoubleOpcode.floorToDouble),
-    index.getProcedure('dart:core', 'double', 'truncateToDouble'):
-        const UnaryDoubleOp(UnaryDoubleOpcode.truncateToDouble),
+    ?getProcedure('dart:core', 'double', 'roundToDouble'): UnaryDoubleOp(
+      UnaryDoubleOpcode.roundToDouble,
+    ),
+    ?getProcedure('dart:core', 'double', 'ceilToDouble'): UnaryDoubleOp(
+      UnaryDoubleOpcode.ceilToDouble,
+    ),
+    ?getProcedure('dart:core', 'double', 'floorToDouble'): UnaryDoubleOp(
+      UnaryDoubleOpcode.floorToDouble,
+    ),
+    ?getProcedure('dart:core', 'double', 'truncateToDouble'): UnaryDoubleOp(
+      UnaryDoubleOpcode.truncateToDouble,
+    ),
   };
 
   @override
   late final instanceGetters = <ast.Member, RecognizedCallMatcher>{
-    index.getProcedure('dart:core', 'num', 'get:isNaN'): const NumIsNaN(),
-    index.getProcedure('dart:core', 'int', 'get:sign'): const UnaryIntOp(
+    ?getProcedure('dart:core', 'num', 'get:isNaN'): NumIsNaN(),
+    ?getProcedure('dart:core', 'int', 'get:sign'): UnaryIntOp(
       UnaryIntOpcode.sign,
     ),
-    index.getProcedure('dart:core', 'int', 'get:bitLength'): const UnaryIntOp(
+    ?getProcedure('dart:core', 'int', 'get:bitLength'): UnaryIntOp(
       UnaryIntOpcode.bitLength,
     ),
-    index.getProcedure('dart:core', 'double', 'get:sign'): const UnaryDoubleOp(
+    ?getProcedure('dart:core', 'double', 'get:sign'): UnaryDoubleOp(
       UnaryDoubleOpcode.sign,
     ),
   };
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
-    index.getTopLevelProcedure(
+    ?getTopLevelProcedure(
       'dart:core',
       'identical',
     ): (FlowGraphBuilder builder) {
@@ -452,11 +449,23 @@ class CommonRecognizedMethods implements RecognizedMethods {
       member: AnyArgsMatcher(builder),
 
     // dart:_internal
-    index.getTopLevelProcedure('dart:_internal', 'unsafeCast'):
-        const UnsafeCast(),
+    ?getTopLevelProcedure('dart:_internal', 'unsafeCast'): UnsafeCast(),
   };
 
   @override
   BuildIR? getRecognizedFunctionBody(CFunction function) =>
       _recognizedMembers[function.member];
+
+  ast.Procedure? getProcedure(
+    String libraryUri,
+    String className,
+    String memberName,
+  ) => requireMethods
+      ? index.getProcedure(libraryUri, className, memberName)
+      : index.tryGetProcedure(libraryUri, className, memberName);
+
+  ast.Procedure? getTopLevelProcedure(String libraryUri, String name) =>
+      requireMethods
+      ? index.getTopLevelProcedure(libraryUri, name)
+      : index.tryGetProcedure(libraryUri, LibraryIndex.topLevel, name);
 }

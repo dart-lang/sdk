@@ -34,7 +34,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     var name = context.node;
     MethodInvocation? invocation;
     var isInlineInvocation = false;
-    if (name case SimpleIdentifier(parent: MethodInvocation parent)) {
+    if (name case SimpleIdentifier(:MethodInvocation parent)) {
       invocation = parent;
 
       if (name != invocation.methodName ||

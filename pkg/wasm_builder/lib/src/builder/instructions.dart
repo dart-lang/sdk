@@ -173,6 +173,12 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// The module containing these instructions.
   final ModuleBuilder moduleBuilder;
 
+  /// Inputs to the instruction block.
+  final List<ir.ValueType> inputs;
+
+  /// Outputs of the instruction block.
+  final List<ir.ValueType> outputs;
+
   /// Locals declared in this body, including parameters.
   final List<ir.Local> locals = [];
 
@@ -199,7 +205,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Compact bytecode builder for debug info, or `null` if debug info
   /// recording is disabled.
-  final DebugInfoWriter? _debugInfoWriter;
+  DebugInfoWriter? _debugInfoWriter;
 
   int _indent = 1;
   final List<String> _inlinedFrames = [];
@@ -230,8 +236,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Create a new instruction sequence.
   InstructionsBuilder(
     this.moduleBuilder,
-    List<ir.ValueType> inputs,
-    List<ir.ValueType> outputs, {
+    this.inputs,
+    this.outputs, {
     this.constantExpression = false,
   }) : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
        _debugInfoWriter = moduleBuilder.debugInfoTables == null
@@ -241,6 +247,32 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
     }
+  }
+
+  /// Resets this [InstructionsBuilder] to its initial state right after
+  /// construction.
+  void reset() {
+    assert(!isBuilt);
+    assert(!hasPatchPoints);
+    locals.length = inputs.length;
+    localNames.clear();
+    _debugInfoWriter = moduleBuilder.debugInfoTables == null
+        ? null
+        : DebugInfoWriter(moduleBuilder.debugInfoTables!);
+    _indent = 1;
+    _inlinedFrames.clear();
+    _traceLines.clear();
+    _labelCount = 0;
+    _labelStack.clear();
+    _labelStack.add(Expression(const [], outputs));
+    _stackTypes.clear();
+    _reachable = true;
+    _localInitialized.length = inputs.length;
+    _localInitialized.fillRange(0, inputs.length, true);
+    _localInitializationStack.clear();
+    _instructions.clear();
+    _stackTraces?.clear();
+    _patchPoints.clear();
   }
 
   ir.Module get module => moduleBuilder.module;

@@ -302,6 +302,7 @@ Future<void> copyTestProjects(
     for (final package in [
       'code_assets',
       'data_assets',
+      'ffigen',
       'hooks',
       'native_toolchain_c',
       'record_use',

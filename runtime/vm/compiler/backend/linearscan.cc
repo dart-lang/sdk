@@ -149,6 +149,22 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   }
 }
 
+static void RecordUse(BitVector* live_in, Definition* defn) {
+  live_in->Add(defn->vreg(0));
+  if (defn->HasPairRepresentation()) {
+    live_in->Add(defn->vreg(1));
+  }
+}
+
+static void RecordDef(BitVector* live_in, BitVector* kill, Definition* defn) {
+  kill->Add(defn->vreg(0));
+  live_in->Remove(defn->vreg(0));
+  if (defn->HasPairRepresentation()) {
+    kill->Add(defn->vreg(1));
+    live_in->Remove(defn->vreg(1));
+  }
+}
+
 static void DeepLiveness(MaterializeObjectInstr* mat, BitVector* live_in) {
   if (mat->was_visited_for_liveness()) {
     return;
@@ -162,8 +178,7 @@ static void DeepLiveness(MaterializeObjectInstr* mat, BitVector* live_in) {
       if (inner_mat != nullptr) {
         DeepLiveness(inner_mat, live_in);
       } else {
-        intptr_t idx = defn->vreg(0);
-        live_in->Add(idx);
+        RecordUse(live_in, defn);
       }
     }
   }
@@ -196,12 +211,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // Handle definitions.
       Definition* current_def = current->AsDefinition();
       if ((current_def != nullptr) && current_def->HasSSATemp()) {
-        kill->Add(current_def->vreg(0));
-        live_in->Remove(current_def->vreg(0));
-        if (current_def->HasPairRepresentation()) {
-          kill->Add(current_def->vreg(1));
-          live_in->Remove(current_def->vreg(1));
-        }
+        RecordDef(live_in, kill, current_def);
       }
 
       // Handle uses.
@@ -212,10 +222,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
         ASSERT(!locs->in(j).IsConstant() || input->BindsToConstant());
         if (locs->in(j).IsConstant()) continue;
 
-        live_in->Add(input->definition()->vreg(0));
-        if (input->definition()->HasPairRepresentation()) {
-          live_in->Add(input->definition()->vreg(1));
-        }
+        RecordUse(live_in, input->definition());
       }
 
       // Process detached MoveArguments interpreting them as
@@ -226,10 +233,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
           if (move->is_register_move()) {
             auto input = move->value();
 
-            live_in->Add(input->definition()->vreg(0));
-            if (input->definition()->HasPairRepresentation()) {
-              live_in->Add(input->definition()->vreg(1));
-            }
+            RecordUse(live_in, input->definition());
           }
         }
       }
@@ -245,10 +249,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
             // Treat its inputs as part of the environment.
             DeepLiveness(defn->AsMaterializeObject(), live_in);
           } else if (!defn->IsMoveArgument() && !defn->IsConstant()) {
-            live_in->Add(defn->vreg(0));
-            if (defn->HasPairRepresentation()) {
-              live_in->Add(defn->vreg(1));
-            }
+            RecordUse(live_in, defn);
           }
         }
       }
@@ -260,12 +261,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
         ASSERT(phi != nullptr);
-        kill->Add(phi->vreg(0));
-        live_in->Remove(phi->vreg(0));
-        if (phi->HasPairRepresentation()) {
-          kill->Add(phi->vreg(1));
-          live_in->Remove(phi->vreg(1));
-        }
+        RecordDef(live_in, kill, phi);
 
         // If a phi input is not defined by the corresponding predecessor it
         // must be marked live-in for that predecessor.
@@ -295,13 +291,8 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // Process initial definitions, i.e. parameters and special parameters.
       for (intptr_t i = 0; i < entry->initial_definitions()->length(); i++) {
         Definition* def = (*entry->initial_definitions())[i];
-        const intptr_t vreg = def->vreg(0);
-        kill_[entry->postorder_number()]->Add(vreg);
-        live_in_[entry->postorder_number()]->Remove(vreg);
-        if (def->HasPairRepresentation()) {
-          kill_[entry->postorder_number()]->Add(def->vreg(1));
-          live_in_[entry->postorder_number()]->Remove(def->vreg(1));
-        }
+        RecordDef(live_in_[entry->postorder_number()],
+                  kill_[entry->postorder_number()], def);
       }
     }
   }
