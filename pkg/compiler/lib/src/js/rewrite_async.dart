@@ -2030,10 +2030,13 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     if (!hasHandlerLabels) return; // rethrow handled in method boilerplate.
     beginLabel(rethrowLabel);
+    js.Expression currentError = js
+        .js('#.at(-1)', [errorStack])
+        .withSourceInformation(sourceInformation);
     js.Expression thenHelperCall = js
-        .js("#thenHelper(#errorStack.at(-1), #completer)", {
+        .js("#thenHelper(#currentError, #completer)", {
           "thenHelper": asyncRethrow,
-          "errorStack": errorStack,
+          "currentError": currentError,
           "completer": completer,
         })
         .withSourceInformation(sourceInformation);
@@ -2415,7 +2418,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
     // SYNC_STAR_UNCAUGHT_EXCEPTION status code.
     final store = js.Assignment(
       js.PropertyAccess(js.VariableUse(iteratorName), iteratorDatumProperty),
-      js.js('#.at(-1)', [errorStack]),
+      js.js('#.at(-1)', [errorStack]).withSourceInformation(sourceInformation),
     );
     addStatement(
       js.Return(
@@ -2734,11 +2737,14 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     hasHandlerLabels = true;
     beginLabel(rethrowLabel);
+    js.Expression currentError = js
+        .js('#.at(-1)', [errorStack])
+        .withSourceInformation(sourceInformation);
     js.Expression asyncHelperCall = js
-        .js("#asyncHelper(#errorStack.at(-1), #errorCode, #controller)", {
+        .js("#asyncHelper(#currentError, #errorCode, #controller)", {
           "asyncHelper": asyncStarHelper,
           "errorCode": js.number(status_codes.ERROR),
-          "errorStack": errorStack,
+          "currentError": currentError,
           "controller": controllerName,
         })
         .withSourceInformation(sourceInformation);
