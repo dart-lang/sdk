@@ -493,9 +493,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     FormalParameterList parameterList,
     Expression expression,
   ) {
-    if (expression case SimpleIdentifier(
-      element: FormalParameterElement element,
-    )) {
+    if (expression case SimpleIdentifier(:FormalParameterElement element)) {
       if (_findParameterForElement(parameterList, element)
           case var parameter?) {
         return (parameter, element);

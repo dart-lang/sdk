@@ -266,7 +266,7 @@ class MethodInvocationResolver with ScopeHelpers {
     _invocation = node;
 
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(
-      lookupType: InterfaceTypeImpl(element: var element),
+      lookupType: InterfaceTypeImpl(:var element),
     )) {
       return _resolveReceiverTypeLiteralForDotShorthand(
         node,

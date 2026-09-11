@@ -33,7 +33,7 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(parent: var parent)
+        case FunctionExpression(:var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||

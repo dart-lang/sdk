@@ -128,25 +128,25 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "773de9d6321bc2c7d86d6926e30b341f0b8c2cb1",
-  "dartdoc_rev": "27376696f59b8776af3a2d07291a53562767d345",
-  "ecosystem_rev": "cda8bd535dfbcff45010bc3c843d325682f944b2",
+  "core_rev": "7e8caafa375b8bda57d88c71c5ce92e48450e5f0",
+  "dartdoc_rev": "df2f2cde6c18e2e613a262db05ecfe5806c40199",
+  "ecosystem_rev": "1bdafd85bb97b331ddd683577f48a5dfa7f4cb49",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "a9176ac97402a42e1b275a26eb20a9deaec92184",
-  "i18n_rev": "2fd9412c87f0cd3c6f018db6b2f888010c281356",
+  "http_rev": "066e15822b60ca2597e83730b6ede37545d0ed39",
+  "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "38fe1793bf894cac95bd14e688df8246c87b904a",
+  "native_rev": "84d7edac0b48315422c9e025d2a0531b03d9f41c",
   "protobuf_rev": "cde8e2865fe5a349cc9f476e0c89f4e4a23ac15c",
   "pub_rev": "0382a52acba89ff0080d559bb22f4017962bbd1d", # rolled manually
-  "shelf_rev": "fb3f931d2c158d794e83c1b76b7be4b625db3c28",
+  "shelf_rev": "f36dd68654814e0498c30b9f7ccc4bb0aa2bc118",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "c80d53dbd489d61e0481fc484cd6f9a3b53603fb",
-  "tools_rev": "441ff2986fd495c88b59bb15dd6b35904ad329b7",
+  "tools_rev": "682f2854809b03d8a3aa2f93298b1ea2ee62a395",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "6b84f811cd67a5fd05f4dac24cb56542bcfc92e4",
-  "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
+  "web_rev": "e5c6c028da66688a2295557757850a1599ec392e",
+  "webdriver_rev": "9b2e87d7dc3fe8ed11b93066e29b3341664c0c3b",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
   # Windows deps
