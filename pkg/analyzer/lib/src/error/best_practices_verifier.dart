@@ -1981,8 +1981,7 @@ class _InvalidAccessVerifier {
     var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.name, element: element);
@@ -2075,8 +2074,7 @@ class _InvalidAccessVerifier {
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.propertyName, element: element);
@@ -2118,8 +2116,7 @@ class _InvalidAccessVerifier {
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.name, element: element);
@@ -2425,10 +2422,7 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element.baseElement,
-      _ => null,
-    };
+    var element = node.resolution?.element?.baseElement;
     if (_parameters.contains(element)) {
       _usedParameters.add(element as FormalParameterElement);
     }

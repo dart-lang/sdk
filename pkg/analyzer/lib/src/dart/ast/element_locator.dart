@@ -329,10 +329,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
+    return node.write?.element;
   }
 
   @override
@@ -446,8 +443,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
   }
 
@@ -460,10 +456,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return node.read.elementOrRecovery;
+    return node.write?.element ?? node.read.elementOrRecovery;
   }
 
   @override
@@ -598,10 +591,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
+    return node.write?.element;
   }
 
   @override
@@ -620,15 +610,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    return node.resolution.elementOrRecovery;
+    return node.write?.element;
   }
 
   Element? _visitIdentifier(Identifier node) {

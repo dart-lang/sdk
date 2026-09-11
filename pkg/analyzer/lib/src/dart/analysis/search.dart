@@ -313,9 +313,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   ) {
     var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => element,
       InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => null,
+      _ => node.write?.element,
     };
     var prefixFragment = import.prefix;
     if (prefixFragment != null &&
@@ -1953,14 +1952,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    var readMatches = switch (node.read) {
-      NamedReadResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
-    var writeMatches = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
     var kind = switch ((readMatches, writeMatches)) {
       (true, true) => SearchResultKind.READ_WRITE,
       (true, false) => SearchResultKind.READ,
@@ -1984,8 +1977,7 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
     var element = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     if (elements.contains(element)) {
       _addResultImpl(
@@ -2002,14 +1994,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
     ImportPrefixedAssignmentTarget node,
   ) {
     node.importPrefix.accept2(this);
-    var readMatches = switch (node.read) {
-      NamedReadResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
-    var writeMatches = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
 
     var kind = switch ((readMatches, writeMatches)) {
       (true, true) => SearchResultKind.READ_WRITE,
@@ -2083,14 +2069,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    var readMatches = switch (node.read) {
-      NamedReadResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
-    var writeMatches = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
 
     var kind = switch ((readMatches, writeMatches)) {
       (true, true) => SearchResultKind.READ_WRITE,
@@ -2140,14 +2120,8 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var readMatches = switch (node.read) {
-      NamedReadResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
-    var writeMatches = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => _matches(element),
-      _ => false,
-    };
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
 
     var kind = switch ((readMatches, writeMatches)) {
       (true, true) => SearchResultKind.READ_WRITE,
@@ -2199,7 +2173,7 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
     _addResultImpl(token, kind, isQualified: true);
   }
 
-  bool _matches(Element element) =>
+  bool _matches(Element? element) =>
       elements.contains(element) ||
       element is PropertyAccessorElement && elements.contains(element.variable);
 

@@ -1331,10 +1331,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return targetResult;
     }
 
-    var propertyElement = switch (node.resolution) {
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      _ => null,
-    };
+    var propertyElement = node.resolution?.element;
     return _evaluatePropertyAccess(
           targetResult,
           node,
@@ -2942,12 +2939,8 @@ class DartObjectComputer {
             target = InvocationTargetExecutableElement(e);
           }
         } else if (node is UnqualifiedNameExpression) {
-          if (node.resolution case NamedReadResolutionWithElement(
-            :var element,
-          )) {
-            if (element is ExecutableElement) {
-              target = InvocationTargetExecutableElement(element);
-            }
+          if (node.resolution?.element case ExecutableElement element) {
+            target = InvocationTargetExecutableElement(element);
           }
         }
         target ??= InvocationTargetFunctionTypedExpression(rawType);

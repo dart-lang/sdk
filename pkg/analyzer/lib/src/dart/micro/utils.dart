@@ -185,9 +185,8 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
     usedElement = parent.element;
   } else if (parent is ImportPrefixedAssignmentTarget) {
     usedElement = switch (parent.write) {
-      NamedWriteResolutionWithElement(:var element) => element,
       InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => parent.read.elementOrRecovery,
+      _ => parent.write?.element ?? parent.read.elementOrRecovery,
     };
   }
   if (usedElement == null) {
@@ -486,20 +485,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     var target = node.target;
     if (target is PropertyAssignmentTarget ||
         target is UnqualifiedNameAssignmentTarget) {
-      var readMatches = switch (target.read) {
-        NamedReadResolutionWithElement(element: var readElement) =>
-          readElement is PropertyAccessorElement
-              ? readElement.variable == element || readElement == element
-              : readElement == element,
-        _ => false,
-      };
-      var writeMatches = switch (target.write) {
-        NamedWriteResolutionWithElement(element: var writeElement) =>
-          writeElement is PropertyAccessorElement
-              ? writeElement.variable == element || writeElement == element
-              : writeElement == element,
-        _ => false,
-      };
+      var readMatches = _matches(target.read?.element);
+      var writeMatches = _matches(target.write?.element);
       if (readMatches || writeMatches) {
         var kind = readMatches && writeMatches
             ? MatchKind.READ_WRITE
@@ -607,9 +594,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       return;
     }
     switch (target.write) {
-      case NamedWriteResolutionWithElement(element: var writeElement):
-        if (writeElement is PropertyAccessorElement &&
-            (writeElement.variable == element || writeElement == element)) {
+      case WriteResolution(element: PropertyAccessorElement writeElement):
+        if (_matches(writeElement)) {
           var entity = switch (target) {
             PropertyAssignmentTarget() => target.propertyName,
             _ => target,
@@ -619,12 +605,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
           );
         }
       case InvalidNamedWriteResolution(:var candidates):
-        if (candidates.any(
-          (candidate) =>
-              candidate == element ||
-              candidate is PropertyAccessorElement &&
-                  candidate.variable == element,
-        )) {
+        if (candidates.any(_matches)) {
           references.add(
             MatchInfo(target.offset, target.length, MatchKind.REFERENCE),
           );
@@ -660,20 +641,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     var target = node.target;
     if (target is PropertyAssignmentTarget ||
         target is UnqualifiedNameAssignmentTarget) {
-      var readMatches = switch (target.read) {
-        NamedReadResolutionWithElement(element: var readElement) =>
-          readElement is PropertyAccessorElement
-              ? readElement.variable == element || readElement == element
-              : readElement == element,
-        _ => false,
-      };
-      var writeMatches = switch (target.write) {
-        NamedWriteResolutionWithElement(element: var writeElement) =>
-          writeElement is PropertyAccessorElement
-              ? writeElement.variable == element || writeElement == element
-              : writeElement == element,
-        _ => false,
-      };
+      var readMatches = _matches(target.read?.element);
+      var writeMatches = _matches(target.write?.element);
       if (readMatches || writeMatches) {
         var kind = readMatches && writeMatches
             ? MatchKind.READ_WRITE
@@ -695,19 +664,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   void visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    bool matches(Element candidate) {
-      return candidate == element ||
-          candidate is PropertyAccessorElement && candidate.variable == element;
-    }
-
-    var readMatches = switch (node.read) {
-      NamedReadResolutionWithElement(:var element) => matches(element),
-      _ => false,
-    };
-    var writeMatches = switch (node.write) {
-      NamedWriteResolutionWithElement(:var element) => matches(element),
-      _ => false,
-    };
+    var readMatches = _matches(node.read?.element);
+    var writeMatches = _matches(node.write?.element);
     var kind = switch ((readMatches, writeMatches)) {
       (true, true) => MatchKind.READ_WRITE,
       (true, false) => MatchKind.READ,
@@ -716,7 +674,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     };
     if (node.write case InvalidNamedWriteResolution(
       :var candidates,
-    ) when kind == null && candidates.any(matches)) {
+    ) when kind == null && candidates.any(_matches)) {
       kind = MatchKind.REFERENCE;
     }
     if (kind != null) {
@@ -846,6 +804,10 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       ),
     };
   }
+
+  bool _matches(Element? candidate) =>
+      candidate == element ||
+      candidate is PropertyAccessorElement && candidate.variable == element;
 
   void _recordNamedRead(
     SyntacticEntity entity,

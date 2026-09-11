@@ -708,18 +708,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
-        var readElement = switch (target.read) {
-          null => null,
-          InvalidNamedReadResolutionImpl() => null,
-          NamedReadResolutionWithElementImpl(:var element) => element,
-          _ => null,
-        };
-        var writeElement = switch (target.write) {
-          null => null,
-          DynamicPropertyWriteResolutionImpl() => null,
-          InvalidNamedWriteResolutionImpl() => null,
-          NamedWriteResolutionWithElementImpl(:var element) => element,
-        };
+        var readElement = target.read?.element;
+        var writeElement = target.write?.element;
         for (var element in {readElement, writeElement}) {
           if (element == null) continue;
           _checkForReferenceBeforeDeclaration(
@@ -944,7 +934,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     var write = target.write;
-    if (write case NamedWriteResolutionWithElementImpl(:var element)) {
+    if (write?.element case var element?) {
       _checkForReferenceBeforeDeclaration(
         nameToken: target.name,
         element: element,
@@ -1391,8 +1381,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var element = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
+      _ => node.write?.element,
     };
     if (_checkForEachParts(element, node)) {
       _checkForAssignmentToFinal2(node.identifier2, element);
@@ -1595,14 +1584,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForDeadNullCoalesce(type, node.value);
     }
     if (target is UnqualifiedNameAssignmentTargetImpl) {
-      var readElement = switch (target.read) {
-        NamedReadResolutionWithElementImpl(:var element) => element,
-        _ => null,
-      };
-      var writeElement = switch (target.write) {
-        NamedWriteResolutionWithElementImpl(:var element) => element,
-        _ => null,
-      };
+      var readElement = target.read?.element;
+      var writeElement = target.write?.element;
       for (var element in {readElement, writeElement}) {
         if (element == null) continue;
         _checkForReferenceBeforeDeclaration(
@@ -1707,34 +1690,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     )) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember2(
         entity: node.target,
-        element: switch (write) {
-          NamedWriteResolutionWithElement(:var element) => element,
-          _ => switch (read) {
-            NamedReadResolutionWithElement(:var element) => element,
-            _ => null,
-          },
-        },
+        element: write?.element ?? read?.element,
       );
     }
     var writeElement = switch (node.target) {
-      IndexAssignmentTarget(write: MethodIndexWriteResolution(:var element)) =>
-        element,
-      PropertyAssignmentTarget(
-        write: NamedWriteResolutionWithElement(:var element),
-      ) ||
-      UnqualifiedNameAssignmentTarget(
-        write: NamedWriteResolutionWithElement(:var element),
-      ) => element,
+      IndexAssignmentTarget() ||
+      PropertyAssignmentTarget() ||
+      UnqualifiedNameAssignmentTarget() => node.target.write?.element,
       _ => null,
     };
     if (node.target case UnqualifiedNameAssignmentTarget(
       :var name,
       :var read,
     )) {
-      var readElement = switch (read) {
-        NamedReadResolutionWithElement(:var element) => element,
-        _ => null,
-      };
+      var readElement = read?.element;
       for (var element in {readElement, writeElement}) {
         _checkForReferenceBeforeDeclaration(element: element, nameToken: name);
       }
@@ -2687,10 +2656,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _constArgumentsVerifier.checkNameExpression(node);
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     var ambiguousElement = switch (node.resolution) {
       InvalidNamedReadResolution(:var candidates) =>
         candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,

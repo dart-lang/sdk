@@ -109,10 +109,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _checkSinceSdkVersion(element, node, errorEntity: node.name);
     super.visitCascadePropertyExtraction(node);
   }
@@ -180,9 +177,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     ImportPrefixedAssignmentTarget node,
   ) {
     _checkNamedRead(node.read, node, errorEntity: node.name);
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      _checkSinceSdkVersion(element, node, errorEntity: node.name);
-    }
+    _checkSinceSdkVersion(node.write?.element, node, errorEntity: node.name);
     super.visitImportPrefixedAssignmentTarget(node);
   }
 
@@ -262,10 +257,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _checkSinceSdkVersion(element, node);
     super.visitReceiverPropertyExtraction(node);
   }
@@ -305,16 +297,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       UnqualifiedNameAssignmentTarget() => target.name,
       _ => null,
     };
-    if (target.read
-        case NamedReadResolutionWithElement(:var element) ||
-            MethodIndexReadResolution(element: Element element)) {
-      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
-    }
-    if (target.write
-        case NamedWriteResolutionWithElement(:var element) ||
-            MethodIndexWriteResolution(element: Element element)) {
-      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
-    }
+    _checkSinceSdkVersion(
+      target.read?.element,
+      target,
+      errorEntity: errorEntity,
+    );
+    _checkSinceSdkVersion(
+      target.write?.element,
+      target,
+      errorEntity: errorEntity,
+    );
   }
 
   void _checkIndexRead(IndexExpression2 node) {

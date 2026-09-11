@@ -76,7 +76,7 @@ class UseResultVerifier {
     if (node.parent2 is CallInvocation) {
       return;
     }
-    if (resolution case NamedReadResolutionWithElement(:var element)) {
+    if (resolution?.element case var element?) {
       _check(node, element);
     }
   }
@@ -91,7 +91,7 @@ class UseResultVerifier {
   }
 
   void checkPropertyExtraction(PropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
+    if (node.resolution?.element case var element?) {
       _check(node, element);
     }
   }

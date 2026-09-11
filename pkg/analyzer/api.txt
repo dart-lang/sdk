@@ -2398,6 +2398,7 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   PropertyExtraction (class extends Object implements NameExpression, abstract, final, experimental)
   ReadResolution (class extends Object, abstract, final, experimental):
+    element (getter: Element?)
     type (getter: DartType)
   ReceiverIndexAssignmentTarget (class extends Object implements IndexAssignmentTarget, abstract, final, experimental):
     question (getter: Token?)
@@ -2701,6 +2702,7 @@ package:analyzer/dart/ast/ast.dart:
     withKeyword (getter: Token)
   WriteResolution (class extends Object, abstract, final, experimental):
     acceptedType (getter: DartType)
+    element (getter: Element?)
   YieldStatement (class extends Object implements Statement, abstract, final):
     expression (getter: Expression)
     expression2 (getter: Expression, experimental)

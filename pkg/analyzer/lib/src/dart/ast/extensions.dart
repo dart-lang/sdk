@@ -377,9 +377,8 @@ extension NamedReadResolutionExtension on NamedReadResolution? {
   ///
   /// Invalid candidates are not selected elements and are therefore ignored.
   Element? get elementOrRecovery => switch (this) {
-    NamedReadResolutionWithElement(:var element) => element,
     InvalidNamedReadResolution(:var recovery) => recovery?.element,
-    _ => null,
+    _ => this?.element,
   };
 }
 

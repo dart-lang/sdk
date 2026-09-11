@@ -19,7 +19,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   ConstArgumentsVerifier(this._diagnosticReporter);
 
   void checkNameExpression(NameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+    if (node.resolution?.element case var element?) {
       _checkTearoff(node, element);
     }
   }
