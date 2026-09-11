@@ -155,6 +155,9 @@ bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
 
+bool hasWasmCfgPragma(CoreTypes coreTypes, Member member) =>
+    hasPragma(coreTypes, member, 'wasm:cfg');
+
 T addPragma<T extends Annotatable>(
   T node,
   String pragmaName,

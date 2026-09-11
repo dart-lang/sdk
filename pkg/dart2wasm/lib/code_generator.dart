@@ -13,6 +13,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'async.dart';
+import 'cfg/code_generator.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'functions.dart';
@@ -3585,13 +3586,17 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   }
 
   if (member is Procedure && asyncMarker == AsyncMarker.Sync) {
-    return SynchronousProcedureCodeGenerator(
+    final codeGenerator = SynchronousProcedureCodeGenerator(
       translator,
       functionType,
       member,
       reference,
       reference.entryKind,
     );
+    if (mayUseCfgToCompileMember(translator, member)) {
+      return CfgProcedureCodeGenerator(codeGenerator);
+    }
+    return codeGenerator;
   }
 
   assert(

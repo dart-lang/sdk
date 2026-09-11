@@ -5,6 +5,7 @@
 part of "core_patch.dart";
 
 @patch
+@pragma("wasm:entry-point")
 @pragma("wasm:intrinsic")
 external bool identical(Object? a, Object? b);
 

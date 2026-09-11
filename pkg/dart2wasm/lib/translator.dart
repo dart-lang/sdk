@@ -4,6 +4,9 @@
 
 import 'dart:typed_data';
 
+import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
@@ -19,6 +22,7 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import 'cfg/code_generator.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
@@ -46,6 +50,7 @@ import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool useCfg = false;
   bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
@@ -156,6 +161,8 @@ class Translator with KernelNodes {
   late final ExceptionTags _exceptionTags;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
+  late final FunctionRegistry functionRegistry = FunctionRegistry();
+  late final RecognizedMethods recognizedMethods = CommonRecognizedMethods();
 
   late final DeferredModuleLoadingMap loadingMap;
 
@@ -528,7 +535,12 @@ class Translator with KernelNodes {
     dynamicDispatchTable.build(dynamicCallShapes);
     functions.initialize();
 
-    drainCompletionQueue();
+    GlobalContext.withContext(
+      GlobalContext(typeEnvironment: typeEnvironment, coreLibraries: index),
+      () {
+        drainCompletionQueue();
+      },
+    );
 
     assert(compilationQueue.isEmpty);
     for (final action in linkingActions) {
@@ -2189,6 +2201,12 @@ class Translator with KernelNodes {
   InliningDecision shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return InliningDecision(false, 'inlining disabled');
 
+    final member = target.asMember;
+    if (member.isExternal) return InliningDecision(false, 'external');
+    if (mayUseCfgToCompileMember(this, member)) {
+      return InliningDecision(false, 'CFG inlining disabled');
+    }
+
     // Unchecked entry point functions perform very little, mainly optional
     // parameter handling and then call the real body function.
     //
@@ -2197,9 +2215,6 @@ class Translator with KernelNodes {
     if (target.isUncheckedEntryReference) {
       return InliningDecision(true, 'unchecked entry');
     }
-
-    final member = target.asMember;
-    if (member.isExternal) return InliningDecision(false, 'external');
     if (util.getWasmNeverInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(false, '@pragma("wasm:never-inline")');
     }
@@ -2411,6 +2426,7 @@ class Translator with KernelNodes {
     }
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
+    if (mayUseCfgToCompileMember(this, member)) return false;
     return true;
   }
 
