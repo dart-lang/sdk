@@ -1334,6 +1334,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('InvalidExpressionAssignmentTarget');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      if (_withResolution) {
+        switch (node.read) {
+          case InvalidReadResolutionImpl(:var type):
+            _sink.writelnWithIndent('read: InvalidReadResolution');
+            _sink.withIndent(() {
+              _writeType('type', type);
+            });
+        }
+        switch (node.write) {
+          case InvalidWriteResolutionImpl(:var acceptedType):
+            _sink.writelnWithIndent('write: InvalidWriteResolution');
+            _sink.withIndent(() {
+              _writeType('acceptedType', acceptedType);
+            });
+        }
+      }
     });
   }
 

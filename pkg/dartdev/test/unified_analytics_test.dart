@@ -72,21 +72,48 @@ dependencies:
         },
       ]);
 
-      final telemetry = collectPubspecTelemetry(dir: tempDir, cache: cache);
+      final now = 1752000000;
+      final telemetry = collectPubspecTelemetry(
+        dir: tempDir,
+        cache: cache,
+        nowSeconds: now,
+      );
       expect(telemetry, isNotNull);
       expect(telemetry!.publicDependencies, {'path'});
       expect(telemetry.hasFlutterSdk, isFalse);
       expect(telemetry.environmentSdk, '^3.5.0');
 
-      // Verify cache hit on second run without rescanning
+      // Verify cache hit on second run throttles (returns null) within 24 hours
       final cachedTelemetry = collectPubspecTelemetry(
         dir: tempDir,
         cache: cache,
+        nowSeconds: now,
       );
-      expect(cachedTelemetry, isNotNull);
-      expect(cachedTelemetry!.publicDependencies, {'path'});
-      expect(cachedTelemetry.hasFlutterSdk, isFalse);
-      expect(cachedTelemetry.environmentSdk, '^3.5.0');
+      expect(cachedTelemetry, isNull);
+
+      // Verify telemetry is re-sent after 24 hours have elapsed
+      final expiredTelemetry = collectPubspecTelemetry(
+        dir: tempDir,
+        cache: cache,
+        nowSeconds: now + 60 * 60 * 24 + 1,
+      );
+      expect(expiredTelemetry, isNotNull);
+
+      // Verify telemetry is re-sent when pubspec content changes within 24 hours
+      File(path.join(tempDir.path, 'pubspec.yaml')).writeAsStringSync('''
+name: test_project
+environment:
+  sdk: ^3.6.0
+dependencies:
+  path: ^1.8.0
+''');
+      final mutatedTelemetry = collectPubspecTelemetry(
+        dir: tempDir,
+        cache: cache,
+        nowSeconds: now + 60 * 60 * 24 + 2,
+      );
+      expect(mutatedTelemetry, isNotNull);
+      expect(mutatedTelemetry!.environmentSdk, '^3.6.0');
     });
 
     test(
@@ -125,10 +152,7 @@ dependencies:
           dir: tempDir,
           cache: cache,
         );
-        expect(rootTelemetry, isNotNull);
-        expect(rootTelemetry!.publicDependencies, {'path'});
-        expect(rootTelemetry.hasFlutterSdk, isFalse);
-        expect(rootTelemetry.environmentSdk, '^3.5.0');
+        expect(rootTelemetry, isNull);
       },
     );
 

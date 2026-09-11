@@ -303,32 +303,14 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
+    if (target.read
+        case NamedReadResolutionWithElement(:var element) ||
+            MethodIndexReadResolution(element: Element element)) {
       checkUsage(element, target);
     }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      ImportPrefixedAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target);
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
+    if (target.write
+        case NamedWriteResolutionWithElement(:var element) ||
+            MethodIndexWriteResolution(element: Element element)) {
       checkUsage(element, target);
     }
     checkUsage(node.element, node);
@@ -678,35 +660,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void compoundAssignment(CompoundAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      ImportPrefixedAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    _checkAssignmentTarget(node.target);
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
@@ -755,18 +709,9 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (write case NamedWriteResolutionWithElement(:var element)) {
+    if (target.write
+        case NamedWriteResolutionWithElement(:var element) ||
+            MethodIndexWriteResolution(element: Element element)) {
       checkUsage(element, target, usageRange: _assignmentTargetRange(target));
     }
   }
@@ -903,27 +848,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void ifNullAssignment(IfNullAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target
-        case UnqualifiedNameAssignmentTarget(:var read, :var write) ||
-            ImportPrefixedAssignmentTarget(:var read, :var write)) {
-      if (read case NamedReadResolutionWithElement(:var element)) {
-        checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-      }
-      if (write case NamedWriteResolutionWithElement(:var element)) {
-        checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-      }
-    }
+    _checkAssignmentTarget(node.target);
   }
 
   void importDirective(ImportDirective node) {
@@ -935,35 +860,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      ImportPrefixedAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      ImportPrefixedAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    _checkAssignmentTarget(node.target);
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
@@ -1091,6 +988,19 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void unaryOperatorInvocation(UnaryOperatorInvocation node) {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
+  }
+
+  void _checkAssignmentTarget(AssignmentTarget target) {
+    if (target.read
+        case NamedReadResolutionWithElement(:var element) ||
+            MethodIndexReadResolution(element: Element element)) {
+      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
+    }
+    if (target.write
+        case NamedWriteResolutionWithElement(:var element) ||
+            MethodIndexWriteResolution(element: Element element)) {
+      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
+    }
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {

@@ -119,38 +119,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      _checkSinceSdkVersion(element, target);
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      _checkSinceSdkVersion(element, target);
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    var errorEntity = switch (target) {
-      PropertyAssignmentTarget() => target.propertyName,
-      UnqualifiedNameAssignmentTarget() => target.name,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
-    }
+    _checkAssignmentTarget(node.target);
     _checkSinceSdkVersion(node.element, node);
     super.visitCompoundAssignment(node);
   }
@@ -185,28 +154,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitDirectAssignment(DirectAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      _checkSinceSdkVersion(element, target);
-    }
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      _checkSinceSdkVersion(
-        element,
-        target,
-        errorEntity: switch (target) {
-          PropertyAssignmentTarget() => target.propertyName,
-          UnqualifiedNameAssignmentTarget() => target.name,
-          _ => null,
-        },
-      );
-    }
+    _checkAssignmentTarget(node.target);
     super.visitDirectAssignment(node);
   }
 
@@ -223,25 +171,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      _checkSinceSdkVersion(element, target);
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      _checkSinceSdkVersion(element, target);
-    }
-    if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case NamedReadResolutionWithElement(:var element)) {
-        _checkSinceSdkVersion(element, target);
-      }
-      if (target.write case NamedWriteResolutionWithElement(:var element)) {
-        _checkSinceSdkVersion(element, target);
-      }
-    }
+    _checkAssignmentTarget(node.target);
     super.visitIfNullAssignment(node);
   }
 
@@ -362,6 +292,29 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _checkNamedRead(node.resolution, node, errorEntity: node.name);
+  }
+
+  void _checkAssignmentTarget(AssignmentTarget target) {
+    // Import-prefixed targets are checked by their own visitor.
+    if (target is ImportPrefixedAssignmentTarget) {
+      return;
+    }
+
+    var errorEntity = switch (target) {
+      PropertyAssignmentTarget() => target.propertyName,
+      UnqualifiedNameAssignmentTarget() => target.name,
+      _ => null,
+    };
+    if (target.read
+        case NamedReadResolutionWithElement(:var element) ||
+            MethodIndexReadResolution(element: Element element)) {
+      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
+    }
+    if (target.write
+        case NamedWriteResolutionWithElement(:var element) ||
+            MethodIndexWriteResolution(element: Element element)) {
+      _checkSinceSdkVersion(element, target, errorEntity: errorEntity);
+    }
   }
 
   void _checkIndexRead(IndexExpression2 node) {

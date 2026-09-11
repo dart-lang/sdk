@@ -486,24 +486,14 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     var target = node.target;
     if (target is PropertyAssignmentTarget ||
         target is UnqualifiedNameAssignmentTarget) {
-      var read = switch (target) {
-        PropertyAssignmentTarget() => target.read,
-        UnqualifiedNameAssignmentTarget() => target.read,
-        _ => null,
-      };
-      var write = switch (target) {
-        PropertyAssignmentTarget() => target.write,
-        UnqualifiedNameAssignmentTarget() => target.write,
-        _ => null,
-      };
-      var readMatches = switch (read) {
+      var readMatches = switch (target.read) {
         NamedReadResolutionWithElement(element: var readElement) =>
           readElement is PropertyAccessorElement
               ? readElement.variable == element || readElement == element
               : readElement == element,
         _ => false,
       };
-      var writeMatches = switch (write) {
+      var writeMatches = switch (target.write) {
         NamedWriteResolutionWithElement(element: var writeElement) =>
           writeElement is PropertyAccessorElement
               ? writeElement.variable == element || writeElement == element
@@ -611,12 +601,12 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    switch (write) {
+    // Import-prefixed targets are recorded by their own visitor.
+    if (target is ImportPrefixedAssignmentTarget) {
+      super.visitDirectAssignment(node);
+      return;
+    }
+    switch (target.write) {
       case NamedWriteResolutionWithElement(element: var writeElement):
         if (writeElement is PropertyAccessorElement &&
             (writeElement.variable == element || writeElement == element)) {
@@ -670,24 +660,14 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     var target = node.target;
     if (target is PropertyAssignmentTarget ||
         target is UnqualifiedNameAssignmentTarget) {
-      var read = switch (target) {
-        PropertyAssignmentTarget() => target.read,
-        UnqualifiedNameAssignmentTarget() => target.read,
-        _ => null,
-      };
-      var write = switch (target) {
-        PropertyAssignmentTarget() => target.write,
-        UnqualifiedNameAssignmentTarget() => target.write,
-        _ => null,
-      };
-      var readMatches = switch (read) {
+      var readMatches = switch (target.read) {
         NamedReadResolutionWithElement(element: var readElement) =>
           readElement is PropertyAccessorElement
               ? readElement.variable == element || readElement == element
               : readElement == element,
         _ => false,
       };
-      var writeMatches = switch (write) {
+      var writeMatches = switch (target.write) {
         NamedWriteResolutionWithElement(element: var writeElement) =>
           writeElement is PropertyAccessorElement
               ? writeElement.variable == element || writeElement == element

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -15,6 +16,8 @@ export 'telemetry/pubspec_scanner.dart' show PubspecTelemetry;
 
 const String _dartDirectoryName = '.dart';
 
+const int _ttlSeconds = 60 * 60 * 24; // 24 hours
+
 const String analyticsDisabledNoticeMessage =
     'Analytics reporting disabled. '
     'In order to enable it, run: dart --enable-analytics';
@@ -25,11 +28,11 @@ const String analyticsDisabledNoticeMessage =
 /// If [cache] is `null`, defaults to a newly instantiated [ProjectTelemetryCache].
 ///
 /// Uses [ProjectTelemetryCache] to avoid re-scanning on every CLI invocation.
-/// Returns `null` if no pubspec is found or if any error occurs, guaranteeing
-/// that telemetry collection never crashes the CLI.
+/// Returns `null` if no pubspec is found, if the telemetry should be throttled, or if any error occurs.
 PubspecTelemetry? collectPubspecTelemetry({
   Directory? dir,
   ProjectTelemetryCache? cache,
+  @visibleForTesting int? nowSeconds,
 }) {
   try {
     final targetDir = dir ?? Directory.current;
@@ -39,14 +42,29 @@ PubspecTelemetry? collectPubspecTelemetry({
     final rootPath = pubspecFile.parent.path;
     final projectCache = cache ?? ProjectTelemetryCache();
 
-    final cached = projectCache.get(rootPath);
+    final contentHash = ProjectTelemetryCache.hash(
+      pubspecFile.readAsStringSync(),
+    );
+    final cached = projectCache.getEntry(rootPath);
     if (cached != null) {
-      return cached;
+      final now = nowSeconds ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final isExpired =
+          now - cached.lastSentSeconds >= _ttlSeconds ||
+          now < cached.lastSentSeconds;
+
+      if (!isExpired && cached.contentHash == contentHash) {
+        return null; // Throttle telemetry if content is unchanged within 24 hours.
+      }
     }
 
     final scanned = scanPubspecTelemetry(pubspecFile.parent);
     if (scanned != null) {
-      projectCache.set(rootPath, scanned);
+      projectCache.set(
+        rootPath,
+        scanned,
+        contentHash: contentHash,
+        nowSeconds: nowSeconds,
+      );
     }
     return scanned;
   } catch (_) {

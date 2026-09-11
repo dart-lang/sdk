@@ -226,6 +226,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         InvalidInvocationResolution,
         InvalidNamedReadResolution,
         InvalidNamedWriteResolution,
+        InvalidReadResolution,
+        InvalidWriteResolution,
         InterpolationElement,
         InterpolationExpression,
         InterpolationString,
@@ -296,6 +298,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PropertyAccess,
         PropertyAssignmentTarget,
         PropertyExtraction,
+        ReadResolution,
         ReceiverIndexAssignmentTarget,
         ReceiverIndexExpression,
         ReceiverMethodInvocation,
@@ -374,4 +377,5 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         WhileStatement,
         WildcardPattern,
         WithClause,
+        WriteResolution,
         YieldStatement;

@@ -409,6 +409,142 @@ library
 ''');
   }
 
+  test_const_assignmentExpression_invalidTarget_direct() async {
+    var library = await buildLibrary(r'''
+const a = (0 = 1);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: DirectAssignment
+                target: InvalidExpressionAssignmentTarget
+                  expression: IntegerLiteral
+                    literal: 0 @11
+                    staticType: int
+                  write: InvalidWriteResolution
+                    acceptedType: InvalidType
+                operator: = @13
+                value: IntegerLiteral
+                  literal: 1 @15
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: IntegerLiteral
+                  literal: 0 @11
+                  staticType: int
+                operator: = @13
+                rightHandSide: IntegerLiteral
+                  literal: 1 @15
+                  staticType: int
+                readElement: <null>
+                readType: null
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @16
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_assignmentExpression_invalidTarget_ifNull() async {
+    var library = await buildLibrary(r'''
+const a = (0 ??= 1);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IfNullAssignment
+                target: InvalidExpressionAssignmentTarget
+                  expression: IntegerLiteral
+                    literal: 0 @11
+                    staticType: int
+                  read: InvalidReadResolution
+                    type: InvalidType
+                  write: InvalidWriteResolution
+                    acceptedType: InvalidType
+                operator: ??= @13
+                value: IntegerLiteral
+                  literal: 1 @17
+                  staticType: int
+                staticType: int
+              expression(v1): AssignmentExpression
+                leftHandSide: IntegerLiteral
+                  literal: 0 @11
+                  staticType: int
+                operator: ??= @13
+                rightHandSide: IntegerLiteral
+                  literal: 1 @17
+                  staticType: int
+                readElement: <null>
+                readType: int
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: int
+              rightParenthesis: ) @18
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_cascadeExpression() async {
     var library = await buildLibrary(r'''
 const a = 0
@@ -7037,6 +7173,81 @@ library
 ''');
   }
 
+  test_const_postfixExpression_increment_invalidTarget() async {
+    var library = await buildLibrary(r'''
+const a = ((0)++);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IncrementOrDecrementExpression
+                target: InvalidExpressionAssignmentTarget
+                  expression: ParenthesizedExpression
+                    leftParenthesis: ( @11
+                    expression2: IntegerLiteral
+                      literal: 0 @12
+                      staticType: int
+                    rightParenthesis: ) @13
+                    staticType: int
+                  read: InvalidReadResolution
+                    type: InvalidType
+                  write: InvalidWriteResolution
+                    acceptedType: InvalidType
+                operator: ++ @14
+                operation: increment
+                position: postfix
+                element: <null>
+                operatorResultType: InvalidType
+                staticType: InvalidType
+              expression(v1): PostfixExpression
+                operand: ParenthesizedExpression
+                  leftParenthesis: ( @11
+                  expression: IntegerLiteral
+                    literal: 0 @12
+                    staticType: int
+                  rightParenthesis: ) @13
+                  staticType: int
+                operator: ++ @14
+                readElement: <null>
+                readType: InvalidType
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: InvalidType
+              rightParenthesis: ) @16
+              staticType: InvalidType
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: InvalidType
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_prefixExpression_class_unaryMinus() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -7245,6 +7456,81 @@ library
       firstFragment: #F4
       returnType: int
       variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_const_prefixExpression_increment_invalidTarget() async {
+    var library = await buildLibrary(r'''
+const a = (++(0));
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ParenthesizedExpression
+              leftParenthesis: ( @10
+              expression2: IncrementOrDecrementExpression
+                operator: ++ @11
+                target: InvalidExpressionAssignmentTarget
+                  expression: ParenthesizedExpression
+                    leftParenthesis: ( @13
+                    expression2: IntegerLiteral
+                      literal: 0 @14
+                      staticType: int
+                    rightParenthesis: ) @15
+                    staticType: int
+                  read: InvalidReadResolution
+                    type: InvalidType
+                  write: InvalidWriteResolution
+                    acceptedType: InvalidType
+                operation: increment
+                position: prefix
+                element: <null>
+                operatorResultType: InvalidType
+                staticType: InvalidType
+              expression(v1): PrefixExpression
+                operator: ++ @11
+                operand: ParenthesizedExpression
+                  leftParenthesis: ( @13
+                  expression: IntegerLiteral
+                    literal: 0 @14
+                    staticType: int
+                  rightParenthesis: ) @15
+                  staticType: int
+                readElement: <null>
+                readType: InvalidType
+                writeElement: <null>
+                writeType: InvalidType
+                element: <null>
+                staticType: InvalidType
+              rightParenthesis: ) @16
+              staticType: InvalidType
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: InvalidType
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 

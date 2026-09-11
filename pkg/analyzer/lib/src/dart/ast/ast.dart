@@ -3155,32 +3155,26 @@ final class AssignmentExpressionImpl extends ExpressionImpl
         IndexAssignmentTargetImpl target => target._legacyReadType,
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
-        UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-        ImportPrefixedAssignmentTargetImpl target => target.read?.type,
         InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+        _ => target.read?.type,
       };
 
-  static TypeImpl? _v1DirectWriteType(
-    AssignmentTargetImpl target,
-  ) => switch (target) {
-    CascadePropertyAssignmentTargetImpl target => target.write?.acceptedType,
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
-    ReceiverPropertyAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
-    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
-  };
+  static TypeImpl? _v1DirectWriteType(AssignmentTargetImpl target) =>
+      switch (target) {
+        ReceiverPropertyAssignmentTargetImpl target =>
+          target.write?.acceptedType ?? InvalidTypeImpl.instance,
+        InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+        _ => target.write?.acceptedType,
+      };
 
   static TypeImpl? _v1IfNullReadType(AssignmentTargetImpl target) =>
       switch (target) {
         IndexAssignmentTargetImpl target => target._legacyReadType,
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
-        UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-        ImportPrefixedAssignmentTargetImpl target => target.read?.type,
         InvalidExpressionAssignmentTargetImpl target =>
           target.expression.staticType,
+        _ => target.read?.type,
       };
 
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
@@ -3209,13 +3203,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
     AssignmentTargetImpl target,
   ) => switch (target) {
-    PropertyAssignmentTargetImpl target =>
+    PropertyAssignmentTargetImpl() || IndexAssignmentTargetImpl() =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+    _ => target.write?.acceptedType,
   };
 
   static Element? _v1WriteElement(
@@ -3237,8 +3228,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 /// Unlike an [Expression], an assignment target does not itself produce a
 /// value. Writing to a target can store a value in a variable or invoke a
 /// property setter or `operator []=`. Assignments that need the target's current
-/// value report [hasRead] as `true` and describe the resolved read separately in
-/// the concrete target's resolution.
+/// value report [hasRead] as `true` and describe the resolved read in [read].
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentTarget implements AstNode {
@@ -3248,6 +3238,22 @@ abstract final class AssignmentTarget implements AstNode {
   /// This is determined by the syntax of the enclosing operation and doesn't
   /// depend on whether this target has been resolved successfully.
   bool get hasRead;
+
+  /// The read operation, or `null` if the enclosing operation does not read,
+  /// this target has not been resolved, or receiver evaluation prevents the
+  /// access.
+  ///
+  /// An unsuccessful access is represented by an invalid resolution rather
+  /// than `null`.
+  ReadResolution? get read;
+
+  /// The write operation, or `null` if this target has not been resolved
+  /// or receiver evaluation prevents the access.
+  ///
+  /// An unsuccessful access is represented by an invalid resolution rather
+  /// than `null`. A non-null resolution does not guarantee runtime execution;
+  /// for example, an if-null assignment writes conditionally.
+  WriteResolution? get write;
 }
 
 sealed class AssignmentTargetImpl extends AstNodeImpl
@@ -3259,6 +3265,12 @@ sealed class AssignmentTargetImpl extends AstNodeImpl
     IncrementOrDecrementExpression() => true,
     _ => false,
   };
+
+  @override
+  ReadResolutionImpl? get read;
+
+  @override
+  WriteResolutionImpl? get write;
 }
 
 /// A node in the AST structure for a Dart program.
@@ -14102,13 +14114,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
 
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
-    var write = switch (target) {
-      PropertyAssignmentTargetImpl(:var write) => write,
-      IndexAssignmentTargetImpl(:var write) => write,
-      UnqualifiedNameAssignmentTargetImpl(:var write) => write,
-      ImportPrefixedAssignmentTargetImpl(:var write) => write,
-      InvalidExpressionAssignmentTargetImpl() => null,
-    };
+    var write = target.write;
     if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
     }
@@ -28027,13 +28033,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
 
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
-    var write = switch (target) {
-      PropertyAssignmentTargetImpl(:var write) => write,
-      IndexAssignmentTargetImpl(:var write) => write,
-      UnqualifiedNameAssignmentTargetImpl(:var write) => write,
-      ImportPrefixedAssignmentTargetImpl(:var write) => write,
-      InvalidExpressionAssignmentTargetImpl() => null,
-    };
+    var write = target.write;
     if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
     }
@@ -29990,10 +29990,10 @@ abstract final class ImportPrefixedAssignmentTarget
   /// The written name of the imported declaration.
   Token get name;
 
-  /// The read operation, or `null` for a direct assignment or before resolution.
+  @override
   NamedReadResolution? get read;
 
-  /// The write operation, or `null` before resolution.
+  @override
   NamedWriteResolution? get write;
 }
 
@@ -30901,11 +30901,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   TypeImpl? get _legacyReadType => switch (target) {
-    PropertyAssignmentTargetImpl target => target.read?.type,
-    IndexAssignmentTargetImpl target => target.read?.type,
-    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-    ImportPrefixedAssignmentTargetImpl target => target.read?.type,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+    _ => target.read?.type,
   };
 
   Element? get _legacyWriteElement => switch (target) {
@@ -30922,10 +30919,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   TypeImpl? get _legacyWriteType => switch (target) {
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    ImportPrefixedAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+    _ => target.write?.acceptedType,
   };
 
   /// The parameter element representing the parameter to which the value of the
@@ -31085,17 +31080,13 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
   /// The left square bracket.
   Token get leftBracket;
 
-  /// The read operation, or `null` if the enclosing operation does not read,
-  /// this target has not been resolved, or receiver evaluation prevents the
-  /// index operation.
+  @override
   IndexReadResolution? get read;
 
   /// The right square bracket.
   Token get rightBracket;
 
-  /// The write operation, or `null` if the enclosing operation does not write,
-  /// this target has not been resolved, or receiver evaluation prevents the
-  /// index operation.
+  @override
   IndexWriteResolution? get write;
 }
 
@@ -31923,12 +31914,14 @@ final class IndexExpressionImpl extends ExpressionImpl
 /// The result of an indexed read operation.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class IndexReadResolution {
+abstract final class IndexReadResolution implements ReadResolution {
   /// The type produced by `operator []`.
+  @override
   DartType get type;
 }
 
-sealed class IndexReadResolutionImpl implements IndexReadResolution {
+sealed class IndexReadResolutionImpl extends ReadResolutionImpl
+    implements IndexReadResolution {
   const IndexReadResolutionImpl();
 
   TypeImpl get indexContextType;
@@ -31940,12 +31933,14 @@ sealed class IndexReadResolutionImpl implements IndexReadResolution {
 /// The result of writing an indexed assignment target.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class IndexWriteResolution {
+abstract final class IndexWriteResolution implements WriteResolution {
   /// The type accepted by `operator []=` for the written value.
+  @override
   DartType get acceptedType;
 }
 
-sealed class IndexWriteResolutionImpl implements IndexWriteResolution {
+sealed class IndexWriteResolutionImpl extends WriteResolutionImpl
+    implements IndexWriteResolution {
   const IndexWriteResolutionImpl();
 
   @override
@@ -32744,11 +32739,18 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 
 /// An assignment target whose source cannot denote a storage location.
 ///
-/// Invalid targets have no read or write target resolution. Concrete variants
-/// retain the resolved source structure needed for diagnostics and recovery.
+/// After resolution, invalid targets have an [InvalidWriteResolution] and,
+/// when [hasRead] is true, an [InvalidReadResolution]. Concrete variants retain
+/// the resolved source structure needed for diagnostics and recovery.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class InvalidAssignmentTarget implements AssignmentTarget {}
+sealed class InvalidAssignmentTarget implements AssignmentTarget {
+  @override
+  InvalidReadResolution? get read;
+
+  @override
+  InvalidWriteResolution? get write;
+}
 
 /// An unusable or absent dot-shorthand context.
 @experimental
@@ -32770,13 +32772,15 @@ final class InvalidDotShorthandContextResolutionImpl
 
 /// An invalid assignment target whose source is an ordinary value expression.
 ///
-/// The contained expression is fully resolved, but this target has no target
-/// resolution because the expression does not denote a storage location.
+/// Resolving this target preserves the contained expression's resolution and
+/// records invalid target operations because it does not denote a storage
+/// location. The expression retains its type, separately from the [InvalidType]
+/// of the target's read and write resolutions.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidExpressionAssignmentTarget
     implements InvalidAssignmentTarget {
-  /// The fully resolved expression found in the assignment-target position.
+  /// The expression found in the assignment-target position.
   Expression get expression;
 }
 
@@ -32790,6 +32794,12 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
     implements InvalidExpressionAssignmentTarget {
   @generated
   ExpressionImpl _expression;
+
+  @override
+  InvalidReadResolutionImpl? read;
+
+  @override
+  InvalidWriteResolutionImpl? write;
 
   @generated
   InvalidExpressionAssignmentTargetImpl({required ExpressionImpl expression})
@@ -32935,13 +32945,14 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
 /// An unsuccessful index read resolution.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class InvalidIndexReadResolution implements IndexReadResolution {
+abstract final class InvalidIndexReadResolution
+    implements IndexReadResolution, InvalidReadResolution {
   /// A complete hypothetical valid resolution used for recovery.
   ValidIndexReadResolution? get recovery;
 }
 
 final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
-    implements InvalidIndexReadResolution {
+    implements InvalidReadResolutionImpl, InvalidIndexReadResolution {
   @override
   final MethodIndexReadResolutionImpl? recovery;
 
@@ -32959,13 +32970,13 @@ final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidIndexWriteResolution
-    implements IndexWriteResolution {
+    implements IndexWriteResolution, InvalidWriteResolution {
   /// A complete hypothetical valid resolution used for recovery.
   ValidIndexWriteResolution? get recovery;
 }
 
 final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
-    implements InvalidIndexWriteResolution {
+    implements InvalidWriteResolutionImpl, InvalidIndexWriteResolution {
   @override
   final MethodIndexWriteResolutionImpl? recovery;
 
@@ -33015,14 +33026,15 @@ final class InvalidInvocationResolutionImpl extends InvocationResolutionImpl
 /// An unsuccessful named read resolution.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class InvalidNamedReadResolution implements NamedReadResolution {
+abstract final class InvalidNamedReadResolution
+    implements NamedReadResolution, InvalidReadResolution {
   List<Element> get candidates;
 
   NamedReadResolutionWithElement? get recovery;
 }
 
 final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
-    implements InvalidNamedReadResolution {
+    implements InvalidReadResolutionImpl, InvalidNamedReadResolution {
   @override
   final List<Element> candidates;
 
@@ -33043,7 +33055,7 @@ final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidNamedWriteResolution
-    implements NamedWriteResolution {
+    implements NamedWriteResolution, InvalidWriteResolution {
   @override
   DartType get acceptedType;
 
@@ -33053,7 +33065,7 @@ abstract final class InvalidNamedWriteResolution
 }
 
 final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
-    implements InvalidNamedWriteResolution {
+    implements InvalidWriteResolutionImpl, InvalidNamedWriteResolution {
   @override
   final TypeImpl acceptedType;
 
@@ -33068,6 +33080,36 @@ final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
     required List<Element> candidates,
     required this.recovery,
   }) : candidates = List.unmodifiable(candidates);
+}
+
+/// An unsuccessful read resolution.
+///
+/// The [type] is an [InvalidType].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidReadResolution implements ReadResolution {}
+
+final class InvalidReadResolutionImpl extends ReadResolutionImpl
+    implements InvalidReadResolution {
+  const InvalidReadResolutionImpl();
+
+  @override
+  TypeImpl get type => InvalidTypeImpl.instance;
+}
+
+/// An unsuccessful write resolution.
+///
+/// The [acceptedType] is an [InvalidType].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidWriteResolution implements WriteResolution {}
+
+final class InvalidWriteResolutionImpl extends WriteResolutionImpl
+    implements InvalidWriteResolution {
+  const InvalidWriteResolutionImpl();
+
+  @override
+  TypeImpl get acceptedType => InvalidTypeImpl.instance;
 }
 
 /// The invocation of a function or method.
@@ -38581,12 +38623,10 @@ sealed class NamedFunctionInvocationImpl extends FunctionInvocationImpl
 /// assignment, an if-null assignment, or an increment or decrement.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class NamedReadResolution {
-  /// The static type of the value produced by the read.
-  DartType get type;
-}
+abstract final class NamedReadResolution implements ReadResolution {}
 
-sealed class NamedReadResolutionImpl implements NamedReadResolution {
+sealed class NamedReadResolutionImpl extends ReadResolutionImpl
+    implements NamedReadResolution {
   NamedReadResolutionImpl();
 
   @override
@@ -38974,12 +39014,10 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 /// The result of writing a named assignment target.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class NamedWriteResolution {
-  /// The type accepted by the write operation.
-  DartType get acceptedType;
-}
+abstract final class NamedWriteResolution implements WriteResolution {}
 
-sealed class NamedWriteResolutionImpl implements NamedWriteResolution {
+sealed class NamedWriteResolutionImpl extends WriteResolutionImpl
+    implements NamedWriteResolution {
   const NamedWriteResolutionImpl();
 
   @override
@@ -44932,13 +44970,10 @@ abstract final class PropertyAssignmentTarget implements AssignmentTarget {
   /// The written property name.
   Token get propertyName;
 
-  /// The read operation, or `null` if the assignment does not read the target,
-  /// this target has not been resolved, or receiver evaluation prevents the
-  /// access.
+  @override
   NamedReadResolution? get read;
 
-  /// The write operation, or `null` if this target has not been resolved or
-  /// receiver evaluation prevents the access.
+  @override
   NamedWriteResolution? get write;
 }
 
@@ -44989,6 +45024,24 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
     NamedReadResolutionWithElementImpl(:var element) => element,
     _ => null,
   };
+}
+
+/// The resolution of a read operation.
+///
+/// Named and indexed reads share this interface, whether the read belongs to
+/// a value-producing expression or an assignment target.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReadResolution {
+  /// The static type of the value produced if the read executes.
+  DartType get type;
+}
+
+sealed class ReadResolutionImpl implements ReadResolution {
+  const ReadResolutionImpl();
+
+  @override
+  TypeImpl get type;
 }
 
 /// An indexed location on an explicitly written receiver.
@@ -55256,11 +55309,10 @@ abstract final class UnqualifiedNameAssignmentTarget
   /// The written name.
   Token get name;
 
-  /// The read operation, or `null` if the assignment does not read the target
-  /// or this target has not been resolved.
+  @override
   NamedReadResolution? get read;
 
-  /// The write operation, or `null` if this target has not been resolved.
+  @override
   NamedWriteResolution? get write;
 }
 
@@ -57510,6 +57562,24 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
     }
     return null;
   }
+}
+
+/// The resolution of a write operation.
+///
+/// Named and indexed writes share this interface. Concrete subtypes describe
+/// how the value is stored or which setter or index operator is invoked.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class WriteResolution {
+  /// The type accepted by the write operation.
+  DartType get acceptedType;
+}
+
+sealed class WriteResolutionImpl implements WriteResolution {
+  const WriteResolutionImpl();
+
+  @override
+  TypeImpl get acceptedType;
 }
 
 /// A yield statement.
