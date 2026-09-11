@@ -274,7 +274,7 @@ class B extends A {
 MethodInvocation
   target2: SuperExpression
     superKeyword: super
-    staticType: B
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: m
@@ -305,7 +305,7 @@ class B extends A {
 PropertyAccess
   target2: SuperExpression
     superKeyword: super
-    staticType: B
+    staticType: InvalidType
   operator: .
   propertyName: SimpleIdentifier
     token: a
