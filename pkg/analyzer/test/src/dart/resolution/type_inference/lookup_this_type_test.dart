@@ -158,6 +158,37 @@ class D extends C {}
 ''');
   }
 
+  test_thisPromotion_inMethod_ofExtension() async {
+    await assertThisTypes(r'''
+class C {}
+class D extends C {}
+extension E on C {
+  f() {
+    /*this: C*/
+    if (this is D) {
+      /*this: D*/
+    }
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inMethod_ofExtensionType() async {
+    await assertThisTypes(r'''
+extension type C(num n) {
+  f() {
+    /*this: C*/
+    if (this is D) {
+      /*this: D*/
+    }
+    /*this: C*/
+  }
+}
+extension type D(int i) implements C {}
+''');
+  }
+
   test_thisPromotion_inPatternAssignment() async {
     // This test verifies that the `lookupThisType` query properly
     // understands that in a pattern assignment, the pattern executes *after*
