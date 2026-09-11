@@ -2275,6 +2275,103 @@ extension type Foo(int value) {
       });
     });
 
+    group('recompile to JavaScript without accepting the last delta', () {
+      // Regression test for a crash that occurred when a 'recompile' request
+      // arrived before the client had ever sent an 'accept' request: there is
+      // no last known good component to compute the JavaScript delta against
+      // in that case.
+      // See https://github.com/flutter/flutter/issues/192227.
+      Future<void> runTests({
+        required String moduleFormat,
+        bool canary = false,
+      }) async {
+        File file = new File('${tempDir.path}/foo.dart')..createSync();
+        file.writeAsStringSync('main() {\n  "<<v1>>";\n}\n');
+
+        File packageConfig =
+            new File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+
+        String library = 'package:hello/foo.dart';
+
+        File dillFile = new File('${tempDir.path}/app.dill');
+        File sourceFile = new File('${dillFile.path}.sources');
+        File incrementalSourceFile = new File(
+          '${dillFile.path}.incremental.dill.sources',
+        );
+
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${ddcPlatformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--target=dartdevc',
+          '--dartdevc-module-format=$moduleFormat',
+          if (canary) '--dartdevc-canary',
+          '--packages=${packageConfig.path}',
+        ];
+
+        FrontendServer frontendServer = new FrontendServer();
+        Future<int> result = frontendServer.open(args);
+        frontendServer.compile(library);
+        int count = 0;
+        frontendServer.listen((Result compiledResult) {
+          CompilationResult result = new CompilationResult.parse(
+            compiledResult.status,
+          );
+          switch (count) {
+            case 0:
+              expect(result.errorsCount, equals(0));
+              expect(result.filename, dillFile.path);
+              expect(sourceFile.readAsStringSync(), contains('<<v1>>'));
+
+              file.writeAsStringSync('main() {\n  "<<v2>>";\n}\n');
+              // Deliberately recompile *without* accepting the compilation
+              // above first.
+              frontendServer.recompile(file.uri, entryPoint: library);
+              break;
+            case 1:
+              expect(result.errorsCount, equals(0));
+              expect(result.filename, '${dillFile.path}.incremental.dill');
+              String source = incrementalSourceFile.readAsStringSync();
+              expect(source, contains('<<v2>>'));
+              expect(source, not(contains('<<v1>>')));
+
+              frontendServer.accept();
+              frontendServer.quit();
+              break;
+            default:
+              break;
+          }
+          count++;
+        });
+
+        expect(await result, 0);
+        expect(count, 2);
+        frontendServer.close();
+      }
+
+      test('AMD module format', () async {
+        await runTests(moduleFormat: 'amd');
+      });
+
+      test('DDC module format and canary', () async {
+        await runTests(moduleFormat: 'ddc', canary: true);
+      });
+    });
+
     group('compile to JavaScript with metadata', () {
       Future<void> runTests({
         required String moduleFormat,

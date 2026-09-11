@@ -476,6 +476,7 @@ delim
 delimit
 delimiting
 delivered
+deltas
 demands
 demangle
 demangled

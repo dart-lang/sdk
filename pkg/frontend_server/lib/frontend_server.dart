@@ -1092,12 +1092,20 @@ class FrontendCompiler implements CompilerInterface {
           canaryFeatures: canaryFeatures,
           extraDdcOptions: extraDdcOptions ?? [],
         );
-    if (fullComponent) {
+    final IncrementalCompilerResult? lastKnownGood =
+        _generator.lastKnownGoodResult;
+    if (fullComponent || lastKnownGood == null) {
+      // [lastKnownGood] is `null` when the client sent a `recompile` request
+      // before ever sending an `accept` request, so there is no previously
+      // accepted component to diff against. The incremental compiler combines
+      // all deltas that have not been accepted yet, which makes [component]
+      // equivalent to a full component in that case, so the bundler can simply
+      // be (re-)initialized from it.
       await bundler.initialize(component, _mainSource, packageConfig);
     } else {
       await bundler.invalidate(
         component,
-        _generator.lastKnownGoodResult!.component,
+        lastKnownGood.component,
         _mainSource,
         packageConfig,
         recompileRestart: recompileRestart,
@@ -1411,6 +1419,14 @@ class FrontendCompiler implements CompilerInterface {
       reportError('Cannot find kernel2js compiler for $libraryUri.');
       return;
     }
+    final IncrementalCompilerResult? compilerResult =
+        _generator.lastKnownGoodResult;
+    if (compilerResult == null) {
+      // No compilation delta has been accepted yet, so there is no component
+      // to evaluate the expression against.
+      reportError('No accepted compilation result available.');
+      return;
+    }
     final String boundaryKey = generateV4UUID();
     _outputStream.writeln('result $boundaryKey');
 
@@ -1419,7 +1435,6 @@ class FrontendCompiler implements CompilerInterface {
     );
 
     final Compiler kernel2jsCompiler = cachedProgramCompilers[libraryUri]!;
-    IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
     _processedOptions.ticker.logMs('Retrieved cached component');
 
