@@ -13,7 +13,7 @@ Use this skill to find old, outdated issues in the `dart-lang/sdk` repository th
    - Use the GitHub CLI (`gh`) to search for the oldest open issues.
    - Use the label `area-devexp` to identify analysis server issues.
    - Also use label `type-bug` and any other label that the user gives you.
-   - **Exclude Labeled Issues**: Exclude issues already labeled `verified-by-an-agent` or `closed-by-agent` by adding `-label:verified-by-an-agent -label:closed-by-agent` to the search query.
+   - **Exclude Labeled Issues**: Exclude issues already labeled `verified-by-an-agent` or `closed-by-an-agent` by adding `-label:verified-by-an-agent -label:closed-by-an-agent` to the search query.
    - Sort by creation date (`created-asc`) or last update (`updated-asc`) to find the most likely candidates for being outdated.
    - Fetch at least 50 candidates.
    - Example command (with label): `gh issue list --repo dart-lang/sdk --search "label:area-devexp is:open label:type-bug -label:verified-by-an-agent sort:created-asc" --limit 50 | cat`
@@ -56,7 +56,7 @@ Use this skill to find old, outdated issues in the `dart-lang/sdk` repository th
    - If you discover a new, distinct category of closing rationale that is not covered in `references/rationale_templates.md`, **update the reference file** to include it.
 
 5. **Execute and Summarize**:
-   - **For Approved Closure Candidates**: Use `gh issue close` with the `-c` flag to post the comment and close the issue. Apply the `closed-by-agent` label to the issue.
+   - **For Approved Closure Candidates**: Use `gh issue close` with the `-c` flag to post the comment and close the issue. Apply the `closed-by-an-agent` label to the issue.
    - **For Approved Still-Valid Issues**: Use `gh issue comment <number> -b "<comment>"` to post the confirmation comment containing the minimal reproduction / test case. Apply the `verified-by-an-agent` label to the issue using `gh issue edit <number> --add-label "verified-by-an-agent"`.
    - **Update Tracking File**: Append any investigated issue numbers that were determined to be STILL VALID (and thus left open) to `references/investigated_issues.txt`, one issue number per line. Do NOT track closed issues, as they are already filtered out by `is:open`.
    - Provide the user with a clean bulleted list of closed issues and updated/commented valid issues.
