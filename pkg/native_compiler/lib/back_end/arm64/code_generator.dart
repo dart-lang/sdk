@@ -646,13 +646,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       final arg = instr.inputDefAt(i);
       Register reg;
       if (arg is Constant) {
-        if (arg.value.isZero) {
+        final value = arg.value;
+        if (value.isZero && (value.isInt || value.isUnboxed)) {
           reg = ZR;
-        } else if (arg.value.isNull) {
+        } else if (value.isNull) {
           reg = nullReg;
         } else {
           reg = getTempReg();
-          _asm.loadConstant(reg, arg.value);
+          _asm.loadConstant(reg, value);
         }
       } else {
         final loc = inputLoc(instr, i);

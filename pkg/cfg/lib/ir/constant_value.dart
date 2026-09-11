@@ -59,11 +59,12 @@ extension type ConstantValue(ast.Constant constant) {
     ),
   };
 
+  /// Returns true if constant is an int 0 or double 0.0 (but not -0.0).
   bool get isZero => switch (constant) {
     ast.IntConstant(:var value) => value == 0,
     UnboxedIntConstant(:var value) => value == 0,
-    ast.DoubleConstant(:var value) => value == 0.0,
-    UnboxedDoubleConstant(:var value) => value == 0.0,
+    ast.DoubleConstant(:var value) => identical(value, 0.0),
+    UnboxedDoubleConstant(:var value) => identical(value, 0.0),
     _ => false,
   };
 
