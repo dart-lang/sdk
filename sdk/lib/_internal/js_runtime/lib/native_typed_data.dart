@@ -2010,6 +2010,17 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 abs() {
+    // Avoid going through the typed array by "| 0" the result, which also
+    // gives two's complement wrapping so abs(-0x80000000) yields itself.
+    return NativeInt32x4._truncated(
+      JS('int', 'Math.abs(#) | 0', x),
+      JS('int', 'Math.abs(#) | 0', y),
+      JS('int', 'Math.abs(#) | 0', z),
+      JS('int', 'Math.abs(#) | 0', w),
+    );
+  }
+
   /// Extract the top bit from each lane return them in the first 4 bits.
   int get signMask {
     int mx = (x & 0x80000000) >> 31;

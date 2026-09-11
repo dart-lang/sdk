@@ -4374,6 +4374,30 @@ abstract final class Int32x4 {
   /// Subtraction operator.
   Int32x4 operator -(Int32x4 other);
 
+  /// Returns a new [Int32x4] value where each lane is the negation of
+  /// the value of the corresponding lane of this `Int32x4`.
+  ///
+  /// Negating a value is equivalent to subtracting it from zero,
+  /// which leaves the zero value unchanged and changes the sign of all
+  /// other values _if the negated value can be represented in the result_.
+  ///
+  /// An [Int32x4] represents its values as two's complement 32-bit integers,
+  /// so the result of negating a value `n` is effectively the same as
+  /// `(-n).toSigned(32)`, so negating the minimal value, -0x80000000,
+  /// yields the same value again.
+  /// For all values other than zero and -0x80000000, negating changes the sign
+  /// of the value.
+  @Since("3.14")
+  Int32x4 operator -();
+
+  /// Returns a new [Int32x4] where each lane's value is the [int.abs()]
+  /// of the corresponding lane in this value, converted to 32-bits
+  /// as by `.toSigned(32)` ([int.toSigned]).
+  /// _That makes the `abs` of the minimal 32-bit signed value, -0x80000000,
+  /// be the same negative value again._
+  @Since("3.14")
+  Int32x4 abs();
+
   /// Lane-wise integer equality comparison.
   ///
   /// The result for a lane is a 32-bit signed integer which is -1

@@ -4029,6 +4029,10 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_sub")
   external Int32x4 operator -(Int32x4 other);
 
+  Int32x4 operator -() => Int32x4(-x, -y, -z, -w);
+
+  Int32x4 abs() => Int32x4(x.abs(), y.abs(), z.abs(), w.abs());
+
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_equal")
