@@ -388,7 +388,7 @@ class LspResourceClientConfiguration {
 
   /// Whether to include Snippets in code completion results.
   bool get enableSnippets {
-    // Versions of Dart-Code earlier than v3.36 (1 Mar 2022) send
+    // Versions of Dart-Code earlier than v3.36 (2022-03-01) send
     // enableServerSnippets=false to opt-out of snippets. Later versions map
     // this version to the documented 'enableSnippets' setting in middleware.
     // Once the number of users on < 3.36 is insignificant, this check can be

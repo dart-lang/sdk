@@ -117,7 +117,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         arguments: [
           // TODO(dantup): Change this to a single entry that is a Map once
           //  enough time has passed that old versions of Dart-Code prior to
-          //  to June 2022 need not be supported against newer SDKs.
+          //  to v3.42 (2022-06-01) need not be supported against newer SDKs.
           refactorKind.toJson(clientUriConverter: server.uriConverter),
           path,
           docIdentifier.version,
