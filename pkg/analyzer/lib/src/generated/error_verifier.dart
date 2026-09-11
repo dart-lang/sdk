@@ -1637,17 +1637,26 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    var ambiguousElement = switch (node.read) {
+    var ambiguousRead = switch (node.read) {
       InvalidNamedReadResolution(:var candidates) =>
         candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
       _ => null,
     };
-    ambiguousElement ??= switch (node.write) {
+    // Getter-only conflicts are recovery for a missing setter, not write
+    // ambiguities. Report them only when the assignment also reads the name.
+    var ambiguousWrite = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+        candidates.whereType<MultiplyDefinedElementImpl>().firstWhereOrNull(
+          (element) =>
+              element.conflictingElements.any((e) => e is! GetterElement),
+        ),
       _ => null,
     };
-    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    _checkForAmbiguousImport(element: ambiguousRead, name: node.name);
+    // Recovery candidates can reuse the same scope element in both resolutions.
+    if (!identical(ambiguousWrite, ambiguousRead)) {
+      _checkForAmbiguousImport(element: ambiguousWrite, name: node.name);
+    }
     super.visitImportPrefixedAssignmentTarget(node);
   }
 
