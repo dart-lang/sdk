@@ -117,6 +117,16 @@ abstract class StackListener extends Listener with StackChecker {
   static const bool debugStack = false;
   final Stack stack = debugStack ? new DebugStack() : new StackImpl();
 
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken);
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  );
+
   /// Checks that [value] matches the expected [kind].
   ///
   /// Use this in assert statements like

@@ -932,7 +932,7 @@ var B = 0;
 
     configuration.libraryConfiguration.unitConfiguration.nodeSelector =
         (result) {
-          return result.findNode.simple('B;');
+          return result.findNode.unqualifiedNameExpression('B;');
         };
 
     // We have a result only for "a".
@@ -947,9 +947,12 @@ var B = 0;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: int Function()
+        type: int
       staticType: int
 [status] idle
 ''');
@@ -973,9 +976,12 @@ var B = 1.2;
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
     flags: exists isLibrary
-    selectedNode: SimpleIdentifier
-      token: B
-      element: package:test/b.dart::@getter::B
+    selectedNode: UnqualifiedNameExpression
+      name: B
+      resolution: GetterInvocationResolution
+        element: package:test/b.dart::@getter::B
+        invokeType: double Function()
+        type: double
       staticType: double
 [status] idle
 ''');
@@ -5074,17 +5080,17 @@ class B2 {}
   test_priorities_changedAll() async {
     // Make sure that `test2` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5146,17 +5152,17 @@ class B2 {}
   test_priorities_getResolvedUnit_beforePriority() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5213,17 +5219,17 @@ class B2 {}
   test_priorities_priority_rest() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -85074,17 +85080,19 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v1'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v2'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
@@ -85221,16 +85229,18 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),

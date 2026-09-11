@@ -46,7 +46,7 @@ enum AstNodeTag {
   ForPartsWithDeclarations,
   ForPartsWithExpression,
   FormalParameterList,
-  FunctionExpressionInvocation,
+  CallInvocation,
   FunctionReference,
   GenericFunctionType,
   IfElement,
@@ -54,9 +54,10 @@ enum AstNodeTag {
   IfNullAssignment,
   ImplicitCallReference,
   ImportPrefixReference,
-  IndexAssignmentTarget,
+  IncrementOrDecrementExpression,
+  ReceiverIndexAssignmentTarget,
   IndexExpression,
-  IndexExpression2,
+  ReceiverIndexExpression,
   IntegerLiteralNegative,
   IntegerLiteralNegative1,
   IntegerLiteralNull,
@@ -78,10 +79,6 @@ enum AstNodeTag {
   NullAwareElement,
   NullLiteral,
   ParenthesizedExpression,
-  PostfixDecrement,
-  PostfixIncrement,
-  PrefixDecrement,
-  PrefixIncrement,
   PrefixedIdentifier,
   PropertyAccess,
   ReceiverPropertyAssignmentTarget,
@@ -113,6 +110,19 @@ enum AstNodeTag {
   UnqualifiedNameAssignmentTarget,
   VariableDeclaration,
   VariableDeclarationList,
+  CascadeMethodInvocation,
+  UnqualifiedFunctionInvocation,
+  ImportPrefixedFunctionInvocation,
+  ReceiverMethodInvocation,
+  DotShorthandMethodInvocation,
+  DotShorthandNameExpression,
+  DotShorthandConstructorInvocation2,
+  UnqualifiedNameExpression,
+  ImportPrefixedNameExpression,
+  ImplicitFunctionInstantiation,
+  ImplicitCallTearOff,
+  FunctionInstantiation,
+  ImportPrefixedAssignmentTarget,
 }
 
 enum DirectiveUriKind {
@@ -123,6 +133,8 @@ enum DirectiveUriKind {
   withRelativeUriString,
   withNothing,
 }
+
+enum DotShorthandContextResolutionTag { valid, invalid }
 
 enum ElementTag {
   null_,
@@ -148,6 +160,15 @@ enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 enum IndexReadResolutionTag { dynamic_, invalid, method }
 
 enum IndexWriteResolutionTag { dynamic_, invalid, method }
+
+enum InvocationResolutionTag {
+  dynamic_,
+  executable,
+  functionCall,
+  functionInterface,
+  functionType,
+  invalid,
+}
 
 enum NamedReadResolutionTag {
   getterInvocation,

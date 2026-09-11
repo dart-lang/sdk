@@ -972,28 +972,37 @@ abstract final class DartFixKind {
   static const importLibraryProject1 = FixKind(
     'dart.fix.import.libraryProject1',
     DartFixKindPriority.standard + 5,
-    "Import library '{0}'",
+    "Add 'import' of '{0}'",
+  );
+
+  /// {@template dart.fix.docImport.libraryProject1}
+  /// Doc import defining library.
+  /// {@endtemplate}
+  static const importLibraryProject1Doc = FixKind(
+    'dart.fix.docImport.libraryProject1',
+    DartFixKindPriority.standard + 6,
+    "Add 'docImport' of '{0}'",
   );
 
   /// {@macro dart.fix.import.libraryProject1}
   static const importLibraryProject1Prefixed = FixKind(
     'dart.fix.import.libraryProject1Prefixed',
     DartFixKindPriority.standard + 5,
-    "Import library '{0}' with prefix '{1}'",
+    "Add 'import' of '{0}' with prefix '{1}'",
   );
 
   /// {@macro dart.fix.import.libraryProject1}
   static const importLibraryProject1PrefixedShow = FixKind(
     'dart.fix.import.libraryProject1PrefixedShow',
     DartFixKindPriority.standard + 5,
-    "Import library '{0}' with prefix '{1}' and 'show'",
+    "Add 'import' of '{0}' with prefix '{1}' and 'show'",
   );
 
   /// {@macro dart.fix.import.libraryProject1}
   static const importLibraryProject1Show = FixKind(
     'dart.fix.import.libraryProject1Show',
     DartFixKindPriority.standard + 5,
-    "Import library '{0}' with 'show'",
+    "Add 'import' of '{0}' with 'show'",
   );
 
   /// {@template dart.fix.import.libraryProject2}
@@ -1002,28 +1011,37 @@ abstract final class DartFixKind {
   static const importLibraryProject2 = FixKind(
     'dart.fix.import.libraryProject2',
     DartFixKindPriority.standard + 4,
-    "Import library '{0}'",
+    "Add 'import' of '{0}'",
+  );
+
+  /// {@template dart.fix.docImport.libraryProject2}
+  /// Doc import export library.
+  /// {@endtemplate}
+  static const importLibraryProject2Doc = FixKind(
+    'dart.fix.docImport.libraryProject2',
+    DartFixKindPriority.standard + 5,
+    "Add 'docImport' of '{0}'",
   );
 
   /// {@macro dart.fix.import.libraryProject2}
   static const importLibraryProject2Prefixed = FixKind(
     'dart.fix.import.libraryProject2Prefixed',
     DartFixKindPriority.standard + 4,
-    "Import library '{0}' with prefix '{1}'",
+    "Add 'import' of '{0}' with prefix '{1}'",
   );
 
   /// {@macro dart.fix.import.libraryProject2}
   static const importLibraryProject2PrefixedShow = FixKind(
     'dart.fix.import.libraryProject2PrefixedShow',
     DartFixKindPriority.standard + 4,
-    "Import library '{0}' with prefix '{1}' and 'show'",
+    "Add 'import' of '{0}' with prefix '{1}' and 'show'",
   );
 
   /// {@macro dart.fix.import.libraryProject2}
   static const importLibraryProject2Show = FixKind(
     'dart.fix.import.libraryProject2Show',
     DartFixKindPriority.standard + 4,
-    "Import library '{0}' with 'show'",
+    "Add 'import' of '{0}' with 'show'",
   );
 
   /// {@template dart.fix.import.libraryProject3}
@@ -1032,28 +1050,37 @@ abstract final class DartFixKind {
   static const importLibraryProject3 = FixKind(
     'dart.fix.import.libraryProject3',
     DartFixKindPriority.standard + 3,
-    "Import library '{0}'",
+    "Add 'import' of '{0}'",
+  );
+
+  /// {@template dart.fix.docImport.libraryProject3}
+  /// Doc import non-API.
+  /// {@endtemplate}
+  static const importLibraryProject3Doc = FixKind(
+    'dart.fix.docImport.libraryProject3',
+    DartFixKindPriority.standard + 4,
+    "Add 'docImport' of '{0}'",
   );
 
   /// {@macro dart.fix.import.libraryProject3}
   static const importLibraryProject3Prefixed = FixKind(
     'dart.fix.import.libraryProject3Prefixed',
     DartFixKindPriority.standard + 3,
-    "Import library '{0}' with prefix '{1}'",
+    "Add 'import' of '{0}' with prefix '{1}'",
   );
 
   /// {@macro dart.fix.import.libraryProject3}
   static const importLibraryProject3PrefixedShow = FixKind(
     'dart.fix.import.libraryProject3PrefixedShow',
     DartFixKindPriority.standard + 3,
-    "Import library '{0}' with prefix '{1}' and 'show'",
+    "Add 'import' of '{0}' with prefix '{1}' and 'show'",
   );
 
   /// {@macro dart.fix.import.libraryProject3}
   static const importLibraryProject3Show = FixKind(
     'dart.fix.import.libraryProject3Show',
     DartFixKindPriority.standard + 3,
-    "Import library '{0}' with 'show'",
+    "Add 'import' of '{0}' with 'show'",
   );
 
   /// {@template dart.fix.import.libraryProject4}
@@ -1063,6 +1090,15 @@ abstract final class DartFixKind {
     'dart.fix.import.libraryProject4',
     DartFixKindPriority.standard + 2,
     "Import deprecated library '{0}'",
+  );
+
+  /// {@template dart.fix.docImport.libraryProject4}
+  /// Doc import a deprecated library or declaration.
+  /// {@endtemplate}
+  static const importLibraryProject4Doc = FixKind(
+    'dart.fix.docImport.libraryProject4',
+    DartFixKindPriority.standard + 3,
+    "Doc import deprecated library '{0}'",
   );
 
   /// {@macro dart.fix.import.libraryProject4}
@@ -1090,25 +1126,44 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard - 1,
     "Remove show to use '{0}' from '{1}'{2}",
   );
+
+  /// {@template dart.fix.import.librarySdk}
+  /// Import an SDK library.
+  /// {@endtemplate}
   static const importLibrarySdk = FixKind(
     'dart.fix.import.librarySdk',
     DartFixKindPriority.standard + 7,
-    "Import library '{0}'",
+    "Add 'import' of '{0}'",
   );
+
+  /// {@template dart.fix.docImport.librarySdk}
+  /// Doc import an SDK library.
+  /// {@endtemplate}
+  static const importLibrarySdkDoc = FixKind(
+    'dart.fix.docImport.librarySdk',
+    DartFixKindPriority.standard + 8,
+    "Add 'docImport' of '{0}'",
+  );
+
+  /// {@macro dart.fix.import.librarySdk}
   static const importLibrarySdkPrefixed = FixKind(
     'dart.fix.import.librarySdkPrefixed',
     DartFixKindPriority.standard + 7,
-    "Import library '{0}' with prefix '{1}'",
+    "Add 'import' of '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.librarySdk}
   static const importLibrarySdkShow = FixKind(
     'dart.fix.import.librarySdkShow',
     DartFixKindPriority.standard + 7,
-    "Import library '{0}' with 'show'",
+    "Add 'import' of '{0}' with 'show'",
   );
+
+  /// {@macro dart.fix.import.librarySdk}
   static const importLibrarySdkPrefixedShow = FixKind(
     'dart.fix.import.librarySdkPrefixedShow',
     DartFixKindPriority.standard + 7,
-    "Import library '{0}' with prefix '{1}' and 'show'",
+    "Add 'import' of '{0}' with prefix '{1}' and 'show'",
   );
   static const inlineInvocation = FixKind(
     'dart.fix.inlineInvocation',
@@ -1706,6 +1761,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.returnedValue.multi',
     DartFixKindPriority.inFile,
     'Remove invalid returned values in file',
+  );
+  static const removeThisAlias = FixKind(
+    'dart.fix.remove.thisAlias',
+    DartFixKindPriority.standard,
+    'Remove this alias',
+  );
+  static const removeThisAliasMulti = FixKind(
+    'dart.fix.remove.thisAlias.multi',
+    DartFixKindPriority.inFile,
+    'Remove this aliases in file',
   );
   static const removeThisExpression = FixKind(
     'dart.fix.remove.thisExpression',

@@ -149,7 +149,7 @@ abstract class Browser {
     List<String> arguments, {
     Map<String, String>? environment,
   }) {
-    return Process.start(command, arguments, environment: environment)
+    return startProcess(command, arguments, environment: environment)
         .then((startedProcess) {
           _logEvent("Started browser using $command ${arguments.join(' ')}");
           process = startedProcess;

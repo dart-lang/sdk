@@ -8,7 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' show enableColors;
 
-export 'package:_fe_analyzer_shared/src/util/colors.dart' show enableColors;
+export 'package:_fe_analyzer_shared/src/util/colors.dart'
+    show enableColors, enableColorsRaw;
 
 // Coverage-ignore(suite): Not run.
 void printDiagnosticMessage(

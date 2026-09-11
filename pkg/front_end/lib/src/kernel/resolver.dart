@@ -40,8 +40,6 @@ import '../source/source_library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart';
-import '../type_inference/inference_visitor_base.dart'
-    show InferenceVisitorBase;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show
@@ -520,7 +518,10 @@ class Resolver {
         ],
         internalThisVariable: internalThisVariable,
         contextAllocationStrategy:
-            InferenceVisitorBase.createContextAllocationStrategy(),
+            ContextAllocationStrategy.createContextAllocationStrategy(
+              isClosureContextLoweringEnabled:
+                  libraryBuilder.loader.isClosureContextLoweringEnabled,
+            ),
       );
     }
     context.performBacklog(result.annotations);
@@ -732,7 +733,7 @@ class Resolver {
     required SourceConstructorBuilder constructorBuilder,
     required FunctionBodyBuildingContext functionBodyBuildingContext,
     required Uri fileUri,
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
     _benchmarker
@@ -776,7 +777,7 @@ class Resolver {
     try {
       BuildPrimaryConstructorBodyResult result = bodyBuilder
           .buildPrimaryConstructorBody(
-            startToken: startToken,
+            thisToken: thisToken,
             metadata: metadata,
           );
       _finishFunction(
@@ -801,7 +802,7 @@ class Resolver {
     on DebugAbort {
       rethrow;
     } catch (e, s) {
-      throw new Crash(fileUri, startToken.charOffset, e, s);
+      throw new Crash(fileUri, thisToken.charOffset, e, s);
     }
     _benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1038,7 +1039,10 @@ class Resolver {
           body: internalReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           contextAllocationStrategy:
-              InferenceVisitorBase.createContextAllocationStrategy(),
+              ContextAllocationStrategy.createContextAllocationStrategy(
+                isClosureContextLoweringEnabled:
+                    libraryBuilder.loader.isClosureContextLoweringEnabled,
+              ),
           constructorContext: null,
         );
     ReturnStatement returnStatement =
@@ -1491,7 +1495,10 @@ class Resolver {
     ];
     ScopeProviderInfo? scopeProviderInfo;
     ContextAllocationStrategy contextAllocationStrategy =
-        InferenceVisitorBase.createContextAllocationStrategy();
+        ContextAllocationStrategy.createContextAllocationStrategy(
+          isClosureContextLoweringEnabled:
+              libraryBuilder.loader.isClosureContextLoweringEnabled,
+        );
     if (libraryBuilder.loader.isClosureContextLoweringEnabled) {
       scopeProviderInfo = contextAllocationStrategy
           .beginClosureContextAllocation(

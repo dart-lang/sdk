@@ -4113,22 +4113,17 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
 }
 
 DEFINE_EMIT(Simd32x4GetSignMask,
-            (Register out, VRegister value, Temp<Register> temp)) {
-  // X lane.
-  __ vmovrs(out, value, 0);
-  __ LsrImmediate(out, out, 31);
-  // Y lane.
-  __ vmovrs(temp, value, 1);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 1));
-  // Z lane.
-  __ vmovrs(temp, value, 2);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 2));
-  // W lane.
-  __ vmovrs(temp, value, 3);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 3));
+            (Register out, VRegister value, Temp<VRegister> temp)) {
+  simd128_value_t weights;
+  weights.int_storage[0] = 1;
+  weights.int_storage[1] = 2;
+  weights.int_storage[2] = 4;
+  weights.int_storage[3] = 8;
+  __ vsshr_4s(VTMP, value, 31);
+  __ LoadQImmediate(temp, weights);
+  __ vand(VTMP, VTMP, temp);
+  __ vuaddlv_4s(VTMP, VTMP);
+  __ fmovrs(out, VTMP);
 }
 
 DEFINE_EMIT(
@@ -4298,6 +4293,13 @@ DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
   __ csel(out, TMP, out, EQ);
 }
 
+DEFINE_EMIT(Int32x4NotEqual,
+            (VRegister result, VRegister left, VRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ vceqw(result, left, right);
+  __ vnot(result, result);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4356,6 +4358,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \

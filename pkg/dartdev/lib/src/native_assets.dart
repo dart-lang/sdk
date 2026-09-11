@@ -415,3 +415,59 @@ class DartNativeAssetsBuilder {
     return null;
   }
 }
+
+/// Compiles the given [nativeAssetsYamlUri] to a kernel dill file at
+/// [outputDillUri] using the frontend server.
+Future<bool> compileNativeAssetsToDill({
+  required Uri nativeAssetsYamlUri,
+  required Uri outputDillUri,
+}) async {
+  if (!checkArtifactExists(sdk.frontendServerAotSnapshot) ||
+      !checkArtifactExists(sdk.dartAotRuntime)) {
+    return false;
+  }
+  final result = await Process.run(
+    sdk.dartAotRuntime,
+    [
+      sdk.frontendServerAotSnapshot,
+      '--native-assets-only',
+      '--native-assets=${nativeAssetsYamlUri.toFilePath()}',
+      '--output-dill=${outputDillUri.toFilePath()}',
+    ],
+  );
+  if (result.exitCode != 0) {
+    log.stderr(
+      'Error: Compiling native assets to kernel failed:\n'
+      '${result.stderr}\n${result.stdout}',
+    );
+    return false;
+  }
+  return true;
+}
+
+/// Compiles [nativeAssetsYamlUri] into a kernel component and concatenates it
+/// with the kernel file at [kernelFilePath], returning a new concatenated dill
+/// file path in [tempDirUri].
+Future<String?> concatenateNativeAssetsKernel({
+  required String kernelFilePath,
+  required Uri nativeAssetsYamlUri,
+  required Uri tempDirUri,
+}) async {
+  final tempNativeAssetsDill = tempDirUri.resolve('native_assets.dill');
+  final success = await compileNativeAssetsToDill(
+    nativeAssetsYamlUri: nativeAssetsYamlUri,
+    outputDillUri: tempNativeAssetsDill,
+  );
+  if (!success) return null;
+
+  final concatenatedDill = tempDirUri.resolve('concatenated.dill');
+  final output = File.fromUri(concatenatedDill).openWrite();
+  try {
+    await output.addStream(File(kernelFilePath).openRead());
+    await output.addStream(File.fromUri(tempNativeAssetsDill).openRead());
+  } finally {
+    await output.close();
+  }
+
+  return concatenatedDill.toFilePath();
+}

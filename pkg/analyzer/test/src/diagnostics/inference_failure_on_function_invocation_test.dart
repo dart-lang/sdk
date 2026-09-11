@@ -30,6 +30,20 @@ class InferenceFailureOnFunctionInvocationTest
     writeTestPackageConfigWithMeta();
   }
 
+  test_functionTearOff_unqualifiedNameExpression_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void id<T, R>(T value) {}
+
+void use({required void Function(int) callback}) {}
+
+void f() {
+  use(callback: id);
+//              ^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'id' can't be inferred.
+}
+''');
+  }
+
   test_functionType_noInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>() m) {

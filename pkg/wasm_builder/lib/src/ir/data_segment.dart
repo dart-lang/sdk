@@ -8,25 +8,16 @@ import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-abstract class BaseDataSegment {
+/// A data segment in a module.
+class DataSegment implements Serializable {
   late final int index;
   late final Memory? memory;
   late final int? offset;
-
-  BaseDataSegment(this.index, this.memory, this.offset);
-  BaseDataSegment.uninitialized();
-
-  void printTo(IrPrinter p) {
-    throw UnimplementedError();
-  }
-}
-
-/// A data segment in a module.
-class DataSegment extends BaseDataSegment implements Serializable {
   late final Uint8List content;
 
-  DataSegment(super.index, this.content, super.memory, super.offset);
-  DataSegment.uninitialized() : super.uninitialized();
+  DataSegment(this.index, this.content, this.memory, this.offset);
+  DataSegment.withoutContent(this.index, this.memory, this.offset);
+  DataSegment.uninitialized();
 
   @override
   void serialize(Serializer s) {
@@ -49,7 +40,6 @@ class DataSegment extends BaseDataSegment implements Serializable {
     s.writeBytes(content);
   }
 
-  @override
   void printTo(IrPrinter p) {
     p.write('(data ');
     p.writeDataReference(this);

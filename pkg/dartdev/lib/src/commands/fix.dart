@@ -174,11 +174,11 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       } while (pass < maxPasses && edits.isNotEmpty);
       // If there are no more dart edits, check if there are any changes
       // to pubspec
-      if (edits.isEmpty && detailsMap.isNotEmpty) {
+      if (edits.isEmpty) {
         var fixes = await server.requestBulkFixes(
           fixPath,
           inTestMode,
-          [],
+          codes,
           updatePubspec: true,
         );
         _mergeDetails(detailsMap, fixes.details);

@@ -1572,6 +1572,14 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
     Format(instr, "vuaddlv 'vd, 'vn");
     return;
   }
+  // SSHR Vd.4S, Vn.4S, #shift (Q=1, U=0, immh=01xx shift-right-immediate form).
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4F200400) {
+    const int shift = 64 - ((instr->InstructionBits() >> 16) & 0x7F);
+    Format(instr, "vsshrs 'vd, 'vn");
+    buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                  remaining_size_in_buffer(), ", #%d", shift);
+    return;
+  }
   // UMAXP Vd.4S, Vn.4S, Vm.4S (Q=1, U=1, size=10, three-same MAXP form).
   if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
     Format(instr, "vumaxp 'vd, 'vn, 'vm");

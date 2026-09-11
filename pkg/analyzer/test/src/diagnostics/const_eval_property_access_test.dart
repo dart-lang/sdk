@@ -40,7 +40,7 @@ class A<T> {
   final int f;
   const A() : f = T.foo;
 //                ^^^^^
-// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [context 1] The error is in the field initializer of 'A.new', and occurs here.
 // [diag.invalidConstant] Invalid constant value.
 //                  ^^^
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
@@ -82,7 +82,7 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 //                                                       ^^^^^^^^^^^^^^
-// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.
+// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList.new', and occurs here.
 }
 ''');
   }

@@ -1579,8 +1579,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(
                 THR, compiler::target::Thread::
                          call_native_through_safepoint_entry_point_offset()));
-      __ lx(target, compiler::Address(
-                        THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ LoadFromOffset(target, THR,
+                        kPropagateErrorRuntimeEntry.OffsetFromThread());
       __ jalr(temp1);
 #if defined(DEBUG)
       // We should never return with normal controlflow from this.
@@ -4747,6 +4747,15 @@ void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ subw(result, lhs, rhs);    // lhs op rhs ? 0 : nz
           __ snez(result, result);      // lhs op rhs ? 0 : 1
           __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+          break;
+        case Token::kNE:
+#if XLEN > 32
+          __ subw(result, lhs, rhs);  // lhs op rhs ? 0 : nz
+#else
+          __ sub(result, lhs, rhs);
+#endif
+          __ snez(result, result);  // lhs op rhs ? 0 : 1
+          __ neg(result, result);   // lhs op rhs ? 0 : -1
           break;
         default:
           UNREACHABLE();

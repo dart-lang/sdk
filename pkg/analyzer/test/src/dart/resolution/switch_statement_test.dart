@@ -34,7 +34,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -87,9 +93,15 @@ test(Object o) => () {
 };
 ''');
 
-    var node = result.findNode.simple('value + 1');
+    var node = result.findNode.unqualifiedNameExpression('value + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: value
+  resolution: VariableReadResolution
+    element: value@201
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: value
   element: value@201
   staticType: int
@@ -114,7 +126,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -188,7 +206,13 @@ class A {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -247,7 +271,13 @@ void f(Object? x, bool Function() a) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -264,8 +294,20 @@ SwitchStatement
           matchedValueType: Object?
         whenClause: WhenClause
           whenKeyword: when
-          expression2: FunctionExpressionInvocation
-            function2: SimpleIdentifier
+          expression2: CallInvocation
+            receiver: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@function::f::@formalParameter::a
+              staticType: bool Function()
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: FunctionTypeInvocationResolution
+              invokeType: bool Function()
+              type: bool
+            staticType: bool
+          expression(v1): FunctionExpressionInvocation
+            function: SimpleIdentifier
               token: a
               element: <testLibrary>::@function::f::@formalParameter::a
               staticType: bool Function()
@@ -300,7 +342,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -323,9 +371,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@48
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@48
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -365,9 +415,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@75
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@75
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -393,7 +445,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -418,7 +476,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -442,9 +506,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@54
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@54
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -485,9 +551,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@87
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@87
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -513,7 +581,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -538,7 +612,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -580,9 +660,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@null
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@null
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -641,9 +723,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@null
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@null
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -669,7 +753,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -696,7 +786,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -720,9 +816,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@54
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@54
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -762,9 +860,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@81
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@81
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -790,7 +890,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -817,7 +923,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -841,9 +953,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@54
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@54
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -883,9 +997,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@81
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@81
+                type: num
               staticType: num
             operator: >
             rightOperand: IntegerLiteral
@@ -911,7 +1027,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: InvalidType
+            staticType: InvalidType
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -938,7 +1060,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -961,9 +1089,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@48
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@48
+                type: int
               staticType: int
             operator: <
             rightOperand: IntegerLiteral
@@ -1003,9 +1133,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@75
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@75
+                type: num
               staticType: num
             operator: >
             rightOperand: IntegerLiteral
@@ -1031,7 +1163,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: InvalidType
+            staticType: InvalidType
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -1058,7 +1196,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1090,9 +1234,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@60
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@60
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1118,7 +1264,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1145,7 +1297,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1168,9 +1326,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@48
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@48
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1205,7 +1365,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1232,7 +1398,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1255,9 +1427,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@48
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@48
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1286,7 +1460,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1319,7 +1499,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1353,7 +1539,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: Object?
+            staticType: Object?
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: Object?
@@ -1382,7 +1574,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1410,9 +1608,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@61
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@61
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1438,7 +1638,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1472,7 +1678,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1523,19 +1735,37 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: b
+            resolution: VariableReadResolution
+              element: b@null
+              type: double
+            staticType: double
+          expression(v1): SimpleIdentifier
             token: b
             element: b@null
             staticType: double
           semicolon: ;
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: c
+            resolution: VariableReadResolution
+              element: c@null
+              type: String
+            staticType: String
+          expression(v1): SimpleIdentifier
             token: c
             element: c@null
             staticType: String
@@ -1561,7 +1791,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1605,7 +1841,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: int
@@ -1635,7 +1877,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1660,7 +1908,13 @@ SwitchStatement
               matchedValueType: Object?
             RelationalPattern
               operator: ==
-              operand2: SimpleIdentifier
+              operand2: UnqualifiedNameExpression
+                name: a
+                resolution: VariableReadResolution
+                  element: a@62
+                  type: int
+                staticType: int
+              operand(v1): SimpleIdentifier
                 token: a
                 element: a@62
                 staticType: int
@@ -1672,9 +1926,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@62
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@62
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1700,7 +1956,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@62
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@62
             staticType: int
@@ -1724,7 +1986,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1747,9 +2015,11 @@ SwitchStatement
         whenClause: WhenClause
           whenKeyword: when
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: a@48
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@48
+                type: int
               staticType: int
             operator: >
             rightOperand: IntegerLiteral
@@ -1775,7 +2045,13 @@ SwitchStatement
       colon: :
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@48
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: a
             element: a@48
             staticType: int
@@ -1799,7 +2075,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1850,7 +2132,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1896,7 +2184,13 @@ void f(Object? x) {
 SwitchStatement
   switchKeyword: switch
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?

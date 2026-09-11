@@ -135,3 +135,113 @@ static method joinedVariableSwitchExpression(dynamic x) → dynamic/* scope=[
     }
   } =>#t22;
 }
+static method joinedVariableIfCaseStatement(dynamic x) → dynamic/* scope=[
+  #ctx14: not-captured [x],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    /* scope=[
+      #ctx15: direct-captured [y],
+    ] */{
+      hoisted core::int y;
+      if(#0#0 is core::int && (let final dynamic #t27 = y = #0#0{core::int} in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t28 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t29 = y = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t30 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true))) {
+        return () /* #ctx15 */ → core::int => y;
+      }
+      else {
+        return () → core::int => 0;
+      }
+    }
+  }
+}
+static method joinedVariableIfCaseElement(dynamic x) → dynamic/* scope=[
+  #ctx16: not-captured [x],
+] */ {
+  return block {
+    final core::List<() → core::int> #t31 = <() → core::int>[];
+    {
+      final synthesized dynamic #0#0 = x;
+      synthesized core::int #0#2;
+      synthesized core::bool #0#2#isSet = false;
+      /* scope=[
+        #ctx17: direct-captured [y],
+      ] */{
+        hoisted core::int y;
+        if(#0#0 is core::int && (let final dynamic #t32 = y = #0#0{core::int} in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t33 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t34 = y = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t35 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true)))
+          #t31.{core::List::add}{Invariant}(() /* #ctx17 */ → core::int => y){(() → core::int) → void};
+        else
+          #t31.{core::List::add}{Invariant}(() → core::int => 0){(() → core::int) → void};
+      }
+    }
+  } =>#t31;
+}
+static method staleSwitchCaseBuilderTest(dynamic x, (core::String, core::int) r) → dynamic/* scope=[
+  #ctx18: not-captured [x,r],
+] */ /* scope=[
+  #ctx19: direct-captured [s],
+  #ctx20: not-captured [n],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    /* scope=[
+      #ctx21: direct-captured [y],
+    ] */{
+      hoisted core::int y;
+      if(#0#0 is core::int && (let final dynamic #t36 = y = #0#0{core::int} in true)) {
+        {
+          return () /* #ctx21 */ → core::int => y;
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+  hoisted has-declared-initializer core::String s;
+  hoisted has-declared-initializer core::int n;
+  {
+    final synthesized(core::String, core::int) #1#0 = r;
+    s = #1#0.$1{core::String};
+    n = #1#0.$2{core::int};
+  }
+  return () /* #ctx19 */ → core::String => s;
+}
+static method mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) → dynamic/* scope=[
+  #ctx22: not-captured [x],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    dynamic #t37;
+    /* scope=[
+      #ctx23: not-captured [y#case#0,y#case#1],
+    ] */{
+      lowered hoisted core::int y#case#0;
+      lowered hoisted core::int y#case#1;
+      if(#0#0 is core::int && (let final dynamic #t38 = y#case#0 = #0#0{core::int} in true) && (let final dynamic #t39 = #t37 = y#case#0 in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t40 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t41 = y#case#1 = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t42 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true)) && (let final dynamic #t43 = #t37 = y#case#1 in true))/* scope=[
+        #ctx24: direct-captured [y],
+      ] */ {
+        core::int y = #t37{core::int};
+        /* scope=[
+          #ctx25: direct-captured [a],
+        ] */{
+          core::int a = 0;
+          return () /* #ctx24 #ctx25 */ → core::List<core::int> => <core::int>[a, y];
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+}

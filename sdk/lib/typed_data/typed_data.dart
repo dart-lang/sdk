@@ -4376,6 +4376,57 @@ abstract final class Int32x4 {
   /// Returns four values that are always either 0 or -1.
   Int32x4 equal(Int32x4 other);
 
+  /// Lane-wise integer inequality comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is not equal to
+  /// the value from [other], and the result is 0 (all bits cleared) if it is.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  Int32x4 notEqual(Int32x4 other);
+
+  /// Lane-wise signed integer less-than comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is less than the value
+  /// from [other], using signed comparison, and 0 (all bits cleared) otherwise.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
+  Int32x4 lessThan(Int32x4 other);
+
+  /// Lane-wise signed integer less-than-or-equal comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is less than or equal to the
+  /// value from [other], using signed comparison, and 0 (all bits cleared)
+  /// otherwise.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
+  Int32x4 lessThanOrEqual(Int32x4 other);
+
+  /// Lane-wise signed integer greater-than comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is greater than the value
+  /// from [other], using signed comparison, and 0 (all bits cleared) otherwise.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
+  Int32x4 greaterThan(Int32x4 other);
+
+  /// Lane-wise signed integer greater-than-or-equal comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is greater than or equal to
+  /// the value from [other], using signed comparison, and 0 (all bits cleared)
+  /// otherwise.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
+  Int32x4 greaterThanOrEqual(Int32x4 other);
+
   /// Extract 32-bit mask from x lane.
   int get x;
 
@@ -4397,11 +4448,21 @@ abstract final class Int32x4 {
 
   /// Whether any of the four lanes has a non-zero value.
   ///
-  /// Returns `true` if at least one of the [x], [y], [z] or [w] lanes has any
+  /// Is `true` if at least one of the [x], [y], [z] or [w] lanes has any
   /// bit set, and `false` only when all four lanes are zero.
   ///
-  /// Equivalent to [flagX] || [flagY] || [flagZ] || [flagW].
+  /// Equivalent to <code>[flagX] || [flagY] || [flagZ] || [flagW]</code>.
+  @Since("3.14")
   bool get anyTrue;
+
+  /// Whether all four lanes have a non-zero value.
+  ///
+  /// Is `true` only when every one of the [x], [y], [z] and [w] lanes has
+  /// at least one bit set, and `false` if any lane is zero.
+  ///
+  /// Equivalent to <code>[flagX] && [flagY] && [flagZ] && [flagW]</code>.
+  @Since("3.14")
+  bool get allTrue;
 
   /// Mask passed to [shuffle] or [shuffleMix].
   static const int xxxx = 0x00;

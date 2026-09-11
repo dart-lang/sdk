@@ -77,6 +77,7 @@ namespace dart {
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
   V(BoxFloat64x2)                                                              \
+  V(BoxInt32x4)                                                                \
   V(CloneContext)                                                              \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
@@ -156,6 +157,7 @@ namespace dart {
   V(CallNativeThroughSafepoint)                                                \
   V(FfiCallTrampoline)                                                         \
   V(FfiCallbackTrampoline)                                                     \
+  V(InterpretedFfiCallbackTrampoline)                                          \
   V(InitStaticField)                                                           \
   V(InitLateStaticField)                                                       \
   V(InitLateFinalStaticField)                                                  \

@@ -424,6 +424,25 @@ var x = a;
     expect(result.value!.toIntValue(), 42);
   }
 
+  test_hasValue_constantReference_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'const a = 42;');
+    var unitResult = await resolveTestCode('''
+import 'a.dart' as p;
+const x = p.a;
+''');
+    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    for (var expression in [
+      declaration.initializer2!,
+      declaration.initializer!,
+    ]) {
+      expect(expression.inConstantContext, isTrue);
+      var result = expression.computeConstantValue();
+      expect(result, isNotNull);
+      expect(result!.diagnostics, isEmpty);
+      expect(result.value!.toIntValue(), 42);
+    }
+  }
+
   test_hasValue_intLiteral() async {
     var unitResult = await resolveTestCode('''
 var x = 42;
@@ -1473,7 +1492,7 @@ void f(int i) {
 }
 int g() => 0;
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedFunctionInvocation;
   }
 
   Future<void> test_between_classMembers() async {
@@ -1494,7 +1513,7 @@ void f(int i) {
 }
 void g({required int a}) {}
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_colonAndIdentifier_switchCase() async {
@@ -1506,7 +1525,7 @@ void f(int i) {
 }
 void g() {}
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedFunctionInvocation;
   }
 
   Future<void> test_between_commaAndComma_arguments_synthetic() async {
@@ -1524,7 +1543,7 @@ void f(int a, int b) {
   f(a,^b);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_commaAndIdentifier_parameters() async {
@@ -1598,7 +1617,7 @@ void f(int a, int b) {
   f(a^, b);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_identifierAndComma_parameters() async {
@@ -1774,7 +1793,7 @@ var x = o?^.m();
     var node = await coveringNode('''
 var x = y+^+;
 ''');
-    node as PostfixIncrement;
+    node as IncrementOrDecrementExpression;
   }
 
   Future<void> test_libraryKeyword() async {

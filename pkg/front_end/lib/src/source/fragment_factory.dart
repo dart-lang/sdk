@@ -238,12 +238,14 @@ abstract class FragmentFactory {
   void addEnum({
     required OffsetMap offsetMap,
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required Identifier identifier,
     required List<TypeParameterFragment>? typeParameters,
     required List<TypeBuilder>? mixins,
     required List<TypeBuilder>? interfaces,
     required int startOffset,
     required int endOffset,
+    required bool hasErroneousBody,
   });
 
   void addEnumElement({

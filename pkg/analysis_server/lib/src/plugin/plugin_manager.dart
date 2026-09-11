@@ -237,13 +237,15 @@ class PluginManager {
 
     _notifyPluginsChanged();
 
+    if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
+      pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
+    }
     pluginIsolate.addContextRoot(contextRoot);
     if (startedSuccessfully) {
       // Send these cached requests to the restarted plugin in order to catch it
       // back up to the working state.
       var cachedRequests = [
         ?_analysisSetSubscriptionsParams,
-        ?_analysisSetAnalysisRootsParams,
         if (_overlayState.isNotEmpty)
           AnalysisUpdateContentParams(_overlayState),
         ?_analysisSetPriorityFilesParams,

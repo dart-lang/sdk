@@ -68,7 +68,7 @@ constants  {
   #C11 = "vm:prefer-inline"
   #C12 = core::pragma {name:#C11, options:#C2}
   #C13 = 0
-  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = "ReturnStruct1ByteInt"
   #C16 = "#lib"
   #C17 = false

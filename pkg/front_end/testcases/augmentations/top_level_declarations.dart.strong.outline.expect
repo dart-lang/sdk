@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method topLevelMethod() → void
+  ;
+static get topLevelGetter() → dynamic
+  ;
+static set topLevelSetter(core::int value) → void
+  ;

@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_context.dart';
 import '../../utils/test_code_extensions.dart';
 
 void main() {

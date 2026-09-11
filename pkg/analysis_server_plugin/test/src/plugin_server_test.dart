@@ -363,6 +363,34 @@ bool b = false;
     await requestFuture;
   }
 
+  Future<void> test_handleAnalysisSetRoots_narrowedToContextRoot() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var otherPackagePath = convertPath('/package2');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+    newFile(otherFilePath, 'bool b = false;');
+
+    // Simulate workspace folder / containing both /package1 and /package2.
+    // contextRoots only contains /package1 (the package with the plugin).
+    // analysisRoots contains / (the workspace folder).
+    var workspacePath = convertPath('/');
+    var future1 = channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var future2 = channel.sendRequest(
+      protocol.AnalysisSetAnalysisRootsParams([workspacePath], []),
+    );
+    await Future.wait([future1, future2]);
+
+    // The context collection should only include /package1, not /package2.
+    var collection = pluginServer.contextCollection!;
+    var contextPaths = collection.contexts
+        .map((c) => c.contextRoot.root.path)
+        .toList();
+    expect(contextPaths, [packagePath]);
+  }
+
   Future<void> test_handleEditGetAssists() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -624,6 +652,73 @@ void f() {
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
   }
 
+  Future<void> test_parsedOnlyRule_partFileChanged_reportsErrors() async {
+    writeAnalysisOptionsWithPlugin({
+      'no_bools': 'disable',
+      'no_integer_10': 'disable',
+      'parsed_only': 'enable',
+    });
+    newFile(filePath, '''
+part 'test2.dart';
+int a = 1;
+''');
+    newFile(file2Path, '''
+part of 'test.dart';
+bool b = false;
+''');
+    await _setRoots();
+
+    var paramsQueue = _analysisErrorsParams;
+    var params1 = await paramsQueue.next;
+    var params2 = await paramsQueue.next;
+
+    var errorsMap = {
+      params1.file: params1.errors,
+      params2.file: params2.errors,
+    };
+
+    expect(errorsMap[filePath], isEmpty);
+    expect(errorsMap[file2Path], hasLength(1));
+    _expectAnalysisError(
+      errorsMap[file2Path]!.single,
+      message: 'Parsed only rule message',
+    );
+
+    // Modify part file with an edit
+    newFile(file2Path, '''
+part of 'test.dart';
+bool b1 = false;
+bool b2 = false;
+''');
+    await channel.sendRequest(
+      protocol.AnalysisHandleWatchEventsParams([
+        WatchEvent(WatchEventType.MODIFY, file2Path),
+      ]),
+    );
+
+    params1 = await paramsQueue.next;
+    params2 = await paramsQueue.next;
+    errorsMap = {params1.file: params1.errors, params2.file: params2.errors};
+    expect(errorsMap[file2Path], hasLength(2));
+  }
+
+  Future<void> test_parsedOnlyRule_usesParsedResult() async {
+    writeAnalysisOptionsWithPlugin({
+      'no_bools': 'disable',
+      'no_integer_10': 'disable',
+      'parsed_only': 'enable',
+    });
+    newFile(filePath, 'bool b = false;');
+    await _setRoots();
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'Parsed only rule message',
+    );
+  }
+
   Future<void> test_partDiagnosticContextMessage() async {
     writeAnalysisOptionsWithPlugin({'no_type_annotations': 'enable'});
     newFile(file2Path, '''
@@ -668,6 +763,7 @@ C? c;
         'no_doubles_custom_severity',
         'no_references_to_strings',
         'no_type_annotations',
+        'parsed_only',
       ]),
     );
     expect(
@@ -1163,6 +1259,7 @@ class _NoLiteralsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
     registry.registerLintRule(NeedsPackageRule());
+    registry.registerLintRule(ParsedOnlyRule());
     registry.registerWarningRule(NoBoolsRule());
     registry.registerWarningRule(NoInteger10Rule());
     registry.registerLintRule(NoDoublesRule());

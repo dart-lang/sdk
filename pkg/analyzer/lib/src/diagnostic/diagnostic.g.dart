@@ -3890,6 +3890,44 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly referenced type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicit = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicit,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
+      "{1}",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitWithMessage,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
 /// String name: the name of the member
 /// String details: message details
 const DiagnosticWithArguments<
@@ -11638,8 +11676,23 @@ multipleClauses = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments multipleCombinators =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_combinators',
+      problemMessage:
+          "At most one 'show' or 'hide' combinator can be used on an import or "
+          "export directive.",
+      correctionMessage:
+          "Try combining all of the combinators into a single combinator.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'multiple_combinators',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
-multipleCombinators = DiagnosticWithoutArgumentsImpl(
+multipleCombinatorsDeprecated = DiagnosticWithoutArgumentsImpl(
   name: 'multiple_combinators',
   problemMessage:
       "Using multiple 'hide' or 'show' combinators is never necessary and often "
@@ -11647,7 +11700,7 @@ multipleCombinators = DiagnosticWithoutArgumentsImpl(
   correctionMessage: "Try using a single combinator.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'multiple_combinators',
+  uniqueName: 'multiple_combinators_deprecated',
   expectedTypes: [],
 );
 
@@ -12771,8 +12824,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -12792,8 +12845,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -16876,12 +16929,11 @@ undefinedLint = DiagnosticWithArguments(
 
 /// Parameters:
 /// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
+/// Type type: the type where the method is being looked for
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String methodName,
-    required String typeName,
+    required DartType type,
   })
 >
 undefinedMethod = DiagnosticWithArguments(
@@ -16894,7 +16946,7 @@ undefinedMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -16916,6 +16968,29 @@ undefinedMethodOnFunctionType = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method_on_function_type',
   withArguments: _withArgumentsUndefinedMethodOnFunctionType,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String methodName: the name of the method that is undefined
+/// String typeName: the name of the type literal where the method is being
+///                  looked for
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
+>
+undefinedMethodOnTypeLiteral = DiagnosticWithArguments(
+  name: 'undefined_method',
+  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing method, or "
+      "defining a method named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_method_on_type_literal',
+  withArguments: _withArgumentsUndefinedMethodOnTypeLiteral,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -19638,6 +19713,22 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicit({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicit, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitWithMessage, [
+    name,
+    details,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
   required String name,
   required String details,
@@ -22349,9 +22440,9 @@ LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
   required String methodName,
-  required String typeName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
+  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
@@ -22361,6 +22452,16 @@ LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
   return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
     methodName,
     functionTypeAliasName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedMethodOnTypeLiteral({
+  required String methodName,
+  required String typeName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedMethodOnTypeLiteral, [
+    methodName,
+    typeName,
   ]);
 }
 

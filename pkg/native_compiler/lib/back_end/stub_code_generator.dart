@@ -18,6 +18,7 @@ abstract base class StubFactory {
   final CodeConsumer consumeGeneratedCode;
   Map<ast.Class, Code> _allocationStubs = {};
   Map<(Register, Register), Code> _writeBarrierStubs = {};
+  List<Code?> _subtypeTestCacheStubs = List<Code?>.filled(8, null);
 
   StubFactory(this.consumeGeneratedCode);
 
@@ -27,6 +28,8 @@ abstract base class StubFactory {
     Register objectReg,
     Register valueReg,
   );
+
+  StubCodeGenerator subtypeTestCacheStubGenerator(int n);
 
   Code _generateCode(String name, StubCodeGenerator generator) {
     final code = generator.generate(name);
@@ -41,5 +44,11 @@ abstract base class StubFactory {
       _writeBarrierStubs[(objectReg, valueReg)] ??= _generateCode(
         'WriteBarrierStub for $objectReg, $valueReg',
         writeBarrierStubGenerator(objectReg, valueReg),
+      );
+
+  Code getSubtypeTestCacheStub(int numInputs) =>
+      _subtypeTestCacheStubs[numInputs] ??= _generateCode(
+        'SubtypeTestCacheStub',
+        subtypeTestCacheStubGenerator(numInputs),
       );
 }

@@ -189,8 +189,8 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?[' is unnecessary.
 }
 ''');
-    assertType(result.findNode.indexExpression2('E(a)'), 'bool?');
-    assertType(result.findNode.indexExpression2('E(b)'), 'bool?');
+    assertType(result.findNode.receiverIndexExpression('E(a)'), 'bool?');
+    assertType(result.findNode.receiverIndexExpression('E(b)'), 'bool?');
   }
 
   test_extensionOverride_methodInvocation() async {

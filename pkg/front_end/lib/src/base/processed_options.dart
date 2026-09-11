@@ -198,6 +198,12 @@ class ProcessedOptions {
   /// The number of fatal diagnostics encountered so far.
   int fatalDiagnosticCount = 0;
 
+  /// Setting this to true will stop reporting errors.
+  ///
+  /// Currently only intended to be used for deps calculation as a step in
+  /// loading from cache.
+  bool temporarilySkipReporting = false;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   new({CompilerOptions? options, List<Uri>? inputs, this.output})
     : this._raw = options ?? new CompilerOptions(),
@@ -283,6 +289,7 @@ class ProcessedOptions {
       List<Uri>? involvedFiles,
     }),
   }) {
+    if (temporarilySkipReporting) return;
     if (command_line_reporting.isHidden(severity)) return;
     if (setExitCodeOnProblem) {
       // Coverage-ignore-block(suite): Not run.

@@ -23,8 +23,8 @@ extension UriChecks on Subject<Uri> {
 }
 
 extension ResourceChecks on Subject<Resource> {
-  void get exists => has((r) => r.exists, 'exists').isTrue();
-  void get doesNotExist => has((r) => r.exists, 'exists').isFalse();
+  void get exists => has((r) => r.exists, 'exists').isTrue;
+  void get doesNotExist => has((r) => r.exists, 'exists').isFalse;
 }
 
 extension FolderChecks on Subject<Folder> {
@@ -55,7 +55,7 @@ extension CompileResultChecks on Subject<CompileResult> {
 
   /// Compilation was successful and logs are empty (indicating no warnings)
   void successEmptyLog() {
-    log.isEmpty();
+    log.isEmpty;
     code.isNotNull();
   }
 }
@@ -71,4 +71,10 @@ extension RpcServerChecks on Subject<rpc.Server> {
         );
         return Extracted.value(StreamQueue(c.stream));
       });
+}
+
+extension ExtensionEventChecks
+    on Subject<({String kind, Map<String, Object?> data})> {
+  Subject<String> get kind => has((s) => s.kind, 'kind');
+  Subject<Map<String, Object?>> get data => has((s) => s.data, 'data');
 }

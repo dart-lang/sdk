@@ -545,6 +545,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCallInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -555,6 +558,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addCascadeIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addCascadeMethodInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -656,7 +665,25 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addDotShorthandConstructorInvocation2(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addDotShorthandInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addDotShorthandMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addDotShorthandNameExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -760,10 +787,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionExpressionInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
+  @experimental
+  void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -799,17 +824,44 @@ abstract class RuleVisitorRegistry2 {
 
   void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addImplicitFunctionInstantiation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addImportPrefixedAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addImportPrefixedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
-  void addIndexAssignmentTarget(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  void addIncrementOrDecrementExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addIndexExpression2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -929,19 +981,7 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  @experimental
-  void addPostfixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPostfixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPrefixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPrefixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,
@@ -959,6 +999,24 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addReceiverIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addReceiverIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addReceiverMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   @experimental
   void addReceiverPropertyAssignmentTarget(
@@ -1088,7 +1146,19 @@ abstract class RuleVisitorRegistry2 {
   );
 
   @experimental
+  void addUnqualifiedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addUnqualifiedNameExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

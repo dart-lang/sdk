@@ -520,6 +520,10 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode result = constantEvaluator.withNewEnvironment(() {
       Expression? initializer = node.initializer;
       if (node.isConst) {
+        assert(
+          initializer != null,
+          "Missing initializer on constant field $node.",
+        );
         transformAnnotations(node.annotations, node);
         initializer = node.initializer = evaluateAndTransformWithContext(
           node,
@@ -1319,17 +1323,15 @@ class ConstantsTransformer extends RemovingTransformer {
 
           replacementCases.add(replacementCase);
         } else {
-          Scope? bodyScope;
-          if (body is Block) {
-            bodyScope = body.scope;
-            body.scope = null;
-          }
-          caseBlock = extern.createBlock([
-            for (VariableDeclaration jointVariableDeclaration
-                in switchCase.jointVariableDeclarations)
-              extern.createVariableStatement(jointVariableDeclaration),
-            if (body is! Block || body.statements.isNotEmpty) body,
-          ], fileOffset: switchCase.fileOffset)..scope = bodyScope;
+          caseBlock = extern.createBlock(
+            [
+              for (VariableDeclaration jointVariableDeclaration
+                  in switchCase.jointVariableDeclarations)
+                extern.createVariableStatement(jointVariableDeclaration),
+              if (body is! Block || body.statements.isNotEmpty) body,
+            ],
+            fileOffset: switchCase.fileOffset,
+          )..scope = switchCase.jointVariableScope;
         }
 
         if (caseCondition != null) {
@@ -1698,7 +1700,7 @@ class ConstantsTransformer extends RemovingTransformer {
           otherwise: node.otherwise,
           fileOffset: node.fileOffset,
         ),
-      ], fileOffset: node.fileOffset);
+      ], fileOffset: node.fileOffset)..scope = node.scope;
     } else {
       ifStatement = extern.createIfStatement(
         condition,
@@ -2009,7 +2011,8 @@ class ConstantsTransformer extends RemovingTransformer {
     // patterns whose value has a primitive equals method. For this case we
     // generate switch using an ordinary switch statement.
     bool primitiveEqualConstantsOnly = true;
-    for (SwitchExpressionCase switchCase in node.cases) {
+    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
+      SwitchExpressionCase switchCase = node.cases[caseIndex];
       if (primitiveEqualConstantsOnly) {
         PatternGuard patternGuard = switchCase.patternGuard;
         if (patternGuard.guard != null) {
@@ -2027,6 +2030,10 @@ class ConstantsTransformer extends RemovingTransformer {
               primitiveEqualConstantsOnly = false;
               break;
             }
+          } else if (caseIndex == node.cases.length - 1 &&
+              pattern is WildcardPattern &&
+              pattern.type == null) {
+            // Trailing untyped wildcard pattern acts as default case.
           } else {
             primitiveEqualConstantsOnly = false;
             break;
@@ -2051,20 +2058,27 @@ class ConstantsTransformer extends RemovingTransformer {
         fileOffset: node.fileOffset,
       );
       List<SwitchCase> switchCases = [];
+      bool hasDefaultCase = false;
       for (SwitchExpressionCase switchExpressionCase in node.cases) {
         List<int> expressionOffsets = [];
         List<Expression> expressions = [];
         PatternGuard patternGuard = switchExpressionCase.patternGuard;
-        ConstantPattern constantPattern =
-            patternGuard.pattern as ConstantPattern;
-        expressionOffsets.add(constantPattern.fileOffset);
-        expressions.add(
-          extern.createConstantExpression(
-            constantPattern.value!,
-            constantPattern.expressionType,
-            fileOffset: constantPattern.expression.fileOffset,
-          ),
-        );
+        Pattern pattern = patternGuard.pattern;
+        bool isDefault = false;
+        if (pattern is WildcardPattern) {
+          isDefault = true;
+          hasDefaultCase = true;
+        } else {
+          ConstantPattern constantPattern = pattern as ConstantPattern;
+          expressionOffsets.add(constantPattern.fileOffset);
+          expressions.add(
+            extern.createConstantExpression(
+              constantPattern.value!,
+              constantPattern.expressionType,
+              fileOffset: constantPattern.expression.fileOffset,
+            ),
+          );
+        }
 
         SwitchCase switchCase = extern.createSwitchCase(
           expressions: expressions,
@@ -2082,7 +2096,7 @@ class ConstantsTransformer extends RemovingTransformer {
               fileOffset: switchExpressionCase.expression.fileOffset,
             ),
           ], fileOffset: switchExpressionCase.fileOffset),
-          isDefault: false,
+          isDefault: isDefault,
           fileOffset: switchExpressionCase.fileOffset,
         );
         switchCases.add(switchCase);
@@ -2091,7 +2105,7 @@ class ConstantsTransformer extends RemovingTransformer {
       labeledStatement.body = extern.createSwitchStatement(
         expression: node.expression,
         cases: switchCases,
-        isExplicitlyExhaustive: true,
+        isExplicitlyExhaustive: !hasDefaultCase,
         expressionType: scrutineeType,
         fileOffset: node.fileOffset,
       )..parent = labeledStatement;

@@ -40,10 +40,10 @@ f2() {
 
 @reflectiveTest
 class ControlBodyOnNewLineInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.always_put_control_body_on_new_line];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.always_put_control_body_on_new_line],
-    );
     await resolveTestCode(r'''
 f() {
   while (true) print('');

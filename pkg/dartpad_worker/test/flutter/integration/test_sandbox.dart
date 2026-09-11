@@ -37,13 +37,8 @@ void main() => testFlutterIntegration('sandbox.runApp (flutter)', (ctx) async {
     }
   ''');
 
-  printOnFailure('# Compiling main.dart');
-  final result = await ctx.ws.compile(Uri.parse('main.dart'));
-  check(result).successEmptyLog();
-
   printOnFailure('# Running code in sandbox');
-  await ctx.sandbox.loadModule(code: result.code!);
-  await ctx.sandbox.runApp(ctx.ws.workspaceFolder.resolve('main.dart'));
+  await ctx.sandbox.run('main.dart', mode: 'flutter');
 
-  await ctx.checkConsole((m) => m.contains('Hello from Flutter!'));
+  await ctx.checkConsole(.it()..contains('Hello from Flutter!'));
 });

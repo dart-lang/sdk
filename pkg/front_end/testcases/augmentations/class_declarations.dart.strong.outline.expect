@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method instanceMethod1() → void
+    ;
+  get instanceGetter1() → core::int
+    ;
+  set instanceSetter1(core::int value) → void
+    ;
+  static method staticMethod1() → void
+    ;
+  static get staticGetter1() → core::int
+    ;
+  static set staticSetter1(core::int value) → void
+    ;
+  method instanceMethod2() → void
+    ;
+  get instanceGetter2() → core::int
+    ;
+  set instanceSetter2(core::int value) → void
+    ;
+  method instanceMethod3() → void
+    ;
+  get instanceGetter3() → core::int
+    ;
+  set instanceSetter3(core::int value) → void
+    ;
+  static method staticMethod2() → void
+    ;
+  static get staticGetter2() → core::int
+    ;
+  static set staticSetter2(core::int value) → void
+    ;
+  static method staticMethod3() → void
+    ;
+  static get staticGetter3() → core::int
+    ;
+  static set staticSetter3(core::int value) → void
+    ;
+}

@@ -1266,6 +1266,7 @@ class BinaryPrinter
     }
     writeAnnotationList(node.annotations);
     writeStringReference(node.partUri);
+    writeUriReference(node.fileUri);
   }
 
   @override

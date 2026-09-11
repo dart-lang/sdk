@@ -32,9 +32,6 @@ abstract interface class TypeAnalyzerOperations<
   /// Returns the type `dynamic`.
   SharedTypeView get dynamicType;
 
-  /// Returns the type used by the client in the case of errors.
-  SharedTypeView get errorType;
-
   /// Returns the type `int`.
   SharedTypeView get intType;
 
@@ -1014,6 +1011,9 @@ mixin TypeAnalyzerOperationsMixin<
           TypeDeclaration,
           AstNode
         > {
+  @override
+  bool get disableThisTypeAssertion => false;
+
   @override
   SharedType chooseTypeFromConstraint(
     MergedTypeConstraint<

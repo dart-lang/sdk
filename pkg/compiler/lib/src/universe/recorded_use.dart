@@ -460,8 +460,14 @@ class RecordUseValueConverter {
     if (cls == _commonElements.symbolImplementationClass) {
       final nameValue = constant.fields[_commonElements.symbolField];
       if (nameValue is StringConstantValue) {
-        final name = nameValue.stringValue;
-        Uri? libraryUri = _jsToElementMap.getSymbolLibraryUri(constant);
+        String name = nameValue.stringValue;
+        final atIndex = name.indexOf('@');
+        Uri? libraryUri;
+        if (atIndex != -1) {
+          libraryUri = Uri.tryParse(name.substring(atIndex + 1));
+          name = name.substring(0, atIndex);
+        }
+        libraryUri ??= _jsToElementMap.getSymbolLibraryUri(constant);
 
         // We only record the library URI for symbols if they are from a
         // 'package:' library. This is because symbols from other schemes (like

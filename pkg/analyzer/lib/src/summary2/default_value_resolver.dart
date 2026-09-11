@@ -100,7 +100,9 @@ class DefaultValueResolver {
     astResolver.resolveExpression(
       () => firstNode.defaultClause!.value2,
       contextType: contextType,
+      isThisAccessible: false,
     );
     firstFragment.constantInitializer2 = firstNode.defaultClause!.value2;
+    formalParameter.resetConstantInitializer();
   }
 }

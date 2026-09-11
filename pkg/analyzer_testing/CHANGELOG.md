@@ -1,4 +1,12 @@
-## 0.4.0-dev
+## 0.4.2-dev
+
+- Require version `14.4.0-dev` of the `analyzer` package.
+
+## 0.4.1
+
+- Require version `14.3.0` of the `analyzer` package.
+
+## 0.4.0
 
 - Breaking change: use `Feature` objects instead of strings when configuring
   experiments in testing APIs. This replaces `experimentsForTests` with
@@ -7,7 +15,7 @@
   `PubPackageResolutionTest.experiments` getter with `experimentalFeatures`.
 - Introduce `writePackageConfig2` and `writeTestPackageConfig2` APIs and
   deprecate `writePackageConfig` and `writeTestPackageConfig`.
-- Require version `14.2.0-dev` of the `analyzer` package.
+- Require version `14.2.0` of the `analyzer` package.
 
 ## 0.3.4
 

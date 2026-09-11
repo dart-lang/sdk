@@ -80,10 +80,10 @@ constants  {
   #C11 = "vm:prefer-inline"
   #C12 = core::pragma {name:#C11, options:#C2}
   #C13 = 0
-  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = 4
   #C16 = 8
-  #C17 = <core::int>[#C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16, #C16, #C15, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C15, #C16]
+  #C17 = <core::int>[#C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16, #C16, #C16, #C15, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16]
   #C18 = "members"
   #C19 = <core::String>[#C18]
   #C20 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2, fieldNames:#C19}

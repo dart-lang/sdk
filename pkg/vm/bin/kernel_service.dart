@@ -97,6 +97,7 @@ CompilerOptions setupCompilerOptions(
   String invocationModes,
   String verbosityLevel,
   bool enableMirrors,
+  bool enableFfi,
 ) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
@@ -106,7 +107,9 @@ CompilerOptions setupCompilerOptions(
   }
 
   Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
-  Target target = new VmTarget(new TargetFlags(supportMirrors: enableMirrors));
+  Target target = new VmTarget(
+    new TargetFlags(supportMirrors: enableMirrors, supportFfi: enableFfi),
+  );
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = target
@@ -172,6 +175,7 @@ abstract class Compiler {
   final String invocationModes;
   final String verbosityLevel;
   final bool enableMirrors;
+  final bool enableFfi;
   final bool generateBytecode;
 
   final List<String> errorsPlain = <String>[];
@@ -189,6 +193,7 @@ abstract class Compiler {
     this.invocationModes = '',
     this.verbosityLevel = Verbosity.defaultValue,
     required this.enableMirrors,
+    required this.enableFfi,
     required this.generateBytecode,
   }) {
     Uri? packagesUri = null;
@@ -215,6 +220,7 @@ abstract class Compiler {
       invocationModes,
       verbosityLevel,
       enableMirrors,
+      enableFfi,
     );
   }
 
@@ -309,6 +315,7 @@ class CompilerWrapper extends Compiler {
     String invocationModes = '',
     String verbosityLevel = Verbosity.defaultValue,
     required bool enableMirrors,
+    required bool enableFfi,
     required super.generateBytecode,
   }) : super(
          isolateGroupId,
@@ -320,6 +327,7 @@ class CompilerWrapper extends Compiler {
          invocationModes: invocationModes,
          verbosityLevel: verbosityLevel,
          enableMirrors: enableMirrors,
+         enableFfi: enableFfi,
        );
 
   factory CompilerWrapper.forExpressionCompilationOnly(
@@ -332,6 +340,7 @@ class CompilerWrapper extends Compiler {
     String? packageConfig,
     String invocationModes = '',
     required bool enableMirrors,
+    required bool enableFfi,
     required bool generateBytecode,
   }) {
     CompilerWrapper result = CompilerWrapper(
@@ -343,6 +352,7 @@ class CompilerWrapper extends Compiler {
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
@@ -381,6 +391,7 @@ class CompilerWrapper extends Compiler {
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     final generator = this.generator!;
@@ -431,6 +442,7 @@ Future<CompilerWrapper> lookupOrBuildNewIncrementalCompiler(
   String invocationModes = '',
   String verbosityLevel = Verbosity.defaultValue,
   required bool enableMirrors,
+  required bool enableFfi,
   required bool generateBytecode,
 }) async {
   CompilerWrapper? compiler = lookupIncrementalCompiler(isolateGroupId);
@@ -470,6 +482,7 @@ Future<CompilerWrapper> lookupOrBuildNewIncrementalCompiler(
         invocationModes: invocationModes,
         verbosityLevel: verbosityLevel,
         enableMirrors: enableMirrors,
+        enableFfi: enableFfi,
         generateBytecode: generateBytecode,
       );
     }
@@ -530,7 +543,8 @@ Future _processExpressionCompilationRequest(request) async {
       ? request[19].cast<String>()
       : null;
   final bool enableMirrors = request[20];
-  final bool generateBytecode = request[21];
+  final bool enableFfi = request[21];
+  final bool generateBytecode = request[22];
 
   CompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -629,6 +643,7 @@ Future _processExpressionCompilationRequest(request) async {
           experimentalFlags: experimentalFlags,
           packageConfig: packageConfigFile,
           enableMirrors: enableMirrors,
+          enableFfi: enableFfi,
           generateBytecode: generateBytecode,
         );
         isolateCompilers[isolateGroupId] = compiler;
@@ -841,7 +856,8 @@ Future _processLoadRequest(request) async {
   final String? multirootScheme = request[13];
   final String verbosityLevel = request[14];
   final bool enableMirrors = request[15];
-  final bool generateBytecode = request[16];
+  final bool enableFfi = request[16];
+  final bool generateBytecode = request[17];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -922,6 +938,7 @@ Future _processLoadRequest(request) async {
       invocationModes: invocationModes,
       verbosityLevel: verbosityLevel,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     FileSystem fileSystem = compiler.fileSystem;
@@ -1202,6 +1219,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* multirootScheme */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
+    true /* enableFfi */,
     false /* generateBytecode */,
   ];
   await _processLoadRequest(request);

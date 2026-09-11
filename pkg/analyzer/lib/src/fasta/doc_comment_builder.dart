@@ -294,6 +294,11 @@ final class DocCommentBuilder {
         isPreviousLineEmpty = false;
       } else if (_parseNodoc(index: whitespaceEndIndex, content: content)) {
         isPreviousLineEmpty = false;
+      } else if (_startToken.type == TokenType.MULTI_LINE_COMMENT &&
+          content == '/**') {
+        // Consider the start line of a multiline doc comment as empty
+        // so we can detect indented codeblocks that start on the next line.
+        isPreviousLineEmpty = true;
       } else {
         _parseReferences(offset, content);
         isPreviousLineEmpty = content.isEmpty;

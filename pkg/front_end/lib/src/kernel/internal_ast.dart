@@ -7692,6 +7692,8 @@ class InternalIfCaseStatement extends InternalStatement {
   final InternalStatement then;
   final InternalStatement? otherwise;
 
+  ScopeProviderInfo? scopeProviderInfo;
+
   new({
     required this.expression,
     required this.patternGuard,

@@ -255,10 +255,11 @@ void f() {
   }
 
   Future<ErrorsResult> _getErrorsResultForFile(File file) async {
-    var errorsResult = await contextCollection
-        .contextFor(file.path)
-        .currentSession
-        .getErrors(file.path);
+    var analysisContext = contextFor2(file);
+    await analysisContext.applyPendingFileChanges();
+    var errorsResult = await analysisContext.currentSession.getErrors(
+      file.path,
+    );
     return errorsResult as ErrorsResult;
   }
 }

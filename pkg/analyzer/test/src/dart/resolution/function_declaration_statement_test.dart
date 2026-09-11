@@ -93,7 +93,13 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@25
+            type: T
+          staticType: T
+        expression(v1): SimpleIdentifier
           token: a
           element: a@25
           staticType: T

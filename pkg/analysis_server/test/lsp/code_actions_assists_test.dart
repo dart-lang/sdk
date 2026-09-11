@@ -12,10 +12,10 @@ import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../lsp/code_actions_mixin.dart';
-import '../lsp/server_abstract.dart';
 import '../shared/shared_code_actions_assists_tests.dart';
 import '../utils/test_code_extensions.dart';
+import 'code_actions_mixin.dart';
+import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {

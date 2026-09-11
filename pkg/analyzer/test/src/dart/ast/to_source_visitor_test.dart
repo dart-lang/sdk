@@ -10,11 +10,66 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/feature_sets.dart';
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ToSourceVisitorTest);
+    defineReflectiveTests(ToSourceVisitorResolutionTest);
   });
+}
+
+@reflectiveTest
+class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  test_functionReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const g = f<int>;
+''');
+    _assertSource('f<int>', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_functionReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const int Function(int) g = f;
+''');
+    _assertSource('f', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_implicitCallReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c<int>;
+''');
+    _assertSource('c<int>', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_nonGeneric() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int call(int value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  void _assertSource(String expected, AstNode node) {
+    expect(node.toString(), expected);
+  }
 }
 
 @reflectiveTest
@@ -1423,6 +1478,8 @@ $code
     var code = "export 'a.dart' show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleExportDirective;
     _assertSource(code, node);
@@ -2284,7 +2341,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2295,7 +2352,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2511,6 +2568,8 @@ $code
     var code = "import 'a.dart' show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     _assertSource(code, node);
@@ -2566,6 +2625,8 @@ $code
     var code = "import 'a.dart' as p show A hide B;";
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
+//                          ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     _assertSource(code, node);
@@ -2619,7 +2680,7 @@ import 'a.dart' $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression2;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
@@ -2628,7 +2689,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression2;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
@@ -3515,7 +3576,7 @@ int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singlePostfixIncrement;
+    var node = parseResult.findNode.singleIncrementOrDecrement;
     _assertSource(code, node);
   }
 

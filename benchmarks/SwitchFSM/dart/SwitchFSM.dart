@@ -32,6 +32,7 @@ import 'package:expect/expect.dart';
 
 import 'match_class.dart' as match_class;
 import 'match_enum.dart' as match_enum;
+import 'match_expression.dart' as match_expression;
 import 'match_int.dart' as match_int;
 import 'match_string.dart' as match_string;
 
@@ -139,6 +140,7 @@ void main() {
   final benchmarks = [
     Benchmark('enum', match_enum.match),
     Benchmark('int', match_int.match),
+    Benchmark('expression', match_expression.match),
     Benchmark('class', match_class.match),
     Benchmark('string', match_string.match),
   ];

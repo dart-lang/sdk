@@ -2313,6 +2313,25 @@ ASSEMBLER_TEST_RUN(Uaddlv4S, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Sshr4S, assembler) {
+  __ LoadImmediate(R1, -256);
+  __ vdupw(V0, R1);
+  __ vsshr_4s(V0, V0, 4);
+  __ vmovrs(R0, V0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sshr4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0xFFFFFFF0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffffffffffffff00\n"
+      "vdups v0, r1\n"
+      "vsshrs v0, v0, #4\n"
+      "vmovrs r0, v0[0]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Umaxp4S, assembler) {
   // Vn = {3, 9, 3, 3}, Vm = {5, 5, 5, 5}. umaxp pairs adjacent lanes:
   // V0 = {max(3,9), max(3,3), max(5,5), max(5,5)} = {9, 3, 5, 5}.

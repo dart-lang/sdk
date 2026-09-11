@@ -81,6 +81,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
         manager.begin(cancelableToken);
 
         try {
+          // ignore: unawaited_futures
           reporter.begin('Refactoring…');
           var status = await refactoring.checkAllConditions();
 
@@ -155,6 +156,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
           return await sendWorkspaceEditToClient(edit);
         } finally {
           manager.end(cancelableToken);
+          // ignore: unawaited_futures
           reporter.end();
         }
       });

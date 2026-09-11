@@ -301,6 +301,12 @@ void _testI32x4() {
   vEq = v1.eq(s11);
   _expectCmpFalse(vEq.extractLane(0).toIntSigned());
 
+  // ne
+  var vNe = v1.ne(s11);
+  _expectCmpTrue(vNe.extractLane(0).toIntSigned());
+  vNe = v1.ne(WasmI32x4.splat(WasmI32.fromInt(10)));
+  _expectCmpFalse(vNe.extractLane(0).toIntSigned());
+
   // i32x4.bitmask
   {
     final _0 = WasmI32x4.splat(WasmI32.fromInt(0));

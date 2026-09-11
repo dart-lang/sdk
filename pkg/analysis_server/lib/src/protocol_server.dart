@@ -98,24 +98,25 @@ String? getExtendedTypeString(engine.Element element) {
   return null;
 }
 
-String? getReturnTypeString(engine.Element element) {
-  if (element is engine.ExecutableElement) {
-    if (element.kind == engine.ElementKind.SETTER) {
-      return null;
-    } else {
-      return element.returnType.getDisplayString();
-    }
+String? getReturnTypeString(
+  engine.Element element, {
+  bool includePositionalParameterNames = false,
+}) {
+  DartType? returnType;
+  if (element is engine.ExecutableElement &&
+      element.kind != engine.ElementKind.SETTER) {
+    returnType = element.returnType;
   } else if (element is engine.VariableElement) {
-    var type = element.type;
-    return type.getDisplayString();
+    returnType = element.type;
   } else if (element is engine.TypeAliasElement) {
     var aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {
-      var returnType = aliasedType.returnType;
-      return returnType.getDisplayString();
+      returnType = aliasedType.returnType;
     }
   }
-  return null;
+  return returnType?.getDisplayString(
+    includePositionalParameterNames: includePositionalParameterNames,
+  );
 }
 
 /// Translates engine errors through the ErrorProcessor.

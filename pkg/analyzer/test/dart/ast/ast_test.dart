@@ -752,7 +752,7 @@ void f() {
   a?[0];
 }
 ''');
-    var expression = parseResult.findNode.indexExpression2('[0]');
+    var expression = parseResult.findNode.receiverIndexExpression('[0]');
     expect(expression.question, isNotNull);
   }
 }

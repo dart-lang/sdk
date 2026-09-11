@@ -180,6 +180,8 @@ class InferredIfCaseElement({
   required final InternalNode nodeForTesting,
   required super.fileOffset,
 }) extends InferredElement {
+  Scope? scope;
+
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {

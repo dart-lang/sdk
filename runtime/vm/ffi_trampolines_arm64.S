@@ -152,7 +152,7 @@ LOCAL_SYMBOL(start):
 #if defined(__Fuchsia__)
   .rept 483 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #elif defined(__APPLE__)
-  .rept 2013 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+  .rept 2010 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #else
   .rept 8157 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #endif

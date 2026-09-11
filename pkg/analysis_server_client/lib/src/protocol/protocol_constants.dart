@@ -150,7 +150,6 @@ const String diagnosticResponseGetDiagnosticsContexts = 'contexts';
 const String diagnosticResponseGetServerPortPort = 'port';
 const String editRequestBulkFixes = 'edit.bulkFixes';
 const String editRequestBulkFixesCodes = 'codes';
-const String editRequestBulkFixesInTestMode = 'inTestMode';
 const String editRequestBulkFixesIncluded = 'included';
 const String editRequestBulkFixesUpdatePubspec = 'updatePubspec';
 const String editRequestFormat = 'edit.format';

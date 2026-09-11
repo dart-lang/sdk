@@ -80,13 +80,13 @@ constants  {
   #C15 = core::pragma {name:#C14, options:#C2}
   #C16 = <core::int>[]
   #C17 = 0
-  #C18 = <core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
-  #C19 = <core::int>[#C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6]
+  #C18 = <core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <core::int>[#C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6]
   #C20 = <core::Type>[#C5]
   #C21 = ffi::_FfiStructLayout {fieldTypes:#C20, packing:#C2, fieldNames:#C11}
   #C22 = core::pragma {name:#C4, options:#C21}
   #C23 = 1
-  #C24 = <core::int>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
+  #C24 = <core::int>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
   #C25 = "cfe:ffi:native-marker"
   #C26 = "myNative"
   #C27 = "#lib"

@@ -160,9 +160,15 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('v; // return');
+    var node = result.findNode.unqualifiedNameExpression('v; // return');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@15
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@15
   staticType: int
@@ -176,9 +182,15 @@ f() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@12
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@12
   staticType: int
@@ -192,9 +204,15 @@ f() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@18
+    type: List<int>
+  staticType: List<int>
+V1: SimpleIdentifier
   token: v
   element: v@18
   staticType: List<int>
@@ -208,9 +226,15 @@ main() {
   return v;
 }''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@15
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@15
   staticType: int
@@ -228,12 +252,55 @@ main() {
   helper.max(10, 10); // marker
 }''');
 
-    var node = result.findNode.simple('max(10, 10)');
+    var node = result.findNode.importPrefixedFunctionInvocation('max(10, 10)');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: max
-  element: package:test/a.dart::@function::max
-  staticType: int Function(int, int)
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: helper
+    period: .
+    element: <testLibraryFragment>::@prefix::helper
+  name: max
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::x
+        staticType: int
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::max
+    invokeType: int Function(int, int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: helper
+    element: <testLibraryFragment>::@prefix::helper
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: max
+    element: package:test/a.dart::@function::max
+    staticType: int Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::x
+        staticType: int
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int, int)
+  staticType: int
 ''');
   }
 
@@ -309,7 +376,9 @@ import 'a.dart' as helper;
 main() {
   helper.hashCode;
 }''');
-    assertTypeDynamic(result.findNode.prefixed('helper.hashCode'));
+    assertTypeDynamic(
+      result.findNode.importPrefixedNameExpression('helper.hashCode'),
+    );
   }
 
   test_objectAccessInference_disabled_for_local_getter() async {
@@ -318,7 +387,9 @@ dynamic get hashCode => null;
 main() {
   hashCode; // marker
 }''');
-    assertTypeDynamic(result.findNode.simple('hashCode; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('hashCode; // marker'),
+    );
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {
@@ -330,9 +401,7 @@ import 'a.dart' as helper;
 main() {
   helper.toString();
 }''');
-    assertTypeDynamic(
-      result.findNode.functionExpressionInvocation('helper.toString()'),
-    );
+    assertTypeDynamic(result.findNode.callInvocation('helper.toString()'));
   }
 
   test_objectMethodInference_disabled_for_local_function() async {

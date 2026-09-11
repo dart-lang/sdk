@@ -6,6 +6,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show DotShorthandNameExpressionImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
@@ -71,11 +73,44 @@ class _Collector {
       return;
     }
 
+    if (node is DotShorthandNameExpressionImpl) {
+      switch (node.resolution) {
+        case GetterInvocationResolution(:var element)
+            when element.variable.isConst:
+        case ExecutableTearOffResolution():
+          return;
+        default:
+          nodes.add(node.dotShorthandPropertyAccess.propertyName);
+          return;
+      }
+    }
+
     if (node is DotShorthandPropertyAccess) {
       return _identifier(node.propertyName);
     }
 
+    if (node is ImportPrefixedNameExpression) {
+      var prefixElement = node.importPrefix.element;
+      if (prefixElement is PrefixElement &&
+          prefixElement.fragments.any((fragment) => fragment.isDeferred)) {
+        nodes.add(node);
+        return;
+      }
+      return _nameExpression(node, node.resolution);
+    }
+
+    if (node is UnqualifiedNameExpression) {
+      return _nameExpression(node, node.resolution);
+    }
+
     if (node is DotShorthandConstructorInvocation) {
+      if (!node.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+
+    if (node is DotShorthandConstructorInvocation2) {
       if (!node.isConst) {
         nodes.add(node);
       }
@@ -117,6 +152,10 @@ class _Collector {
 
     if (node is MethodInvocation) {
       return _methodInvocation(node);
+    }
+
+    if (node is NamedFunctionInvocation) {
+      return _namedFunctionInvocation(node);
     }
 
     if (node is NamedArgument) {
@@ -234,9 +273,20 @@ class _Collector {
       return;
     }
 
+    if (node is FunctionInstantiation) {
+      _typeArgumentList(node.typeArguments);
+      collect(node.operand);
+      return;
+    }
+
     if (node is FunctionReference) {
       _typeArgumentList(node.typeArguments);
       collect(node.function2);
+      return;
+    }
+
+    if (node is ImplicitFunctionInstantiation) {
+      collect(node.operand);
       return;
     }
 
@@ -338,6 +388,64 @@ class _Collector {
     nodes.add(node);
   }
 
+  void _namedFunctionInvocation(NamedFunctionInvocation node) {
+    var arguments = node.argumentList.arguments2;
+    if (arguments.length == 2) {
+      if (node.resolution case ExecutableInvocationResolution(:var element)) {
+        if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+          collect(arguments[0]);
+          collect(arguments[1]);
+          return;
+        }
+      }
+    }
+    // TODO(srawlins): collect type arguments.
+    nodes.add(node);
+  }
+
+  void _nameExpression(AstNode node, NamedReadResolution? resolution) {
+    var element = resolution.elementOrRecovery;
+
+    if (element is FormalParameterElement) {
+      var enclosing = element.enclosingElement;
+      if (enclosing is ConstructorElement &&
+          isConstConstructorElement(enclosing)) {
+        if (node.thisOrAncestorOfType2<ConstructorInitializer>() != null) {
+          return;
+        }
+        var fieldElement = node
+            .thisOrAncestorOfType2<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
+        if (fieldElement is FieldElement &&
+            !fieldElement.isStatic &&
+            !fieldElement.isLate) {
+          return;
+        }
+      }
+      nodes.add(node);
+      return;
+    }
+
+    if (element is VariableElement) {
+      if (!element.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+    if (element is GetterElement) {
+      if (!element.variable.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+    if (element is TopLevelFunctionElement ||
+        element is MethodElement && element.isStatic) {
+      return;
+    }
+    nodes.add(node);
+  }
+
   void _propertyAccess(PropertyAccess node) {
     // CascadeExpression is not a constant, so the target is never null.
     var target = node.target2!;
@@ -372,7 +480,7 @@ class _Collector {
   }
 
   void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    if (node.propertyName.lexeme == 'length') {
+    if (node.name.lexeme == 'length') {
       collect(node.receiver);
       return;
     }

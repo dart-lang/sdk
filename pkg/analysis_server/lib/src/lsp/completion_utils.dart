@@ -641,9 +641,16 @@ CompletionDetail _getCompletionDetail(
     // the suggestion (handles records).
     String? parameterType;
     if (element is FormalParameterElement) {
-      parameterType = element.type.getDisplayString();
+      parameterType = element.type.getDisplayString(
+        includePositionalParameterNames: true,
+      );
     }
-    returnType = server.getReturnTypeString(element) ?? parameterType;
+    returnType =
+        server.getReturnTypeString(
+          element,
+          includePositionalParameterNames: true,
+        ) ??
+        parameterType;
 
     // Extract the type from setters to be shown in the place a return type
     // would usually be shown.
@@ -657,7 +664,9 @@ CompletionDetail _getCompletionDetail(
     // Function calls may not have an element (for example the call method on
     // Function), so use the function type to get parameters if available.
     parameters = getParametersListString(suggestion.type.formalParameters);
-    returnType = suggestion.type.returnType.getDisplayString();
+    returnType = suggestion.type.returnType.getDisplayString(
+      includePositionalParameterNames: true,
+    );
   }
 
   var truncatedParameters = switch (parameters) {

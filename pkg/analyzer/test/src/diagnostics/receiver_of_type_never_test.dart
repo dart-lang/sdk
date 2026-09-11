@@ -76,6 +76,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -99,9 +100,11 @@ void f(Never x) {
     var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: ==
   rightOperand: BinaryOperatorInvocation
@@ -135,6 +138,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -158,9 +162,11 @@ void f(Never x) {
     var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -176,18 +182,6 @@ BinaryOperatorInvocation
         staticType: int
       binaryOperator: add
       element: dart:core::@class::num::@method::+
-      staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
@@ -234,9 +228,11 @@ void f(Never? x) {
     var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   operator: ==
   rightOperand: BinaryOperatorInvocation
@@ -270,6 +266,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -291,9 +288,11 @@ void f(Never? x) {
     var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -309,18 +308,6 @@ BinaryOperatorInvocation
         staticType: int
       binaryOperator: add
       element: dart:core::@class::num::@method::+
-      staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
@@ -394,18 +381,6 @@ BinaryOperatorInvocation
         staticType: int
       binaryOperator: add
       element: dart:core::@class::num::@method::+
-      staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
@@ -498,12 +473,14 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x[0]');
+    var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
@@ -542,12 +519,14 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x?[0]');
+    var node = result.findNode.receiverIndexExpression('x?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   question: ?
   leftBracket: [
@@ -589,10 +568,12 @@ void f(Never x) {
     var node = result.findNode.compoundAssignment('[0] +=');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -644,6 +625,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -670,10 +652,12 @@ void f(Never x) {
     var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -722,6 +706,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -750,10 +735,13 @@ void f(N x) {
     var node = result.findNode.ifNullAssignment('[0] ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     leftBracket: [
@@ -816,10 +804,13 @@ void f(N x) {
     var node = result.findNode.compoundAssignment('[0] += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     leftBracket: [
@@ -878,12 +869,14 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x[0]');
+    var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverIndexExpression
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
@@ -923,10 +916,12 @@ void f(Never? x) {
     var node = result.findNode.compoundAssignment('[0] +=');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never?
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -982,6 +977,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -1006,10 +1002,12 @@ void f(Never? x) {
     var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never?
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -1060,6 +1058,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -1266,14 +1265,31 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ParenthesizedExpression
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
       expression2: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
         literal: ''
       staticType: Never
     rightParenthesis: )
@@ -1300,9 +1316,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: VariableReadResolution
@@ -1312,6 +1328,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: Never
   staticType: Never
@@ -1339,9 +1357,9 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: VariableReadResolution
@@ -1351,6 +1369,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never?
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: dynamic
   staticType: Never?
@@ -1379,9 +1399,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: x
@@ -1391,6 +1411,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never
+  operation: increment
+  position: prefix
   element: <null>
   operatorResultType: Never
   staticType: Never
@@ -1418,9 +1440,9 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: x
@@ -1430,6 +1452,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never?
+  operation: increment
+  position: prefix
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType
@@ -1698,7 +1722,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: toString
+  name: toString
   resolution: <null>
   staticType: Never
 V1: PropertyAccess
@@ -1782,7 +1806,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: <null>
   staticType: Never
 V1: PropertyAccess

@@ -308,6 +308,24 @@ void f() {
     );
   }
 
+  void test_callInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (g)<int>(0);
+  (h)<double>(1);
+}
+''');
+    _assertReplacementForChildren<CallInvocation>(
+      destination: parseResult.findNode.callInvocation('<int>'),
+      source: parseResult.findNode.callInvocation('<double>'),
+      childAccessors: [
+        (node) => node.receiver,
+        (node) => node.typeArguments!,
+        (node) => node.argumentList,
+      ],
+    );
+  }
+
   void test_cascadeExpression() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
@@ -658,6 +676,8 @@ enum E2<U> with M2 implements I2 {one, two}
 @myA1
 @myA2
 export 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart';
 ''');
     var export_a = parseResult.findNode.export('a.dart');
@@ -959,24 +979,6 @@ void g<U>(double b) {
     );
   }
 
-  void test_functionExpressionInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  (g)<int>(0);
-  (h)<double>(1);
-}
-''');
-    _assertReplacementForChildren<FunctionExpressionInvocation>(
-      destination: parseResult.findNode.functionExpressionInvocation('<int>'),
-      source: parseResult.findNode.functionExpressionInvocation('<double>'),
-      childAccessors: [
-        (node) => node.function2,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
-    );
-  }
-
   void test_functionTypeAlias() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1121,6 +1123,8 @@ class A implements I, J {}
 @myA1
 @myA2
 import 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'b.dart';
 ''');
     var import_a = parseResult.findNode.import('a.dart');
@@ -1144,9 +1148,9 @@ void f() {
   b[1];
 }
 ''');
-    _assertReplacementForChildren<IndexExpression2>(
-      destination: parseResult.findNode.indexExpression2('[0]'),
-      source: parseResult.findNode.indexExpression2('[1]'),
+    _assertReplacementForChildren<ReceiverIndexExpression>(
+      destination: parseResult.findNode.receiverIndexExpression('[0]'),
+      source: parseResult.findNode.receiverIndexExpression('[1]'),
       childAccessors: [(node) => node.receiver, (node) => node.index],
     );
   }
@@ -1449,9 +1453,9 @@ void f() {
   b++;
 }
 ''');
-    _assertReplacementForChildren<PostfixIncrement>(
-      destination: parseResult.findNode.postfixIncrement('a++'),
-      source: parseResult.findNode.postfixIncrement('b++'),
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('a++'),
+      source: parseResult.findNode.incrementOrDecrement('b++'),
       childAccessors: [(node) => node.target],
     );
   }
@@ -1477,9 +1481,9 @@ void f() {
   ++b;
 }
 ''');
-    _assertReplacementForChildren<PrefixIncrement>(
-      destination: parseResult.findNode.prefixIncrement('++a'),
-      source: parseResult.findNode.prefixIncrement('++b'),
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('++a'),
+      source: parseResult.findNode.incrementOrDecrement('++b'),
       childAccessors: [(node) => node.target],
     );
   }

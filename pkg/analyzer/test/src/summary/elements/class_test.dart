@@ -10124,9 +10124,11 @@ library
               assertKeyword: assert @38
               leftParenthesis: ( @44
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @45
-                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @45
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: > @47
                 rightOperand: IntegerLiteral
@@ -12734,9 +12736,12 @@ library
                         staticType: null
                       element: <testLibrary>::@class::A::@getter::foo
                   initializer: expression_1
-                    SimpleIdentifier
-                      token: foo @46
-                      element: <testLibrary>::@class::A::@getter::foo
+                    UnqualifiedNameExpression
+                      name: foo @46
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@class::A::@getter::foo
+                        invokeType: int Function()
+                        type: int
                       staticType: int
           getters
             #F4 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
@@ -24117,9 +24122,11 @@ library
               assertKeyword: assert @29
               leftParenthesis: ( @35
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @36
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @36
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: >= @38
                 rightOperand: IntegerLiteral
@@ -24184,9 +24191,11 @@ library
               assertKeyword: assert @29
               leftParenthesis: ( @35
               condition2: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: x @36
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                leftOperand: UnqualifiedNameExpression
+                  name: x @36
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                    type: int
                   staticType: int
                 operator: >= @38
                 rightOperand: IntegerLiteral
@@ -24335,7 +24344,17 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression2: MethodInvocation
+              expression2: UnqualifiedFunctionInvocation
+                name: foo @39
+                argumentList: ArgumentList
+                  leftParenthesis: ( @42
+                  rightParenthesis: ) @43
+                resolution: ExecutableInvocationResolution
+                  element: <testLibrary>::@function::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @39
                   element: <testLibrary>::@function::foo
@@ -24425,7 +24444,13 @@ library
                 element: <testLibrary>::@class::A::@field::_f
                 staticType: null
               equals: = @54
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: f @56
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+                  type: int
+                staticType: int
+              expression(v1): SimpleIdentifier
                 token: f @56
                 element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
                 staticType: int
@@ -24500,6 +24525,16 @@ library
               expression2: RecordLiteral
                 leftParenthesis: ( @51
                 fields2
+                  IntegerLiteral
+                    literal: 0 @52
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: a @55
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+                      type: int
+                    staticType: int
+                fields(v1)
                   IntegerLiteral
                     literal: 0 @52
                     staticType: int
@@ -24658,7 +24693,13 @@ library
                     contents: ' @44
                   InterpolationExpression
                     leftBracket: $ @45
-                    expression2: SimpleIdentifier
+                    expression2: UnqualifiedNameExpression
+                      name: x @46
+                      resolution: VariableReadResolution
+                        element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                        type: int
+                      staticType: int
+                    expression(v1): SimpleIdentifier
                       token: x @46
                       element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                       staticType: int
@@ -24739,9 +24780,11 @@ library
                   literal: 1 @44
                   staticType: int
                 operator: + @46
-                rightOperand: SimpleIdentifier
-                  token: p @48
-                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
+                rightOperand: UnqualifiedNameExpression
+                  name: p @48
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
+                    type: int
                   staticType: int
                 binaryOperator: add
                 element: dart:core::@class::num::@method::+
@@ -29584,15 +29627,14 @@ library
             #F5 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
-                MethodInvocation
-                  methodName: SimpleIdentifier
-                    token: augmented @93
-                    element: <null>
-                    staticType: InvalidType
+                UnqualifiedFunctionInvocation
+                  name: augmented @93
                   argumentList: ArgumentList
                     leftParenthesis: ( @102
                     rightParenthesis: ) @103
-                  staticInvokeType: InvalidType
+                  resolution: InvalidInvocationResolution
+                    type: InvalidType
+                    recovery: <null>
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3
@@ -29676,9 +29718,12 @@ library
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
                 BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: augmented @91
-                    element: <null>
+                  leftOperand: UnqualifiedNameExpression
+                    name: augmented @91
+                    resolution: InvalidNamedReadResolution
+                      type: InvalidType
+                      candidates
+                      recovery: <null>
                     staticType: InvalidType
                   operator: + @101
                   rightOperand: IntegerLiteral
@@ -32430,6 +32475,14 @@ library
                 ListLiteral
                   leftBracket: [ @113
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @114
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@getter::a
+                        invokeType: int Function()
+                        type: int
+                      staticType: int
+                  elements(v1)
                     SimpleIdentifier
                       token: a @114
                       element: <testLibrary>::@getter::a

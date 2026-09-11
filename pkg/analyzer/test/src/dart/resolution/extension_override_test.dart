@@ -27,14 +27,42 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -46,7 +74,7 @@ FunctionExpressionInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -68,10 +96,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -84,6 +112,46 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -97,7 +165,7 @@ FunctionExpressionInvocation
       String
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -123,10 +191,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -135,6 +203,38 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/lib.dart::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -146,7 +246,7 @@ FunctionExpressionInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -171,10 +271,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -191,6 +291,50 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: package:test/lib.dart::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -204,7 +348,7 @@ FunctionExpressionInvocation
       String
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -235,6 +379,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -266,15 +418,51 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: g
+      element: <testLibrary>::@extension::E::@getter::g
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -292,7 +480,7 @@ FunctionExpressionInvocation
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -331,6 +519,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -377,6 +573,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -429,6 +633,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -460,18 +672,20 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -530,16 +744,18 @@ void f(int? a) {
     var node = result.findNode.directAssignment('[0] =');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
-          SimpleIdentifier
-            token: a
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: int?
             correspondingParameter: <null>
-            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: int?
         rightParenthesis: )
       element: <testLibrary>::@extension::E
@@ -621,6 +837,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -670,6 +894,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -720,6 +952,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -776,6 +1016,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -819,6 +1067,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -860,10 +1116,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -930,10 +1188,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -1002,9 +1262,9 @@ f(){
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('++;');
+    var node = result.findNode.incrementOrDecrement('++;');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
     receiver: ExtensionOverride
       name: E
@@ -1030,6 +1290,8 @@ PostfixIncrement
         candidate: <testLibrary>::@extension::E::@method::v
       recovery: <null>
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: dynamic
   staticType: dynamic Function()
@@ -1090,10 +1352,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -1171,10 +1435,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -1244,9 +1510,16 @@ void test(C? c) {
   E(c)?.g(c); // `c` is promoted to `C` on the RHS of `?.`
 }
 ''');
-    var node = result.findNode.simple('c);');
+    var node = result.findNode.unqualifiedNameExpression('c);');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: c
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::test::@formalParameter::c
+    type: C
+  correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
+  staticType: C
+V1: SimpleIdentifier
   token: c
   correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
   element: <testLibrary>::@function::test::@formalParameter::c
@@ -1273,6 +1546,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1323,6 +1604,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1380,6 +1669,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1438,6 +1735,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1502,6 +1807,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1554,6 +1867,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1612,6 +1933,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1671,6 +2000,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1736,6 +2073,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1786,6 +2131,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: c
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::c
+            type: C
+          correspondingParameter: <null>
+          staticType: C
+      arguments(v1)
         SimpleIdentifier
           token: c
           correspondingParameter: <null>

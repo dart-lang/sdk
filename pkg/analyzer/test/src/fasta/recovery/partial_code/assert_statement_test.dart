@@ -42,12 +42,21 @@ CompilationUnit
                 condition2: SimpleIdentifier
                   token: a
                 comma: ,
-                message2: FunctionExpressionInvocation
-                  function2: SimpleIdentifier
+                message2: CallInvocation
+                  receiver: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                message(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -2036,12 +2045,21 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: FunctionExpressionInvocation
-                  function2: SimpleIdentifier
+                condition2: CallInvocation
+                  receiver: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )

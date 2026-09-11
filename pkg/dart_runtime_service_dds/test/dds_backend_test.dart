@@ -42,6 +42,10 @@ class MockVmService {
         };
       });
 
+      peer.registerMethod('_yieldControlToDDS', (json_rpc.Parameters params) {
+        return vm.Success().toJson();
+      });
+
       peer.registerMethod('streamListen', (json_rpc.Parameters params) {
         return vm.Success().toJson();
       });

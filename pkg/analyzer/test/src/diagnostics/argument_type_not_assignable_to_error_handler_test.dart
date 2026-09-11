@@ -117,6 +117,16 @@ void f(Future<void> future) {
 ''');
   }
 
+  void test_functionExpression_noParameters_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Future<void> future) {
+  future..catchError(() {});
+//                   ^^^^^
+// [diag.argumentTypeNotAssignableToErrorHandler] The argument type 'Null Function()' can't be assigned to the parameter type 'FutureOr<void> Function(Object)' or 'FutureOr<void> Function(Object, StackTrace)'.
+}
+''');
+  }
+
   void test_functionExpression_secondParameterIsDynamic() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(Future<void> future) {

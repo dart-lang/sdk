@@ -302,8 +302,10 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg =
-        result.findNode.simple('a;').element as PropertyAccessorElementImpl;
+    var resolution =
+        result.findNode.unqualifiedNameExpression('a;').resolution
+            as NamedReadResolutionWithElement;
+    var vg = resolution.element as PropertyAccessorElementImpl;
     var variable = vg.variable;
 
     // The element model stores and exposes the canonical V2 initializer.

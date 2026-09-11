@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -31,10 +32,10 @@ class A<T> {
 var x = (A.foo)<int>;
 ''');
 
-    var node = result.findNode.functionReference('(A.foo)<int>;');
+    var node = result.findNode.functionInstantiation('(A.foo)<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ParenthesizedExpression
+FunctionInstantiation
+  operand: ParenthesizedExpression
     leftParenthesis: (
     expression2: ConstructorTearOff
       typeReference: ConstructorTypeReference
@@ -48,7 +49,23 @@ FunctionReference
         baseElement: <testLibrary>::@class::A::@constructor::foo
         substitution: {T: T}
       staticType: A<T> Function<T>()
-    expression(v1): ConstructorReference
+    rightParenthesis: )
+    staticType: A<T> Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: A<int> Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -90,10 +107,10 @@ class A<T> {
 var x = (A.new)<int>;
 ''');
 
-    var node = result.findNode.functionReference('(A.new)<int>;');
+    var node = result.findNode.functionInstantiation('(A.new)<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ParenthesizedExpression
+FunctionInstantiation
+  operand: ParenthesizedExpression
     leftParenthesis: (
     expression2: ConstructorTearOff
       typeReference: ConstructorTypeReference
@@ -107,7 +124,23 @@ FunctionReference
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: T}
       staticType: A<T> Function<T>()
-    expression(v1): ConstructorReference
+    rightParenthesis: )
+    staticType: A<T> Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: A<int> Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ConstructorReference
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -151,10 +184,10 @@ var x = A.foo<int>;
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.foo' doesn't have type parameters.
 ''');
 
-    var node = result.findNode.functionReference('A.foo<int>;');
+    var node = result.findNode.functionInstantiation('A.foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ConstructorTearOff
+FunctionInstantiation
+  operand: ConstructorTearOff
     typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@class::A
@@ -166,7 +199,17 @@ FunctionReference
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: T}
     staticType: A<T> Function<T>()
-  function(v1): ConstructorReference
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -202,10 +245,10 @@ var x = a.Future.delayed<int>;
 //                      ^^^^^
 // [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'a.Future.delayed' doesn't have type parameters.
 ''');
-    var node = result.findNode.functionReference('a.Future.delayed<int>;');
+    var node = result.findNode.functionInstantiation('a.Future.delayed<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ConstructorTearOff
+FunctionInstantiation
+  operand: ConstructorTearOff
     typeReference: ConstructorTypeReference
       importPrefix: ImportPrefixReference
         name: a
@@ -221,7 +264,17 @@ FunctionReference
       baseElement: dart:async::@class::Future::@constructor::delayed
       substitution: {T: T}
     staticType: Future<T> Function<T>(Duration, [FutureOr<T> Function()?])
-  function(v1): ConstructorReference
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: ConstructorReference
     constructorName: ConstructorName
       type: NamedType
         importPrefix: ImportPrefixReference
@@ -265,10 +318,27 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('i<int>;');
+    var node = result.findNode.functionInstantiation('i<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: i
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::i
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: dynamic
@@ -295,10 +365,27 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('i<int>.foo();');
+    var node = result.findNode.functionInstantiation('i<int>.foo();');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: i
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::i
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: dynamic
@@ -325,11 +412,40 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.functionReference('f().instanceMethod<int>;');
+    var node = result.findNode.functionInstantiation(
+      'f().instanceMethod<int>;',
+    );
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
-    target2: MethodInvocation
+FunctionInstantiation
+  operand: PropertyAccess
+    target2: UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+    operator: .
+    propertyName: SimpleIdentifier
+      token: instanceMethod
+      element: <null>
+      staticType: dynamic
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: MethodInvocation
       methodName: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
@@ -366,10 +482,32 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <null>
+      staticType: InvalidType
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <null>
@@ -402,11 +540,40 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        element: <null>
+        staticType: InvalidType
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+        element: <null>
+        staticType: InvalidType
+      element: <null>
+      staticType: InvalidType
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
         element: <null>
@@ -447,10 +614,28 @@ void foo() {
 }
 ''');
 
-    var node = result.findNode.functionReference('E<int>;');
+    var node = result.findNode.functionInstantiation('E<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: E
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+        candidate: <testLibrary>::@extension::E
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
     staticType: InvalidType
@@ -480,10 +665,32 @@ void foo() {
 }
 ''');
 
-    var node = result.findNode.functionReference('E<int>;');
+    var node = result.findNode.functionInstantiation('E<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: E
+      element: package:test/a.dart::@extension::E
+      staticType: dynamic
+    element: package:test/a.dart::@extension::E
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -522,15 +729,48 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::E::@getter::foo
+      staticType: int
+    staticType: int
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -571,10 +811,28 @@ extension E on A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -603,27 +861,41 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: Never?
         staticType: Never?
       rightParenthesis: )
       staticType: Never?
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::E::@method::foo
         substitution: {T: Never?, U: U}
       type: Never? Function<U>()
     staticType: Never? Function<U>()
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: Never? Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -667,20 +939,32 @@ extension E on A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ThisExpression
       thisKeyword: this
       staticType: A
@@ -719,15 +1003,50 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::E::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -774,16 +1093,28 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: CascadePropertyExtraction
-    propertyName: foo
+FunctionInstantiation
+  operand: CascadePropertyExtraction
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -819,15 +1150,50 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::E::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -870,15 +1236,48 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -919,10 +1318,28 @@ extension E on A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -953,10 +1370,27 @@ extension on double {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -981,10 +1415,34 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function<T>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T>(T)
+    element: <null>
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1021,10 +1479,35 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function<T, U>(T, U)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T, U>(T, U)
+    element: <null>
+    staticType: void Function<T, U>(T, U)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(dynamic, dynamic)
+  typeArgumentTypes
+    dynamic
+    dynamic
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1062,10 +1545,32 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function(String)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function(String)
+    element: <null>
+    staticType: void Function(String)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(String)
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1100,10 +1605,34 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<String>;');
+    var node = result.findNode.functionInstantiation('foo.call<String>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function<T extends num>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T extends num>(T)
+    element: <null>
+    staticType: void Function<T extends num>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(String)
+  typeArgumentTypes
+    String
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1144,10 +1673,34 @@ extension on Function {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.m<int>;');
+    var node = result.findNode.functionInstantiation('foo.m<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function<T>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: m
+      element: <testLibrary>::@extension::#0::@method::m
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@extension::#0::@method::m
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1188,10 +1741,32 @@ extension E on Function {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.m<int>;');
+    var node = result.findNode.functionInstantiation('foo.m<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::foo
+      staticType: void Function<T>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: m
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -1226,21 +1801,36 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('C()<int>');
+    var node = result.findNode.functionInstantiation('C()<int>');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: ConstructorInvocation
-    constructorReference: ConstructorReference2
-      typeReference: ConstructorTypeReference
-        name: C
-        element: <testLibrary>::@class::C
-        type: C
-      element: <testLibrary>::@class::C::@constructor::new
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticType: C
-  expression(v1): InstanceCreationExpression
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1266,6 +1856,60 @@ ImplicitCallReference
 ''');
   }
 
+  test_implicitCallTearoff_argument() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+void g(int Function(int) value) {}
+void f(C c) {
+  g(c<int>);
+}
+''');
+    assertResolvedNodeText(result.findNode.singleFunctionInstantiation, r'''
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  correspondingParameter: <testLibrary>::@function::g::@formalParameter::value
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  correspondingParameter: <testLibrary>::@function::g::@formalParameter::value
+  element: <testLibrary>::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_implicitCallTearoff_class_staticGetter() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -1279,10 +1923,37 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('C.v<int>');
+    var node = result.findNode.functionInstantiation('C.v<int>');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PrefixedIdentifier
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: C
+        element: <testLibrary>::@class::C
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: v
+        element: <testLibrary>::@class::C::@getter::v
+        staticType: C
+      element: <testLibrary>::@class::C::@getter::v
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -1321,10 +1992,37 @@ void foo() {
 
 ''');
 
-    var node = result.findNode.implicitCallReference('v<int, String>;');
+    var node = result.findNode.functionInstantiation('v<int, String>;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: UnqualifiedNameExpression
+      name: v
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::v
+        invokeType: Object? Function()
+        type: Object?
+      staticType: Object?
+    element: <testLibrary>::@extension::E::@method::call
+    staticType: void Function<R, S>(R, S)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(int, String)
+  typeArgumentTypes
+    int
+    String
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: v
     element: <testLibrary>::@getter::v
     staticType: Object?
@@ -1361,10 +2059,20 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('a);');
+    var node = result.findNode.implicitCallTearOff('a);');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  correspondingParameter: <testLibrary>::@function::g::@formalParameter::f
+  element: <testLibrary>::@extensionType::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -1391,11 +2099,45 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('C.v<int>');
+    var node = result.findNode.functionInstantiation('C.v<int>');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PropertyAccess
-    target2: PrefixedIdentifier
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: PropertyAccess
+      target2: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: prefix
+          element: <testLibraryFragment>::@prefix::prefix
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+          element: package:test/a.dart::@class::C
+          staticType: null
+        element: package:test/a.dart::@class::C
+        staticType: null
+      operator: .
+      propertyName: SimpleIdentifier
+        token: v
+        element: package:test/a.dart::@class::C::@getter::v
+        staticType: C
+      staticType: C
+    element: package:test/a.dart::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -1443,10 +2185,37 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c<int>');
+    var node = result.findNode.functionInstantiation('c<int>');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PrefixedIdentifier
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: c
+        element: package:test/a.dart::@getter::c
+        staticType: C
+      element: package:test/a.dart::@getter::c
+      staticType: C
+    element: package:test/a.dart::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -1486,21 +2255,37 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('C()<int>;');
+    var node = result.findNode.functionInstantiation('C()<int>;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: ConstructorInvocation
-    constructorReference: ConstructorReference2
-      typeReference: ConstructorTypeReference
-        name: C
-        element: <testLibrary>::@class::C
-        type: C
-      element: <testLibrary>::@class::C::@constructor::new
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticType: C
-  expression(v1): InstanceCreationExpression
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: void Function<T, U>(T, U)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(dynamic, dynamic)
+  typeArgumentTypes
+    dynamic
+    dynamic
+V1: ImplicitCallReference
+  expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1540,21 +2325,34 @@ foo() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('C()<int>;');
+    var node = result.findNode.functionInstantiation('C()<int>;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: ConstructorInvocation
-    constructorReference: ConstructorReference2
-      typeReference: ConstructorTypeReference
-        name: C
-        element: <testLibrary>::@class::C
-        type: C
-      element: <testLibrary>::@class::C::@constructor::new
-    argumentList: ArgumentList
-      leftParenthesis: (
-      rightParenthesis: )
-    staticType: C
-  expression(v1): InstanceCreationExpression
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: int Function(int)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+V1: ImplicitCallReference
+  expression: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
@@ -1589,10 +2387,34 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::bar::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -1633,10 +2455,29 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::B::@getter::foo
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::B::@getter::foo
     staticType: void Function<T>(T)
@@ -1667,10 +2508,29 @@ abstract class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: void Function<T>(T)
@@ -1700,10 +2560,29 @@ abstract class A {
 
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: void Function<T>(T)
@@ -1734,10 +2613,32 @@ void foo(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f<String>');
+    var node = result.findNode.functionInstantiation('f<String>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::foo::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::A::@getter::f
+      staticType: List<int>
+    element: <testLibrary>::@class::A::@getter::f
+    staticType: List<int>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::foo::@formalParameter::a
@@ -1774,26 +2675,38 @@ void foo(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f<String>');
+    var node = result.findNode.functionInstantiation('f<String>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::foo::@formalParameter::a
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::a
+          type: A
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: f
+    name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
       invokeType: List<int> Function()
       type: List<int>
     staticType: List<int>
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -1831,10 +2744,28 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -1863,13 +2794,37 @@ class C {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@method::foo
+      staticType: void Function<T>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T>(T)
+    element: <null>
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@method::foo
@@ -1906,14 +2861,45 @@ void bar(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::bar::@formalParameter::c
+        staticType: C
+      period: .
+      identifier: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@class::C::@method::foo
+        staticType: void Function<T>(T)
+      element: <testLibrary>::@class::C::@method::foo
+      staticType: void Function<T>(T)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::bar::@formalParameter::c
@@ -1960,10 +2946,34 @@ class B {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@class::B::@getter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@class::B::@getter::a
@@ -2003,26 +3013,38 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<double>');
+    var node = result.findNode.functionInstantiation('foo<double>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::f::@formalParameter::a
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
       invokeType: int Function()
       type: int
     staticType: int
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: double
+        element: dart:core::@class::double
+        type: double
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -2060,46 +3082,48 @@ void f(A? a, A b) {
 }
 ''');
 
-    var node = result.findNode.functionReference('(a ?? b).foo<int>;');
+    var node = result.findNode.functionInstantiation('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: IfNull
-        leftOperand: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::f::@formalParameter::a
+        leftOperand: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A?
           staticType: A?
         operator: ??
-        rightOperand: SimpleIdentifier
-          token: b
-          element: <testLibrary>::@function::f::@formalParameter::b
+        rightOperand: UnqualifiedNameExpression
+          name: b
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::b
+            type: A
           staticType: A
-        staticType: A
-      expression(v1): BinaryExpression
-        leftOperand: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::f::@formalParameter::a
-          staticType: A?
-        operator: ??
-        rightOperand: SimpleIdentifier
-          token: b
-          correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::b
-          staticType: A
-        element: <null>
-        staticInvokeType: null
         staticType: A
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: BinaryExpression
@@ -2151,7 +3175,7 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int, String>');
+    var node = result.findNode.functionInstantiation('foo<int, String>');
     assertType(node, 'void Function(dynamic)');
   }
 
@@ -2171,12 +3195,54 @@ extension StaticType<T> on T {
 typedef Exactly<T> = T Function(T);
 ''');
 
-    var node = result.findNode.functionReference(
+    var node = result.findNode.functionInstantiation(
       'expectStaticType<Exactly<int>>;',
     );
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: int
+    period: .
+    identifier: SimpleIdentifier
+      token: expectStaticType
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
+        substitution: {T: int, X: X}
+      staticType: void Function<X extends int Function(int)>()
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
+      substitution: {T: int, X: X}
+    staticType: void Function<X extends int Function(int)>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: Exactly
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Exactly
+        type: int Function(int)
+          alias: <testLibrary>::@typeAlias::Exactly
+            typeArguments
+              int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int Function(int)
+      alias: <testLibrary>::@typeAlias::Exactly
+        typeArguments
+          int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -2229,28 +3295,40 @@ extension on List<Object?> {
 var a = [].foo.call<int>;
 ''');
 
-    var node = result.findNode.functionReference('foo.call<int>;');
+    var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ReceiverPropertyExtraction
       receiver: ListLiteral
         leftBracket: [
         rightBracket: ]
         staticType: List<dynamic>
       operator: .
-      propertyName: foo
+      name: foo
       resolution: ExecutableTearOffResolution
         element: <testLibrary>::@extension::#0::@method::foo
         type: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
-    propertyName: call
+    name: call
     resolution: FunctionCallTearOffResolution
       type: void Function<T>(T)
       associatedFunctionType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: PropertyAccess
       target: ListLiteral
         leftBracket: [
@@ -2294,11 +3372,33 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -2332,11 +3432,31 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: SuperExpression
+      superKeyword: super
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: A
     operator: .
@@ -2366,11 +3486,31 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: SuperExpression
+      superKeyword: super
+      staticType: InvalidType
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: InvalidType
     operator: .
@@ -2405,10 +3545,34 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::bar::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -2445,20 +3609,32 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ThisExpression
       thisKeyword: this
       staticType: A
@@ -2494,10 +3670,34 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@getter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -2538,11 +3738,42 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+        element: package:test/a.dart::@getter::a
+        staticType: A
+      element: package:test/a.dart::@getter::a
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -2589,11 +3820,40 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+        element: package:test/a.dart::@getter::a
+        staticType: A
+      element: package:test/a.dart::@getter::a
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -2632,10 +3892,32 @@ bar<T>() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: T
+      element: #E0 T
+      staticType: Type
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: #E0 T
@@ -2670,10 +3952,34 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::bar::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -2710,16 +4016,28 @@ bar(A a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: CascadePropertyExtraction
-    propertyName: foo
+FunctionInstantiation
+  operand: CascadePropertyExtraction
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -2757,12 +4075,54 @@ extension StaticType<T> on T {
 typedef Exactly<T> = T Function(T);
 ''');
 
-    var node = result.findNode.functionReference(
+    var node = result.findNode.functionInstantiation(
       'expectStaticType<Exactly<int>>;',
     );
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      element: x@22
+      staticType: int
+    period: .
+    identifier: SimpleIdentifier
+      token: expectStaticType
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
+        substitution: {T: int, X: X}
+      staticType: void Function<X extends int Function(int)>()
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
+      substitution: {T: int, X: X}
+    staticType: void Function<X extends int Function(int)>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: Exactly
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Exactly
+        type: int Function(int)
+          alias: <testLibrary>::@typeAlias::Exactly
+            typeArguments
+              int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int Function(int)
+      alias: <testLibrary>::@typeAlias::Exactly
+        typeArguments
+          int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
       element: x@22
@@ -2819,10 +4179,28 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -2857,10 +4235,34 @@ abstract class B {
 }
 ''');
 
-    var node = result.findNode.singleFunctionReference;
+    var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::#0::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@extension::#0::@getter::foo
@@ -2903,10 +4305,34 @@ abstract class C extends B {
 }
 ''');
 
-    var node = result.findNode.singleFunctionReference;
+    var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::B::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::B::@getter::foo
@@ -2946,10 +4372,34 @@ abstract class B {
 }
 ''');
 
-    var node = result.findNode.singleFunctionReference;
+    var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::B::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::B::@getter::foo
@@ -2989,10 +4439,28 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -3028,8 +4496,26 @@ class B extends A {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target2: FunctionReference
-    function2: SimpleIdentifier
+  target2: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::foo
+        type: void Function<T>(T)
+      staticType: void Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function(int)
+    typeArgumentTypes
+      int
+  target(v1): FunctionReference
+    function: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
       staticType: void Function<T>(T)
@@ -3073,10 +4559,28 @@ enum B with A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@mixin::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@mixin::A::@method::foo
     staticType: void Function<T>(T)
@@ -3108,10 +4612,28 @@ enum A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@enum::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@enum::A::@method::foo
     staticType: void Function<T>(T)
@@ -3142,10 +4664,28 @@ extension E on int {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E::@method::foo
     staticType: void Function<T>(T)
@@ -3176,10 +4716,28 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extensionType::A::@method::foo
     staticType: void Function<T>(T)
@@ -3212,10 +4770,28 @@ mixin M on A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -3246,10 +4822,28 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@mixin::M::@method::foo
     staticType: void Function<T>(T)
@@ -3278,10 +4872,27 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -3313,7 +4924,17 @@ void f() {
     var node = result.findNode.expressionStatement('prefix.loadLibrary');
     assertResolvedNodeText(node, r'''
 ExpressionStatement
-  expression2: PrefixedIdentifier
+  expression2: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: loadLibrary
+    resolution: ExecutableTearOffResolution
+      element: package:test/a.dart::@function::loadLibrary
+      type: Future<dynamic> Function()
+    staticType: Future<dynamic> Function()
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -3338,10 +4959,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: foo@20
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: foo@20
     staticType: void Function<T>(T)
@@ -3366,10 +5005,28 @@ void bar(void Function<T>(T a) foo) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::bar::@formalParameter::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: void Function<T>(T)
@@ -3397,13 +5054,37 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('fn.call<int>;');
+    var node = result.findNode.functionInstantiation('fn.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('foo')` here, we must change the
     // policy over there.
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: fn
+      element: fn@40
+      staticType: void Function<T>(T)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function<T>(T)
+    element: <null>
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: fn
       element: fn@40
@@ -3441,13 +5122,35 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('fn.call<int>;');
+    var node = result.findNode.functionInstantiation('fn.call<int>;');
     // TODO(srawlins): PropertyElementResolver does not return an element for
     // `.call`. If we want `findElement.method('fn')` here, we must change the
     // policy over there.
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: fn
+      element: fn@55
+      staticType: void Function(int)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: void Function(int)
+    element: <null>
+    staticType: void Function(int)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: fn
       element: fn@55
@@ -3480,10 +5183,26 @@ void bar<T extends Function>(T foo) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::bar::@formalParameter::foo
+      type: T
+    staticType: T
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3506,10 +5225,28 @@ void bar<T extends void Function<U>(U)>(T foo) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::bar::@formalParameter::foo
+      type: T
+    staticType: T
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3536,10 +5273,26 @@ void bar<T>(T foo) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::bar::@formalParameter::foo
+      type: T
+    staticType: T
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: T
@@ -3566,10 +5319,27 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('i<int>;');
+    var node = result.findNode.functionInstantiation('i<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: i
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::i
+      invokeType: Never Function()
+      type: Never
+    staticType: Never
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: i
     element: <testLibrary>::@getter::i
     staticType: Never
@@ -3598,10 +5368,26 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function()
+    staticType: void Function()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function()
@@ -3624,7 +5410,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 }
 ''');
 
-    var reference = result.findNode.functionReference(
+    var reference = result.findNode.functionInstantiation(
       '(1 == 2 ? foo : bar)<int>;',
     );
     assertType(reference, 'void Function(int)');
@@ -3640,7 +5426,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 }
 ''');
 
-    var reference = result.findNode.functionReference(
+    var reference = result.findNode.functionInstantiation(
       '(1 == 2 ? foo : bar)<int, String>;',
     );
     assertType(reference, 'void Function(dynamic)');
@@ -3656,10 +5442,32 @@ bar(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.functionReference('a.foo<int>;');
+    var node = result.findNode.functionInstantiation('a.foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::bar::@formalParameter::a
+      staticType: dynamic
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: dynamic
+    element: <null>
+    staticType: dynamic
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::bar::@formalParameter::a
@@ -3692,11 +5500,26 @@ void f(({T Function<T>(T) f1, String f2}) r) {
 }
 ''');
 
-    var node = result.findNode.functionReference(r'.f1;');
+    var node = result.findNode.implicitFunctionInstantiation(r'.f1;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: SimpleIdentifier
+      token: r
+      element: <testLibrary>::@function::f::@formalParameter::r
+      staticType: ({T Function<T>(T) f1, String f2})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f1
+      element: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({T Function<T>(T) f1, String f2})
@@ -3721,11 +5544,26 @@ void f((T Function<T>(T), String) r) {
 }
 ''');
 
-    var node = result.findNode.functionReference(r'.$1;');
+    var node = result.findNode.implicitFunctionInstantiation(r'.$1;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: SimpleIdentifier
+      token: r
+      element: <testLibrary>::@function::f::@formalParameter::r
+      staticType: (T Function<T>(T), String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $1
+      element: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (T Function<T>(T), String)
@@ -3752,10 +5590,28 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -3784,10 +5640,34 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -3827,11 +5707,42 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+        element: <testLibraryFragment>::@prefix::a
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        element: package:test/a.dart::@class::A
+        staticType: null
+      element: package:test/a.dart::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
         element: <testLibraryFragment>::@prefix::a
@@ -3877,11 +5788,42 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: A
+        element: package:test/a.dart::@class::A
+        staticType: null
+      element: package:test/a.dart::@class::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -3928,11 +5870,42 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: TA
+        element: package:test/a.dart::@typeAlias::TA
+        staticType: Type
+      element: package:test/a.dart::@typeAlias::TA
+      staticType: Type
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -3976,10 +5949,34 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: TA
+      element: <testLibrary>::@typeAlias::TA
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: TA
       element: <testLibrary>::@typeAlias::TA
@@ -4020,10 +6017,28 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.singleImplicitCallReference;
+    var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SuperExpression
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: SuperExpression
+      superKeyword: super
+      staticType: B
+    element: <testLibrary>::@class::A::@method::call
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: SuperExpression
     superKeyword: super
     staticType: B
   typeArguments: TypeArgumentList
@@ -4054,10 +6069,29 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T, U>(T, U)
+    staticType: void Function<T, U>(T, U)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(dynamic, dynamic)
+  typeArgumentTypes
+    dynamic
+    dynamic
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T, U>(T, U)
@@ -4089,10 +6123,32 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int, int>;');
+    var node = result.findNode.functionInstantiation('foo<int, int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(dynamic)
+  typeArgumentTypes
+    dynamic
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
@@ -4123,10 +6179,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
@@ -4156,10 +6230,34 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@function::foo
+      staticType: void Function<T>(T)
+    element: package:test/a.dart::@function::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -4200,10 +6298,34 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@function::foo
+      staticType: void Function<T>(T)
+    element: package:test/a.dart::@function::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -4238,10 +6360,32 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <null>
+      staticType: InvalidType
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <null>
@@ -4277,8 +6421,26 @@ void bar() {
     var node = result.findNode.propertyAccess('.call');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target2: FunctionReference
-    function2: SimpleIdentifier
+  target2: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T>(T)
+      staticType: void Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function(int)
+    typeArgumentTypes
+      int
+  target(v1): FunctionReference
+    function: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: void Function<T>(T)
@@ -4314,10 +6476,28 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>');
+    var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
@@ -4347,10 +6527,34 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@getter::foo
+      staticType: void Function<T>(T)
+    element: package:test/a.dart::@getter::foo
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -4388,11 +6592,40 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+FunctionInstantiation
+  operand: PropertyAccess
     target2: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: a
+        element: <null>
+        staticType: InvalidType
+      element: <null>
+      staticType: InvalidType
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix
@@ -4431,10 +6664,32 @@ var a = Cb.foo<int>;
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: Cb
+      element: <testLibrary>::@typeAlias::Cb
+      staticType: Type
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: Cb
       element: <testLibrary>::@typeAlias::Cb
@@ -4467,10 +6722,32 @@ var a = T.foo<int>;
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: T
+      element: <testLibrary>::@typeAlias::T
+      staticType: Type
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: T
       element: <testLibrary>::@typeAlias::T
@@ -4503,10 +6780,27 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <null>
     staticType: InvalidType
@@ -4535,10 +6829,32 @@ class B {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
@@ -4574,10 +6890,32 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+FunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibraryFragment>::@prefix::a
@@ -4618,10 +6956,28 @@ void bar(void Function<T>(T a) foo) {
 }
 ''');
 
-    var node = result.findNode.functionReference('foo<int>;');
+    var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::bar::@formalParameter::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::bar::@formalParameter::foo
     staticType: void Function<T>(T)
@@ -4638,6 +6994,46 @@ FunctionReference
     int
 ''');
   }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  static A<T> id<T>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.implicitFunctionInstantiation('id);');
+    assertResolvedNodeText(node, r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T>(A<T>)
+    staticType: A<T> Function<T>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+V1: SimpleIdentifier
+  token: id
+  element: <testLibrary>::@class::D::@method::id
+  staticType: A<S> Function(A<S>)
+  tearOffTypeArgumentTypes
+    S
+''');
+  }
 }
 
 @reflectiveTest
@@ -4650,16 +7046,20 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('as void Function<T>(T);');
+    var node = result.findNode.implicitFunctionInstantiation(
+      'as void Function<T>(T);',
+    );
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: AsExpression
+ImplicitFunctionInstantiation
+  operand: AsExpression
     expression2: ParenthesizedExpression
       leftParenthesis: (
       expression2: AsExpression
-        expression2: SimpleIdentifier
-          token: f
-          element: <testLibrary>::@function::foo::@formalParameter::f
+        expression2: UnqualifiedNameExpression
+          name: f
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::foo::@formalParameter::f
+            type: void Function<T>(T)
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
@@ -4696,7 +7096,52 @@ FunctionReference
               element: isPrivate
                 type: T
         rightParenthesis: )
-      parameters(v1): FormalParameterList
+      declaredFragment: GenericFunctionTypeElement
+        parameters
+          <empty>
+            kind: required positional
+            element:
+              type: T
+        returnType: void
+        type: void Function<T>(T)
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AsExpression
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: AsExpression
+        expression: SimpleIdentifier
+          token: f
+          element: <testLibrary>::@function::foo::@formalParameter::f
+          staticType: void Function<T>(T)
+        asOperator: as
+        type: NamedType
+          name: dynamic
+          element: dynamic
+          type: dynamic
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    asOperator: as
+    type: GenericFunctionType
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      functionKeyword: Function
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            declaredFragment: <testLibraryFragment> T@89
+              defaultType: null
+        rightBracket: >
+      parameters: FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -4731,10 +7176,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('g = f;');
+    var node = result.findNode.implicitFunctionInstantiation('g = f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: DirectAssignment
+ImplicitFunctionInstantiation
+  operand: DirectAssignment
     target: UnqualifiedNameAssignmentTarget
       name: g
       read: <null>
@@ -4742,13 +7187,19 @@ FunctionReference
         element: <testLibrary>::@setter::g
         acceptedType: void Function<T>(T)
     operator: =
-    value: SimpleIdentifier
-      token: f
+    value: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
-      element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): AssignmentExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: g
       element: <null>
@@ -4784,10 +7235,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f += 1');
+    var node = result.findNode.implicitFunctionInstantiation('f += 1');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: CompoundAssignment
+ImplicitFunctionInstantiation
+  operand: CompoundAssignment
     target: UnqualifiedNameAssignmentTarget
       name: f
       read: VariableReadResolution
@@ -4805,7 +7256,11 @@ FunctionReference
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): AssignmentExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -4834,12 +7289,25 @@ Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
 }
 ''');
 
-    var node = result.findNode.functionReference('await f');
+    var node = result.findNode.implicitFunctionInstantiation('await f');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: AwaitExpression
+ImplicitFunctionInstantiation
+  operand: AwaitExpression
     awaitKeyword: await
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: Future<void Function<T>(T)>
+      staticType: Future<void Function<T>(T)>
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AwaitExpression
+    awaitKeyword: await
+    expression: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: Future<void Function<T>(T)>
@@ -4863,13 +7331,15 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c + 1');
+    var node = result.findNode.implicitFunctionInstantiation('c + 1');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+ImplicitFunctionInstantiation
+  operand: BinaryOperatorInvocation
+    leftOperand: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
     operator: +
     rightOperand: IntegerLiteral
@@ -4879,7 +7349,11 @@ FunctionReference
     binaryOperator: add
     element: <testLibrary>::@class::C::@method::+
     staticType: void Function<T>(T)
-  function(v1): BinaryExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -4905,10 +7379,20 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f..toString()');
+    var node = result.findNode.implicitFunctionInstantiation('f..toString()');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -4928,22 +7412,24 @@ C<int> Function(int) foo() {
 }
 ''');
 
-    // TODO(srawlins): Leave the constructor tear-off uninstantiated, then
-    // perform generic function instantiation as a wrapping node.
-    var node = result.findNode.constructorTearOff('C.new');
+    var node = result.findNode.implicitFunctionInstantiation('C.new');
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: C
-    element: <testLibrary>::@class::C
-    type: C<dynamic>
-  selector: ConstructorSelector
-    period: .
-    name2: new
-  element: SubstitutedConstructorElementImpl
-    baseElement: <testLibrary>::@class::C::@constructor::new
-    substitution: {T: int}
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    staticType: C<T> Function<T>(T)
   staticType: C<int> Function(int)
+  typeArgumentTypes
+    int
 V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -4973,10 +7459,10 @@ Null Function(int) foo() {
 }
 ''');
 
-    var node = result.findNode.functionReference('<T>(T a) {};');
+    var node = result.findNode.implicitFunctionInstantiation('<T>(T a) {};');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: FunctionExpression
+ImplicitFunctionInstantiation
+  operand: FunctionExpression
     typeParameters: TypeParameterList
       leftBracket: <
       typeParameters
@@ -4998,7 +7484,28 @@ FunctionReference
             element: isPublic
               type: T
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Null Function<T>(T)
+    staticType: Null Function<T>(T)
+  staticType: Null Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@37
+            defaultType: dynamic
+      rightBracket: >
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -5031,13 +7538,35 @@ void Function(int) foo(void Function<T>(T) Function() f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('(f)()');
+    var node = result.findNode.implicitFunctionInstantiation('(f)()');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+ImplicitFunctionInstantiation
+  operand: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: f
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::f
+          type: void Function<T>(T) Function()
+        staticType: void Function<T>(T) Function()
+      rightParenthesis: )
+      staticType: void Function<T>(T) Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::foo::@formalParameter::f
         staticType: void Function<T>(T) Function()
@@ -5064,10 +7593,22 @@ void Function(int) foo(Fn f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<U>(U)
+        alias: <testLibrary>::@typeAlias::Fn
+    staticType: void Function<U>(U)
+      alias: <testLibrary>::@typeAlias::Fn
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<U>(U)
@@ -5089,10 +7630,19 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function<T>(T)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -5110,13 +7660,15 @@ void Function(int) foo(List<void Function<T>(T)> f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f[0];');
+    var node = result.findNode.implicitFunctionInstantiation('f[0];');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: IndexExpression2
-    receiver: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::foo::@formalParameter::f
+ImplicitFunctionInstantiation
+  operand: ReceiverIndexExpression
+    receiver: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: List<void Function<T>(T)>
       staticType: List<void Function<T>(T)>
     leftBracket: [
     index: IntegerLiteral
@@ -5133,7 +7685,11 @@ FunctionReference
       invokeType: void Function<T>(T) Function(int)
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): IndexExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: IndexExpression
     target: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -5168,11 +7724,30 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c.m();');
+    var node = result.findNode.implicitFunctionInstantiation('c.m();');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: MethodInvocation
+ImplicitFunctionInstantiation
+  operand: MethodInvocation
     target2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    operator: .
+    methodName: SimpleIdentifier
+      token: m
+      element: <testLibrary>::@class::C::@method::m
+      staticType: void Function<T>(T) Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: void Function<T>(T) Function()
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: MethodInvocation
+    target: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
@@ -5205,10 +7780,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f++');
+    var node = result.findNode.implicitFunctionInstantiation('f++');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PostfixIncrement
+ImplicitFunctionInstantiation
+  operand: IncrementOrDecrementExpression
     target: UnqualifiedNameAssignmentTarget
       name: f
       read: VariableReadResolution
@@ -5218,10 +7793,16 @@ FunctionReference
         element: <testLibrary>::@function::foo::@formalParameter::f
         acceptedType: void Function<T>(T)
     operator: ++
+    operation: increment
+    position: postfix
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PostfixExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PostfixExpression
     operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -5250,10 +7831,26 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c.f;');
+    var node = result.findNode.implicitFunctionInstantiation('c.f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+ImplicitFunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::C::@getter::f
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::C::@getter::f
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -5284,10 +7881,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('++f');
+    var node = result.findNode.implicitFunctionInstantiation('++f');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixIncrement
+ImplicitFunctionInstantiation
+  operand: IncrementOrDecrementExpression
     operator: ++
     target: UnqualifiedNameAssignmentTarget
       name: f
@@ -5297,10 +7894,16 @@ FunctionReference
       write: VariableWriteResolution
         element: <testLibrary>::@function::foo::@formalParameter::f
         acceptedType: void Function<T>(T)
+    operation: increment
+    position: prefix
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PrefixExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: f
@@ -5329,26 +7932,32 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('(c).f;');
+    var node = result.findNode.implicitFunctionInstantiation('(c).f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+ImplicitFunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::foo::@formalParameter::c
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::c
+          type: C
         staticType: C
       rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: f
+    name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
       invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -5376,16 +7985,119 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  static A<T> id<T>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.implicitFunctionInstantiation('id);');
+    assertResolvedNodeText(node, r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T>(A<T>)
+    staticType: A<T> Function<T>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::D::@method::id
+    staticType: A<T> Function<T>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+''');
+  }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument_optionalTypeArgs() async {
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(strictInference: true),
+    );
+    writeTestPackageConfigWithMeta();
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  @optionalTypeArgs
+  static A<T> id<T, R>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.implicitFunctionInstantiation('id);');
+    assertResolvedNodeText(node, r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T, R>(A<T>)
+    staticType: A<T> Function<T, R>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+    dynamic
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::D::@method::id
+    staticType: A<T> Function<T, R>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+    dynamic
 ''');
   }
 }

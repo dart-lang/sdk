@@ -11,9 +11,8 @@ import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
-
-import 'abstract_context.dart';
 
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
@@ -46,15 +45,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     newFile(testFile.path, testCode);
   }
 
-  int findOffset(String search) {
-    var offset = testCode.indexOf(search);
-    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
-    return offset;
-  }
-
   Future<ParsedUnitResult> getParsedUnit(File file) async {
     var path = file.path;
-    var analysisContext = contextFor(file);
+    var analysisContext = contextFor2(file);
     await analysisContext.applyPendingFileChanges();
     var result = analysisContext.currentSession.getParsedUnit(path);
     return result as ParsedUnitResult;

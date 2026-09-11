@@ -344,9 +344,16 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    invokeType: A Function()
+    type: A
+  staticType: A
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A
@@ -371,134 +378,19 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    invokeType: A? Function()
+    type: A?
+  staticType: A?
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A?
-''');
-  }
-
-  test_importPrefix_topLevelFunction() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo() {}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@function::foo
-    staticType: void Function()
-  element: package:test/a.dart::@function::foo
-  staticType: void Function()
-''');
-  }
-
-  test_importPrefix_topLevelGetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-int get foo => 0;
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@getter::foo
-    staticType: int
-  element: package:test/a.dart::@getter::foo
-  staticType: int
-''');
-  }
-
-  test_importPrefix_topLevelSetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-set foo(int _) {}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-//       ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.foo;');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: InvalidType
-  element: <null>
-  staticType: InvalidType
-''');
-  }
-
-  test_importPrefix_topLevelVariable() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-final foo = 0;
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@getter::foo
-    staticType: int
-  element: package:test/a.dart::@getter::foo
-  staticType: int
 ''');
   }
 

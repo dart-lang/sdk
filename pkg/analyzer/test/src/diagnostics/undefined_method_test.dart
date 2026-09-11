@@ -236,7 +236,7 @@ f(C c) {
 enum E { A }
 f() => E.abs();
 //       ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'E'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'abs' isn't defined for the type 'E'.
 ''');
   }
 
@@ -258,6 +258,17 @@ f(M m) {
   m..abs();
 //   ^^^
 // [diag.undefinedMethod] The method 'abs' isn't defined for the type 'M'.
+}
+''');
+  }
+
+  test_method_undefined_record() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  var x = 1;
+  (x,).foo();
+//     ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type '(int,)'.
 }
 ''');
   }
@@ -303,7 +314,7 @@ class B = A with M;
 void main() {
   B.named();
 //  ^^^^^
-// [diag.undefinedMethod] The method 'named' isn't defined for the type 'B'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'named' isn't defined for the type 'B'.
 }
 ''');
   }
@@ -327,7 +338,7 @@ typedef A = List<int>;
 void f() {
   A.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'List'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'List'.
 }
 ''');
   }

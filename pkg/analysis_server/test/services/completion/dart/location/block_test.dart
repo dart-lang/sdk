@@ -14,6 +14,7 @@ void main() {
     defineReflectiveTests(BlockInForStatementTest);
     defineReflectiveTests(BlockInFunctionBodyTest);
     defineReflectiveTests(BlockInFunctionExpressionBodyTest);
+    defineReflectiveTests(BlockInIfStatementTest);
     defineReflectiveTests(BlockInLocalFunctionBodyTest);
     defineReflectiveTests(BlockInMethodBodyTest);
     defineReflectiveTests(BlockInWhileStatementTest);
@@ -40,6 +41,10 @@ class BlockInFunctionBodyTest extends AbstractCompletionDriverTest
 @reflectiveTest
 class BlockInFunctionExpressionBodyTest extends AbstractCompletionDriverTest
     with FunctionExpressionBodyTestCases {}
+
+@reflectiveTest
+class BlockInIfStatementTest extends AbstractCompletionDriverTest
+    with IfStatementTestCases {}
 
 @reflectiveTest
 class BlockInLocalFunctionBodyTest extends AbstractCompletionDriverTest
@@ -1279,6 +1284,322 @@ suggestions
   yield
     kind: keyword
   yield*
+    kind: keyword
+''');
+  }
+}
+
+mixin IfStatementTestCases on AbstractCompletionDriverTest {
+  Future<void>
+  test_inClass_afterBlock_beforeRightBrace_thisPromoted_explicit() async {
+    await computeSuggestions('''
+class A {
+  void a0() {
+    if (this is B) {
+      this.^
+    }
+  }
+}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  a0
+    kind: methodInvocation
+  b0
+    kind: methodInvocation
+''');
+  }
+
+  Future<void>
+  test_inClass_afterBlock_beforeRightBrace_thisPromoted_implicit() async {
+    await computeSuggestions('''
+class A {
+  void a0() {
+    if (this is B) {
+      ^
+    }
+  }
+}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  a0
+    kind: methodInvocation
+  b0
+    kind: methodInvocation
+  var
+    kind: keyword
+  super
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  this
+    kind: keyword
+  switch
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+  test_inClass_afterBlock_beforeRightBrace_thisPromoted_implicit_shadowed() async {
+    await computeSuggestions('''
+void b0() {}
+
+class A {
+  void a0() {
+    if (this is B) {
+      ^
+    }
+  }
+}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  b0
+    kind: functionInvocation
+  a0
+    kind: methodInvocation
+  var
+    kind: keyword
+  super
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  this
+    kind: keyword
+  switch
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+  test_inExtension_afterBlock_beforeRightBrace_thisPromoted_explicit() async {
+    await computeSuggestions('''
+extension E on A? {
+  void e0() {
+    if (this is B) {
+      this.^
+    }
+  }
+}
+
+class A {}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  b0
+    kind: methodInvocation
+  e0
+    kind: methodInvocation
+''');
+  }
+
+  Future<void>
+  test_inExtension_afterBlock_beforeRightBrace_thisPromoted_implicit() async {
+    await computeSuggestions('''
+extension E on A? {
+  void e0() {
+    if (this is B) {
+      ^
+    }
+  }
+}
+
+class A {}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  b0
+    kind: methodInvocation
+  e0
+    kind: methodInvocation
+  var
+    kind: keyword
+  super
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  this
+    kind: keyword
+  switch
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+  }
+
+  Future<void>
+  test_inExtension_afterBlock_beforeRightBrace_thisPromoted_implicit_shadowed() async {
+    await computeSuggestions('''
+void b0() {}
+
+extension E on A? {
+  void e0() {
+    if (this is B) {
+      ^
+    }
+  }
+}
+
+class A {}
+
+class B extends A {
+  void b0() {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  return
+    kind: keyword
+  if
+    kind: keyword
+  final
+    kind: keyword
+  b0
+    kind: functionInvocation
+  e0
+    kind: methodInvocation
+  var
+    kind: keyword
+  super
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  this
+    kind: keyword
+  switch
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  void
+    kind: keyword
+  while
     kind: keyword
 ''');
   }

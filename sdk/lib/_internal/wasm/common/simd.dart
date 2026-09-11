@@ -653,7 +653,48 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 equal(Int32x4 other) =>
       I32x4.fromV128(WasmI32x4(_bits).eq(WasmI32x4((other as I32x4)._bits)));
 
+  Int32x4 notEqual(Int32x4 other) =>
+      I32x4.fromV128(WasmI32x4(_bits).ne(WasmI32x4((other as I32x4)._bits)));
+
+  Int32x4 lessThan(Int32x4 other) {
+    return I32x4._truncated(
+      x < other.x ? -1 : 0,
+      y < other.y ? -1 : 0,
+      z < other.z ? -1 : 0,
+      w < other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 lessThanOrEqual(Int32x4 other) {
+    return I32x4._truncated(
+      x <= other.x ? -1 : 0,
+      y <= other.y ? -1 : 0,
+      z <= other.z ? -1 : 0,
+      w <= other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 greaterThan(Int32x4 other) {
+    return I32x4._truncated(
+      x > other.x ? -1 : 0,
+      y > other.y ? -1 : 0,
+      z > other.z ? -1 : 0,
+      w > other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 greaterThanOrEqual(Int32x4 other) {
+    return I32x4._truncated(
+      x >= other.x ? -1 : 0,
+      y >= other.y ? -1 : 0,
+      z >= other.z ? -1 : 0,
+      w >= other.w ? -1 : 0,
+    );
+  }
+
   bool get anyTrue => _bits.anyTrue;
+
+  bool get allTrue => flagX && flagY && flagZ && flagW;
 
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255

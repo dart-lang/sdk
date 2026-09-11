@@ -95,14 +95,79 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 #undef DECLARE_RUNTIME_ENTRY
 #undef DECLARE_LEAF_RUNTIME_ENTRY
 
-// See StubCode::GenerateFfiCallbackTrampolineStub.
-struct CallbackMetadata {
-  uword entry_point;
-  uword type;  // FfiCallbackMetadata::CallType
-  uword epilogue;
-  uword caller_isolate;
-  uword caller_isolate_group;
+// Used for redirected FFI callbacks in the runtime when either simulating or
+// interpreting FFI callbacks on ARM64. When dynamic modules are enabled, also
+// needed for compiling both the first level trampoline stub and a shared second
+// level trampoline stub for interpreted callbacks in the stub code compiler.
+struct CallbackContext {
+  static constexpr int kNumIntegerArguments = 8;
+  static constexpr int kNumDoubleArguments = 8;
+
+  uword integer_arguments[kNumIntegerArguments];
+  uword double_arguments[kNumDoubleArguments];
+  uword return_struct_pointer;
+  uword sp;
+
+  static intptr_t integer_arguments_offset() {
+    return OFFSET_OF(CallbackContext, integer_arguments);
+  }
+  static intptr_t double_arguments_offset() {
+    return OFFSET_OF(CallbackContext, double_arguments);
+  }
+  static intptr_t return_struct_pointer_offset() {
+    return OFFSET_OF(CallbackContext, return_struct_pointer);
+  }
+  static intptr_t sp_offset() { return OFFSET_OF(CallbackContext, sp); }
+
+  static intptr_t InstanceSize() { return sizeof(CallbackContext); }
+
+  const char* ToCString(Zone* zone,
+                        intptr_t stack_top_in_bytes = -1,
+                        bool print_stack_as_words = false) const;
 };
+
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
+// Called by the first-level trampoline for simulated callbacks.
+extern "C" void DoRedirectedFfiCallback(struct CallbackContext* ctxt,
+                                        uword trampoline);
+#endif
+
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
+// Called by the second-level trampoline for interpreted callbacks.
+extern "C" void DLRT_DoInterpretedFfiCallback(
+    Thread* thread,
+    struct CallbackContext* ctxt,
+    const PersistentHandle* function_handle);
+#endif
+
+// Information derived from FfiCallbackMetadata by DLRT_GetFfiCallbackMetadata
+// for the callback trampoline stubs.
+//
+// The latter two fields are only used when DART_DYNAMIC_MODULES is enabled,
+// so the first-level trampoline can pass additional information to the
+// InterpretedFfiCallbackTrampoline stub.
+struct CallbackMetadata {
+#define FOR_CALLBACK_METADATA_FIELDS(V)                                        \
+  V(entry_point)                                                               \
+  V(type)                                                                      \
+  V(epilogue)                                                                  \
+  V(caller_isolate)                                                            \
+  V(caller_isolate_group)                                                      \
+  V(function_handle)                                                           \
+  V(interpreted_runtime_entry)
+
+#define DEFINE_FIELD(Name)                                                     \
+  uword Name;                                                                  \
+  static intptr_t Name##_offset() {                                            \
+    return OFFSET_OF(CallbackMetadata, Name);                                  \
+  }
+  FOR_CALLBACK_METADATA_FIELDS(DEFINE_FIELD)
+#undef DEFINE_FIELD
+#undef FOR_CALLBACK_METADATA_FIELDS
+
+  static intptr_t InstanceSize() { return sizeof(CallbackMetadata); }
+};
+
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
                                                CallbackMetadata* out);
 #if defined(HOST_ARCH_IA32)

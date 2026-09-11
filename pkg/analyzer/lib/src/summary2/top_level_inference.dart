@@ -91,11 +91,13 @@ class ConstantInitializersResolver {
         contextType: element.type,
         inScopePrimaryConstructorParameters:
             inScopePrimaryConstructorParameters,
+        isThisAccessible: false,
       );
     }
 
     // We could have rewritten the initializer.
     fragment.constantInitializer2 = node.initializer2;
+    element.resetConstantInitializer();
   }
 }
 
@@ -214,6 +216,7 @@ class _PropertyInducingElementTypeInference
     Scope? scope;
     ExpressionImpl Function()? getInitializer;
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+    bool isThisAccessible = false;
 
     // Augmentations cannot change the type of the element, so only
     // the initializer of the first fragment can be used for type inference.
@@ -226,11 +229,15 @@ class _PropertyInducingElementTypeInference
           scope = node.initializerScope!;
           getInitializer = () => node.initializer2!;
           if (_element case FieldElementImpl field) {
-            if (field.isInstanceField && !field.isLate) {
-              inScopePrimaryConstructorParameters = field.enclosingElement
-                  .tryCast<InterfaceElementImpl>()
-                  ?.primaryConstructor
-                  ?.formalParameters;
+            if (field.isInstanceField) {
+              if (!field.isLate) {
+                inScopePrimaryConstructorParameters = field.enclosingElement
+                    .tryCast<InterfaceElementImpl>()
+                    ?.primaryConstructor
+                    ?.formalParameters;
+              } else {
+                isThisAccessible = true;
+              }
             }
           }
         }
@@ -312,6 +319,7 @@ class _PropertyInducingElementTypeInference
     astResolver.resolveExpression(
       getInitializer,
       inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+      isThisAccessible: isThisAccessible,
     );
 
     // Pop self from the stack.

@@ -64,7 +64,12 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
   String? computeNodeValue(Id id, AstNode node) {
     Element? element;
     DartType? promotedType;
-    if (node is SimpleIdentifier &&
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement, :var type),
+    )) {
+      element = readElement;
+      promotedType = type;
+    } else if (node is SimpleIdentifier &&
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
       element = node.element;

@@ -60,7 +60,7 @@ class ModulePrinter {
   final _declarativeElements = <ir.DeclarativeElementSegment, String>{};
   final _globals = <ir.Global, String>{};
   final _functions = <ir.BaseFunction, String>{};
-  final _dataSegments = <ir.BaseDataSegment, String>{};
+  final _dataSegments = <ir.DataSegment, String>{};
   final _memories = <ir.Memory, String>{};
   final _customSections = <ExtraCustomSection, String>{};
 
@@ -71,10 +71,16 @@ class ModulePrinter {
   /// not.
   final ModulePrintSettings settings;
 
+  final _sourceFileCache = <Uri, List<String>?>{};
+
   ModulePrinter(this._module, {this.settings = const ModulePrintSettings()});
 
   IrPrinter newIrPrinter() => IrPrinter._(
     settings.preferMultiline,
+    settings.printSourcePositions,
+    settings.scrubAbsoluteUris,
+    settings.sourceFileProvider,
+    _sourceFileCache,
     _module,
     typeNamer,
     globalNamer,
@@ -152,8 +158,8 @@ class ModulePrinter {
       switch (segment) {
         case ir.ActiveFunctionElementSegment(
           startIndex: final start,
-          table: final table,
-          entries: final entries,
+          :final table,
+          :final entries,
         ):
           final printedEntries = _activeElementSegments.putIfAbsent(
             table,
@@ -175,8 +181,8 @@ class ModulePrinter {
           break;
         case ir.ActiveExpressionElementSegment(
           startIndex: final start,
-          table: final table,
-          expressions: final expressions,
+          :final table,
+          :final expressions,
         ):
           final printedEntries = _activeElementSegments.putIfAbsent(
             table,
@@ -198,7 +204,7 @@ class ModulePrinter {
             }
           }
           break;
-        case ir.DeclarativeElementSegment(entries: final entries):
+        case ir.DeclarativeElementSegment(:final entries):
           final ip = newIrPrinter();
           ip.write('(elem declare');
           if (ip.preferMultiline) {
@@ -224,7 +230,7 @@ class ModulePrinter {
     }
   }
 
-  void enqueueDataSegment(ir.BaseDataSegment dataSegment) {
+  void enqueueDataSegment(ir.DataSegment dataSegment) {
     if (!_dataSegments.containsKey(dataSegment)) {
       // Since below `printTo` will call namer to name the data segment which
       // will trigger this callback again if not pre-initialized to ''.
@@ -424,6 +430,8 @@ class ModulePrinter {
   }
 }
 
+typedef SourceFileProvider = List<String>? Function(Uri uri);
+
 class ModulePrintSettings {
   final List<RegExp> functionFilters;
   final List<RegExp> tableFilters;
@@ -432,6 +440,8 @@ class ModulePrintSettings {
   final bool preferMultiline;
   final bool scrubAbsoluteUris;
   final bool printInSortedOrder;
+  final bool printSourcePositions;
+  final SourceFileProvider? sourceFileProvider;
 
   const ModulePrintSettings({
     this.functionFilters = const [],
@@ -441,6 +451,8 @@ class ModulePrintSettings {
     this.preferMultiline = false,
     this.scrubAbsoluteUris = false,
     this.printInSortedOrder = false,
+    this.printSourcePositions = false,
+    this.sourceFileProvider,
   });
 
   bool printFunctionBody(String name) {
@@ -545,6 +557,10 @@ class IndentPrinter {
 
 class IrPrinter extends IndentPrinter {
   final bool preferMultiline;
+  final bool printSourcePositions;
+  final bool _scrubAbsoluteUris;
+  final SourceFileProvider? _sourceFileProvider;
+  final Map<Uri, List<String>?> _sourceFileCache;
   final ir.Module module;
 
   final TypeNamer _typeNamer;
@@ -560,6 +576,10 @@ class IrPrinter extends IndentPrinter {
 
   IrPrinter._(
     this.preferMultiline,
+    this.printSourcePositions,
+    this._scrubAbsoluteUris,
+    this._sourceFileProvider,
+    this._sourceFileCache,
     this.module,
     this._typeNamer,
     this._globalNamer,
@@ -574,6 +594,10 @@ class IrPrinter extends IndentPrinter {
   /// empty text content and no local namer.
   IrPrinter dup() => IrPrinter._(
     preferMultiline,
+    printSourcePositions,
+    _scrubAbsoluteUris,
+    _sourceFileProvider,
+    _sourceFileCache,
     module,
     _typeNamer,
     _globalNamer,
@@ -583,6 +607,49 @@ class IrPrinter extends IndentPrinter {
     _dataNamer,
     _memoryNamer,
   );
+
+  List<String>? getSourceLines(Uri uri) {
+    return _sourceFileCache.putIfAbsent(
+      uri,
+      () => _sourceFileProvider?.call(uri),
+    );
+  }
+
+  void printSourcePosition(
+    Uri fileUri,
+    int line,
+    int col, {
+    bool printUrl = true,
+  }) {
+    final lines = getSourceLines(fileUri);
+    String filePath = _scrubAbsoluteUris
+        ? _sanitizeAbsoluteFileUris(fileUri.toString())
+        : (fileUri.isScheme('file')
+              ? fileUri.toFilePath()
+              : fileUri.toString());
+
+    if (lines != null && line >= 0 && line < lines.length) {
+      final sourceLine = lines[line];
+      final colOffset = col.clamp(0, sourceLine.length);
+      final before = sourceLine.substring(0, colOffset);
+      final after = sourceLine.substring(colOffset).trimRight();
+      final sourceSnippet = '$before🎯$after';
+      write(';; ');
+      if (printUrl) {
+        write(sourceSnippet);
+        write(' ' * (40 - sourceSnippet.length - 2 * _indent));
+        writeln(' $filePath:${line + 1}');
+      } else {
+        writeln(sourceSnippet);
+      }
+    } else {
+      writeln(';; $filePath:${line + 1}:${col + 1}');
+    }
+  }
+
+  void printUnmapped() {
+    writeln(';; <unmapped>');
+  }
 
   void beginLabeledBlock(ir.Instruction? instruction) {
     _labelNamer.stack.add(LabelInfo(instruction));
@@ -711,7 +778,7 @@ class IrPrinter extends IndentPrinter {
     write(_tagNamer.name(tag));
   }
 
-  void writeDataReference(ir.BaseDataSegment dataSegment) {
+  void writeDataReference(ir.DataSegment dataSegment) {
     write(_dataNamer.name(dataSegment));
   }
 
@@ -733,11 +800,11 @@ abstract class Namer<T> {
     final map = <ir.Exportable, String>{};
     for (final export in _module.exports.exported) {
       final ir.Exportable? key = switch (export) {
-        ir.TableExport(table: var table) => table,
-        ir.TagExport(tag: var tag) => tag,
-        ir.GlobalExport(global: var global) => global,
-        ir.MemoryExport(memory: var memory) => memory,
-        ir.FunctionExport(function: var function) => function,
+        ir.TableExport(:var table) => table,
+        ir.TagExport(:var tag) => tag,
+        ir.GlobalExport(:var global) => global,
+        ir.MemoryExport(:var memory) => memory,
+        ir.FunctionExport(:var function) => function,
         _ => null,
       };
       if (key != null) {
@@ -881,14 +948,11 @@ class GlobalNamer extends Namer<ir.Global> {
   }
 }
 
-class DataNamer extends Namer<ir.BaseDataSegment> {
+class DataNamer extends Namer<ir.DataSegment> {
   DataNamer(super.scubUris, super.module, super.onReference);
 
   @override
-  String name(
-    ir.BaseDataSegment data, {
-    bool activateOnReferenceCallback = true,
-  }) {
+  String name(ir.DataSegment data, {bool activateOnReferenceCallback = true}) {
     return super._name(data, null, 'data', true);
   }
 }

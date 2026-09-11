@@ -145,6 +145,13 @@ class LspClientCapabilities {
   /// standard message field will no longer also contain the correction message.
   final bool includeAdditionalDiagnosticData;
 
+  /// Whether closing labels are enabled.
+  ///
+  /// For LSP this enables the feature entirely, but for LSP-over-Legacy it only
+  /// indicates that the client wants the notifications over LSP (as opposed
+  /// to legacy notifications).
+  final bool closingLabels;
+
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> experimentalCapabilitiesErrors;
 
@@ -274,6 +281,7 @@ class LspClientCapabilities {
       supportedCommands: experimental.commands,
       includeAdditionalDiagnosticData:
           experimental.includeAdditionalDiagnosticData,
+      closingLabels: experimental.closingLabels,
       experimentalCapabilitiesErrors: experimental.errors,
     );
   }
@@ -320,6 +328,7 @@ class LspClientCapabilities {
     required this.supportsShowMessageRequest,
     required this.supportedCommands,
     required this.includeAdditionalDiagnosticData,
+    required this.closingLabels,
     required this.experimentalCapabilitiesErrors,
   });
 
@@ -351,12 +360,23 @@ class _ExperimentalClientCapabilities {
   final bool showMessageRequest;
   final bool includeAdditionalDiagnosticData;
 
+  /// Whether closing labels are enabled.
+  ///
+  /// Currently this is only a bool flag, but we use an object in the protocol
+  /// to allow for potential future configurability.
+  ///
+  /// For LSP this enables the feature entirely, but for LSP-over-Legacy it only
+  /// indicates that the client wants the notifications over LSP (as opposed
+  /// to legacy notifications).
+  final bool closingLabels;
+
   new({
     required this.legacySnippetTextEdit,
     required this.interactiveFormInputTypes,
     required this.commands,
     required this.showMessageRequest,
     required this.includeAdditionalDiagnosticData,
+    required this.closingLabels,
     required this.errors,
   });
 
@@ -435,12 +455,16 @@ class _ExperimentalClientCapabilities {
       experimental['includeAdditionalDiagnosticData'],
     );
 
+    // Documented in LspClientCapabilities.closingLabels.
+    var closingLabels = experimental['closingLabels'] != null;
+
     return _ExperimentalClientCapabilities(
       legacySnippetTextEdit: legacySnippetTextEdit ?? false,
       interactiveFormInputTypes: interactiveFormInputTypes ?? {},
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
       includeAdditionalDiagnosticData: includeAdditionalDiagnosticData ?? false,
+      closingLabels: closingLabels,
       errors: errors,
     );
   }

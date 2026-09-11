@@ -190,9 +190,8 @@ class CompilerPhaseInputOutputManager {
     }
 
     if (options.saveUnopt) {
-      await File(
-        wasmInName,
-      ).copy(path.setExtension(wasmOutName, '.unopt.wasm'));
+      await File(wasmInName)
+          .copy(path.setExtension(wasmOutName, '.unopt.wasm'));
     }
     final wasmOptPath = options.wasmOptPath?.toFilePath() ?? 'wasm-opt';
     final result = await _runProcess(wasmOptPath, args);
@@ -220,9 +219,9 @@ class CompilerPhaseInputOutputManager {
   }
 
   Future<Set<int>> getModuleIds(String mainWasmFilePath) async {
-    final files = (await Directory(
-      path.dirname(mainWasmFilePath),
-    ).list().toList());
+    final files = (await Directory(path.dirname(mainWasmFilePath))
+        .list()
+        .toList());
     final mainWasmFilename = path.basename(mainWasmFilePath);
     final moduleIds = <int>{};
     for (final file in files) {

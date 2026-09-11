@@ -76,6 +76,18 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   }
 }
 
+const _commandsWithPubspecTelemetry = {
+  'analyze',
+  'build',
+  'compile',
+  'create',
+  'doc',
+  'fix',
+  'pub',
+  'run',
+  'test',
+};
+
 class DartdevRunner extends CommandRunner<int> {
   static const String dartdevDescription =
       'A command-line utility for Dart development';
@@ -286,6 +298,24 @@ class DartdevRunner extends CommandRunner<int> {
       return 0;
     }
 
+    if (topLevelResults.flag('diagnostics')) {
+      log = Logger.verbose(ansi: ansi);
+    }
+
+    late final List<String> experimentErrors = validateExperiments(
+      vmEnabledExperiments,
+    );
+    if (experimentErrors.isNotEmpty) {
+      experimentErrors.forEach(io.stderr.writeln);
+      return 254;
+    }
+
+    if (topLevelResults.command == null &&
+        topLevelResults.wasParsed(evalOption)) {
+      final runCmd = commands[RunCommand.cmdName] as RunCommand;
+      return await runCmd.runEval(topLevelResults);
+    }
+
     if (topLevelResults.command == null &&
         topLevelResults.arguments.isNotEmpty) {
       final firstArg = topLevelResults.arguments.first;
@@ -297,18 +327,6 @@ class DartdevRunner extends CommandRunner<int> {
         // This is the exit code used by the frontend.
         return 254;
       }
-    }
-
-    if (topLevelResults.flag('diagnostics')) {
-      log = Logger.verbose(ansi: ansi);
-    }
-
-    late final List<String> experimentErrors = validateExperiments(
-      vmEnabledExperiments,
-    );
-    if (experimentErrors.isNotEmpty) {
-      experimentErrors.forEach(io.stderr.writeln);
-      return 254;
     }
 
     var command = topLevelResults.command;
@@ -331,10 +349,21 @@ class DartdevRunner extends CommandRunner<int> {
         final path = commandNames.join('/');
         final experiments = topLevelResults.enabledExperiments
           ..sort((a, b) => a.compareTo(b));
+
+        final rootCommand = commandNames.firstOrNull;
+        final shouldCollectPubspec = _commandsWithPubspecTelemetry.contains(
+          rootCommand,
+        );
+        final pubspecTelemetry = shouldCollectPubspec
+            ? collectPubspecTelemetry()
+            : null;
         unifiedAnalytics.send(
           Event.dartCliCommandExecuted(
             name: path,
             enabledExperiments: experiments.join(','),
+            pubspecHasFlutterSdk: pubspecTelemetry?.hasFlutterSdk,
+            pubspecDependencies: pubspecTelemetry?.publicDependencies,
+            pubspecEnvironmentSdk: pubspecTelemetry?.environmentSdk,
           ),
         );
       }

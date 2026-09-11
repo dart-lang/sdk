@@ -53,7 +53,7 @@ show<T>(
     show = [entryPoint.pathSegments.last];
   }
 
-  options = List<String>.from(options);
+  options = List<String>.of(options);
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }

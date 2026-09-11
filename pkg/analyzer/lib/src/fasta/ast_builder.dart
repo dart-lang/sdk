@@ -638,8 +638,8 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
-    if (initializerObject is FunctionExpressionInvocationImpl) {
-      var function = initializerObject.function2;
+    if (initializerObject is CallInvocationImpl) {
+      var function = initializerObject.receiver;
       if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
@@ -761,7 +761,7 @@ class AstBuilder extends StackListener {
       return initializerObject;
     }
 
-    if (initializerObject is IndexExpression2Impl) {
+    if (initializerObject is ReceiverIndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.receiver,
         initializerObject,
@@ -791,9 +791,9 @@ class AstBuilder extends StackListener {
   ) {
     ArgumentListImpl? argumentList;
     while (true) {
-      if (target is FunctionExpressionInvocationImpl) {
+      if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.function2;
+        target = target.receiver as ExpressionImpl;
       } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
         target = target.target2;
@@ -878,9 +878,7 @@ class AstBuilder extends StackListener {
       if (receiver == null &&
           (dot.type == TokenType.PERIOD_PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
-        push(
-          CascadePropertyExtractionImpl(propertyName: identifierOrInvoke.token),
-        );
+        push(CascadePropertyExtractionImpl(name: identifierOrInvoke.token));
       } else if (receiver is SimpleIdentifierImpl &&
           identical('.', dot.stringValue)) {
         push(
@@ -899,7 +897,7 @@ class AstBuilder extends StackListener {
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
             operator: dot,
-            propertyName: identifierOrInvoke.token,
+            name: identifierOrInvoke.token,
           ),
         );
       } else {
@@ -956,8 +954,8 @@ class AstBuilder extends StackListener {
         );
       default:
         push(
-          FunctionExpressionInvocationImpl(
-            function2: receiver,
+          CallInvocationImpl(
+            receiver: receiver,
             typeArguments: typeArguments,
             argumentList: argumentList,
           ),
@@ -1083,8 +1081,8 @@ class AstBuilder extends StackListener {
           arguments.add(message);
         }
         push(
-          FunctionExpressionInvocationImpl(
-            function2: SimpleIdentifierImpl(token: assertKeyword),
+          CallInvocationImpl(
+            receiver: SimpleIdentifierImpl(token: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
@@ -2847,10 +2845,12 @@ class AstBuilder extends StackListener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
-    assert(optional('this', beginToken));
+    assert(optional('augment', beginToken) || optional('this', beginToken));
+    assert(optional('this', thisToken));
 
     var body = pop() as FunctionBodyImpl;
     var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
@@ -2864,7 +2864,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         augmentKeyword: modifiers.augmentKeyword,
-        thisKeyword: beginToken,
+        thisKeyword: thisToken,
         colon: colon,
         initializers: initializers,
         body: body,
@@ -3775,19 +3775,15 @@ class AstBuilder extends StackListener {
     }
     reportErrorIfSuper(rhs);
     var propertyTarget = switch (lhs) {
-      CascadePropertyExtractionImpl(:var propertyName) =>
-        CascadePropertyAssignmentTargetImpl(propertyName: propertyName),
-      ReceiverPropertyExtractionImpl(
-        :var receiver,
-        :var operator,
-        :var propertyName,
-      ) =>
+      CascadePropertyExtractionImpl(:var name) =>
+        CascadePropertyAssignmentTargetImpl(propertyName: name),
+      ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
         ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: operator,
-          propertyName: propertyName,
+          propertyName: name,
         ),
-      PropertyAccessImpl(target2: var receiver?, operator: var operator)
+      PropertyAccessImpl(target2: var receiver?, :var operator)
           when operator.type == TokenType.PERIOD &&
               _isSupportedPropertyReceiver(receiver) =>
         ReceiverPropertyAssignmentTargetImpl(
@@ -3808,7 +3804,7 @@ class AstBuilder extends StackListener {
           index: index,
           rightBracket: rightBracket,
         ),
-      IndexExpression2Impl(
+      ReceiverIndexExpressionImpl(
         :var receiver,
         :var question,
         :var leftBracket,
@@ -3816,7 +3812,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: question,
           leftBracket: leftBracket,
@@ -3832,7 +3828,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: null,
           leftBracket: leftBracket,
@@ -4814,7 +4810,7 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpression2Impl(
+        ReceiverIndexExpressionImpl(
           receiver: target,
           question: question,
           leftBracket: leftBracket,
@@ -4901,6 +4897,12 @@ class AstBuilder extends StackListener {
         'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments',
       );
     }
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    var argumentList = pop() as ArgumentListImpl;
+    doInvocation(null, argumentList);
   }
 
   @override
@@ -5823,6 +5825,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {}
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as ExpressionImpl;
     push(
@@ -5932,20 +5941,13 @@ class AstBuilder extends StackListener {
         operator,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PostfixIncrementImpl(
-        target: _toIncrementOrDecrementTarget(expression),
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.postfix,
         operator: operator,
-      ),
-      TokenType.MINUS_MINUS => PostfixDecrementImpl(
         target: _toIncrementOrDecrementTarget(expression),
-        operator: operator,
       ),
-      _ => throw StateError(
-        'Unexpected postfix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override
@@ -5962,20 +5964,13 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PrefixIncrementImpl(
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.prefix,
         operator: operator,
         target: _toIncrementOrDecrementTarget(expression),
       ),
-      TokenType.MINUS_MINUS => PrefixDecrementImpl(
-        operator: operator,
-        target: _toIncrementOrDecrementTarget(expression),
-      ),
-      _ => throw StateError(
-        'Unexpected prefix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override
@@ -6658,10 +6653,10 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
-      case IndexExpression2Impl():
+      case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
-      case PropertyAccessImpl(target2: var target?, operator: var operator)
+      case PropertyAccessImpl(target2: var target?, :var operator)
           when operator.type == TokenType.PERIOD:
         return _isSupportedPropertyReceiver(target);
       case ReceiverPropertyExtractionImpl(:var receiver):
@@ -6744,8 +6739,9 @@ class AstBuilder extends StackListener {
   ) {
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
-    if (expression is IndexExpression2Impl && !expression.isDotShorthand) {
-      return IndexAssignmentTargetImpl(
+    if (expression is ReceiverIndexExpressionImpl &&
+        !expression.isDotShorthand) {
+      return ReceiverIndexAssignmentTargetImpl(
         receiver: expression.receiver,
         question: expression.question,
         leftBracket: expression.leftBracket,
@@ -6755,13 +6751,13 @@ class AstBuilder extends StackListener {
     }
 
     // Recovery can still produce a legacy, non-cascade index expression.
-    // Keep accepting it until all parser paths produce IndexExpression2.
+    // Keep accepting it until all parser paths produce ReceiverIndexExpression.
     if (expression is IndexExpressionImpl) {
       var receiver = expression.target2;
       if (receiver != null &&
           expression.period == null &&
           !expression.isDotShorthand) {
-        return IndexAssignmentTargetImpl(
+        return ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: expression.question,
           leftBracket: expression.leftBracket,
@@ -6776,7 +6772,7 @@ class AstBuilder extends StackListener {
       return ReceiverPropertyAssignmentTargetImpl(
         receiver: expression.receiver,
         operator: expression.operator,
-        propertyName: expression.propertyName,
+        propertyName: expression.name,
       );
     }
 

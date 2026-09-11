@@ -12,3 +12,11 @@ static method joinedVariableMixed(dynamic x) → dynamic
   ;
 static method joinedVariableSwitchExpression(dynamic x) → dynamic
   ;
+static method joinedVariableIfCaseStatement(dynamic x) → dynamic
+  ;
+static method joinedVariableIfCaseElement(dynamic x) → dynamic
+  ;
+static method staleSwitchCaseBuilderTest(dynamic x, (core::String, core::int) r) → dynamic
+  ;
+static method mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) → dynamic
+  ;

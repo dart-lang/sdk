@@ -458,6 +458,9 @@ abstract class AstVisitor2<R> {
 
   R? visitBreakStatement(BreakStatement node);
 
+  @experimental
+  R? visitCallInvocation(CallInvocation node);
+
   R? visitCascadeExpression(CascadeExpression node);
 
   @experimental
@@ -465,6 +468,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitCascadeIndexExpression(CascadeIndexExpression node);
+
+  @experimental
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node);
 
   @experimental
   R? visitCascadePropertyAssignmentTarget(CascadePropertyAssignmentTarget node);
@@ -541,7 +547,18 @@ abstract class AstVisitor2<R> {
     DotShorthandConstructorInvocation node,
   );
 
+  @experimental
+  R? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  );
+
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
+
+  @experimental
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node);
+
+  @experimental
+  R? visitDotShorthandNameExpression(DotShorthandNameExpression node);
 
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
 
@@ -609,7 +626,8 @@ abstract class AstVisitor2<R> {
 
   R? visitFunctionExpression(FunctionExpression node);
 
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
+  @experimental
+  R? visitFunctionInstantiation(FunctionInstantiation node);
 
   R? visitFunctionReference(FunctionReference node);
 
@@ -644,17 +662,31 @@ abstract class AstVisitor2<R> {
 
   R? visitImplicitCallReference(ImplicitCallReference node);
 
+  @experimental
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node);
+
+  @experimental
+  R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node);
+
   R? visitImportDirective(ImportDirective node);
+
+  @experimental
+  R? visitImportPrefixedAssignmentTarget(ImportPrefixedAssignmentTarget node);
+
+  @experimental
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  );
+
+  @experimental
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node);
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
   @experimental
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node);
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node);
 
   R? visitIndexExpression(IndexExpression node);
-
-  @experimental
-  R? visitIndexExpression2(IndexExpression2 node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
 
@@ -757,19 +789,7 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  @experimental
-  R? visitPostfixDecrement(PostfixDecrement node);
-
-  @experimental
-  R? visitPostfixIncrement(PostfixIncrement node);
-
-  @experimental
-  R? visitPrefixDecrement(PrefixDecrement node);
-
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
-  @experimental
-  R? visitPrefixIncrement(PrefixIncrement node);
 
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 
@@ -778,6 +798,15 @@ abstract class AstVisitor2<R> {
   R? visitPrimaryConstructorName(PrimaryConstructorName node);
 
   R? visitPropertyAccess(PropertyAccess node);
+
+  @experimental
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node);
+
+  @experimental
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node);
+
+  @experimental
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node);
 
   @experimental
   R? visitReceiverPropertyAssignmentTarget(
@@ -877,7 +906,13 @@ abstract class AstVisitor2<R> {
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
 
   @experimental
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node);
+
+  @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
+
+  @experimental
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
 
   R? visitVariableDeclaration(VariableDeclaration node);
 

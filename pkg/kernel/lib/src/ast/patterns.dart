@@ -1830,6 +1830,9 @@ class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;
 
+  // TODO(cstefantsova): Serialize this field.
+  final Scope? jointVariableScope;
+
   @override
   Scope? scope;
 
@@ -1841,6 +1844,7 @@ class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
     required this.hasLabel,
     required this.jointVariableDeclarations,
     required this.jointVariableFirstUseOffsets,
+    required this.jointVariableScope,
   }) {
     setParents(patternGuards, this);
     setParents(jointVariableDeclarations, this);
@@ -2283,7 +2287,7 @@ class PatternAssignment extends Expression {
 ///     if (expression case pattern when guard) then
 ///     if (expression case pattern when guard) then else otherwise
 ///
-class IfCaseStatement extends Statement {
+class IfCaseStatement extends Statement implements ScopeProvider {
   Expression expression;
   PatternGuard patternGuard;
   Statement then;
@@ -2291,6 +2295,9 @@ class IfCaseStatement extends Statement {
 
   /// The type of the expression against which this pattern is matched.
   DartType matchedValueType;
+
+  @override
+  Scope? scope;
 
   new({
     required this.expression,
@@ -2399,6 +2406,7 @@ final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
   hasLabel: false,
   jointVariableDeclarations: [],
   jointVariableFirstUseOffsets: null,
+  jointVariableScope: null,
 );
 
 final SwitchExpressionCase dummySwitchExpressionCase = new SwitchExpressionCase(

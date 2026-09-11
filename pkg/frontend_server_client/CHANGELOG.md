@@ -1,5 +1,7 @@
 ## 4.0.1-wip
 
+- Support running from standalone CLI executables and respect `sdkRoot` when
+  locating SDK tools and snapshots.
 - Update Dart SDK constraint to `^3.10.0`.
 - Allow package_config `3.x.x`.
 

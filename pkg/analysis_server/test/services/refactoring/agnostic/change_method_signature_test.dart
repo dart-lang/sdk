@@ -15,6 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -22,11 +23,10 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -98,7 +98,11 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     var unitResult = resolvedLibraryResult.unitWithPath(file.path)!;
 
     refactoringContext = AbstractRefactoringContext(
-      searchEngine: SearchEngineImpl(allDrivers),
+      searchEngine: SearchEngineImpl(
+        contextCollection.contexts.map(
+          (c) => (c as DriverBasedAnalysisContext).driver,
+        ),
+      ),
       startSessions: [resolvedLibraryResult.session],
       resolvedLibraryResult: resolvedLibraryResult,
       resolvedUnitResult: unitResult,

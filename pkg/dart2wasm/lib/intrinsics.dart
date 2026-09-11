@@ -259,6 +259,7 @@ enum StaticIntrinsic {
   wasmI8x16Eq('dart:_wasm', null, 'WasmI8x16|eq'),
   wasmI16x8Eq('dart:_wasm', null, 'WasmI16x8|eq'),
   wasmI32x4Eq('dart:_wasm', null, 'WasmI32x4|eq'),
+  wasmI32x4Ne('dart:_wasm', null, 'WasmI32x4|ne'),
   wasmI64x2Eq('dart:_wasm', null, 'WasmI64x2|eq'),
   wasmF32x4Eq('dart:_wasm', null, 'WasmF32x4|eq'),
   wasmF64x2Eq('dart:_wasm', null, 'WasmF64x2|eq'),
@@ -1122,7 +1123,10 @@ class Intrinsifier {
 
   /// Generate inline code for a [StaticGet] if the member is an inlined
   /// intrinsic.
-  w.ValueType? generateStaticGetterIntrinsic(StaticGet node) {
+  w.ValueType? generateStaticGetterIntrinsic(
+    StaticGet node,
+    w.ValueType expectedType,
+  ) {
     final Member target = node.target;
     final Class? cls = target.enclosingClass;
 
@@ -1235,7 +1239,32 @@ class Intrinsifier {
           return type;
       }
     }
+
+    if (_isIntrinsicMemoryGetter(node.target)) {
+      // External memory getters may only be invoked as a receiver to a
+      // MemoryAccessExtension call, which is intrinsified. When TFA detects
+      // that arguments to a memory access invocation throw unconditionally, the
+      // receiver is wrapped in a throwing BlockExpression we need to handle.
+      if (expectedType == translator.voidMarker) {
+        return translator.voidMarker;
+      } else {
+        throw StateError('Invalid memory getter invocation');
+      }
+    }
+
     return null;
+  }
+
+  bool _isIntrinsicMemoryGetter(Member member) {
+    if (member case Procedure(
+      kind: ProcedureKind.Getter,
+      isExternal: true,
+      function: FunctionNode(returnType: final InterfaceType type),
+    )) {
+      return type.classNode == translator.wasmMemoryClass;
+    }
+
+    return false;
   }
 
   int _getSimdLaneIndex(Expression argument, int numLanes, TreeNode node) {
@@ -2214,6 +2243,13 @@ class Intrinsifier {
         codeGen.translateExpression(left, w.NumType.v128);
         codeGen.translateExpression(right, w.NumType.v128);
         b.i32x4_eq();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI32x4Ne:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i32x4_ne();
         return w.NumType.v128;
       case StaticIntrinsic.wasmI64x2Eq:
         Expression left = node.arguments.positional[0];

@@ -88,14 +88,17 @@ String getTopLevelName(NamedNode n) {
 ///
 /// For example if we had the ClassDeclaration node for `FontElement`:
 ///
-///    @js.JS('HTMLFontElement')
-///    @deprecated
-///    class FontElement { ... }
+/// ```
+/// @js.JS('HTMLFontElement')
+/// @deprecated
+/// class FontElement { ... }
+/// ```
 ///
 /// We could match `@deprecated` with a test function like:
 ///
-///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
-///
+/// ```
+/// (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
+/// ```
 Expression? findAnnotation(TreeNode node, bool Function(Expression) test) {
   List<Expression> annotations;
   if (node is Class) {
@@ -354,7 +357,9 @@ class _FunctionExpressionFinder extends RecursiveVisitor {
 
 /// Whether [member] is declared native, as in:
 ///
-///    void foo() native;
+/// ```
+/// void foo() native;
+/// ```
 ///
 /// This syntax is only allowed in sdk libraries and native tests.
 bool isNative(Member member) =>

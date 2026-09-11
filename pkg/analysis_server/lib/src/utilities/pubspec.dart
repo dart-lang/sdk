@@ -48,8 +48,10 @@ List<String> checkDependencyCompatibility({
       }
     }
 
-    // Check if the dependency's SDK constraint allows the target version.
-    if (!constraint.allows(targetVersion)) {
+    // A dependency is incompatible only if its upper bound forbids all versions
+    // at or above [targetVersion]. Dependencies that require an even higher
+    // minimum SDK version remain compatible with this bump.
+    if (!constraint.allowsAny(VersionRange(min: targetVersion))) {
       incompatible.add(package.name);
     }
   }
@@ -118,8 +120,7 @@ class PubspecEdit {
   /// The length of the text to be replaced.
   final int length;
 
-  /// The full new SDK constraint text after the edit is applied and the text to
-  /// be inserted at [offset], replacing [length] characters.
+  /// The text to be inserted at [offset], replacing [length] characters.
   final String replacement;
 
   /// The full original SDK constraint text before the edit is applied.
@@ -135,6 +136,10 @@ class PubspecEdit {
     required this.originalConstraint,
     required this.targetVersion,
   });
+
+  /// The full new SDK constraint text after the edit is applied.
+  String get newConstraint =>
+      originalConstraint.replaceRange(0, length, replacement);
 }
 
 /// A target package's `pubspec.yaml` file and its derived display name.

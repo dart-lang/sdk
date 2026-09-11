@@ -34,7 +34,7 @@
           local.tee $var1
           local.get $var3
           local.get $var1
-          struct.get $#Top $field0
+          struct.get $#Top $#classId
           local.tee $var0
           i32.const 67
           i32.eq
@@ -136,7 +136,7 @@
           block $label3 (result i32)
             i32.const 1
             local.get $var1
-            struct.get $#Top $field0
+            struct.get $#Top $#classId
             local.tee $var0
             i32.const 41
             i32.eq

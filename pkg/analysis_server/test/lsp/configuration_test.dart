@@ -20,9 +20,18 @@ class ConfigurationTest extends AbstractLspAnalysisServerTest {
   /// ask for the updated config.
   Future<void> test_configChange() async {
     setDidChangeConfigurationDynamicRegistration();
-    await provideConfig(initialize, {'dart.foo': false});
 
-    // The updateConfig helper will only complete after the server requests the config.
+    // We must respond to the dynamic registrations, though for this test we
+    // aren't verifying them (that's done in
+    // `test_configurationDidChange_supported`).
+    var registrations = <Registration>[];
+    await monitorDynamicRegistrations(
+      registrations,
+      () => provideConfig(initialize, {'dart.foo': false}),
+    );
+
+    // The updateConfig helper will only complete after the server requests the
+    // config.
     await updateConfig({'dart.foo': true});
   }
 

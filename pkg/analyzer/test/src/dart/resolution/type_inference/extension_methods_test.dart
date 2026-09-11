@@ -294,14 +294,16 @@ void f<S extends num>(S x) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: S
       staticType: S
     rightParenthesis: )
     staticType: S
   operator: .
-  propertyName: test
+  name: test
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::Test::@getter::test
@@ -460,6 +462,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -511,6 +521,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -575,6 +593,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -627,6 +653,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A<int>
+            correspondingParameter: <null>
+            staticType: A<int>
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -700,6 +734,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -743,6 +785,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -799,6 +849,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A<int>
+          correspondingParameter: <null>
+          staticType: A<int>
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -843,6 +901,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A<int>
+            correspondingParameter: <null>
+            staticType: A<int>
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>

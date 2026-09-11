@@ -138,7 +138,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     String expected, {
     File? file,
   }) async {
-    var analysisContext = contextFor(file ?? testFile);
+    var analysisContext = contextFor2(file ?? testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -151,7 +151,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> assertFormat(String expectedCode) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -188,7 +188,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   Future<void> assertOrganize(String expectedCode) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -207,7 +207,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     List<String>? codes,
     bool isParse = false,
   }) async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -225,7 +225,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Computes whether there are bulk fixes for the context containing
   /// [testFile].
   Future<bool> computeHasFixes() async {
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     processor = BulkFixProcessor(
       TestInstrumentationService(),
       await workspace,
@@ -269,6 +269,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
 /// A base class defining support for writing fix-in-file processor tests.
 abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
+  /// The lint codes being tested.
+  ///
+  /// The list can be empty if the fix isn't associatd with any lints.
+  List<String> get lintCodes => [];
+
   void assertProduces(Fix fix, String expected) {
     var fileEdits = fix.change.edits;
     expect(fileEdits, hasLength(1));
@@ -320,6 +325,15 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
     var fixes = await _computeFixes(diagnostics.first);
     return fixes;
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    var lintCodes = this.lintCodes;
+    if (lintCodes.isNotEmpty) {
+      createAnalysisOptionsFile(lints: lintCodes);
+    }
   }
 
   /// Computes fixes for the given [diagnostic] in [testUnit].
@@ -408,7 +422,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     DiagnosticFilter? filter,
     String? target,
     int? expectedNumberOfFixesForKind,
-    String? matchFixMessage,
+    Pattern? fixMessageContains,
     bool allowFixAllFixes = false,
   }) async {
     await assertHasFixForTarget(
@@ -416,7 +430,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       target: target ?? testFilePath,
       filter: filter,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-      matchFixMessage: matchFixMessage,
+      fixMessagePattern: fixMessageContains,
       allowFixAllFixes: allowFixAllFixes,
     );
   }
@@ -447,17 +461,17 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes an error from [filter], and verifies that
   /// [expectedNumberOfFixesForKind] fixes of the appropriate kind are found,
-  /// and that they have messages equal to [matchFixMessages].
+  /// and that they have messages which contain [fixMessagesContains].
   Future<void> assertHasFixesWithoutApplying({
     DiagnosticFilter? filter,
     required int expectedNumberOfFixesForKind,
-    required List<String> matchFixMessages,
+    required List<Pattern> fixMessagesContains,
   }) async {
     var diagnostic = await _findDiagnosticToFix(filter: filter);
     await _assertHasFixes(
       diagnostic,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-      matchFixMessages: matchFixMessages,
+      fixMessagesContains: fixMessagesContains,
     );
   }
 
@@ -471,7 +485,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     required String target,
     DiagnosticFilter? filter,
     int? expectedNumberOfFixesForKind,
-    String? matchFixMessage,
+    Pattern? fixMessagePattern,
     bool allowFixAllFixes = false,
   }) async {
     parsedExpectedCode = TestCode.parseNormalized(expected);
@@ -479,7 +493,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     var fix = await _assertHasFix(
       diagnostic,
       expectedNumberOfFixesForKind: expectedNumberOfFixesForKind,
-      matchFixMessage: matchFixMessage,
+      fixMessagePattern: fixMessagePattern,
       allowFixAllFixes: allowFixAllFixes,
     );
     change = fix.change;
@@ -550,39 +564,39 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   /// Computes fixes, verifies that there is a fix for the given [diagnostic] of
   /// the appropriate kind, and returns the fix.
   ///
-  /// If a [matchFixMessage] is passed, then the kind as well as the fix message
-  /// must match to be returned.
+  /// If a [fixMessagePattern] is passed, then the kind as well as the fix
+  /// message must match to be returned.
   ///
   /// If [expectedNumberOfFixesForKind] is non-null, then the number of fixes
   /// for [kind] is verified to be [expectedNumberOfFixesForKind].
   Future<Fix> _assertHasFix(
     Diagnostic diagnostic, {
     int? expectedNumberOfFixesForKind,
-    String? matchFixMessage,
+    Pattern? fixMessagePattern,
     bool allowFixAllFixes = false,
   }) async {
     // Compute the fixes for this AnalysisError
     var fixes = await _computeFixes(diagnostic);
 
     if (expectedNumberOfFixesForKind != null) {
-      _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
+      fixes = _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
     }
 
     // If a matchFixMessage was provided,
-    if (matchFixMessage != null) {
+    if (fixMessagePattern != null) {
       for (var fix in fixes) {
-        if (matchFixMessage == fix.change.message) {
+        if (fix.change.message.contains(fixMessagePattern)) {
           return fix;
         }
       }
       if (fixes.isEmpty) {
         fail(
-          'Expected to find fix $kind with name $matchFixMessage'
+          'Expected to find fix $kind containing $fixMessagePattern'
           ' but there were no fixes.',
         );
       } else {
         fail(
-          'Expected to find fix $kind with name $matchFixMessage'
+          'Expected to find fix $kind containing $fixMessagePattern'
           ' in\n${fixes.join('\n')}',
         );
       }
@@ -638,17 +652,35 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes and verifies that there are [expectedNumberOfFixesForKind]
   /// fixes for the given [diagnostic] of the appropriate kind, and that the
-  /// messages of the fixes are equal to [matchFixMessages].
+  /// messages of the fixes which contain [fixMessagesContains].
   Future<void> _assertHasFixes(
     Diagnostic diagnostic, {
     required int expectedNumberOfFixesForKind,
-    required List<String> matchFixMessages,
+    required List<Pattern> fixMessagesContains,
   }) async {
     // Compute the fixes for this Diagnostic.
     var fixes = await _computeFixes(diagnostic);
-    _assertNumberOfFixesForKind(fixes, expectedNumberOfFixesForKind);
-    var actualFixMessages = [for (var fix in fixes) fix.change.message];
-    expect(actualFixMessages, containsAllInOrder(matchFixMessages));
+    var fixesForKind = _assertNumberOfFixesForKind(
+      fixes,
+      expectedNumberOfFixesForKind,
+    );
+    expect(
+      fixesForKind.length,
+      fixMessagesContains.length,
+      reason:
+          'Expected ${fixMessagesContains.length} fixes, '
+          'but found ${fixesForKind.length}:\n${fixesForKind.join('\n')}',
+    );
+    for (var (index, fix) in fixesForKind.indexed) {
+      expect(
+        fix.change.message,
+        contains(fixMessagesContains[index]),
+        reason:
+            'Expected fix at index $index to contain '
+            '"${fixMessagesContains[index]}", '
+            'but the message was "${fix.change.message}"',
+      );
+    }
   }
 
   Future<void> _assertNoFix(Diagnostic diagnostic) async {
@@ -675,19 +707,18 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
   }
 
-  void _assertNumberOfFixesForKind(
+  List<Fix> _assertNumberOfFixesForKind(
     List<Fix> fixes,
     int expectedNumberOfFixesForKind,
   ) {
-    var actualNumberOfFixesForKind = fixes
-        .where((fix) => fix.kind == kind)
-        .length;
-    if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
+    var fixesForKind = fixes.where((fix) => fix.kind == kind).toList();
+    if (fixesForKind.length != expectedNumberOfFixesForKind) {
       fail(
         'Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
-        ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}',
+        ' but found $fixesForKind.length:\n${fixes.join('\n')}',
       );
     }
+    return fixesForKind;
   }
 
   /// Computes fixes for the given [diagnostic] in [testUnit].

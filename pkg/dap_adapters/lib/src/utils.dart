@@ -68,8 +68,19 @@ bool _isDartUri(Uri uri) {
   return false;
 }
 
+/// A [RegExp] that matches `file:///` or `package:`.
+final _uriSchemePattern = RegExp('file:///|package:');
+
 /// A [RegExp] for extracting URIs and optional line/columns out of a line from
 /// a stack trace.
+///
+/// This regex is slightly greedy and in the case of Flutter structured errors
+/// may match the additional widget name as part of the URI:
+///
+///   The relevant error-causing widget was:
+///     Container Container:file:///D:/Dev/my_app/lib/main.dart:1:2
+///
+/// This is trimmed off in [_parseStackFrame].
 final _stackFrameLocationPattern =
     // Characters we consider part of a path:
     //
@@ -100,17 +111,33 @@ StackFrameLocation? _parseStackFrame(String input) {
   final match = _stackFrameLocationPattern.firstMatch(input);
   if (match == null) return null;
 
-  final uriMatch = match[1];
+  var uriMatch = match[1];
+  if (uriMatch == null) return null;
+
+  // Flutter structured error output sometimes contains widget:uri:line:col
+  // which our regex will merge together because we have to allow colons and
+  // the scheme has to be optional, and `widget:relative-path` is similar to
+  // `file:///absolute-path`. Rather than trying to handle this in the regex,
+  // just trim anything before `(package:|file:///)` if it appears in the
+  // middle.
+  //
+  // Example:
+  //
+  // The relevant error-causing widget was:
+  //   Container Container:file:///D:/Dev/my_app/lib/main.dart:1:2
+  final schemeMatch = _uriSchemePattern.firstMatch(uriMatch);
+  if (schemeMatch != null && schemeMatch.start > 0) {
+    uriMatch = uriMatch.substring(schemeMatch.start);
+  }
+
   final lineMatch = match[2];
   final colMatch = match[3];
 
-  var uri = uriMatch != null ? Uri.tryParse(uriMatch) : null;
+  var uri = Uri.tryParse(uriMatch);
   final line = lineMatch != null ? int.tryParse(lineMatch) : null;
   final col = colMatch != null ? int.tryParse(colMatch) : null;
 
-  if (uriMatch == null || uri == null) {
-    return null;
-  }
+  if (uri == null) return null;
 
   // If the URI has no scheme, assume a relative path from Directory.current.
   if (!uri.hasScheme && path.isRelative(uriMatch)) {

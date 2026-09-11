@@ -1613,6 +1613,7 @@ const buildToolsSubdir = {
   Abi.linuxArm64: 'linux-arm64',
   Abi.linuxX64: 'linux-x64',
   Abi.macosArm64: 'mac-arm64',
+  Abi.macosArm64e: 'mac-arm64',
   Abi.macosX64: 'mac-x64',
   Abi.windowsX64: 'win-x64',
 };

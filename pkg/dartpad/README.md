@@ -16,14 +16,14 @@ with:
    * Proxy console output and _unhandled exceptions_ out of the iframe.
 
 To build a custom dartpad-like experience, you simply have to launch the worker,
-connect the _language server_ to your editor, compile code and tell the sandbox
-to run said code, while presenting console output to the user.
+connect the _language server_ to your editor, connect a sandboxed iframe and
+tell the sandbox what code to run, while presenting console output to the user.
 
 ## Assets
 
-To launch a _Web Worker_, pre-compiled `worker.wasm` and associated assets are
+To launch a _Web Worker_ pre-compiled wasm worker and associated assets are
 available inside `web/` in `package:dartpad`. You must extract and host these
-files to provide an absolute URL for `DartPad.create`.
+files to provide an absolute URL for `DartPadSdk(assetBaseUrl: myUri)`.
 
 ## Example
 
@@ -43,7 +43,6 @@ Future<void> main() async {
     'void main() => print("hello world");',
   );
 }
-
 ```
 
 ## Limitations

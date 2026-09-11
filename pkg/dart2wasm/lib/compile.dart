@@ -34,6 +34,7 @@ import 'package:vm/transformations/type_flow/transformer.dart'
 import 'package:vm/transformations/type_flow/utils.dart' as tfa_utils;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
+import 'package:wasm_builder/source_map.dart' show SourceMapBuilder;
 import 'package:wasm_builder/wasm_builder.dart' show Serializer;
 
 import 'compiler_options.dart' as compiler;
@@ -440,6 +441,10 @@ Future<CompilationResult> _runTfaPhase(
     );
   }
 
+  if (!options.translatorOptions.enableMultiModuleStressTestMode) {
+    _pruneLibraryDependencies(component);
+  }
+
   final librariesToTransform = component.libraries;
   final constantEvaluator = ConstantEvaluator(
     options,
@@ -625,12 +630,15 @@ Future<CompilationResult> _runCodegenPhase(
   modules.forEach((moduleMetadata, module) {
     if (moduleMetadata.skipEmit) return;
     final serializer = Serializer();
-    module.serialize(serializer);
+    final sourceMapBuilder = generateSourceMaps
+        ? SourceMapBuilder(module.debugInfoTables)
+        : null;
+    module.serialize(serializer, sourceMapBuilder);
     writeFutures.add(
       ioManager.writeWasmModule(serializer.data, moduleMetadata.moduleName),
     );
-    if (generateSourceMaps) {
-      final sourceMapJson = serializer.sourceMapSerializer.serializeAsJson();
+    if (sourceMapBuilder != null) {
+      final sourceMapJson = sourceMapBuilder.toJson();
       if (moduleMetadata.isMain && classNames != null) {
         addMinifiedClassNames(sourceMapJson, classNames);
       }
@@ -820,6 +828,20 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
     return patchInvokeMainInternal(mainInvoke0);
   }
   throw 'Main method has unexpected type: $mainMethodType';
+}
+
+/// Removes all import/export library dependencies except for deferred imports
+/// (which are used for partitioning the application into deferred units).
+void _pruneLibraryDependencies(Component component) {
+  for (final library in component.libraries) {
+    final deferredDependencies = <LibraryDependency>[];
+    for (final dependency in library.dependencies) {
+      if (dependency.isDeferred) {
+        deferredDependencies.add(dependency);
+      }
+    }
+    library.dependencies = deferredDependencies;
+  }
 }
 
 class _RecordClassesRepository extends MetadataRepository<RecordShape> {

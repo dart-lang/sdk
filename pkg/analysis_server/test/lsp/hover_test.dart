@@ -552,6 +552,111 @@ Declared in `f` in *package:test/main.dart*.''';
     void [!abc!]^<T>(T a) {}
     ''', contains('This is a function.'));
 
+  Future<void> test_functionType_assignedToVariable() async {
+    var content = '''
+void f(int p1, int p2) {
+  var [!^x!] = f;
+}
+''';
+
+    var expected =
+        '''
+```dart
+void Function(int p1, int p2) x
+```
+Type: `void Function(int, int)`
+
+Declared in `f` in *package:test/main.dart*.
+'''
+            .trim();
+
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_functionType_constructorTearOff() async {
+    var content = '''
+class C {
+  C(int p1, int p2) {}
+}
+void f() {
+  C.[!^new!];
+}
+''';
+
+    var expected =
+        '''
+```dart
+C(int p1, int p2)
+```
+Declared in `C` in *package:test/main.dart*.
+'''
+            .trim();
+
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_functionType_methodTearOff() async {
+    var content = '''
+class C {
+  f(int p1, int p2) {}
+}
+void f(C c) {
+  c.[!^f!];
+}
+''';
+
+    var expected =
+        '''
+```dart
+dynamic f(int p1, int p2)
+```
+Type: `dynamic Function(int, int)`
+
+Declared in `C` in *package:test/main.dart*.
+'''
+            .trim();
+
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_functionType_parameter() async {
+    var content = '''
+void f(String Function(int p1, int p2) [!^x!]) {}
+''';
+
+    var expected =
+        '''
+```dart
+String Function(int p1, int p2) x
+```
+Type: `String Function(int, int)`
+
+Declared in `f` in *package:test/main.dart*.
+'''
+            .trim();
+
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_functionType_typedef() async {
+    failTestOnAnyErrorNotification = false;
+
+    var content = '''
+typedef [!^Foo!] = String Function(int p1, int p2);
+''';
+
+    var expected =
+        '''
+```dart
+typedef Foo = String Function(int p1, int p2)
+```
+Declared in *package:test/main.dart*.
+'''
+            .trim();
+
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_hover_bad_position() async {
     await initialize();
     await openFile(mainFileUri, '');

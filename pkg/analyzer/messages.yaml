@@ -7154,50 +7154,6 @@ CompileTimeErrorCode:
       ```dart
       extension type E(String s) {}
       ```
-  extensionTypeWithAbstractMember:
-    type: compileTimeError
-    parameters:
-      String methodName: the name of the abstract method
-      String extensionTypeName: the name of the enclosing extension type
-    problemMessage: "'#methodName' must have a method body because '#extensionTypeName' is an extension type."
-    correctionMessage: "Try adding a body to '#methodName'."
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an extension type declares an
-      abstract member. Because extension type member references are resolved
-      statically, an abstract member in an extension type could never be
-      executed.
-
-      #### Example
-
-      The following code produces this diagnostic because the method `m` in the
-      extension type `E` is abstract:
-
-      ```dart
-      %language=3.5
-      extension type E(String s) {
-        [!void m();!]
-      }
-      ```
-
-      #### Common fixes
-
-      If the member is intended to be executable, then provide an implementation
-      of the member:
-
-      ```dart
-      extension type E(String s) {
-        void m() {}
-      }
-      ```
-
-      If the member isn't intended to be executable, then remove it:
-
-      ```dart
-      extension type E(String s) {}
-      ```
   externalFieldConstructorInitializer:
     type: compileTimeError
     parameters: none
@@ -19260,8 +19216,8 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String methodName: the name of the method that is undefined
-      String typeName: the resolved type name that the method lookup is happening on
-    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+      Type type: the type where the method is being looked for
+    problemMessage: "The method '#methodName' isn't defined for the type '#type'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
@@ -19289,6 +19245,15 @@ CompileTimeErrorCode:
       ```dart
       int f(List<int> l) => l.removeLast();
       ```
+  undefinedMethodOnTypeLiteral:
+    type: compileTimeError
+    parameters:
+      String methodName: the name of the method that is undefined
+      String typeName: the name of the type literal where the method is being looked for
+    sharedName: undefinedMethod
+    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
+    hasPublishedDocs: true
   undefinedMethodOnFunctionType:
     type: compileTimeError
     parameters:
@@ -23065,6 +23030,10 @@ HintCode:
       The analyzer produces this diagnostic when a deprecated library or class
       member is used in a different package.
 
+      A dot-shorthand expression can also implicitly reference a deprecated
+      type. In this case, the diagnostic identifies the implicitly referenced
+      type even though its name isn't written in the expression.
+
       #### Example
 
       If the method `m` in the class `C` is annotated with `@deprecated`, then
@@ -23080,6 +23049,23 @@ HintCode:
 
       The documentation for declarations that are annotated with `@deprecated`
       should indicate what code to use in place of the deprecated code.
+  deprecatedMemberUseImplicit:
+    type: hint
+    parameters:
+      String name: the name of the implicitly referenced type
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly referenced type '#name' is deprecated and shouldn't be used."
+    correctionMessage: Try replacing the use of the deprecated type with the replacement.
+    hasPublishedDocs: true
+  deprecatedMemberUseImplicitWithMessage:
+    type: hint
+    parameters:
+      String name: the name of the implicitly referenced type
+      String details: message details
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly referenced type '#name' is deprecated and shouldn't be used. #details"
+    correctionMessage: Try replacing the use of the deprecated type with the replacement.
+    hasPublishedDocs: true
   deprecatedMemberUseWithMessage:
     type: hint
     parameters:
@@ -29192,7 +29178,7 @@ WarningCode:
     parameters:
       String constructorName: the name of the annotated constructor
     sharedName: nonConstCallToLiteralConstructor
-    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
+    problemMessage: "This instance creation must be 'const', because '#constructorName' is marked as '@literal'."
     correctionMessage: "Try replacing the 'new' keyword with 'const'."
     hasPublishedDocs: true
     comment: |-
@@ -29202,7 +29188,7 @@ WarningCode:
     type: staticWarning
     parameters:
       String constructorName: the name of the annotated constructor
-    problemMessage: "This instance creation must be 'const', because the #constructorName constructor is marked as '@literal'."
+    problemMessage: "This instance creation must be 'const', because '#constructorName' is marked as '@literal'."
     correctionMessage: "Try adding a 'const' keyword."
     hasPublishedDocs: true
     comment: |-
@@ -31573,7 +31559,8 @@ WarningCode:
       }
       ```
       TODO(brianwilkerson): Highlight the identifier without the colon.
-  multipleCombinators:
+  multipleCombinatorsDeprecated:
+    sharedName: multipleCombinators
     type: staticWarning
     parameters: none
     problemMessage: "Using multiple 'hide' or 'show' combinators is never necessary and often produces surprising results."

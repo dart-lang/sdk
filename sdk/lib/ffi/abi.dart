@@ -46,6 +46,10 @@ class Abi {
   /// The application binary interface for iOS on the Arm64 architecture.
   static const iosArm64 = _iosArm64;
 
+  /// The application binary interface for iOS on the Arm64e architecture with pointer authentication.
+  @Since('3.14')
+  static const iosArm64e = _iosArm64e;
+
   /// The application binary interface for iOS on the X64 architecture.
   static const iosX64 = _iosX64;
 
@@ -73,6 +77,10 @@ class Abi {
   /// The application binary interface for MacOS on the Arm64 architecture.
   static const macosArm64 = _macosArm64;
 
+  /// The application binary interface for MacOS on the Arm64 architecture with pointer authentication.
+  @Since('3.14')
+  static const macosArm64e = _macosArm64e;
+
   /// The application binary interface for MacOS on the X64 architecture.
   static const macosX64 = _macosX64;
 
@@ -86,8 +94,6 @@ class Abi {
   static const windowsX64 = _windowsX64;
 
   /// The ABIs that the DartVM can run on.
-  ///
-  /// Does not contain a `macosIA32`. We have stopped supporting 32-bit MacOS.
   static const values = [
     androidArm,
     androidArm64,
@@ -99,6 +105,7 @@ class Abi {
     fuchsiaRiscv64,
     iosArm,
     iosArm64,
+    iosArm64e,
     iosX64,
     linuxArm,
     linuxArm64,
@@ -107,6 +114,7 @@ class Abi {
     linuxRiscv32,
     linuxRiscv64,
     macosArm64,
+    macosArm64e,
     macosX64,
     windowsArm64,
     windowsIA32,
@@ -143,6 +151,7 @@ class Abi {
   static const _fuchsiaRiscv64 = Abi._(_Architecture.riscv64, _OS.fuchsia);
   static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
+  static const _iosArm64e = Abi._(_Architecture.arm64e, _OS.ios);
   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
   static const _linuxArm = Abi._(_Architecture.arm, _OS.linux);
   static const _linuxArm64 = Abi._(_Architecture.arm64, _OS.linux);
@@ -151,6 +160,7 @@ class Abi {
   static const _linuxRiscv32 = Abi._(_Architecture.riscv32, _OS.linux);
   static const _linuxRiscv64 = Abi._(_Architecture.riscv64, _OS.linux);
   static const _macosArm64 = Abi._(_Architecture.arm64, _OS.macos);
+  static const _macosArm64e = Abi._(_Architecture.arm64e, _OS.macos);
   static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
   static const _windowsArm64 = Abi._(_Architecture.arm64, _OS.windows);
   static const _windowsIA32 = Abi._(_Architecture.ia32, _OS.windows);
@@ -158,7 +168,7 @@ class Abi {
 }
 
 /// The hardware architectures the Dart VM runs on.
-enum _Architecture { arm, arm64, ia32, x64, riscv32, riscv64 }
+enum _Architecture { arm, arm64, arm64e, ia32, x64, riscv32, riscv64 }
 
 /// The operating systems the Dart VM runs on.
 enum _OS { android, fuchsia, ios, linux, macos, windows }

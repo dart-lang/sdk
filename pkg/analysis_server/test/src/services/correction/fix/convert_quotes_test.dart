@@ -38,8 +38,10 @@ void f() {
 
 @reflectiveTest
 class ConvertQuotesInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.avoid_escaping_inner_quotes];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.avoid_escaping_inner_quotes]);
     await resolveTestCode(r'''
 void f() {
   print("a\"b\"c");

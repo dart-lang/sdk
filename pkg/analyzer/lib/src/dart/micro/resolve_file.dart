@@ -311,7 +311,12 @@ class FileResolver {
         return await _searchReferences_Import(element);
       } else {
         var result = performance!.run('getFilesContaining', (performance) {
-          return fsState!.getFilesContaining(element.displayName);
+          var searchName = element.displayName;
+          // Find unnamed constructors by their class name in the file index.
+          if (element is ConstructorElement && element.name == 'new') {
+            searchName = element.enclosingElement.displayName;
+          }
+          return fsState!.getFilesContaining(searchName);
         });
         for (var filePath in result) {
           await collectReferences2(filePath, performance!);

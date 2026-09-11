@@ -156,7 +156,7 @@ class CreateGetter extends CreateFieldOrGetter {
     if (target is ExtensionOverride) {
       targetElement = target.element;
     } else if (target case Identifier(
-      element: InstanceElement element,
+      :InstanceElement element,
       :var writeOrReadType,
     )) {
       targetElement = element;

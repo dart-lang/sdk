@@ -8,8 +8,8 @@ This package contains implementations of the Debug Adapter Protocol (DAP) for Da
 
 This package provides:
 
-*   **Dart CLI Debug Adapter**: For debugging command-line Dart applications.
-*   **Dart Test Debug Adapter**: For debugging Dart tests (running via `package:test`).
+- **Dart CLI Debug Adapter**: For debugging command-line Dart applications.
+- **Dart Test Debug Adapter**: For debugging Dart tests (running via `package:test`).
 
 These adapters were previously shipped as part of `package:dds`.
 

@@ -98,6 +98,14 @@ void main() {
         'stpw r1, r2, [r17, #4]\n',
       );
     });
+    test('fieldAddress', () {
+      asm.ldr(R1, asm.fieldAddress(R0, 42), .s32);
+      asm.ldr(R1, asm.fieldAddress(R0, 42), .u32);
+      expectDisassembly(
+        'ldrsw r1, [r0, #41]\n'
+        'ldrw r1, [r0, #41]\n',
+      );
+    });
     test('enterDartFrame', () {
       asm.enterDartFrame();
       expectDisassembly(
@@ -563,6 +571,68 @@ void main() {
         'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n'
         'ldr r2, [r2, #${vmOffsets.IsolateGroup_cached_class_table_table_offset}]\n'
         'ldr r2, [r2, r1 uxtx scaled]\n',
+      );
+    });
+    test('loadIndexed', () {
+      asm.loadIndexed(R2, R1, R3, 0, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 42, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 4231, OperandSize.s32);
+      asm.loadIndexed(R2, R1, R3, 0, OperandSize.s64);
+      asm.loadIndexed(R2, R1, R3, 42, OperandSize.s64);
+      asm.loadIndexed(R2, R1, R3, 4231, OperandSize.s64);
+      expectDisassembly(
+        'ldrsw r2, [r1, r3 uxtx scaled]\n'
+        'add r2, r1, r3 lsl #2\n'
+        'ldrsw r2, [r2, #42]\n'
+        'add r2, r1, r3 lsl #2\n'
+        'add r17, r2, #0x1000\n'
+        'ldrsw r2, [r17, #135]\n'
+        'ldr r2, [r1, r3 uxtx scaled]\n'
+        'add r2, r1, r3 lsl #3\n'
+        'ldr r2, [r2, #42]\n'
+        'add r2, r1, r3 lsl #3\n'
+        'add r17, r2, #0x1000\n'
+        'ldr r2, [r17, #135]\n',
+      );
+    });
+    test('loadAcquire', () {
+      asm.loadAcquire(R2, R1, 0, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s32);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s64);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s32, R3);
+      asm.loadAcquire(R2, R1, 0, OperandSize.s64, R3);
+      asm.loadAcquire(R2, R1, 42, OperandSize.s64, R3);
+      asm.loadAcquire(R2, R1, 4231, OperandSize.s64, R3);
+      expectDisassembly(
+        'ldarw r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'ldarw r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'ldarw r2, [r17]\n'
+        'ldar r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'ldar r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'ldar r2, [r17]\n'
+        'ldarw r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'ldarw r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'ldarw r2, [r3]\n'
+        'ldar r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'ldar r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'ldar r2, [r3]\n',
       );
     });
     test('combineHashes', () {

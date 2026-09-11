@@ -1299,6 +1299,41 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
   external JSExportedDartFunction<T> get toJSCaptureThis;
 }
 
+/// Conversion from [Function] to a [JSFunction] that takes any number of
+/// arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes all of its
+  /// arguments as a [List] to this function.
+  ///
+  /// This is less efficient than [FunctionToJSExportedDartFunction.toJS], and
+  /// should only be used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs;
+}
+
+/// Conversion from [Function] to a [JSFunction] that takes the `this` value
+/// along with any number of arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes the `this` value
+  /// along with all of its arguments as a [List] to this function.
+  ///
+  /// This is less efficient than
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis], and should only be
+  /// used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs;
+}
+
 /// Conversions from [JSBoxedDartObject] to [Object].
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   /// The Dart [Object] that this [JSBoxedDartObject] wrapped.

@@ -20,7 +20,7 @@ class FrequencyBasedNamer extends Namer
 
   TokenScope newScopeFor(NamingScope scope) {
     if (scope == instanceScope) {
-      Set<String> illegalNames = Set<String>.from(jsReserved);
+      Set<String> illegalNames = Set<String>.of(jsReserved);
       for (String illegal in MinifyNamer._reservedNativeProperties) {
         illegalNames.add(illegal);
         if (hasBannedMinifiedPrefix(illegal)) {

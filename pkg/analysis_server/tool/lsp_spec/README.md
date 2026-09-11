@@ -9,11 +9,12 @@
 
 ## Running the Server
 
-Start the language server using the `dart language-server` command. Pass the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
+Start the language server using the `dart language-server` command. Set the following environment variables to identify your editor/plugin and version:
 
-```
-dart language-server --client-id my-editor.my-plugin --client-version 1.2
-```
+- `DASH__IDE_NAME` - The name of the IDE that the user launched (for example "VS Code", "Antigravity")
+- `DASH__IDE_VERSION` - The version of the software named in `DASH__IDE_NAME`
+- `DASH__PLUGIN_NAME` - The name of the plugin that provides the integration with Dart/Flutter tools (for example "Dart-Code")
+- `DASH__PLUGIN_VERSION` - The version of the software named in `DASH__PLUGIN_NAME`
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
@@ -25,7 +26,7 @@ When there are no open workspace folders (or if the initialization option `onlyA
 
 - `onlyAnalyzeProjectsWithOpenFiles` (`bool?`): When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
 - `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include symbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
-- `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
+- `closingLabels` (`bool?`): **Deprecated** Use client capabilities `experimental.closingLabels={}` instead. When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
 - `allowOpenUri`: When set to `true`, indicates that the client will handle `dart/openUri` notifications by opening a browser for the supplied URI.

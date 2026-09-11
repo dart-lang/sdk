@@ -14,6 +14,7 @@ aam
 abbr
 abbreviate
 abc
+abcdef
 abs
 absorb
 absorbed
@@ -31,6 +32,7 @@ acov
 across
 activated
 actively
+acts
 adequate
 adi
 adjusts
@@ -59,6 +61,7 @@ altered
 ambiguities
 ambivalent
 amd
+amounts
 analogous
 analogy
 analyzes
@@ -67,6 +70,7 @@ annagrin
 annotate
 ansi
 answering
+answers
 anyone
 anyways
 aot
@@ -223,6 +227,7 @@ bytedata
 c
 cacheable
 caches
+calculating
 calculations
 callbacks
 callee
@@ -450,6 +455,7 @@ decoupled
 decreases
 decreasing
 dedupe
+deduplicate
 deduplication
 deemed
 deepest
@@ -524,6 +530,7 @@ dirname
 dirtify
 dirtifying
 dirty
+disables
 disagrees
 disallow
 disambiguating
@@ -978,6 +985,7 @@ invariants
 io
 ipv
 irrefutable
+ish
 isolate
 isolated
 isolates
@@ -1166,6 +1174,7 @@ mn
 mocked
 mocking
 mockito
+mod
 modelled
 modelling
 modularly
@@ -1575,6 +1584,7 @@ relativize
 relax
 relaxes
 released
+reliable
 reliably
 relink
 reload
@@ -1599,6 +1609,7 @@ repo
 repositories
 reproduce
 reproduces
+reproducible
 repurpose
 repurposed
 repurposing
@@ -1642,6 +1653,7 @@ robust
 role
 room
 rooted
+rotl
 rough
 roughly
 rounding
@@ -2159,6 +2171,7 @@ utilizing
 utils
 uuid
 v
+val
 validates
 validly
 value's

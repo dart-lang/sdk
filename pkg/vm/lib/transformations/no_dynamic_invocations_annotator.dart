@@ -91,9 +91,7 @@ class NoDynamicUsesAnnotator {
 
     ProcedureAttributesMetadata metadata;
     if (!_selectors.nonThisSelectors.contains(selector)) {
-      metadata = const ProcedureAttributesMetadata(
-        methodOrSetterCalledDynamically: false,
-        getterCalledDynamically: false,
+      metadata = const ProcedureAttributesMetadata.noDynamicUses(
         hasNonThisUses: true,
         hasTearOffUses: false,
       );
@@ -125,23 +123,17 @@ class NoDynamicUsesAnnotator {
     final bool hasTearOffUses = _selectors.tearOffSelectors.contains(selector);
     ProcedureAttributesMetadata metadata;
     if (!hasNonThisUses && !hasTearOffUses) {
-      metadata = const ProcedureAttributesMetadata(
-        methodOrSetterCalledDynamically: false,
-        getterCalledDynamically: false,
+      metadata = const ProcedureAttributesMetadata.noDynamicUses(
         hasNonThisUses: false,
         hasTearOffUses: false,
       );
     } else if (!hasNonThisUses && hasTearOffUses) {
-      metadata = const ProcedureAttributesMetadata(
-        methodOrSetterCalledDynamically: false,
-        getterCalledDynamically: false,
+      metadata = const ProcedureAttributesMetadata.noDynamicUses(
         hasNonThisUses: false,
         hasTearOffUses: true,
       );
     } else if (hasNonThisUses && !hasTearOffUses) {
-      metadata = const ProcedureAttributesMetadata(
-        methodOrSetterCalledDynamically: false,
-        getterCalledDynamically: false,
+      metadata = const ProcedureAttributesMetadata.noDynamicUses(
         hasNonThisUses: true,
         hasTearOffUses: false,
       );

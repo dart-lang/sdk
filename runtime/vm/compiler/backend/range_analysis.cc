@@ -2985,6 +2985,24 @@ void Utf8ScanInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
 }
 
+void SimdOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  switch (kind()) {
+    // A sign mask has one bit per lane, so it is in [0, 2^lanes - 1].
+    case kInt32x4GetSignMask:
+    case kFloat32x4GetSignMask:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(15));
+      break;
+    case kFloat64x2GetSignMask:
+      *range =
+          Range(RangeBoundary::FromConstant(0), RangeBoundary::FromConstant(3));
+      break;
+    default:
+      Definition::InferRange(analysis, range);
+      break;
+  }
+}
+
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   const intptr_t min = Utils::Minimum(if_true_, if_false_);
   const intptr_t max = Utils::Maximum(if_true_, if_false_);

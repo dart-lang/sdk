@@ -1219,6 +1219,7 @@ class OutlineBuilder extends StackListenerImpl {
             unionOfKinds([
               ValueKinds.ParserRecovery,
               ValueKinds.TypeBuilder,
+              ValueKinds.Modifiers,
               ValueKinds.NominalTypeParametersOrNull,
             ]),
           ]),
@@ -1639,6 +1640,8 @@ class OutlineBuilder extends StackListenerImpl {
       offset,
       typeParameters?.fragments,
     );
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1652,6 +1655,7 @@ class OutlineBuilder extends StackListenerImpl {
       checkState(extensionKeyword, [
         if (onKeyword != null)
           unionOfKinds([ValueKinds.ParserRecovery, ValueKinds.TypeBuilder]),
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.IdentifierOrNull,
         ValueKinds.MetadataListOrNull,
@@ -1677,6 +1681,7 @@ class OutlineBuilder extends StackListenerImpl {
         );
       }
     }
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier? name = pop(NullValues.Identifier) as Identifier?;
@@ -1688,8 +1693,7 @@ class OutlineBuilder extends StackListenerImpl {
       offsetMap: _offsetMap,
       beginToken: beginToken,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extensions?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: name,
       typeParameters: typeParameters?.fragments,
       onType: onType as TypeBuilder,
@@ -1720,11 +1724,15 @@ class OutlineBuilder extends StackListenerImpl {
     int nameOffset = nameToken.charOffset;
     push(new SimpleIdentifier(nameToken));
     push(typeParameters ?? NullValues.NominalParameters);
+
     _builderFactory.beginExtensionTypeDeclaration(
       name,
       nameOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -1738,6 +1746,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(
       checkState(extensionKeyword, [
         ValueKinds.TypeBuilderListOrNull,
+        ValueKinds.Modifiers,
         ValueKinds.NominalTypeParametersOrNull,
         ValueKinds.Identifier,
         ValueKinds.MetadataListOrNull,
@@ -1751,6 +1760,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     List<TypeBuilder>? interfaces =
         pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Identifier identifier = pop() as Identifier;
@@ -1767,8 +1777,7 @@ class OutlineBuilder extends StackListenerImpl {
     _builderFactory.addExtensionTypeDeclaration(
       offsetMap: _offsetMap,
       metadata: metadata,
-      // TODO(johnniwinther): Support modifiers on extension types?
-      modifiers: Modifiers.empty,
+      modifiers: modifiers,
       identifier: identifier,
       typeParameters: typeParameters?.fragments,
       interfaces: interfaces,
@@ -2011,6 +2020,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -2974,6 +2984,22 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
+  }
+
+  @override
   void handleNoTypeNameInConstructorReference(Token token) {
     debugEvent("NoTypeNameInConstructorReference");
     push(NullValues.Identifier);
@@ -3557,6 +3583,9 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
+
+    Modifiers modifiers = Modifiers.from(augmentToken: augmentToken);
+    push(modifiers);
   }
 
   @override
@@ -3572,6 +3601,7 @@ class OutlineBuilder extends StackListenerImpl {
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
       ]),
@@ -3601,7 +3631,6 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as ConstructorReferenceBuilder?;
     Object? enumConstantInfo = pop();
     if (enumConstantInfo is EnumConstantInfo) {
-      push(enumConstantInfo);
       _builderFactory.addEnumElement(
         metadata: enumConstantInfo.metadata,
         name: enumConstantInfo.name,
@@ -3611,14 +3640,12 @@ class OutlineBuilder extends StackListenerImpl {
       );
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(NullValues.EnumConstantInfo);
     }
   }
 
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
-    push(elementsCount);
   }
 
   @override
@@ -3629,58 +3656,27 @@ class OutlineBuilder extends StackListenerImpl {
     int memberCount,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [/* element count */ ValueKinds.Integer]));
     debugEvent("endEnum");
-
-    int elementsCount = pop() as int;
 
     assert(
       checkState(beginToken, [
-        /* enum constants */ ...repeatedKind(
-          ValueKinds.EnumConstantInfoOrNull,
-          elementsCount,
-        ),
-
-        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
           ValueKinds.ParserRecovery,
         ]),
+        /* modifiers */ ValueKinds.Modifiers,
         /* type parameters */ ValueKinds.NominalTypeParametersOrNull,
         /* name */ ValueKinds.IdentifierOrParserRecovery,
         /* metadata */ ValueKinds.MetadataListOrNull,
       ]),
     );
 
-    List<EnumConstantInfo?>? enumConstantInfos =
-        const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
-
-    if (enumConstantInfos != null) {
-      List<EnumConstantInfo?>? parsedEnumConstantInfos;
-      for (int index = 0; index < enumConstantInfos.length; index++) {
-        EnumConstantInfo? info = enumConstantInfos[index];
-        if (parsedEnumConstantInfos != null && info != null) {
-          parsedEnumConstantInfos.add(info);
-        } else if (info == null && parsedEnumConstantInfos == null) {
-          // Skip this one, but copy previous (good) ones.
-          parsedEnumConstantInfos = [];
-          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
-        }
-      }
-      if (parsedEnumConstantInfos != null) {
-        if (parsedEnumConstantInfos.isEmpty) {
-          enumConstantInfos = null;
-        } else {
-          enumConstantInfos = parsedEnumConstantInfos;
-        }
-      }
-    }
-
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeBuilder>? mixins =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
+    Modifiers modifiers = pop() as Modifiers;
     NominalParameters? typeParameters =
         pop(NullValues.NominalParameters) as NominalParameters?;
     Object? identifier = pop();
@@ -3689,15 +3685,6 @@ class OutlineBuilder extends StackListenerImpl {
 
     int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     if (identifier is Identifier) {
-      if (enumConstantInfos == null) {
-        if (!leftBrace.isSynthetic) {
-          addProblem(
-            diag.enumDeclarationEmpty,
-            identifier.token.offset,
-            identifier.token.length,
-          );
-        }
-      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
@@ -3716,12 +3703,14 @@ class OutlineBuilder extends StackListenerImpl {
       _builderFactory.addEnum(
         offsetMap: _offsetMap,
         metadata: metadata,
+        modifiers: modifiers,
         identifier: identifier,
         typeParameters: typeParameters?.fragments,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endToken.charOffset, //endOffset,
+        endOffset: endToken.charOffset,
+        hasErroneousBody: leftBrace.isSynthetic,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(
@@ -4942,11 +4931,9 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();
-    push(0); // number of enum constants
   }
 
   @override

@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class Holder extends core::Object {
+  late final field core::Map<core::int, self::C> fieldMap = block {
+    final core::Map<core::int, self::C> #t1 = <core::int, self::C>{};
+    final core::int? #t2 = self::nullableKey();
+    if(!(#t2 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t2{core::int}, #C1){(core::int, self::C) → void};
+  } =>#t1;
+  synthetic constructor •() → self::Holder
+    : super core::Object::•()
+    ;
+}
+static method nullableKey() → core::int?
+  return 1;
+static method main() → void {
+  final core::Map<core::int, self::C> map = block {
+    final core::Map<core::int, self::C> #t3 = <core::int, self::C>{};
+    final core::int? #t4 = self::nullableKey();
+    if(!(#t4 == null))
+      #t3.{core::Map::[]=}{Invariant}(#t4{core::int}, #C1){(core::int, self::C) → void};
+  } =>#t3;
+  core::print(map);
+  core::print(new self::Holder::•().{self::Holder::fieldMap}{core::Map<core::int, self::C>});
+}
+
+constants  {
+  #C1 = self::C {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///null_aware_map_entry_const_value.dart:
+- C. (from org-dartlang-testcase:///null_aware_map_entry_const_value.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

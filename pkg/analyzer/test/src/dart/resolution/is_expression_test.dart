@@ -57,7 +57,13 @@ IsExpression
   expression2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
+      staticType: Object?
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -94,7 +100,13 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?
@@ -117,7 +129,13 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?

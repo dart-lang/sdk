@@ -65,16 +65,19 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       requireConfirmation: requireConfirmation,
     );
 
+    // ignore: unawaited_futures
     progress.begin('Computing fixes…');
     try {
       var result = await operation.compute();
-      return await result.mapResult((edit) async {
+      return await result.mapResult((result) async {
+        var (edit, _) = result;
         if (edit == null) {
           return success(null);
         }
         return await sendWorkspaceEditToClient(edit);
       });
     } finally {
+      // ignore: unawaited_futures
       progress.end();
     }
   }

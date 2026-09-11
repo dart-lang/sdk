@@ -339,6 +339,14 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   );
 
+  static const ExperimentalFlag singleCombinators = const ExperimentalFlag(
+    name: 'single-combinators',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
@@ -637,6 +645,10 @@ class GlobalFeatures {
   GlobalFeature? _setLiterals;
   GlobalFeature get setLiterals =>
       _setLiterals ??= _computeGlobalFeature(ExperimentalFlag.setLiterals);
+
+  GlobalFeature? _singleCombinators;
+  GlobalFeature get singleCombinators => _singleCombinators ??=
+      _computeGlobalFeature(ExperimentalFlag.singleCombinators);
 
   GlobalFeature? _soundFlowAnalysis;
   GlobalFeature get soundFlowAnalysis => _soundFlowAnalysis ??=
@@ -982,6 +994,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _singleCombinators;
+  LibraryFeature get singleCombinators =>
+      _singleCombinators ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.singleCombinators,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _soundFlowAnalysis;
   LibraryFeature get soundFlowAnalysis =>
       _soundFlowAnalysis ??= globalFeatures._computeLibraryFeature(
@@ -1145,6 +1165,8 @@ class LibraryFeatures {
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
         return setLiterals;
+      case shared.ExperimentalFlag.singleCombinators:
+        return singleCombinators;
       case shared.ExperimentalFlag.soundFlowAnalysis:
         return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
@@ -1245,6 +1267,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.sealedClass;
     case "set-literals":
       return ExperimentalFlag.setLiterals;
+    case "single-combinators":
+      return ExperimentalFlag.singleCombinators;
     case "sound-flow-analysis":
       return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
@@ -1335,6 +1359,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
+  ExperimentalFlag.singleCombinators:
+      ExperimentalFlag.singleCombinators.isEnabledByDefault,
   ExperimentalFlag.soundFlowAnalysis:
       ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -1413,6 +1439,8 @@ ExperimentalFlag fromSharedExperimentalFlag(
   shared.ExperimentalFlag.records => ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals => ExperimentalFlag.setLiterals,
+  shared.ExperimentalFlag.singleCombinators =>
+    ExperimentalFlag.singleCombinators,
   shared.ExperimentalFlag.soundFlowAnalysis =>
     ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections =>

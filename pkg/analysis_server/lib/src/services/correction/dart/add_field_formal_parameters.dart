@@ -36,8 +36,8 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (parent case ConstructorDeclarationImpl constructor) {
+    var target = node is ConstructorDeclarationImpl ? node : node.parent;
+    if (target case ConstructorDeclarationImpl constructor) {
       var parent = constructor.parent;
       if (parent is! BlockClassBody && parent is! BlockEnumBody) {
         return;
@@ -49,7 +49,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         constructor.separator,
         constructor.initializers,
       );
-    } else if (parent
+    } else if (target
         case ClassDeclaration(:var namePart) ||
             EnumDeclaration(:var namePart)) {
       if (namePart is! PrimaryConstructorDeclarationImpl) return;

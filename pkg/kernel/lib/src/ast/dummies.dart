@@ -336,7 +336,7 @@ final Combinator dummyCombinator = new Combinator(false, const []);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
+final LibraryPart dummyLibraryPart = new LibraryPart(const [], '', dummyUri);
 
 /// Non-nullable [Class] dummy value.
 ///

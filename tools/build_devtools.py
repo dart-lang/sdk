@@ -65,7 +65,7 @@ def main():
     # checkout of the flutter repository at the commit indicated by 'flutter_rev'
     # in `DEPS`.
     # TODO(https://github.com/dart-lang/sdk/issues/64027): Figure out someething better.
-    FLUTTER_TAG = '3.46.0-0.0.pre'
+    FLUTTER_TAG = '3.48.0-1.0.pre'
 
     env = os.environ.copy()
     env['FLUTTER_GIT_URL'] = (

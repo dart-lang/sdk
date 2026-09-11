@@ -44,7 +44,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 ///    overridden ([BinaryOperatorInvocation], [UnaryOperatorInvocation], and
 ///    [IncrementOrDecrementExpression]) should resolve to the element
 ///    representing the method invoked by that operator (a [MethodElement]).
-/// 3. Every [FunctionExpressionInvocation] should resolve to the element
+/// 3. Every [FunctionInvocation] should resolve to the element
 ///    representing the function being invoked (a [ExecutableElement]). This
 ///    will be the same element as that to which the name is resolved if the
 ///    function has a name, but is provided for those cases where an unnamed
@@ -163,21 +163,35 @@ class ElementResolver {
     }
   }
 
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var parameters = _resolveArgumentsToFunction(
+      node.argumentList,
+      node.element,
+    );
+    if (parameters != null) {
+      node.argumentList.correspondingStaticParameters = parameters;
+    }
+  }
+
   /// Resolves the dot shorthand invocation, [node].
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
-  /// [DotShorthandConstructorInvocation] in the process, then returns that new
+  /// If [node] is rewritten to be a [CallInvocation] or a
+  /// [DotShorthandConstructorInvocation2] in the process, then returns that new
   /// node. Otherwise, returns `null`.
-  RewrittenMethodInvocationImpl? visitDotShorthandInvocation(
+  ExpressionImpl? visitDotShorthandInvocation(
     covariant DotShorthandInvocationImpl node, {
     List<WhyNotPromotedGetter>? whyNotPromotedArguments,
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolveDotShorthand(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
   }
 

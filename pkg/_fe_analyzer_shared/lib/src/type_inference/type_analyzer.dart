@@ -914,6 +914,7 @@ mixin TypeAnalyzer<
       location: JoinedPatternVariableLocation.singlePattern,
       offset: patternEndOffset(pattern),
     );
+    handle_ifCaseElement_afterPattern(node);
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
     ExpressionInfo? guardInfo;
@@ -2916,6 +2917,9 @@ mixin TypeAnalyzer<
 
   /// Called after visiting the pattern in `if-case` statement.
   void handle_ifCaseStatement_afterPattern({required Statement node}) {}
+
+  /// Called after visiting the pattern in `if-case` element.
+  void handle_ifCaseElement_afterPattern(Node node) {}
 
   /// Called after visiting the expression of an `if` element.
   void handle_ifElement_conditionEnd(Node node) {}

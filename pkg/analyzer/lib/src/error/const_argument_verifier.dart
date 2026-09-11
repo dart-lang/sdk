@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -18,6 +17,18 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);
+
+  void checkNameExpression(NameExpression node) {
+    if (node.resolution?.element case var element?) {
+      _checkTearoff(node, element);
+    }
+  }
+
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
@@ -55,6 +66,18 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
@@ -79,10 +102,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.staticInvokeType is FunctionType) {
-      _check(arguments: node.argumentList.arguments2, errorNode: node);
-    }
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -91,13 +112,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index2], errorNode: node.leftBracket);
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _check(arguments: [node.index], errorNode: node.leftBracket);
+  void visitIndexExpression(IndexExpression node) {
+    _check(arguments: [node.index2], errorNode: node.leftBracket);
   }
 
   @override
@@ -116,12 +139,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _checkTearoff(node, element);
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _check(arguments: [node.index], errorNode: node.leftBracket);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -153,6 +177,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorNode: node.constructorSelector?.name2 ?? node.superKeyword,
     );
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   void _check({
@@ -225,6 +254,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         case VariableElement():
           return element.isConst;
       }
+    } else if (expression is NameExpression) {
+      var element = expression.resolution.elementOrRecovery;
+      return switch (element) {
+        GetterElement() => element.variable.isConst,
+        VariableElement() => element.isConst,
+        _ => false,
+      };
     }
     return false;
   }
@@ -232,6 +268,9 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is FunctionInstantiation) return true;
+    if (node is ImplicitFunctionInstantiation) return true;
+    if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
     if (node is SimpleIdentifier) {
@@ -242,6 +281,9 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;
       if (node.element is MethodElement) return true;
+    }
+    if (node is NameExpression) {
+      return node.resolution is ExecutableTearOffResolution;
     }
     return false;
   }

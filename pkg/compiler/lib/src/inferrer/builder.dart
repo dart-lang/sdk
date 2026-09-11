@@ -150,7 +150,7 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
            : SideEffectsBuilder.free(_analyzedMember),
        _inGenerativeConstructor = _analyzedNode is ir.Constructor,
        _capturedAndBoxed = capturedAndBoxed != null
-           ? Map<Local, FieldEntity>.from(capturedAndBoxed)
+           ? Map<Local, FieldEntity>.of(capturedAndBoxed)
            : <Local, FieldEntity>{},
        _stateInternal =
            previousState ??

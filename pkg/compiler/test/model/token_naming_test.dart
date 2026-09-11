@@ -44,7 +44,7 @@ void main() {
   Expect.equals("a__", forwardN(scope, 63 * 33));
 
   // Test a filtered scope.
-  Set<String> illegal = Set.from(["b", "aa"]);
+  Set<String> illegal = Set.of(["b", "aa"]);
   scope = TokenScope(illegalNames: illegal);
 
   // We start with 'a'.

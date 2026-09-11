@@ -742,6 +742,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 
 #if defined(TARGET_ARCH_ARM)
 #define kTargetArchitectureName "arm"
+#elif defined(TARGET_ARCH_ARM64E)
+#define kTargetArchitectureName "arm64e"
 #elif defined(TARGET_ARCH_ARM64)
 #define kTargetArchitectureName "arm64"
 #elif defined(TARGET_ARCH_IA32)

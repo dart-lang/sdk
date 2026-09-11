@@ -86,7 +86,11 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
   String? computeNodeValue(Id id, AstNode node) {
     Element? element;
     var flowNode = node;
-    if (node is SimpleIdentifier && node.inGetterContext()) {
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement),
+    )) {
+      element = readElement;
+    } else if (node is SimpleIdentifier && node.inGetterContext()) {
       element = node.element;
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;

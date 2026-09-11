@@ -513,6 +513,11 @@ abstract class AnalysisServer {
   lsp.LspClientCapabilities? get editorClientCapabilities;
 
   /// The initialization options provided by the client for LSP initialization.
+  ///
+  /// These are only ever set for the LSP server and always null for
+  /// LSP-over-Legacy. We now favor using [editorClientCapabilities]
+  /// for clients to indicate their capabilities and preferences (and
+  /// [lspClientConfiguration] for the users config/preferences).
   lsp.LspInitializationOptions? get initializationOptions;
 
   /// The configuration (user/workspace settings) from the LSP client.
@@ -1010,6 +1015,19 @@ abstract class AnalysisServer {
     } finally {
       messageScheduler.resume();
     }
+  }
+
+  void publishLspClosingLabels(String path, List<lsp.ClosingLabel> labels) {
+    var params = lsp.PublishClosingLabelsParams(
+      uri: uriConverter.toClientUri(path),
+      labels: labels,
+    );
+    var message = lsp.NotificationMessage(
+      method: lsp.CustomMethods.publishClosingLabels,
+      params: params,
+      jsonrpc: lsp.jsonRpcVersion,
+    );
+    sendLspNotification(message);
   }
 
   /// Read all files, resolve all URIs, and perform required analysis in

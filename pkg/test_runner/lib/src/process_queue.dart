@@ -1281,7 +1281,7 @@ class BatchRunnerProcess {
       ...?_processEnvironmentOverrides,
     };
     try {
-      _process = await io.Process.start(
+      _process = await startProcess(
         executable,
         arguments,
         environment: environment,

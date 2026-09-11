@@ -38,14 +38,33 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition2: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -58,14 +77,33 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message2: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -95,14 +133,33 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition2: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -115,14 +172,33 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message2: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -213,7 +289,7 @@ class C {
   }
 }''');
     void assertInvocationType(String prefix) {
-      var invocation = result.findNode.methodInvocation(prefix);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(prefix);
       assertType(invocation, 'Iterable<A>');
     }
 
@@ -260,7 +336,7 @@ void test(List<A> listA, List<B> listB) {
       var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
-      var invocation = result.findNode.methodInvocation(fSearch);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(fSearch);
       assertType(invocation, fType);
     }
 
@@ -352,28 +428,28 @@ void f() {
     var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
 LogicalAnd
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
@@ -423,28 +499,28 @@ void f() {
     var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
 LogicalOr
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool

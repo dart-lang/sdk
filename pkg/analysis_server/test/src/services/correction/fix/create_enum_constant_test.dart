@@ -34,7 +34,7 @@ enum E {ONE, TWO}
 E e() {
   return E.TWO;
 }
-''', matchFixMessage: "Create enum constant 'TWO'");
+''', fixMessageContains: "Create enum constant 'TWO'");
   }
 
   Future<void> test_add_dotShorthand() async {
@@ -51,7 +51,7 @@ enum E { ONE, TWO }
 E e() {
   return .TWO;
 }
-''', matchFixMessage: "Create enum constant 'TWO'");
+''', fixMessageContains: "Create enum constant 'TWO'");
   }
 
   Future<void> test_differentLibrary() async {

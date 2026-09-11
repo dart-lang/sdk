@@ -491,10 +491,6 @@ public interface AnalysisServer {
    *        because it is not associated with any analysis root specified to
    *        analysis.setAnalysisRoots), an error of type <code>FILE_NOT_ANALYZED</code> will be
    *        generated.
-   * @param inTestMode A flag indicating whether the bulk fixes are being run in test mode. The only
-   *        difference is that in test mode the fix processor will look for a configuration file that
-   *        can modify the content of the data file used to compute the fixes when data-driven fixes
-   *        are being considered. If this field is omitted the flag defaults to <code>false</code>.
    * @param updatePubspec A flag indicating whether to validate that the dependencies used by the
    *        included files are listed in the pubspec file. If specified, the fix processor will
    *        compute the set of packages imported in the source and check to see if they are listed in
@@ -502,7 +498,7 @@ public interface AnalysisServer {
    *        the flag defaults to <code>false</code>.
    * @param codes A list of diagnostic codes to be fixed.
    */
-  public void edit_bulkFixes(List<String> included, boolean inTestMode, boolean updatePubspec, List<String> codes, BulkFixesConsumer consumer);
+  public void edit_bulkFixes(List<String> included, boolean updatePubspec, List<String> codes, BulkFixesConsumer consumer);
 
   /**
    * {@code edit.format}

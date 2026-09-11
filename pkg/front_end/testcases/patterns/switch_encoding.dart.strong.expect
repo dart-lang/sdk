@@ -626,29 +626,26 @@ static method switchExpressionEnumWithGuard(self::E o) → dynamic {
 static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
     core::int #t64;
-    final synthesized dynamic #0#0 = o;
-    final const synthesized self::PrimitiveEquals #0#1 = #C11;
-    final const synthesized self::PrimitiveEquals #0#3 = #C12;
     #L41:
-    {
-      {
-        if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+    switch(o) /* dynamic */ {
+      #L42:
+      case #C11:
+        {
           #t64 = 0;
           break #L41;
         }
-      }
-      {
-        if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
+      #L43:
+      case #C12:
+        {
           #t64 = 1;
           break #L41;
         }
-      }
-      {
-        if(true) {
+      #L44:
+      default:
+        {
           #t64 = 2;
           break #L41;
         }
-      }
     }
   } =>#t64;
 }
@@ -658,24 +655,24 @@ static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     final const synthesized self::NonPrimitiveEquals #0#1 = #C13;
     final const synthesized self::NonPrimitiveEquals #0#3 = #C14;
-    #L42:
+    #L45:
     {
       {
         if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
           #t65 = 0;
-          break #L42;
+          break #L45;
         }
       }
       {
         if(#C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
           #t65 = 1;
-          break #L42;
+          break #L45;
         }
       }
       {
         if(true) {
           #t65 = 2;
-          break #L42;
+          break #L45;
         }
       }
     }
@@ -715,24 +712,24 @@ static method switchExpressionSymbol(core::Symbol s) → dynamic {
     final synthesized core::Symbol #0#0 = s;
     final const synthesized core::Symbol #0#1 = #C15;
     final const synthesized core::Symbol #0#3 = #C16;
-    #L43:
+    #L46:
     {
       {
         if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
           #t66 = 0;
-          break #L43;
+          break #L46;
         }
       }
       {
         if(#C16 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
           #t66 = 1;
-          break #L43;
+          break #L46;
         }
       }
       {
         if(true) {
           #t66 = 2;
-          break #L43;
+          break #L46;
         }
       }
     }

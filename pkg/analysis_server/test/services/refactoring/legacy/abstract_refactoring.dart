@@ -159,9 +159,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-    if (actualCode != expectedCode) {
-      print(actualCode);
-    }
     expect(actualCode, expectedCode);
   }
 
@@ -169,7 +166,15 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return contextFor(file).driver;
+    return contextFor2(file).driver;
+  }
+
+  /// Returns the offset of the first occurence of [search] in [testCode],
+  /// failing the current test if it is not found.
+  int findOffset(String search) {
+    var offset = testCode.indexOf(search);
+    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
+    return offset;
   }
 
   Future<void> indexTestUnit(

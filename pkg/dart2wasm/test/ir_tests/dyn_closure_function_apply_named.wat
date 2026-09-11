@@ -6,8 +6,8 @@
     (type $#Vtable-0-0 <...>)
   )
   (type $#Closure-0-2 (sub final $#Closure-0-0 (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $context (ref struct))
     (field $vtable (ref $#Vtable-0-2))
     (field $functionType (ref $_FunctionType)))))

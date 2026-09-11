@@ -431,7 +431,10 @@ class UntaggedObject : public AllStatic {
 };
 
 class UntaggedClosure : public AllStatic {
+  static const word kInstantiatorTypeArgumentsIndexBitsPos;
+  static const word kInstantiatorTypeArgumentsIndexBitsSize;
   static const word kHasDelayedTypeArgumentsBit;
+  static const word kDelayedTypeArgumentsIndex;
   static const word kHasInstantiatorTypeArgumentsBit;
   static const word kHasFunctionTypeArgumentsBit;
   static const word kFunctionTypeArgumentsIndexBitsPos;
@@ -1490,6 +1493,7 @@ class SubtypeTestCache : public AllStatic {
   static word num_inputs_offset();
 
   static const word kMaxInputs;
+  static const word kMaxLinearCacheSize;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;
@@ -1636,6 +1640,7 @@ class TypeArguments : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kAllDynamicHash;
   static const word kMaxElements;
 };
 
@@ -1660,6 +1665,30 @@ class ForwardingCorpse : public AllStatic {
 class FieldTable : public AllStatic {
  public:
   static word OffsetOf(const dart::Field& field);
+};
+
+class CallbackMetadata : public AllStatic {
+ public:
+  static word InstanceSize();
+  static word entry_point_offset();
+  static word type_offset();
+  static word epilogue_offset();
+  static word caller_isolate_offset();
+  static word caller_isolate_group_offset();
+  static word function_handle_offset();
+  static word interpreted_runtime_entry_offset();
+};
+
+class CallbackContext : public AllStatic {
+ public:
+  static const word kNumIntegerArguments;
+  static const word kNumDoubleArguments;
+
+  static word InstanceSize();
+  static word integer_arguments_offset();
+  static word double_arguments_offset();
+  static word return_struct_pointer_offset();
+  static word sp_offset();
 };
 
 void UnboxFieldIfSupported(const dart::Field& field,

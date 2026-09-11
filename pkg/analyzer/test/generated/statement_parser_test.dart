@@ -29,11 +29,30 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpressionInvocation
-          function2: ParenthesizedExpression
+      expression2: CallInvocation
+        receiver: CallInvocation
+          receiver: ParenthesizedExpression
             leftParenthesis: (
             expression2: SimpleIdentifier
+              token: f
+            rightParenthesis: )
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpressionInvocation
+          function: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
               token: f
             rightParenthesis: )
           argumentList: ArgumentList
@@ -1280,10 +1299,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1328,10 +1349,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1360,10 +1383,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1384,10 +1409,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1416,10 +1443,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1440,10 +1469,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1730,10 +1761,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1786,10 +1819,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1848,14 +1883,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1918,14 +1957,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1969,10 +2012,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2012,10 +2057,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2047,10 +2094,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2082,10 +2131,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2842,7 +2893,7 @@ Block
   statements
     ExpressionStatement
       expression2: DirectAssignment
-        target: IndexAssignmentTarget
+        target: ReceiverIndexAssignmentTarget
           receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
@@ -2917,8 +2968,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpression
+      expression2: CallInvocation
+        receiver: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             requiredPositionalFormalParameters
@@ -2954,6 +3005,33 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 3
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: a
+            rightParenthesis: )
+          body: BlockFunctionBody
+            block: Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                  semicolon: ;
+              rightBracket: }
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 3
           rightParenthesis: )

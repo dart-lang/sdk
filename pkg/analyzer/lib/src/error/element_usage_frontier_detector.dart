@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/element_usage_detector.dart';
 
@@ -144,7 +145,12 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   }
 
   @override
-  void checkUsage(Element? element, AstNode node) {
+  void checkUsage(
+    Element? element,
+    AstNode node, {
+    required SourceRange usageRange,
+    bool isImplicitTypeReference = false,
+  }) {
     bool allTrue = true;
     for (var inElementStack in _inElementStacksArbitrary) {
       if (!inElementStack.last) {
@@ -162,7 +168,12 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
     }
     if (allTrue) return;
 
-    super.checkUsage(element, node);
+    super.checkUsage(
+      element,
+      node,
+      usageRange: usageRange,
+      isImplicitTypeReference: isImplicitTypeReference,
+    );
   }
 
   void popElement() {

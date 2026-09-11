@@ -87,11 +87,14 @@ CB_OPTIONS_LIST(CB_OPTION_DEFINITION)
 #undef CB_OPTION_DEFINITION
 
 // Explicitly handle VM flags that can be parsed by DartDev's run command.
+// Adds the [arg] to [vm_options] iff [vm_options] is not null.
 bool Options::ProcessVMOptions(const char* arg,
                                CommandLineOptions* vm_options) {
 #define IS_VM_OPTION(name, arg)                                                \
   if (OptionProcessor::ProcessOption(arg, name) != nullptr) {                  \
-    vm_options->AddArgument(arg);                                              \
+    if (vm_options != nullptr) {                                               \
+      vm_options->AddArgument(arg);                                            \
+    }                                                                          \
     return true;                                                               \
   }
 
@@ -210,23 +213,14 @@ bool Options::ParseDartDevArguments(int argc,
         // It is irrelevant for the vm.
         dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
-      } else if (IsOption(argv[i], "serve-observatory")) {
-        // This flag is currently set by default in vmservice_io.dart, so we
-        // ignore it. --no-serve-observatory is a VM flag so we don't need to
-        // handle that case here.
-        skipVmOption = true;
-      } else if (IsOption(argv[i], "print-dtd-uri")) {
-        skipVmOption = true;
       } else if (IsOption(argv[i], "executable-name")) {
         skipVmOption = true;
-      } else if (IsOption(argv[i], "enable-experiment")) {
-        dart_options->AddArgument(argv[i]);
-      } else if (IsOption(argv[i], "resident")) {
-        resident_ = true;
-      } else if (IsOption(argv[i], "resident-compiler-info-file")) {
-        resident_compiler_info_file_path_ = OptionProcessor::ProcessOption(
-            argv[i], "--resident-compiler-info-file");
       }
+    } else if (Options::ProcessVMOptions(argv[i], nullptr)) {
+      // These (e.g. `-D`, `--enable-experiment` etc) were added already and not
+      // skipping them means they will be added twice which could cause a crash
+      // because dart_vm_options runs out of space.
+      skipVmOption = true;
     }
     if (!skipVmOption) {
       dart_vm_options->AddArgument(argv[i]);
@@ -351,9 +345,6 @@ void Options::PrintUsage() {
   }
 }
 // clang-format on
-
-bool Options::resident_ = false;
-const char* Options::resident_compiler_info_file_path_ = nullptr;
 
 dart::SimpleHashMap* Options::environment_ = nullptr;
 bool Options::ProcessEnvironmentOption(const char* arg,

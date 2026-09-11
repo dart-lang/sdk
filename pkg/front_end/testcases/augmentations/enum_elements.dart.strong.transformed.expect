@@ -1,0 +1,90 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/enum_elements.dart:5:6: Error: An enum declaration can't be empty.
+// enum Enum1; // Error
+//      ^^^^^
+//
+// pkg/front_end/testcases/augmentations/enum_elements.dart:29:3: Error: 'a' is already declared in this scope.
+//   a, // Error
+//   ^
+// pkg/front_end/testcases/augmentations/enum_elements.dart:26:3: Context: Previous declaration of 'a'.
+//   a, // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Enum1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum1> values = #C1;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum1.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum2 a = #C4;
+  static const field core::List<self::Enum2> values = #C5;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum2.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum3 a = #C6;
+  static const field core::List<self::Enum3> values = #C7;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum3.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum4 a = #C8;
+  enum-element static const field self::Enum4 b = #C11;
+  static const field core::List<self::Enum4> values = #C12;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum4.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum5 a = #C13;
+  static const field core::List<self::Enum5> values = #C14;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum5.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = <self::Enum1>[]
+  #C2 = 0
+  #C3 = "a"
+  #C4 = self::Enum2 {index:#C2, _name:#C3}
+  #C5 = <self::Enum2>[#C4]
+  #C6 = self::Enum3 {index:#C2, _name:#C3}
+  #C7 = <self::Enum3>[#C6]
+  #C8 = self::Enum4 {index:#C2, _name:#C3}
+  #C9 = 1
+  #C10 = "b"
+  #C11 = self::Enum4 {index:#C9, _name:#C10}
+  #C12 = <self::Enum4>[#C8, #C11]
+  #C13 = self::Enum5 {index:#C2, _name:#C3}
+  #C14 = <self::Enum5>[#C13]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_elements.dart:
+- Enum2. (from org-dartlang-testcase:///enum_elements.dart:8:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Enum3. (from org-dartlang-testcase:///enum_elements.dart:13:6)
+- Enum4. (from org-dartlang-testcase:///enum_elements.dart:18:6)
+- Enum5. (from org-dartlang-testcase:///enum_elements.dart:25:6)

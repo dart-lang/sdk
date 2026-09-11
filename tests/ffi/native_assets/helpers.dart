@@ -272,9 +272,9 @@ Future<void> runGenSnapshot({
       // `computeAssembleCommand`.
       if (Platform.isMacOS) {
         await runProcess(
-          executable: Abi.current() == Abi.macosArm64
-              ? 'buildtools/mac-arm64/clang/bin/clang'
-              : 'buildtools/mac-x64/clang/bin/clang',
+          executable: Abi.current() == Abi.macosX64
+              ? 'buildtools/mac-x64/clang/bin/clang'
+              : 'buildtools/mac-arm64/clang/bin/clang',
           arguments: [
             '-Wl,-undefined,error',
             '-Wl,-no_compact_unwind',

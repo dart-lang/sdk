@@ -526,13 +526,12 @@ class _WasmTransformer extends Transformer {
       [coreTypes.objectNullableRawType],
     );
     FunctionType controllerAddType =
-        Substitution.fromInterfaceType(
-              controllerNullableObjectType,
-            ).substituteType(
-              _streamControllerAdd.function.computeThisFunctionType(
-                Nullability.nonNullable,
-              ),
-            )
+        Substitution.fromInterfaceType(controllerNullableObjectType)
+                .substituteType(
+                  _streamControllerAdd.function.computeThisFunctionType(
+                    Nullability.nonNullable,
+                  ),
+                )
             as FunctionType;
     return InstanceInvocation(
       InstanceAccessKind.Instance,
@@ -670,11 +669,9 @@ class _WasmTransformer extends Transformer {
             Name('complete'),
             Arguments([ConstantExpression(NullConstant())]),
             interfaceTarget: _completerComplete,
-            functionType:
-                substitute(_completerComplete.getterType, {
-                      _completerClass.typeParameters.first: const VoidType(),
-                    })
-                    as FunctionType,
+            functionType: substitute(_completerComplete.getterType, {
+              _completerClass.typeParameters.first: const VoidType(),
+            }) as FunctionType,
           ),
         ),
         ExpressionStatement(
@@ -839,11 +836,9 @@ class _WasmTransformer extends Transformer {
             Name('complete'),
             Arguments([ConstantExpression(NullConstant())]),
             interfaceTarget: _completerComplete,
-            functionType:
-                substitute(_completerComplete.getterType, {
-                      _completerClass.typeParameters.first: const VoidType(),
-                    })
-                    as FunctionType,
+            functionType: substitute(_completerComplete.getterType, {
+              _completerClass.typeParameters.first: const VoidType(),
+            }) as FunctionType,
           ),
         ),
         null,
@@ -1010,12 +1005,10 @@ class _WasmTransformer extends Transformer {
               Name('addStream'),
               Arguments([transformedExpression]),
               interfaceTarget: _streamControllerAddStream,
-              functionType:
-                  substitute(controllerAddStreamProcedureType, {
-                        _streamControllerClass.typeParameters.first:
-                            frame.emittedValueType,
-                      })
-                      as FunctionType,
+              functionType: substitute(controllerAddStreamProcedureType, {
+                _streamControllerClass.typeParameters.first:
+                    frame.emittedValueType,
+              }) as FunctionType,
             ),
           ),
         ),

@@ -11,12 +11,12 @@
   (type $Array<_Type> <...>)
   (type $BoxedInt <...>)
   (type $H0 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $H1 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)

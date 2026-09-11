@@ -192,6 +192,14 @@ class DocumentationValidator {
     // The example doesn't generate the documented diagnostic.
     'depend_on_referenced_packages',
 
+    // eol_at_end_of_file_missing (linter)
+    //
+    // Since trailing newlines aren't visible in a code block,
+    // the examples use a comment to mark where the file ends.
+    // As a result, every snippet for this rule reports the lint on itself,
+    // and the reported range is past the end of the content.
+    'eol_at_end_of_file_missing',
+
     // file_names (linter)
     // - No example.
     //

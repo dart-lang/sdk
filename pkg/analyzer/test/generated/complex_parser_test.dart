@@ -235,8 +235,8 @@ void f() {
     assertParsedNodeText(node, r'''
 PropertyAccess
   target2: MethodInvocation
-    target2: FunctionExpressionInvocation
-      function2: MethodInvocation
+    target2: CallInvocation
+      receiver: MethodInvocation
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
@@ -248,6 +248,22 @@ PropertyAccess
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+    target(v1): FunctionExpressionInvocation
+      function: MethodInvocation
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -277,8 +293,8 @@ void f() {
     assertParsedNodeText(node, r'''
 PropertyAccess
   target2: MethodInvocation
-    target2: FunctionExpressionInvocation
-      function2: MethodInvocation
+    target2: CallInvocation
+      receiver: MethodInvocation
         methodName: SimpleIdentifier
           token: a
         typeArguments: TypeArgumentList
@@ -302,6 +318,34 @@ PropertyAccess
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+    target(v1): FunctionExpressionInvocation
+      function: MethodInvocation
+        methodName: SimpleIdentifier
+          token: a
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: F
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -368,7 +412,7 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
     leftBracket: [

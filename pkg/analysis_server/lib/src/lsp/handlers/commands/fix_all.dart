@@ -54,7 +54,8 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
     );
     var edit = await operation.compute();
 
-    return edit.mapResult((edit) async {
+    return edit.mapResult((result) async {
+      var (edit, _) = result;
       if (edit == null) {
         return success(null);
       }

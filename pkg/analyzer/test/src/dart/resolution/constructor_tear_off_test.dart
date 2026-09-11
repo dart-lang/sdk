@@ -171,8 +171,8 @@ ConstructorTearOff
     name2: foo
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::A::@constructor::foo
-    substitution: {T: Never}
-  staticType: A<Never> Function()
+    substitution: {T: T}
+  staticType: A<T> Function<T extends num>()
 V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -206,20 +206,24 @@ A<int> Function() bar() {
 }
 ''');
 
-    var node = result.findNode.constructorTearOff('A.foo;');
+    var node = result.findNode.implicitFunctionInstantiation('A.foo;');
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: A
-    element: <testLibrary>::@class::A
-    type: A<dynamic>
-  selector: ConstructorSelector
-    period: .
-    name2: foo
-  element: SubstitutedConstructorElementImpl
-    baseElement: <testLibrary>::@class::A::@constructor::foo
-    substitution: {T: int}
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@class::A
+      type: A<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::A::@constructor::foo
+      substitution: {T: T}
+    staticType: A<T> Function<T>()
   staticType: A<int> Function()
+  typeArgumentTypes
+    int
 V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType

@@ -83,6 +83,7 @@ import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
 import 'switch_statement_test.dart' as switch_statement;
+import 'symbol_test.dart' as symbol;
 import 'try_statement_test.dart' as try_statement;
 import 'type_argument_list_test.dart' as type_argument_list;
 import 'type_test_test.dart' as type_test;
@@ -168,6 +169,7 @@ void main() {
     switch_expression.main();
     switch_pattern_case.main();
     switch_statement.main();
+    symbol.main();
     try_statement.main();
     type_argument_list.main();
     type_test.main();

@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -22,42 +23,43 @@ import 'tools/file_watch.dart';
 import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
+import 'tools/sandbox.dart';
+import 'util/parameters_ext.dart';
 
 final class Worker {
-  final _rp = MemoryResourceProvider(context: p.posix);
-  var _config = DartPadConfig();
+  final ResourceProvider _rp;
+  final DartPadConfig _config;
   int _nextLanguageServerId = 1;
-  int _nextHotReloadCompilerId = 1;
   int _nextWorkspaceId = 1;
   int _nextWatcherId = 1;
+  int _nextSandboxId = 1;
 
-  Worker._();
+  Worker._(this._rp, this._config);
 
   static Future<Worker> create(
     Stream<List<int>> sdkTarStream, {
     String? pubHostedUrl,
   }) async {
-    final w = Worker._();
+    final rp = MemoryResourceProvider(context: p.posix);
+    await rp.getFolder('/').extractTarStream(sdkTarStream);
 
-    await w._rp.getFolder('/').extractTarStream(sdkTarStream);
-
-    final configFile = w._rp.getFile(DartPadConfig.defaultDartPadConfigPath);
-    if (configFile.exists) {
-      try {
-        w._config = DartPadConfig.fromJson(
-          jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
-        );
-      } catch (e) {
-        // TODO(jonasfj): Find a better way to propogate this error.
-        //                This is only relevant for people making their own
-        //                sdk.tar files. But it'd also make general debugging
-        //                easier. To report it better we might also want to
-        //                report progress updates while loading.
-        print('Error reading dartpad-config.json: $e');
-      }
+    final configFile = rp.getFile(DartPadConfig.defaultDartPadConfigPath);
+    if (!configFile.exists) {
+      throw const FormatException(
+        'sdk.tar must contain ${DartPadConfig.defaultDartPadConfigPath}',
+      );
     }
-    w._config = w._config.copyWith(pubHostedUrl: pubHostedUrl);
-    return w;
+    try {
+      final config = DartPadConfig.fromJson(
+        jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
+      ).copyWith(pubHostedUrl: pubHostedUrl);
+
+      return Worker._(rp, config);
+    } catch (e) {
+      throw FormatException(
+        'Error reading ${DartPadConfig.defaultDartPadConfigPath}: $e',
+      );
+    }
   }
 
   void session(StreamChannel<Object?> channel) {
@@ -116,18 +118,6 @@ class _Session {
     );
     _rpc.registerMethod('workspace/pub', _forwardToWorkspace((ws) => ws._pub));
     _rpc.registerMethod(
-      'workspace/startHotReloadCompiler',
-      _forwardToWorkspace((ws) => ws._startHotReloadCompiler),
-    );
-    _rpc.registerMethod(
-      'workspace/hotReloadCompiler/compile',
-      _forwardToWorkspace((ws) => ws._hotReloadCompilerCompile),
-    );
-    _rpc.registerMethod(
-      'workspace/hotReloadCompiler/close',
-      _forwardToWorkspace((ws) => ws._hotReloadCompilerClose),
-    );
-    _rpc.registerMethod(
       'workspace/startLanguageServer',
       _forwardToWorkspace((ws) => ws._startLanguageServer),
     );
@@ -146,6 +136,30 @@ class _Session {
     _rpc.registerMethod(
       'workspace/watcher/stop',
       _forwardToWorkspace((ws) => ws._unwatch),
+    );
+    _rpc.registerMethod(
+      'workspace/connectSandbox',
+      _forwardToWorkspace((ws) => ws._connectSandbox),
+    );
+    _rpc.registerMethod(
+      'workspace/sandbox/run',
+      _forwardToWorkspace((ws) => ws._sandboxRun),
+    );
+    _rpc.registerMethod(
+      'workspace/sandbox/hotRestart',
+      _forwardToWorkspace((ws) => ws._sandboxHotRestart),
+    );
+    _rpc.registerMethod(
+      'workspace/sandbox/hotReload',
+      _forwardToWorkspace((ws) => ws._sandboxHotReload),
+    );
+    _rpc.registerMethod(
+      'workspace/sandbox/close',
+      _forwardToWorkspace((ws) => ws._sandboxClose),
+    );
+    _rpc.registerMethod(
+      'workspace/sandbox/invokeExtension',
+      _forwardToWorkspace((ws) => ws._sandboxInvokeExtension),
     );
     unawaited(() async {
       await _rpc.listen();
@@ -211,8 +225,8 @@ class _Workspace {
   final String _workspaceFolder;
   final ResourceProvider _rp;
   final _languageServers = <int, LanguageServer>{};
-  final _hotReloadCompilers = <int, HotReloadCompiler>{};
   final _fileWatches = <int, FileWatch>{};
+  final _sandboxes = <int, Sandbox>{};
 
   _Workspace(
     this._worker,
@@ -250,7 +264,7 @@ class _Workspace {
 
   Object? _writeFileFromBytes(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
       file.parent.createRecursively();
@@ -279,7 +293,7 @@ class _Workspace {
   Object? _readFileAsBytes(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
     try {
-      return {'base64': base64.encode(_rp.getFile(path).readAsBytesSync())};
+      return {'bytes': _rp.getFile(path).readAsBytesSync()};
     } on FileSystemException catch (e) {
       throw FileNotFoundException(
         e.message,
@@ -373,7 +387,7 @@ class _Workspace {
 
   Object? _importTarArchive(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final bytes = params.bytesAsUint8List;
 
     await _rp.getFolder(path).extractTarStream(Stream.value(bytes));
 
@@ -391,7 +405,7 @@ class _Workspace {
     }
 
     return {
-      'base64': base64.encode(await collectBytes(folder.createTarStream())),
+      'bytes': Uint8List.fromList(await collectBytes(folder.createTarStream())),
     };
   }
 
@@ -438,80 +452,6 @@ class _Workspace {
     );
 
     return {'log': log};
-  }
-
-  Object? _startHotReloadCompiler(Parameters params) async {
-    var entrypoint = _resolvePath(params['uri'].asUri);
-
-    // Test if the file we're compiling exists.
-    // Otherwise, we get really ugly errors if there is a bootstrap file in play
-    if (!_rp.getFile(entrypoint).exists) {
-      throw CompilationFailedException(
-        'Compilation entrypoint "$entrypoint" not found',
-        data: {'entrypoint': entrypoint},
-      );
-    }
-
-    var rp = _rp;
-    final bootstrapCodeTemplate = _worker._config.bootstrapCode;
-    if (bootstrapCodeTemplate != null) {
-      final originalEntrypoint = entrypoint;
-      entrypoint = '$originalEntrypoint.virtual-bootstrap-wrapper.dart';
-
-      final overlay = rp = OverlayResourceProvider(_rp);
-      overlay.setOverlay(
-        entrypoint,
-        content: bootstrapCodeTemplate.replaceAll(
-          '{{entrypoint}}',
-          // Convert to a `file:` URI so the Common Front End (CFE) treats the
-          // import as an absolute file URI. Otherwise, entrypoints inside
-          // `lib/` match the package root prefix in `package_config.json` and
-          // resolve relatively, causing duplicated path segments and build
-          // failure.
-          _rp.pathContext.toUri(originalEntrypoint).toString(),
-        ),
-        modificationStamp: 0,
-      );
-    }
-
-    final id = _worker._nextHotReloadCompilerId++;
-    _hotReloadCompilers[id] = HotReloadCompiler(
-      resourceProvider: rp,
-      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
-      targetPath: entrypoint,
-      config: _worker._config,
-    );
-    return {'hotReloadCompilerId': id};
-  }
-
-  HotReloadCompiler _getHotReloadCompiler(Parameters params) {
-    final id = params['hotReloadCompilerId'].asNum.toInt();
-    final c = _hotReloadCompilers[id];
-    if (c == null) {
-      throw HotReloadCompilerNotFoundException(
-        'HotReloadCompiler not found, check the "hotReloadCompilerId"',
-        data: {'workspaceId': _workspaceId, 'hotReloadCompilerId': id},
-      );
-    }
-    return c;
-  }
-
-  Object? _hotReloadCompilerCompile(Parameters params) async {
-    final c = _getHotReloadCompiler(params);
-    final (:code, :compiledLibraryUris, :log) = await c.compile();
-    return {
-      'code': code,
-      'compiledLibraryUris': compiledLibraryUris,
-      'log': log,
-    };
-  }
-
-  Object? _hotReloadCompilerClose(Parameters params) async {
-    final id = params['hotReloadCompilerId'].asNum.toInt();
-    final c = _getHotReloadCompiler(params);
-    _hotReloadCompilers.remove(id);
-    await c.close();
-    return <String, Object?>{};
   }
 
   Object? _startLanguageServer(Parameters params) async {
@@ -585,12 +525,153 @@ class _Workspace {
     return <String, Object?>{};
   }
 
+  HotReloadCompiler _createCompiler(Uri path, DartPadRunMode mode) {
+    var entrypoint = _resolvePath(path);
+
+    // Test if the file we're compiling exists.
+    // Otherwise, we get really ugly errors if there is a bootstrap file in play
+    if (!_rp.getFile(entrypoint).exists) {
+      throw CompilationFailedException(
+        'Compilation entrypoint "$entrypoint" not found',
+        data: {'entrypoint': entrypoint},
+      );
+    }
+
+    var rp = _rp;
+    final entrypointWrapperTemplate = mode.entrypointWrapperTemplate;
+    if (entrypointWrapperTemplate != null) {
+      final originalEntrypoint = entrypoint;
+      entrypoint = '$originalEntrypoint.${mode.mode}-wrapper.dart';
+
+      final overlay = rp = OverlayResourceProvider(_rp);
+      overlay.setOverlay(
+        entrypoint,
+        content: entrypointWrapperTemplate.replaceAll(
+          '{{entrypoint}}',
+          // Convert to a `file:` URI so the Common Front End (CFE) treats the
+          // import as an absolute file URI. Otherwise, entrypoints inside
+          // `lib/` match the package root prefix in `package_config.json` and
+          // resolve relatively, causing duplicated path segments and build
+          // failure.
+          _rp.pathContext.toUri(originalEntrypoint).toString(),
+        ),
+        modificationStamp: 0,
+      );
+    }
+
+    return HotReloadCompiler(
+      resourceProvider: rp,
+      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
+      targetPath: entrypoint,
+      config: _worker._config,
+    );
+  }
+
+  Object? _connectSandbox(Parameters params) async {
+    final port = params.portAsMessagePort;
+    final sandboxId = _worker._nextSandboxId++;
+    final sandbox = _sandboxes[sandboxId] = Sandbox(
+      port: port,
+      createCompiler: _createCompiler,
+      onClosed: () => _sandboxes.remove(sandboxId),
+    );
+    sandbox.onConsole.listen((e) {
+      _session._rpc.sendNotification('workspace/sandbox/console', {
+        'workspaceId': _workspaceId,
+        'sandboxId': sandboxId,
+        'message': e.message,
+      });
+    });
+    sandbox.onError.listen((e) {
+      _session._rpc.sendNotification('workspace/sandbox/error', {
+        'workspaceId': _workspaceId,
+        'sandboxId': sandboxId,
+        'message': e.message,
+      });
+    });
+    sandbox.onUnhandledRejection.listen((e) {
+      _session._rpc.sendNotification('workspace/sandbox/unhandledRejection', {
+        'workspaceId': _workspaceId,
+        'sandboxId': sandboxId,
+        'message': e.message,
+      });
+    });
+    sandbox.onExtensionEvent.listen((e) {
+      _session._rpc.sendNotification('workspace/sandbox/extensionEvent', {
+        'workspaceId': _workspaceId,
+        'sandboxId': sandboxId,
+        'kind': e.kind,
+        'data': e.data,
+      });
+    });
+    return {
+      'sandboxId': sandboxId,
+      'modes': _worker._config.modes.map((m) => m.mode).toList(),
+    };
+  }
+
+  Sandbox _getSandbox(Parameters params) {
+    final id = params['sandboxId'].asNum.toInt();
+    final s = _sandboxes[id];
+    if (s == null) {
+      throw SandboxNotFoundException(
+        'Sandbox not found',
+        data: {'sandboxId': id},
+      );
+    }
+    return s;
+  }
+
+  Object? _sandboxRun(Parameters params) async {
+    final s = _getSandbox(params);
+    final path = _resolvePath(params['path'].asUri);
+    final mode = params['mode'].asString;
+    final m = _worker._config.modes.where((m) => m.mode == mode).firstOrNull;
+    if (m == null) {
+      throw RpcException.invalidParams('Unsupported mode: "$mode"');
+    }
+
+    final result = await s.run(path, m);
+    return {'log': result.log};
+  }
+
+  Object? _sandboxHotRestart(Parameters params) async {
+    final s = _getSandbox(params);
+    final result = await s.hotRestart();
+    return {'log': result.log};
+  }
+
+  Object? _sandboxHotReload(Parameters params) async {
+    final s = _getSandbox(params);
+    final result = await s.hotReload();
+    return {'log': result.log};
+  }
+
+  Object? _sandboxClose(Parameters params) async {
+    final id = params['sandboxId'].asNum.toInt();
+    final s = _sandboxes.remove(id);
+    await s?.close();
+    return <String, Object?>{};
+  }
+
+  Object? _sandboxInvokeExtension(Parameters params) async {
+    final s = _getSandbox(params);
+    final method = params['method'].asString;
+    final args = params['args'].asMap as Map<String, Object?>;
+    if (args.values.where((v) => v is! String).isNotEmpty) {
+      throw RpcException.invalidParams('key/values in args must be strings');
+    }
+
+    final result = await s.invokeExtension(method, args.cast());
+    return {'result': result};
+  }
+
   Future<void> _deleteWorkspace() async {
     try {
       await Future.wait([
         ..._languageServers.values.map((ls) => ls.close()),
-        ..._hotReloadCompilers.values.map((cs) => cs.close()),
         ..._fileWatches.values.map((fw) => fw.stop()),
+        ..._sandboxes.values.map((s) => s.close()),
       ]);
     } finally {
       _rp.getFolder(_workspaceFolder).delete();

@@ -6196,7 +6196,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 ///     {
 ///       "included": List<FilePath>
-///       "inTestMode": optional bool
 ///       "updatePubspec": optional bool
 ///       "codes": optional List<String>
 ///     }
@@ -6213,14 +6212,6 @@ class EditBulkFixesParams implements RequestParams {
   /// of type `FILE_NOT_ANALYZED` will be generated.
   List<String> included;
 
-  /// A flag indicating whether the bulk fixes are being run in test mode. The
-  /// only difference is that in test mode the fix processor will look for a
-  /// configuration file that can modify the content of the data file used to
-  /// compute the fixes when data-driven fixes are being considered.
-  ///
-  /// If this field is omitted the flag defaults to `false`.
-  bool? inTestMode;
-
   /// A flag indicating whether to validate that the dependencies used by the
   /// included files are listed in the pubspec file. If specified, the fix
   /// processor will compute the set of packages imported in the source and
@@ -6233,12 +6224,7 @@ class EditBulkFixesParams implements RequestParams {
   /// A list of diagnostic codes to be fixed.
   List<String>? codes;
 
-  EditBulkFixesParams(
-    this.included, {
-    this.inTestMode,
-    this.updatePubspec,
-    this.codes,
-  });
+  EditBulkFixesParams(this.included, {this.updatePubspec, this.codes});
 
   factory EditBulkFixesParams.fromJson(
     JsonDecoder jsonDecoder,
@@ -6262,13 +6248,6 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included', json);
       }
-      bool? inTestMode;
-      if (json.containsKey('inTestMode')) {
-        inTestMode = jsonDecoder.decodeBool(
-          '$jsonPath.inTestMode',
-          json['inTestMode'],
-        );
-      }
       bool? updatePubspec;
       if (json.containsKey('updatePubspec')) {
         updatePubspec = jsonDecoder.decodeBool(
@@ -6286,7 +6265,6 @@ class EditBulkFixesParams implements RequestParams {
       }
       return EditBulkFixesParams(
         included,
-        inTestMode: inTestMode,
         updatePubspec: updatePubspec,
         codes: codes,
       );
@@ -6318,10 +6296,6 @@ class EditBulkFixesParams implements RequestParams {
               clientUriConverter?.toClientFilePath(value) ?? value,
         )
         .toList();
-    var inTestMode = this.inTestMode;
-    if (inTestMode != null) {
-      result['inTestMode'] = inTestMode;
-    }
     var updatePubspec = this.updatePubspec;
     if (updatePubspec != null) {
       result['updatePubspec'] = updatePubspec;
@@ -6352,14 +6326,12 @@ class EditBulkFixesParams implements RequestParams {
   bool operator ==(Object other) =>
       other is EditBulkFixesParams &&
       listEqual(included, other.included, (String a, String b) => a == b) &&
-      inTestMode == other.inTestMode &&
       updatePubspec == other.updatePubspec &&
       listEqual(codes, other.codes, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(
     Object.hashAll(included),
-    inTestMode,
     updatePubspec,
     Object.hashAll(codes ?? []),
   );

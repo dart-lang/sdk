@@ -811,13 +811,17 @@ abstract class FlowAnalysis<
   @visibleForTesting
   PromotionInfo? getCurrentPromotionInfo();
 
-  /// Queries the promotion key that represents `this` in the current internal
-  /// state of flow analysis.
+  /// Queries the binding of `this` in the current internal state of flow
+  /// analysis.
+  ///
+  /// Return value is either `null` (if there is no binding for `this`) or a
+  /// pair consisting of the promotion key and the corresponding (unpromoted)
+  /// static type of `this`.
   ///
   /// This is used in tests to validate that the information stored in the flow
   /// analysis log is an accurate recording of flow analysis state changes.
   @visibleForTesting
-  PromotionKey getCurrentThisBinding();
+  (PromotionKey, SharedTypeView)? getCurrentThisBinding();
 
   /// Retrieves the [FlowAnalysisLog].
   ///
@@ -1719,7 +1723,11 @@ abstract class FlowAnalysis<
   /// the offset of the `{` that opens the anonymous block body is probably the
   /// best choice. For an expression-bodied anonymous method, the offset of the
   /// `=>` that opens the anonymous block body is probably the best choice.
-  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0});
+  void thisBinding_begin(
+    ExpressionInfo? targetInfo, {
+    required SharedTypeView thisType,
+    int offset = 0,
+  });
 
   /// Call this method just after the end of a `this` binding.
   ///
@@ -2501,7 +2509,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  PromotionKey getCurrentThisBinding() {
+  (PromotionKey, SharedTypeView)? getCurrentThisBinding() {
     return _wrap(
       'getCurrentThisBinding()',
       () => _wrapped.getCurrentThisBinding(),
@@ -3305,10 +3313,18 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0}) {
+  void thisBinding_begin(
+    ExpressionInfo? targetInfo, {
+    required SharedTypeView thisType,
+    int offset = 0,
+  }) {
     _wrap(
-      'thisBinding_begin($targetInfo, offset: $offset)',
-      () => _wrapped.thisBinding_begin(targetInfo, offset: offset),
+      'thisBinding_begin($targetInfo, thisType: $thisType, offset: $offset)',
+      () => _wrapped.thisBinding_begin(
+        targetInfo,
+        thisType: thisType,
+        offset: offset,
+      ),
     );
   }
 
@@ -6047,8 +6063,10 @@ class _FlowAnalysisImpl<
   final List<SsaNode> _thisSsaNodes = [new SsaNode()];
 
   late final List<PromotionKey> _thisPromotionKeys = [
-    _makeInitialThisPromotionKey(),
+    promotionKeyStore.makeTemporaryKey(),
   ];
+
+  final List<SharedTypeView> _unpromotedThisTypes = [];
 
   @override
   final List<_Reference> _cascadeTargetStack = [];
@@ -6072,6 +6090,11 @@ class _FlowAnalysisImpl<
     required bool enableLog,
   }) : promotionKeyStore = _assignedVariables.promotionKeyStore,
        _logBuilder = enableLog ? new FlowAnalysisLogBuilder() : null {
+    assert(
+      !(enableLog && operations.disableThisTypeAssertion),
+      'The flow analysis log is not guaranteed to contain reliable `this` '
+      'promotion information when `disableThisTypeAssertion` is `true`.',
+    );
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
@@ -6648,7 +6671,10 @@ class _FlowAnalysisImpl<
   PromotionInfo? getCurrentPromotionInfo() => _current.promotionInfo;
 
   @override
-  PromotionKey getCurrentThisBinding() => _thisPromotionKeys.last;
+  (PromotionKey, SharedTypeView)? getCurrentThisBinding() =>
+      _unpromotedThisTypes.isEmpty
+      ? null
+      : (_thisPromotionKeys.last, _unpromotedThisTypes.last);
 
   @override
   FlowAnalysisLog? getLog() => _logBuilder?.finish();
@@ -7803,7 +7829,11 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void thisBinding_begin(ExpressionInfo? targetInfo, {int offset = 0}) {
+  void thisBinding_begin(
+    ExpressionInfo? targetInfo, {
+    required SharedTypeView thisType,
+    int offset = 0,
+  }) {
     _Reference? expressionReference = _getExpressionReference(targetInfo);
     SsaNode ssaNode =
         expressionReference?.ssaNode ??
@@ -7815,14 +7845,24 @@ class _FlowAnalysisImpl<
     _thisSsaNodes.add(ssaNode);
     PromotionKey thisPromotionKey = promotionKeyStore.makeTemporaryKey();
     _thisPromotionKeys.add(thisPromotionKey);
-    _logBuilder?.thisBindingChanged(thisPromotionKey, offset: offset);
+    _unpromotedThisTypes.add(thisType);
+    _logBuilder?.thisBindingChanged((
+      thisPromotionKey,
+      thisType,
+    ), offset: offset);
   }
 
   @override
   void thisBinding_end({int offset = 0}) {
     _thisSsaNodes.removeLast();
     _thisPromotionKeys.removeLast();
-    _logBuilder?.thisBindingChanged(_thisPromotionKeys.last, offset: offset);
+    _unpromotedThisTypes.removeLast();
+    _logBuilder?.thisBindingChanged(
+      _unpromotedThisTypes.isEmpty
+          ? null
+          : (_thisPromotionKeys.last, _unpromotedThisTypes.last),
+      offset: offset,
+    );
   }
 
   @override
@@ -8058,17 +8098,15 @@ class _FlowAnalysisImpl<
     if (typeAnalyzerOptions.thisPromotionEnabled) {
       return () => {};
     }
+    _Reference reference = _thisOrSuperReference(staticType, isSuper: false);
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
-      _thisPromotionKeys.last,
+      reference.promotionKey,
     );
     if (currentThisInfo == null) {
       return () => {};
     }
-    return _getNonPromotionReasons(
-      _thisOrSuperReference(staticType, isSuper: false),
-      currentThisInfo,
-    );
+    return _getNonPromotionReasons(reference, currentThisInfo);
   }
 
   @override
@@ -8755,16 +8793,6 @@ class _FlowAnalysisImpl<
   FlowModel _join(FlowModel? first, FlowModel? second) =>
       FlowModel.join(this, first, second);
 
-  PromotionKey _makeInitialThisPromotionKey() {
-    PromotionKey key = promotionKeyStore.makeTemporaryKey();
-
-    // Record the initial `this` promotion key at offset 0, so that it takes
-    // effect starting at the beginning of the code being analyzed.
-    _logBuilder?.recordInitialThisBinding(key);
-
-    return key;
-  }
-
   /// Creates a promotion key representing a temporary variable that doesn't
   /// correspond to any variable in the user's source code.  This is used by
   /// flow analysis to model the synthetic variables used during pattern
@@ -8988,9 +9016,23 @@ class _FlowAnalysisImpl<
     SharedTypeView staticType, {
     required bool isSuper,
   }) {
+    assert(() {
+      SharedTypeView expectedType =
+          (isSuper
+              ? _unpromotedThisTypes.lastOrNull
+              : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
+          operations.errorType;
+      assert(
+        operations.disableThisTypeAssertion || staticType == expectedType,
+        'Incorrect `this` or `super` type. Got $staticType, expected '
+        '$expectedType.',
+      );
+      return true;
+    }());
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
+    PromotionKey promotionKey = _thisPromotionKeys.last;
     return new TrivialVariableReference(
-      promotionKey: _thisPromotionKeys.last,
+      promotionKey: promotionKey,
       model: _current,
       type: staticType,
       isThisOrSuper: true,

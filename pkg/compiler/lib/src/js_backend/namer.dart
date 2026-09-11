@@ -106,8 +106,8 @@ part 'namer_names.dart';
 ///
 ///       call$<N>$namedParam1...$namedParam<M>
 ///
-///    where <N> is the number of parameters (required and optional) and <M> is
-///    the number of named parameters, and namedParam<n> are the names of the
+///    where `<N>` is the number of parameters (required and optional) and `<M>` is
+///    the number of named parameters, and `namedParam<n>` are the names of the
 ///    named parameters in alphabetical order.
 ///
 ///    Note that the same convention is used for the *proposed name* of other

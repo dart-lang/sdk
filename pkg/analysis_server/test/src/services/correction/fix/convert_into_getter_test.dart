@@ -7,7 +7,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../fix/fix_processor.dart';
+import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {

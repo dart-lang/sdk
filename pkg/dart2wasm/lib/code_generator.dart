@@ -188,13 +188,13 @@ abstract class AstCodeGenerator
   /// Returns the old file offset, which can be used to restore the source
   /// mapping after vising a sub-tree.
   int setSourceMapFileOffset(int fileOffset) {
-    if (!b.recordSourceMaps) {
+    if (!b.recordDebugInfo) {
       final old = _sourceMapFileOffset;
       _sourceMapFileOffset = fileOffset;
       return old;
     }
     if (fileOffset == TreeNode.noOffset) {
-      b.stopSourceMapping();
+      b.clearSourcePosition();
       final old = _sourceMapFileOffset;
       _sourceMapFileOffset = fileOffset;
       return old;
@@ -204,7 +204,7 @@ abstract class AstCodeGenerator
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(
+    b.setSourcePosition(
       fileUri,
       location.line - 1,
       location.column - 1,
@@ -2177,6 +2177,7 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticGet(StaticGet node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateStaticGetterIntrinsic(
       node,
+      expectedType,
     );
     if (intrinsicResult != null) return intrinsicResult;
 

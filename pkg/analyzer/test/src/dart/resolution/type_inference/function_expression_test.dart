@@ -62,7 +62,19 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression2: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: FutureOr<Object?> Function()
+              type: FutureOr<Object?>
+            staticType: FutureOr<Object?>
+            typeArgumentTypes
+              FutureOr<Object?>
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -117,7 +129,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<int> Function()
+        type: FutureOr<int>
+      staticType: FutureOr<int>
+      typeArgumentTypes
+        FutureOr<int>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -159,7 +183,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<Object?> Function()
+        type: FutureOr<Object?>
+      staticType: FutureOr<Object?>
+      typeArgumentTypes
+        FutureOr<Object?>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -194,7 +230,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<Object?> Function()
+        type: FutureOr<Object?>
+      staticType: FutureOr<Object?>
+      typeArgumentTypes
+        FutureOr<Object?>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -245,7 +293,19 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression2: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -296,7 +356,19 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression2: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -350,7 +422,19 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -401,7 +485,19 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression2: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -456,7 +552,13 @@ FunctionExpression
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: item
+            resolution: VariableReadResolution
+              element: item@43
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: item
             element: item@43
             staticType: int
@@ -610,6 +712,13 @@ FunctionExpression
         rightBracket: >
       leftBracket: [
       elements2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@29
+            type: T
+          staticType: T
+      elements(v1)
         SimpleIdentifier
           token: a
           element: a@29
@@ -1018,10 +1127,33 @@ int test<T extends int Function(int)>(T Function() createT) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation("('')");
-    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
-  function2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+    var node = result.findNode.callInvocation("('')");
+    assertResolvedNodeText(node, r'''CallInvocation
+  receiver: CallInvocation
+    receiver: SimpleIdentifier
+      token: createT
+      element: <testLibrary>::@function::test::@formalParameter::createT
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: T Function()
+      type: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: createT
       element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
@@ -1033,7 +1165,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -1050,10 +1182,35 @@ int test<T extends int Function(int)>(T Function() createT) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(0)');
-    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
-  function2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+    var node = result.findNode.callInvocation('(0)');
+    assertResolvedNodeText(node, r'''CallInvocation
+  receiver: CallInvocation
+    receiver: SimpleIdentifier
+      token: createT
+      element: <testLibrary>::@function::test::@formalParameter::createT
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: T Function()
+      type: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: createT
       element: <testLibrary>::@function::test::@formalParameter::createT
       staticType: T Function()
@@ -1065,7 +1222,7 @@ int test<T extends int Function(int)>(T Function() createT) {
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null

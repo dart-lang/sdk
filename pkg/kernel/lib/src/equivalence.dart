@@ -4647,6 +4647,9 @@ class EquivalenceStrategy {
     if (!checkLibraryPart_partUri(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkLibraryPart_fileUri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkLibraryPart_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5347,6 +5350,9 @@ class EquivalenceStrategy {
     )) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkPatternSwitchCase_jointVariableScope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkPatternSwitchCase_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5514,6 +5520,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkIfCaseStatement_matchedValueType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkIfCaseStatement_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkIfCaseStatement_fileOffset(visitor, node, other)) {
@@ -11369,6 +11378,14 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.partUri, other.partUri, 'partUri');
   }
 
+  bool checkLibraryPart_fileUri(
+    EquivalenceVisitor visitor,
+    LibraryPart node,
+    LibraryPart other,
+  ) {
+    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+  }
+
   bool checkLibraryPart_fileOffset(
     EquivalenceVisitor visitor,
     LibraryPart node,
@@ -12575,6 +12592,19 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkPatternSwitchCase_jointVariableScope(
+    EquivalenceVisitor visitor,
+    PatternSwitchCase node,
+    PatternSwitchCase other,
+  ) {
+    'jointVariableScope';
+    return checkScope(
+      visitor,
+      node.jointVariableScope,
+      other.jointVariableScope,
+    );
+  }
+
   bool checkPatternSwitchCase_scope(
     EquivalenceVisitor visitor,
     PatternSwitchCase node,
@@ -12862,6 +12892,15 @@ class EquivalenceStrategy {
       other.matchedValueType,
       'matchedValueType',
     );
+  }
+
+  bool checkIfCaseStatement_scope(
+    EquivalenceVisitor visitor,
+    IfCaseStatement node,
+    IfCaseStatement other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkIfCaseStatement_fileOffset(

@@ -35,7 +35,7 @@
             block $label4 (result i32)
               block $label5 (result i32)
                 local.get $var6
-                struct.get $#Top $field0
+                struct.get $#Top $#classId
                 local.set $var8
                 block $label6 (result i32)
                   local.get $var8

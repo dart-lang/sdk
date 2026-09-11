@@ -859,7 +859,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IndexExpression2
+          expression2: ReceiverIndexExpression
             receiver: SimpleIdentifier
               token: l
             leftBracket: [
@@ -904,7 +904,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IndexExpression2
+          expression2: ReceiverIndexExpression
             receiver: SimpleIdentifier
               token: l
             question: ?

@@ -2218,7 +2218,19 @@ class Harness {
       typeAnalyzer.bodyContext =
           bodyContext ??
           BodyContext(isAsync: false, yieldContext: const UnknownType());
+      var thisType = _thisType;
+      var hasThisType = thisType != null;
+      if (hasThisType) {
+        flow.thisBinding_begin(
+          null,
+          thisType: SharedTypeView(thisType),
+          offset: 0,
+        );
+      }
       typeAnalyzer.dispatchStatement(b);
+      if (hasThisType) {
+        flow.thisBinding_end(offset: b._syntheticEndOffset! + 1);
+      }
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
       var assertInErrorRecoveryStack =
@@ -2272,7 +2284,7 @@ class Harness {
       var thisBinding = flowAnalysisLog.getThisBinding(checkpoint.offset);
       expect(
         thisBinding,
-        same(checkpoint.expectedThisBinding),
+        checkpoint.expectedThisBinding,
         reason: checkpoint.location,
       );
     }
@@ -2665,7 +2677,11 @@ class InvokeAnonymousMethod extends Expression {
     var targetInfo = targetResult.flowAnalysisInfo;
     var previousThisType = h._thisType;
     if (isParameterless) {
-      h.flow.thisBinding_begin(targetInfo, offset: _syntheticOpenBraceOffset!);
+      h.flow.thisBinding_begin(
+        targetInfo,
+        thisType: targetResult.type,
+        offset: _syntheticOpenBraceOffset!,
+      );
       h._thisType = targetResult.type.unwrapTypeView();
     }
     h.flow.anonymousBlockBody_begin(offset: _syntheticOpenBraceOffset!);
@@ -6864,7 +6880,7 @@ class YieldStatement extends Statement {
 class _Checkpoint {
   final int offset;
   final PromotionInfo? expectedPromotionInfo;
-  final PromotionKey? expectedThisBinding;
+  final (PromotionKey, SharedTypeView)? expectedThisBinding;
   final String location;
 
   _Checkpoint({

@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'apply_code_action_test.dart' as apply_code_action;
 import 'call_hierarchy_test.dart' as call_hierarchy;
+import 'closing_labels_test.dart' as closing_labels;
 import 'code_action_assists_test.dart' as code_action_assists;
 import 'code_action_fixes_test.dart' as code_action_fixes;
 import 'code_action_refactors_test.dart' as code_action_refactors;
@@ -25,6 +26,7 @@ import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'inlay_hint_test.dart' as inlay_hint;
 import 'references_test.dart' as references;
+import 'semantic_tokens_test.dart' as semantic_tokens;
 import 'signature_help_test.dart' as signature_help;
 import 'type_definition_test.dart' as type_definition;
 import 'type_hierarchy_test.dart' as type_hierarchy;
@@ -36,6 +38,7 @@ void main() {
   defineReflectiveSuite(() {
     apply_code_action.main();
     call_hierarchy.main();
+    closing_labels.main();
     code_action_assists.main();
     code_action_fixes.main();
     code_action_refactors.main();
@@ -55,6 +58,7 @@ void main() {
     implementation.main();
     inlay_hint.main();
     references.main();
+    semantic_tokens.main();
     signature_help.main();
     type_definition.main();
     type_hierarchy.main();

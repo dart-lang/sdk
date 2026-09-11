@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 140;
+  UInt32 formatVersion = 141;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -283,6 +283,7 @@ type LibraryDependency {
 type LibraryPart {
   List<Expression> annotations;
   StringReference partUri;
+  UriReference fileUri;
 }
 
 type Typedef {

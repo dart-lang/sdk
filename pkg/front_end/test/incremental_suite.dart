@@ -25,7 +25,13 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
-    show AdvancedInvalidationResult, IncrementalCompiler, RecorderForTesting;
+    show
+        AdvancedInvalidationResult,
+        IncrementalCompiler,
+        RecorderForTesting,
+        IncrementalCompilerCache;
+import 'package:front_end/src/base/incremental_compiler_cache_impl.dart'
+    show AbstractIncrementalCompilerCache;
 import 'package:front_end/src/base/incremental_serializer.dart'
     show IncrementalSerializer;
 import 'package:front_end/src/base/processed_options.dart'
@@ -168,6 +174,18 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "CacheLoadCountMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "CacheLoadTryCountMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "CacheSaveCountMismatch",
+    "group": "Fail"
+  },
+  {
     "name": "InitializedFromDillMismatch",
     "group": "Fail"
   },
@@ -195,6 +213,12 @@ final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
 final Expectation LibraryCountMismatch =
     staticExpectationSet["LibraryCountMismatch"];
+final Expectation CacheLoadCountMismatch =
+    staticExpectationSet["CacheLoadCountMismatch"];
+final Expectation CacheLoadTryCountMismatch =
+    staticExpectationSet["CacheLoadTryCountMismatch"];
+final Expectation CacheSaveCountMismatch =
+    staticExpectationSet["CacheSaveCountMismatch"];
 final Expectation MissingErrors = staticExpectationSet["MissingErrors"];
 final Expectation MissingInitializationError =
     staticExpectationSet["MissingInitializationError"];
@@ -828,6 +852,9 @@ class NewWorldTest {
     NewWorldTestData newWorldTestData = await _initializeNewWorldTestData();
     await _initializeModules(newWorldTestData);
 
+    TestIncrementalCompilerCache incrementalCompilerCache =
+        new TestIncrementalCompilerCache();
+
     for (World world in worlds) {
       newWorldTestData.worldNum++;
       print("----------------");
@@ -1090,6 +1117,16 @@ class NewWorldTest {
         newWorldTestData,
         prevFormattedErrors,
         prevFormattedWarnings,
+      );
+      if (subtestResult != null) return subtestResult;
+
+      subtestResult = await _compileViaExperimentalCache(
+        world,
+        worldTestData,
+        newWorldTestData,
+        prevFormattedErrors,
+        prevFormattedWarnings,
+        incrementalCompilerCache,
       );
       if (subtestResult != null) return subtestResult;
 
@@ -2076,12 +2113,14 @@ class NewWorldTest {
         newWorldTestData.newestWholeComponentData!,
         thisWholeComponent,
       );
-      _checkErrorsAndWarnings(
-        prevFormattedErrors,
-        worldTestData.formattedErrors,
-        prevFormattedWarnings,
-        worldTestData.formattedWarnings,
-      );
+      if (!world.noErrorWarningCheckOnExtraCompiles) {
+        _checkErrorsAndWarnings(
+          prevFormattedErrors,
+          worldTestData.formattedErrors,
+          prevFormattedWarnings,
+          worldTestData.formattedWarnings,
+        );
+      }
       newestWholeComponent = componentLocal;
 
       Result<List<int>?> serializationResult = _checkIncrementalSerialization(
@@ -2260,6 +2299,7 @@ class NewWorldTest {
     if (worldTestData.packagesUri != null) {
       options.packagesFileUri = worldTestData.packagesUri;
     }
+    options.onDiagnostic = _getDiagnosticsHandler(world, worldTestData);
     return options;
   }
 
@@ -2476,6 +2516,154 @@ class NewWorldTest {
       // awaiting something here removes.
       await null;
     }
+    return null;
+  }
+
+  // TODO(jensj): This is very much alike _loadModulesViaAdditionalDillModules
+  // above (from which it was copied). Try to join to create helpers etc to
+  // limit copied code.
+  Future<Result<TestData>?> _compileViaExperimentalCache(
+    World world,
+    WorldSpecificTestData worldTestData,
+    NewWorldTestData newWorldTestData,
+    Set<String> prevFormattedErrors,
+    Set<String> prevFormattedWarnings,
+    TestIncrementalCompilerCache incrementalCompilerCache,
+  ) async {
+    if (world.outlineOnly) return null;
+    if (incrementalSerialization) return null;
+    // Generally it wants the platform, but this recompile doesn't...
+    // Compiling "from scratch" like this can't do that.
+    if (!omitPlatform && world.noFullComponent) return null;
+
+    incrementalCompilerCache.countLoads = 0;
+    incrementalCompilerCache.countLoadTries = 0;
+    incrementalCompilerCache.countSaves = 0;
+
+    // Do compile from scratch and compare.
+    worldTestData.clearPrevErrorsEtc();
+    CompilerOptions options = _createOptionsForWorld(
+      newWorldTestData,
+      worldTestData,
+      world,
+      // The DDC target saves stuff in the target that causes leaks
+      // in this config where we've loaded a new sdk etc, so we create
+      // a new target to avoid it.
+      createNewTarget: true,
+    );
+
+    if (world.modules != null) {
+      List<Uri> additionalDillModules = [];
+      int moduleNum = 0;
+      for (String moduleName in world.modules!) {
+        moduleNum++;
+        final Uri moduleUri = newWorldTestData.base.resolve(
+          "module_$moduleNum.dill",
+        );
+        newWorldTestData.fs
+            .entityForUri(moduleUri)
+            .writeAsBytesSync(newWorldTestData.moduleData![moduleName]!);
+        additionalDillModules.add(moduleUri);
+      }
+      options.additionalDillModules = additionalDillModules;
+    }
+
+    TestIncrementalCompiler? compilerFromScratch =
+        new TestIncrementalCompiler.experimentalCacheForTesting(
+          options,
+          worldTestData.entries.first,
+          incrementalCompilerCache: incrementalCompilerCache,
+        );
+    Stopwatch stopwatch = new Stopwatch()..start();
+    IncrementalCompilerResult? compilerResultLocal = await compilerFromScratch
+        .computeDelta(
+          entryPoints: worldTestData.entries,
+          simulateTransformer: world.simulateTransformer,
+        );
+    Component? componentLocal = compilerResultLocal.component;
+    compilerResultLocal = null;
+    compilerFromScratch = null;
+    Result<TestData>? result = _performErrorAndWarningCheck(
+      world,
+      data,
+      worldTestData,
+    );
+    if (result != null) return result;
+    util.throwOnEmptyMixinBodies(componentLocal);
+    await util.throwOnInsufficientUriToSource(componentLocal);
+    print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+    print("Loaded ${incrementalCompilerCache.countLoads} dills");
+
+    if (world.expectedCacheLoads != null &&
+        world.expectedCacheLoads != incrementalCompilerCache.countLoads) {
+      return new Result<TestData>(
+        data,
+        CacheLoadCountMismatch,
+        "Expected ${world.expectedCacheLoads} cache loads, "
+        "but got ${incrementalCompilerCache.countLoads}",
+      );
+    }
+
+    if (world.expectedCacheLoadTries != null &&
+        world.expectedCacheLoadTries !=
+            incrementalCompilerCache.countLoadTries) {
+      return new Result<TestData>(
+        data,
+        CacheLoadTryCountMismatch,
+        "Expected ${world.expectedCacheLoadTries} cache load tries, "
+        "but got ${incrementalCompilerCache.countLoadTries}",
+      );
+    }
+
+    if (world.expectedCacheSaves != null &&
+        world.expectedCacheSaves != incrementalCompilerCache.countSaves) {
+      return new Result<TestData>(
+        data,
+        CacheSaveCountMismatch,
+        "Expected ${world.expectedCacheSaves} cache saves, "
+        "but got ${incrementalCompilerCache.countSaves}",
+      );
+    }
+
+    List<int> thisWholeComponent = util.postProcess(componentLocal);
+    String componentString = _componentToStringSdkFiltered(
+      componentLocal,
+      printErrors: world.printErrorsInExpect
+          ? worldTestData.formattedErrors
+          : null,
+    );
+    print("*****\n\ncomponent (5):\n$componentString\n\n\n");
+
+    var subtestResult = _checkExpectFile(
+      data,
+      newWorldTestData.worldNum,
+      "",
+      context,
+      componentString,
+      canUpdateExpect: false,
+    );
+    if (subtestResult != null) return subtestResult;
+
+    checkIsEqual(
+      newWorldTestData.newestWholeComponentData!,
+      thisWholeComponent,
+    );
+
+    _checkErrorsAndWarnings(
+      prevFormattedErrors,
+      worldTestData.formattedErrors,
+      prevFormattedWarnings,
+      worldTestData.formattedWarnings,
+    );
+
+    componentLocal = null;
+
+    // TODO(jensj): Verify that the below is also true here.
+
+    // For whatever reason the above introduces a "temporary leak" that
+    // awaiting something here removes.
+    await null;
     return null;
   }
 
@@ -2983,6 +3171,19 @@ class TestIncrementalCompiler extends IncrementalCompiler {
          incrementalSerializer,
        );
 
+  new experimentalCacheForTesting(
+    CompilerOptions options,
+    this.entryPoint, {
+    IncrementalSerializer? incrementalSerializer,
+    required IncrementalCompilerCache incrementalCompilerCache,
+  }) : super.experimentalCacheForTesting(
+         new CompilerContext(
+           new ProcessedOptions(options: options, inputs: [entryPoint]),
+         ),
+         incrementalSerializer: incrementalSerializer,
+         incrementalCompilerCache: incrementalCompilerCache,
+       );
+
   new fromComponent(
     CompilerOptions options,
     this.entryPoint,
@@ -3153,6 +3354,7 @@ class World {
   final List<String>? modules;
   final bool updateWorldType;
   final bool noFullComponent;
+  final bool noErrorWarningCheckOnExtraCompiles;
   final bool? expectInitializeFromDill;
   final Map<String, String?> sources;
   final bool useBadSdk;
@@ -3173,6 +3375,9 @@ class World {
   final bool expectsPlatform;
   final int? expectedLibraryCount;
   final int? expectedSyntheticLibraryCount;
+  final int? expectedCacheLoads;
+  final int? expectedCacheLoadTries;
+  final int? expectedCacheSaves;
   final bool warnings;
   final bool errors;
   final List<String>? neededDillLibraries;
@@ -3207,6 +3412,7 @@ class World {
     required this.modules,
     required this.updateWorldType,
     required this.noFullComponent,
+    required this.noErrorWarningCheckOnExtraCompiles,
     required this.expectInitializeFromDill,
     required this.sources,
     required this.useBadSdk,
@@ -3227,6 +3433,9 @@ class World {
     required this.expectsPlatform,
     required this.expectedLibraryCount,
     required this.expectedSyntheticLibraryCount,
+    required this.expectedCacheLoads,
+    required this.expectedCacheLoadTries,
+    required this.expectedCacheSaves,
     required this.advancedInvalidation,
     required this.checkEntries,
     required this.checkInvalidatedFiles,
@@ -3257,6 +3466,9 @@ class World {
     bool updateWorldType = worldType == WorldProperties.worldType_updated;
 
     bool noFullComponent = WorldProperties.noFullComponent.read(world, keys);
+    bool noErrorWarningCheckOnExtraCompiles = WorldProperties
+        .noErrorWarningCheckOnExtraCompiles
+        .read(world, keys);
 
     bool? expectInitializeFromDill = WorldProperties.expectInitializeFromDill
         .read(world, keys);
@@ -3326,6 +3538,20 @@ class World {
     int? expectedSyntheticLibraryCount = WorldProperties
         .expectedSyntheticLibraryCount
         .read(world, keys);
+
+    int? expectedCacheLoads = WorldProperties.expectedCacheLoads.read(
+      world,
+      keys,
+    );
+    int? expectedCacheLoadTries = WorldProperties.expectedCacheLoadTries.read(
+      world,
+      keys,
+    );
+
+    int? expectedCacheSaves = WorldProperties.expectedCacheSaves.read(
+      world,
+      keys,
+    );
 
     AdvancedInvalidationResult advancedInvalidation = WorldProperties
         .advancedInvalidation
@@ -3407,6 +3633,7 @@ class World {
       modules: modules,
       updateWorldType: updateWorldType,
       noFullComponent: noFullComponent,
+      noErrorWarningCheckOnExtraCompiles: noErrorWarningCheckOnExtraCompiles,
       expectInitializeFromDill: expectInitializeFromDill,
       sources: sources,
       useBadSdk: useBadSdk,
@@ -3427,6 +3654,9 @@ class World {
       expectsPlatform: expectsPlatform,
       expectedLibraryCount: expectedLibraryCount,
       expectedSyntheticLibraryCount: expectedSyntheticLibraryCount,
+      expectedCacheLoads: expectedCacheLoads,
+      expectedCacheLoadTries: expectedCacheLoadTries,
+      expectedCacheSaves: expectedCacheSaves,
       advancedInvalidation: advancedInvalidation,
       checkEntries: checkEntries,
       checkInvalidatedFiles: checkInvalidatedFiles,
@@ -3471,6 +3701,13 @@ class WorldProperties {
     BoolValue(),
     defaultValue: false,
   );
+
+  static const Property<bool> noErrorWarningCheckOnExtraCompiles =
+      Property.optional(
+        'noErrorWarningCheckOnExtraCompiles',
+        BoolValue(),
+        defaultValue: false,
+      );
 
   static const Property<bool?> expectInitializeFromDill = Property.optional(
     'expectInitializeFromDill',
@@ -3575,6 +3812,20 @@ class WorldProperties {
 
   static const Property<int?> expectedSyntheticLibraryCount = Property.optional(
     "expectedSyntheticLibraryCount",
+    IntValue(),
+  );
+
+  static const Property<int?> expectedCacheLoads = const Property.optional(
+    "expectedCacheLoads",
+    IntValue(),
+  );
+  static const Property<int?> expectedCacheLoadTries = const Property.optional(
+    "expectedCacheLoadTries",
+    IntValue(),
+  );
+
+  static const Property<int?> expectedCacheSaves = const Property.optional(
+    "expectedCacheSaves",
     IntValue(),
   );
 
@@ -3728,5 +3979,31 @@ class WorldSpecificTestData {
     formattedErrors.clear();
     gotWarning = false;
     formattedWarnings.clear();
+  }
+}
+
+class TestIncrementalCompilerCache extends AbstractIncrementalCompilerCache {
+  Map<String, Uint8List> _cache = {};
+  int countLoads = 0;
+  int countLoadTries = 0;
+  int countSaves = 0;
+
+  @override
+  bool get mainDirectoryExists => true;
+
+  @override
+  Uint8List? readFromId(String id) {
+    countLoadTries++;
+    Uint8List? result = _cache[id];
+    if (result != null) {
+      countLoads++;
+    }
+    return result;
+  }
+
+  @override
+  void writeToId(String id, Uint8List data) {
+    countSaves++;
+    _cache[id] = data;
   }
 }

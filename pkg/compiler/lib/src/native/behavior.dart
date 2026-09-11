@@ -244,12 +244,12 @@ class NativeBehavior {
   ///        gvn:<gvn-string>
   ///        new:<new-string>
   ///
-  ///    A <type-tag> is either 'returns' or 'creates' and <type-string> is a
+  ///    A `<type-tag>` is either 'returns' or 'creates' and `<type-string>` is a
   ///    type string like in 1). The type string marked by 'returns' defines the
   ///    types returned and 'creates' defines the types created by the call to
   ///    JS. If 'creates' is missing, it defaults to 'returns'.
   ///
-  ///    An <effect-tag> is either 'effects' or 'depends' and <effect-string> is
+  ///    An `<effect-tag>` is either 'effects' or 'depends' and `<effect-string>` is
   ///    either 'all', 'none' or a comma-separated list of 'no-index',
   ///    'no-instance', 'no-static'.
   ///
@@ -264,17 +264,17 @@ class NativeBehavior {
   ///    indicated with 'no-static'. The flags 'effects' and 'depends' must be
   ///    used in unison (either both are present or none is).
   ///
-  ///    The <throws-string> values are 'never', 'may', 'null(1)', and
+  ///    The `<throws-string>` values are 'never', 'may', 'null(1)', and
   ///    'null(1)+may'.  The default if unspecified is 'may'. 'null(1)' means
   ///    that the template expression throws if and only if the first template
   ///    parameter is `null` or `undefined`, and 'null(1)+may' throws if the
   ///    first argument is `null` / `undefined`, and then may throw for other
   ///    reasons.
   ///
-  ///    <gvn-string> values are 'true' and 'false'. The default if unspecified
+  ///    `<gvn-string>` values are 'true' and 'false'. The default if unspecified
   ///    is 'false'.
   ///
-  ///    <new-string> values are 'true' and 'false'. The default if unspecified
+  ///    `<new-string>` values are 'true' and 'false'. The default if unspecified
   ///    is 'false'. A 'true' value means that each evaluation returns a fresh
   ///    (new) object that cannot be unaliased with existing objects.
   ///

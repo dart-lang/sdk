@@ -39,11 +39,16 @@ class Symbol implements core.Symbol {
   }
 
   @patch
-  String toString() => 'Symbol("$_name")';
+  String toString() => 'Symbol("${computeUnmangledName(this)}")';
 
   @patch
   static String computeUnmangledName(Symbol symbol) {
-    throw "unsupported operation";
+    final mangledName = Symbol.getName(symbol);
+    // The name will only be mangled if the symbol is private.
+    if (!mangledName.startsWith('_')) return mangledName;
+    final index = mangledName.indexOf('@');
+    if (index == -1) return mangledName;
+    return mangledName.substring(0, index);
   }
 }
 

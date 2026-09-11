@@ -271,15 +271,19 @@ int runProcessForExitCode(List<String> cmd,
 }
 
 String defaultBranchTarget(String dir) {
-  var branchNames = Directory(p.join(dir, '.git', 'refs', 'heads'))
-      .listSync()
-      .whereType<File>()
-      .map((f) => p.basename(f.path))
-      .toSet();
+  var result = Process.runSync('git', ['branch', '--list', 'main', 'master'],
+      workingDirectory: dir);
+  if (result.exitCode == 0) {
+    var output = (result.stdout as String).trim();
+    var branches = output
+        .split('\n')
+        .map((line) => line.replaceAll('*', '').trim())
+        .toSet();
 
-  for (var name in ['main', 'master']) {
-    if (branchNames.contains(name)) {
-      return name;
+    for (var name in ['main', 'master']) {
+      if (branches.contains(name)) {
+        return name;
+      }
     }
   }
 

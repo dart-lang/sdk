@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/doc_comment.dart' show DocImport;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -1996,6 +1997,28 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
   }
 
+  /// Adds a documentation import (`/// @docImport '...';`) for the library
+  /// with the given [uri], using an absolute URI, to the library's `library`
+  /// directive.
+  ///
+  /// A `library` directive is created if one doesn't already exist.
+  ///
+  /// Returns the URI text that was written.
+  String docImportLibraryWithAbsoluteUri(Uri uri) {
+    return _docImportLibrary(uri, forceAbsolute: true);
+  }
+
+  /// Adds a documentation import (`/// @docImport '...';`) for the library
+  /// with the given [uri], using a relative URI where possible, to the
+  /// library's `library` directive.
+  ///
+  /// A `library` directive is created if one doesn't already exist.
+  ///
+  /// Returns the URI text that was written.
+  String docImportLibraryWithRelativeUri(Uri uri) {
+    return _docImportLibrary(uri, forceAbsolute: true, forceRelative: true);
+  }
+
   @override
   void finalize() {
     if (_createEditsForImports && _librariesToImport.isNotEmpty) {
@@ -2822,6 +2845,43 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return prefix;
   }
 
+  /// Adds a documentation import (`/// @docImport '...';`) for the library
+  /// with the given [uri] to the library's `library` directive, creating one
+  /// if none exists.
+  ///
+  /// [uri] may be converted from an absolute URI to a relative URI depending on
+  /// [forceRelative] and the code style of the target file, in the same way
+  /// as for [_importLibrary].
+  ///
+  /// Returns the URI text that was written.
+  String _docImportLibrary(
+    Uri uri, {
+    bool forceAbsolute = false,
+    bool forceRelative = false,
+  }) {
+    var uriText = _getLibraryUriText(
+      uri,
+      forceAbsolute: forceAbsolute,
+      forceRelative: forceRelative,
+    );
+    var docImportContent = "@docImport '$uriText';";
+
+    var libraryDirective = resolvedUnit.unit.directives
+        .whereType<LibraryDirective>()
+        .firstOrNull;
+    if (libraryDirective == null) {
+      _insertNewLibraryDirective('/// $docImportContent');
+    } else {
+      _insertDocImportIntoLibraryDirective(
+        libraryDirective,
+        docImportContent,
+        uriText,
+      );
+    }
+
+    return uriText;
+  }
+
   /// Returns information about the library used to import the given [element]
   /// into the target library, or `null` if the element was not imported, such
   /// as when the element is declared in the same library.
@@ -3029,9 +3089,326 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return import;
   }
 
+  /// Inserts [docImportContent] (importing [uriText]) into [docComment], a
+  /// single `/** ... */` block doc comment that already contains
+  /// [docImportByLine].
+  ///
+  /// Unlike a `///`-style doc comment, a block comment's opening `/**` and
+  /// closing `*/` markers may share a physical line with real content (for
+  /// example `/** @docImport 'a.dart'; */`), so the new line can't just be
+  /// inserted at a single offset the way
+  /// [_insertDocImportIntoLibraryDirective] does for `///` comments.
+  /// Instead, every line's content is extracted without its `/**`, `*`, or
+  /// `*/` marker, the new content is merged in sorted order, and the whole
+  /// comment is re-marked, with the closing `*/` always placed on its own
+  /// trailing line.
+  void _insertDocImportIntoBlockDocComment(
+    Comment docComment,
+    Map<DocCommentLine, DocImport> docImportByLine,
+    String docImportContent,
+    String uriText,
+  ) {
+    var code = resolvedUnit.content;
+    var lines = docCommentLines(docComment, code);
+
+    // Returns the content of [line], with its `/**`, `*`, and/or `*/`
+    // marker(s) removed.
+    String rawContent(DocCommentLine line) {
+      var text = code.substring(line.offset, line.end);
+      if (line == lines.last) {
+        text = text.replaceFirst(RegExp(r'\s*\*/$'), '');
+      }
+      if (line == lines.first) {
+        text = text.replaceFirst(RegExp(r'^/\*\*\s?'), '');
+      } else {
+        text = text.replaceFirst(RegExp(r'^\s*\*\s?'), '');
+      }
+      return text;
+    }
+
+    var newPriority = DirectiveSortPriority(uriText, DirectiveSortKind.import);
+    var infos =
+        [
+          for (var entry in docImportByLine.entries)
+            (
+              priority: DirectiveSortPriority(
+                entry.value.import.uri.stringValue ?? '',
+                DirectiveSortKind.import,
+              ),
+              uri: entry.value.import.uri.stringValue ?? '',
+              text: rawContent(entry.key),
+            ),
+          (priority: newPriority, uri: uriText, text: docImportContent),
+        ]..sort((a, b) {
+          if (a.priority != b.priority) {
+            return a.priority.ordinal - b.priority.ordinal;
+          }
+          return compareDirectiveUri(a.uri, b.uri);
+        });
+
+    var sortedContents = <String>[];
+    DirectiveSortPriority? previousPriority;
+    for (var info in infos) {
+      if (previousPriority != null && previousPriority != info.priority) {
+        sortedContents.add('');
+      }
+      sortedContents.add(info.text);
+      previousPriority = info.priority;
+    }
+
+    // Comment lines that don't contain an `@docImport` keep their relative
+    // order, but the sorted `@docImport` lines are grouped together and
+    // moved to sit where the first `@docImport` line originally was. Blank
+    // lines between `@docImport` lines are dropped, since grouping already
+    // inserts the blank lines needed to separate priority groups.
+    var firstDocImportIndex = lines.indexWhere(docImportByLine.containsKey);
+    var lastDocImportIndex = lines.lastIndexWhere(docImportByLine.containsKey);
+    bool isBlankLineBetweenDocImports(int index) =>
+        index > firstDocImportIndex &&
+        index < lastDocImportIndex &&
+        isBlankCommentLine(
+          code.substring(lines[index].offset, lines[index].end),
+        );
+    var otherContents = [
+      for (var i = 0; i < lines.length; i++)
+        if (!docImportByLine.containsKey(lines[i]) &&
+            !isBlankLineBetweenDocImports(i) &&
+            // The closing `*/` is always re-added on its own line below, so
+            // a last line that contained nothing but that marker doesn't
+            // need a placeholder line of its own here.
+            !(lines[i] == lines.last && rawContent(lines[i]).isEmpty))
+          rawContent(lines[i]),
+    ];
+    var otherContentsBeforeFirstDocImport = lines
+        .take(firstDocImportIndex)
+        .where((line) => !docImportByLine.containsKey(line))
+        .length;
+
+    var newContents = [
+      ...otherContents.take(otherContentsBeforeFirstDocImport),
+      ...sortedContents,
+      ...otherContents.skip(otherContentsBeforeFirstDocImport),
+    ];
+
+    var newLines = [
+      for (var (index, content) in newContents.indexed)
+        if (index == 0)
+          content.isEmpty ? '/**' : '/** $content'
+        else
+          content.isEmpty ? ' *' : ' * $content',
+      ' */',
+    ];
+
+    addSimpleReplacement(
+      SourceRange(docComment.offset, docComment.length),
+      newLines.join(eol),
+    );
+  }
+
+  /// Inserts [docImportLine] (importing [uriText]) into the doc comment of
+  /// [libraryDirective], creating a doc comment if one doesn't already exist.
+  ///
+  /// If the doc comment already contains `@docImport` directives, the new
+  /// line is inserted so that the directives remain sorted the same way
+  /// regular imports are (SDK, then package, then relative, each in
+  /// alphabetical order), matching the `directives_ordering` lint.
+  void _insertDocImportIntoLibraryDirective(
+    LibraryDirective libraryDirective,
+    String docImportContent,
+    String uriText,
+  ) {
+    var docComment = libraryDirective.documentationComment;
+    if (docComment == null) {
+      addSimpleInsertion(
+        libraryDirective.firstTokenAfterCommentAndMetadata.offset,
+        '/// $docImportContent$eol',
+      );
+      return;
+    }
+
+    var existingDocImports = docComment.docImports;
+    if (existingDocImports.isEmpty) {
+      if (docComment.tokens.length == 1 &&
+          !docComment.tokens.single.lexeme.startsWith('///')) {
+        // The doc comment is a `/** ... */` block comment with no `@docImport`
+        // directives. A `///` line inserted before it wouldn't be part of the
+        // doc comment (the block comment still would be), so the directive
+        // would have no effect; the new line has to go inside the block.
+        _prependDocImportToBlockDocComment(docComment, docImportContent);
+        return;
+      }
+      // The doc comment has other content (such as prose), but no
+      // `@docImport` directives yet. Add the new directive at the start of
+      // the doc comment, separated from the existing content by a blank
+      // `///` line, matching how a new import is separated from a leading
+      // library-level doc comment.
+      addSimpleInsertion(docComment.offset, '/// $docImportContent$eol///$eol');
+      return;
+    }
+
+    var code = resolvedUnit.content;
+
+    // Map each existing `@docImport` to the comment line containing it, in
+    // file order, so the new line can be inserted at the right spot.
+    var docImportByLine = mapDocImportsToLines(docComment, code);
+
+    var isBlockComment =
+        docComment.tokens.length == 1 &&
+        !docComment.tokens.single.lexeme.startsWith('///');
+    if (isBlockComment) {
+      _insertDocImportIntoBlockDocComment(
+        docComment,
+        docImportByLine,
+        docImportContent,
+        uriText,
+      );
+      return;
+    }
+
+    // Derive the marker (`///` or `*`) and indentation used by the existing
+    // `@docImport` lines, so the new line matches the surrounding style.
+    var linePrefix = docCommentLinePrefix(
+      code.substring(
+        docImportByLine.keys.first.offset,
+        docImportByLine.keys.first.end,
+      ),
+    );
+    var docImportLine = '$linePrefix$docImportContent';
+    var blankLine = linePrefix.trimRight();
+
+    var newPriority = DirectiveSortPriority(uriText, DirectiveSortKind.import);
+    DocCommentLine? insertBeforeLine;
+    DirectiveSortPriority? previousPriority;
+    DirectiveSortPriority? nextPriority;
+    for (var entry in docImportByLine.entries) {
+      var existingUri = entry.value.import.uri.stringValue ?? '';
+      var existingPriority = DirectiveSortPriority(
+        existingUri,
+        DirectiveSortKind.import,
+      );
+      var comparison = newPriority.ordinal - existingPriority.ordinal;
+      if (comparison == 0) {
+        comparison = compareDirectiveUri(uriText, existingUri);
+      }
+      if (comparison < 0) {
+        insertBeforeLine = entry.key;
+        nextPriority = existingPriority;
+        break;
+      }
+      previousPriority = existingPriority;
+    }
+
+    // A blank comment line separates groups of `@docImport` directives with
+    // different sort priorities, just like blank lines separate groups of
+    // regular imports.
+    if (insertBeforeLine != null) {
+      var prefix = previousPriority != null && previousPriority != newPriority
+          ? '$blankLine$eol'
+          : '';
+      var suffix = nextPriority != null && nextPriority != newPriority
+          ? '$blankLine$eol'
+          : '';
+      addSimpleInsertion(
+        insertBeforeLine.offset,
+        '$prefix$docImportLine$eol$suffix',
+      );
+    } else {
+      var prefix = previousPriority != null && previousPriority != newPriority
+          ? '$eol$blankLine'
+          : '';
+      addSimpleInsertion(
+        docImportByLine.keys.last.end,
+        '$prefix$eol$docImportLine',
+      );
+    }
+  }
+
+  /// Inserts a new, unnamed `library` directive with a doc comment containing
+  /// [docImportLine], placed after any header comments (such as a copyright
+  /// notice) at the top of the file, but before the documentation comment of
+  /// the first directive or declaration, if there is one.
+  void _insertNewLibraryDirective(String docImportLine) {
+    var token = resolvedUnit.unit.beginToken;
+    var insertionOffset = 0;
+    var prefix = '';
+
+    if (token.type == TokenType.SCRIPT_TAG) {
+      insertionOffset = token.end;
+      prefix = eol;
+      token = token.next!;
+    }
+
+    // If the first thing in the file is a directive or declaration with its
+    // own documentation comment, that comment belongs to it, not to the
+    // file, so the new `library` directive must be inserted before it rather
+    // than after it.
+    var firstNode =
+        resolvedUnit.unit.sortedDirectivesAndDeclarations.firstOrNull;
+    var documentationComment = firstNode is AnnotatedNode
+        ? firstNode.documentationComment
+        : null;
+    if (documentationComment != null) {
+      addSimpleInsertion(
+        documentationComment.offset,
+        '$docImportLine${eol}library;$eol$eol',
+      );
+      return;
+    }
+
+    Token? lastHeaderComment;
+    for (
+      Token? comment = token.precedingComments;
+      comment != null;
+      comment = comment.next
+    ) {
+      lastHeaderComment = comment;
+    }
+    if (lastHeaderComment != null) {
+      insertionOffset = lastHeaderComment.end;
+      prefix = '$eol$eol';
+    }
+
+    addSimpleInsertion(
+      insertionOffset,
+      '$prefix$docImportLine${eol}library;$eol$eol',
+    );
+  }
+
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
+  }
+
+  /// Prepends a line containing [docImportContent] to [docComment], a single
+  /// `/** ... */` block doc comment that contains no `@docImport` directives
+  /// of its own.
+  ///
+  /// The new line goes right after the opening `/**`, separated from the
+  /// existing content by a blank `*` line, mirroring how a directive is
+  /// added above the prose of a `///` doc comment. If the `/**` shares its
+  /// line with content (as in `/** Text. */`), that content is pushed onto
+  /// its own `*`-prefixed line below the blank separator.
+  void _prependDocImportToBlockDocComment(
+    Comment docComment,
+    String docImportContent,
+  ) {
+    var code = resolvedUnit.content;
+    var offset = docComment.offset + '/**'.length;
+
+    // Drop the single space (if any) that separates the opening `/**` from
+    // content on its line; that content moves to its own `* `-prefixed line
+    // below, so it shouldn't keep this leading space too.
+    var deletedLength = code.startsWith(' ', offset) ? 1 : 0;
+    var contentOffset = offset + deletedLength;
+    var contentFollowsOnSameLine =
+        !code.startsWith('\n', contentOffset) &&
+        !code.startsWith('\r', contentOffset);
+
+    var replacement = '$eol * $docImportContent$eol *';
+    if (contentFollowsOnSameLine) {
+      replacement = '$replacement$eol * ';
+    }
+    addSimpleReplacement(SourceRange(offset, deletedLength), replacement);
   }
 
   /// Removes any pending imports (for [Element]s) that are no longer necessary

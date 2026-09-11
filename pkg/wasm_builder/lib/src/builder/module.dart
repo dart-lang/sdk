@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import '../serialize/sections.dart';
 import 'builder.dart';
@@ -27,10 +28,11 @@ class ModuleBuilder with Builder<ir.Module> {
   final String moduleName;
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
+  final DebugInfoTables? debugInfoTables;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
   late final elements = ElementsBuilder(this);
-  late final tables = TablesBuilder(this);
+  late final tables = TablesBuilder(module);
   late final memories = MemoriesBuilder(module);
   late final tags = TagsBuilder(module);
   final dataSegments = DataSegmentsBuilder();
@@ -50,8 +52,8 @@ class ModuleBuilder with Builder<ir.Module> {
     this.sourceMapUrl, {
     ModuleBuilder? parent,
     this.watchPoints = const [],
-  }) {
-    types = TypesBuilder(this, parent: parent?.types);
+  }) : debugInfoTables = sourceMapUrl == null ? null : DebugInfoTables() {
+    types = TypesBuilder(parent: parent?.types);
   }
 
   void addCustomSection(String name, Uint8List data) {
@@ -76,6 +78,8 @@ class ModuleBuilder with Builder<ir.Module> {
     return true;
   }
 
+  FunctionBuilder? get startFunctionIfCreated => _startFunction;
+
   FunctionBuilder get startFunction => _startFunction ??= functions.define(
     types.defineFunction(const [], const []),
     "#init",
@@ -85,6 +89,7 @@ class ModuleBuilder with Builder<ir.Module> {
   ir.Module forceBuild() {
     if (_startFunction case final start?) {
       start.body.end();
+      start.build();
     }
     final finalFunctions = functions.build();
     final finalTables = tables.build();
@@ -92,6 +97,14 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
+    final finalExports = exports.build();
+    final finalTypes = types.build(
+      finalFunctions,
+      finalTables,
+      finalGlobals,
+      finalTags,
+    );
+    final finalDataSegments = dataSegments.build();
     final imports = ir.Imports(
       finalFunctions.imported,
       finalTags.imported,
@@ -102,19 +115,20 @@ class ModuleBuilder with Builder<ir.Module> {
     return module..initialize(
       moduleName,
       finalFunctions,
-      _startFunction,
+      _startFunction?.function,
       finalTables,
       finalElements,
       finalTags,
       finalMemories,
-      exports.build(),
+      finalExports,
       finalGlobals,
-      types.build(),
-      dataSegments.build(),
+      finalTypes,
+      finalDataSegments,
       imports,
       watchPoints,
       sourceMapUrl,
       _extraCustomSections,
+      debugInfoTables,
     );
   }
 }

@@ -2867,6 +2867,14 @@ SwitchDispatchNoSingleStep:
               offset_in_words) = raw_value;
           break;
         }
+        case kInt32x4Cid: {
+          simd128_value_t raw_value;
+          raw_value.readFrom(Int32x4::RawCast(value)->untag()->value_);
+          *reinterpret_cast<simd128_value_t*>(
+              reinterpret_cast<CompressedObjectPtr*>(instance->untag()) +
+              offset_in_words) = raw_value;
+          break;
+        }
         default: {
           int64_t raw_value = Integer::Value(Integer::RawCast(value));
           *reinterpret_cast<int64_t*>(

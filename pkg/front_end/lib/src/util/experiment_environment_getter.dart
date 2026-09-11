@@ -7,7 +7,16 @@ import 'dart:io' show Platform;
 const String enableIncrementalCompilerBenchmarking =
     "DART_CFE_ENABLE_INCREMENTAL_COMPILER_BENCHMARKING";
 
-const Set<String> _known = {enableIncrementalCompilerBenchmarking};
+const String enableIncrementalCompilerDepsScanAndLoad =
+    "DART_CFE_ENABLE_INCREMENTAL_COMPILER_DEPS_SCAN_AND_LOAD";
+
+const String pathIncrementalCompilerDepsScanAndLoad =
+    "DART_CFE_PATH_INCREMENTAL_COMPILER_DEPS_SCAN_AND_LOAD";
+
+const Set<String> _known = {
+  enableIncrementalCompilerBenchmarking,
+  enableIncrementalCompilerDepsScanAndLoad,
+};
 
 Set<String> getExperimentEnvironment() {
   if (const bool.fromEnvironment('dart.library.js_interop')) {
@@ -22,4 +31,14 @@ Set<String> getExperimentEnvironment() {
     }
   }
   return enabled;
+}
+
+// Coverage-ignore(suite): Not run.
+String? getEnvironmentValue(String key) {
+  if (const bool.fromEnvironment('dart.library.js_interop')) {
+    return null;
+  }
+
+  Map<String, String> environment = Platform.environment;
+  return environment[key];
 }

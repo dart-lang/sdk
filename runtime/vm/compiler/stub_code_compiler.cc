@@ -1850,6 +1850,16 @@ void StubCodeCompiler::GenerateBoxFloat64x2Stub() {
 #endif
 }
 
+void StubCodeCompiler::GenerateBoxInt32x4Stub() {
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+  GenerateBoxFpuValueStub(assembler, compiler::Int32x4Class(),
+                          kBoxInt32x4RuntimeEntry,
+                          &Assembler::StoreUnboxedSimd128);
+#else
+  __ Stop("Not supported on RISC-V.");
+#endif
+}
+
 void StubCodeCompiler::GenerateDoubleToIntegerStub() {
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,

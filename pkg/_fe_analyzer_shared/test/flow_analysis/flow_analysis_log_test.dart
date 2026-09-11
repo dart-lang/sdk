@@ -32,49 +32,47 @@ main() {
     // tested via `getThisBinding`, since it stores integers, so it takes less
     // work to write the tests.
 
-    test('Empty log with no initial `this` binding', () {
+    test('Empty log', () {
       var logBuilder = FlowAnalysisLogBuilder();
-      check(logBuilder.finish().getThisBinding(0)).isNull();
-    });
-
-    test('Empty log with initial `this` binding', () {
-      var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(10));
-      check(logBuilder.finish().getThisBinding(0)).equals(PromotionKey(10));
+      check(logBuilder.finish().getThisBinding(0)).isNull;
     });
 
     test('Nontrivial queries', () {
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(1))
-        ..thisBindingChanged(PromotionKey(2), offset: 20)
-        ..thisBindingChanged(PromotionKey(3), offset: 30)
-        ..thisBindingChanged(PromotionKey(4), offset: 40);
+        ..thisBindingChanged((PromotionKey(2), _t('double')), offset: 20)
+        ..thisBindingChanged((PromotionKey(3), _t('Object')), offset: 30)
+        ..thisBindingChanged((PromotionKey(4), _t('Null')), offset: 40);
       var log = logBuilder.finish();
-      check(log.getThisBinding(0)).equals(PromotionKey(1));
-      check(log.getThisBinding(20)).equals(PromotionKey(1));
-      check(log.getThisBinding(21)).equals(PromotionKey(2));
-      check(log.getThisBinding(30)).equals(PromotionKey(2));
-      check(log.getThisBinding(31)).equals(PromotionKey(3));
-      check(log.getThisBinding(40)).equals(PromotionKey(3));
-      check(log.getThisBinding(41)).equals(PromotionKey(4));
+      check(log.getThisBinding(0)).isNull;
+      check(log.getThisBinding(20)).isNull;
+      check(log.getThisBinding(21)).equals((PromotionKey(2), _t('double')));
+      check(log.getThisBinding(30)).equals((PromotionKey(2), _t('double')));
+      check(log.getThisBinding(31)).equals((PromotionKey(3), _t('Object')));
+      check(log.getThisBinding(40)).equals((PromotionKey(3), _t('Object')));
+      check(log.getThisBinding(41)).equals((PromotionKey(4), _t('Null')));
     });
 
     test('Check offsets in order', () {
       if (!assertionsEnabled) return;
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(1))
-        ..thisBindingChanged(PromotionKey(2), offset: 20)
-        ..thisBindingChanged(PromotionKey(3), offset: 30);
+        ..thisBindingChanged((PromotionKey(2), _t('double')), offset: 20)
+        ..thisBindingChanged((PromotionKey(3), _t('Object')), offset: 30);
       check(
-        () => logBuilder.thisBindingChanged(PromotionKey(4), offset: 25),
+        () => logBuilder.thisBindingChanged((
+          PromotionKey(4),
+          _t('Null'),
+        ), offset: 25),
       ).throws<AssertionError>();
       check(() => logBuilder.checkOffset(25)).throws<AssertionError>();
       // allowOutOfOrderOffsets relaxes the order check for the next offset
       // only.
       logBuilder.allowOutOfOrderOffsets();
-      logBuilder.thisBindingChanged(PromotionKey(4), offset: 25);
+      logBuilder.thisBindingChanged((PromotionKey(4), _t('Null')), offset: 25);
       check(
-        () => logBuilder.thisBindingChanged(PromotionKey(4), offset: 23),
+        () => logBuilder.thisBindingChanged((
+          PromotionKey(4),
+          _t('Null'),
+        ), offset: 23),
       ).throws<AssertionError>();
       logBuilder.allowOutOfOrderOffsets();
       logBuilder.checkOffset(23);
@@ -83,20 +81,19 @@ main() {
 
     test('Queries handle out-of-order offsets', () {
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(1))
-        ..thisBindingChanged(PromotionKey(4), offset: 40)
+        ..thisBindingChanged((PromotionKey(4), _t('Null')), offset: 40)
         ..allowOutOfOrderOffsets()
-        ..thisBindingChanged(PromotionKey(3), offset: 30)
+        ..thisBindingChanged((PromotionKey(3), _t('Object')), offset: 30)
         ..allowOutOfOrderOffsets()
-        ..thisBindingChanged(PromotionKey(2), offset: 20);
+        ..thisBindingChanged((PromotionKey(2), _t('double')), offset: 20);
       var log = logBuilder.finish();
-      check(log.getThisBinding(0)).equals(PromotionKey(1));
-      check(log.getThisBinding(20)).equals(PromotionKey(1));
-      check(log.getThisBinding(21)).equals(PromotionKey(2));
-      check(log.getThisBinding(30)).equals(PromotionKey(2));
-      check(log.getThisBinding(31)).equals(PromotionKey(3));
-      check(log.getThisBinding(40)).equals(PromotionKey(3));
-      check(log.getThisBinding(41)).equals(PromotionKey(4));
+      check(log.getThisBinding(0)).isNull;
+      check(log.getThisBinding(20)).isNull;
+      check(log.getThisBinding(21)).equals((PromotionKey(2), _t('double')));
+      check(log.getThisBinding(30)).equals((PromotionKey(2), _t('double')));
+      check(log.getThisBinding(31)).equals((PromotionKey(3), _t('Object')));
+      check(log.getThisBinding(40)).equals((PromotionKey(3), _t('Object')));
+      check(log.getThisBinding(41)).equals((PromotionKey(4), _t('Null')));
     });
   });
 
@@ -143,18 +140,13 @@ main() {
         ..allowOutOfOrderOffsets()
         ..promotionInfoChanged(flowModel2.promotionInfo, offset: 10);
       var log = logBuilder.finish();
-      check(log.getPromotionInfo(5)).isNull();
+      check(log.getPromotionInfo(5)).isNull;
       check(log.getPromotionInfo(15)).identicalTo(flowModel2.promotionInfo);
       check(log.getPromotionInfo(25)).identicalTo(flowModel1.promotionInfo);
     });
   });
 
   group('This promotion:', () {
-    test('when no use of `this` was recorded', () {
-      var logBuilder = FlowAnalysisLogBuilder();
-      check(logBuilder.finish().lookupPromotedThisType(offset: 10)).isNull();
-    });
-
     test('via PromotionInfo', () {
       var helper = _FlowModelHelper();
       var flowModel0 = FlowModel(Reachability.initial);
@@ -163,7 +155,7 @@ main() {
         helper,
         PromotionKey(0),
         PromotionModel(
-          promotedTypes: [SharedTypeView(Type('num'))],
+          promotedTypes: [_t('num')],
           tested: [],
           assigned: true,
           unassigned: false,
@@ -174,10 +166,7 @@ main() {
         helper,
         PromotionKey(0),
         PromotionModel(
-          promotedTypes: [
-            SharedTypeView(Type('num')),
-            SharedTypeView(Type('int')),
-          ],
+          promotedTypes: [_t('num'), _t('int')],
           tested: [],
           assigned: true,
           unassigned: false,
@@ -185,16 +174,12 @@ main() {
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(0))
+        ..thisBindingChanged((PromotionKey(0), _t('Object')), offset: 0)
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10)
         ..promotionInfoChanged(flowModel2.promotionInfo, offset: 20);
-      check(logBuilder.finish().lookupPromotedThisType(offset: 5)).isNull();
-      check(
-        logBuilder.finish().lookupPromotedThisType(offset: 15),
-      ).equals(SharedTypeView(Type('num')));
-      check(
-        logBuilder.finish().lookupPromotedThisType(offset: 25),
-      ).equals(SharedTypeView(Type('int')));
+      check(logBuilder.finish().lookupThisType(offset: 5)).equals(_t('Object'));
+      check(logBuilder.finish().lookupThisType(offset: 15)).equals(_t('num'));
+      check(logBuilder.finish().lookupThisType(offset: 25)).equals(_t('int'));
     });
 
     test('via rebinding of `this`', () {
@@ -204,7 +189,7 @@ main() {
         helper,
         PromotionKey(0),
         PromotionModel(
-          promotedTypes: [SharedTypeView(Type('int'))],
+          promotedTypes: [_t('int')],
           tested: [],
           assigned: true,
           unassigned: false,
@@ -212,13 +197,11 @@ main() {
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
-        ..recordInitialThisBinding(PromotionKey(0))
+        ..thisBindingChanged((PromotionKey(0), _t('Object')), offset: 0)
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10)
-        ..thisBindingChanged(PromotionKey(1), offset: 20);
-      check(
-        logBuilder.finish().lookupPromotedThisType(offset: 15),
-      ).equals(SharedTypeView(Type('int')));
-      check(logBuilder.finish().lookupPromotedThisType(offset: 25)).isNull();
+        ..thisBindingChanged((PromotionKey(1), _t('num')), offset: 20);
+      check(logBuilder.finish().lookupThisType(offset: 15)).equals(_t('int'));
+      check(logBuilder.finish().lookupThisType(offset: 25)).equals(_t('num'));
     });
   });
 }
@@ -227,3 +210,5 @@ class _FlowModelHelper with FlowModelHelper {
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
+
+SharedTypeView _t(String s) => SharedTypeView(Type(s));

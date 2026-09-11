@@ -581,6 +581,8 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ne(WasmI32x4 other);
 
   @pragma("wasm:intrinsic")
   external WasmI32 get bitmask;

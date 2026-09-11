@@ -2237,6 +2237,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    listener?.handleSendWithoutArguments(beginToken, endToken, nextToken);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    listener?.handleInvocationWithoutTypeArguments(beginToken, endToken);
+  }
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     listener?.handleSpreadExpression(spreadToken);
   }
@@ -2475,11 +2489,13 @@ class ForwardingListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beginInitializers,
       endToken,
     );

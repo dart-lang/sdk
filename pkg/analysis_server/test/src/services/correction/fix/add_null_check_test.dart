@@ -47,7 +47,7 @@ void f(List<int>? l) {
 void f(List<int>? l) {
   l![0] + 1;
 }
-''', matchFixMessage: "Replace '?' with '!' in invocation");
+''', fixMessageContains: "Replace '?' with '!' in invocation");
   }
 
   Future<void> test_indexExpression_notLast() async {

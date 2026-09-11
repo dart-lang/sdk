@@ -363,6 +363,24 @@ class {
     );
   }
 
+  test_declarations_constructor_unnamed_doesNotMatchNew() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'new',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, '');
+  }
+
   test_declarations_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
@@ -1271,9 +1289,9 @@ class A {}
 ''');
 
     // Configure `package:my`.
-    writePackageConfig(
+    writePackageConfig2(
       myRoot.path,
-      PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
+      config: PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
     );
 
     var mySession = contextFor(myFile).currentSession;
@@ -1999,9 +2017,9 @@ class C {
 
   test_searchReferences_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 
@@ -2374,6 +2392,22 @@ main(A p) {
   A v;
   ^ REFERENCE
 }
+''');
+  }
+
+  test_searchReferences_ClassElement_reference_importCombinator_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart' show A;
+''');
+    var result = await resolveTestCode('''
+class A {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart' show A;
+                        ^ REFERENCE qualified
 ''');
   }
 
@@ -4705,6 +4739,36 @@ void use(A a, A? nullableA, B b, B? nullableB) {
 }
 ''',
     );
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget_cascade_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+  a..x = 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementReferencesText(field, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+       ^ WRITE qualified
+  a..x = 2;
+     ^ WRITE qualified
+}
+''');
   }
 
   test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
@@ -7068,6 +7132,36 @@ math.Random bar() => null;
 ''');
   }
 
+  test_searchReferences_ImportElement_withPrefix_assignmentTargets() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var result = await resolveTestCode('''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  p.x += 1;
+  p.x ??= 2;
+  ++p.x;
+  p.x--;
+}
+''');
+    var element = result.findElement.import('package:test/a.dart');
+    await assertLibraryImportReferencesText(element, r'''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  ^^
+  p.x += 1;
+  ^^
+  p.x ??= 2;
+  ^^
+  ++p.x;
+    ^^
+  p.x--;
+  ^^
+}
+''');
+  }
+
   test_searchReferences_ImportElement_withPrefix_forMultipleImports() async {
     var result = await resolveTestCode('''
 import 'dart:async' as p;
@@ -8115,7 +8209,60 @@ void useOperator(A a) {
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
+    var result = await resolveTestCode('''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
+    var result = await resolveTestCode('''
+/// [operator ~] and [A.operator ~]
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+}
+''');
+    var element = result.findElement.method('~');
+
+    await assertElementReferencesText(element, r'''
+/// [operator ~] and [A.operator ~]
+              ^ REFERENCE
+                                 ^ REFERENCE qualified
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+  ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
     var result = await resolveTestCode('''
 class A {
   num operator [](int i) => 0;
@@ -8173,59 +8320,6 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
 }
 ''',
     );
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
-    var result = await resolveTestCode('''
-/// [operator []] and [A.operator []]
-class A {
-  num operator [](int i) => 0;
-}
-void useOperator(A a, A? b) {
-  a[0];
-  b?[1];
-}
-''');
-    var element = result.findElement.method('[]');
-
-    await assertElementReferencesText(element, r'''
-/// [operator []] and [A.operator []]
-class A {
-  num operator [](int i) => 0;
-}
-void useOperator(A a, A? b) {
-  a[0];
-   ^ INVOCATION qualified
-  b?[1];
-    ^ INVOCATION qualified
-}
-''');
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
-    var result = await resolveTestCode('''
-/// [operator ~] and [A.operator ~]
-class A {
-  A operator ~() => this;
-}
-void useOperator(A a) {
-  ~a;
-}
-''');
-    var element = result.findElement.method('~');
-
-    await assertElementReferencesText(element, r'''
-/// [operator ~] and [A.operator ~]
-              ^ REFERENCE
-                                 ^ REFERENCE qualified
-class A {
-  A operator ~() => this;
-}
-void useOperator(A a) {
-  ~a;
-  ^ INVOCATION qualified
-}
-''');
   }
 
   test_searchReferences_MethodElement_operator_ofEnum_binary() async {
@@ -9707,6 +9801,55 @@ import 'test.dart' show foo;
 
 int get foo => 0;
 void set foo(_) {}
+''',
+    );
+  }
+
+  test_searchReferences_TopLevelVariableElement_importPrefixedWrites() async {
+    newFile(testFile.path, '''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+  p.value += 1;
+  p.value ??= 2;
+  ++p.value;
+  p.value--;
+}
+''');
+    var result = await resolveFileCode('$testPackageLibPath/a.dart', '''
+int? get value => 0;
+set value(num? value) {}
+''');
+    var variable = result.findElement.topVar('value');
+    await assertElementsReferencesText(
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+      },
+      r'''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+    ^^^^^ variable WRITE qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value += 1;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value ??= 2;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  ++p.value;
+      ^^^^^ variable READ_WRITE qualified
+      ^^^^^ getter INVOCATION qualified
+      ^^^^^ setter INVOCATION qualified
+  p.value--;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+}
 ''',
     );
   }

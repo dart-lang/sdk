@@ -6,7 +6,7 @@
 
 import 'dart:typed_data';
 
-import '../../source_map.dart';
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
@@ -197,11 +197,9 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// middle of the stack are left out.
   int maxStackShown = 10;
 
-  /// Mappings for the instructions in [_instructions] to their source code.
-  ///
-  /// Since we add mappings as we generate instructions, this will be sorted
-  /// based on [SourceMapping.instructionOffset].
-  final List<SourceMapping>? _sourceMappings;
+  /// Compact bytecode builder for debug info, or `null` if debug info
+  /// recording is disabled.
+  final DebugInfoWriter? _debugInfoWriter;
 
   int _indent = 1;
   final List<String> _inlinedFrames = [];
@@ -236,7 +234,9 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     List<ir.ValueType> outputs, {
     this.constantExpression = false,
   }) : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
-       _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [] {
+       _debugInfoWriter = moduleBuilder.debugInfoTables == null
+           ? null
+           : DebugInfoWriter(moduleBuilder.debugInfoTables!) {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
@@ -251,66 +251,73 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Textual trace of the instructions.
   String get trace => _traceLines.join();
 
-  bool get recordSourceMaps => _sourceMappings != null;
+  bool get recordDebugInfo => _debugInfoWriter != null;
 
   bool get isEmpty => _instructions.isEmpty;
 
-  void collectUsedTypes(Set<ir.DefType> usedTypes) {
-    for (final local in locals) {
-      final localDefType = local.type.containedDefType;
-      if (localDefType != null) usedTypes.add(localDefType);
-    }
-    for (final instruction in _instructions) {
-      usedTypes.addAll(instruction.usedDefTypes);
-      for (final valueType in instruction.usedValueTypes) {
-        final type = valueType.containedDefType;
-        if (type != null) usedTypes.add(type);
-      }
-    }
-    for (final patch in _patchPoints) {
-      patch.patchBuilder.collectUsedTypes(usedTypes);
-    }
-  }
+  bool get hasPatchPoints => _patchPoints.isNotEmpty;
 
   @override
   ir.Instructions forceBuild() {
+    final builtDebugInfo = _debugInfoWriter?.build();
+    final debugInfo = builtDebugInfo == null || builtDebugInfo.isEmpty
+        ? null
+        : builtDebugInfo;
     if (_patchPoints.isEmpty) {
       return ir.Instructions(
         locals,
-        localNames,
+        localNames.isEmpty ? const {} : localNames,
         _instructions,
         _stackTraces,
         _traceLines,
-        _sourceMappings,
+        debugInfo,
       );
     }
 
-    // We have to fill in the patched instructions & update stack maps.
+    // We have to fill in the patched instructions & update debug info.
 
     final instructions = _instructions;
-    final newInstructions = <ir.Instruction>[];
-    final sourceMappings = _sourceMappings;
-    final newSourceMappings = _sourceMappings == null
+    final debugInfoReader = debugInfo == null
         ? null
-        : <SourceMapping>[];
+        : DebugInfoReader(debugInfo, moduleBuilder.debugInfoTables!);
+
+    final newInstructions = <ir.Instruction>[];
+    final newDebugInfoWriter = debugInfo == null
+        ? null
+        : DebugInfoWriter(moduleBuilder.debugInfoTables!);
 
     // The number of additional patch instructions emitted.
     int shift = 0;
     int ini = 0;
-    int smi = _sourceMappings != null ? 0 : -1;
+    bool hasMapping = debugInfoReader?.moveNext() ?? false;
 
     for (final patch in _patchPoints) {
+      assert(
+        patch.patchBuilder._instructions.isNotEmpty,
+        "Patchable region at offset ${patch.start} was not patched before building.",
+      );
       // Add all instructions before the patch starts.
       while (ini < patch.start) {
         newInstructions.add(instructions[ini++]);
       }
-      // Advance current source mapping to be the last that covers the start of
-      // patchable region.
-      if (sourceMappings != null && smi < sourceMappings.length) {
-        while (smi < (sourceMappings.length - 1) &&
-            sourceMappings[smi + 1].instructionOffset <= patch.start) {
-          newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
-          smi++;
+      // Advance current source position to be before the start of patchable
+      // region.
+      if (debugInfoReader != null && hasMapping) {
+        while (hasMapping && debugInfoReader.offset < patch.start) {
+          if (debugInfoReader.hasSourcePosition) {
+            newDebugInfoWriter!.setSourcePosition(
+              debugInfoReader.offset + shift,
+              debugInfoReader.fileUri!,
+              debugInfoReader.line,
+              debugInfoReader.col,
+              debugInfoReader.name,
+            );
+          } else {
+            newDebugInfoWriter!.clearSourcePosition(
+              debugInfoReader.offset + shift,
+            );
+          }
+          hasMapping = debugInfoReader.moveNext();
         }
       }
       // Add patched instructions & update shift.
@@ -319,23 +326,41 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       shift += replacement.length;
     }
 
-    // Add remaining instructions & shift remaining source map entries.
+    // Add remaining instructions & shift remaining debug info entries.
     for (; ini < instructions.length; ini++) {
       newInstructions.add(instructions[ini]);
     }
-    if (sourceMappings != null && shift != 0) {
-      for (; smi < sourceMappings.length; smi++) {
-        newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+    if (debugInfoReader != null && hasMapping) {
+      while (hasMapping) {
+        if (debugInfoReader.hasSourcePosition) {
+          newDebugInfoWriter!.setSourcePosition(
+            debugInfoReader.offset + shift,
+            debugInfoReader.fileUri!,
+            debugInfoReader.line,
+            debugInfoReader.col,
+            debugInfoReader.name,
+          );
+        } else {
+          newDebugInfoWriter!.clearSourcePosition(
+            debugInfoReader.offset + shift,
+          );
+        }
+        hasMapping = debugInfoReader.moveNext();
       }
     }
 
+    final newBuiltDebugInfo = newDebugInfoWriter?.build();
+    final newDebugInfo = newBuiltDebugInfo == null || newBuiltDebugInfo.isEmpty
+        ? null
+        : newBuiltDebugInfo;
+
     return ir.Instructions(
       locals,
-      localNames,
+      localNames.isEmpty ? const {} : localNames,
       newInstructions,
       _stackTraces,
       _traceLines,
-      newSourceMappings,
+      newDebugInfo,
     );
   }
 
@@ -345,6 +370,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     List<ir.ValueType> inputs,
     List<ir.ValueType> outputs,
   ) {
+    assert(!isBuilt);
     assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));
     if (!_reachable) return null;
 
@@ -361,6 +387,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   void _add(ir.Instruction i) {
+    assert(!isBuilt);
     assert(
       !constantExpression || i.isConstant,
       "Non-constant instruction $i added to constant expression",
@@ -594,54 +621,26 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     );
   }
 
-  // Source maps
+  // Debug info
 
-  /// Start mapping added instructions to the source location given in
-  /// arguments.
+  /// Set the active source position for subsequently added instructions.
   ///
-  /// This assumes [recordSourceMaps] is `true`.
-  void startSourceMapping(Uri fileUri, int line, int col, String? name) {
-    _addSourceMapping(
-      SourceMapping(_instructions.length, fileUri, line, col, name),
+  /// This assumes [recordDebugInfo] is `true`.
+  void setSourcePosition(Uri fileUri, int line, int col, String? name) {
+    _debugInfoWriter!.setSourcePosition(
+      _instructions.length,
+      fileUri,
+      line,
+      col,
+      name,
     );
   }
 
-  /// Stop mapping added instructions to the last source location given in
-  /// [startSourceMapping].
+  /// Clear the active source position for subsequently added instructions.
   ///
-  /// The instructions added after this won't have a mapping in the source map.
-  ///
-  /// This assumes [recordSourceMaps] is `true`.
-  void stopSourceMapping() {
-    _addSourceMapping(SourceMapping.unmapped(_instructions.length));
-  }
-
-  void _addSourceMapping(SourceMapping mapping) {
-    final sourceMappings = _sourceMappings!;
-
-    if (sourceMappings.isNotEmpty) {
-      final lastMapping = sourceMappings.last;
-
-      // Check if we are overriding the current source location. This can
-      // happen when we restore the source location after a compiling a
-      // sub-tree, and the next node in the AST immediately updates the source
-      // location. The restored location is then never used.
-      if (lastMapping.instructionOffset == mapping.instructionOffset) {
-        sourceMappings.removeLast();
-        sourceMappings.add(mapping);
-        return;
-      }
-
-      // Check if we the new mapping maps to the same source as the old
-      // mapping. This happens when we have e.g. an instance field get like
-      // `length`, which gets transformed by the front-end as `this.length`. In
-      // this case `this` and `length` will have the same source location.
-      if (lastMapping.sourceInfo == mapping.sourceInfo) {
-        return;
-      }
-    }
-
-    sourceMappings.add(mapping);
+  /// This assumes [recordDebugInfo] is `true`.
+  void clearSourcePosition() {
+    _debugInfoWriter!.clearSourcePosition(_instructions.length);
   }
 
   // Meta
@@ -1836,7 +1835,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   /// Emit an `array.new_data` instruction.
-  void array_new_data(ir.ArrayType arrayType, ir.BaseDataSegment data) {
+  void array_new_data(ir.ArrayType arrayType, ir.DataSegment data) {
     assert(arrayType.elementType.type.isPrimitive);
     assert(
       _verifyTypes(
@@ -4650,6 +4649,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i32x4Eq);
+  }
+
+  void i32x4_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Ne);
   }
 
   void i64x2_eq() {

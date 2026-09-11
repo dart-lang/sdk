@@ -618,14 +618,16 @@ void f(A a) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: dart:foo::@class::A::@method::foo
     type: void Function()

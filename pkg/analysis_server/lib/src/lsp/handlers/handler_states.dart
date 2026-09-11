@@ -100,8 +100,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         WorkspaceDidChangeConfigurationMessageHandler.new,
         ReanalyzeHandler.new,
         SelectionRangeHandler.new,
-        SemanticTokensFullHandler.new,
-        SemanticTokensRangeHandler.new,
       ];
 
   new(LspAnalysisServer server) : super(server) {
@@ -153,6 +151,8 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         PrepareCallHierarchyHandler.new,
         PrepareTypeHierarchyHandler.new,
         ReferencesHandler.new,
+        SemanticTokensFullHandler.new,
+        SemanticTokensRangeHandler.new,
         SignatureHelpHandler.new,
         SummaryHandler.new,
         SuperHandler.new,

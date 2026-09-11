@@ -356,7 +356,7 @@ TopLevelGetterDeclaration
     expression2: IntegerLiteral
       literal: 0
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get

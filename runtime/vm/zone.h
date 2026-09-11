@@ -102,7 +102,8 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static constexpr intptr_t kAlignment = kDoubleSize;
+  static constexpr intptr_t kAlignment = 16;
+  COMPILE_ASSERT(kAlignment >= alignof(std::max_align_t));
 
   static void Init();
   static void Cleanup();
@@ -192,8 +193,8 @@ class Zone {
   // This would act as the initial stack allocated chunk so that we don't
   // end up calling malloc/free on zone scopes that allocate less than
   // kChunkSize
-  COMPILE_ASSERT(kAlignment <= 8);
-  ALIGN8 uint8_t buffer_[kInitialChunkSize];
+  COMPILE_ASSERT(kAlignment <= 16);
+  ALIGN16 uint8_t buffer_[kInitialChunkSize];
 
   friend class StackZone;
   friend class ApiZone;

@@ -372,6 +372,16 @@ extension ListOfFormalParameterExtension on List<FormalParameter> {
   }
 }
 
+extension NamedReadResolutionExtension on NamedReadResolution? {
+  /// The element selected by successful resolution or error recovery.
+  ///
+  /// Invalid candidates are not selected elements and are therefore ignored.
+  Element? get elementOrRecovery => switch (this) {
+    InvalidNamedReadResolution(:var recovery) => recovery?.element,
+    _ => this?.element,
+  };
+}
+
 extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     var importPrefix = this.importPrefix;

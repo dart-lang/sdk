@@ -1,0 +1,77 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/enum_elements.dart:5:6: Error: An enum declaration can't be empty.
+// enum Enum1; // Error
+//      ^^^^^
+//
+// pkg/front_end/testcases/augmentations/enum_elements.dart:29:3: Error: 'a' is already declared in this scope.
+//   a, // Error
+//   ^
+// pkg/front_end/testcases/augmentations/enum_elements.dart:26:3: Context: Previous declaration of 'a'.
+//   a, // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Enum1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Enum1> values = const <self::Enum1>[];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum1.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum2 a = const self::Enum2::•(0, "a");
+  static const field core::List<self::Enum2> values = const <self::Enum2>[self::Enum2::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum2.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum3 a = const self::Enum3::•(0, "a");
+  static const field core::List<self::Enum3> values = const <self::Enum3>[self::Enum3::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum3.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum4 a = const self::Enum4::•(0, "a");
+  enum-element static const field self::Enum4 b = const self::Enum4::•(1, "b");
+  static const field core::List<self::Enum4> values = const <self::Enum4>[self::Enum4::a, self::Enum4::b];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum4.${this.{core::_Enum::_name}{core::String}}";
+}
+class Enum5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum5 a = const self::Enum5::•(0, "a");
+  static const field core::List<self::Enum5> values = const <self::Enum5>[self::Enum5::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum5
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum5.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_elements.dart:5:6 -> ListConstant(const <Enum1>[])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_elements.dart:9:3 -> InstanceConstant(const Enum2{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_elements.dart:8:6 -> ListConstant(const <Enum2>[const Enum2{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_elements.dart:15:3 -> InstanceConstant(const Enum3{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_elements.dart:13:6 -> ListConstant(const <Enum3>[const Enum3{_Enum.index: 0, _Enum._name: "a"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_elements.dart:19:3 -> InstanceConstant(const Enum4{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_elements.dart:22:3 -> InstanceConstant(const Enum4{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_elements.dart:18:6 -> ListConstant(const <Enum4>[const Enum4{_Enum.index: 0, _Enum._name: "a"}, const Enum4{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_elements.dart:26:3 -> InstanceConstant(const Enum5{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_elements.dart:25:6 -> ListConstant(const <Enum5>[const Enum5{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 35, effectively constant: 10

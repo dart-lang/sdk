@@ -1389,6 +1389,40 @@ class FileSystemState {
     return _uriToFile[uri];
   }
 
+  (FeatureSet, Version) getFeatureSetAndLanguageVersion(
+    String path,
+    Uri uri,
+    WorkspacePackageImpl? workspacePackage,
+    AnalysisOptionsImpl analysisOptions,
+  ) {
+    FeatureSet? featureSet;
+    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
+    if (workspacePackageExperiments != null) {
+      featureSet = featureSetProvider.featureSetForExperiments(
+        workspacePackageExperiments,
+      );
+    }
+
+    var languageVersion = workspacePackage?.languageVersion;
+
+    if (featureSet != null && languageVersion != null) {
+      return (featureSet, languageVersion);
+    }
+
+    var (packageFeatureSet, packageLanguageVersion) = featureSetProvider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: analysisOptions.contextFeatures,
+          nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
+          nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
+        );
+    featureSet ??= packageFeatureSet;
+    languageVersion ??= packageLanguageVersion;
+
+    return (featureSet, languageVersion);
+  }
+
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
   FileState getFileForPath(String path) {
@@ -1547,45 +1581,6 @@ class FileSystemState {
   AnalysisOptionsImpl _getAnalysisOptions(File file) =>
       _analysisOptionsMap[file];
 
-  FeatureSet _getFeatureSet(
-    String path,
-    Uri uri,
-    WorkspacePackageImpl? workspacePackage,
-    AnalysisOptionsImpl analysisOptions,
-  ) {
-    var workspacePackageExperiments = workspacePackage?.enabledExperiments;
-    if (workspacePackageExperiments != null) {
-      return featureSetProvider.featureSetForExperiments(
-        workspacePackageExperiments,
-      );
-    }
-
-    return featureSetProvider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: analysisOptions.contextFeatures,
-      nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
-    );
-  }
-
-  Version _getLanguageVersion(
-    String path,
-    Uri uri,
-    WorkspacePackageImpl? workspacePackage,
-    AnalysisOptionsImpl analysisOptions,
-  ) {
-    var workspaceLanguageVersion = workspacePackage?.languageVersion;
-    if (workspaceLanguageVersion != null) {
-      return workspaceLanguageVersion;
-    }
-
-    return featureSetProvider.getLanguageVersion(
-      path,
-      uri,
-      nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
-    );
-  }
-
   FileState _newFile(
     File resource,
     String path,
@@ -1595,13 +1590,7 @@ class FileSystemState {
     FileSource uriSource = FileSource(resource, uri);
     WorkspacePackageImpl? workspacePackage = _workspace?.findPackageFor(path);
     AnalysisOptionsImpl analysisOptions = _getAnalysisOptions(resource);
-    FeatureSet featureSet = _getFeatureSet(
-      path,
-      uri,
-      workspacePackage,
-      analysisOptions,
-    );
-    Version packageLanguageVersion = _getLanguageVersion(
+    var (featureSet, packageLanguageVersion) = getFeatureSetAndLanguageVersion(
       path,
       uri,
       workspacePackage,

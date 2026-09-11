@@ -109,12 +109,7 @@ Future<void> uploadResults(List<Map<String, dynamic>> results) async {
     }
     var cloudStoragePath =
         'gs://dart-test-results/benchmarks/$taskId/results.json';
-    var args = [
-      'third_party/gsutil/gsutil',
-      'cp',
-      resultsFile.path,
-      cloudStoragePath,
-    ];
+    var args = ['gcloud', 'storage', 'cp', resultsFile.path, cloudStoragePath];
     var python = 'python3.exe';
     print('Running $python ${args.join(' ')}');
     var commandResult = await Process.run(python, args);
@@ -123,7 +118,7 @@ Future<void> uploadResults(List<Map<String, dynamic>> results) async {
     print(commandResult.stderr);
     print('exit code: $exitCode');
     if (exitCode != 0) {
-      throw 'Gsutil upload failed. Exit code $exitCode';
+      throw 'gcloud storage upload failed. Exit code $exitCode';
     }
   } finally {
     await tempDir.delete(recursive: true);

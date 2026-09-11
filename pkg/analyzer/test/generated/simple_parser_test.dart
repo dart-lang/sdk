@@ -214,7 +214,7 @@ CompilationUnit
                   receiver: ThisExpression
                     thisKeyword: this
                   operator: .
-                  propertyName: <empty> <synthetic>
+                  name: <empty> <synthetic>
                 expression(v1): PropertyAccess
                   target: ThisExpression
                     thisKeyword: this
@@ -702,6 +702,8 @@ ImportDirective
   void test_parseCombinators_hs() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' hide a show b;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
@@ -733,6 +735,12 @@ ImportDirective
   void test_parseCombinators_hshs() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'a.dart' hide a show b hide c show d;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+//                            ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+//                                   ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.singleImportDirective;
     assertParsedNodeText(node, r'''
