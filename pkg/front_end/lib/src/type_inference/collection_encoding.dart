@@ -1882,7 +1882,7 @@ class _NonConstMapLiteralBuilder(
         keyExpression,
         valueExpression,
       ),
-    );
+    )..parent = addedEntryStatementParent;
 
     body.addAll(desugaredStatement.statements);
   }
