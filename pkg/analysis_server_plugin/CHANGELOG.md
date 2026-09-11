@@ -1,3 +1,8 @@
+## 0.3.24-dev
+
+- Require version `14.5.0-dev` of the `analyzer` package.
+- Require version `0.14.18-dev` of the `analyzer_plugin` package.
+
 ## 0.3.23
 
 - Improve performance of plugin analysis in cases where all of the enabled
