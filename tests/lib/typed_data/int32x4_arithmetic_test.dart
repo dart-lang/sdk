@@ -12,7 +12,7 @@ import 'dart:typed_data';
 import "package:expect/expect.dart";
 
 testAdd() {
-  var m = Int32x4(0, 0, 0, 0);
+  var m = Int32x4.zero();
   var n = Int32x4(-1, -1, -1, -1);
   var o = m + n;
   Expect.equals(-1, o.x);
@@ -20,7 +20,7 @@ testAdd() {
   Expect.equals(-1, o.z);
   Expect.equals(-1, o.w);
 
-  m = Int32x4(0, 0, 0, 0);
+  m = Int32x4.zero();
   n = Int32x4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
   o = m + n;
   Expect.equals(-1, o.x);
@@ -78,7 +78,7 @@ testAdd() {
 }
 
 testSub() {
-  var m = Int32x4(0, 0, 0, 0);
+  var m = Int32x4.zero();
   var n = Int32x4(1, 1, 1, 1);
   var o = m - n;
   Expect.equals(-1, o.x);

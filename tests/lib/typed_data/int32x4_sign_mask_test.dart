@@ -21,7 +21,7 @@ void testImmediates() {
 }
 
 void testZero() {
-  Expect.equals(0x0, Int32x4(0, 0, 0, 0).signMask);
+  Expect.equals(0x0, Int32x4.zero().signMask);
   Expect.equals(0x0, Int32x4(-0, -0, -0, -0).signMask);
 }
 
