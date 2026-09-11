@@ -2303,7 +2303,7 @@ const char* CallbackContext::ToCString(Zone* zone,
       if (print_stack_as_words) {
         buffer.Printf("%#" Px "", *reinterpret_cast<const uword*>(sp + i));
       } else {
-        buffer.Printf("%02.2x", *reinterpret_cast<const uint8_t*>(sp + i));
+        buffer.Printf("%.2x", *reinterpret_cast<const uint8_t*>(sp + i));
       }
     }
   }
