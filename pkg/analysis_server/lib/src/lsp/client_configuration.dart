@@ -292,8 +292,10 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 
   /// Whether methods/functions in completion should include parens and argument
   /// placeholders when used in an invocation context.
+  ///
+  /// If the client does not specify, defaults to `true`.
   bool get completeFunctionCalls =>
-      _settings['completeFunctionCalls'] as bool? ?? false;
+      _settings['completeFunctionCalls'] as bool? ?? true;
 
   /// A flag for including property access in Inline Values.
   bool get experimentalInlineValuesProperties =>
