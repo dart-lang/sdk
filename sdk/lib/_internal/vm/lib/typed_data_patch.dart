@@ -3965,15 +3965,10 @@ final class _Float32x4 implements Float32x4 {
 @pragma('vm:deeply-immutable')
 class Int32x4 {
   @patch
-  @pragma("vm:prefer-inline")
-  factory Int32x4(int x, int y, int z, int w) {
-    return _Int32x4FromInts(x, y, z, w);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromInts")
-  external static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w);
+  external factory Int32x4(int x, int y, int z, int w);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -3984,15 +3979,10 @@ class Int32x4 {
   factory Int32x4.zero() => Int32x4.splat(0);
 
   @patch
-  @pragma("vm:prefer-inline")
-  factory Int32x4.bool(bool x, bool y, bool z, bool w) {
-    return _Int32x4FromBools(x, y, z, w);
-  }
-
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_fromBools")
-  external static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w);
+  @pragma("vm:prefer-inline")
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) =>
+      Int32x4(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0);
 
   @patch
   @pragma("vm:recognized", "other")
@@ -4005,29 +3995,22 @@ class Int32x4 {
 @pragma("vm:entry-point")
 final class _Int32x4 implements Int32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_or")
-  external Int32x4 operator |(Int32x4 other);
+  Int32x4 operator |(Int32x4 other) =>
+      Int32x4(x | other.x, y | other.y, z | other.z, w | other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_and")
-  external Int32x4 operator &(Int32x4 other);
+  Int32x4 operator &(Int32x4 other) =>
+      Int32x4(x & other.x, y & other.y, z & other.z, w & other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_xor")
-  external Int32x4 operator ^(Int32x4 other);
+  Int32x4 operator ^(Int32x4 other) =>
+      Int32x4(x ^ other.x, y ^ other.y, z ^ other.z, w ^ other.w);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_not")
-  external Int32x4 operator ~();
+  Int32x4 operator ~() => Int32x4(~x, ~y, ~z, ~w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_add")
-  external Int32x4 operator +(Int32x4 other);
+  Int32x4 operator +(Int32x4 other) =>
+      Int32x4(x + other.x, y + other.y, z + other.z, w + other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_sub")
-  external Int32x4 operator -(Int32x4 other);
+  Int32x4 operator -(Int32x4 other) =>
+      Int32x4(x - other.x, y - other.y, z - other.z, w - other.w);
 
   Int32x4 operator -() => Int32x4(-x, -y, -z, -w);
 
@@ -4044,14 +4027,20 @@ final class _Int32x4 implements Int32x4 {
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_equal")
-  external Int32x4 equal(Int32x4 other);
+  Int32x4 equal(Int32x4 other) => Int32x4(
+    x == other.x ? -1 : 0,
+    y == other.y ? -1 : 0,
+    z == other.z ? -1 : 0,
+    w == other.w ? -1 : 0,
+  );
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_notEqual")
-  external Int32x4 notEqual(Int32x4 other);
+  Int32x4 notEqual(Int32x4 other) => Int32x4(
+    x != other.x ? -1 : 0,
+    y != other.y ? -1 : 0,
+    z != other.z ? -1 : 0,
+    w != other.w ? -1 : 0,
+  );
 
   Int32x4 lessThan(Int32x4 other) => Int32x4(
     x < other.x ? -1 : 0,
@@ -4094,117 +4083,97 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_getW")
   external int get w;
   @pragma("vm:recognized", "other")
-  @pragma("vm:external-name", "Int32x4_getSignMask")
-  external int get signMask;
+  int get signMask {
+    final int mx = (x >> 31) & 1;
+    final int my = (y >> 31) & 1;
+    final int mz = (z >> 31) & 1;
+    final int mw = (w >> 31) & 1;
+    return mx | my << 1 | mz << 2 | mw << 3;
+  }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getAnyTrue")
-  external bool get anyTrue;
+  bool get anyTrue => (x | y | z | w) != 0;
 
   bool get allTrue => flagX && flagY && flagZ && flagW;
 
+  @pragma("vm:prefer-inline")
+  static int _lane(int index, int x, int y, int z, int w) => switch (index) {
+    0 => x,
+    1 => y,
+    2 => z,
+    _ => w,
+  };
+
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_shuffle")
-  external Int32x4 shuffle(int mask);
+  Int32x4 shuffle(int mask) {
+    if (mask < 0 || mask > 255) {
+      throw RangeError.range(mask, 0, 255, "mask");
+    }
+    final int l0 = x;
+    final int l1 = y;
+    final int l2 = z;
+    final int l3 = w;
+    return Int32x4(
+      _lane(mask & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 2) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 4) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 6) & 0x3, l0, l1, l2, l3),
+    );
+  }
+
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_shuffleMix")
-  external Int32x4 shuffleMix(Int32x4 zw, int mask);
+  Int32x4 shuffleMix(Int32x4 zw, int mask) {
+    if (mask < 0 || mask > 255) {
+      throw RangeError.range(mask, 0, 255, "mask");
+    }
+    final int l0 = x;
+    final int l1 = y;
+    final int l2 = z;
+    final int l3 = w;
+    final int r0 = zw.x;
+    final int r1 = zw.y;
+    final int r2 = zw.z;
+    final int r3 = zw.w;
+    return Int32x4(
+      _lane(mask & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 2) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 4) & 0x3, r0, r1, r2, r3),
+      _lane((mask >> 6) & 0x3, r0, r1, r2, r3),
+    );
+  }
 
   @pragma("vm:prefer-inline")
-  Int32x4 withX(int x) {
-    return _withX(x);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setX")
-  external Int32x4 _withX(int x);
+  Int32x4 withX(int newX) => Int32x4(newX, y, z, w);
 
   @pragma("vm:prefer-inline")
-  Int32x4 withY(int y) {
-    return _withY(y);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setY")
-  external Int32x4 _withY(int y);
+  Int32x4 withY(int newY) => Int32x4(x, newY, z, w);
 
   @pragma("vm:prefer-inline")
-  Int32x4 withZ(int z) {
-    return _withZ(z);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setZ")
-  external Int32x4 _withZ(int z);
+  Int32x4 withZ(int newZ) => Int32x4(x, y, newZ, w);
 
   @pragma("vm:prefer-inline")
-  Int32x4 withW(int w) {
-    return _withW(w);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setW")
-  external Int32x4 _withW(int w);
+  Int32x4 withW(int newW) => Int32x4(x, y, z, newW);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagX")
-  external bool get flagX;
+  bool get flagX => x != 0;
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagY")
-  external bool get flagY;
+  bool get flagY => y != 0;
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagZ")
-  external bool get flagZ;
+  bool get flagZ => z != 0;
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagW")
-  external bool get flagW;
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagX(bool x) {
-    return _withFlagX(x);
-  }
+  bool get flagW => w != 0;
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagX")
-  external Int32x4 _withFlagX(bool x);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagY(bool y) {
-    return _withFlagY(y);
-  }
+  Int32x4 withFlagX(bool newFlagX) => Int32x4(newFlagX ? -1 : 0, y, z, w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagY")
-  external Int32x4 _withFlagY(bool y);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagZ(bool z) {
-    return _withFlagZ(z);
-  }
+  Int32x4 withFlagY(bool newFlagY) => Int32x4(x, newFlagY ? -1 : 0, z, w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagZ")
-  external Int32x4 _withFlagZ(bool z);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagW(bool w) {
-    return _withFlagW(w);
-  }
+  Int32x4 withFlagZ(bool newFlagZ) => Int32x4(x, y, newFlagZ ? -1 : 0, w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagW")
-  external Int32x4 _withFlagW(bool w);
+  Int32x4 withFlagW(bool newFlagW) => Int32x4(x, y, z, newFlagW ? -1 : 0);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
