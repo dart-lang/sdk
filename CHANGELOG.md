@@ -86,6 +86,11 @@
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+- Added `JSDisposableProtocol` interface for objects that can be explicitly
+  discarded to free resources.
+
+- Added the static property `JSSymbol.dispose`.
+
 #### `dart:mirrors`
 
 - The `dart:mirrors` library is now marked `@deprecated`, and will be removed
