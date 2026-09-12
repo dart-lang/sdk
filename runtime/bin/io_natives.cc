@@ -118,15 +118,17 @@ namespace bin {
   V(ProcessInfo_CurrentRSS, 0)                                                 \
   V(ProcessInfo_MaxRSS, 0)                                                     \
   V(RawSocketOption_GetOptionValue, 1)                                         \
-  V(SecureSocket_Connect, 7)                                                   \
+  V(SecureSocket_Connect, 10)                                                  \
   V(SecureSocket_Destroy, 1)                                                   \
-  V(SecureSocket_FilterPointer, 1)                                             \
   V(SecureSocket_GetSelectedProtocol, 1)                                       \
+  V(SecureSocket_GrowBuffer, 6)                                                \
   V(SecureSocket_Handshake, 2)                                                 \
   V(SecureSocket_MarkAsTrusted, 3)                                             \
   V(SecureSocket_NewX509CertificateWrapper, 1)                                 \
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_PeerCertificate, 1)                                           \
+  V(SecureSocket_Process, 2)                                                   \
+  V(SecureSocket_QueuePrefetchedData, 3)                                       \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterKeyLogPort, 2)                                        \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \

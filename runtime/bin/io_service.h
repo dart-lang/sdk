@@ -61,8 +61,7 @@ namespace bin {
   V(Directory, ListStart, 39)                                                  \
   V(Directory, ListNext, 40)                                                   \
   V(Directory, ListStop, 41)                                                   \
-  V(Directory, Rename, 42)                                                     \
-  V(SSLFilter, ProcessFilter, 43)
+  V(Directory, Rename, 42)
 
 #define DECLARE_REQUEST(type, method, id) k##type##method##Request = id,
 

@@ -62,6 +62,18 @@ void Socket::CloseFd() {
   SetClosedFd();
 }
 
+void Socket::RetainFd(intptr_t fd) {
+  if (fd != kClosedFd) {
+    reinterpret_cast<IOHandle*>(fd)->Retain();
+  }
+}
+
+void Socket::ReleaseFd(intptr_t fd) {
+  if (fd != kClosedFd) {
+    reinterpret_cast<IOHandle*>(fd)->Release();
+  }
+}
+
 static intptr_t Create(const RawAddr& addr) {
   LOG_INFO("Create: calling socket(SOCK_STREAM)\n");
   intptr_t fd = NO_RETRY_EXPECTED(socket(addr.ss.ss_family, SOCK_STREAM, 0));

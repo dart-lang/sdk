@@ -42,6 +42,18 @@ void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }
 
+void Socket::RetainFd(intptr_t fd) {
+  if (fd != kClosedFd) {
+    reinterpret_cast<Handle*>(fd)->Retain();
+  }
+}
+
+void Socket::ReleaseFd(intptr_t fd) {
+  if (fd != kClosedFd) {
+    reinterpret_cast<Handle*>(fd)->Release();
+  }
+}
+
 static intptr_t Create(const RawAddr& addr) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
