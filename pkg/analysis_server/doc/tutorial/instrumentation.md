@@ -1,7 +1,7 @@
 # Instrumentation
 
-This document explains how to gather instrumentation logs and other diagnostic
-information from a running Dart Analysis Server (DAS) process.
+This document explains how to gather instrumentation logs, session logs, and
+other diagnostic information from a running Dart Analysis Server (DAS) process.
 
 ## Collect an instrumentation log
 
@@ -29,6 +29,16 @@ file (`/some/file.txt` above).
 
 See the steps outlined at the [Dart Code
 documentation](https://dartcode.org/docs/logging/#analyzer-instrumentation).
+
+## Collect a session communications log
+
+A session communications log records all communications between the IDE and the
+analysis server. It is useful for capturing an exact sequence of editor
+interactions to reproduce bugs or evaluate performance.
+
+For detailed steps on recording a session log (interactively via the Analyzer
+Insights page or at startup via `--session-log`), see
+[Recording a session communications log](session_log.md).
 
 ## Open the analyzer insights (diagnostics) pages
 
@@ -103,7 +113,29 @@ workspace.
 
 ### Session communications log
 
-TODO
+This page allows recording communications between the analysis server and the
+IDE (or other client process) without restarting the server. It is useful for
+capturing a sequence of events to reproduce a bug or investigate unexpected
+server behavior.
+
+The server automatically maintains an in-memory cache of essential startup
+entries (initialization requests, workspace configurations, and open document
+notifications). When you click **Start capturing entries**, subsequent
+messages are captured into a buffer.
+
+To record a session from this page:
+
+1. Open the analyzer insights pages (see
+   [Open the analyzer insights pages](#open-the-analyzer-insights-diagnostics-pages)).
+2. Select **Session communications log** from the left navigation menu.
+3. When ready, click **Start capturing entries**.
+4. In your IDE, perform the actions you want to capture (e.g., triggering code
+   completion, editing a file, or renaming a symbol).
+5. Return to this page and click **Stop capturing entries**.
+6. Click **Copy to Clipboard** and save the captured JSON entries into a file.
+
+For more details and alternative command-line options, see
+[Recording a session communications log](session_log.md).
 
 ### Timing
 
