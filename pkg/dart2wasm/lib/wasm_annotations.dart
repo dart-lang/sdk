@@ -9,9 +9,13 @@ import 'util.dart' as util;
 
 enum ExternType { memory }
 
-final class MemoryLimits({required final int minSize, final int? maxSize}) {
+final class WasmMemoryType({
+  required final bool shared,
+  required final int minSize,
+  final int? maxSize,
+}) {
   /// Read the `MemoryType` annotation on a member.
-  static MemoryLimits? readAnnotation(KernelNodes nodes, Member member) {
+  static WasmMemoryType? readAnnotation(KernelNodes nodes, Member member) {
     final memoryType = util.getPragma<InstanceConstant>(
       nodes.coreTypes,
       member,
@@ -22,17 +26,18 @@ final class MemoryLimits({required final int minSize, final int? maxSize}) {
       return null;
     }
 
-    final (minSize, maxSize) = _readMemoryType(nodes, memoryType);
-
-    return MemoryLimits(minSize: minSize, maxSize: maxSize);
-  }
-
-  static (int, int?) _readMemoryType(
-    KernelNodes nodes,
-    InstanceConstant constant,
-  ) {
-    final limits = constant.fieldValues.values.single;
-    return _readLimits(nodes, limits as InstanceConstant);
+    final limits =
+        memoryType.fieldValues[nodes.wasmMemoryTypeLimits.fieldReference]
+            as InstanceConstant;
+    final shared =
+        memoryType.fieldValues[nodes.wasmMemoryTypeShared.fieldReference]
+            as BoolConstant;
+    final (minSize, maxSize) = _readLimits(nodes, limits);
+    return WasmMemoryType(
+      shared: shared.value,
+      minSize: minSize,
+      maxSize: maxSize,
+    );
   }
 
   static (int, int?) _readLimits(KernelNodes nodes, InstanceConstant constant) {
