@@ -52,6 +52,37 @@ void main() {
         expect(response.statusCode, HttpStatus.forbidden);
         await response.drain();
       });
+
+      test('forbids GET request with bad Origin Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain();
+      });
+
+      test(
+          'forbids GET request with bad Origin Header to '
+          '/api/setPreferenceValue', () async {
+        // The delegated ServerApi route, exercised before dispatch, so no
+        // query parameters are needed and no state is changed.
+        final request =
+            await client.getUrl(serverUri.resolve('api/setPreferenceValue'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain();
+      });
+
+      test('allows GET request with loopback Origin to /api/ping', () async {
+        // A debug frontend served from another loopback port is a documented
+        // workflow, and isAllowedOrigin always allows loopback origins.
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set('Origin', 'http://127.0.0.1:42000');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.ok);
+        await response.drain();
+      });
     });
 
     group('Disable Origin Check', () {
@@ -89,6 +120,14 @@ void main() {
         request.headers.set('Origin', 'http://evil.example.com');
         final response = await request.close();
         expect(response.statusCode, isNot(HttpStatus.forbidden));
+        await response.drain();
+      });
+
+      test('allows bad Origin Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.ok);
         await response.drain();
       });
     });

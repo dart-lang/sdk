@@ -184,16 +184,19 @@ FutureOr<Handler> defaultHandler({
       }
     }
 
+    // Validate Origin for all API requests, including state-changing GETs.
+    // Preserve the existing policy: absent Origin headers and allowed
+    // loopback origins are accepted.
+    if (originCheckEnabled) {
+      final origin = request.headers['Origin'];
+      if (origin != null && !isAllowedOrigin(origin)) {
+        return Response.forbidden('forbidden origin');
+      }
+    }
+
     final method = request.url.pathSegments[1];
 
-    // Origin check specifically for api/sse to prevent CSRF.
     if (method == 'sse') {
-      if (originCheckEnabled) {
-        final origin = request.headers['Origin'];
-        if (origin != null && !isAllowedOrigin(origin)) {
-          return Response.forbidden('forbidden origin');
-        }
-      }
       return devToolsApiHandler.handler(request);
     }
 
