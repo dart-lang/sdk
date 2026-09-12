@@ -218,7 +218,7 @@ Unit tests
 
 Integration tests
 
-- `tests/ffi/(.*)_test.dart` Integration tests. Run for AOT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions runtime_precompiled && tools/test.py -mdebug -cdartkp ffi`. Run for JIT on host machine with `$ tools/build.py -mdebug create_platform_sdk runtime ffi_test_functions && tools/test.py -mdebug ffi`.
+- `tests/ffi/(.*)_test.dart` Integration tests. Run for AOT on host machine with `$ tools/build.py -mdebug runtime ffi_test_functions runtime_precompiled && tools/test.py -mdebug -cdartkp ffi`. Run for JIT on host machine with `$ tools/build.py -mdebug runtime ffi_test_functions && tools/test.py -mdebug ffi`.
 
 Test generators
 

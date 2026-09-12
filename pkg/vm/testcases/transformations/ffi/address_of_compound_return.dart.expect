@@ -1,0 +1,259 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
+import "dart:nativewrappers" as nat;
+
+import "dart:ffi";
+import "dart:nativewrappers";
+import "dart:typed_data";
+
+@#C3
+@#C10
+final class Result extends ffi::Struct {
+  synthetic constructor •() → self::Result
+    : super ffi::Struct::•()
+    ;
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Result
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
+    ;
+  @#C12
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Result
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
+  @#C13
+  @#C12
+  get value() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Result::value#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C13
+  @#C12
+  set value(synthesized core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Result::value#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C12
+  static synthetic get value#offsetOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C12
+  static synthetic get #sizeOf() → core::int
+    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+}
+@#C3
+@#C10
+final class UnionResult extends ffi::Union {
+  synthetic constructor •() → self::UnionResult
+    : super ffi::Union::•()
+    ;
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::UnionResult
+    : super ffi::Union::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
+    ;
+  @#C12
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::UnionResult
+    : super ffi::Union::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
+  @#C13
+  @#C12
+  get value() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UnionResult::value#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C13
+  @#C12
+  set value(synthesized core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UnionResult::value#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C12
+  static synthetic get value#offsetOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C12
+  static synthetic get #sizeOf() → core::int
+    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+}
+class Natives extends core::Object {
+  synthetic constructor •() → self::Natives
+    : super core::Object::•()
+    ;
+  @#C23
+  @#C12
+  static method makeUnion(ffi::Pointer<ffi::Uint8> a) → self::UnionResult
+    return block {
+      _in::_nativeEffect(new self::UnionResult::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+    } =>self::Natives::_makeUnion$Method$FfiNative(a);
+  @#C26
+  external static method _makeUnion$Method$FfiNative(ffi::Pointer<ffi::Uint8> #t0) → self::UnionResult;
+  @#C26
+  external static method #_makeUnion$Method$FfiNative#T(typ::TypedData #t0) → self::UnionResult;
+  @#C23
+  @#C12
+  static method #makeUnion#T(typ::TypedData a) → self::UnionResult
+    return block {
+      _in::_nativeEffect(new self::UnionResult::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+    } =>self::Natives::#_makeUnion$Method$FfiNative#T(a);
+}
+base class Peer extends nat::NativeFieldWrapperClass1 {
+  synthetic constructor •() → self::Peer
+    : super nat::NativeFieldWrapperClass1::•()
+    ;
+}
+@#C29
+@#C12
+static method makeResult(ffi::Pointer<ffi::Uint8> a, ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } =>self::_makeResult$Method$FfiNative(a, b);
+@#C32
+@#C12
+static method makeWithPeer(self::Peer peer, ffi::Pointer<ffi::Uint8> a, ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t1 = peer;
+    final ffi::Pointer<ffi::Uint8> #t2 = a;
+    final ffi::Pointer<ffi::Uint8> #t3 = b;
+    final self::Result #t4 = self::_makeWithPeer$Method$FfiNative(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t1)), #t2, #t3);
+    _in::reachabilityFence(#t1);
+  } =>#t4;
+@#C35
+@#C12
+static method integerWithPeer(self::Peer peer, ffi::Pointer<ffi::Uint8> a) → core::int
+  return block {
+    final nat::NativeFieldWrapperClass1 #t5 = peer;
+    final ffi::Pointer<ffi::Uint8> #t6 = a;
+    final core::int #t7 = self::_integerWithPeer$Method$FfiNative(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t5)), #t6);
+    _in::reachabilityFence(#t5);
+  } =>#t7;
+static method main() → void {
+  final typ::Uint8List data = typ::Uint8List::•(2);
+  final self::Peer peer = new self::Peer::•();
+  core::print(self::#makeWithPeer#TP(peer, data, ffi::nullptr).{self::Result::value}{core::int});
+  core::print(self::#makeWithPeer#TP(peer, data, ffi::nullptr).{self::Result::value}{core::int});
+  core::print(self::#makeWithPeer#PC(peer, ffi::nullptr, new ffi::_Compound::_fromTypedDataBase(data, #C24.{core::num::*}(1){(core::num) → core::num})).{self::Result::value}{core::int});
+  core::print(self::#makeWithPeer#TC(peer, data, new ffi::_Compound::_fromTypedDataBase(data, #C24.{core::num::*}(1){(core::num) → core::num})).{self::Result::value}{core::int});
+  core::print(self::#integerWithPeer#T(peer, data));
+  core::print(self::makeResult(ffi::nullptr, ffi::nullptr).{self::Result::value}{core::int});
+  core::print(self::#makeResult#TT(data, data).{self::Result::value}{core::int});
+  core::print(self::#makeResult#TT(data, data).{self::Result::value}{core::int});
+  core::print(self::#makeResult#PT(ffi::nullptr, data).{self::Result::value}{core::int});
+  core::print(self::#makeResult#CP(new ffi::_Compound::_fromTypedDataBase(data, #C24.{core::num::*}(1){(core::num) → core::num}), ffi::nullptr).{self::Result::value}{core::int});
+  core::print(self::Natives::#makeUnion#T(data).{self::UnionResult::value}{core::int});
+}
+@#C36
+external static method _makeResult$Method$FfiNative(ffi::Pointer<ffi::Uint8> #t0, ffi::Pointer<ffi::Uint8> #t1) → self::Result;
+@#C37
+external static method _makeWithPeer$Method$FfiNative(ffi::Pointer<ffi::Void> #t0, ffi::Pointer<ffi::Uint8> #t1, ffi::Pointer<ffi::Uint8> #t2) → self::Result;
+@#C38
+external static method _integerWithPeer$Method$FfiNative(ffi::Pointer<ffi::Void> #t0, ffi::Pointer<ffi::Uint8> #t1) → core::int;
+@#C37
+external static method #_makeWithPeer$Method$FfiNative#TP(ffi::Pointer<ffi::Void> #t0, typ::TypedData #t1, ffi::Pointer<ffi::Uint8> #t2) → self::Result;
+@#C32
+@#C12
+static method #makeWithPeer#TP(self::Peer peer, typ::TypedData a, ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t8 = peer;
+    final typ::TypedData #t9 = a;
+    final ffi::Pointer<ffi::Uint8> #t10 = b;
+    final self::Result #t11 = self::#_makeWithPeer$Method$FfiNative#TP(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t8)), #t9, #t10);
+    _in::reachabilityFence(#t8);
+  } =>#t11;
+@#C37
+external static method #_makeWithPeer$Method$FfiNative#PC(ffi::Pointer<ffi::Void> #t0, ffi::Pointer<ffi::Uint8> #t1, ffi::_Compound #t2) → self::Result;
+@#C32
+@#C12
+static method #makeWithPeer#PC(self::Peer peer, ffi::Pointer<ffi::Uint8> a, ffi::_Compound b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t12 = peer;
+    final ffi::Pointer<ffi::Uint8> #t13 = a;
+    final ffi::_Compound #t14 = b;
+    final self::Result #t15 = self::#_makeWithPeer$Method$FfiNative#PC(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t12)), #t13, #t14);
+    _in::reachabilityFence(#t12);
+  } =>#t15;
+@#C37
+external static method #_makeWithPeer$Method$FfiNative#TC(ffi::Pointer<ffi::Void> #t0, typ::TypedData #t1, ffi::_Compound #t2) → self::Result;
+@#C32
+@#C12
+static method #makeWithPeer#TC(self::Peer peer, typ::TypedData a, ffi::_Compound b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t16 = peer;
+    final typ::TypedData #t17 = a;
+    final ffi::_Compound #t18 = b;
+    final self::Result #t19 = self::#_makeWithPeer$Method$FfiNative#TC(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t16)), #t17, #t18);
+    _in::reachabilityFence(#t16);
+  } =>#t19;
+@#C38
+external static method #_integerWithPeer$Method$FfiNative#T(ffi::Pointer<ffi::Void> #t0, typ::TypedData #t1) → core::int;
+@#C35
+@#C12
+static method #integerWithPeer#T(self::Peer peer, typ::TypedData a) → core::int
+  return block {
+    final nat::NativeFieldWrapperClass1 #t20 = peer;
+    final typ::TypedData #t21 = a;
+    final core::int #t22 = self::#_integerWithPeer$Method$FfiNative#T(ffi::_fromAddress<ffi::Void>(nat::_getNativeField(#t20)), #t21);
+    _in::reachabilityFence(#t20);
+  } =>#t22;
+@#C36
+external static method #_makeResult$Method$FfiNative#TT(typ::TypedData #t0, typ::TypedData #t1) → self::Result;
+@#C29
+@#C12
+static method #makeResult#TT(typ::TypedData a, typ::TypedData b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } =>self::#_makeResult$Method$FfiNative#TT(a, b);
+@#C36
+external static method #_makeResult$Method$FfiNative#PT(ffi::Pointer<ffi::Uint8> #t0, typ::TypedData #t1) → self::Result;
+@#C29
+@#C12
+static method #makeResult#PT(ffi::Pointer<ffi::Uint8> a, typ::TypedData b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } =>self::#_makeResult$Method$FfiNative#PT(a, b);
+@#C36
+external static method #_makeResult$Method$FfiNative#CP(ffi::_Compound #t0, ffi::Pointer<ffi::Uint8> #t1) → self::Result;
+@#C29
+@#C12
+static method #makeResult#CP(ffi::_Compound a, ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase(typ::Uint8List::•(#C24), #C14));
+  } =>self::#_makeResult$Method$FfiNative#CP(a, b);
+constants  {
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Int64)
+  #C6 = <core::Type>[#C5]
+  #C7 = "value"
+  #C8 = <core::String>[#C7]
+  #C9 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2, fieldNames:#C8}
+  #C10 = core::pragma {name:#C4, options:#C9}
+  #C11 = "vm:prefer-inline"
+  #C12 = core::pragma {name:#C11, options:#C2}
+  #C13 = ffi::Int64 {}
+  #C14 = 0
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C16 = 8
+  #C17 = <core::int>[#C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16]
+  #C18 = "cfe:ffi:native-marker"
+  #C19 = "makeUnion"
+  #C20 = "#lib"
+  #C21 = true
+  #C22 = ffi::Native<(ffi::Pointer<ffi::Uint8>) → self::UnionResult> {symbol:#C19, assetId:#C20, isLeaf:#C21}
+  #C23 = core::pragma {name:#C18, options:#C22}
+  #C24 = 1
+  #C25 = "vm:ffi:native"
+  #C26 = core::pragma {name:#C25, options:#C22}
+  #C27 = "makeResult"
+  #C28 = ffi::Native<(ffi::Pointer<ffi::Uint8>, ffi::Pointer<ffi::Uint8>) → self::Result> {symbol:#C27, assetId:#C20, isLeaf:#C21}
+  #C29 = core::pragma {name:#C18, options:#C28}
+  #C30 = "makeWithPeer"
+  #C31 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Pointer<ffi::Uint8>, ffi::Pointer<ffi::Uint8>) → self::Result> {symbol:#C30, assetId:#C20, isLeaf:#C21}
+  #C32 = core::pragma {name:#C18, options:#C31}
+  #C33 = "integerWithPeer"
+  #C34 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Pointer<ffi::Uint8>) → ffi::Int64> {symbol:#C33, assetId:#C20, isLeaf:#C21}
+  #C35 = core::pragma {name:#C18, options:#C34}
+  #C36 = core::pragma {name:#C25, options:#C28}
+  #C37 = core::pragma {name:#C25, options:#C31}
+  #C38 = core::pragma {name:#C25, options:#C34}
+}

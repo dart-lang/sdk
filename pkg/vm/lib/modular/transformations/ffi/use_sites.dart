@@ -21,6 +21,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
+import 'package:vm/modular/transformations/pragma.dart' show vmFfiNative;
 
 import 'common.dart'
     show FfiStaticTypeError, FfiTransformer, NativeType, FfiTypeCheckDirection;
@@ -2082,7 +2083,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     )..fileOffset = arg.fileOffset;
   }
 
-  InstanceConstant? memberGetNativeAnnotation(Member? member) {
+  InstanceConstant? memberGetNativeAnnotation(
+    Member? member, {
+    String marker = native.FfiNativeTransformer.nativeMarker,
+  }) {
     if (member == null) {
       return null;
     }
@@ -2092,8 +2096,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       )) {
         if (c.classNode == coreTypes.pragmaClass) {
           final name = c.fieldValues[coreTypes.pragmaName.fieldReference];
-          if (name is StringConstant &&
-              name.value == native.FfiNativeTransformer.nativeMarker) {
+          if (name is StringConstant && name.value == marker) {
             return c.fieldValues[coreTypes.pragmaOptions.fieldReference]
                 as InstanceConstant;
           }
@@ -2103,7 +2106,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return null;
   }
 
-  StaticInvocation _replaceNativeCall(
+  Expression _replaceNativeCall(
     StaticInvocation node,
     InstanceConstant targetNativeAnnotation,
   ) {
@@ -2121,7 +2124,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final numParams = parameterTypes.length;
     String methodPostfix = '';
     final newArguments = <Expression>[];
-    final newParameters = <PositionalParameter>[];
+    final newParameterTypes = <int, DartType>{};
     bool isTransformed = false;
     for (int i = 0; i < numParams; i++) {
       final parameter = target.function.positionalParameters[i];
@@ -2140,13 +2143,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       methodPostfix += postFix;
       if (postFix == 'C' || postFix == 'E' || postFix == 'T') {
         isTransformed = true;
+        newParameterTypes[i] = newType;
       }
-      newParameters.add(
-        PositionalParameter(
-          parameterName: parameter.parameterName,
-          type: newType,
-        ),
-      );
       newArguments.add(newArgument);
     }
 
@@ -2154,42 +2152,73 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return node;
     }
 
+    final newTarget = _specializeNativeCallTarget(
+      target,
+      methodPostfix,
+      newParameterTypes,
+      node,
+    );
+    return StaticInvocation(newTarget, Arguments(newArguments))
+      ..fileOffset = node.fileOffset
+      ..parent = node.parent;
+  }
+
+  Procedure _specializeNativeCallTarget(
+    Procedure target,
+    String methodPostfix,
+    Map<int, DartType> newParameterTypes,
+    StaticInvocation callSite,
+  ) {
     final newName = '#${target.name.text}#$methodPostfix';
-    final Procedure newTarget;
     final parent = target.parent;
     final members = switch (parent) {
       Library _ => parent.members,
       Class _ => parent.members,
       _ => throw UnimplementedError('Unexpected parent: ${parent}'),
     };
-
     final existingNewTarget = members
         .whereType<Procedure>()
         .where((element) => element.name.text == newName)
         .firstOrNull;
     if (existingNewTarget != null) {
-      newTarget = existingNewTarget;
-    } else {
-      if (!allowEnclosingMutation) {
-        _reportEnclosingMutationInProcedureMode(
-          node,
-          '@Native(isLeaf: true) function invocation',
-        );
-      }
-      final cloner = CloneProcedureWithoutBody();
-      newTarget = cloner.cloneProcedure(target, null);
-      newTarget.name = Name(newName);
-      newTarget.function.positionalParameters = newParameters;
-      setParents(newParameters, newTarget.function);
-      switch (parent) {
-        case Library _:
-          parent.addProcedure(newTarget);
-        case Class _:
-          parent.addProcedure(newTarget);
-      }
+      return existingNewTarget;
     }
-    return StaticInvocation(newTarget, Arguments(newArguments))
-      ..parent = parent;
+    if (!allowEnclosingMutation) {
+      _reportEnclosingMutationInProcedureMode(
+        callSite,
+        '@Native(isLeaf: true) function invocation',
+      );
+    }
+
+    // The native transformer may have introduced a Dart wrapper to convert
+    // native-field arguments and keep compound constructors alive. Preserve
+    // that body, including its reachability fences, and specialize the external
+    // entry point it calls with the same address-argument substitutions.
+    final cloner = _NativeCallSpecializationCloner((callee) {
+      if (memberGetNativeAnnotation(callee, marker: vmFfiNative) == null) {
+        return callee;
+      }
+      return _specializeNativeCallTarget(
+        callee,
+        methodPostfix,
+        newParameterTypes,
+        callSite,
+      );
+    });
+    for (final entry in newParameterTypes.entries) {
+      final parameter = target.function.positionalParameters[entry.key];
+      final clonedParameter =
+          cloner.visitPositionalParameter(parameter) as PositionalParameter;
+      clonedParameter.type = entry.value;
+    }
+    final newTarget = cloner.cloneProcedure(target, null)..name = Name(newName);
+    switch (parent) {
+      case Library _:
+        parent.addProcedure(newTarget);
+      case Class _:
+        parent.addProcedure(newTarget);
+    }
+    return newTarget;
   }
 
   /// Converts a single parameter with argument for [_replaceNativeCall].
@@ -2450,6 +2479,36 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ),
     );
     return newArgument;
+  }
+}
+
+/// Clones a generated native wrapper while changing its address parameters.
+class _NativeCallSpecializationCloner extends CloneVisitorWithMembers {
+  final Procedure Function(Procedure) specializeNativeTarget;
+
+  _NativeCallSpecializationCloner(this.specializeNativeTarget);
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    final result = super.visitStaticInvocation(node) as StaticInvocation;
+    result.target = specializeNativeTarget(node.target);
+    return result;
+  }
+
+  @override
+  TreeNode visitVariableDeclaration(VariableDeclaration node) {
+    final result = super.visitVariableDeclaration(node) as VariableDeclaration;
+    // _wrapArgumentsAndReturn saves arguments in temporaries before extracting
+    // native fields. A temporary holding an address argument must now hold the
+    // TypedData or _Compound rather than a Pointer.
+    if (node.initializer case VariableGet(variable: final original)) {
+      if (result.initializer case VariableGet(variable: final replacement)) {
+        if (node.variable.type == original.type) {
+          result.variable.type = replacement.type;
+        }
+      }
+    }
+    return result;
   }
 }
 
