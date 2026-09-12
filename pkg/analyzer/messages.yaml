@@ -1169,9 +1169,6 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when a name is referenced that is
       declared in two or more imported libraries.
 
-      When all of the conflicting declarations are getters or all are setters,
-      the message identifies that kind of declaration.
-
       #### Example
 
       Given a library (`a.dart`) that defines a class (`C` in this example):
