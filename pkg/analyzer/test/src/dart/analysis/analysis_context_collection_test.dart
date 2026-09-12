@@ -128,37 +128,6 @@ linter:
     );
   }
 
-  @Deprecated('Tests compatibility for updateAnalysisOptions4.')
-  test_new_analysisOptions_updateAnalysisOptions4() {
-    var rootFolder = newFolder('/home/test');
-    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, '');
-
-    var collection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      includedPaths: [rootFolder.path],
-      sdkPath: sdkRoot.path,
-      updateAnalysisOptions4: ({required analysisOptions}) {
-        analysisOptions.warning = false;
-        analysisOptions.lint = true;
-        analysisOptions.contextFeatures = FeatureSet.latestLanguageVersion(
-          flags: ['variance'],
-        );
-      },
-      withFineDependencies: true,
-    );
-    var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile)
-            as AnalysisOptionsImpl;
-
-    expect(analysisOptions.warning, isFalse);
-    expect(analysisOptions.lint, isTrue);
-    expect(
-      analysisOptions.contextFeatures.isEnabled(ExperimentalFeatures.variance),
-      isTrue,
-    );
-  }
-
   test_new_includedPaths_notAbsolute() {
     expect(
       () => AnalysisContextCollectionImpl(

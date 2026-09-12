@@ -54,9 +54,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     List<String> enabledExperiments = const [],
-    @Deprecated('Use configureAnalysisOptionsBuilder instead.')
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
     bool enableLintRuleTiming = false,
@@ -105,7 +102,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions4: updateAnalysisOptions4,
         configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
