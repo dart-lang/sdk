@@ -820,6 +820,64 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_indexExpression_cascade_direct_writeInvalid_threeParameters() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=(List<int> index, int value, int extra) {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 3 found.
+}
+
+void f(A foo) {
+  foo..[[]] = 0;
+}
+''');
+    var node = result.findNode.directAssignment('[[]] = 0');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: CascadeIndexAssignmentTarget
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: List<int>
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: <testLibrary>::@class::A::@method::[]=
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    period: ..
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: List<int>
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_indexExpression_cascade_ifNull() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1101,8 +1159,7 @@ CompoundAssignment
       staticType: int
     rightBracket: ]
     read: InvalidIndexReadResolution
-      type: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
       invokeType: void Function(int, num)
@@ -1178,8 +1235,7 @@ CompoundAssignment
       invokeType: int Function(int)
       type: int
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: +=
   value: IntegerLiteral
     literal: 2
@@ -1213,6 +1269,211 @@ V1: AssignmentExpression
   writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_indexExpression_instance_direct_writeInvalid_noParameters() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=() {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[[]] = 0;
+}
+''');
+    var node = result.findNode.directAssignment('foo[[]] = 0');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::foo
+        type: A
+      staticType: A
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: <null>
+      staticType: List<dynamic>
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: <testLibrary>::@class::A::@method::[]=
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      staticType: A
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: <null>
+      staticType: List<dynamic>
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_indexExpression_instance_direct_writeInvalid_oneParameter_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  void operator []=(List<T> index) {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 1 found.
+}
+
+void f(A<int> foo) {
+  foo[[]] = 0;
+}
+''');
+    var node = result.findNode.directAssignment('foo[[]] = 0');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::foo
+        type: A<int>
+      staticType: A<int>
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+        substitution: {T: int}
+      staticType: List<int>
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=
+        substitution: {T: int}
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      staticType: A<int>
+    leftBracket: [
+    index: ListLiteral
+      leftBracket: [
+      rightBracket: ]
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+        substitution: {T: int}
+      staticType: List<int>
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@class::A::@method::[]=
+    substitution: {T: int}
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_indexExpression_instance_direct_writeInvalid_oneParameter_indexType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=(int index) {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 1 found.
+}
+
+void f(A foo) {
+  foo['bar'] = 0;
+//    ^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+}
+''');
+    var node = result.findNode.directAssignment("foo['bar'] = 0");
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::foo
+        type: A
+      staticType: A
+    leftBracket: [
+    index: SimpleStringLiteral
+      literal: 'bar'
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: <testLibrary>::@class::A::@method::[]=
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      staticType: A
+    leftBracket: [
+    index: SimpleStringLiteral
+      literal: 'bar'
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: InvalidType
+  element: <null>
   staticType: int
 ''');
   }
@@ -1615,24 +1876,19 @@ DirectAssignment
     receiver: UnqualifiedNameExpression
       name: a
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     leftBracket: [
     index: UnqualifiedNameExpression
       name: b
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       correspondingParameter: <null>
       staticType: InvalidType
     rightBracket: ]
     read: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: c
@@ -1697,16 +1953,13 @@ DirectAssignment
     index: UnqualifiedNameExpression
       name: b
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       correspondingParameter: <null>
       staticType: InvalidType
     rightBracket: ]
     read: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: c
@@ -1773,9 +2026,7 @@ DirectAssignment
     index: UnqualifiedNameExpression
       name: b
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: InvalidType
     rightBracket: ]
@@ -1854,9 +2105,7 @@ CompoundAssignment
     receiver: UnqualifiedNameExpression
       name: a
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     leftBracket: [
     index: IntegerLiteral
@@ -1865,11 +2114,9 @@ CompoundAssignment
       staticType: int
     rightBracket: ]
     read: InvalidIndexReadResolution
-      type: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -1927,7 +2174,6 @@ DirectAssignment
       superKeyword: super
       staticType: A
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -2046,7 +2292,6 @@ DirectAssignment
       element: dart:core::@class::num::@method::+
       staticType: int
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: =
   value: IntegerLiteral
     literal: 3
@@ -2224,7 +2469,6 @@ DirectAssignment
       rightParenthesis: )
       staticType: int
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: b
@@ -2359,9 +2603,7 @@ IfNullAssignment
       operatorResultType: num
       staticType: num
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ??=
   value: UnqualifiedNameExpression
     name: y
@@ -2429,7 +2671,6 @@ DirectAssignment
       operatorResultType: num
       staticType: num
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: y
@@ -2559,9 +2800,7 @@ IfNullAssignment
       operatorResultType: num
       staticType: num
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ??=
   value: UnqualifiedNameExpression
     name: y
@@ -2629,7 +2868,6 @@ DirectAssignment
       operatorResultType: num
       staticType: num
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: =
   value: UnqualifiedNameExpression
     name: y
@@ -2687,12 +2925,9 @@ DirectAssignment
     name: C
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@class::C
-          package:test/b.dart::@class::C
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@class::C
+        package:test/b.dart::@class::C
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -2738,10 +2973,7 @@ DirectAssignment
     name: C
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::C
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::C
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -4125,10 +4357,7 @@ CompoundAssignment
       invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::A::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::A::@getter::x
   operator: +=
   value: IntegerLiteral
     literal: 2
@@ -4198,10 +4427,7 @@ CompoundAssignment
     operator: .
     propertyName: x
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::A::@setter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::A::@setter::x
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
       acceptedType: int
@@ -4403,9 +4629,7 @@ IfNullAssignment
       type: void Function()
       associatedFunctionType: void Function()
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: ??=
   value: FunctionExpression
     parameters: FormalParameterList
@@ -4496,10 +4720,7 @@ IfNullAssignment
       element: <testLibrary>::@class::A::@method::foo
       type: void Function()
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::A::@method::foo
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::A::@method::foo
   operator: ??=
   value: FunctionExpression
     parameters: FormalParameterList
@@ -4587,12 +4808,9 @@ IfNullAssignment
         substitution: {T: int}
       type: void Function(int)
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: SubstitutedMethodElementImpl
-          baseElement: <testLibrary>::@class::A::@method::foo
-          substitution: {T: int}
-      recovery: <null>
+      recoveryElement: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::foo
+        substitution: {T: int}
   operator: ??=
   value: IntegerLiteral
     literal: 0
@@ -5184,9 +5402,7 @@ IfNullAssignment
     read: RecordFieldReadResolution
       type: int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: ??=
   value: IntegerLiteral
     literal: 0
@@ -5250,13 +5466,9 @@ CompoundAssignment
     operator: .
     propertyName: b
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: +=
   value: UnqualifiedNameExpression
     name: c
@@ -6586,9 +6798,7 @@ DirectAssignment
       expression2: UnqualifiedNameExpression
         name: a
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       rightParenthesis: )
       staticType: InvalidType
@@ -6596,9 +6806,7 @@ DirectAssignment
     propertyName: b
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: c
@@ -6666,9 +6874,7 @@ DirectAssignment
     propertyName: b
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: c
@@ -6983,8 +7189,7 @@ DirectAssignment
     rightBracket: ]
     read: <null>
     write: InvalidIndexWriteResolution
-      acceptedType: InvalidType
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -7293,10 +7498,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::C::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::C::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -7342,10 +7544,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::C::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::C::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -7389,10 +7588,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -7442,10 +7638,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibraryFragment>::@prefix::x
-      recovery: <null>
+      recoveryElement: <testLibraryFragment>::@prefix::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -7489,10 +7682,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibraryFragment>::@prefix::x
-      recovery: <null>
+      recoveryElement: <testLibraryFragment>::@prefix::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -8093,10 +8283,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::B::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::B::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -8154,10 +8341,7 @@ IfNullAssignment
       element: <testLibrary>::@class::B::@method::x
       type: void Function()
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::B::@method::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::B::@method::x
   operator: ??=
   value: IntegerLiteral
     literal: 2
@@ -8209,10 +8393,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@class::B::@method::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@class::B::@method::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -8301,9 +8482,7 @@ DirectAssignment
     name: <empty> <synthetic>
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: y
@@ -8639,10 +8818,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -8861,10 +9037,7 @@ CompoundAssignment
       element: <testLibrary>::@function::foo
       type: void Function(int)
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@function::foo
-      recovery: <null>
+      recoveryElement: <testLibrary>::@function::foo
   operator: +=
   value: IntegerLiteral
     literal: 0
@@ -8911,10 +9084,7 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@function::foo
-      recovery: <null>
+      recoveryElement: <testLibrary>::@function::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -9046,10 +9216,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: <testLibrary>::@getter::x
-      recovery: <null>
+      recoveryElement: <testLibrary>::@getter::x
   operator: =
   value: IntegerLiteral
     literal: 2
@@ -9090,15 +9257,9 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: int
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
   operator: +=
   value: IntegerLiteral
     literal: 3
@@ -9143,10 +9304,7 @@ DirectAssignment
     name: int
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -9187,13 +9345,9 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -9238,9 +9392,7 @@ DirectAssignment
     name: x
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: UnqualifiedNameExpression
     name: a

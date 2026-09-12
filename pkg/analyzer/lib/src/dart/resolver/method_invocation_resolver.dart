@@ -1470,11 +1470,7 @@ class MethodInvocationResolver with ScopeHelpers {
         InternalExecutableElement element => ExecutableTearOffResolutionImpl(
           element: element,
         ),
-        var element => InvalidNamedReadResolutionImpl(
-          candidates: [?element],
-          recovery: null,
-          type: InvalidTypeImpl.instance,
-        ),
+        var element => InvalidNamedReadResolutionImpl(recoveryElement: element),
       };
     }
 

@@ -652,6 +652,16 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
 
   Int32x4 abs() => I32x4(x.abs(), y.abs(), z.abs(), w.abs());
 
+  Int32x4 operator <<(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return I32x4._truncated(x << n, y << n, z << n, w << n);
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return I32x4._truncated(x >> n, y >> n, z >> n, w >> n);
+  }
+
   int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
   Int32x4 equal(Int32x4 other) =>

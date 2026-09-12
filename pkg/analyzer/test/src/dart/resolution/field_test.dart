@@ -226,7 +226,7 @@ FieldDeclaration
         equals: =
         initializer2: ThisExpression
           thisKeyword: this
-          staticType: A
+          staticType: InvalidType
         declaredFragment: <testLibraryFragment> a@18
   semicolon: ;
   declaredFragment: <null>

@@ -123,12 +123,12 @@ vars = {
   # well so that the format presubmit check uses the same style as the repo.
   #
   # See: https://github.com/dart-lang/dart_style/wiki/Release-process
-  "dart_style_rev": "39edc2d946a5d7bd1caf6f1695f366b00f7b873c", # rolled manually
+  "dart_style_rev": "5a9534fad9ff2faba89596a70323d2b1f1bcf163", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "7e8caafa375b8bda57d88c71c5ce92e48450e5f0",
+  "core_rev": "51cf766439a2c028b39048bca1f3a02fd1c7ae0c",
   "dartdoc_rev": "df2f2cde6c18e2e613a262db05ecfe5806c40199",
   "ecosystem_rev": "1bdafd85bb97b331ddd683577f48a5dfa7f4cb49",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
@@ -136,8 +136,8 @@ vars = {
   "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "84d7edac0b48315422c9e025d2a0531b03d9f41c",
-  "protobuf_rev": "cde8e2865fe5a349cc9f476e0c89f4e4a23ac15c",
+  "native_rev": "f2b4942cc8369e0453ab581fca68af03b8356f92",
+  "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
   "pub_rev": "0382a52acba89ff0080d559bb22f4017962bbd1d", # rolled manually
   "shelf_rev": "f36dd68654814e0498c30b9f7ccc4bb0aa2bc118",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
@@ -146,7 +146,7 @@ vars = {
   "tools_rev": "682f2854809b03d8a3aa2f93298b1ea2ee62a395",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
   "web_rev": "e5c6c028da66688a2295557757850a1599ec392e",
-  "webdriver_rev": "9b2e87d7dc3fe8ed11b93066e29b3341664c0c3b",
+  "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
   # Windows deps

@@ -518,31 +518,30 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, _withY, Float64x2WithY, 0x7bee4028)          \
   V(TypedDataLibrary, _Float64x2, min, Float64x2Min, 0x3611c492)               \
   V(TypedDataLibrary, _Float64x2, max, Float64x2Max, 0x18414663)               \
-  V(TypedDataLibrary, Int32x4, _Int32x4FromInts, Int32x4FromInts, 0x2d46f8dd)  \
-  V(TypedDataLibrary, Int32x4, _Int32x4FromBools, Int32x4FromBools,            \
-    0x89c00421)                                                                \
+  V(TypedDataLibrary, Int32x4, ., Int32x4FromInts, 0xe136fe3e)                 \
+  V(TypedDataLibrary, Int32x4, Int32x4.bool, Int32x4FromBools, 0x18dcc3b4)     \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \
-  V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xa87e0b04)                     \
-  V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xdd016cce)               \
-  V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xfcf5b49b)         \
+  V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xad8370a8)                     \
+  V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xe12e0e16)               \
+  V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xafde9ab3)         \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
   V(TypedDataLibrary, _Int32x4, get:w, Int32x4GetW, 0x5b565d10)                \
-  V(TypedDataLibrary, _Int32x4, get:flagX, Int32x4GetFlagX, 0xc281ec18)        \
-  V(TypedDataLibrary, _Int32x4, get:flagY, Int32x4GetFlagY, 0xddf222f8)        \
-  V(TypedDataLibrary, _Int32x4, get:flagZ, Int32x4GetFlagZ, 0xeb9bbe4b)        \
-  V(TypedDataLibrary, _Int32x4, get:flagW, Int32x4GetFlagW, 0xf4bbd08c)        \
-  V(TypedDataLibrary, _Int32x4, get:signMask, Int32x4GetSignMask, 0x7c4dfa2a)  \
-  V(TypedDataLibrary, _Int32x4, get:anyTrue, Int32x4AnyTrue, 0xd7e59064)       \
-  V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x4044fa13)           \
-  V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x4fcb1cdc)     \
+  V(TypedDataLibrary, _Int32x4, get:flagX, Int32x4GetFlagX, 0xff8ccb1b)        \
+  V(TypedDataLibrary, _Int32x4, get:flagY, Int32x4GetFlagY, 0x49d3c0bb)        \
+  V(TypedDataLibrary, _Int32x4, get:flagZ, Int32x4GetFlagZ, 0x7f2b426e)        \
+  V(TypedDataLibrary, _Int32x4, get:flagW, Int32x4GetFlagW, 0x5559f3ef)        \
+  V(TypedDataLibrary, _Int32x4, get:signMask, Int32x4GetSignMask, 0x0eab247e)  \
+  V(TypedDataLibrary, _Int32x4, get:anyTrue, Int32x4AnyTrue, 0xf39e0442)       \
+  V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x75cf0a33)           \
+  V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x0d425838)     \
   V(TypedDataLibrary, _Int32x4, select, Int32x4Select, 0x68ad87e0)             \
-  V(TypedDataLibrary, _Int32x4, _withFlagX, Int32x4WithFlagX, 0x9c13e04a)      \
-  V(TypedDataLibrary, _Int32x4, _withFlagY, Int32x4WithFlagY, 0xbded0a49)      \
-  V(TypedDataLibrary, _Int32x4, _withFlagZ, Int32x4WithFlagZ, 0xce48ea53)      \
-  V(TypedDataLibrary, _Int32x4, _withFlagW, Int32x4WithFlagW, 0xbef4702b)      \
+  V(TypedDataLibrary, _Int32x4, withFlagX, Int32x4WithFlagX, 0x56b3f64d)       \
+  V(TypedDataLibrary, _Int32x4, withFlagY, Int32x4WithFlagY, 0x896f0288)       \
+  V(TypedDataLibrary, _Int32x4, withFlagZ, Int32x4WithFlagZ, 0x2cc7f3f4)       \
+  V(TypedDataLibrary, _Int32x4, withFlagW, Int32x4WithFlagW, 0xeead5703)       \
 
 // List of assembler intrinsics:
 // (library, class-name, function-name, intrinsification method, fingerprint).
@@ -675,11 +674,11 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, /, Float32x4Div, 0xc08217a2)                 \
   V(TypedDataLibrary, _Float32x4, -, Float32x4Sub, 0xdd15548a)                 \
   V(TypedDataLibrary, _Float32x4, +, Float32x4Add, 0xb7dc8a19)                 \
-  V(TypedDataLibrary, _Int32x4, +, Int32x4Add, 0xe9107b19)                     \
-  V(TypedDataLibrary, _Int32x4, -, Int32x4Sub, 0x0e49458a)                     \
-  V(TypedDataLibrary, _Int32x4, |, Int32x4BitOr, 0xf30a0ef5)                   \
-  V(TypedDataLibrary, _Int32x4, &, Int32x4BitAnd, 0x0da1c43d)                  \
-  V(TypedDataLibrary, _Int32x4, ^, Int32x4BitXor, 0x0c49417c)                  \
+  V(TypedDataLibrary, _Int32x4, +, Int32x4Add, 0xee5a7125)                     \
+  V(TypedDataLibrary, _Int32x4, -, Int32x4Sub, 0x76ed340e)                     \
+  V(TypedDataLibrary, _Int32x4, |, Int32x4BitOr, 0xe7c9b621)                   \
+  V(TypedDataLibrary, _Int32x4, &, Int32x4BitAnd, 0xd87b2129)                  \
+  V(TypedDataLibrary, _Int32x4, ^, Int32x4BitXor, 0xc632a870)                  \
   V(TypedDataLibrary, _Float64x2, *, Float64x2Mul, 0x37439ec6)                 \
   V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
   V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \

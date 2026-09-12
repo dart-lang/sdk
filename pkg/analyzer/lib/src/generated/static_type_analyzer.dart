@@ -240,7 +240,8 @@ class StaticTypeAnalyzer {
 
   void visitSuperExpression(covariant SuperExpressionImpl node) {
     var thisType = _resolver.unpromotedThisType;
-    if (thisType == null ||
+    if (!_resolver.isThisAccessible ||
+        thisType == null ||
         node.thisOrAncestorOfType2<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson): Report this error if it hasn't already been
       // reported.
@@ -249,9 +250,7 @@ class StaticTypeAnalyzer {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
         _resolver.flowAnalysis.flow?.thisOrSuper(
-          SharedTypeView(
-            _resolver.isThisAccessible ? thisType : InvalidTypeImpl.instance,
-          ),
+          SharedTypeView(thisType),
           isSuper: true,
         ),
       );
@@ -266,13 +265,13 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
-    var staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
+    var staticType =
+        (_resolver.isThisAccessible ? _resolver.thisType : null) ??
+        InvalidTypeImpl.instance;
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
       _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(
-          _resolver.isThisAccessible ? staticType : InvalidTypeImpl.instance,
-        ),
+        SharedTypeView(staticType),
         isSuper: false,
       ),
     );

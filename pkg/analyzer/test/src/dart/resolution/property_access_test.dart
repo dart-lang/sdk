@@ -1001,9 +1001,7 @@ RegularFormalParameter
       target2: UnqualifiedNameExpression
         name: b
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       target(v1): SimpleIdentifier
         token: b
@@ -1015,9 +1013,7 @@ RegularFormalParameter
           body: CascadePropertyExtraction
             name: foo
             resolution: InvalidNamedReadResolution
-              type: InvalidType
-              candidates
-              recovery: <null>
+              recoveryElement: <null>
             staticType: InvalidType
       cascadeSections
         PropertyAccess
@@ -2423,9 +2419,7 @@ ReceiverPropertyExtraction
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: ParenthesizedExpression
@@ -3859,9 +3853,7 @@ ReceiverPropertyExtraction
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: ParenthesizedExpression
@@ -3918,18 +3910,14 @@ ReceiverPropertyExtraction
     expression2: UnqualifiedNameExpression
       name: a
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: ParenthesizedExpression

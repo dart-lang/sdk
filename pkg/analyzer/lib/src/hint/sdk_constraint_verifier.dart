@@ -310,15 +310,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _checkIndexRead(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    _checkSinceSdkVersion(element, node);
+    _checkSinceSdkVersion(node.resolution?.elementOrRecovery, node);
   }
 
   void _checkNamedFunctionInvocation(NamedFunctionInvocation node) {
@@ -334,7 +326,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     AstNode node, {
     required SyntacticEntity errorEntity,
   }) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
     _checkSinceSdkVersion(element, node, errorEntity: errorEntity);
   }
 

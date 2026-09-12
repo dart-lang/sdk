@@ -131,10 +131,7 @@ library
                     invokeType: int Function()
                     type: int
                   write: InvalidNamedWriteResolution
-                    acceptedType: InvalidType
-                    candidates
-                      candidate: <testLibrary>::@getter::a
-                    recovery: <null>
+                    recoveryElement: <testLibrary>::@getter::a
                 operator: += @26
                 value: IntegerLiteral
                   literal: 1 @29
@@ -171,10 +168,7 @@ library
                   name: a @44
                   read: <null>
                   write: InvalidNamedWriteResolution
-                    acceptedType: InvalidType
-                    candidates
-                      candidate: <testLibrary>::@getter::a
-                    recovery: <null>
+                    recoveryElement: <testLibrary>::@getter::a
                 operator: = @46
                 value: IntegerLiteral
                   literal: 1 @48
@@ -431,7 +425,6 @@ library
                     literal: 0 @11
                     staticType: int
                   write: InvalidWriteResolution
-                    acceptedType: InvalidType
                 operator: = @13
                 value: IntegerLiteral
                   literal: 1 @15
@@ -498,9 +491,7 @@ library
                     literal: 0 @11
                     staticType: int
                   read: InvalidReadResolution
-                    type: InvalidType
                   write: InvalidWriteResolution
-                    acceptedType: InvalidType
                 operator: ??= @13
                 value: IntegerLiteral
                   literal: 1 @17
@@ -3012,9 +3003,7 @@ library
               condition2: UnqualifiedNameExpression
                 name: b @31
                 resolution: InvalidNamedReadResolution
-                  type: InvalidType
-                  candidates
-                  recovery: <null>
+                  recoveryElement: <null>
                 staticType: InvalidType
               condition(v1): SimpleIdentifier
                 token: b @31
@@ -7124,10 +7113,7 @@ library
                   invokeType: int Function()
                   type: int
                 write: InvalidNamedWriteResolution
-                  acceptedType: InvalidType
-                  candidates
-                    candidate: <testLibrary>::@getter::a
-                  recovery: <null>
+                  recoveryElement: <testLibrary>::@getter::a
               operator: ++ @24
               operation: increment
               position: postfix
@@ -7199,9 +7185,7 @@ library
                     rightParenthesis: ) @13
                     staticType: int
                   read: InvalidReadResolution
-                    type: InvalidType
                   write: InvalidWriteResolution
-                    acceptedType: InvalidType
                 operator: ++ @14
                 operation: increment
                 position: postfix
@@ -7411,10 +7395,7 @@ library
                   invokeType: int Function()
                   type: int
                 write: InvalidNamedWriteResolution
-                  acceptedType: InvalidType
-                  candidates
-                    candidate: <testLibrary>::@getter::a
-                  recovery: <null>
+                  recoveryElement: <testLibrary>::@getter::a
               operation: increment
               position: prefix
               element: dart:core::@class::num::@method::+
@@ -7486,9 +7467,7 @@ library
                     rightParenthesis: ) @15
                     staticType: int
                   read: InvalidReadResolution
-                    type: InvalidType
                   write: InvalidWriteResolution
-                    acceptedType: InvalidType
                 operation: increment
                 position: prefix
                 element: <null>
@@ -9474,9 +9453,7 @@ library
             UnqualifiedNameExpression
               name: foo @10
               resolution: InvalidNamedReadResolution
-                type: InvalidType
-                candidates
-                recovery: <null>
+                recoveryElement: <null>
               staticType: InvalidType
           inducedGetter: #F2
       getters

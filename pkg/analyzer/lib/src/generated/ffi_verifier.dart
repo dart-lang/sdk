@@ -144,14 +144,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var element = node.resolution?.elementOrRecovery;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if ((enclosingElement.isNativeStructPointerExtension ||
@@ -582,14 +575,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitReceiverIndexExpression(
     covariant ReceiverIndexExpressionImpl node,
   ) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var element = node.resolution?.elementOrRecovery;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||

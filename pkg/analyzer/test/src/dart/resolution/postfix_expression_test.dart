@@ -555,9 +555,7 @@ IncrementOrDecrementExpression
       operatorResultType: int
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -699,9 +697,7 @@ IncrementOrDecrementExpression
       operatorResultType: int
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -1011,9 +1007,7 @@ IncrementOrDecrementExpression
       rightParenthesis: )
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1053,15 +1047,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: int
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
   operator: ++
   operation: increment
   position: postfix
@@ -1098,15 +1086,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: T
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: #E0 T
-      recovery: <null>
+      recoveryElement: #E0 T
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: #E0 T
-      recovery: <null>
+      recoveryElement: #E0 T
   operator: ++
   operation: increment
   position: postfix
@@ -1869,9 +1851,7 @@ IncrementOrDecrementExpression
       superKeyword: super
       staticType: A
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1931,9 +1911,7 @@ IncrementOrDecrementExpression
       rightBracket: }
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1987,13 +1965,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: ++
   operation: increment
   position: postfix

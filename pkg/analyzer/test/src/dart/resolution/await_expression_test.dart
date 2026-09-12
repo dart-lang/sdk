@@ -120,9 +120,7 @@ AwaitExpression
   expression2: UnqualifiedNameExpression
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): SimpleIdentifier
     token: unresolved
@@ -154,9 +152,7 @@ AwaitExpression
       element: <testLibraryFragment>::@prefix::prefix
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -202,9 +198,7 @@ AwaitExpression
     operator: .
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): PropertyAccess
     target: PropertyAccess

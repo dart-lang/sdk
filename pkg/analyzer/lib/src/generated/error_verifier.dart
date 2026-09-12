@@ -1378,11 +1378,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => node.write?.element,
-    };
+    var element = node.write?.elementOrRecovery;
     if (_checkForEachParts(element, node)) {
       _checkForAssignmentToFinal2(node.identifier2, element);
     }
@@ -1637,23 +1633,22 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    var ambiguousRead = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
+    var ambiguousRead = node.read
+        .tryCast<InvalidNamedReadResolution>()
+        ?.recoveryElement
+        .tryCast<MultiplyDefinedElementImpl>();
     // Getter-only conflicts are recovery for a missing setter, not write
     // ambiguities. Report them only when the assignment also reads the name.
     var ambiguousWrite = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstWhereOrNull(
-          (element) =>
-              element.conflictingElements.any((e) => e is! GetterElement),
-        ),
+      InvalidNamedWriteResolution(
+        recoveryElement: MultiplyDefinedElementImpl element,
+      )
+          when element.conflictingElements.any((e) => e is! GetterElement) =>
+        element,
       _ => null,
     };
     _checkForAmbiguousImport(element: ambiguousRead, name: node.name);
-    // Recovery candidates can reuse the same scope element in both resolutions.
+    // Both resolutions can retain the same scope element for recovery.
     if (!identical(ambiguousWrite, ambiguousRead)) {
       _checkForAmbiguousImport(element: ambiguousWrite, name: node.name);
     }
@@ -1671,11 +1666,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
     _constArgumentsVerifier.checkNameExpression(node);
-    var ambiguousElement = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
+    var ambiguousElement = node.resolution
+        .tryCast<InvalidNamedReadResolution>()
+        ?.recoveryElement
+        .tryCast<MultiplyDefinedElementImpl>();
     _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     _checkUseVerifier.checkNameExpression(node, node.resolution);
     super.visitImportPrefixedNameExpression(node);
@@ -2215,16 +2209,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    var ambiguousElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
-    ambiguousElement ??= switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
+    var ambiguousElement = node.read
+        .tryCast<InvalidNamedReadResolution>()
+        ?.recoveryElement
+        .tryCast<MultiplyDefinedElementImpl>();
+    ambiguousElement ??= node.write
+        .tryCast<InvalidNamedWriteResolution>()
+        ?.recoveryElement
+        .tryCast<MultiplyDefinedElementImpl>();
     _checkForAmbiguousImport(
       element: ambiguousElement,
       name: node.propertyName,
@@ -2666,11 +2658,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _constArgumentsVerifier.checkNameExpression(node);
     var element = node.resolution?.element;
-    var ambiguousElement = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
+    var ambiguousElement = node.resolution
+        .tryCast<InvalidNamedReadResolution>()
+        ?.recoveryElement
+        .tryCast<MultiplyDefinedElementImpl>();
     _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     _checkForReferenceBeforeDeclaration(element: element, nameToken: node.name);
     _checkForInvalidInstanceMemberAccess2(

@@ -1733,7 +1733,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         _ => null,
       };
     } else if (expression is NameExpression) {
-      element = expression.resolution.elementOrRecovery;
+      element = expression.resolution?.elementOrRecovery;
       // An executable name expression is a tear-off, not a value read from a
       // declaration carrying `doNotStore`.
       if (element is LocalFunctionElement ||
@@ -1978,11 +1978,8 @@ class _InvalidAccessVerifier {
   void verifyImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => node.write?.element,
-    };
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.name, element: element);
     }
@@ -2038,7 +2035,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyNameExpression(NameExpression node) {
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
     _verify(node: node, nameToken: node.name, element: element);
   }
 
@@ -2070,12 +2067,8 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      _ => node.write?.element,
-    };
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.propertyName, element: element);
     }
@@ -2112,12 +2105,8 @@ class _InvalidAccessVerifier {
   void verifyUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      _ => node.write?.element,
-    };
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
     for (var element in {readElement, writeElement}) {
       _verify(node: node, nameToken: node.name, element: element);
     }

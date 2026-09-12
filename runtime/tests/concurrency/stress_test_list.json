@@ -339,7 +339,6 @@
   "../vm/dart/string_intern_test.dart",
   "../vm/dart/switchable_call_monomorphic_regression_42517_test.dart",
   "../vm/dart/switchable_call_single_target_regression_42517_test.dart",
-  "../vm/dart/trigger_gc_in_native_test.dart",
   "../vm/dart/truncating_ints_test.dart",
   "../vm/dart/tts_regression39716_test.dart",
   "../vm/dart/type_argument_factory_constructor_test.dart",

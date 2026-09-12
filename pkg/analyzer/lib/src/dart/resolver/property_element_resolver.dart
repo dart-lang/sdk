@@ -115,9 +115,11 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
       return (
-        read: hasRead ? InvalidIndexReadResolutionImpl(recovery: null) : null,
+        read: hasRead
+            ? InvalidIndexReadResolutionImpl(recoveryElement: null)
+            : null,
         write: hasWrite
-            ? InvalidIndexWriteResolutionImpl(recovery: null)
+            ? InvalidIndexWriteResolutionImpl(recoveryElement: null)
             : null,
       );
     }
@@ -246,13 +248,10 @@ class PropertyElementResolver with ScopeHelpers {
                       type: result.getType as TypeImpl?,
                     ) ??
                     InvalidNamedReadResolutionImpl(
-                      candidates: [
-                        ?readElement,
-                        ?result.readElementRecovery2,
-                        ?writeElement,
-                      ],
-                      recovery: null,
-                      type: InvalidTypeImpl.instance,
+                      recoveryElement:
+                          readElement ??
+                          result.readElementRecovery2 ??
+                          writeElement,
                     ));
     }
 
@@ -262,13 +261,10 @@ class PropertyElementResolver with ScopeHelpers {
           ? const DynamicPropertyWriteResolutionImpl()
           : _createNamedWriteResolutionWithElement(writeElement) ??
                 InvalidNamedWriteResolutionImpl(
-                  acceptedType: InvalidTypeImpl.instance,
-                  candidates: [
-                    ?writeElement,
-                    ?result.writeElementRecovery2,
-                    ?readElement,
-                  ],
-                  recovery: null,
+                  recoveryElement:
+                      writeElement ??
+                      result.writeElementRecovery2 ??
+                      readElement,
                 );
     }
 
@@ -350,11 +346,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-    return InvalidNamedReadResolutionImpl(
-      candidates: const [],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
-    );
+    return InvalidNamedReadResolutionImpl(recoveryElement: null);
   }
 
   NamedWriteResolutionImpl resolveForEachPartsWithIdentifier(
@@ -395,9 +387,7 @@ class PropertyElementResolver with ScopeHelpers {
       node.write =
           _createNamedWriteResolutionWithElement(result.writeElement2) ??
           InvalidNamedWriteResolutionImpl(
-            acceptedType: InvalidTypeImpl.instance,
-            candidates: [?result.writeElement2, ?result.readElement2],
-            recovery: null,
+            recoveryElement: result.writeElement2 ?? result.readElement2,
           );
     }
   }
@@ -437,12 +427,7 @@ class PropertyElementResolver with ScopeHelpers {
           type: result.getType as TypeImpl? ?? _namedReadType(element),
         ) ??
         InvalidNamedReadResolutionImpl(
-          candidates: [?element, ?recoveryElement],
-          recovery: _createNamedReadResolutionWithElement(
-            recoveryElement,
-            type: _namedReadType(recoveryElement),
-          ),
-          type: InvalidTypeImpl.instance,
+          recoveryElement: element ?? recoveryElement,
         );
   }
 
@@ -488,7 +473,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
-      return InvalidIndexWriteResolutionImpl(recovery: null);
+      return InvalidIndexWriteResolutionImpl(recoveryElement: null);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -692,8 +677,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
       return (
-        read: InvalidIndexReadResolutionImpl(recovery: null),
-        write: InvalidIndexWriteResolutionImpl(recovery: null),
+        read: InvalidIndexReadResolutionImpl(recoveryElement: null),
+        write: InvalidIndexWriteResolutionImpl(recoveryElement: null),
       );
     }
 
@@ -855,7 +840,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
-      return InvalidIndexReadResolutionImpl(recovery: null);
+      return InvalidIndexReadResolutionImpl(recoveryElement: null);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -909,11 +894,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (receiverType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
-      return InvalidNamedWriteResolutionImpl(
-        acceptedType: InvalidTypeImpl.instance,
-        candidates: const [],
-        recovery: null,
-      );
+      return InvalidNamedWriteResolutionImpl(recoveryElement: null);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -958,9 +939,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     return _createNamedWriteResolutionWithElement(writeElement) ??
         InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: [?writeElement, ?writeRecovery],
-          recovery: null,
+          recoveryElement: writeElement ?? writeRecovery,
         );
   }
 
@@ -992,11 +971,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (receiverType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
-      var resolution = InvalidNamedReadResolutionImpl(
-        candidates: const [],
-        recovery: null,
-        type: InvalidTypeImpl.instance,
-      );
+      var resolution = InvalidNamedReadResolutionImpl(recoveryElement: null);
       return (
         expressionInfo: null,
         resolution: resolution,
@@ -1083,9 +1058,7 @@ class PropertyElementResolver with ScopeHelpers {
     resolution ??= _typeSystem.isDynamicBounded(receiverType)
         ? DynamicPropertyReadResolutionImpl()
         : InvalidNamedReadResolutionImpl(
-            candidates: [?readElement, ?result.setter2],
-            recovery: null,
-            type: InvalidTypeImpl.instance,
+            recoveryElement: readElement ?? result.setter2,
           );
     return (
       expressionInfo: expressionInfo,
@@ -1160,16 +1133,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
       return (
-        read: InvalidNamedReadResolutionImpl(
-          candidates: const [],
-          recovery: null,
-          type: InvalidTypeImpl.instance,
-        ),
-        write: InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: const [],
-          recovery: null,
-        ),
+        read: InvalidNamedReadResolutionImpl(recoveryElement: null),
+        write: InvalidNamedWriteResolutionImpl(recoveryElement: null),
         readExpressionInfo: null,
       );
     }
@@ -1263,16 +1228,12 @@ class PropertyElementResolver with ScopeHelpers {
           type: readType,
         );
     readResolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElement, ?writeElement],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
+      recoveryElement: readElement ?? writeElement,
     );
     NamedWriteResolutionImpl? writeResolution =
         _createNamedWriteResolutionWithElement(writeElement);
     writeResolution ??= InvalidNamedWriteResolutionImpl(
-      acceptedType: InvalidTypeImpl.instance,
-      candidates: [?writeElement, ?readElement],
-      recovery: null,
+      recoveryElement: writeElement ?? readElement,
     );
 
     return (
@@ -1536,20 +1497,19 @@ class PropertyElementResolver with ScopeHelpers {
     required bool atDynamicTarget,
     required bool isInvalid,
   }) {
-    MethodIndexReadResolutionImpl? methodResolution;
-    if (element is InternalMethodElement &&
-        element.formalParameters.length == 1) {
-      methodResolution = MethodIndexReadResolutionImpl(
-        element: element,
-        type: element.returnType,
-      );
+    if (element is InternalMethodElement) {
+      if (!isInvalid && element.formalParameters.length == 1) {
+        return MethodIndexReadResolutionImpl(
+          element: element,
+          type: element.returnType,
+        );
+      }
+      return InvalidIndexReadResolutionImpl(recoveryElement: element);
     }
-    if (isInvalid) {
-      return InvalidIndexReadResolutionImpl(recovery: methodResolution);
+    if (!isInvalid && atDynamicTarget) {
+      return const DynamicIndexReadResolutionImpl();
     }
-    if (methodResolution != null) return methodResolution;
-    if (atDynamicTarget) return const DynamicIndexReadResolutionImpl();
-    return InvalidIndexReadResolutionImpl(recovery: null);
+    return InvalidIndexReadResolutionImpl(recoveryElement: null);
   }
 
   IndexWriteResolutionImpl _createIndexWriteResolution(
@@ -1557,17 +1517,16 @@ class PropertyElementResolver with ScopeHelpers {
     required bool atDynamicTarget,
     required bool isInvalid,
   }) {
-    MethodIndexWriteResolutionImpl? methodResolution;
-    if (element is InternalMethodElement &&
-        element.formalParameters.length == 2) {
-      methodResolution = MethodIndexWriteResolutionImpl(element: element);
+    if (element is InternalMethodElement) {
+      if (!isInvalid && element.formalParameters.length == 2) {
+        return MethodIndexWriteResolutionImpl(element: element);
+      }
+      return InvalidIndexWriteResolutionImpl(recoveryElement: element);
     }
-    if (isInvalid) {
-      return InvalidIndexWriteResolutionImpl(recovery: methodResolution);
+    if (!isInvalid && atDynamicTarget) {
+      return const DynamicIndexWriteResolutionImpl();
     }
-    if (methodResolution != null) return methodResolution;
-    if (atDynamicTarget) return const DynamicIndexWriteResolutionImpl();
-    return InvalidIndexWriteResolutionImpl(recovery: null);
+    return InvalidIndexWriteResolutionImpl(recoveryElement: null);
   }
 
   NamedReadResolutionWithElementImpl? _createNamedReadResolutionWithElement(
@@ -1644,12 +1603,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     var recoveryElement = result.readElementRecovery2;
     return InvalidNamedReadResolutionImpl(
-      candidates: [?requestedElement, ?recoveryElement],
-      recovery: _createNamedReadResolutionWithElement(
-        recoveryElement,
-        type: readType(recoveryElement),
-      ),
-      type: InvalidTypeImpl.instance,
+      recoveryElement: requestedElement ?? recoveryElement,
     );
   }
 
@@ -1703,20 +1657,14 @@ class PropertyElementResolver with ScopeHelpers {
       type: result.getType as TypeImpl?,
     );
     readResolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElement, ?result.readElementRecovery2, ?writeElement],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
+      recoveryElement:
+          readElement ?? result.readElementRecovery2 ?? writeElement,
     );
     var writeResolution =
         _createNamedWriteResolutionWithElement(writeElement) ??
         InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: [
-            ?writeElement,
-            ?result.writeElementRecovery2,
-            ?readElement,
-          ],
-          recovery: null,
+          recoveryElement:
+              writeElement ?? result.writeElementRecovery2 ?? readElement,
         );
     return (
       read: readResolution,
@@ -2459,12 +2407,7 @@ class PropertyElementResolver with ScopeHelpers {
       type: readType,
     );
     resolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElementRequested, ?readElementRecovery],
-      recovery: _createNamedReadResolutionWithElement(
-        readElementRecovery,
-        type: _namedReadType(readElementRecovery),
-      ),
-      type: InvalidTypeImpl.instance,
+      recoveryElement: readElementRequested ?? readElementRecovery,
     );
     return (resolution: resolution, expressionInfo: expressionInfo);
   }
@@ -2504,9 +2447,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (requestedResolution != null) return requestedResolution;
 
     return InvalidNamedWriteResolutionImpl(
-      acceptedType: InvalidTypeImpl.instance,
-      candidates: [?writeElementRequested, ?writeElementRecovery],
-      recovery: _createNamedWriteResolutionWithElement(writeElementRecovery),
+      recoveryElement: writeElementRequested ?? writeElementRecovery,
     );
   }
 

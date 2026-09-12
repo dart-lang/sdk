@@ -1733,6 +1733,28 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 operator <<(int shiftAmount) {
+    // JavaScript's `<<` operates on 32-bit signed integers and takes the count
+    // modulo 32, matching the lane semantics.
+    return NativeInt32x4._truncated(
+      JS<int>('!', '(# << #) | 0', x, shiftAmount),
+      JS<int>('!', '(# << #) | 0', y, shiftAmount),
+      JS<int>('!', '(# << #) | 0', z, shiftAmount),
+      JS<int>('!', '(# << #) | 0', w, shiftAmount),
+    );
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    // `>>` is the sign-propagating (arithmetic) shift on 32-bit signed
+    // integers.
+    return NativeInt32x4._truncated(
+      JS<int>('!', '# >> #', x, shiftAmount),
+      JS<int>('!', '# >> #', y, shiftAmount),
+      JS<int>('!', '# >> #', z, shiftAmount),
+      JS<int>('!', '# >> #', w, shiftAmount),
+    );
+  }
+
   /// Extract the top bit from each lane return them in the first 4 bits.
   int get signMask {
     int mx = (x & 0x80000000) >> 31;

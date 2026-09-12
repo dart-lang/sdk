@@ -665,9 +665,7 @@ GuardedPattern
     expression2: UnqualifiedNameExpression
       name: foo
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     expression(v1): SimpleIdentifier
       token: foo

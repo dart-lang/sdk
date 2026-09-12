@@ -4126,6 +4126,32 @@ main() {
 ''');
   }
 
+  test_searchReferences_ExtensionElement_invalidRead() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  p.E;
+}
+''');
+    var element = result.findElement.extension_('E');
+    await assertElementReferencesText(element, r'''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  ^ REFERENCE
+  p.E;
+    ^ REFERENCE qualified
+}
+''');
+  }
+
   test_searchReferences_ExtensionTypeElement_reference_annotation() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;

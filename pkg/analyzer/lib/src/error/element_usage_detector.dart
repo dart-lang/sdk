@@ -311,15 +311,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void indexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    checkUsage(element, node);
+    checkUsage(node.resolution?.elementOrRecovery, node);
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
@@ -801,11 +793,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => node.write?.element,
-    };
+    var element = node.write?.elementOrRecovery;
     checkUsage(element, node, usageRange: node.sourceRange);
   }
 
@@ -858,15 +846,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void indexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    checkUsage(element, node, usageRange: node.sourceRange);
+    checkUsage(
+      node.resolution?.elementOrRecovery,
+      node,
+      usageRange: node.sourceRange,
+    );
   }
 
   void methodInvocation(MethodInvocation node) {
@@ -887,7 +871,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void nameExpression(NameExpression node) {
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
 
     // The omitted qualifier also refers to the enclosing declaration.
     if (node is DotShorthandNameExpression) {

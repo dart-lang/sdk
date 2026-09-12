@@ -1328,6 +1328,22 @@ void f(int x) {
 ''');
   }
 
+  test_locate_ForEachPartsWithIdentifier_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get foo => 0;
+
+void f() {
+  for (foo in <int>[]) {}
+//     ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+}
+''');
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@getter::foo
+''');
+  }
+
   test_locate_FunctionDeclaration_local() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
@@ -1840,6 +1856,42 @@ void f(A a) {
 ''');
   }
 
+  test_locate_ReceiverIndexAssignmentTarget_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=() {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
+  test_locate_ReceiverIndexExpression_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator []() => 0;
+//             ^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]' should declare exactly 1 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[0];
+}
+''');
+    var node = result.findNode.receiverIndexExpression('[0]');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::[]
+''');
+  }
+
   test_locate_ReceiverPropertyExtraction_invalidRead() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1853,7 +1905,9 @@ void f(A a) {
 }
 ''');
     var node = result.findNode.singleReceiverPropertyExtraction;
-    expect(ElementLocatorV2.locate(node), isNull);
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@setter::foo
+''');
   }
 
   test_locate_ReceiverPropertyExtraction_methodTearOff() async {

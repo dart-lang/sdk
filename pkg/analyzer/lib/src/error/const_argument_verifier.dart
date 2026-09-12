@@ -255,7 +255,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
           return element.isConst;
       }
     } else if (expression is NameExpression) {
-      var element = expression.resolution.elementOrRecovery;
+      var element = expression.resolution?.elementOrRecovery;
       return switch (element) {
         GetterElement() => element.variable.isConst,
         VariableElement() => element.isConst,

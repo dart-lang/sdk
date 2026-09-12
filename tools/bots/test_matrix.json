@@ -3594,6 +3594,10 @@
         {
           "name": "build devtools",
           "script": "tools/build_devtools.py"
+        },
+        {
+          "name": "test devtools",
+          "script": "tools/test_devtools.py"
         }
       ]
     }

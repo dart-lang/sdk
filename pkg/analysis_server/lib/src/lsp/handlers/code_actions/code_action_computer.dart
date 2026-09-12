@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @docImport 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
-/// @docImport 'package:language_server_protocol/protocol_special.dart';
 /// @docImport 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
+/// @docImport 'package:language_server_protocol/protocol_special.dart';
 library;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';

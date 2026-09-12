@@ -43,12 +43,9 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
       acceptedType: int
@@ -104,19 +101,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -171,19 +162,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@function::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@function::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@function::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@function::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -242,19 +227,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -313,19 +292,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@function::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@function::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -386,19 +359,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@getter::foo
+        package:test/a.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/a.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -510,12 +477,9 @@ CompoundAssignment
       invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/c.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/c.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -569,19 +533,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -636,19 +594,13 @@ CompoundAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
   operator: +=
   value: IntegerLiteral
     literal: 1
@@ -757,12 +709,9 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -816,12 +765,9 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -877,12 +823,9 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/a.dart::@setter::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -934,12 +877,9 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/c.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/c.dart::@setter::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -1034,12 +974,9 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -1085,10 +1022,7 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: package:test/a.dart::@getter::foo
   operator: =
   value: IntegerLiteral
     literal: 1
@@ -1132,9 +1066,7 @@ DirectAssignment
     name: foo
     read: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: =
   value: IntegerLiteral
     literal: 1
@@ -1186,12 +1118,9 @@ IfNullAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
       acceptedType: int
@@ -1244,19 +1173,13 @@ IfNullAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
   operator: ??=
   value: IntegerLiteral
     literal: 1
@@ -1308,10 +1231,7 @@ IfNullAssignment
       invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: package:test/a.dart::@getter::foo
   operator: ??=
   value: IntegerLiteral
     literal: 1
@@ -1363,19 +1283,13 @@ IfNullAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operator: ??=
   value: IntegerLiteral
     literal: 1
@@ -1433,19 +1347,13 @@ IfNullAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@getter::foo
+        package:test/a.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/a.dart::@setter::foo
   operator: ??=
   value: IntegerLiteral
     literal: 1
@@ -1551,12 +1459,9 @@ IfNullAssignment
       invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/c.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/c.dart::@setter::foo
   operator: ??=
   value: IntegerLiteral
     literal: 1
@@ -1602,12 +1507,7 @@ IfNullAssignment
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: package:test/a.dart::@setter::foo
-      recovery: ExecutableTearOffResolution
-        element: package:test/a.dart::@setter::foo
-        type: void Function(int)
+      recoveryElement: package:test/a.dart::@setter::foo
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
       acceptedType: int
@@ -1707,12 +1607,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
       acceptedType: int
@@ -1761,19 +1658,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
   operator: ++
   operation: increment
   position: postfix
@@ -1825,19 +1716,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operator: ++
   operation: increment
   position: postfix
@@ -1891,19 +1776,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@getter::foo
+        package:test/a.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/a.dart::@setter::foo
   operator: ++
   operation: increment
   position: postfix
@@ -1956,12 +1835,9 @@ IncrementOrDecrementExpression
       invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/c.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/c.dart::@setter::foo
   operator: ++
   operation: increment
   position: postfix
@@ -2007,19 +1883,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
   operator: ++
   operation: increment
   position: postfix
@@ -2072,12 +1942,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: SetterInvocationResolution
       element: package:test/c.dart::@setter::foo
       acceptedType: int
@@ -2126,19 +1993,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
   operation: increment
   position: prefix
   element: <null>
@@ -2190,19 +2051,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/c.dart::@setter::foo
-          package:test/d.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/c.dart::@setter::foo
+        package:test/d.dart::@setter::foo
   operation: increment
   position: prefix
   element: <null>
@@ -2256,19 +2111,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@getter::foo
-          package:test/a.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@getter::foo
+        package:test/a.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/a.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/a.dart::@setter::foo
   operation: increment
   position: prefix
   element: <null>
@@ -2366,12 +2215,9 @@ IncrementOrDecrementExpression
       invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/b.dart::@setter::foo
-          package:test/c.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/b.dart::@setter::foo
+        package:test/c.dart::@setter::foo
   operation: increment
   position: prefix
   element: dart:core::@class::num::@method::+
@@ -2417,19 +2263,13 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: foo
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@getter::foo
-          package:test/b.dart::@getter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@getter::foo
+        package:test/b.dart::@getter::foo
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: multiplyDefinedElement
-          package:test/a.dart::@setter::foo
-          package:test/b.dart::@setter::foo
-      recovery: <null>
+      recoveryElement: multiplyDefinedElement
+        package:test/a.dart::@setter::foo
+        package:test/b.dart::@setter::foo
   operation: increment
   position: prefix
   element: <null>
