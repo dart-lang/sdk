@@ -158,12 +158,8 @@ class MigrationRunner({
           continue;
         }
 
-        var normalizedInitialVersion = Version(
-          initialVersion.major,
-          initialVersion.minor,
-          0,
-        );
-        if (!knownSdkVersions.contains(normalizedInitialVersion)) {
+        var truncatedInitialVersion = initialVersion.truncatedToMinor;
+        if (!knownSdkVersions.contains(truncatedInitialVersion)) {
           packageSummary.recordSkipped(
             'The package SDK version "$initialVersion" is not supported for '
             'migration. It must be between ${knownSdkVersions.first} and '
@@ -174,7 +170,7 @@ class MigrationRunner({
 
         if (targetSdk == null &&
             (runPrepare || runBump) &&
-            normalizedInitialVersion == knownSdkVersions.last) {
+            truncatedInitialVersion == knownSdkVersions.last) {
           packageSummary.recordSkipped(
             'The package is already at the latest supported SDK version '
             '(${knownSdkVersions.last}).',
@@ -445,7 +441,7 @@ class MigrationRunner({
   /// Returns `true` if [currentVersion] has reached or exceeded [targetSdk].
   bool _hasReachedTarget(Version currentVersion, Version? targetSdk) {
     if (targetSdk == null) return false;
-    return currentVersion >= Version(targetSdk.major, targetSdk.minor, 0);
+    return currentVersion >= targetSdk.truncatedToMinor;
   }
 
   /// Reports progress with the current stage [message].
