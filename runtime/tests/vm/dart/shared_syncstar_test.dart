@@ -4,8 +4,7 @@
 //
 // VMOptions=--experimental-shared-data
 //
-import 'dart:_internal' show VMInternalsForTesting;
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:_internal' show VMInternalsForTesting, IsolateGroup;
 
 Iterable<int> syncStar() sync* {
   yield 0;

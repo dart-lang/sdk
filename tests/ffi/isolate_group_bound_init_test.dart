@@ -12,11 +12,12 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=true
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
+// ignore: import_internal_library
+import 'dart:_internal' show IsolateGroup;
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:isolate';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
