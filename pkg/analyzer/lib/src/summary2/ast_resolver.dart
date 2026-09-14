@@ -75,7 +75,7 @@ class AstResolver {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
     node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
       // Offsets are ignored when doing summary linking.
@@ -83,7 +83,7 @@ class AstResolver {
     );
     node.accept2(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
@@ -100,7 +100,7 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       node,
       element.formalParameters,
       visit: accept,
@@ -109,7 +109,7 @@ class AstResolver {
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   /// If resolving the initializer of a non-late instance field, there
@@ -126,7 +126,7 @@ class AstResolver {
     // Node may have been rewritten so get it again.
     node = getNode();
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       node.parent2 as FlowAnalysisRootImpl,
       inScopePrimaryConstructorParameters,
       // Offsets are ignored when doing summary linking.
@@ -149,7 +149,7 @@ class AstResolver {
     );
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolvePrimaryConstructor(
@@ -170,7 +170,7 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       body,
       element.formalParameters,
       visit: accept,
@@ -179,7 +179,7 @@ class AstResolver {
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void _prepareEnclosingDeclarations() {

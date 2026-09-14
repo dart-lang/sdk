@@ -102,8 +102,8 @@ class FlowAnalysisHelper {
   /// The AST node that acts as the root of the flow analysis that's currently
   /// in progress, or `null` if flow analysis isn't currently in progress.
   ///
-  /// This is the node that was passed to [bodyOrInitializer_enter]; when
-  /// [bodyOrInitializer_exit] is called, the resulting [FlowAnalysisLog] is
+  /// This is the node that was passed to [flowAnalysisRoot_enter]; when
+  /// [flowAnalysisRoot_exit] is called, the resulting [FlowAnalysisLog] is
   /// stored in this node's [FlowAnalysisRootImpl.flowAnalysisLog].
   FlowAnalysisRootImpl? _flowAnalysisRoot;
 
@@ -158,81 +158,6 @@ class FlowAnalysisHelper {
       castType: SharedTypeView(typeAnnotation.typeOrThrow),
       offset: node.asOperator.offset,
     );
-  }
-
-  /// This method is called whenever the [ResolverVisitor] enters the body or
-  /// initializer of a top level declaration.
-  ///
-  /// It causes flow analysis to be initialized.
-  ///
-  /// [node] is the top level declaration that is being entered. [parameters] is
-  /// the formal parameter list of [node], or `null` if [node] doesn't have a
-  /// formal parameter list.
-  ///
-  /// [visit] is a callback that can be used to visit the body or initializer of
-  /// the top level declaration. This is used to compute assigned variables
-  /// information within the body or initializer. If `null`, the entire [node]
-  /// will be visited.
-  void bodyOrInitializer_enter(
-    FlowAnalysisRootImpl node,
-    List<FormalParameterElementImpl>? parameters, {
-    void Function(AstVisitor2<Object?> visitor)? visit,
-    required int offset,
-  }) {
-    inferenceLogWriter?.enterBodyOrInitializer(node);
-    assert(flow == null);
-    assert(_flowAnalysisRoot == null);
-    _flowAnalysisRoot = node;
-    assignedVariables = computeAssignedVariables(
-      node,
-      parameters,
-      retainDataForTesting: dataForTesting != null,
-      visit: visit,
-    );
-    if (dataForTesting != null) {
-      dataForTesting!.assignedVariables[node] =
-          assignedVariables
-              as AssignedVariablesForTesting<
-                AstNodeImpl,
-                PromotableElementImpl
-              >;
-    }
-    flow =
-        FlowAnalysis<
-            AstNodeImpl,
-            StatementImpl,
-            ExpressionImpl,
-            PromotableElementImpl
-          >(
-            typeOperations,
-            assignedVariables!,
-            typeAnalyzerOptions: typeAnalyzerOptions,
-            enableLog: enableLog,
-          )
-          ..checkOffset(offset);
-  }
-
-  /// This method is called whenever the [ResolverVisitor] leaves the body or
-  /// initializer of a top level declaration.
-  ///
-  /// The [FlowAnalysisLog] that was collected by flow analysis during
-  /// resolution of the declaration is stored in
-  /// [FlowAnalysisRootImpl.flowAnalysisLog] of the node that was passed to
-  /// [bodyOrInitializer_enter]. (If flow analysis logging is not currently
-  /// enabled, `null` is stored.)
-  void bodyOrInitializer_exit() {
-    inferenceLogWriter?.exitBodyOrInitializer();
-    // Set this.flow to null before doing any clean-up so that if an exception
-    // is raised, the state is already updated correctly, and we don't have
-    // cascading failures.
-    var flow = this.flow;
-    this.flow = null;
-    assignedVariables = null;
-    var flowAnalysisRoot = _flowAnalysisRoot;
-    _flowAnalysisRoot = null;
-
-    flow!.finish();
-    flowAnalysisRoot!.flowAnalysisLog = flow.getLog();
   }
 
   void breakStatement(BreakStatement node) {
@@ -303,6 +228,80 @@ class FlowAnalysisHelper {
     if (!flow!.isReachable) {
       dataForTesting?.functionBodiesThatDontComplete.add(body);
     }
+  }
+
+  /// This method is called whenever the [ResolverVisitor] enters a *flow
+  /// analysis root* (see [FlowAnalysisRootImpl]).
+  ///
+  /// It causes flow analysis to be initialized.
+  ///
+  /// [node] is the flow analysis root that is being entered. [parameters] is
+  /// the formal parameter list of [node], or `null` if [node] doesn't have a
+  /// formal parameter list.
+  ///
+  /// [visit] is a callback that can be used to visit the region of code rooted
+  /// at [node]. This is used to compute assigned variables information within
+  /// the region. If `null`, the entire [node] will be visited.
+  void flowAnalysisRoot_enter(
+    FlowAnalysisRootImpl node,
+    List<FormalParameterElementImpl>? parameters, {
+    void Function(AstVisitor2<Object?> visitor)? visit,
+    required int offset,
+  }) {
+    inferenceLogWriter?.enterFlowAnalysisRoot(node);
+    assert(flow == null);
+    assert(_flowAnalysisRoot == null);
+    _flowAnalysisRoot = node;
+    assignedVariables = computeAssignedVariables(
+      node,
+      parameters,
+      retainDataForTesting: dataForTesting != null,
+      visit: visit,
+    );
+    if (dataForTesting != null) {
+      dataForTesting!.assignedVariables[node] =
+          assignedVariables
+              as AssignedVariablesForTesting<
+                AstNodeImpl,
+                PromotableElementImpl
+              >;
+    }
+    flow =
+        FlowAnalysis<
+            AstNodeImpl,
+            StatementImpl,
+            ExpressionImpl,
+            PromotableElementImpl
+          >(
+            typeOperations,
+            assignedVariables!,
+            typeAnalyzerOptions: typeAnalyzerOptions,
+            enableLog: enableLog,
+          )
+          ..checkOffset(offset);
+  }
+
+  /// This method is called whenever the [ResolverVisitor] leaves a *flow
+  /// analysis root* (see [FlowAnalysisRootImpl]).
+  ///
+  /// The [FlowAnalysisLog] that was collected by flow analysis during
+  /// resolution of the region of code is stored in
+  /// [FlowAnalysisRootImpl.flowAnalysisLog] of the node that was passed to
+  /// [flowAnalysisRoot_enter]. (If flow analysis logging is not currently
+  /// enabled, `null` is stored.)
+  void flowAnalysisRoot_exit() {
+    inferenceLogWriter?.exitFlowAnalysisRoot();
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+    assignedVariables = null;
+    var flowAnalysisRoot = _flowAnalysisRoot;
+    _flowAnalysisRoot = null;
+
+    flow!.finish();
+    flowAnalysisRoot!.flowAnalysisLog = flow.getLog();
   }
 
   void for_bodyBegin(
@@ -436,9 +435,9 @@ class FlowAnalysisHelper {
 
   /// Runs [operation] with flow analysis available for [node].
   ///
-  /// If flow analysis is already active, reuses it. Otherwise this method
-  /// creates a body-or-initializer flow context and closes it after
-  /// [operation].
+  /// If flow analysis is already active, reuses it. Otherwise this method makes
+  /// [node] a flow analysis root, and closes the resulting flow analysis region
+  /// after [operation].
   T withFlowAnalysis<T>({
     required FlowAnalysisRootImpl node,
     required List<FormalParameterElementImpl>? formalParameters,
@@ -449,10 +448,10 @@ class FlowAnalysisHelper {
       return operation();
     }
 
-    bodyOrInitializer_enter(node, formalParameters, offset: offset);
+    flowAnalysisRoot_enter(node, formalParameters, offset: offset);
     flow!.checkOffset(offset);
     var result = operation();
-    bodyOrInitializer_exit();
+    flowAnalysisRoot_exit();
     return result;
   }
 

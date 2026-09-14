@@ -2895,7 +2895,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         // parameters are visited before the initializers and the body, and
         // their default values may contain expressions.
         var enterOffset = node.parameters.offset;
-        flowAnalysis.bodyOrInitializer_enter(
+        flowAnalysis.flowAnalysisRoot_enter(
           node,
           element.formalParameters,
           offset: enterOffset,
@@ -2942,7 +2942,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (!element.isFactory) {
           flow.thisBinding_end(offset: node.body.flowEndOffset);
         }
-        flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.flowAnalysisRoot_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -3608,7 +3608,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (isLocal) {
         flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
       } else {
-        flowAnalysis.bodyOrInitializer_enter(
+        flowAnalysis.flowAnalysisRoot_enter(
           node,
           element.formalParameters,
           offset: enterOffset,
@@ -3648,7 +3648,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (isLocal) {
         flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
       } else {
-        flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.flowAnalysisRoot_exit();
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
@@ -4220,7 +4220,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         // they will be visited before the body, and may contain expressions.
         var enterOffset =
             (node.typeParameters ?? node.parameters ?? node.body).offset;
-        flowAnalysis.bodyOrInitializer_enter(
+        flowAnalysis.flowAnalysisRoot_enter(
           node,
           element.formalParameters,
           offset: enterOffset,
@@ -4268,7 +4268,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (!element.isStatic) {
           flow.thisBinding_end(offset: node.body.flowEndOffset);
         }
-        flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.flowAnalysisRoot_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -4643,7 +4643,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
         if (primaryConstructorDeclaration != null) {
           var enterOffset = (node.colon ?? node.thisKeyword).offset;
-          flowAnalysis.bodyOrInitializer_enter(
+          flowAnalysis.flowAnalysisRoot_enter(
             node,
             element!.formalParameters,
             offset: enterOffset,
@@ -4679,7 +4679,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             offset: node.body.flowEndOffset,
           );
           flow.thisBinding_end(offset: node.body.flowEndOffset);
-          flowAnalysis.bodyOrInitializer_exit();
+          flowAnalysis.flowAnalysisRoot_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -5198,7 +5198,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node.recoveryFormalParameters?.accept2(this);
 
       var enterOffset = node.body.offset;
-      flowAnalysis.bodyOrInitializer_enter(
+      flowAnalysis.flowAnalysisRoot_enter(
         node,
         element.formalParameters,
         offset: enterOffset,
@@ -5218,7 +5218,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         false,
         offset: node.body.flowEndOffset,
       );
-      flowAnalysis.bodyOrInitializer_exit();
+      flowAnalysis.flowAnalysisRoot_exit();
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
   }

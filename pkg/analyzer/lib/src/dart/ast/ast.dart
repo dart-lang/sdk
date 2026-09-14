@@ -20690,8 +20690,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
 ///
 /// A flow analysis root is a node that delimits a region of code that is
 /// analyzed by a single invocation of flow analysis (see
-/// `FlowAnalysisHelper.bodyOrInitializer_enter` and
-/// `FlowAnalysisHelper.bodyOrInitializer_exit`). Examples include method
+/// `FlowAnalysisHelper.flowAnalysisRoot_enter` and
+/// `FlowAnalysisHelper.flowAnalysisRoot_exit`). Examples include method
 /// declarations, constructor declarations (whose region covers the initializer
 /// list as well as the body), the declaration of a top level variable or field
 /// (whose region covers the initializer), and annotations.
