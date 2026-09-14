@@ -30,6 +30,11 @@ class _IsSerializableNodeVisitor extends RecursiveAstVisitor2<void> {
   bool result = true;
 
   @override
+  void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
+    result = false;
+  }
+
+  @override
   void visitForElement(ForElement node) {
     result = false;
   }
