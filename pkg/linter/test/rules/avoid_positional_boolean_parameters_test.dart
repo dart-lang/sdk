@@ -152,10 +152,30 @@ extension on int {
 ''');
   }
 
+  test_instanceMethod_functionTypedParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  void m(void Function(bool p1, [!bool p2!]) callback) {}
+}
+''');
+  }
+
   test_instanceMethod_named() async {
     await assertNoDiagnostics(r'''
 class C {
   void m({bool p = true}) {}
+}
+''');
+  }
+
+  test_instanceMethod_overrideExtends_functionTypedParameter() async {
+    await assertNoDiagnostics(r'''
+class C<T> {
+  void m(void Function(T p1, T p2) callback) {}
+}
+class D extends C<bool> {
+  @override
+  void m(void Function(bool p1, bool p2) callback) {}
 }
 ''');
   }
