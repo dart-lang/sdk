@@ -152,7 +152,10 @@ String createCompileJitJson({
     sourceString: executable,
     outputString: outputDill,
     if (args.wasParsed(defineOption))
-      defineOption: args.multiOption(defineOption),
+      defineOption: args
+          .multiOption(defineOption)
+          .map((e) => '--define=$e')
+          .toList(),
     if (args.options.contains(enableAssertsOption) &&
         args.wasParsed(enableAssertsOption))
       enableAssertsOption: true,

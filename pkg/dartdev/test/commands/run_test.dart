@@ -1131,6 +1131,44 @@ Future<void> main() async {
     },
   );
 
+  test('resident compiler environment declaration after run', () async {
+    p = project();
+    p.file('file.dart', r'''
+void main() async {
+  // Non-const.
+  if (String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  // Const.
+  if (const String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (const int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (const String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (const int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  print("Good");
+}
+''');
+
+    var script = File(path.join(p.dir.path, 'file.dart'));
+    expect(script.existsSync(), true);
+
+    ProcessResult result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      '-Dx1=1',
+      '-Dx2=2',
+      'file.dart',
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    String stdout = result.stdout.toString().trim();
+    expect(stdout, 'Good');
+  });
+
   test(
     'passing --resident is a prerequisite for passing --resident-compiler-info-file',
     () async {
