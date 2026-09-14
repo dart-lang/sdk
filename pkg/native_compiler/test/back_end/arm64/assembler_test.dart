@@ -2102,7 +2102,97 @@ void main() {
         asm.scvtf(V0, SP);
       });
     });
-
+    test('fcvtas', () {
+      asm.fcvtas(R0, V0);
+      asm.fcvtas(R2, V31, .s64, .s32);
+      asm.fcvtas(ZR, V1);
+      expectDisassembly(
+        'fcvtas r0, v0\n'
+        'fcvtasw r2, v31\n'
+        'fcvtas zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtas(SP, V0);
+      });
+    });
+    test('fcvtzs', () {
+      asm.fcvtzs(R0, V0);
+      asm.fcvtzs(R2, V31, .s64, .s32);
+      asm.fcvtzs(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtzs r0, v0\n'
+        'fcvtzsw r2, v31\n'
+        'fcvtzs zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtzs(SP, V0);
+      });
+    });
+    test('fcvtms', () {
+      asm.fcvtms(R0, V0);
+      asm.fcvtms(R2, V31, .s64, .s32);
+      asm.fcvtms(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtms r0, v0\n'
+        'fcvtmsw r2, v31\n'
+        'fcvtms zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtms(SP, V0);
+      });
+    });
+    test('fcvtps', () {
+      asm.fcvtps(R0, V0);
+      asm.fcvtps(R2, V31, .s64, .s32);
+      asm.fcvtps(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtps r0, v0\n'
+        'fcvtpsw r2, v31\n'
+        'fcvtps zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtps(SP, V0);
+      });
+    });
     test('fmov', () {
       asm.fmov(V0, R0);
       asm.fmov(V2, ZR);
@@ -2110,13 +2200,19 @@ void main() {
       asm.fmov(V0, Immediate(doubleToIntBits(1.0)));
       asm.fmov(V1, Immediate(doubleToIntBits(2.0)));
       asm.fmov(V31, Immediate(doubleToIntBits(-0.25)));
+      asm.fmov(R0, V0);
+      asm.fmov(ZR, V31);
+      asm.fmov(R1, V2, .s32);
       expectDisassembly(
         'fmovdr v0, r0\n'
         'fmovdr v2, zr\n'
         'fmovsrw v3, r2\n'
         'fmovd v0, 1.0\n'
         'fmovd v1, 2.0\n'
-        'fmovd v31, -0.25\n',
+        'fmovd v31, -0.25\n'
+        'fmovrd r0, v0\n'
+        'fmovrd zr, v31\n'
+        'fmovrsw r1, v2\n',
       );
       expectThrows(() {
         asm.fmov(V0, Immediate(doubleToIntBits(0.0)));
@@ -2124,6 +2220,79 @@ void main() {
       expectThrows(() {
         asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
       });
+      expectThrows(() {
+        asm.fmov(SP, V0);
+      });
+    });
+
+    test('fabs', () {
+      asm.fabs(V0, V1);
+      asm.fabs(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fabsd v0, v1\n'
+        'fabsd v31, v31\n',
+      );
+    });
+
+    test('fneg', () {
+      asm.fneg(V0, V0);
+      asm.fneg(V31, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fnegd v0, v0\n'
+        'fnegd v31, v30\n',
+      );
+    });
+
+    test('fsqrt', () {
+      asm.fsqrt(V1, V1);
+      asm.fsqrt(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fsqrtd v1, v1\n'
+        'fsqrtd v0, v31\n',
+      );
+    });
+
+    test('frintp', () {
+      asm.frintp(V0, V0);
+      asm.frintp(V31, V3);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintp v0, v0\n'
+        'frintp v31, v3\n',
+      );
+    });
+
+    test('frintm', () {
+      asm.frintm(V1, V1);
+      asm.frintm(V0, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintm v1, v1\n'
+        'frintm v0, v30\n',
+      );
+    });
+
+    test('frintz', () {
+      asm.frintz(V15, V16);
+      asm.frintz(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintz v15, v16\n'
+        'frintz v0, v31\n',
+      );
+    });
+
+    test('frinta', () {
+      asm.frinta(V1, V2);
+      asm.frinta(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frinta v1, v2\n'
+        'frinta v31, v31\n',
+      );
     });
 
     test('fadd', () {

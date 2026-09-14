@@ -619,14 +619,26 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryDoubleOp(UnaryDoubleOp instr) =>
       switch (instr.op) {
-        UnaryDoubleOpcode.round ||
-        UnaryDoubleOpcode.floor ||
-        UnaryDoubleOpcode.ceil ||
-        UnaryDoubleOpcode.truncate => const InstructionConstraints(
+        .isNegative || .isInfinite => const InstructionConstraints(
           anyCpuRegister,
           [anyFpuRegister],
         ),
-        _ => const InstructionConstraints(anyFpuRegister, [anyFpuRegister]),
+        .round || .floor || .ceil || .truncate => InstructionConstraints(
+          anyCpuRegister,
+          const [anyFpuRegister],
+          const [],
+          Safepoint(),
+        ),
+        .neg ||
+        .abs ||
+        .square ||
+        .sqrt ||
+        .roundToDouble ||
+        .floorToDouble ||
+        .ceilToDouble ||
+        .truncateToDouble => const InstructionConstraints(anyFpuRegister, [
+          anyFpuRegister,
+        ]),
       };
 
   @override

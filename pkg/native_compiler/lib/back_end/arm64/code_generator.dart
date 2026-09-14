@@ -2700,9 +2700,80 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryDoubleOp(UnaryDoubleOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryDoubleOp ${instr.op.token}',
-    );
+    final operandReg = inputFPReg(instr, 0);
+    switch (instr.op) {
+      case .neg:
+        _asm.fneg(outputFPReg(instr), operandReg);
+      case .abs:
+        _asm.fabs(outputFPReg(instr), operandReg);
+      case .square:
+        _asm.fmul(outputFPReg(instr), operandReg, operandReg);
+      case .sqrt:
+        _asm.fsqrt(outputFPReg(instr), operandReg);
+      case .isNegative:
+        final resultReg = outputReg(instr);
+        final notZero = Label();
+        _asm.fcmp(operandReg, Immediate(0));
+        _asm.b(notZero, .notEqual);
+        _asm.fmov(tempReg, operandReg);
+        _asm.cmp(tempReg, ZR);
+        _asm.bind(notZero);
+        _asm.loadConstant(resultReg, ConstantValue.fromBool(true));
+        _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
+        _asm.csel(resultReg, resultReg, tempReg, .negative);
+      case .isInfinite:
+        final resultReg = outputReg(instr);
+        _asm.fmov(tempReg, operandReg);
+        _asm.lsl(tempReg, tempReg, 1); // Shift out sign bit.
+        _asm.cmpImmediate(tempReg, 0xFFE0000000000000);
+        _asm.loadConstant(resultReg, ConstantValue.fromBool(true));
+        _asm.loadConstant(tempReg, ConstantValue.fromBool(false));
+        _asm.csel(resultReg, resultReg, tempReg, .equal);
+      case .round:
+      case .floor:
+      case .ceil:
+      case .truncate:
+        final resultReg = outputReg(instr);
+        final Label slowPath = addSlowPath(() {
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.loadConstant(
+            tempReg,
+            ConstantValue.fromString('Infinity or NaN toInt'),
+          );
+          _asm.stp(
+            tempReg,
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.UnsupportedError, 1);
+          _asm.breakpoint();
+        });
+        // Check for NaN or Infinity.
+        _asm.fmov(tempReg, operandReg);
+        _asm.ubfx(tempReg, tempReg, 52, 11); // Extract exponent.
+        _asm.cmpImmediate(tempReg, 0x7FF);
+        _asm.b(slowPath, .equal);
+        switch (instr.op) {
+          case .round:
+            _asm.fcvtas(resultReg, operandReg);
+          case .floor:
+            _asm.fcvtms(resultReg, operandReg);
+          case .ceil:
+            _asm.fcvtps(resultReg, operandReg);
+          case .truncate:
+            _asm.fcvtzs(resultReg, operandReg);
+          default:
+            throw 'Unexpected double-to-int conversion ${instr.op}';
+        }
+      case .roundToDouble:
+        _asm.frinta(outputFPReg(instr), operandReg);
+      case .floorToDouble:
+        _asm.frintm(outputFPReg(instr), operandReg);
+      case .ceilToDouble:
+        _asm.frintp(outputFPReg(instr), operandReg);
+      case .truncateToDouble:
+        _asm.frintz(outputFPReg(instr), operandReg);
+    }
   }
 
   @override

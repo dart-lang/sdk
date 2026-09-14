@@ -129,6 +129,9 @@ final class Arm64StackFrame extends StackFrame {
       case BinaryIntOp(:var op)
           when op == .truncatingDiv || op == .mod || op == .rem:
         return 1; // Result for IntegerDivisionByZeroException runtime call.
+      case UnaryDoubleOp(:var op)
+          when op == .round || op == .floor || op == .ceil || op == .truncate:
+        return 2; // Result + 1 argument for UnsupportedError runtime call.
       default:
         return 0;
     }

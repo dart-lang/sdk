@@ -461,6 +461,13 @@ DEFINE_RUNTIME_ENTRY(ArgumentErrorUnboxedInt64, 0) {
   Exceptions::ThrowArgumentError(value);
 }
 
+DEFINE_RUNTIME_ENTRY(UnsupportedError, 1) {
+  const auto& message = String::CheckedHandle(zone, arguments.ArgAt(0));
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+}
+
 DEFINE_RUNTIME_ENTRY(DoubleToInteger, 1) {
   // Unboxed value is passed through a dedicated slot in Thread.
   double val = arguments.thread()->unboxed_double_runtime_arg();

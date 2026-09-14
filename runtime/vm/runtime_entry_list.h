@@ -61,6 +61,7 @@ namespace dart {
   V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
+  V(UnsupportedError)                                                          \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(InterruptOrStackOverflow)                                                  \

@@ -2312,54 +2312,207 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
-  void fmov(FPRegister rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+  void fcvtas(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B18, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtzs(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B19 | B20, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtms(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B20, rd, rn, srcSize, dstSize);
+  }
+
+  void fcvtps(
+    Register rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    _emitFPConversionToInteger(B19, rd, rn, srcSize, dstSize);
+  }
+
+  void _emitFPConversionToInteger(
+    int opcode,
+    Register rd,
+    FPRegister rn,
+    OperandSize srcSize,
+    OperandSize dstSize,
+  ) {
+    assert(srcSize.is16or32or64);
+    assert(dstSize.is32or64);
+    emit(
+      B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn |
+          (srcSize.is64 ? B22 : (dstSize.is32 ? 0 : (B22 | B23))) |
+          (dstSize.is64 ? B31 : 0),
+    );
+  }
+
+  void fmov(
+    PhysicalRegister rd,
+    Operand o, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
     assert(sz.is16or32or64);
-    switch (o) {
+    switch (rd) {
       case FPRegister():
-        emit(
-          B14 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              o.encodingRn |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
-        );
-        break;
+        switch (o) {
+          case FPRegister():
+            emit(
+              B14 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  o.encodingRn |
+                  (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+            );
+            break;
+          case Register():
+            assert(sz.is32or64);
+            emit(
+              B16 |
+                  B17 |
+                  B18 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  o.encodingRn() |
+                  (sz.is64 ? (B22 | B31) : 0),
+            );
+            break;
+          case Immediate():
+            emit(
+              B12 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd |
+                  (o.encodingFpImm(sz) << 13) |
+                  (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+            );
+            break;
+          default:
+            throw 'Unexpect operand ${o.runtimeType}';
+        }
       case Register():
-        emit(
-          B16 |
+        switch (o) {
+          case FPRegister():
+            assert(sz.is32or64);
+            emit(
               B17 |
-              B18 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              o.encodingRn() |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))) |
-              (sz.is64 ? B31 : 0),
-        );
-        break;
-      case Immediate():
-        emit(
-          B12 |
-              B21 |
-              B25 |
-              B26 |
-              B27 |
-              B28 |
-              rd.encodingRd |
-              (o.encodingFpImm(sz) << 13) |
-              (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
-        );
-        break;
+                  B18 |
+                  B21 |
+                  B25 |
+                  B26 |
+                  B27 |
+                  B28 |
+                  rd.encodingRd() |
+                  o.encodingRn |
+                  (sz.is64 ? (B22 | B31) : 0),
+            );
+            break;
+          default:
+            throw 'Unexpect operand ${o.runtimeType}';
+        }
       default:
-        throw 'Unexpect operand ${o.runtimeType}';
+        throw 'Unexpect destination register ${rd.runtimeType}';
     }
+  }
+
+  void fabs(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B15, rd, rn, sz);
+  }
+
+  void fneg(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B16, rd, rn, sz);
+  }
+
+  void fsqrt(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
+    _emitFPDataProcessing1(B15 | B16, rd, rn, sz);
+  }
+
+  void frintp(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B15 | B18, rd, rn, sz);
+  }
+
+  void frintm(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B16 | B18, rd, rn, sz);
+  }
+
+  void frintz(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B15 | B16 | B18, rd, rn, sz);
+  }
+
+  void frinta(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitFPDataProcessing1(B17 | B18, rd, rn, sz);
+  }
+
+  void _emitFPDataProcessing1(
+    int opcode,
+    FPRegister rd,
+    FPRegister rn,
+    OperandSize sz,
+  ) {
+    assert(sz.is16or32or64);
+    emit(
+      B14 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          opcode |
+          rd.encodingRd |
+          rn.encodingRn |
+          (sz.is64 ? B22 : (sz.is32 ? 0 : (B22 | B23))),
+    );
   }
 
   void fadd(

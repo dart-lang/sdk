@@ -1870,6 +1870,8 @@ class ARM64Decoder {
     } else if (instr.bits(22, 2) == 1) {
       if (instr.bits(16, 5) == 2) {
         format(instr, "scvtfd'sf 'vd, 'rn");
+      } else if (instr.bits(16, 5) == 4) {
+        format(instr, "fcvtas'sf 'rd, 'vn");
       } else if (instr.bits(16, 5) == 6) {
         format(instr, "fmovrd'sf 'rd, 'vn");
       } else if (instr.bits(16, 5) == 7) {
@@ -1916,6 +1918,18 @@ class ARM64Decoder {
         break;
       case 5:
         format(instr, "fcvtds 'vd, 'vn");
+        break;
+      case 9:
+        format(instr, "frintp 'vd, 'vn");
+        break;
+      case 10:
+        format(instr, "frintm 'vd, 'vn");
+        break;
+      case 11:
+        format(instr, "frintz 'vd, 'vn");
+        break;
+      case 12:
+        format(instr, "frinta 'vd, 'vn");
         break;
       default:
         unknown(instr);
