@@ -2090,6 +2090,10 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform.dill'
       : '${_configuration.buildDirectory}/vm_platform.dill';
 
+  String _platformSnapshotFile() => _useSdk
+      ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/platform.dylib'
+      : '${_configuration.buildDirectory}/gen/platform.dylib';
+
   String _tempBytecodeFile(String tempDir) =>
       Path('$tempDir/out.bytecode').toNativePath();
 
@@ -2234,6 +2238,7 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
+      '--load-module-snapshot=${_platformSnapshotFile()}',
       '--load-module-snapshot=${_tempSnapshotFile(dir)}',
       ..._replaceDartFiles(originalArguments, _tempBytecodeFile(dir)),
       ...testFile.dartOptions,
