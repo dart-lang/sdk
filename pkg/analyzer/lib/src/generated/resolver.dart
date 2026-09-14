@@ -2890,20 +2890,28 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
-        node.parameters.accept2(this);
 
-        var beforeInitializersOffset = (node.separator ?? node.body).offset;
+        // Enter flow analysis at the formal parameter list, because the
+        // parameters are visited before the initializers and the body, and
+        // their default values may contain expressions.
+        var enterOffset = node.parameters.offset;
         flowAnalysis.bodyOrInitializer_enter(
           node,
           element.formalParameters,
-          offset: beforeInitializersOffset,
+          offset: enterOffset,
         );
         flowAnalysis.executableDeclaration_enter(
           node,
           element.formalParameters,
           isClosure: false,
-          offset: beforeInitializersOffset,
+          offset: enterOffset,
         );
+
+        // Visit the formal parameters inside the flow analysis region, so that
+        // any expressions in their default values are analyzed as part of this
+        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
+        // would have to establish a flow analysis region of its own.)
+        node.parameters.accept2(this);
 
         node.initializers.accept2(this);
         node.factoryRedirectionTarget?.accept2(this);
@@ -4207,7 +4215,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.metadata.accept2(this);
         node.returnType?.accept2(this);
         node.typeParameters?.accept2(this);
-        node.parameters?.accept2(this);
 
         // Use typeParameters or parameters for the offset if available, because
         // they will be visited before the body, and may contain expressions.
@@ -4224,6 +4231,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           isClosure: false,
           offset: enterOffset,
         );
+
+        // Visit the formal parameters inside the flow analysis region, so that
+        // any expressions in their default values are analyzed as part of this
+        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
+        // would have to establish a flow analysis region of its own.)
+        node.parameters?.accept2(this);
 
         if (!element.isStatic) {
           flow.thisBinding_begin(

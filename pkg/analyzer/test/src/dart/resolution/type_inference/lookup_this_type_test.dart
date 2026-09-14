@@ -6,10 +6,13 @@
 /// method can be reliably used to query the type of `this` at any offset within
 /// a compilation unit, without requiring an explicit reference to `this` to be
 /// present in the AST.
+///
+/// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 library;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show FlowAnalysisRootImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,10 +22,109 @@ import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(FlowAnalysisRootTest);
     defineReflectiveTests(LookupThisTypeTest);
     defineReflectiveTests(LookupThisTypeTestWithAnonymousMethods);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+/// Tests that verify precisely which AST nodes act as flow analysis roots.
+///
+/// Each root retains a [FlowAnalysisLog] for as long as the resolved unit is
+/// retained (that's what [CompilationUnit.lookupThisType] queries), so a
+/// declaration establishing more roots than it needs is a memory cost paid on
+/// every declaration in every file. These tests exist to make the set of roots
+/// visible in a diff.
+@reflectiveTest
+class FlowAnalysisRootTest extends PubPackageResolutionTest {
+  Future<void> assertRoots(String code, List<String> expected) async {
+    var result = await resolveTestCode(code);
+    var actual = <String>[];
+
+    void collect(AstNode node) {
+      if (node is FlowAnalysisRootImpl && node.flowAnalysisLog != null) {
+        actual.add(node.runtimeType.toString());
+      }
+      for (var child in node.childEntities) {
+        if (child is AstNode) collect(child);
+      }
+    }
+
+    collect(result.unit);
+    expect(actual, expected);
+  }
+
+  test_constructor() async {
+    // The formal parameters are visited inside the constructor's own flow
+    // analysis region, so they don't need a region of their own.
+    await assertRoots(
+      r'''
+class C {
+  C(int x);
+}
+''',
+      ['ConstructorDeclarationImpl'],
+    );
+  }
+
+  test_constructor_withDefaultValue() async {
+    await assertRoots(
+      r'''
+class C {
+  C([int x = 0]);
+}
+''',
+      ['ConstructorDeclarationImpl'],
+    );
+  }
+
+  test_method() async {
+    // As for constructors, the formal parameters don't need a region of their
+    // own.
+    await assertRoots(
+      r'''
+class C {
+  void f(int x) {}
+}
+''',
+      ['MethodDeclarationImpl'],
+    );
+  }
+
+  test_method_withDefaultValue() async {
+    await assertRoots(
+      r'''
+class C {
+  void f([int x = 0]) {}
+}
+''',
+      ['MethodDeclarationImpl'],
+    );
+  }
+
+  test_primaryConstructor() async {
+    // A primary constructor's formal parameter list lives in the class header,
+    // not inside the primary constructor body, so there is no enclosing region
+    // for it to join; it necessarily acts as a root of its own.
+    await assertRoots(
+      r'''
+class C([int x = 0]) {
+  this {}
+}
+''',
+      ['FormalParameterListImpl', 'PrimaryConstructorBodyImpl'],
+    );
+  }
+
+  test_topLevelFunction() async {
+    await assertRoots(
+      r'''
+void f([int x = 0]) {}
+''',
+      ['FunctionDeclarationImpl'],
+    );
+  }
 }
 
 /// Test cases that are run with anonymous methods disabled.
@@ -412,6 +514,74 @@ class C {
   ] {
     /*this: C*/
   }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfConstructor_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  C({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfMethod_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfPrimaryConstructor_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+  this {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfStaticMethod_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  static void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: null*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfTopLevelFunction_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+  /*this: null*/
 }
 ''');
   }
