@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The tests in this file verify that the [FunctionBody.lookupThisType]
+/// The tests in this file verify that the [CompilationUnit.lookupThisType]
 /// method can be reliably used to query the type of `this` at any offset within
-/// a function body, without requiring an explicit reference to `this` to be
+/// a compilation unit, without requiring an explicit reference to `this` to be
 /// present in the AST.
 library;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -60,22 +58,8 @@ class LookupThisTypeTest extends PubPackageResolutionTest {
     for (var i = 0; i < expectedMarkers.length; i++) {
       var expectedMarker = expectedMarkers[i];
       var resolvedMarker = resolvedMarkers[i];
-      var node = NodeLocator2(resolvedMarker.start).searchWithin(result.unit);
-      if (node == null) {
-        fail('No AST node at offset ${resolvedMarker.start}.');
-      }
 
-      // Local function bodies cannot be queried directly, so use the outermost
-      // enclosing body whose flow analysis log covers the marker.
-      FunctionBody? outermostBody;
-      for (var ancestor in node.withAncestors2.whereType<FunctionBody>()) {
-        outermostBody = ancestor;
-      }
-      if (outermostBody == null) {
-        fail('No enclosing function body at offset ${resolvedMarker.start}.');
-      }
-
-      var type = outermostBody.lookupThisType(offset: resolvedMarker.start);
+      var type = result.unit.lookupThisType(offset: resolvedMarker.start);
       var typeText = type == null ? 'null' : typeString(type);
 
       actualCode
@@ -93,6 +77,35 @@ class LookupThisTypeTest extends PubPackageResolutionTest {
       }
       fail('See the difference above.');
     }
+  }
+
+  test_thisPromotion_inAnnotation() async {
+    // Annotations are flow analysis roots in their own right, nested inside the
+    // flow analysis root for the declaration they annotate. `this` isn't
+    // accessible inside an annotation, so the query should return `null` (and,
+    // in particular, it should not accidentally consult the log belonging to
+    // the enclosing method declaration).
+    await assertThisTypes(r'''
+class C {
+  @Deprecated(/*this: null*/ 'x')
+  f() {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inConstructorInitializerList() async {
+    // The flow analysis region for a constructor covers the initializer list as
+    // well as the body, but `this` isn't bound until the body is reached.
+    await assertThisTypes(r'''
+class C {
+  final Object x;
+  C() : x = /*this: null*/ 0 {
+    /*this: C*/
+  }
+}
+''');
   }
 
   test_thisPromotion_inFactoryConstructor() async {
@@ -138,6 +151,26 @@ class C {
     }
     /*this: C*/
   }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_inInstanceFieldInitializer() async {
+    // `this` isn't accessible in the initializer of a non-late instance field.
+    await assertThisTypes(r'''
+class C {
+  final Object x = /*this: null*/ 0;
+}
+''');
+  }
+
+  test_thisPromotion_inLateInstanceFieldInitializer() async {
+    // `this` *is* accessible (and promotable) in the initializer of a `late`
+    // instance field.
+    await assertThisTypes(r'''
+class C {
+  late final Object x = this is D ? /*this: D*/ 0 : /*this: C*/ 1;
 }
 class D extends C {}
 ''');
@@ -234,6 +267,29 @@ class D extends C {}
 ''');
   }
 
+  test_thisPromotion_inPrimaryConstructorInitializerList() async {
+    // The flow analysis region for a primary constructor body covers the
+    // initializer list as well as the body, but `this` isn't bound until the
+    // body is reached.
+    await assertThisTypes(r'''
+class C(int y) {
+  final Object x;
+  this : x = /*this: null*/ y {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inStaticFieldInitializer() async {
+    // `this` isn't accessible in the initializer of a static field.
+    await assertThisTypes(r'''
+class C {
+  static final Object x = /*this: null*/ 0;
+}
+''');
+  }
+
   test_thisPromotion_inStaticMethod() async {
     // Static methods don't have access to `this`, but it's still important to
     // make sure that querying the type of `this` doesn't lead to a
@@ -254,6 +310,28 @@ class C {
     await assertThisTypes(r'''
 f() {
   /*this: null*/
+}
+''');
+  }
+
+  test_thisPromotion_inTopLevelVariableInitializer() async {
+    // `this` isn't accessible in a top level variable initializer, but it's
+    // still important to make sure that querying the type of `this` doesn't
+    // lead to a crash.
+    await assertThisTypes(r'''
+final Object x = /*this: null*/ 0;
+''');
+  }
+
+  test_thisPromotion_outsideAnyFlowAnalysisRoot() async {
+    // Some offsets aren't inside any flow analysis root at all; querying them
+    // should simply return `null`.
+    await assertThisTypes(r'''
+/*this: null*/
+class C {
+  f() {}
+  /*this: null*/
+  g() {}
 }
 ''');
   }
@@ -323,6 +401,21 @@ class C {
 ''');
   }
 
+  test_thisPromotion_inConstructorInitializerList_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  final Object x;
+  C() : x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ] {
+    /*this: C*/
+  }
+}
+''');
+  }
+
   test_thisPromotion_inFactoryConstructor_anonymousMethod() async {
     await assertThisTypes(r'''
 class C {
@@ -353,6 +446,35 @@ class C {
     /*this: C*/
   }
 }
+''');
+  }
+
+  test_thisPromotion_inInstanceFieldInitializer_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  final Object x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+}
+''');
+  }
+
+  test_thisPromotion_inLateInstanceFieldInitializer_anonymousMethod() async {
+    // In a `late` instance field initializer, `this` is bound to the enclosing
+    // class outside the anonymous method, and to the anonymous method's
+    // receiver inside it.
+    await assertThisTypes(r'''
+class C {
+  late final Object x = (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+  late final Object y = this is D ? /*this: D*/ 0 : /*this: C*/ 1;
+}
+class D extends C {}
 ''');
   }
 
@@ -388,6 +510,33 @@ class C() {
 ''');
   }
 
+  test_thisPromotion_inPrimaryConstructorInitializerList_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C(int y) {
+  final Object x;
+  this : x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ] {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inStaticFieldInitializer_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  static final Object x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+}
+''');
+  }
+
   test_thisPromotion_inStaticMethod_anonymousMethod() async {
     await assertThisTypes(r'''
 class C {
@@ -415,6 +564,18 @@ f() {
     };
     /*this: null*/
 }
+''');
+  }
+
+  test_thisPromotion_inTopLevelVariableInitializer_anonymousMethod() async {
+    // An anonymous method binds `this` even though there's no enclosing
+    // function body.
+    await assertThisTypes(r'''
+final Object x = /*this: null*/ (0 as num).=> [
+  /*this: num*/
+  this as int,
+  /*this: int*/
+];
 ''');
   }
 

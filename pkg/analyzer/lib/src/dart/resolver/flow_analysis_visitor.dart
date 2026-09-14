@@ -99,6 +99,14 @@ class FlowAnalysisHelper {
   /// The mapping from expressions to their [ExpressionInfo]s.
   final Map<Expression, ExpressionInfo?> _expressionInfoMap = {};
 
+  /// The AST node that acts as the root of the flow analysis that's currently
+  /// in progress, or `null` if flow analysis isn't currently in progress.
+  ///
+  /// This is the node that was passed to [bodyOrInitializer_enter]; when
+  /// [bodyOrInitializer_exit] is called, the resulting [FlowAnalysisLog] is
+  /// stored in this node's [FlowAnalysisRootImpl.flowAnalysisLog].
+  FlowAnalysisRootImpl? _flowAnalysisRoot;
+
   /// Whether flow analysis should be configured with logging enabled.
   ///
   /// Flow analysis logging should be enabled during normal analysis of a source
@@ -166,13 +174,15 @@ class FlowAnalysisHelper {
   /// information within the body or initializer. If `null`, the entire [node]
   /// will be visited.
   void bodyOrInitializer_enter(
-    AstNodeImpl node,
+    FlowAnalysisRootImpl node,
     List<FormalParameterElementImpl>? parameters, {
     void Function(AstVisitor2<Object?> visitor)? visit,
     required int offset,
   }) {
     inferenceLogWriter?.enterBodyOrInitializer(node);
     assert(flow == null);
+    assert(_flowAnalysisRoot == null);
+    _flowAnalysisRoot = node;
     assignedVariables = computeAssignedVariables(
       node,
       parameters,
@@ -205,10 +215,12 @@ class FlowAnalysisHelper {
   /// This method is called whenever the [ResolverVisitor] leaves the body or
   /// initializer of a top level declaration.
   ///
-  /// Returns the [FlowAnalysisLog] that was collected by flow analysis during
-  /// resolution of the declaration, or `null` if flow analysis logging is not
-  /// currently enabled.
-  FlowAnalysisLog? bodyOrInitializer_exit() {
+  /// The [FlowAnalysisLog] that was collected by flow analysis during
+  /// resolution of the declaration is stored in
+  /// [FlowAnalysisRootImpl.flowAnalysisLog] of the node that was passed to
+  /// [bodyOrInitializer_enter]. (If flow analysis logging is not currently
+  /// enabled, `null` is stored.)
+  void bodyOrInitializer_exit() {
     inferenceLogWriter?.exitBodyOrInitializer();
     // Set this.flow to null before doing any clean-up so that if an exception
     // is raised, the state is already updated correctly, and we don't have
@@ -216,9 +228,11 @@ class FlowAnalysisHelper {
     var flow = this.flow;
     this.flow = null;
     assignedVariables = null;
+    var flowAnalysisRoot = _flowAnalysisRoot;
+    _flowAnalysisRoot = null;
 
     flow!.finish();
-    return flow.getLog();
+    flowAnalysisRoot!.flowAnalysisLog = flow.getLog();
   }
 
   void breakStatement(BreakStatement node) {
@@ -426,7 +440,7 @@ class FlowAnalysisHelper {
   /// creates a body-or-initializer flow context and closes it after
   /// [operation].
   T withFlowAnalysis<T>({
-    required AstNodeImpl node,
+    required FlowAnalysisRootImpl node,
     required List<FormalParameterElementImpl>? formalParameters,
     required T Function() operation,
     required int offset,

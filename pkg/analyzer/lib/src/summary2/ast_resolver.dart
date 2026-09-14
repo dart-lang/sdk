@@ -127,7 +127,7 @@ class AstResolver {
     node = getNode();
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(
-      node.parent2 as AstNodeImpl,
+      node.parent2 as FlowAnalysisRootImpl,
       inScopePrimaryConstructorParameters,
       // Offsets are ignored when doing summary linking.
       offset: 0,
@@ -171,7 +171,7 @@ class AstResolver {
     accept(_resolutionVisitor);
 
     _flowAnalysis.bodyOrInitializer_enter(
-      node,
+      body,
       element.formalParameters,
       visit: accept,
       // Offsets are ignored when doing summary linking.

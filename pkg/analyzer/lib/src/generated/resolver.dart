@@ -2934,7 +2934,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (!element.isFactory) {
           flow.thisBinding_end(offset: node.body.flowEndOffset);
         }
-        node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -3640,8 +3640,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       if (isLocal) {
         flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
       } else {
-        node.functionExpression.body.flowAnalysisLog = flowAnalysis
-            .bodyOrInitializer_exit();
+        flowAnalysis.bodyOrInitializer_exit();
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
@@ -4256,7 +4255,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (!element.isStatic) {
           flow.thisBinding_end(offset: node.body.flowEndOffset);
         }
-        node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -4667,7 +4666,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             offset: node.body.flowEndOffset,
           );
           flow.thisBinding_end(offset: node.body.flowEndOffset);
-          node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
+          flowAnalysis.bodyOrInitializer_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });

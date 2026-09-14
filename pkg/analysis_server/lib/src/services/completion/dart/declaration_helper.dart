@@ -491,7 +491,8 @@ class DeclarationHelper {
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
-      var thisType = node.thisTypeAt(offset);
+      // ignore: experimental_member_use
+      var thisType = request.unit.lookupThisType(offset: offset);
       _addInheritedMembers(topLevelMember, thisType);
     }
   }
@@ -3247,25 +3248,6 @@ enum ThisPrefix {
   final String? text;
 
   new(this.text);
-}
-
-extension on AstNode {
-  /// Returns the type of `this` at the given [offset].
-  ///
-  /// Assumes that the receiver is inside the same function body as the
-  /// [offset].
-  DartType? thisTypeAt(int offset) {
-    FunctionBody? outermostFunctionBody;
-    AstNode? currentNode = this;
-    while (currentNode != null) {
-      if (currentNode is FunctionBody) {
-        outermostFunctionBody = currentNode;
-      }
-      currentNode = currentNode.parent;
-    }
-    // ignore: experimental_member_use
-    return outermostFunctionBody?.lookupThisType(offset: offset);
-  }
 }
 
 extension on GetterElement {
