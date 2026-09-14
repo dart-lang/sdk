@@ -234,6 +234,7 @@ void TestPipeline::CompileGraphAndAttachFunction() {
                                optimized, nullptr);
   }
   code.set_is_optimized(optimized);
+  code.set_can_be_deoptimized(optimized);
   code.set_owner(function_);
 
   graph_compiler.FinalizePcDescriptors(code);

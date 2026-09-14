@@ -3431,6 +3431,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
                                   pool_attachment, /*optimized=*/true, stats));
   code.set_is_optimized(true);
+  code.set_can_be_deoptimized(false);
   code.set_owner(function);
 
   graph_compiler->FinalizePcDescriptors(code);

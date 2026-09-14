@@ -18163,6 +18163,10 @@ void Code::set_is_force_optimized(bool value) const {
   set_state_bits(ForceOptimizedBit::update(value, untag()->state_bits_));
 }
 
+void Code::set_can_be_deoptimized(bool value) const {
+  set_state_bits(CanBeDeoptimizedBit::update(value, untag()->state_bits_));
+}
+
 void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, untag()->state_bits_));
 }

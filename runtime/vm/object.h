@@ -6992,6 +6992,11 @@ class Code : public Object {
   }
   void set_is_force_optimized(bool value) const;
 
+  bool can_be_deoptimized() const {
+    return CanBeDeoptimizedBit::decode(untag()->state_bits_);
+  }
+  void set_can_be_deoptimized(bool value) const;
+
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -7477,9 +7482,13 @@ class Code : public Object {
                                      bool,
                                      OptimizedBit::kNextBit>;
 
+  using CanBeDeoptimizedBit = BitField<decltype(UntaggedCode::state_bits_),
+                                       bool,
+                                       ForceOptimizedBit::kNextBit>;
+
   using AliveBit = BitField<decltype(UntaggedCode::state_bits_),
                             bool,
-                            ForceOptimizedBit::kNextBit>;
+                            CanBeDeoptimizedBit::kNextBit>;
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.
