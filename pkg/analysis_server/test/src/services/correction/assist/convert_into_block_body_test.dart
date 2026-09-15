@@ -87,6 +87,13 @@ class C ^{}
     await assertNoAssist();
   }
 
+  Future<void> test_container_class_block_onKeyword() async {
+    await resolveTestCode('''
+^class C {}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_container_enum() async {
     await resolveTestCode(
       '''
