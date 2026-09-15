@@ -519,6 +519,7 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, min, Float64x2Min, 0x3611c492)               \
   V(TypedDataLibrary, _Float64x2, max, Float64x2Max, 0x18414663)               \
   V(TypedDataLibrary, Int32x4, ., Int32x4FromInts, 0xe136fe3e)                 \
+  V(TypedDataLibrary, Int32x4, Int32x4.splat, Int32x4Splat, 0x5401e067)        \
   V(TypedDataLibrary, Int32x4, Int32x4.bool, Int32x4FromBools, 0x18dcc3b4)     \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \

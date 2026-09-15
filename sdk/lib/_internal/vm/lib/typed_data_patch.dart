@@ -3971,7 +3971,7 @@ class Int32x4 {
   external factory Int32x4(int x, int y, int z, int w);
 
   @patch
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   factory Int32x4.splat(int value) => Int32x4(value, value, value, value);
 
   @patch

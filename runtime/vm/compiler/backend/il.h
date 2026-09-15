@@ -11242,6 +11242,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(2, _, Float64x2FromDoubles, (Double, Double), Float64x2)                   \
   M(0, _, Float32x4Zero, (), Float32x4)                                        \
   M(0, _, Float64x2Zero, (), Float64x2)                                        \
+  M(1, _, Int32x4Splat, (Int32), Int32x4)                                      \
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
   M(1, _, Float64x2Splat, (Double), Float64x2)                                 \
   M(1, _, Int32x4GetSignMask, (Int32x4), Int8)                                 \

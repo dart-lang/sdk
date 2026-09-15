@@ -8933,6 +8933,15 @@ Definition* SimdOpInstr::Canonicalize(FlowGraph* flow_graph) {
       return flow_graph->GetConstant(result, kUnboxedInt32x4);
     }
   }
+  if ((kind() == SimdOpInstr::kInt32x4Splat) && InputAt(0)->BindsToConstant()) {
+    const Object& value = InputAt(0)->BoundConstant();
+    if (value.IsInteger()) {
+      const int64_t v = Integer::Cast(value).Value();
+      Int32x4& result = Int32x4::Handle(Int32x4::New(v, v, v, v, Heap::kOld));
+      result ^= result.Canonicalize(Thread::Current());
+      return flow_graph->GetConstant(result, kUnboxedInt32x4);
+    }
+  }
 
   return this;
 }

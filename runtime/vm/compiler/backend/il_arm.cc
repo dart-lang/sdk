@@ -4861,6 +4861,11 @@ DEFINE_EMIT(Float32x4Zero, (QRegister out)) {
   __ veorq(out, out, out);
 }
 
+DEFINE_EMIT(Int32x4Splat, (QRegister result, Register value)) {
+  __ vmovdr(DTMP, 0, value);
+  __ vdup(compiler::kFourBytes, result, DTMP, 0);
+}
+
 DEFINE_EMIT(Float32x4Splat, (QRegister result, QRegisterView value)) {
   // Convert to Float32.
   __ vcvtsd(STMP, value.d(0));
@@ -5269,6 +5274,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Float32x4Sqrt)                                                        \
   CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \

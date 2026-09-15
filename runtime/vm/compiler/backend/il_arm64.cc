@@ -4219,6 +4219,10 @@ DEFINE_EMIT(
   __ vinsw(result, 3, v3);
 }
 
+DEFINE_EMIT(Int32x4Splat, (VRegister result, Register value)) {
+  __ vdupw(result, value);
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (VRegister result,
              Register v0,
@@ -4395,6 +4399,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2WithY)                                                         \
   ____(Float64x2With)                                                          \
   SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Int32x4FromBools)                                                     \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \

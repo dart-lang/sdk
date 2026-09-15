@@ -4226,6 +4226,11 @@ DEFINE_EMIT(Int32x4FromInts,
   __ AddImmediate(ESP, compiler::Immediate(kSimd128Size));
 }
 
+DEFINE_EMIT(Int32x4Splat, (XmmRegister result, Register value)) {
+  __ movd(result, value);
+  __ shufps(result, result, compiler::Immediate(0x00));
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory and branches.
@@ -4372,6 +4377,7 @@ DEFINE_EMIT(Int32x4Select,
   ____(SimdGetSignMask)                                                        \
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
