@@ -4,6 +4,9 @@
 
 #include "bin/filter.h"
 
+#include <memory>
+#include <utility>
+
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 
@@ -33,36 +36,25 @@ static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
 }
 
 static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
-                                  uint8_t** dictionary) {
-  ASSERT(dictionary != nullptr);
-  uint8_t* src = nullptr;
+                                  Filter::Dictionary* result) {
+  ASSERT(result != nullptr);
   intptr_t size;
-  Dart_TypedData_Type type;
-
   Dart_Handle err = Dart_ListLength(dictionary_obj, &size);
   if (Dart_IsError(err)) {
     return err;
   }
 
-  uint8_t* result = new uint8_t[size];
-  if (result == nullptr) {
-    return Dart_NewApiError("Could not allocate new dictionary");
+  Filter::Dictionary dict;
+  dict.data = std::make_unique<uint8_t[]>(size);
+  dict.length = size;
+
+  // Dart_ListGetAsBytes already takes the fast path for typed data internally.
+  err = Dart_ListGetAsBytes(dictionary_obj, 0, dict.data.get(), size);
+  if (Dart_IsError(err)) {
+    return err;
   }
 
-  err = Dart_TypedDataAcquireData(dictionary_obj, &type,
-                                  reinterpret_cast<void**>(&src), &size);
-  if (!Dart_IsError(err)) {
-    memmove(result, src, size);
-    Dart_TypedDataReleaseData(dictionary_obj);
-  } else {
-    err = Dart_ListGetAsBytes(dictionary_obj, 0, result, size);
-    if (Dart_IsError(err)) {
-      delete[] result;
-      return err;
-    }
-  }
-
-  *dictionary = result;
+  *result = std::move(dict);
   return Dart_Null();
 }
 
@@ -73,28 +65,19 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   Dart_Handle dict_obj = Dart_GetNativeArgument(args, 3);
   bool raw = DartUtils::GetNativeBooleanArgument(args, 4);
 
-  Dart_Handle err;
-  uint8_t* dictionary = nullptr;
-  intptr_t dictionary_length = 0;
+  Filter::Dictionary dictionary;
   if (!Dart_IsNull(dict_obj)) {
-    err = CopyDictionary(dict_obj, &dictionary);
+    Dart_Handle err = CopyDictionary(dict_obj, &dictionary);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
-    ASSERT(dictionary != nullptr);
-    dictionary_length = 0;
-    err = Dart_ListLength(dict_obj, &dictionary_length);
-    if (Dart_IsError(err)) {
-      delete[] dictionary;
-      Dart_PropagateError(err);
-    }
+    ASSERT(dictionary.data != nullptr);
   }
+  intptr_t dictionary_length = dictionary.length;
 
-  ZLibInflateFilter* filter =
-      new ZLibInflateFilter(gzip, static_cast<int32_t>(window_bits), dictionary,
-                            dictionary_length, raw);
+  ZLibInflateFilter* filter = new ZLibInflateFilter(
+      gzip, static_cast<int32_t>(window_bits), std::move(dictionary), raw);
   if (filter == nullptr) {
-    delete[] dictionary;
     Dart_PropagateError(
         Dart_NewApiError("Could not allocate ZLibInflateFilter"));
   }
@@ -103,7 +86,7 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
     Dart_ThrowException(
         DartUtils::NewInternalError("Failed to create ZLibInflateFilter"));
   }
-  err = Filter::SetFilterAndCreateFinalizer(
+  Dart_Handle err = Filter::SetFilterAndCreateFinalizer(
       filter_obj, filter, sizeof(*filter) + dictionary_length);
   if (Dart_IsError(err)) {
     delete filter;
@@ -123,29 +106,21 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   Dart_Handle dict_obj = Dart_GetNativeArgument(args, 6);
   bool raw = DartUtils::GetNativeBooleanArgument(args, 7);
 
-  Dart_Handle err;
-  uint8_t* dictionary = nullptr;
-  intptr_t dictionary_length = 0;
+  Filter::Dictionary dictionary;
   if (!Dart_IsNull(dict_obj)) {
-    err = CopyDictionary(dict_obj, &dictionary);
+    Dart_Handle err = CopyDictionary(dict_obj, &dictionary);
     if (Dart_IsError(err)) {
       Dart_PropagateError(err);
     }
-    ASSERT(dictionary != nullptr);
-    dictionary_length = 0;
-    err = Dart_ListLength(dict_obj, &dictionary_length);
-    if (Dart_IsError(err)) {
-      delete[] dictionary;
-      Dart_PropagateError(err);
-    }
+    ASSERT(dictionary.data != nullptr);
   }
+  intptr_t dictionary_length = dictionary.length;
 
   ZLibDeflateFilter* filter = new ZLibDeflateFilter(
       gzip, static_cast<int32_t>(level), static_cast<int32_t>(window_bits),
       static_cast<int32_t>(mem_level), static_cast<int32_t>(strategy),
-      dictionary, dictionary_length, raw);
+      std::move(dictionary), raw);
   if (filter == nullptr) {
-    delete[] dictionary;
     Dart_PropagateError(
         Dart_NewApiError("Could not allocate ZLibDeflateFilter"));
   }
@@ -261,7 +236,6 @@ Dart_Handle Filter::GetFilterNativeField(Dart_Handle filter,
 }
 
 ZLibDeflateFilter::~ZLibDeflateFilter() {
-  delete[] dictionary_;
   delete[] current_buffer_;
   if (initialized()) {
     deflateEnd(&stream_);
@@ -294,10 +268,10 @@ bool ZLibDeflateFilter::Init() {
   if (result != Z_OK) {
     return false;
   }
-  if ((dictionary_ != nullptr) && !gzip_ && !raw_) {
-    result = deflateSetDictionary(&stream_, dictionary_, dictionary_length_);
-    delete[] dictionary_;
-    dictionary_ = nullptr;
+  if ((dictionary_.data != nullptr) && !gzip_ && !raw_) {
+    result = deflateSetDictionary(&stream_, dictionary_.data.get(),
+                                  dictionary_.length);
+    dictionary_.data.reset();
     if (result != Z_OK) {
       return false;
     }
@@ -347,7 +321,6 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
 }
 
 ZLibInflateFilter::~ZLibInflateFilter() {
-  delete[] dictionary_;
   delete[] current_buffer_;
   if (initialized()) {
     inflateEnd(&stream_);
@@ -423,13 +396,12 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
     }
 
     case Z_NEED_DICT:
-      if (dictionary_ == nullptr) {
+      if (dictionary_.data == nullptr) {
         error = true;
       } else {
-        int result =
-            inflateSetDictionary(&stream_, dictionary_, dictionary_length_);
-        delete[] dictionary_;
-        dictionary_ = nullptr;
+        int result = inflateSetDictionary(&stream_, dictionary_.data.get(),
+                                          dictionary_.length);
+        dictionary_.data.reset();
         error = result != Z_OK;
       }
       if (error) {
