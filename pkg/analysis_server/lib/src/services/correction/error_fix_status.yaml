@@ -1953,9 +1953,13 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
-deprecated_member_use_implicit:
+deprecated_member_use_implicit_super_constructor_invocation:
   status: needsEvaluation
-deprecated_member_use_implicit_with_message:
+deprecated_member_use_implicit_super_constructor_invocation_with_message:
+  status: needsEvaluation
+deprecated_member_use_implicit_type:
+  status: needsEvaluation
+deprecated_member_use_implicit_type_with_message:
   status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix

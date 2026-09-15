@@ -23031,9 +23031,13 @@ HintCode:
       The analyzer produces this diagnostic when a deprecated library or class
       member is used in a different package.
 
-      A dot-shorthand expression can also implicitly reference a deprecated
+      A dot-shorthand expression can implicitly reference a deprecated
       type. In this case, the diagnostic identifies the implicitly referenced
       type even though its name isn't written in the expression.
+
+      A constructor can implicitly invoke a deprecated super constructor.
+      In this case, the diagnostic identifies the implicitly invoked super
+      constructor and is reported on the subclass constructor declaration.
 
       #### Example
 
@@ -23050,7 +23054,24 @@ HintCode:
 
       The documentation for declarations that are annotated with `@deprecated`
       should indicate what code to use in place of the deprecated code.
-  deprecatedMemberUseImplicit:
+  deprecatedMemberUseImplicitSuperConstructorInvocation:
+    type: hint
+    parameters:
+      String name: the name of the implicitly invoked super constructor
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly invoked super constructor '#name' is deprecated and shouldn't be used."
+    correctionMessage: Try explicitly invoking a replacement super constructor.
+    hasPublishedDocs: true
+  deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage:
+    type: hint
+    parameters:
+      String name: the name of the implicitly invoked super constructor
+      String details: message details
+    sharedName: deprecatedMemberUse
+    problemMessage: "The implicitly invoked super constructor '#name' is deprecated and shouldn't be used. #details"
+    correctionMessage: Try explicitly invoking a replacement super constructor.
+    hasPublishedDocs: true
+  deprecatedMemberUseImplicitType:
     type: hint
     parameters:
       String name: the name of the implicitly referenced type
@@ -23058,7 +23079,7 @@ HintCode:
     problemMessage: "The implicitly referenced type '#name' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated type with the replacement.
     hasPublishedDocs: true
-  deprecatedMemberUseImplicitWithMessage:
+  deprecatedMemberUseImplicitTypeWithMessage:
     type: hint
     parameters:
       String name: the name of the implicitly referenced type

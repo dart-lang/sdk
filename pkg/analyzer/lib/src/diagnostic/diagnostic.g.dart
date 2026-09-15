@@ -3898,11 +3898,53 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocation = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly invoked super constructor '{0}' is deprecated and "
+      "shouldn't be used.",
+  correctionMessage: "Try explicitly invoking a replacement super constructor.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_super_constructor_invocation',
+  withArguments:
+      _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage =
+    DiagnosticWithArguments(
+      name: 'deprecated_member_use',
+      problemMessage:
+          "The implicitly invoked super constructor '{0}' is deprecated and "
+          "shouldn't be used. {1}",
+      correctionMessage:
+          "Try explicitly invoking a replacement super constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.HINT,
+      uniqueName:
+          'deprecated_member_use_implicit_super_constructor_invocation_with_message',
+      withArguments:
+          _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+      expectedTypes: [ExpectedType.string, ExpectedType.string],
+    );
+
+/// Parameters:
 /// String name: the name of the implicitly referenced type
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
 >
-deprecatedMemberUseImplicit = DiagnosticWithArguments(
+deprecatedMemberUseImplicitType = DiagnosticWithArguments(
   name: 'deprecated_member_use',
   problemMessage:
       "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
@@ -3910,8 +3952,8 @@ deprecatedMemberUseImplicit = DiagnosticWithArguments(
       "Try replacing the use of the deprecated type with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'deprecated_member_use_implicit',
-  withArguments: _withArgumentsDeprecatedMemberUseImplicit,
+  uniqueName: 'deprecated_member_use_implicit_type',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitType,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -3921,7 +3963,7 @@ deprecatedMemberUseImplicit = DiagnosticWithArguments(
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name, required String details})
 >
-deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
+deprecatedMemberUseImplicitTypeWithMessage = DiagnosticWithArguments(
   name: 'deprecated_member_use',
   problemMessage:
       "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
@@ -3930,8 +3972,8 @@ deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
       "Try replacing the use of the deprecated type with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'deprecated_member_use_implicit_with_message',
-  withArguments: _withArgumentsDeprecatedMemberUseImplicitWithMessage,
+  uniqueName: 'deprecated_member_use_implicit_type_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -19722,20 +19764,41 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicit({
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation({
   required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicit, [name]);
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocation,
+    [name],
+  );
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitWithMessage({
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage({
   required String name,
   required String details,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitWithMessage, [
-    name,
-    details,
-  ]);
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+    [name, details],
+  );
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitType({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitType, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitTypeWithMessage,
+    [name, details],
+  );
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
