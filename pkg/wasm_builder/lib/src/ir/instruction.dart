@@ -577,8 +577,6 @@ abstract mixin class Instruction implements Serializable {
       case 0xFD:
         {
           final opcode = d.readUnsigned();
-          final instruction = V128Instruction.fromOpcode(opcode);
-          if (instruction != null) return instruction;
           return switch (opcode) {
             0x0C => V128Const.deserialize(d),
             0x0D => I8x16Shuffle.deserialize(d),
@@ -596,7 +594,9 @@ abstract mixin class Instruction implements Serializable {
             0x20 => F32x4ReplaceLane.deserialize(d),
             0x21 => F64x2ExtractLane.deserialize(d),
             0x22 => F64x2ReplaceLane.deserialize(d),
-            _ => throw "Invalid instruction byte: 0xFD $opcode",
+            _ =>
+              V128Instruction.fromOpcode(opcode) ??
+                  (throw "Invalid instruction byte: 0xFD $opcode"),
           };
         }
       default:
@@ -3153,7 +3153,7 @@ class V128Const extends Instruction {
   @override
   void serialize(Serializer s) {
     s.writeByte(0xFD);
-    s.writeUnsigned(0x0C);
+    s.writeUnsigned(V128Instruction.v128Const.opcode);
     s.writeBytes(bytes);
   }
 
@@ -4439,16 +4439,71 @@ class I64TruncSatF64U extends Instruction {
 }
 
 enum V128Instruction with Instruction {
+  // 0x00 v128.load.
+  // 0x01 v128.load8x8_s.
+  // 0x02 v128.load8x8_u.
+  // 0x03 v128.load16x4_s.
+  // 0x04 v128.load16x4_u.
+  // 0x05 v128.load32x2_s.
+  // 0x06 v128.load32x2_u.
+  // 0x07 v128.load8_splat.
+  // 0x08 v128.load16_splat.
+  // 0x09 v128.load32_splat.
+  // 0x0A v128.load64_splat.
+  // 0x0B v128.store.
+  v128Const(0x0C, 'v128.const'),
+  i8x16Shuffle(0x0D, 'i8x16.shuffle'),
+  i8x16Swizzle(0x0E, 'i8x16.swizzle'),
   i8x16Splat(0x0F, 'i8x16.splat'),
   i16x8Splat(0x10, 'i16x8.splat'),
   i32x4Splat(0x11, 'i32x4.splat'),
   i64x2Splat(0x12, 'i64x2.splat'),
   f32x4Splat(0x13, 'f32x4.splat'),
   f64x2Splat(0x14, 'f64x2.splat'),
+  i8x16ExtractLaneS(0x15, 'i8x16.extract_lane_s'),
+  i8x16ExtractLaneU(0x16, 'i8x16.extract_lane_u'),
+  i8x16ReplaceLane(0x17, 'i8x16.replace_lane'),
+  i16x8ExtractLaneS(0x18, 'i16x8.extract_lane_s'),
+  i16x8ExtractLaneU(0x19, 'i16x8.extract_lane_u'),
+  i16x8ReplaceLane(0x1A, 'i16x8.replace_lane'),
+  i32x4ExtractLane(0x1B, 'i32x4.extract_lane'),
+  i32x4ReplaceLane(0x1C, 'i32x4.replace_lane'),
+  i64x2ExtractLane(0x1D, 'i64x2.extract_lane'),
+  i64x2ReplaceLane(0x1E, 'i64x2.replace_lane'),
+  f32x4ExtractLane(0x1F, 'f32x4.extract_lane'),
+  f32x4ReplaceLane(0x20, 'f32x4.replace_lane'),
+  f64x2ExtractLane(0x21, 'f64x2.extract_lane'),
+  f64x2ReplaceLane(0x22, 'f64x2.replace_lane'),
   i8x16Eq(0x23, 'i8x16.eq'),
+  i8x16Ne(0x24, 'i8x16.ne'),
+  i8x16LtS(0x25, 'i8x16.lt_s'),
+  i8x16LtU(0x26, 'i8x16.lt_u'),
+  i8x16GtS(0x27, 'i8x16.gt_s'),
+  i8x16GtU(0x28, 'i8x16.gt_u'),
+  i8x16LeS(0x29, 'i8x16.le_s'),
+  i8x16LeU(0x2A, 'i8x16.le_u'),
+  i8x16GeS(0x2B, 'i8x16.ge_s'),
+  i8x16GeU(0x2C, 'i8x16.ge_u'),
   i16x8Eq(0x2D, 'i16x8.eq'),
+  i16x8Ne(0x2E, 'i16x8.ne'),
+  i16x8LtS(0x2F, 'i16x8.lt_s'),
+  i16x8LtU(0x30, 'i16x8.lt_u'),
+  i16x8GtS(0x31, 'i16x8.gt_s'),
+  i16x8GtU(0x32, 'i16x8.gt_u'),
+  i16x8LeS(0x33, 'i16x8.le_s'),
+  i16x8LeU(0x34, 'i16x8.le_u'),
+  i16x8GeS(0x35, 'i16x8.ge_s'),
+  i16x8GeU(0x36, 'i16x8.ge_u'),
   i32x4Eq(0x37, 'i32x4.eq'),
   i32x4Ne(0x38, 'i32x4.ne'),
+  i32x4LtS(0x39, 'i32x4.lt_s'),
+  i32x4LtU(0x3A, 'i32x4.lt_u'),
+  i32x4GtS(0x3B, 'i32x4.gt_s'),
+  i32x4GtU(0x3C, 'i32x4.gt_u'),
+  i32x4LeS(0x3D, 'i32x4.le_s'),
+  i32x4LeU(0x3E, 'i32x4.le_u'),
+  i32x4GeS(0x3F, 'i32x4.ge_s'),
+  i32x4GeU(0x40, 'i32x4.ge_u'),
   f32x4Eq(0x41, 'f32x4.eq'),
   f32x4Ne(0x42, 'f32x4.ne'),
   f32x4Lt(0x43, 'f32x4.lt'),
@@ -4468,41 +4523,149 @@ enum V128Instruction with Instruction {
   v128Xor(0x51, 'v128.xor'),
   v128BitSelect(0x52, 'v128.bitselect'),
   v128AnyTrue(0x53, 'v128.any_true'),
+  // 0x54 v128.load8_lane.
+  // 0x55 v128.load16_lane.
+  // 0x56 v128.load32_lane.
+  // 0x57 v128.load64_lane.
+  // 0x58 v128.store8_lane.
+  // 0x59 v128.store16_lane.
+  // 0x5A v128.store32_lane.
+  // 0x5B v128.store64_lane.
+  // 0x5C v128.load32_zero.
+  // 0x5D v128.load64_zero.
+  f32x4DemoteF64x2Zero(0x5E, 'f32x4.demote_f64x2_zero'),
+  f64x2PromoteLowF32x4(0x5F, 'f64x2.promote_low_f32x4'),
+  i8x16Abs(0x60, 'i8x16.abs'),
   i8x16Neg(0x61, 'i8x16.neg'),
+  i8x16Popcnt(0x62, 'i8x16.popcnt'),
   i8x16AllTrue(0x63, 'i8x16.all_true'),
   i8x16Bitmask(0x64, 'i8x16.bitmask'),
+  i8x16NarrowI16x8S(0x65, 'i8x16.narrow_i16x8_s'),
+  i8x16NarrowI16x8U(0x66, 'i8x16.narrow_i16x8_u'),
   f32x4Ceil(0x67, 'f32x4.ceil'),
   f32x4Floor(0x68, 'f32x4.floor'),
   f32x4Trunc(0x69, 'f32x4.trunc'),
   f32x4Nearest(0x6A, 'f32x4.nearest'),
+  i8x16Shl(0x6B, 'i8x16.shl'),
+  i8x16ShrS(0x6C, 'i8x16.shr_s'),
+  i8x16ShrU(0x6D, 'i8x16.shr_u'),
   i8x16Add(0x6E, 'i8x16.add'),
+  i8x16AddSatS(0x6F, 'i8x16.add_sat_s'),
+  i8x16AddSatU(0x70, 'i8x16.add_sat_u'),
   i8x16Sub(0x71, 'i8x16.sub'),
+  i8x16SubSatS(0x72, 'i8x16.sub_sat_s'),
+  i8x16SubSatU(0x73, 'i8x16.sub_sat_u'),
   f64x2Ceil(0x74, 'f64x2.ceil'),
   f64x2Floor(0x75, 'f64x2.floor'),
+  i8x16MinS(0x76, 'i8x16.min_s'),
+  i8x16MinU(0x77, 'i8x16.min_u'),
+  i8x16MaxS(0x78, 'i8x16.max_s'),
+  i8x16MaxU(0x79, 'i8x16.max_u'),
   f64x2Trunc(0x7A, 'f64x2.trunc'),
-  f64x2Nearest(0x94, 'f64x2.nearest'),
+  i8x16AvgrU(0x7B, 'i8x16.avgr_u'),
+  i16x8ExtAddPairwiseI8x16S(0x7C, 'i16x8.extadd_pairwise_i8x16_s'),
+  i16x8ExtAddPairwiseI8x16U(0x7D, 'i16x8.extadd_pairwise_i8x16_u'),
+  i32x4ExtAddPairwiseI16x8S(0x7E, 'i32x4.extadd_pairwise_i16x8_s'),
+  i32x4ExtAddPairwiseI16x8U(0x7F, 'i32x4.extadd_pairwise_i16x8_u'),
+  i16x8Abs(0x80, 'i16x8.abs'),
   i16x8Neg(0x81, 'i16x8.neg'),
+  i16x8Q15MulrSatS(0x82, 'i16x8.q15mulr_sat_s'),
   i16x8AllTrue(0x83, 'i16x8.all_true'),
   i16x8Bitmask(0x84, 'i16x8.bitmask'),
+  i16x8NarrowI32x4S(0x85, 'i16x8.narrow_i32x4_s'),
+  i16x8NarrowI32x4U(0x86, 'i16x8.narrow_i32x4_u'),
+  i16x8ExtendLowI8x16S(0x87, 'i16x8.extend_low_i8x16_s'),
+  i16x8ExtendHighI8x16S(0x88, 'i16x8.extend_high_i8x16_s'),
+  i16x8ExtendLowI8x16U(0x89, 'i16x8.extend_low_i8x16_u'),
+  i16x8ExtendHighI8x16U(0x8A, 'i16x8.extend_high_i8x16_u'),
+  i16x8Shl(0x8B, 'i16x8.shl'),
+  i16x8ShrS(0x8C, 'i16x8.shr_s'),
+  i16x8ShrU(0x8D, 'i16x8.shr_u'),
   i16x8Add(0x8E, 'i16x8.add'),
+  i16x8AddSatS(0x8F, 'i16x8.add_sat_s'),
+  i16x8AddSatU(0x90, 'i16x8.add_sat_u'),
   i16x8Sub(0x91, 'i16x8.sub'),
+  i16x8SubSatS(0x92, 'i16x8.sub_sat_s'),
+  i16x8SubSatU(0x93, 'i16x8.sub_sat_u'),
+  f64x2Nearest(0x94, 'f64x2.nearest'),
   i16x8Mul(0x95, 'i16x8.mul'),
+  i16x8MinS(0x96, 'i16x8.min_s'),
+  i16x8MinU(0x97, 'i16x8.min_u'),
+  i16x8MaxS(0x98, 'i16x8.max_s'),
+  i16x8MaxU(0x99, 'i16x8.max_u'),
+  // 0x9A not yet assigned to an operation in the instruction set.
+  i16x8AvgrU(0x9B, 'i16x8.avgr_u'),
+  i16x8ExtMulLowI8x16S(0x9C, 'i16x8.extmul_low_i8x16_s'),
+  i16x8ExtMulHighI8x16S(0x9D, 'i16x8.extmul_high_i8x16_s'),
+  i16x8ExtMulLowI8x16U(0x9E, 'i16x8.extmul_low_i8x16_u'),
+  i16x8ExtMulHighI8x16U(0x9F, 'i16x8.extmul_high_i8x16_u'),
+  i32x4Abs(0xA0, 'i32x4.abs'),
   i32x4Neg(0xA1, 'i32x4.neg'),
+  // 0xA2 not yet assigned to an operation in the instruction set.
   i32x4AllTrue(0xA3, 'i32x4.all_true'),
   i32x4Bitmask(0xA4, 'i32x4.bitmask'),
+  // 0xA5 not yet assigned to an operation in the instruction set.
+  // 0xA6 not yet assigned to an operation in the instruction set.
+  i32x4ExtendLowI16x8S(0xA7, 'i32x4.extend_low_i16x8_s'),
+  i32x4ExtendHighI16x8S(0xA8, 'i32x4.extend_high_i16x8_s'),
+  i32x4ExtendLowI16x8U(0xA9, 'i32x4.extend_low_i16x8_u'),
+  i32x4ExtendHighI16x8U(0xAA, 'i32x4.extend_high_i16x8_u'),
+  i32x4Shl(0xAB, 'i32x4.shl'),
+  i32x4ShrS(0xAC, 'i32x4.shr_s'),
+  i32x4ShrU(0xAD, 'i32x4.shr_u'),
   i32x4Add(0xAE, 'i32x4.add'),
+  // 0xAF not yet assigned to an operation in the instruction set.
+  // 0xB0 not yet assigned to an operation in the instruction set.
   i32x4Sub(0xB1, 'i32x4.sub'),
+  // 0xB2 not yet assigned to an operation in the instruction set.
+  // 0xB3 not yet assigned to an operation in the instruction set.
+  // 0xB4 not yet assigned to an operation in the instruction set.
   i32x4Mul(0xB5, 'i32x4.mul'),
+  i32x4MinS(0xB6, 'i32x4.min_s'),
+  i32x4MinU(0xB7, 'i32x4.min_u'),
+  i32x4MaxS(0xB8, 'i32x4.max_s'),
+  i32x4MaxU(0xB9, 'i32x4.max_u'),
   i32x4DotI16x8(0xBA, 'i32x4.dot_i16x8_s'),
+  // 0xBB not yet assigned to an operation in the instruction set.
+  i32x4ExtMulLowI16x8S(0xBC, 'i32x4.extmul_low_i16x8_s'),
+  i32x4ExtMulHighI16x8S(0xBD, 'i32x4.extmul_high_i16x8_s'),
+  i32x4ExtMulLowI16x8U(0xBE, 'i32x4.extmul_low_i16x8_u'),
+  i32x4ExtMulHighI16x8U(0xBF, 'i32x4.extmul_high_i16x8_u'),
+  i64x2Abs(0xC0, 'i64x2.abs'),
   i64x2Neg(0xC1, 'i64x2.neg'),
+  // 0xC2 not yet assigned to an operation in the instruction set.
   i64x2AllTrue(0xC3, 'i64x2.all_true'),
   i64x2Bitmask(0xC4, 'i64x2.bitmask'),
+  // 0xC5 not yet assigned to an operation in the instruction set.
+  // 0xC6 not yet assigned to an operation in the instruction set.
+  i64x2ExtendLowI32x4S(0xC7, 'i64x2.extend_low_i32x4_s'),
+  i64x2ExtendHighI32x4S(0xC8, 'i64x2.extend_high_i32x4_s'),
+  i64x2ExtendLowI32x4U(0xC9, 'i64x2.extend_low_i32x4_u'),
+  i64x2ExtendHighI32x4U(0xCA, 'i64x2.extend_high_i32x4_u'),
+  i64x2Shl(0xCB, 'i64x2.shl'),
+  i64x2ShrS(0xCC, 'i64x2.shr_s'),
+  i64x2ShrU(0xCD, 'i64x2.shr_u'),
   i64x2Add(0xCE, 'i64x2.add'),
+  // 0xCF not yet assigned to an operation in the instruction set.
+  // 0xD0 not yet assigned to an operation in the instruction set.
   i64x2Sub(0xD1, 'i64x2.sub'),
+  // 0xD2 not yet assigned to an operation in the instruction set.
+  // 0xD3 not yet assigned to an operation in the instruction set.
+  // 0xD4 not yet assigned to an operation in the instruction set.
   i64x2Mul(0xD5, 'i64x2.mul'),
   i64x2Eq(0xD6, 'i64x2.eq'),
+  i64x2Ne(0xD7, 'i64x2.ne'),
+  i64x2LtS(0xD8, 'i64x2.lt_s'),
+  i64x2GtS(0xD9, 'i64x2.gt_s'),
+  i64x2LeS(0xDA, 'i64x2.le_s'),
+  i64x2GeS(0xDB, 'i64x2.ge_s'),
+  i64x2ExtMulLowI32x4S(0xDC, 'i64x2.extmul_low_i32x4_s'),
+  i64x2ExtMulHighI32x4S(0xDD, 'i64x2.extmul_high_i32x4_s'),
+  i64x2ExtMulLowI32x4U(0xDE, 'i64x2.extmul_low_i32x4_u'),
+  i64x2ExtMulHighI32x4U(0xDF, 'i64x2.extmul_high_i32x4_u'),
   f32x4Abs(0xE0, 'f32x4.abs'),
   f32x4Neg(0xE1, 'f32x4.neg'),
+  // 0xE2 not yet assigned to an operation in the instruction set.
   f32x4Sqrt(0xE3, 'f32x4.sqrt'),
   f32x4Add(0xE4, 'f32x4.add'),
   f32x4Sub(0xE5, 'f32x4.sub'),
@@ -4514,6 +4677,7 @@ enum V128Instruction with Instruction {
   f32x4PMax(0xEB, 'f32x4.pmax'),
   f64x2Abs(0xEC, 'f64x2.abs'),
   f64x2Neg(0xED, 'f64x2.neg'),
+  // 0xEE not yet assigned to an operation in the instruction set.
   f64x2Sqrt(0xEF, 'f64x2.sqrt'),
   f64x2Add(0xF0, 'f64x2.add'),
   f64x2Sub(0xF1, 'f64x2.sub'),
@@ -4522,7 +4686,35 @@ enum V128Instruction with Instruction {
   f64x2Min(0xF4, 'f64x2.min'),
   f64x2Max(0xF5, 'f64x2.max'),
   f64x2PMin(0xF6, 'f64x2.pmin'),
-  f64x2PMax(0xF7, 'f64x2.pmax');
+  f64x2PMax(0xF7, 'f64x2.pmax'),
+  i32x4TruncSatF32x4S(0xF8, 'i32x4.trunc_sat_f32x4_s'),
+  i32x4TruncSatF32x4U(0xF9, 'i32x4.trunc_sat_f32x4_u'),
+  f32x4ConvertI32x4S(0xFA, 'f32x4.convert_i32x4_s'),
+  f32x4ConvertI32x4U(0xFB, 'f32x4.convert_i32x4_u'),
+  i32x4TruncSatF64x2SZero(0xFC, 'i32x4.trunc_sat_f64x2_s_zero'),
+  i32x4TruncSatF64x2UZero(0xFD, 'i32x4.trunc_sat_f64x2_u_zero'),
+  f64x2ConvertLowI32x4S(0xFE, 'f64x2.convert_low_i32x4_s'),
+  f64x2ConvertLowI32x4U(0xFF, 'f64x2.convert_low_i32x4_u'),
+  i8x16RelaxedSwizzle(0x100, 'i8x16.relaxed_swizzle'),
+  i32x4RelaxedTruncF32x4S(0x101, 'i32x4.relaxed_trunc_f32x4_s'),
+  i32x4RelaxedTruncF32x4U(0x102, 'i32x4.relaxed_trunc_f32x4_u'),
+  i32x4RelaxedTruncF64x2SZero(0x103, 'i32x4.relaxed_trunc_f64x2_s_zero'),
+  i32x4RelaxedTruncF64x2UZero(0x104, 'i32x4.relaxed_trunc_f64x2_u_zero'),
+  f32x4RelaxedMadd(0x105, 'f32x4.relaxed_madd'),
+  f32x4RelaxedNmadd(0x106, 'f32x4.relaxed_nmadd'),
+  f64x2RelaxedMadd(0x107, 'f64x2.relaxed_madd'),
+  f64x2RelaxedNmadd(0x108, 'f64x2.relaxed_nmadd'),
+  i8x16RelaxedLaneSelect(0x109, 'i8x16.relaxed_laneselect'),
+  i16x8RelaxedLaneSelect(0x10A, 'i16x8.relaxed_laneselect'),
+  i32x4RelaxedLaneSelect(0x10B, 'i32x4.relaxed_laneselect'),
+  i64x2RelaxedLaneSelect(0x10C, 'i64x2.relaxed_laneselect'),
+  f32x4RelaxedMin(0x10D, 'f32x4.relaxed_min'),
+  f32x4RelaxedMax(0x10E, 'f32x4.relaxed_max'),
+  f64x2RelaxedMin(0x10F, 'f64x2.relaxed_min'),
+  f64x2RelaxedMax(0x110, 'f64x2.relaxed_max'),
+  i16x8RelaxedQ15MulrS(0x111, 'i16x8.relaxed_q15mulr_s'),
+  i16x8RelaxedDotI8x16I7x16S(0x112, 'i16x8.relaxed_dot_i8x16_i7x16_s'),
+  i32x4RelaxedDotI8x16I7x16AddS(0x113, 'i32x4.relaxed_dot_i8x16_i7x16_add_s');
 
   final int opcode;
   @override
@@ -4547,15 +4739,31 @@ enum V128Instruction with Instruction {
   }
 }
 
-class I8x16Shuffle extends Instruction {
-  const I8x16Shuffle(this.lanes);
+abstract class SimdInstruction extends Instruction {
+  final V128Instruction definition;
 
-  final List<int> lanes;
+  const SimdInstruction(this.definition);
+
+  @override
+  String get name => definition.name;
 
   @override
   void serialize(Serializer s) {
     s.writeByte(0xFD);
-    s.writeUnsigned(0x0D);
+    s.writeUnsigned(definition.opcode);
+    serializeImmediate(s);
+  }
+
+  void serializeImmediate(Serializer s);
+}
+
+class I8x16Shuffle extends SimdInstruction {
+  const I8x16Shuffle(this.lanes) : super(V128Instruction.i8x16Shuffle);
+
+  final List<int> lanes;
+
+  @override
+  void serializeImmediate(Serializer s) {
     for (var lane in lanes) {
       s.writeByte(lane);
     }
@@ -4565,276 +4773,128 @@ class I8x16Shuffle extends Instruction {
       I8x16Shuffle(List.generate(16, (_) => d.readByte()));
 
   @override
-  String get name => 'i8x16.shuffle';
-
-  @override
   String toString() => '$name ${lanes.join(' ')}';
 }
 
-class I8x16ExtractLaneS extends Instruction {
-  const I8x16ExtractLaneS(this.lane);
-
+abstract class SimdLaneInstruction extends SimdInstruction {
   final int lane;
 
+  const SimdLaneInstruction(super.definition, this.lane);
+
   @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x15);
-    s.writeByte(lane);
-  }
+  void serializeImmediate(Serializer s) => s.writeByte(lane);
+}
+
+class I8x16ExtractLaneS extends SimdLaneInstruction {
+  const I8x16ExtractLaneS(int lane)
+    : super(V128Instruction.i8x16ExtractLaneS, lane);
 
   static I8x16ExtractLaneS deserialize(Deserializer d) =>
       I8x16ExtractLaneS(d.readByte());
-
-  @override
-  String get name => 'i8x16.extract_lane_s';
 }
 
-class I8x16ExtractLaneU extends Instruction {
-  const I8x16ExtractLaneU(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x16);
-    s.writeByte(lane);
-  }
+class I8x16ExtractLaneU extends SimdLaneInstruction {
+  const I8x16ExtractLaneU(int lane)
+    : super(V128Instruction.i8x16ExtractLaneU, lane);
 
   static I8x16ExtractLaneU deserialize(Deserializer d) =>
       I8x16ExtractLaneU(d.readByte());
-
-  @override
-  String get name => 'i8x16.extract_lane_u';
 }
 
-class I8x16ReplaceLane extends Instruction {
-  const I8x16ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x17);
-    s.writeByte(lane);
-  }
+class I8x16ReplaceLane extends SimdLaneInstruction {
+  const I8x16ReplaceLane(int lane)
+    : super(V128Instruction.i8x16ReplaceLane, lane);
 
   static I8x16ReplaceLane deserialize(Deserializer d) =>
       I8x16ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'i8x16.replace_lane';
 }
 
-class I16x8ExtractLaneS extends Instruction {
-  const I16x8ExtractLaneS(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x18);
-    s.writeByte(lane);
-  }
+class I16x8ExtractLaneS extends SimdLaneInstruction {
+  const I16x8ExtractLaneS(int lane)
+    : super(V128Instruction.i16x8ExtractLaneS, lane);
 
   static I16x8ExtractLaneS deserialize(Deserializer d) =>
       I16x8ExtractLaneS(d.readByte());
-
-  @override
-  String get name => 'i16x8.extract_lane_s';
 }
 
-class I16x8ExtractLaneU extends Instruction {
-  const I16x8ExtractLaneU(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x19);
-    s.writeByte(lane);
-  }
+class I16x8ExtractLaneU extends SimdLaneInstruction {
+  const I16x8ExtractLaneU(int lane)
+    : super(V128Instruction.i16x8ExtractLaneU, lane);
 
   static I16x8ExtractLaneU deserialize(Deserializer d) =>
       I16x8ExtractLaneU(d.readByte());
-
-  @override
-  String get name => 'i16x8.extract_lane_u';
 }
 
-class I16x8ReplaceLane extends Instruction {
-  const I16x8ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1A);
-    s.writeByte(lane);
-  }
+class I16x8ReplaceLane extends SimdLaneInstruction {
+  const I16x8ReplaceLane(int lane)
+    : super(V128Instruction.i16x8ReplaceLane, lane);
 
   static I16x8ReplaceLane deserialize(Deserializer d) =>
       I16x8ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'i16x8.replace_lane';
 }
 
-class I32x4ExtractLane extends Instruction {
-  const I32x4ExtractLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1B);
-    s.writeByte(lane);
-  }
+class I32x4ExtractLane extends SimdLaneInstruction {
+  const I32x4ExtractLane(int lane)
+    : super(V128Instruction.i32x4ExtractLane, lane);
 
   static I32x4ExtractLane deserialize(Deserializer d) =>
       I32x4ExtractLane(d.readByte());
-
-  @override
-  String get name => 'i32x4.extract_lane';
 }
 
-class I32x4ReplaceLane extends Instruction {
-  const I32x4ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1C);
-    s.writeByte(lane);
-  }
+class I32x4ReplaceLane extends SimdLaneInstruction {
+  const I32x4ReplaceLane(int lane)
+    : super(V128Instruction.i32x4ReplaceLane, lane);
 
   static I32x4ReplaceLane deserialize(Deserializer d) =>
       I32x4ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'i32x4.replace_lane';
 }
 
-class I64x2ExtractLane extends Instruction {
-  const I64x2ExtractLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1D);
-    s.writeByte(lane);
-  }
+class I64x2ExtractLane extends SimdLaneInstruction {
+  const I64x2ExtractLane(int lane)
+    : super(V128Instruction.i64x2ExtractLane, lane);
 
   static I64x2ExtractLane deserialize(Deserializer d) =>
       I64x2ExtractLane(d.readByte());
-
-  @override
-  String get name => 'i64x2.extract_lane';
 }
 
-class I64x2ReplaceLane extends Instruction {
-  const I64x2ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1E);
-    s.writeByte(lane);
-  }
+class I64x2ReplaceLane extends SimdLaneInstruction {
+  const I64x2ReplaceLane(int lane)
+    : super(V128Instruction.i64x2ReplaceLane, lane);
 
   static I64x2ReplaceLane deserialize(Deserializer d) =>
       I64x2ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'i64x2.replace_lane';
 }
 
-class F32x4ExtractLane extends Instruction {
-  const F32x4ExtractLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x1F);
-    s.writeByte(lane);
-  }
+class F32x4ExtractLane extends SimdLaneInstruction {
+  const F32x4ExtractLane(int lane)
+    : super(V128Instruction.f32x4ExtractLane, lane);
 
   static F32x4ExtractLane deserialize(Deserializer d) =>
       F32x4ExtractLane(d.readByte());
-
-  @override
-  String get name => 'f32x4.extract_lane';
 }
 
-class F32x4ReplaceLane extends Instruction {
-  const F32x4ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x20);
-    s.writeByte(lane);
-  }
+class F32x4ReplaceLane extends SimdLaneInstruction {
+  const F32x4ReplaceLane(int lane)
+    : super(V128Instruction.f32x4ReplaceLane, lane);
 
   static F32x4ReplaceLane deserialize(Deserializer d) =>
       F32x4ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'f32x4.replace_lane';
 }
 
-class F64x2ExtractLane extends Instruction {
-  const F64x2ExtractLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x21);
-    s.writeByte(lane);
-  }
+class F64x2ExtractLane extends SimdLaneInstruction {
+  const F64x2ExtractLane(int lane)
+    : super(V128Instruction.f64x2ExtractLane, lane);
 
   static F64x2ExtractLane deserialize(Deserializer d) =>
       F64x2ExtractLane(d.readByte());
-
-  @override
-  String get name => 'f64x2.extract_lane';
 }
 
-class F64x2ReplaceLane extends Instruction {
-  const F64x2ReplaceLane(this.lane);
-
-  final int lane;
-
-  @override
-  void serialize(Serializer s) {
-    s.writeByte(0xFD);
-    s.writeUnsigned(0x22);
-    s.writeByte(lane);
-  }
+class F64x2ReplaceLane extends SimdLaneInstruction {
+  const F64x2ReplaceLane(int lane)
+    : super(V128Instruction.f64x2ReplaceLane, lane);
 
   static F64x2ReplaceLane deserialize(Deserializer d) =>
       F64x2ReplaceLane(d.readByte());
-
-  @override
-  String get name => 'f64x2.replace_lane';
 }
 
 class BeginNoEffectTryTable extends Instruction {
