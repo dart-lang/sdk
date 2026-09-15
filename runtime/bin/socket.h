@@ -58,6 +58,21 @@ class Socket : public ReferenceCounted<Socket> {
   // release handle but only SetClosedFd().
   void SetClosedFd();
 
+  // RetainFd and ReleaseFd manage the lifetime of the underlying descriptor
+  // or handle object associated with |fd|.
+  //
+  // On POSIX platforms, |fd| is an integer kernel file descriptor and these
+  // operations are no-ops.
+  //
+  // On Windows and Fuchsia, |fd| is a pointer to a reference-counted heap object
+  // (Handle* on Windows, IOHandle* on Fuchsia). If an external consumer (such
+  // as BoringSSL custom socket BIO) retains the raw fd across asynchronous
+  // operations while the Dart socket object might be closed or garbage-collected,
+  // RetainFd must be called to prevent Use-After-Free, and ReleaseFd must be
+  // called once the consumer is done with the descriptor.
+  static void RetainFd(intptr_t fd);
+  static void ReleaseFd(intptr_t fd);
+
   Dart_Port isolate_port() const { return isolate_port_; }
 
   Dart_Port port() const { return port_; }
@@ -107,10 +122,11 @@ class Socket : public ReferenceCounted<Socket> {
   static void set_short_socket_write(bool short_socket_write) {
     short_socket_write_ = short_socket_write;
   }
-
   static bool IsSignalSocketFlag(intptr_t flag) {
     return ((flag & (0x1 << kInternalSignalSocket)) != 0);
   }
+
+  static constexpr int kClosedFd = -1;
 
  private:
   ~Socket() {
@@ -118,8 +134,6 @@ class Socket : public ReferenceCounted<Socket> {
     free(udp_receive_buffer_);
     udp_receive_buffer_ = nullptr;
   }
-
-  static constexpr int kClosedFd = -1;
 
   static bool short_socket_read_;
   static bool short_socket_write_;

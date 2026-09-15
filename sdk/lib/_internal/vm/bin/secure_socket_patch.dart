@@ -55,26 +55,27 @@ class _SecureSocket extends _Socket implements SecureSocket {
  * over an encrypted socket.  The filter also handles the handshaking
  * and certificate verification.
  *
- * The filter exposes its input and output buffers as Dart objects that
- * are backed by an external C array of bytes, so that both Dart code and
- * native code can access the same data.
+ * The filter exposes its plaintext input and output buffers as Dart objects
+ * backed by external C arrays. A non-buffering custom BIO sends encrypted bytes
+ * directly to a native socket, or through RawSocket callbacks for public
+ * implementations which do not expose a native transport.
  */
 @pragma("vm:entry-point")
 base class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
-  // Performance is improved if a full buffer of plaintext fits
-  // in the encrypted buffer, when encrypted.
-  // SIZE and ENCRYPTED_SIZE are referenced from C++.
+  // SIZE is the maximum backing allocation and is referenced from C++.
   @pragma("vm:entry-point")
-  static final int SIZE = 8 * 1024;
-  @pragma("vm:entry-point")
-  static final int ENCRYPTED_SIZE = 10 * 1024;
+  static final int SIZE = 16 * 1024 + 1;
+  static const int _initialSize = 1 * 1024 + 1;
 
   _SecureFilterImpl._() {
     buffers = <_ExternalBuffer>[
       for (int i = 0; i < _RawSecureSocket.bufferCount; ++i)
         _ExternalBuffer(
-          _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE,
+          SIZE,
+          initialSize: _initialSize,
+          growBacking: (start, end, oldSize, newSize) =>
+              _growBuffer(i, start, end, oldSize, newSize),
         ),
     ];
   }
@@ -87,6 +88,9 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
     bool requestClientCertificate,
     bool requireClientCertificate,
     Uint8List protocols,
+    Object? nativeSocket,
+    Uint8List? Function(int)? transportRead,
+    int Function(Uint8List)? transportWrite,
   );
 
   void destroy() {
@@ -98,7 +102,7 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
   external void _destroy();
 
   @pragma("vm:external-name", "SecureSocket_Handshake")
-  external int _handshake(SendPort replyPort);
+  external List<Object?> _handshake(SendPort replyPort);
 
   @pragma("vm:external-name", "SecureSocket_MarkAsTrusted")
   external void _markAsTrusted(int certificatePtr, bool isTrusted);
@@ -108,8 +112,8 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
     int certificatePtr,
   );
 
-  Future<bool> handshake() {
-    Completer<bool> evaluatorCompleter = Completer<bool>();
+  Future<List<Object?>> handshake() {
+    Completer<void> evaluatorCompleter = Completer<void>();
 
     ReceivePort rpEvaluateResponse = ReceivePort();
     rpEvaluateResponse.listen((data) {
@@ -136,30 +140,45 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
         }
       }
       _markAsTrusted(certificatePtr, isTrusted);
-      evaluatorCompleter.complete(true);
+      evaluatorCompleter.complete();
       rpEvaluateResponse.close();
     });
 
     const int kSslErrorWantCertificateVerify = 16; // ssl.h:558
-    int handshakeResult;
+    List<Object?> handshakeResult;
     try {
       handshakeResult = _handshake(rpEvaluateResponse.sendPort);
     } catch (e, st) {
       rpEvaluateResponse.close();
       rethrow;
     }
-    if (handshakeResult == kSslErrorWantCertificateVerify) {
-      return evaluatorCompleter.future;
+    if (handshakeResult[0] == kSslErrorWantCertificateVerify) {
+      return evaluatorCompleter.future.then((_) => handshakeResult);
     } else {
       // Response is ready, no need for evaluate response receive port
       rpEvaluateResponse.close();
-      return Future<bool>.value(false);
+      return Future<List<Object?>>.value(handshakeResult);
     }
   }
 
   void rehandshake() => throw UnimplementedError();
 
   int processBuffer(int bufferIndex) => throw UnimplementedError();
+
+  @pragma("vm:external-name", "SecureSocket_Process")
+  external List<Object?> process(List<int> positions);
+
+  @pragma("vm:external-name", "SecureSocket_GrowBuffer")
+  external Uint8List _growBuffer(
+    int bufferIndex,
+    int start,
+    int end,
+    int oldSize,
+    int newSize,
+  );
+
+  @pragma("vm:external-name", "SecureSocket_QueuePrefetchedData")
+  external int queuePrefetchedData(List<int> data, int offset);
 
   @pragma("vm:external-name", "SecureSocket_GetSelectedProtocol")
   external String? selectedProtocol();
@@ -189,10 +208,6 @@ base class _SecureFilterImpl extends NativeFieldWrapperClass1
 
   @pragma("vm:external-name", "SecureSocket_RegisterKeyLogPort")
   external void registerKeyLogPort(SendPort port);
-
-  // This is a security issue, as it exposes a raw pointer to Dart code.
-  @pragma("vm:external-name", "SecureSocket_FilterPointer")
-  external int _pointer();
 
   @pragma("vm:entry-point")
   List<_ExternalBuffer>? buffers;
