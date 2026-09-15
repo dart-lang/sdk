@@ -208,6 +208,20 @@ abstract final class SecurityContext {
   /// The default value is [TlsProtocolVersion.tls1_2].
   abstract TlsProtocolVersion minimumTlsProtocolVersion;
 
+  /// The size, in bytes, of each plaintext buffer allocated for a secure socket
+  /// that uses this context.
+  ///
+  /// Increasing the value can improve throughput for large transfers at the
+  /// cost of additional memory per connection. The corresponding encrypted
+  /// buffers include additional space for TLS overhead.
+  ///
+  /// If the value is changed, it will only affect new connections. Existing
+  /// connections will retain their current buffer sizes.
+  ///
+  /// The value must be between 8 KiB and 1 MiB, inclusive. The default is
+  /// 8 KiB.
+  abstract int secureSocketBufferSize;
+
   /// Encodes a set of supported protocols for ALPN/NPN usage.
   ///
   /// The [protocols] list is expected to contain protocols in descending order
