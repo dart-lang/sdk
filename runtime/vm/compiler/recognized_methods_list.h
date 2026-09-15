@@ -708,6 +708,8 @@ namespace dart {
     0xd8edbf39)                                                                \
   V(TypedDataLibrary, _TypedList, _getFloat32x4, TypedList_GetFloat32x4,       \
     0x8535083e)                                                                \
+  V(TypedDataLibrary, _TypedList, _getFloat64x2, TypedList_GetFloat64x2,       \
+    0x601cfc98)                                                                \
   V(TypedDataLibrary, _TypedList, _getInt32x4, TypedList_GetInt32x4,           \
     0x5492ada5)                                                                \
   V(TypedDataLibrary, _TypedList, _setInt8, TypedList_SetInt8, 0xc407fda1)     \
@@ -724,6 +726,8 @@ namespace dart {
     0x0c2e6726)                                                                \
   V(TypedDataLibrary, _TypedList, _setFloat32x4, TypedList_SetFloat32x4,       \
     0x3dc17446)                                                                \
+  V(TypedDataLibrary, _TypedList, _setFloat64x2, TypedList_SetFloat64x2,       \
+    0x90fdf042)                                                                \
   V(TypedDataLibrary, _TypedList, _setInt32x4, TypedList_SetInt32x4,           \
     0x5f4a7491)                                                                \
   V(CoreLibrary, Object, get:runtimeType, ObjectRuntimeType, 0x0364b091)       \

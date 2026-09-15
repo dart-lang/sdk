@@ -4342,6 +4342,7 @@ abstract final class Int32x4 {
   ///
   /// The created value has the same [x], [y], [z] and [w] value, which is the
   /// low 32 bits of [value].
+  @Since("3.14")
   external factory Int32x4.splat(int value);
 
   /// Creates an `Int32x4` with all values being zero.
@@ -4366,6 +4367,7 @@ abstract final class Int32x4 {
   /// Negation of each lane.
   ///
   /// Returns a new [Int32x4] with every bit of every lane inverted.
+  @Since("3.14")
   Int32x4 operator ~();
 
   /// Addition operator.
@@ -4423,6 +4425,7 @@ abstract final class Int32x4 {
   /// the value from [other], and the result is 0 (all bits cleared) if not.
   ///
   /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
   Int32x4 equal(Int32x4 other);
 
   /// Lane-wise integer inequality comparison.
@@ -4432,6 +4435,7 @@ abstract final class Int32x4 {
   /// the value from [other], and the result is 0 (all bits cleared) if it is.
   ///
   /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
   Int32x4 notEqual(Int32x4 other);
 
   /// Lane-wise signed integer less-than comparison.

@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 
 void testShuffle00() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.xxxx);
   Expect.equals(1.0, c.x);
   Expect.equals(1.0, c.y);
@@ -98,7 +98,7 @@ void testShuffle00() {
 
 void testShuffle01() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.xyxx);
   Expect.equals(1.0, c.x);
   Expect.equals(2.0, c.y);
@@ -183,7 +183,7 @@ void testShuffle01() {
 
 void testShuffle02() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.xzxx);
   Expect.equals(1.0, c.x);
   Expect.equals(3.0, c.y);
@@ -268,7 +268,7 @@ void testShuffle02() {
 
 void testShuffle03() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.xwxx);
   Expect.equals(1.0, c.x);
   Expect.equals(4.0, c.y);
@@ -353,7 +353,7 @@ void testShuffle03() {
 
 void testShuffle10() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.yxxx);
   Expect.equals(2.0, c.x);
   Expect.equals(1.0, c.y);
@@ -438,7 +438,7 @@ void testShuffle10() {
 
 void testShuffle11() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.yyxx);
   Expect.equals(2.0, c.x);
   Expect.equals(2.0, c.y);
@@ -523,7 +523,7 @@ void testShuffle11() {
 
 void testShuffle12() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.yzxx);
   Expect.equals(2.0, c.x);
   Expect.equals(3.0, c.y);
@@ -608,7 +608,7 @@ void testShuffle12() {
 
 void testShuffle13() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.ywxx);
   Expect.equals(2.0, c.x);
   Expect.equals(4.0, c.y);
@@ -693,7 +693,7 @@ void testShuffle13() {
 
 void testShuffle20() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.zxxx);
   Expect.equals(3.0, c.x);
   Expect.equals(1.0, c.y);
@@ -778,7 +778,7 @@ void testShuffle20() {
 
 void testShuffle21() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.zyxx);
   Expect.equals(3.0, c.x);
   Expect.equals(2.0, c.y);
@@ -863,7 +863,7 @@ void testShuffle21() {
 
 void testShuffle22() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.zzxx);
   Expect.equals(3.0, c.x);
   Expect.equals(3.0, c.y);
@@ -948,7 +948,7 @@ void testShuffle22() {
 
 void testShuffle23() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.zwxx);
   Expect.equals(3.0, c.x);
   Expect.equals(4.0, c.y);
@@ -1033,7 +1033,7 @@ void testShuffle23() {
 
 void testShuffle30() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.wxxx);
   Expect.equals(4.0, c.x);
   Expect.equals(1.0, c.y);
@@ -1118,7 +1118,7 @@ void testShuffle30() {
 
 void testShuffle31() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.wyxx);
   Expect.equals(4.0, c.x);
   Expect.equals(2.0, c.y);
@@ -1203,7 +1203,7 @@ void testShuffle31() {
 
 void testShuffle32() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.wzxx);
   Expect.equals(4.0, c.x);
   Expect.equals(3.0, c.y);
@@ -1288,7 +1288,7 @@ void testShuffle32() {
 
 void testShuffle33() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.wwxx);
   Expect.equals(4.0, c.x);
   Expect.equals(4.0, c.y);
@@ -1373,7 +1373,7 @@ void testShuffle33() {
 
 void testShuffleNonConstant(mask) {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(mask);
   if (mask == 1) {
     Expect.equals(2.0, c.x);
@@ -1393,7 +1393,7 @@ void testInvalidShuffle(mask) {
   // Not a valid mask.
   Expect.isFalse(mask <= 255 && mask >= 0);
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   Expect.throws(() {
     c = m.shuffle(mask);
   });
@@ -1401,7 +1401,7 @@ void testInvalidShuffle(mask) {
 
 void testShuffle() {
   var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c;
+  Float32x4 c;
   c = m.shuffle(Float32x4.wzyx);
   Expect.equals(4.0, c.x);
   Expect.equals(3.0, c.y);
