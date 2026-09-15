@@ -60,13 +60,15 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     _FixContext fixContext;
     switch (container) {
       case ClassDeclaration():
-        superType = container.declaredFragment?.element.supertype;
+        var classElement = container.declaredFragment?.element;
+        superType = classElement?.supertype;
         if (superType == null) {
           return;
         }
         fixContext = _FixContext(
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
+          classElement: classElement,
           superType: superType,
           variableLists: container.body.members.interestingVariableLists,
         );
@@ -78,6 +80,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         fixContext = _FixContext(
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
+          classElement: null,
           superType: superType,
           variableLists: container.body.members.interestingVariableLists,
         );
@@ -113,6 +116,11 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       var type = variableList.type?.type;
       var hasNonNullableType =
           type != null && typeSystem.isPotentiallyNonNullable(type);
+      // A nullable non-final field without an initializer is already valid
+      // Dart (it defaults to `null`); don't force it into the constructor.
+      if (!variableList.isFinal && !hasNonNullableType) {
+        continue;
+      }
 
       for (var field in variableList.variables) {
         var typeAnnotation = variableList.type;
@@ -175,7 +183,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
-        builder.write('const ');
+        if (fixContext.canBeConst) {
+          builder.write('const ');
+        }
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
         } else {
@@ -229,7 +239,9 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       builder.insertConstructor(classDeclaration, (builder) {
         // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
         // and `parameterWriter`.
-        builder.write('const ');
+        if (fixContext.canBeConst) {
+          builder.write('const ');
+        }
         if (isEnabled(Feature.primary_constructors)) {
           builder.write('new');
         } else {
@@ -509,12 +521,19 @@ class _Field {
 class _FixContext {
   final ChangeBuilder builder;
   final String containerName;
+
+  /// The element of the class being fixed, or `null` if it's an enum.
+  ///
+  /// Enum instance fields must always be final, so [canBeConst] doesn't need
+  /// this to determine whether an enum's generated constructor can be const.
+  final ClassElement? classElement;
   final InterfaceType superType;
   final Iterable<VariableDeclarationList> variableLists;
 
   new({
     required this.builder,
     required this.containerName,
+    required this.classElement,
     required this.superType,
     required this.variableLists,
   });
@@ -527,6 +546,16 @@ class _FixContext {
       return superNamed.length == superAll.length ? superNamed : null;
     }
     return null;
+  }
+
+  /// Whether a generated constructor initializing [variableLists] can be
+  /// `const`. A `const` constructor requires every instance field, own or
+  /// inherited, to be final.
+  bool get canBeConst {
+    var classElement = this.classElement;
+    return classElement != null
+        ? !classElement.hasNonFinalField
+        : variableLists.every((e) => e.isFinal);
   }
 }
 
@@ -544,7 +573,13 @@ enum _Style {
 extension on List<ClassMember> {
   Iterable<VariableDeclarationList> get interestingVariableLists =>
       whereType<FieldDeclaration>()
+          .where(
+            (e) =>
+                !e.isStatic &&
+                e.abstractKeyword == null &&
+                e.externalKeyword == null,
+          )
           .map((e) => e.fields)
-          .where((e) => e.isFinal && !e.isLate)
+          .where((e) => !e.isLate)
           .toList();
 }
