@@ -1280,7 +1280,7 @@ IncrementOrDecrementExpression
       extendedType: int
       staticType: int
     operator: .
-    propertyName: v
+    name: v
     read: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::v
       type: dynamic Function()

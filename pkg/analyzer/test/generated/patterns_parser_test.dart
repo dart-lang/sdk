@@ -7686,7 +7686,7 @@ CascadeExpression
       operator: ..
       body: DirectAssignment
         target: CascadePropertyAssignmentTarget
-          propertyName: b
+          name: b
         operator: =
         value: PatternAssignment
           pattern: ParenthesizedPattern

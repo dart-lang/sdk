@@ -127,10 +127,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
-    } else if (node is ImportPrefixedAssignmentTarget) {
+    } else if (node is NamedAssignmentTarget) {
       errorEntity = node.name;
-    } else if (node is PropertyAssignmentTarget) {
-      errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
       errorEntity = node.name;
     } else if (node is ExtensionOverride) {
@@ -555,13 +553,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   /// [usageRange] specifies the source to highlight; [node] provides the
   /// context needed to determine whether the usage should be reported.
   ///
-  /// [isImplicitTypeReference] indicates that [node] refers to the type
-  /// [element] without naming it.
+  /// [usageKind] describes how [node] uses [element], so reporters can explain
+  /// implicit usages.
   void checkUsage(
     Element? element,
     AstNode node, {
     required SourceRange usageRange,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     if (element == null) {
       return;
@@ -623,7 +621,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         displayName,
         // Getting it again might not be ideal...
         reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
-        isImplicitTypeReference: isImplicitTypeReference,
+        usageKind: usageKind,
         isInSamePackage: _isLibraryInWorkspacePackage(element.library),
       );
     }
@@ -664,6 +662,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       node.declaredFragment!.element.superConstructor,
       node,
       usageRange: node.errorRange,
+      usageKind: ElementUsageKind.implicitSuperConstructorInvocation,
     );
   }
 
@@ -708,7 +707,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.constructorName),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     _invocationArguments(node.constructorName.element, node.argumentList);
@@ -723,7 +722,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     checkUsage(element, node, usageRange: node.name.sourceRange);
@@ -738,7 +737,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.memberName),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     _invocationArguments(node.memberName.element, node.argumentList);
@@ -760,7 +759,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     namedFunctionInvocation(node);
@@ -775,7 +774,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.propertyName),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
   }
@@ -879,7 +878,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         element?.enclosingElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
 
@@ -1044,8 +1043,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
-    ImportPrefixedAssignmentTarget(:var name) => name.sourceRange,
-    PropertyAssignmentTarget(:var propertyName) => propertyName.sourceRange,
+    NamedAssignmentTarget(:var name) => name.sourceRange,
     PrefixedIdentifier(:var identifier) => identifier.sourceRange,
     PropertyAccess(:var propertyName) => propertyName.sourceRange,
     _ => target.sourceRange,
@@ -1085,6 +1083,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 }
 
+/// The context of an element usage that may need specialized diagnostic wording.
+enum ElementUsageKind {
+  explicit,
+
+  /// A constructor declaration implicitly invokes a super constructor.
+  implicitSuperConstructorInvocation,
+
+  /// An expression refers to a type without explicitly naming it, such as the
+  /// type supplying a dot-shorthand member.
+  implicitTypeReference,
+}
+
 /// Strategy class that specifies what [ElementUsageDetectorV2] should do when it
 /// detects the use of a tagged element.
 ///
@@ -1100,9 +1110,8 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
   /// [usageRange] is the source range to highlight for this usage.
   /// [displayName] is the name of the element that was used. [tagInfo] is the
   /// tag information returned by [ElementUsageSet.getTagInfo].
-  /// [isImplicitTypeReference] indicates that the usage refers to a type
-  /// without explicitly naming it, such as the type supplying a dot-shorthand
-  /// member.
+  /// [usageKind] describes how the element is used, so the diagnostic can
+  /// explain implicit usages.
   /// [isInSamePackage] indicates whether the element and its usage are in
   /// the same package.
   void report(
@@ -1110,7 +1119,7 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   });
 }
 

@@ -20,6 +20,7 @@ import 'package:vm_service/vm_service.dart' as vm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'dds_client.dart';
+import 'dds_expression_evaluator.dart';
 import 'dds_isolate_manager.dart';
 import 'dds_rpcs.dart';
 import 'dds_stream_manager.dart';
@@ -78,6 +79,10 @@ class DartRuntimeServiceDdsBackend
   DdsIsolateManager get isolateManager => _isolateManager;
 
   DdsStreamManager get streamManager => _streamManager;
+
+  @override
+  ExpressionEvaluator? get expressionEvaluator => _expressionEvaluator;
+  late final DdsExpressionEvaluator _expressionEvaluator;
 
   vm.VmService get vmServiceClient => _vmServiceClient;
 
@@ -241,6 +246,11 @@ class DartRuntimeServiceDdsBackend
     _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
 
     _streamManager = DdsStreamManager(backend: this);
+
+    _expressionEvaluator = DdsExpressionEvaluator(
+      backend: this,
+      clients: frontend.clients,
+    );
 
     _rpcHandlers = DdsRpcHandlers(this);
 

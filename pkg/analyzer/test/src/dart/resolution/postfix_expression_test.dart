@@ -1133,7 +1133,7 @@ IncrementOrDecrementExpression
         type: A
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extensionType::A::@getter::foo
       invokeType: int Function()
@@ -1191,7 +1191,7 @@ IncrementOrDecrementExpression
         type: A
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1311,7 +1311,7 @@ IncrementOrDecrementExpression
         rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1376,7 +1376,7 @@ IncrementOrDecrementExpression
         type: A?
       staticType: A?
     operator: ?.
-    propertyName: foo
+    name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
       invokeType: int Function()
@@ -1437,7 +1437,7 @@ IncrementOrDecrementExpression
       superKeyword: super
       staticType: B
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1492,7 +1492,7 @@ IncrementOrDecrementExpression
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()

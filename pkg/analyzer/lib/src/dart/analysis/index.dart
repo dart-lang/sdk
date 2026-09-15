@@ -848,7 +848,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
       case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
+        _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -962,14 +962,14 @@ class _IndexContributor extends UnifyingAstVisitor2 {
             recordRelation(
               element,
               IndexRelationKind.IS_INVOKED_BY,
-              target.propertyName,
+              target.name,
               true,
             );
           default:
             assembler.addNameRelation(
-              target.propertyName.lexeme,
+              target.name.lexeme,
               IndexRelationKind.IS_WRITTEN_BY,
-              target.propertyName.offset,
+              target.name.offset,
               false,
             );
         }
@@ -1198,7 +1198,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
       case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
+        _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -1238,11 +1238,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     covariant ImportPrefixedAssignmentTargetImpl node,
   ) {
     if (node.hasRead) {
-      _recordNamedPropertyReadWriteTarget(
-        propertyName: node.name,
-        read: node.read,
-        write: node.write,
-      );
+      _recordNamedPropertyReadWriteTarget(node);
     } else {
       switch (node.write) {
         case SetterInvocationResolutionImpl(:var element):
@@ -1276,7 +1272,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     recordOperatorReference(node.operator, node.element);
     switch (node.target) {
       case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
+        _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -1756,45 +1752,27 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     }
   }
 
-  void _recordNamedPropertyReadWriteTarget({
-    required Token propertyName,
-    required NamedReadResolutionImpl? read,
-    required NamedWriteResolutionImpl? write,
-  }) {
+  void _recordNamedPropertyReadWriteTarget(NamedAssignmentTarget node) {
+    var name = node.name;
     var hasRelation = false;
-    switch (read) {
+    switch (node.read) {
       case GetterInvocationResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          propertyName,
-          true,
-        );
+        recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
         hasRelation = true;
       case ExecutableTearOffResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_REFERENCED_BY,
-          propertyName,
-          true,
-        );
+        recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, name, true);
         hasRelation = true;
       default:
     }
-    if (write case SetterInvocationResolutionImpl(:var element)) {
-      recordRelation(
-        element,
-        IndexRelationKind.IS_INVOKED_BY,
-        propertyName,
-        true,
-      );
+    if (node.write case SetterInvocationResolutionImpl(:var element)) {
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name, true);
       hasRelation = true;
     }
     if (!hasRelation) {
       assembler.addNameRelation(
-        propertyName.lexeme,
+        name.lexeme,
         IndexRelationKind.IS_READ_WRITTEN_BY,
-        propertyName.offset,
+        name.offset,
         true,
       );
     }
@@ -1846,14 +1824,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         isQualified,
       );
     }
-  }
-
-  void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {
-    _recordNamedPropertyReadWriteTarget(
-      propertyName: target.propertyName,
-      read: target.read,
-      write: target.write,
-    );
   }
 
   void _recordUnqualifiedNameReadWriteTarget(

@@ -1939,7 +1939,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
   }
 
   @override
@@ -2303,7 +2303,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     ReceiverPropertyAssignmentTarget node,
   ) {
     _tokenOrNull(node.operator);
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
     super.visitReceiverPropertyAssignmentTarget(node);
   }
 

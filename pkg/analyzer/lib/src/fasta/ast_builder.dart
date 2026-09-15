@@ -708,11 +708,11 @@ class AstBuilder extends StackListener {
         case ReceiverPropertyAssignmentTargetImpl(
           receiver: ThisExpressionImpl(thisKeyword: var writtenThisKeyword),
           :var operator,
-          :var propertyName,
+          :var name,
         ):
           thisKeyword = writtenThisKeyword;
           period = operator;
-          fieldName = propertyName;
+          fieldName = name;
         case UnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
         default:
@@ -3776,12 +3776,12 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(rhs);
     var propertyTarget = switch (lhs) {
       CascadePropertyExtractionImpl(:var name) =>
-        CascadePropertyAssignmentTargetImpl(propertyName: name),
+        CascadePropertyAssignmentTargetImpl(name: name),
       ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
         ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: operator,
-          propertyName: name,
+          name: name,
         ),
       PropertyAccessImpl(target2: var receiver?, :var operator)
           when operator.type == TokenType.PERIOD &&
@@ -3789,7 +3789,7 @@ class AstBuilder extends StackListener {
         ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: operator,
-          propertyName: lhs.propertyName.token,
+          name: lhs.propertyName.token,
         ),
       _ => null,
     };
@@ -6772,7 +6772,7 @@ class AstBuilder extends StackListener {
       return ReceiverPropertyAssignmentTargetImpl(
         receiver: expression.receiver,
         operator: expression.operator,
-        propertyName: expression.name,
+        name: expression.name,
       );
     }
 
@@ -6783,7 +6783,7 @@ class AstBuilder extends StackListener {
         return ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: expression.operator,
-          propertyName: expression.propertyName.token,
+          name: expression.propertyName.token,
         );
       }
     }
@@ -6791,7 +6791,7 @@ class AstBuilder extends StackListener {
       return ReceiverPropertyAssignmentTargetImpl(
         receiver: expression.prefix,
         operator: expression.period,
-        propertyName: expression.identifier.token,
+        name: expression.identifier.token,
       );
     }
 

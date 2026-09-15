@@ -252,7 +252,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
   }
 
   @override
@@ -435,7 +435,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyAssignmentTarget(node);
   }
 

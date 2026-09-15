@@ -1985,11 +1985,8 @@ package:analyzer/dart/ast/ast.dart:
     element (getter: Element?)
     name (getter: Token)
     period (getter: Token)
-  ImportPrefixedAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
+  ImportPrefixedAssignmentTarget (class extends Object implements NamedAssignmentTarget, abstract, final, experimental):
     importPrefix (getter: ImportPrefixReference)
-    name (getter: Token)
-    read (getter: NamedReadResolution?)
-    write (getter: NamedWriteResolution?)
   ImportPrefixedFunctionInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental):
     importPrefix (getter: ImportPrefixReference)
   ImportPrefixedNameExpression (class extends Object implements NameExpression, abstract, final, experimental):
@@ -2240,6 +2237,10 @@ package:analyzer/dart/ast/ast.dart:
     argumentExpression2 (getter: Expression, experimental)
     colon (getter: Token)
     name (getter: Token)
+  NamedAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
+    name (getter: Token)
+    read (getter: NamedReadResolution?)
+    write (getter: NamedWriteResolution?)
   NamedFunctionInvocation (class extends Object implements FunctionInvocation, abstract, final, experimental):
     name (getter: Token)
   NamedReadResolution (class extends Object implements ReadResolution, abstract, final, experimental)
@@ -2390,10 +2391,7 @@ package:analyzer/dart/ast/ast.dart:
     realTarget2 (getter: Expression, experimental)
     target (getter: Expression?)
     target2 (getter: Expression?, experimental)
-  PropertyAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
-    propertyName (getter: Token)
-    read (getter: NamedReadResolution?)
-    write (getter: NamedWriteResolution?)
+  PropertyAssignmentTarget (class extends Object implements NamedAssignmentTarget, abstract, final, experimental)
   PropertyExtraction (class extends Object implements NameExpression, abstract, final, experimental)
   ReadResolution (class extends Object, abstract, final, experimental):
     element (getter: Element?)
@@ -2641,10 +2639,7 @@ package:analyzer/dart/ast/ast.dart:
     operator (getter: Token)
     unaryOperator (getter: UnaryOperator)
   UnqualifiedFunctionInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental)
-  UnqualifiedNameAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
-    name (getter: Token)
-    read (getter: NamedReadResolution?)
-    write (getter: NamedWriteResolution?)
+  UnqualifiedNameAssignmentTarget (class extends Object implements NamedAssignmentTarget, abstract, final, experimental)
   UnqualifiedNameExpression (class extends Object implements NameExpression, abstract, final, experimental)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)

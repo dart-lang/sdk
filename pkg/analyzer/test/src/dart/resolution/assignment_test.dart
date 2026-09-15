@@ -3524,7 +3524,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: CascadePropertyAssignmentTarget
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -3578,7 +3578,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: CascadePropertyAssignmentTarget
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -3627,7 +3627,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 IfNullAssignment
   target: CascadePropertyAssignmentTarget
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int? Function()
@@ -3685,7 +3685,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: dynamic
     operator: .
-    propertyName: x
+    name: x
     read: <null>
     write: DynamicPropertyWriteResolution
       acceptedType: dynamic
@@ -3814,7 +3814,7 @@ CompoundAssignment
         type: B
       staticType: B
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
       invokeType: int Function()
@@ -3893,7 +3893,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -3975,7 +3975,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@getter::x
       invokeType: int Function()
@@ -4049,7 +4049,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int? Function()
@@ -4119,7 +4119,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4186,7 +4186,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: Never
     operator: .
-    propertyName: x
+    name: x
     read: <null>
     write: <null>
   operator: =
@@ -4351,7 +4351,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -4425,7 +4425,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: InvalidNamedReadResolution
       recoveryElement: <testLibrary>::@class::A::@setter::x
     write: SetterInvocationResolution
@@ -4492,7 +4492,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: dynamic
     operator: .
-    propertyName: x
+    name: x
     read: DynamicPropertyReadResolution
       type: dynamic
     write: DynamicPropertyWriteResolution
@@ -4558,7 +4558,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: dynamic
     operator: .
-    propertyName: x
+    name: x
     read: DynamicPropertyReadResolution
       type: dynamic
     write: DynamicPropertyWriteResolution
@@ -4624,7 +4624,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: void Function()
     operator: .
-    propertyName: call
+    name: call
     read: FunctionCallTearOffResolution
       type: void Function()
       associatedFunctionType: void Function()
@@ -4715,7 +4715,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     read: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function()
@@ -4801,7 +4801,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: A<int>
     operator: .
-    propertyName: foo
+    name: foo
     read: ExecutableTearOffResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@class::A::@method::foo
@@ -4877,7 +4877,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: Never
     operator: .
-    propertyName: x
+    name: x
     read: <null>
     write: <null>
   operator: +=
@@ -4952,7 +4952,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: A?
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5007,7 +5007,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: A?
     operator: ?.
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: num Function()
@@ -5068,7 +5068,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: B?
     operator: ?.
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
       invokeType: num? Function()
@@ -5136,7 +5136,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: Null
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: <null>
   operator: =
@@ -5189,7 +5189,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: Null
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: <null>
   operator: +=
@@ -5245,7 +5245,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: Null
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: <null>
   operator: ??=
@@ -5322,7 +5322,7 @@ DirectAssignment
         type: B
       staticType: B
     operator: .
-    propertyName: y
+    name: y
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::B::@setter::y
@@ -5398,7 +5398,7 @@ IfNullAssignment
       rightParenthesis: )
       staticType: ({int x})
     operator: .
-    propertyName: x
+    name: x
     read: RecordFieldReadResolution
       type: int
     write: InvalidNamedWriteResolution
@@ -5464,7 +5464,7 @@ CompoundAssignment
       rightParenthesis: )
       staticType: int
     operator: .
-    propertyName: b
+    name: b
     read: InvalidNamedReadResolution
       recoveryElement: <null>
     write: InvalidNamedWriteResolution
@@ -6624,7 +6624,7 @@ CompoundAssignment
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -6686,7 +6686,7 @@ IfNullAssignment
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int? Function()
@@ -6744,7 +6744,7 @@ DirectAssignment
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -6803,7 +6803,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: InvalidType
     operator: .
-    propertyName: b
+    name: b
     read: <null>
     write: InvalidNamedWriteResolution
       recoveryElement: <null>
@@ -6871,7 +6871,7 @@ DirectAssignment
       rightParenthesis: )
       staticType: int
     operator: .
-    propertyName: b
+    name: b
     read: <null>
     write: InvalidNamedWriteResolution
       recoveryElement: <null>
@@ -6945,7 +6945,7 @@ DirectAssignment
         rightParenthesis: )
       staticType: C
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -7010,7 +7010,7 @@ DirectAssignment
     receiver: SimpleStringLiteral
       literal: 'a'
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::x
@@ -7066,7 +7066,7 @@ DirectAssignment
       thisKeyword: this
       staticType: C
     operator: ?.
-    propertyName: x
+    name: x
     read: <null>
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x

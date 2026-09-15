@@ -834,7 +834,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       var target = _importPrefixedAssignmentTarget(
         receiver.token,
         node.operator,
-        node.propertyName,
+        node.name,
       );
       if (target != null) {
         node.replaceWith(target);

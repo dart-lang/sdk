@@ -1355,7 +1355,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       _ => throw StateError('Unexpected property write resolution'),
     };
     return _PropertyAccessTemplates.direct(
-      name: node.propertyName.lexeme,
+      name: node.name.lexeme,
       readElement: readElement,
       writeElement: writeElement,
     );

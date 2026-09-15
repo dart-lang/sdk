@@ -208,7 +208,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    _visitToken(node.propertyName);
+    _visitToken(node.name);
   }
 
   @override
@@ -1433,7 +1433,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   ) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
-    sink.write(node.propertyName.lexeme);
+    sink.write(node.name.lexeme);
   }
 
   @override
