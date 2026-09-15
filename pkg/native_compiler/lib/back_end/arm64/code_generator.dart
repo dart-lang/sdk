@@ -2387,7 +2387,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final instanceSize = vmOffsets.Mint_InstanceSize;
 
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented('Unimplemented: code generation for BoxInt slow path');
+      _asm.str(
+        operandReg,
+        _asm.address(threadReg, vmOffsets.Thread_unboxed_runtime_arg_offset),
+      );
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
+      );
+      _callRuntime(RuntimeEntry.BoxInt, 0);
       _asm.b(done);
     });
 
@@ -2434,9 +2442,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final instanceSize = vmOffsets.Double_InstanceSize;
 
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for BoxDouble slow path',
+      _asm.fstr(
+        operandReg,
+        _asm.address(threadReg, vmOffsets.Thread_unboxed_runtime_arg_offset),
       );
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
+      );
+      _callRuntime(RuntimeEntry.BoxDouble, 0);
       _asm.b(done);
     });
 

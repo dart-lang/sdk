@@ -132,6 +132,10 @@ final class Arm64StackFrame extends StackFrame {
       case UnaryDoubleOp(:var op)
           when op == .round || op == .floor || op == .ceil || op == .truncate:
         return 2; // Result + 1 argument for UnsupportedError runtime call.
+      case BoxInt():
+        return 1; // Result for BoxInt runtime call.
+      case BoxDouble():
+        return 1; // Result for BoxDouble runtime call.
       default:
         return 0;
     }

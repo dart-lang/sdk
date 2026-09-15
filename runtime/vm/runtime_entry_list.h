@@ -23,6 +23,7 @@ namespace dart {
   V(AllocateRecord)                                                            \
   V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
+  V(BoxInt)                                                                    \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
   V(BoxFloat64x2)                                                              \
