@@ -1,0 +1,36 @@
+name: native_api_lint
+version: 0.1.0
+description: >-
+  Analyzer plugin that lints iOS/macOS API compatibility for FFIgen-generated
+  native interop bindings. Warns when APIs annotated with @ExternalVersions are
+  called on a project whose minimum deployment target is too old.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/native_api_lint
+
+topics:
+  - static-analysis
+  - lint
+  - ffi
+  - native-interop
+  - flutter
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+plugin:
+  platforms:
+    dart:
+      pluginClass: NativeApiLintPlugin
+      fileName: lib/main.dart
+
+dependencies:
+  analysis_server_plugin: any
+  analyzer: any
+  native_interop_annotation: any
+  path: any
+
+dev_dependencies:
+  analyzer_testing: any
+  lints: any
+  test: any

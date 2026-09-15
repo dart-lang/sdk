@@ -67,6 +67,8 @@ workspace:
   - pkg/kernel
   - pkg/linter
   - pkg/meta
+  - pkg/native_api_lint
+  - pkg/native_interop_annotation
   - pkg/mmap
   - pkg/modular_test
   - pkg/native_compiler
