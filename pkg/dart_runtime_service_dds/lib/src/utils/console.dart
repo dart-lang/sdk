@@ -2,5 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'src/arg_parser.dart';
-export 'src/dds_backend.dart';
+abstract final class ConsoleUtils {
+  /// Make [contents] bold when printed to the terminal.
+  ///
+  /// This is a no-op on Windows.
+  static String bold(String contents) => '\u001b[1m$contents\u001b[0m';
+}
