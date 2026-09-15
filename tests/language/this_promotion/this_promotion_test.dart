@@ -94,6 +94,44 @@ extension on G? {
       this.expectStaticType<Exactly<Never?>>;
     }
   }
+
+  void nullAssertPatternAssignment() {
+    (_!) = this;
+    this.expectStaticType<Exactly<G>>;
+  }
+
+  void nullAssertPatternVariableDeclaration() {
+    var (_!) = this;
+    this.expectStaticType<Exactly<G>>;
+  }
+
+  void nullAssertPatternIfCase() {
+    if (this case _!) {
+      this.expectStaticType<Exactly<G>>;
+    }
+  }
+
+  void nullCheckPatternIfCase() {
+    if (this case _?) {
+      this.expectStaticType<Exactly<G>>;
+    } else {
+      // A failed null check pattern doesn't promote (remains G?).
+      this.expectStaticType<Exactly<G?>>;
+    }
+  }
+
+  void nullCheckPatternSwitch() {
+    switch (this) {
+      case _?:
+        this.expectStaticType<Exactly<G>>;
+    }
+  }
+
+  void notEqualNullPatternIfCase() {
+    if (this case != null) {
+      this.expectStaticType<Exactly<G>>;
+    }
+  }
 }
 
 extension type H(C r) {
@@ -142,9 +180,18 @@ main() {
   G().equality();
   G().isSameType();
   G().isSubtype();
+  G().nullAssertPatternAssignment();
+  G().nullAssertPatternVariableDeclaration();
+  G().nullAssertPatternIfCase();
+  G().nullCheckPatternIfCase();
+  G().nullCheckPatternSwitch();
+  G().notEqualNullPatternIfCase();
   (null as G?).equality();
   (null as G?).isSameType();
   (null as G?).isSubtype();
+  (null as G?).nullCheckPatternIfCase();
+  (null as G?).nullCheckPatternSwitch();
+  (null as G?).notEqualNullPatternIfCase();
   H(C()).equality();
   H(C()).isSameType();
   H(C()).isSubtype();
