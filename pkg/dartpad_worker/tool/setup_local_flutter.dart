@@ -18,6 +18,12 @@ Future<void> main(List<String> args) async {
     ..addOption(
       'bootstrap-code-path',
       help: 'Path to a file containing the bootstrap code.',
+    )
+    ..addOption(
+      'web-sdk',
+      allowed: ['copy', 'build'],
+      defaultsTo: 'copy',
+      help: 'Copy or build `ddc_outline.dill` + `dart_sdk.js` from Flutter SDK',
     );
 
   final results = parser.parse(args);
@@ -105,6 +111,7 @@ Future<void> main(List<String> args) async {
         flutterAssetDir: flutterAssetDir,
         packageDir: packageDir,
         bootstrapCode: bootstrapCode,
+        buildWebSdk: results.option('web-sdk') == 'build',
       ),
     );
   } finally {
@@ -124,6 +131,7 @@ final class _BuildContext {
   final String flutterAssetDir;
   final String packageDir;
   final String? bootstrapCode;
+  final bool buildWebSdk;
 
   _BuildContext({
     required this.dartSdkRoot,
@@ -137,6 +145,7 @@ final class _BuildContext {
     required this.flutterAssetDir,
     required this.packageDir,
     required this.bootstrapCode,
+    required this.buildWebSdk,
   });
 }
 
@@ -235,20 +244,17 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     }
   }
 
+  final webSdk = ctx.buildWebSdk
+      ? _buildWebSdk(ctx, pkgConfigPath)
+      : _copyWebSdk(ctx);
+
   final snapshotPath = p.join(
     ctx.dartSdkRoot,
     'bin',
     'snapshots',
     'dartdevc.dart.snapshot',
   );
-  final outlinePath = p.join(
-    ctx.flutterRoot,
-    'bin',
-    'cache',
-    'flutter_web_sdk',
-    'kernel',
-    'ddc_outline.dill',
-  );
+  final outlinePath = webSdk.outlineDill;
   final outputJsPath = p.join(ctx.flutterAssetDir, 'flutter_web.js');
   final outputDillPath = p.join(ctx.tempDir, 'flutter_web.dill');
 
@@ -294,19 +300,11 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     ...compileSources.expand((s) => ['--source', s]),
   ], myappDir);
 
-  // Scrape JS from Flutter Cache
-  print('Scraping pre-compiled JS from cache...');
-  final webSdkKernel = p.join(
-    ctx.flutterRoot,
-    'bin',
-    'cache',
-    'flutter_web_sdk',
-    'kernel',
-  );
-  final canaryJsDir = p.join(webSdkKernel, 'ddcLibraryBundle-canvaskit');
+  print('Copying dart_sdk.js...');
+  _copyFile(webSdk.dartSdkJs, p.join(ctx.flutterAssetDir, 'dart_sdk.js'));
   _copyFile(
-    p.join(canaryJsDir, 'dart_sdk.js'),
-    p.join(ctx.flutterAssetDir, 'dart_sdk.js'),
+    '${webSdk.dartSdkJs}.map',
+    p.join(ctx.flutterAssetDir, 'dart_sdk.js.map'),
   );
 
   // Synthesize sandbox.js
@@ -352,7 +350,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   print('Adding Dart SDK lib...');
   tar.addDirectory(
     target: '/sdk/bin/cache/dart-sdk/lib',
-    source: p.join(ctx.flutterRoot, 'bin/cache/dart-sdk/lib'),
+    source: p.join(webSdk.dartSdkRoot, 'lib'),
     where: (f) =>
         (f.endsWith('.dart') ||
             f.endsWith('.json') ||
@@ -373,24 +371,17 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     //       with (which we can configure) and the one we feed to analyzer!
     // TODO(jonasfj): Is this file even needed for anything?
     target: '/sdk/bin/cache/libraries.json',
-    source: p.join(ctx.flutterRoot, 'bin/cache/dart-sdk/lib/libraries.json'),
+    source: p.join(webSdk.dartSdkRoot, 'lib', 'libraries.json'),
   );
   tar.addFile(
     target: '/sdk/bin/cache/dart-sdk/version',
-    source: p.join(ctx.flutterRoot, 'bin', 'cache', 'dart-sdk', 'version'),
+    source: p.join(webSdk.dartSdkRoot, 'version'),
   );
 
-  // Add the ddc_outline.dill from Flutter which contains dart:ui
+  // Add the ddc_outline.dill which contains dart:ui
   tar.addFile(
     target: '/sdk/bin/cache/dart-sdk/lib/_internal/ddc_outline.dill',
-    source: p.join(
-      ctx.flutterRoot,
-      'bin',
-      'cache',
-      'flutter_web_sdk',
-      'kernel',
-      'ddc_outline.dill',
-    ),
+    source: webSdk.outlineDill,
   );
 
   // Add the framework outline dill we just built
@@ -451,6 +442,130 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
 
   print('\nSuccessfully set up local Flutter assets!');
   print('Run your tests with PubTestServer reporting hasFlutter: true.');
+}
+
+/// The web SDK: the `dart:` libraries + `dart:ui` as DDC outline dill.
+final class _WebSdk {
+  /// Outline `.dill` used as `--dart-sdk-summary` when compiling.
+  final String outlineDill;
+
+  /// JavaScript implementing the libraries in [outlineDill], accompanied by a
+  /// sibling `.map` that is not inlined, so it can be loaded on demand.
+  final String dartSdkJs;
+
+  /// Dart SDK that the [outlineDill] was built from.
+  final String dartSdkRoot;
+
+  _WebSdk({
+    required this.outlineDill,
+    required this.dartSdkJs,
+    required this.dartSdkRoot,
+  });
+}
+
+/// Copy `ddc_outline.dill` and `dart_sdk.js` from Flutter SDK.
+///
+/// This may cause an issue if the engine in Flutter doesn't use the same
+/// git-hash as the Dart SDK.
+_WebSdk _copyWebSdk(_BuildContext ctx) {
+  final kernel = p.join(
+    ctx.flutterRoot,
+    'bin',
+    'cache',
+    'flutter_web_sdk',
+    'kernel',
+  );
+  return _WebSdk(
+    outlineDill: p.join(kernel, 'ddc_outline.dill'),
+    dartSdkJs: p.join(kernel, 'ddcLibraryBundle-canvaskit', 'dart_sdk.js'),
+    dartSdkRoot: p.join(ctx.flutterRoot, 'bin', 'cache', 'dart-sdk'),
+  );
+}
+
+/// Build `ddc_outline.dill` and `dart_sdk.js` from Flutter SDK.
+///
+/// There is some risk that this breaks when Flutter build system changes.
+_WebSdk _buildWebSdk(_BuildContext ctx, String pkgConfigPath) {
+  print('Building web SDK...');
+  final flutterWebSdk = p.join(
+    ctx.flutterRoot,
+    'bin',
+    'cache',
+    'flutter_web_sdk',
+  );
+  final outputDir = p.join(ctx.tempDir, 'websdk');
+  Directory(outputDir).createSync(recursive: true);
+
+  // Merge libraries from Flutter's `dart:ui` with `lib/libraries.json` from
+  // this Dart SDK. The --multi-root option is how `lib/libraries.json` can be
+  // found!
+  final flutterLibSpec = jsonDecode(
+    File(p.join(flutterWebSdk, 'libraries.json')).readAsStringSync(),
+  );
+  final flutterLibraries =
+      ((flutterLibSpec as Map)['dartdevc'] as Map)['libraries'] as Map;
+  File(p.join(outputDir, 'dartpad_libraries.json')).writeAsStringSync(
+    jsonEncode({
+      'dartdevc': {
+        'include': [
+          {'path': 'lib/libraries.json', 'target': 'dartdevc'},
+        ],
+        'libraries': flutterLibraries,
+      },
+    }),
+  );
+
+  final libraries = [
+    'dart:core',
+    ...flutterLibraries.keys.map((library) => 'dart:$library'),
+  ];
+
+  final fileSystem = [
+    '--multi-root=$outputDir${p.separator}',
+    '--multi-root=${ctx.dartSdkRoot}${p.separator}',
+    '--multi-root=$flutterWebSdk${p.separator}',
+    '--multi-root-scheme=org-dartlang-sdk',
+    '--libraries-file=org-dartlang-sdk:///dartpad_libraries.json',
+  ];
+
+  // Mirror flutter build process, see `web_sdk/BUILD.gn`.
+  final outlineDill = p.join(outputDir, 'ddc_outline.dill');
+  _runSync(ctx.dartAotRuntimeBin, [
+    p.join(
+      ctx.dartSdkRoot,
+      'bin',
+      'snapshots',
+      'kernel_worker_aot.dart.snapshot',
+    ),
+    '--target=ddc',
+    '--summary-only',
+    '--include-unsupported-platform-library-stubs',
+    ...fileSystem,
+    '--packages-file=$pkgConfigPath',
+    '--output=$outlineDill',
+    ...libraries.expand((library) => ['--source', library]),
+  ], ctx.tempDir);
+
+  final dartSdkJs = p.join(outputDir, 'dart_sdk.js');
+  _runSync(ctx.dartBin, [
+    p.join(ctx.dartSdkRoot, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
+    '--compile-sdk',
+    '--modules=ddc',
+    '--canary',
+    '--no-summarize',
+    '-DFLUTTER_WEB_USE_SKIA=true',
+    ...fileSystem,
+    '--packages=$pkgConfigPath',
+    '-o',
+    dartSdkJs,
+    ...libraries,
+  ], ctx.tempDir);
+
+  return _WebSdk(
+    outlineDill: outlineDill,
+    dartSdkJs: dartSdkJs,
+    dartSdkRoot: ctx.dartSdkRoot,
+  );
 }
 
 String _runSync(String command, List<String> args, String workingDir) {
