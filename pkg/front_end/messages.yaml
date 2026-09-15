@@ -7228,6 +7228,11 @@ wasmExternMemoryMissingAnnotation:
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
   correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
 
+wasmSharedMemoryMissingMaximum:
+  parameters: none
+  problemMessage: "Shared WebAssembly memories must specify a maximum size."
+  correctionMessage: "Try specifying a maximum in 'Limits(minimum, maximum)'."
+
 wasmConstantLaneOutOfRange:
   parameters:
     String name: The lane name.

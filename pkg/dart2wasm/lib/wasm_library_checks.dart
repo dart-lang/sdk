@@ -84,10 +84,17 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
     _currentMember = node;
 
     if (_categorizeWasmExtern(node) == ExternType.memory) {
-      final parsed = MemoryLimits.readAnnotation(this, node);
+      final parsed = WasmMemoryType.readAnnotation(this, node);
       if (parsed == null) {
         _diagnosticReporter.report(
           diag.wasmExternMemoryMissingAnnotation,
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
+      } else if (parsed.shared && parsed.maxSize == null) {
+        _diagnosticReporter.report(
+          diag.wasmSharedMemoryMissingMaximum,
           node.fileOffset,
           1,
           node.fileUri,
