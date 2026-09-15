@@ -267,6 +267,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       graph_compiler, assembler, Code::PoolAttachment::kAttachPool, optimized(),
       /*stats=*/nullptr));
   code.set_is_optimized(optimized());
+  code.set_can_be_deoptimized(optimized());
   code.set_owner(function);
 
   if (!function.IsOptimizable()) {
@@ -288,6 +289,7 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   if (function.ForceOptimize()) {
     ASSERT(optimized() && thread()->IsDartMutatorThread());
     code.set_is_force_optimized(true);
+    code.set_can_be_deoptimized(false);
     function.AttachCode(code);
     function.SetWasCompiled(true);
   } else if (optimized()) {

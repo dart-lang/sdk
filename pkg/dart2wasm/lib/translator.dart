@@ -2026,9 +2026,10 @@ class Translator with KernelNodes {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
-      return isRequired
-          ? inferredType
-          : inferredType.withDeclaredNullability(Nullability.nullable);
+      // See below for explanation about NSM special case.
+      return (!isRequired && isNoSuchMethodForwarder)
+          ? inferredType.withDeclaredNullability(Nullability.nullable)
+          : inferredType;
     }
 
     final isCovariant =
@@ -2125,6 +2126,7 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfReturnValue(Member node) {
+    if (node == invokeNoSuchMethod) return null;
     return _filterInferredType(
       node.function!.returnType,
       inferredReturnTypeMetadata[node],
@@ -2159,7 +2161,7 @@ class Translator with KernelNodes {
   ) {
     if (inferredType == null) return null;
 
-    if (defaultType is VoidType) {
+    if (defaultType is VoidType || defaultType is DynamicType) {
       defaultType = coreTypes.objectNullableRawType;
     }
 
@@ -2179,7 +2181,13 @@ class Translator with KernelNodes {
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.
-    if (concreteClass == defaultType.classNode) return null;
+    if (concreteClass == defaultType.classNode) {
+      if (defaultType.nullability == Nullability.nullable &&
+          !inferredType.nullable) {
+        return defaultType.withDeclaredNullability(Nullability.nonNullable);
+      }
+      return null;
+    }
 
     // Sometimes we get inferred types that violate soundness (and would result
     // in a runtime error, e.g. in a dynamic invocation forwarder passing an

@@ -78,9 +78,9 @@ final class Unboxing extends Pass {
       BinaryIntOp() ||
       UnaryIntOp() ||
       BinaryDoubleOp() ||
-      UnaryDoubleOp() ||
       Unbox() ||
       IndexCheck() => true,
+      UnaryDoubleOp() => instr.type is! BoolType,
       LoadArrayElement() => instr.kind != .fixedLengthList,
       LoadExternalArrayElement() => instr.type is IntType,
       LoadExternalField() => objectLayout.isUnboxedField(instr.field),

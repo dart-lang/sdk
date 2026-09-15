@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'anonymous_method_test.dart' as anonymous_method;
 import 'class_test.dart' as class_;
 import 'const_test.dart' as const_;
 import 'default_value_test.dart' as default_value;
@@ -33,6 +34,7 @@ import 'types_test.dart' as types;
 
 main() {
   defineReflectiveSuite(() {
+    anonymous_method.main();
     class_.main();
     const_.main();
     default_value.main();

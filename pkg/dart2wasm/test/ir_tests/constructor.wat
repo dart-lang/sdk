@@ -28,7 +28,7 @@
     ref.cast $SubNamed
     struct.get $SubNamed $onlyUsedInSubField
   )
-  (func $"SubNamed.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref null $#Top))
+  (func $"SubNamed.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref $WasmListBase))
     local.get $var0
     ref.cast $SubNamed
     struct.get $SubNamed $subInitializerField
@@ -38,7 +38,7 @@
     ref.cast $SubOptionalNamed
     struct.get $SubOptionalNamed $onlyUsedInSubField
   )
-  (func $"SubOptionalNamed.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref null $#Top))
+  (func $"SubOptionalNamed.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref $WasmListBase))
     local.get $var0
     ref.cast $SubOptionalNamed
     struct.get $SubOptionalNamed $subInitializerField
@@ -48,7 +48,7 @@
     ref.cast $SubOptionalPos
     struct.get $SubOptionalPos $onlyUsedInSubField
   )
-  (func $"SubOptionalPos.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref null $#Top))
+  (func $"SubOptionalPos.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref $WasmListBase))
     local.get $var0
     ref.cast $SubOptionalPos
     struct.get $SubOptionalPos $subInitializerField
@@ -58,7 +58,7 @@
     ref.cast $SubPos1
     struct.get $SubPos1 $onlyUsedInSubField
   )
-  (func $"SubPos1.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref null $#Top))
+  (func $"SubPos1.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref $WasmListBase))
     local.get $var0
     ref.cast $SubPos1
     struct.get $SubPos1 $subInitializerField
@@ -68,22 +68,22 @@
     ref.cast $SubPos2
     struct.get $SubPos2 $onlyUsedInSubField
   )
-  (func $"SubPos2.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref null $#Top))
+  (func $"SubPos2.subInitializerField implicit getter" (param $var0 (ref $Base)) (result (ref $WasmListBase))
     local.get $var0
     ref.cast $SubPos2
     struct.get $SubPos2 $subInitializerField
   )
   (func $createEmptyList<DynamicType(dynamic)> (result (ref $WasmListBase)) <...>)
   (func $new Base.named (constructor body) (param $this (ref $Base)) <...>)
-  (func $new Base.named (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) <...>)
+  (func $new Base.named (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) <...>)
   (func $new Base.sub1 (constructor body) (param $this (ref $Base)) (param $onlyUsedInBaseBody i64) <...>)
-  (func $new Base.sub1 (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) <...>)
+  (func $new Base.sub1 (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) <...>)
   (func $new Base.sub2 (constructor body) (param $this (ref $Base)) <...>)
-  (func $new Base.sub2 (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) <...>)
+  (func $new Base.sub2 (initializer) (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) <...>)
   (func $"new SubNamed (constructor body)" (param $this (ref $SubNamed))
     (local $var0 (ref $_Type))
     (local $var1 i64)
-    (local $var2 (ref null $#Top))
+    (local $var2 i64)
     local.get $this
     struct.get $SubNamed $field2
     local.set $var0
@@ -105,20 +105,15 @@
     ref.null none
     drop
   )
-  (func $"new SubNamed (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref null $#Top)) (result i64)
-    (local $var1 (ref null $#Top))
+  (func $"new SubNamed (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $WasmListBase)) (result i64)
+    (local $var1 (ref $WasmListBase))
     (local $var2 i64)
-    (local $var3 i64)
     call $"createEmptyList<DynamicType(dynamic)>"
     local.set $var1
     local.get $onlyUsedInSubField
     local.set $var2
     local.get $var0
     local.get $onlyUsedInSuper
-    local.set $var3
-    i32.const 96
-    local.get $var3
-    struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.named (initializer)"
     local.get $var1
     local.get $var2
@@ -126,7 +121,7 @@
   (func $"new SubOptionalNamed (constructor body)" (param $this (ref $SubOptionalNamed))
     (local $var0 (ref $_Type))
     (local $var1 i64)
-    (local $var2 (ref null $#Top))
+    (local $var2 i64)
     local.get $this
     struct.get $SubOptionalNamed $field5
     local.set $var0
@@ -148,13 +143,12 @@
     ref.null none
     drop
   )
-  (func $"new SubOptionalNamed (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField (ref null $BoxedInt)) (param $onlyUsedInSuper (ref null $BoxedInt)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type)) (result (ref null $#Top)) (result i64)
-    (local $var1 (ref null $#Top))
+  (func $"new SubOptionalNamed (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64)
+    (local $var1 (ref $WasmListBase))
     (local $var2 i64)
     call $"createEmptyList<DynamicType(dynamic)>"
     local.set $var1
     local.get $onlyUsedInSubField
-    struct.get $BoxedInt $value
     local.set $var2
     local.get $var0
     local.get $onlyUsedInSuper
@@ -162,10 +156,11 @@
     local.get $var1
     local.get $var2
   )
-  (func $"new SubOptionalPos (constructor body)" (param $this (ref $SubOptionalPos)) (param $onlyUsedInSubBody (ref null $BoxedInt)) (param $var0 i64)
+  (func $"new SubOptionalPos (constructor body)" (param $this (ref $SubOptionalPos)) (param $onlyUsedInSubBody i64) (param $var0 i64)
     (local $var1 (ref $_Type))
     (local $var2 i64)
-    (local $var3 (ref null $#Top))
+    (local $var3 i64)
+    (local $var4 i64)
     local.get $this
     struct.get $SubOptionalPos $field5
     local.set $var1
@@ -185,29 +180,31 @@
     struct.get $SubOptionalPos $subInitializerField
     global.get $"\", \""
     local.get $onlyUsedInSubBody
+    local.set $var4
+    i32.const 96
+    local.get $var4
+    struct.new $BoxedInt
     array.new_fixed $Array<Object?> 6
     call $JSStringImpl._interpolate
     call $print
     ref.null none
     drop
   )
-  (func $"new SubOptionalPos (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField (ref null $BoxedInt)) (param $onlyUsedInSubBody (ref null $BoxedInt)) (param $onlyUsedInSuper1 (ref null $BoxedInt)) (param $onlyUsedInSuper2 (ref null $BoxedInt)) (result (ref null $BoxedInt)) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type)) (result (ref null $#Top)) (result i64)
-    (local $var1 (ref null $#Top))
+  (func $"new SubOptionalPos (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSubBody i64) (param $onlyUsedInSuper1 i64) (param $onlyUsedInSuper2 i64) (result i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64)
+    (local $var1 (ref $WasmListBase))
     (local $var2 i64)
     (local $var3 (ref $_Type))
-    (local $var4 (ref null $#Top))
+    (local $var4 i64)
     (local $var5 (ref $WasmListBase))
     (local $var6 (ref $_Type))
     (local $var7 i64)
     call $"createEmptyList<DynamicType(dynamic)>"
     local.set $var1
     local.get $onlyUsedInSubField
-    struct.get $BoxedInt $value
     local.set $var2
     local.get $var0
     local.get $onlyUsedInSuper1
     local.get $onlyUsedInSuper2
-    struct.get $BoxedInt $value
     call $"new _MixinApplication2&Base&SubMixin.sub1 (initializer)"
     local.set $var3
     local.set $var4
@@ -226,7 +223,7 @@
   (func $"new SubPos1 (constructor body)" (param $this (ref $SubPos1)) (param $onlyUsedInSubBody i64) (param $var0 i64)
     (local $var1 (ref $_Type))
     (local $var2 i64)
-    (local $var3 (ref null $#Top))
+    (local $var3 i64)
     (local $var4 i64)
     local.get $this
     struct.get $SubPos1 $field5
@@ -257,45 +254,40 @@
     ref.null none
     drop
   )
-  (func $"new SubPos1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSubBody i64) (param $onlyUsedInSuper1 i64) (param $onlyUsedInSuper2 i64) (result i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type)) (result (ref null $#Top)) (result i64)
-    (local $var1 (ref null $#Top))
+  (func $"new SubPos1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSubBody i64) (param $onlyUsedInSuper1 i64) (param $onlyUsedInSuper2 i64) (result i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64)
+    (local $var1 (ref $WasmListBase))
     (local $var2 i64)
-    (local $var3 i64)
-    (local $var4 (ref $_Type))
-    (local $var5 (ref null $#Top))
-    (local $var6 (ref $WasmListBase))
-    (local $var7 (ref $_Type))
-    (local $var8 i64)
+    (local $var3 (ref $_Type))
+    (local $var4 i64)
+    (local $var5 (ref $WasmListBase))
+    (local $var6 (ref $_Type))
+    (local $var7 i64)
     call $"createEmptyList<DynamicType(dynamic)>"
     local.set $var1
     local.get $onlyUsedInSubField
     local.set $var2
     local.get $var0
     local.get $onlyUsedInSuper1
-    local.set $var3
-    i32.const 96
-    local.get $var3
-    struct.new $BoxedInt
     local.get $onlyUsedInSuper2
     call $"new _MixinApplication0&Base&SubMixin.sub1 (initializer)"
+    local.set $var3
     local.set $var4
     local.set $var5
     local.set $var6
     local.set $var7
-    local.set $var8
     local.get $onlyUsedInSubBody
-    local.get $var8
     local.get $var7
     local.get $var6
     local.get $var5
     local.get $var4
+    local.get $var3
     local.get $var1
     local.get $var2
   )
   (func $"new SubPos2 (constructor body)" (param $this (ref $SubPos2))
     (local $var0 (ref $_Type))
     (local $var1 i64)
-    (local $var2 (ref null $#Top))
+    (local $var2 i64)
     local.get $this
     struct.get $SubPos2 $field2
     local.set $var0
@@ -317,20 +309,15 @@
     ref.null none
     drop
   )
-  (func $"new SubPos2 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper1 i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref null $#Top)) (result i64)
-    (local $var1 (ref null $#Top))
+  (func $"new SubPos2 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper1 i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $WasmListBase)) (result i64)
+    (local $var1 (ref $WasmListBase))
     (local $var2 i64)
-    (local $var3 i64)
     call $"createEmptyList<DynamicType(dynamic)>"
     local.set $var1
     local.get $onlyUsedInSubField
     local.set $var2
     local.get $var0
     local.get $onlyUsedInSuper1
-    local.set $var3
-    i32.const 96
-    local.get $var3
-    struct.new $BoxedInt
     call $"new _MixinApplication1&Base&SubMixin.sub2 (initializer)"
     local.get $var1
     local.get $var2
@@ -338,7 +325,7 @@
   (func $"new _MixinApplication0&Base&SubMixin.sub1 (constructor body)" (param $this (ref $_MixinApplication0&Base&SubMixin)) (param $var0 i64)
     (local $preciseThis (ref $SubPos1))
     (local $var1 (ref $_Type))
-    (local $var2 (ref null $#Top))
+    (local $var2 i64)
     local.get $this
     ref.cast $SubPos1
     local.set $preciseThis
@@ -352,7 +339,7 @@
     local.get $var0
     call $"new Base.sub1 (constructor body)"
   )
-  (func $"new _MixinApplication0&Base&SubMixin.sub1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type))
+  (func $"new _MixinApplication0&Base&SubMixin.sub1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type))
     i32.const 9
     i32.const 0
     i32.const 0
@@ -367,7 +354,7 @@
   )
   (func $"new _MixinApplication1&Base&SubMixin.named (constructor body)" (param $this (ref $Base))
     (local $var0 (ref $_Type))
-    (local $var1 (ref null $#Top))
+    (local $var1 i64)
     local.get $this
     struct.get $Base $field2
     local.set $var0
@@ -377,14 +364,14 @@
     local.get $this
     call $"new Base.named (constructor body)"
   )
-  (func $"new _MixinApplication1&Base&SubMixin.named (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top))
+  (func $"new _MixinApplication1&Base&SubMixin.named (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64)
     local.get $var0
     local.get $onlyUsedInBaseField
     call $"new Base.named (initializer)"
   )
   (func $"new _MixinApplication1&Base&SubMixin.sub2 (constructor body)" (param $this (ref $Base))
     (local $var0 (ref $_Type))
-    (local $var1 (ref null $#Top))
+    (local $var1 i64)
     local.get $this
     struct.get $Base $field2
     local.set $var0
@@ -394,7 +381,7 @@
     local.get $this
     call $"new Base.sub2 (constructor body)"
   )
-  (func $"new _MixinApplication1&Base&SubMixin.sub2 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top))
+  (func $"new _MixinApplication1&Base&SubMixin.sub2 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64)
     local.get $var0
     local.get $onlyUsedInBaseField
     call $"new Base.sub2 (initializer)"
@@ -402,7 +389,7 @@
   (func $"new _MixinApplication2&Base&SubMixin.sub1 (constructor body)" (param $this (ref $_MixinApplication2&Base&SubMixin)) (param $var0 i64)
     (local $preciseThis (ref $SubOptionalPos))
     (local $var1 (ref $_Type))
-    (local $var2 (ref null $#Top))
+    (local $var2 i64)
     local.get $this
     ref.cast $SubOptionalPos
     local.set $preciseThis
@@ -416,7 +403,7 @@
     local.get $var0
     call $"new Base.sub1 (constructor body)"
   )
-  (func $"new _MixinApplication2&Base&SubMixin.sub1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type))
+  (func $"new _MixinApplication2&Base&SubMixin.sub1 (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (param $onlyUsedInBaseBody i64) (result i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type))
     i32.const 9
     i32.const 0
     i32.const 0
@@ -432,7 +419,7 @@
   (func $"new _MixinApplication3&Base&SubMixin.named (constructor body)" (param $this (ref $_MixinApplication3&Base&SubMixin))
     (local $preciseThis (ref $SubOptionalNamed))
     (local $var0 (ref $_Type))
-    (local $var1 (ref null $#Top))
+    (local $var1 i64)
     local.get $this
     ref.cast $SubOptionalNamed
     local.set $preciseThis
@@ -445,7 +432,7 @@
     local.get $this
     call $"new Base.named (constructor body)"
   )
-  (func $"new _MixinApplication3&Base&SubMixin.named (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField (ref null $#Top)) (result (ref $_Type)) (result (ref $WasmListBase)) (result (ref null $#Top)) (result (ref $_Type))
+  (func $"new _MixinApplication3&Base&SubMixin.named (initializer)" (param $var0 (ref $_Type)) (param $onlyUsedInBaseField i64) (result (ref $_Type)) (result (ref $WasmListBase)) (result i64) (result (ref $_Type))
     i32.const 9
     i32.const 0
     i32.const 0
@@ -481,7 +468,7 @@
     struct.get $SubNamed $field2
     array.new_fixed $Array<_Type> 1
   )
-  (func $SubOptionalNamed (param $var0 (ref $_Type)) (param $onlyUsedInSubField (ref null $BoxedInt)) (param $onlyUsedInSuper (ref null $BoxedInt)) (result (ref $SubOptionalNamed))
+  (func $SubOptionalNamed (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSuper i64) (result (ref $SubOptionalNamed))
     (local $var1 (ref $SubOptionalNamed))
     i32.const 113
     i32.const 0
@@ -503,15 +490,15 @@
     struct.get $SubOptionalNamed $field5
     array.new_fixed $Array<_Type> 1
   )
-  (func $SubOptionalPos (param $var0 (ref $_Type)) (param $onlyUsedInSubField (ref null $BoxedInt)) (param $onlyUsedInSubBody (ref null $BoxedInt)) (param $onlyUsedInSuper1 (ref null $BoxedInt)) (param $onlyUsedInSuper2 (ref null $BoxedInt)) (result (ref $SubOptionalPos))
+  (func $SubOptionalPos (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSubBody i64) (param $onlyUsedInSuper1 i64) (param $onlyUsedInSuper2 i64) (result (ref $SubOptionalPos))
     (local $var1 i64)
-    (local $var2 (ref null $#Top))
+    (local $var2 (ref $WasmListBase))
     (local $var3 (ref $_Type))
-    (local $var4 (ref null $#Top))
+    (local $var4 i64)
     (local $var5 (ref $WasmListBase))
     (local $var6 (ref $_Type))
     (local $var7 i64)
-    (local $var8 (ref null $BoxedInt))
+    (local $var8 i64)
     (local $var9 (ref $SubOptionalPos))
     local.get $var0
     local.get $onlyUsedInSubField
@@ -553,9 +540,9 @@
   )
   (func $SubPos1 (param $var0 (ref $_Type)) (param $onlyUsedInSubField i64) (param $onlyUsedInSubBody i64) (param $onlyUsedInSuper1 i64) (param $onlyUsedInSuper2 i64) (result (ref $SubPos1))
     (local $var1 i64)
-    (local $var2 (ref null $#Top))
+    (local $var2 (ref $WasmListBase))
     (local $var3 (ref $_Type))
-    (local $var4 (ref null $#Top))
+    (local $var4 i64)
     (local $var5 (ref $WasmListBase))
     (local $var6 (ref $_Type))
     (local $var7 i64)

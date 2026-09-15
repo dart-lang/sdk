@@ -9,7 +9,9 @@
 // Test that lazy deoptimization works if the program returns to a function
 // that is scheduled for lazy deoptimization via an exception.
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+// ignore: import_internal_library
+import 'dart:_internal' show IsolateGroup;
+
 import 'package:expect/expect.dart';
 
 class C {

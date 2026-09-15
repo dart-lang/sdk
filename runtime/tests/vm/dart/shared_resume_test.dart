@@ -7,9 +7,9 @@
 // VMOptions=--experimental-shared-data
 //
 
+import 'dart:_internal' show IsolateGroup;
 import 'dart:typed_data';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import 'package:expect/expect.dart';
 
 Iterable<int> foo() sync* {

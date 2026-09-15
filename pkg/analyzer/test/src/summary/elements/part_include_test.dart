@@ -58,6 +58,145 @@ library
 ''');
   }
 
+  test_library_parts_duplicate() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+void f() {}
+''');
+    var library = await buildLibrary(r'''
+part 'a.dart';
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a.dart
+          partKeywordOffset: 0
+          unit: #F1
+        part_1
+          uri: source 'package:test/a.dart'
+          partKeywordOffset: 15
+    #F1 package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      functions
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F2
+      returnType: void
+''');
+  }
+
+  test_library_parts_duplicate_differentUri() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+void f() {}
+''');
+    var library = await buildLibrary(r'''
+part 'a.dart';
+part './a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a.dart
+          partKeywordOffset: 0
+          unit: #F1
+        part_1
+          uri: source 'package:test/a.dart'
+          partKeywordOffset: 15
+    #F1 package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      functions
+        #F2 isComplete isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:21) (offset:26)
+          element: <testLibrary>::@function::f
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F2
+      returnType: void
+''');
+  }
+
+  test_library_parts_duplicate_nested() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+part 'b.dart';
+void f() {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+void g() {}
+''');
+    var library = await buildLibrary(r'''
+part 'a.dart';
+part 'a.dart';
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      nextFragment: #F1
+      parts
+        part_0
+          uri: package:test/a.dart
+          partKeywordOffset: 0
+          unit: #F1
+        part_1
+          uri: source 'package:test/a.dart'
+          partKeywordOffset: 15
+    #F1 package:test/a.dart
+      element: <testLibrary>
+      enclosingFragment: #F0
+      previousFragment: #F0
+      nextFragment: #F2
+      parts
+        part_2
+          uri: package:test/b.dart
+          partKeywordOffset: 21
+          unit: #F2
+      functions
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:41) (firstTokenOffset:36) (offset:41)
+          element: <testLibrary>::@function::f
+    #F2 package:test/b.dart
+      element: <testLibrary>
+      enclosingFragment: #F1
+      previousFragment: #F1
+      functions
+        #F4 isComplete isOriginDeclaration isStatic g (nameOffset:23) (firstTokenOffset:18) (offset:23)
+          element: <testLibrary>::@function::g
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F3
+      returnType: void
+    isOriginDeclaration isStatic g
+      reference: <testLibrary>::@function::g
+      firstFragment: #F4
+      returnType: void
+''');
+  }
+
   test_library_parts_nested() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

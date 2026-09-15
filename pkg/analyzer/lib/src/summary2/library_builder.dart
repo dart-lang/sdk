@@ -65,6 +65,10 @@ class LibraryBuilder {
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
+  /// Repeated part directives retain their sources, but only the first
+  /// inclusion contributes a fragment and declarations to the library.
+  final Set<FileState> _includedPartFiles = {};
+
   final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
@@ -626,7 +630,7 @@ class LibraryBuilder {
     switch (state) {
       case PartIncludeWithFile():
         var includedPart = state.includedPart;
-        if (includedPart != null) {
+        if (includedPart != null && _includedPartFiles.add(includedPart.file)) {
           var partFile = includedPart.file;
           var partUnitNode = partFile.parse(
             performance: OperationPerformanceImpl('<root>'),

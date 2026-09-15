@@ -59,8 +59,8 @@ void stopInferenceLogging() {
 }
 
 /// Enum of all the possible code paths that can be used by the
-/// [ResolverVisitor] to visit expressions when inside the body or initializer
-/// of a top level construct.
+/// [ResolverVisitor] to visit expressions when inside a flow analysis root
+/// (see [InferenceLogWriter.enterFlowAnalysisRoot]).
 enum ExpressionVisitCodePath {
   /// The expression is being visited via [ResolverVisitor.analyzeExpression].
   analyzeExpression,
@@ -80,27 +80,29 @@ abstract interface class InferenceLogWriter
   /// each expression's visit method property calls [enterExpression].
   void assertExpressionWasRecorded(Expression expression);
 
-  /// Called when type inference enters the body of a top level function or
-  /// method, or the initializer of a top level variable or field, or the
-  /// initializers and body of a constructor.
-  void enterBodyOrInitializer(AstNode node);
+  /// Called when type inference enters a *flow analysis root*, i.e. a region of
+  /// code that is analyzed by a single invocation of flow analysis.
+  ///
+  /// Examples include the body of a top level function or method, the
+  /// initializer of a top level variable or field, and the initializers and
+  /// body of a constructor. See `FlowAnalysisRootImpl` for the full list.
+  void enterFlowAnalysisRoot(AstNode node);
 
-  /// Called when type inference enters the body of a top level function or
-  /// method, or the initializer of a top level variable or field, or the
-  /// initializers and body of a constructor.
-  void exitBodyOrInitializer();
+  /// Called when type inference leaves the flow analysis root that was most
+  /// recently entered using [enterFlowAnalysisRoot].
+  void exitFlowAnalysisRoot();
 
   /// Records [source] as the code path that the [ResolverVisitor] is about to
   /// use to visit the expression [node].
   ///
-  /// An assertion in [enterExpression] verifies that when inside a method body
-  /// or initializer (see [enterBodyOrInitializer]), every call to
+  /// An assertion in [enterExpression] verifies that when inside a flow
+  /// analysis root (see [enterFlowAnalysisRoot]), every call to
   /// [enterExpression] is preceded by exactly one call to
   /// [setExpressionVisitCodePath]. This ensures that the resolution process
   /// doesn't ever try to resolve a subexpression more than once. It also
-  /// ensures that every code path that resolves subexpressions inside method
-  /// bodies and initializers calls this method, making it easy to statically
-  /// locate these code paths.
+  /// ensures that every code path that resolves subexpressions inside flow
+  /// analysis roots calls this method, making it easy to statically locate
+  /// these code paths.
   void setExpressionVisitCodePath(
     Expression node,
     ExpressionVisitCodePath source,
@@ -111,13 +113,12 @@ abstract interface class InferenceLogWriter
 /// analyzer-specific functionality.
 final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
     implements InferenceLogWriter {
-  /// Whether type inference is currently inside the body of a top level
-  /// function or method, or the initializer of a top level variable or field,
-  /// or the initializers and body of a constructor.
+  /// Whether type inference is currently inside a *flow analysis root* (see
+  /// [InferenceLogWriter.enterFlowAnalysisRoot]).
   ///
   /// When this value is `true`, flow analysis is active, and expressions must
   /// be visited using [ResolverVisitor.analyzeExpression].
-  bool _inBodyOrInitializer = false;
+  bool _inFlowAnalysisRoot = false;
 
   @override
   void assertExpressionWasRecorded(Object expression) {
@@ -143,12 +144,6 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   }
 
   @override
-  void enterBodyOrInitializer(AstNode node) {
-    assert(!_inBodyOrInitializer, 'Already in a body or initializer');
-    _inBodyOrInitializer = true;
-  }
-
-  @override
   void enterElement(covariant CollectionElement node) {
     checkCall(
       method: 'enterElement',
@@ -161,8 +156,8 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   @override
   void enterExpression(covariant Expression node, TypeImpl contextType) {
     assert(
-      !_inBodyOrInitializer || _expressionVisitCodePaths[node] != null,
-      'When in a body or initializer, setExpressionVisitSource should be '
+      !_inFlowAnalysisRoot || _expressionVisitCodePaths[node] != null,
+      'When in a flow analysis root, setExpressionVisitCodePath should be '
       'called prior to enterExpression. Not called for $node.',
     );
     checkCall(
@@ -186,6 +181,12 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
     );
     super.enterExtensionOverride(node, contextType);
     _recordedExpressions[node] = true;
+  }
+
+  @override
+  void enterFlowAnalysisRoot(AstNode node) {
+    assert(!_inFlowAnalysisRoot, 'Already in a flow analysis root');
+    _inFlowAnalysisRoot = true;
   }
 
   @override
@@ -219,9 +220,9 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   }
 
   @override
-  void exitBodyOrInitializer() {
-    assert(_inBodyOrInitializer, 'Not in a method body or initializer');
-    _inBodyOrInitializer = false;
+  void exitFlowAnalysisRoot() {
+    assert(_inFlowAnalysisRoot, 'Not in a flow analysis root');
+    _inFlowAnalysisRoot = false;
   }
 
   @override

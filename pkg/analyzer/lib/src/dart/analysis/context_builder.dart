@@ -82,8 +82,6 @@ class ContextBuilderImpl {
     AnalysisDriverScheduler? scheduler,
     required String sdkPath,
     String? sdkSummaryPath,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
     FileContentCache? fileContentCache,
@@ -139,7 +137,6 @@ class ContextBuilderImpl {
           sourceFactory,
           contextRoot.root,
           sdk,
-          updateAnalysisOptions4,
           configureAnalysisOptionsBuilder,
           enabledExperiments,
         ),
@@ -151,7 +148,6 @@ class ContextBuilderImpl {
         contextRoot,
         analysisOptionsParseSession,
         sourceFactory,
-        updateAnalysisOptions4,
         configureAnalysisOptionsBuilder,
       );
     }
@@ -195,8 +191,6 @@ class ContextBuilderImpl {
     ContextRootImpl contextRoot,
     AnalysisOptionsParseSession analysisOptionsParseSession,
     SourceFactory sourceFactory,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
   ) {
@@ -217,7 +211,6 @@ class ContextBuilderImpl {
       }
       options = _updatedAnalysisOptions(
         options,
-        updateAnalysisOptions4,
         configureAnalysisOptionsBuilder,
       );
 
@@ -230,7 +223,6 @@ class ContextBuilderImpl {
       return AnalysisOptionsMap.forSharedOptions(
         _updatedAnalysisOptions(
           AnalysisOptionsImpl(),
-          updateAnalysisOptions4,
           configureAnalysisOptionsBuilder,
         ),
       );
@@ -300,8 +292,6 @@ class ContextBuilderImpl {
     SourceFactory sourceFactory,
     Folder contextRoot,
     DartSdk sdk,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
     List<String> enabledExperiments,
@@ -327,12 +317,6 @@ class ContextBuilderImpl {
         flags: enabledExperiments,
       );
 
-    options = analysisOptionsBuilder.build();
-    if (updateAnalysisOptions4 != null) {
-      updateAnalysisOptions4(analysisOptions: options);
-    }
-
-    analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
     if (configureAnalysisOptionsBuilder != null) {
       configureAnalysisOptionsBuilder(
         analysisOptionsBuilder: analysisOptionsBuilder,
@@ -344,15 +328,9 @@ class ContextBuilderImpl {
 
   AnalysisOptionsImpl _updatedAnalysisOptions(
     AnalysisOptionsImpl options,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
   ) {
-    if (updateAnalysisOptions4 != null) {
-      updateAnalysisOptions4(analysisOptions: options);
-    }
-
     if (configureAnalysisOptionsBuilder == null) {
       return options;
     }

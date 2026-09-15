@@ -31,7 +31,6 @@
     (global.get $".FooBase(")
     (struct.new $JSExternWrapper))
   (global $1 (ref $BoxedInt) <...>)
-  (global $2 (ref $BoxedInt) <...>)
   (global $baseObj (mut (ref null $Object)) <...>)
   (global $foo1Obj (mut (ref null $Object)) <...>)
   (elem $M.cross-module-funcs-0
@@ -40,9 +39,11 @@
     (set 2 (ref.func $foo0)))
   (elem $M.dispatch0 <...>)
   (func $runtimeTrue implicit getter (result i32) <...>)
-  (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+  (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 i64)
     global.get $"\"Foo0.doitDispatch(\""
+    i32.const 100
     local.get $var1
+    struct.new $BoxedInt
     global.get $"\")\""
     i32.const 5
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
@@ -68,9 +69,11 @@
     i32.const 6
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
   )
-  (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
+  (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 i64)
     global.get $"\"Foo1.doitDispatch(\""
+    i32.const 100
     local.get $var1
+    struct.new $BoxedInt
     global.get $"\")\""
     i32.const 5
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
@@ -79,9 +82,11 @@
     local.get $var1
     call $FooBase.doitDispatch
   )
-  (func $FooBase.doitDispatch (param $var0 (ref null $#Top))
+  (func $FooBase.doitDispatch (param $var0 i64)
     global.get $"\"FooBase(\""
+    i32.const 100
     local.get $var0
+    struct.new $BoxedInt
     global.get $"\")\""
     i32.const 5
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
@@ -119,18 +124,18 @@
         br $label0
       end $label1
       local.tee $var0
-      global.get $1
+      i64.const 1
       local.get $var0
       struct.get $Object $#classId
       i32.const 373
       i32.add
-      call_indirect $M.dispatch0 (param (ref $Object) (ref null $#Top))
+      call_indirect $M.dispatch0 (param (ref $Object) i64)
       block $label2 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label2
         br $label0
       end $label2
-      global.get $2
+      i64.const 2
       call $Foo1.doitDispatch
       block $label3 (result (ref $Object))
         global.get $foo1Obj

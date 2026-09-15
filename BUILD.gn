@@ -501,14 +501,14 @@ if (is_fuchsia) {
             dest = "lib/asan/ld.so.1"
           },
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.asan.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.asan.so"
             dest = "lib/libclang_rt.asan.so"
           },
         ]
       } else if (is_ubsan) {
         resources += [
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.ubsan_standalone.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.ubsan_standalone.so"
             dest = "lib/libclang_rt.ubsan_standalone.so"
           },
         ]

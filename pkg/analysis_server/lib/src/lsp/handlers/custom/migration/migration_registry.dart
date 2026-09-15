@@ -51,14 +51,15 @@ final Map<Version, List<String>> preparatoryLintsRegistry = {
 /// [knownSdkVersions], or `null` if [currentVersion] is at or beyond the latest
 /// known version.
 Version? nextSdkVersion(Version currentVersion) {
-  var normalizedVersion = Version(
-    currentVersion.major,
-    currentVersion.minor,
-    0,
-  );
-  var index = knownSdkVersions.indexOf(normalizedVersion);
+  var index = knownSdkVersions.indexOf(currentVersion.truncatedToMinor);
   if (index >= 0 && index + 1 < knownSdkVersions.length) {
     return knownSdkVersions[index + 1];
   }
   return null;
+}
+
+extension VersionExtension on Version {
+  /// The minor release that this version belongs to, which is the granularity
+  ///  migrations work at.
+  Version get truncatedToMinor => Version(major, minor, 0);
 }

@@ -24,7 +24,7 @@ if (use_rbe) {
       "buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
 
       # Is RBE's scandeps too old to know about this?
-      "buildtools/mac-arm64/clang/lib/clang/23/include/ptrauth.h",
+      "buildtools/mac-arm64/clang/lib/clang/24/include/ptrauth.h",
     ]
     compiler_args += [
       "--inputs=" + string_join(",", extra_inputs),

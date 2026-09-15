@@ -427,9 +427,6 @@ class CommonRecognizedMethods implements RecognizedMethods {
     ?getProcedure('dart:core', 'int', 'get:bitLength'): UnaryIntOp(
       UnaryIntOpcode.bitLength,
     ),
-    ?getProcedure('dart:core', 'double', 'get:sign'): UnaryDoubleOp(
-      UnaryDoubleOpcode.sign,
-    ),
   };
 
   late final _recognizedMembers = <ast.Member, BuildIR>{

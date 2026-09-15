@@ -688,6 +688,27 @@ final class VmRecognizedMethods(
     index.getProcedure(
       'dart:core',
       '_Double',
+      'get:isNegative',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .isNegative);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:isInfinite',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .isInfinite);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'unary-',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .neg);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
       'floor',
     ): (FlowGraphBuilder builder) {
       buildUnaryDoubleOp(builder, .floor);
@@ -1157,6 +1178,14 @@ final class VmRecognizedMethods(
       'get:sendPort',
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.RawReceivePort_sendPort);
+    },
+
+    // dart:math
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_sqrt',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .sqrt);
     },
 
     // dart:typed_data

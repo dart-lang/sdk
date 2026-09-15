@@ -27,11 +27,15 @@ class PubspecTest with ResourceProviderMixin {
   }
 
   void test_compound() {
-    _assertEdit("'>=2.12.0 <3.0.0'", '>=2.13.0');
+    _assertEdit("'>=2.12.0 <3.0.0'", '>=2.13.0 <3.0.0');
   }
 
   void test_gt() {
     _assertEdit("'>2.12.0'", '>=2.13.0');
+  }
+
+  void test_gte() {
+    _assertEdit("'>=2.12.0'", '>=2.13.0');
   }
 
   void test_invalid() {
@@ -42,18 +46,29 @@ class PubspecTest with ResourceProviderMixin {
     _assertEdit('2.12.0', null);
   }
 
-  void _assertEdit(String from, String? expectedReplacement) {
+  /// Raising only the lower bound here would produce the empty range
+  /// `>=2.13.0 <2.13.0`, so the ceiling that excludes 2.13.0 is dropped.
+  void test_tightUpperBound() {
+    _assertEdit("'>=2.12.0 <2.13.0'", '^2.13.0');
+  }
+
+  /// A ceiling well above the new minimum is neither raised nor widened.
+  void test_unrelatedUpperBound() {
+    _assertEdit("'>=2.12.0 <2.20.0'", '>=2.13.0 <2.20.0');
+  }
+
+  void _assertEdit(String from, String? expectedConstraint) {
     newFile(testPubspecPath, '''
 environment:
   sdk: $from
 ''');
     var file = getFile(testPubspecPath);
     var edit = computeEdit(file, Version(2, 13, 0));
-    if (expectedReplacement == null) {
+    if (expectedConstraint == null) {
       expect(edit, isNull);
     } else {
       expect(edit, isNotNull);
-      expect(edit!.replacement, expectedReplacement);
+      expect(edit!.newConstraint, expectedConstraint);
     }
   }
 }

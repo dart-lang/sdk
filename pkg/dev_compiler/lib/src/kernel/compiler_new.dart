@@ -6738,6 +6738,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //  - Calls to extension types that implement their own call method are
     //    lowered by the CFE to top level static method calls.
     var erasedGetterType = node.interfaceTarget.getterType.extensionTypeErasure;
+    if (erasedGetterType is TypeParameterType) {
+      // Instantiate with the static type so there is a concrete interface to
+      // inspect for the callable target check.
+      var receiverClass = node.interfaceTarget.enclosingClass!;
+      var instantiatedClassType = node.receiver.getStaticTypeAsInstanceOf(
+        receiverClass,
+        _staticTypeContext,
+      );
+      var instantiatedGetterType = Substitution.fromInterfaceType(
+        instantiatedClassType,
+      ).substituteType(erasedGetterType);
+      erasedGetterType = instantiatedGetterType.extensionTypeErasure;
+    }
     if (erasedGetterType is InterfaceType) {
       var callName = _implicitCallTarget(erasedGetterType);
       if (callName != null) {

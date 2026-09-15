@@ -382,7 +382,9 @@ abstract final class Annotation implements AstNode {
     GenerateNodeProperty('arguments'),
   ],
 )
-final class AnnotationImpl extends AstNodeImpl implements Annotation {
+final class AnnotationImpl extends AstNodeImpl
+    with FlowAnalysisRootImpl
+    implements Annotation {
   @generated
   @override
   final Token atSign;
@@ -9327,6 +9329,22 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   /// compilation unit, sorted in lexical order.
   List<AstNode> get sortedDirectivesAndDeclarations;
 
+  /// Queries the type of `this` at the given [offset].
+  ///
+  /// The offset is relative to the beginning of the source file.
+  ///
+  /// Note that `this` may be meaningful at [offset] even if [offset] isn't
+  /// inside a function body; for example it may be inside the initializer of a
+  /// `late` instance field, or inside an anonymous method appearing in a top
+  /// level variable initializer.
+  ///
+  /// Returns `null` if:
+  /// - resolution hasn't been performed,
+  /// - [offset] is outside the range covered by this compilation unit,
+  /// - or `this` isn't meaningful at the given offset.
+  @experimental
+  DartType? lookupThisType({required int offset});
+
   /// Returns the minimal covering node for the range of characters beginning at
   /// the [offset] with the given [length].
   ///
@@ -9507,6 +9525,35 @@ final class CompilationUnitImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCompilationUnit(this);
+
+  @experimental
+  @override
+  DartType? lookupThisType({required int offset}) {
+    // Find the innermost node that acts as a flow analysis root and encloses
+    // [offset]; its log is the one that describes the flow analysis state at
+    // [offset].
+    //
+    // Note that it's important to look for the *innermost* such node rather
+    // than the outermost one, because flow analysis roots can be nested inside
+    // one another. For example, an annotation on a method declaration is
+    // resolved (and hence analyzed by flow analysis) before flow analysis is
+    // started for the method itself, so the annotation is a flow analysis root
+    // nested inside the method declaration.
+    //
+    // Nodes whose type mixes in `FlowAnalysisRootImpl` but that didn't actually
+    // act as a flow analysis root (e.g. a local variable declaration, or a
+    // local function declaration) have a null log, so they are skipped.
+    AstNode? node = nodeCovering2(offset: offset);
+    while (node != null) {
+      if (node is FlowAnalysisRootImpl) {
+        if (node.flowAnalysisLog case var log?) {
+          return log.lookupThisType(offset: offset)?.unwrapTypeView<TypeImpl>();
+        }
+      }
+      node = node.parent2;
+    }
+    return null;
+  }
 
   @ToBeDeprecated('Use nodeCovering2 instead')
   @override
@@ -10918,6 +10965,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   ],
 )
 final class ConstructorDeclarationImpl extends ClassMemberImpl
+    with FlowAnalysisRootImpl
     implements ConstructorDeclaration {
   @generated
   @override
@@ -17186,6 +17234,7 @@ abstract final class EnumConstantDeclaration implements Declaration {
   ],
 )
 final class EnumConstantDeclarationImpl extends DeclarationImpl
+    with FlowAnalysisRootImpl
     implements EnumConstantDeclaration {
   @generated
   @override
@@ -20636,6 +20685,45 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 }
 
+/// Mixin for AST node implementations that are capable of acting as a *flow
+/// analysis root*.
+///
+/// A flow analysis root is a node that delimits a region of code that is
+/// analyzed by a single invocation of flow analysis (see
+/// `FlowAnalysisHelper.flowAnalysisRoot_enter` and
+/// `FlowAnalysisHelper.flowAnalysisRoot_exit`). Examples include method
+/// declarations, constructor declarations (whose region covers the initializer
+/// list as well as the body), the declaration of a top level variable or field
+/// (whose region covers the initializer), and annotations.
+///
+/// Note that a node whose type mixes in [FlowAnalysisRootImpl] doesn't
+/// necessarily act as a flow analysis root; for example a [FunctionDeclaration]
+/// is a flow analysis root only if it's not a local function, and a
+/// [VariableDeclaration] is a flow analysis root only if it declares a top
+/// level variable or a field. [flowAnalysisLog] is `null` in the cases where
+/// the node isn't a flow analysis root.
+///
+/// Note also that flow analysis roots may nest: for example the metadata of a
+/// method declaration is resolved (and therefore flow analyzed) before flow
+/// analysis begins for the method declaration itself, so an [Annotation] can be
+/// a flow analysis root nested inside a [MethodDeclaration] that is also a flow
+/// analysis root. Therefore, code that searches for the flow analysis log
+/// covering a given source offset needs to find the *innermost* enclosing node
+/// that has a non-null [flowAnalysisLog].
+base mixin FlowAnalysisRootImpl on AstNodeImpl {
+  /// The [FlowAnalysisLog] that was collected by flow analysis while resolving
+  /// the region of code rooted at this node.
+  ///
+  /// This is `null` if any of the following is true:
+  /// - Resolution hasn't yet been performed.
+  /// - This node doesn't actually act as a flow analysis root (see the
+  ///   documentation for [FlowAnalysisRootImpl]).
+  /// - Flow analysis logging was disabled during resolution (this is the case
+  ///   during summary linking, where source offsets aren't meaningful; see
+  ///   `FlowAnalysisHelper.enableLog`).
+  FlowAnalysisLog? flowAnalysisLog;
+}
+
 /// The parts of a for-each loop that control the iteration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForEachParts implements ForLoopParts {
@@ -21765,6 +21853,7 @@ abstract final class FormalParameterDefaultClause implements AstNode {
   ],
 )
 final class FormalParameterDefaultClauseImpl extends AstNodeImpl
+    with FlowAnalysisRootImpl
     implements FormalParameterDefaultClause {
   @generated
   @override
@@ -22255,6 +22344,7 @@ abstract final class FormalParameterList implements AstNode {
   ],
 )
 final class FormalParameterListImpl extends AstNodeImpl
+    with FlowAnalysisRootImpl
     implements FormalParameterList {
   @generated
   @override
@@ -23625,23 +23715,6 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
-
-  /// Queries the type of `this` at the given [offset].
-  ///
-  /// The offset is relative to the beginning of the source file, but must refer
-  /// to a location within the function body in order for the response to be
-  /// accurate.
-  ///
-  /// The bodies of local functions and function literals cannot be queried
-  /// directly; the query must be made using the enclosing non-local function
-  /// body.
-  ///
-  /// Returns `null` if:
-  /// - resolution has not been performed,
-  /// - the query is made on the body of a local function or function literal,
-  /// - or `this` is not meaningful at the given offset.
-  @experimental
-  DartType? lookupThisType({required int offset});
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -23653,10 +23726,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// The [BodyInferenceContext] that was used during type inference of this
   /// function body, or `null` if resolution hasn't yet been performed.
   BodyInferenceContext? bodyContext;
-
-  /// The [FlowAnalysisLog] that was collected during type inference of this
-  /// function body, or `null` if resolution hasn't yet been performed.
-  FlowAnalysisLog? flowAnalysisLog;
 
   @override
   bool get isAsynchronous => false;
@@ -23679,13 +23748,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
-  }
-
-  @override
-  DartType? lookupThisType({required int offset}) {
-    return flowAnalysisLog
-        ?.lookupThisType(offset: offset)
-        ?.unwrapTypeView<TypeImpl>();
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -23823,7 +23885,7 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
   ],
 )
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
-    with AstNodeWithNameScopeMixin
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
     implements TopLevelDeclarationV1OrV2Impl, FunctionDeclaration {
   @generated
   @override
@@ -36766,7 +36828,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   ],
 )
 final class MethodDeclarationImpl extends ClassMemberImpl
-    with AstNodeWithNameScopeMixin
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
     implements MethodDeclaration {
   @generated
   @override
@@ -43766,6 +43828,7 @@ abstract final class PrimaryConstructorBody implements ClassMember {
   ],
 )
 final class PrimaryConstructorBodyImpl extends ClassMemberImpl
+    with FlowAnalysisRootImpl
     implements PrimaryConstructorBody {
   @generated
   @override
@@ -53214,7 +53277,7 @@ abstract final class TopLevelGetterDeclaration
   ],
 )
 final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
-    with AstNodeWithNameScopeMixin
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
     implements TopLevelGetterDeclaration {
   @generated
   @override
@@ -55964,6 +56027,7 @@ abstract final class VariableDeclaration implements Declaration {
   ],
 )
 final class VariableDeclarationImpl extends DeclarationImpl
+    with FlowAnalysisRootImpl
     implements VariableDeclaration {
   @generated
   @override

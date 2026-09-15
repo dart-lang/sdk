@@ -500,7 +500,6 @@ void main() {
 
       testOp(UnaryDoubleOpcode.neg, (double v) => -v);
       testOp(UnaryDoubleOpcode.abs, (double v) => v.abs());
-      testOp(UnaryDoubleOpcode.sign, (double v) => v.sign);
       testOp(UnaryDoubleOpcode.square, (double v) => v * v);
       testOp(UnaryDoubleOpcode.round, (double v) => v.round());
       testOp(UnaryDoubleOpcode.floor, (double v) => v.floor());

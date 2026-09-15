@@ -52,7 +52,11 @@ Future<({String log})> pub({
     stdout: stdout.sink,
     stderr: stdout.sink,
     stdin: const Stream.empty(),
-    platformVersion: '3.12.0',
+    platformVersion: resourceProvider
+        .getFolder(config.dartSdkPath)
+        .getFile('version')
+        .readAsStringSync()
+        .trim(),
     environment: {
       'PUB_CACHE': '/pub-cache',
       'DART_ROOT': config.dartSdkPath,

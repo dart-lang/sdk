@@ -1826,8 +1826,8 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
-  sign('sign'),
   square('square'),
+  sqrt('sqrt'),
   round('round'),
   floor('floor'),
   ceil('ceil'),
@@ -1835,11 +1835,13 @@ enum UnaryDoubleOpcode(final String token) {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble')
+  truncateToDouble('truncateToDouble'),
+  isNegative('isNegative'),
+  isInfinite('isInfinite')
 }
 
 /// Unary operation on the double operand.
-final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
+final class UnaryDoubleOp extends Definition with Pure, Idempotent {
   UnaryDoubleOpcode op;
 
   UnaryDoubleOp(super.graph, super.sourcePosition, this.op, Definition operand)
@@ -1851,11 +1853,15 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 
   @override
   CType get type => switch (op) {
-    UnaryDoubleOpcode.round ||
-    UnaryDoubleOpcode.floor ||
-    UnaryDoubleOpcode.ceil ||
-    UnaryDoubleOpcode.truncate => const IntType(),
+    .round || .floor || .ceil || .truncate => const IntType(),
+    .isNegative || .isInfinite => const BoolType(),
     _ => const DoubleType(),
+  };
+
+  @override
+  bool get canThrow => switch (op) {
+    .round || .floor || .ceil || .truncate => true,
+    _ => false,
   };
 
   @override

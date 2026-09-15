@@ -6,6 +6,8 @@
 //
 // VMOptions=--experimental-shared-data
 
+// ignore: import_internal_library
+import 'dart:_internal' show IsolateGroup;
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
@@ -13,10 +15,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
 
 import 'threading_utils.dart';
 

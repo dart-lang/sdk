@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// The tests in this file verify that the [FunctionBody.lookupThisType]
+/// The tests in this file verify that the [CompilationUnit.lookupThisType]
 /// method can be reliably used to query the type of `this` at any offset within
-/// a function body, without requiring an explicit reference to `this` to be
+/// a compilation unit, without requiring an explicit reference to `this` to be
 /// present in the AST.
+///
+/// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 library;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show FlowAnalysisRootImpl;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,10 +22,109 @@ import '../node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(FlowAnalysisRootTest);
     defineReflectiveTests(LookupThisTypeTest);
     defineReflectiveTests(LookupThisTypeTestWithAnonymousMethods);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+/// Tests that verify precisely which AST nodes act as flow analysis roots.
+///
+/// Each root retains a [FlowAnalysisLog] for as long as the resolved unit is
+/// retained (that's what [CompilationUnit.lookupThisType] queries), so a
+/// declaration establishing more roots than it needs is a memory cost paid on
+/// every declaration in every file. These tests exist to make the set of roots
+/// visible in a diff.
+@reflectiveTest
+class FlowAnalysisRootTest extends PubPackageResolutionTest {
+  Future<void> assertRoots(String code, List<String> expected) async {
+    var result = await resolveTestCode(code);
+    var actual = <String>[];
+
+    void collect(AstNode node) {
+      if (node is FlowAnalysisRootImpl && node.flowAnalysisLog != null) {
+        actual.add(node.runtimeType.toString());
+      }
+      for (var child in node.childEntities) {
+        if (child is AstNode) collect(child);
+      }
+    }
+
+    collect(result.unit);
+    expect(actual, expected);
+  }
+
+  test_constructor() async {
+    // The formal parameters are visited inside the constructor's own flow
+    // analysis region, so they don't need a region of their own.
+    await assertRoots(
+      r'''
+class C {
+  C(int x);
+}
+''',
+      ['ConstructorDeclarationImpl'],
+    );
+  }
+
+  test_constructor_withDefaultValue() async {
+    await assertRoots(
+      r'''
+class C {
+  C([int x = 0]);
+}
+''',
+      ['ConstructorDeclarationImpl'],
+    );
+  }
+
+  test_method() async {
+    // As for constructors, the formal parameters don't need a region of their
+    // own.
+    await assertRoots(
+      r'''
+class C {
+  void f(int x) {}
+}
+''',
+      ['MethodDeclarationImpl'],
+    );
+  }
+
+  test_method_withDefaultValue() async {
+    await assertRoots(
+      r'''
+class C {
+  void f([int x = 0]) {}
+}
+''',
+      ['MethodDeclarationImpl'],
+    );
+  }
+
+  test_primaryConstructor() async {
+    // A primary constructor's formal parameter list lives in the class header,
+    // not inside the primary constructor body, so there is no enclosing region
+    // for it to join; it necessarily acts as a root of its own.
+    await assertRoots(
+      r'''
+class C([int x = 0]) {
+  this {}
+}
+''',
+      ['FormalParameterListImpl', 'PrimaryConstructorBodyImpl'],
+    );
+  }
+
+  test_topLevelFunction() async {
+    await assertRoots(
+      r'''
+void f([int x = 0]) {}
+''',
+      ['FunctionDeclarationImpl'],
+    );
+  }
 }
 
 /// Test cases that are run with anonymous methods disabled.
@@ -60,22 +160,8 @@ class LookupThisTypeTest extends PubPackageResolutionTest {
     for (var i = 0; i < expectedMarkers.length; i++) {
       var expectedMarker = expectedMarkers[i];
       var resolvedMarker = resolvedMarkers[i];
-      var node = NodeLocator2(resolvedMarker.start).searchWithin(result.unit);
-      if (node == null) {
-        fail('No AST node at offset ${resolvedMarker.start}.');
-      }
 
-      // Local function bodies cannot be queried directly, so use the outermost
-      // enclosing body whose flow analysis log covers the marker.
-      FunctionBody? outermostBody;
-      for (var ancestor in node.withAncestors2.whereType<FunctionBody>()) {
-        outermostBody = ancestor;
-      }
-      if (outermostBody == null) {
-        fail('No enclosing function body at offset ${resolvedMarker.start}.');
-      }
-
-      var type = outermostBody.lookupThisType(offset: resolvedMarker.start);
+      var type = result.unit.lookupThisType(offset: resolvedMarker.start);
       var typeText = type == null ? 'null' : typeString(type);
 
       actualCode
@@ -93,6 +179,35 @@ class LookupThisTypeTest extends PubPackageResolutionTest {
       }
       fail('See the difference above.');
     }
+  }
+
+  test_thisPromotion_inAnnotation() async {
+    // Annotations are flow analysis roots in their own right, nested inside the
+    // flow analysis root for the declaration they annotate. `this` isn't
+    // accessible inside an annotation, so the query should return `null` (and,
+    // in particular, it should not accidentally consult the log belonging to
+    // the enclosing method declaration).
+    await assertThisTypes(r'''
+class C {
+  @Deprecated(/*this: null*/ 'x')
+  f() {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inConstructorInitializerList() async {
+    // The flow analysis region for a constructor covers the initializer list as
+    // well as the body, but `this` isn't bound until the body is reached.
+    await assertThisTypes(r'''
+class C {
+  final Object x;
+  C() : x = /*this: null*/ 0 {
+    /*this: C*/
+  }
+}
+''');
   }
 
   test_thisPromotion_inFactoryConstructor() async {
@@ -138,6 +253,26 @@ class C {
     }
     /*this: C*/
   }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_inInstanceFieldInitializer() async {
+    // `this` isn't accessible in the initializer of a non-late instance field.
+    await assertThisTypes(r'''
+class C {
+  final Object x = /*this: null*/ 0;
+}
+''');
+  }
+
+  test_thisPromotion_inLateInstanceFieldInitializer() async {
+    // `this` *is* accessible (and promotable) in the initializer of a `late`
+    // instance field.
+    await assertThisTypes(r'''
+class C {
+  late final Object x = this is D ? /*this: D*/ 0 : /*this: C*/ 1;
 }
 class D extends C {}
 ''');
@@ -234,6 +369,29 @@ class D extends C {}
 ''');
   }
 
+  test_thisPromotion_inPrimaryConstructorInitializerList() async {
+    // The flow analysis region for a primary constructor body covers the
+    // initializer list as well as the body, but `this` isn't bound until the
+    // body is reached.
+    await assertThisTypes(r'''
+class C(int y) {
+  final Object x;
+  this : x = /*this: null*/ y {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inStaticFieldInitializer() async {
+    // `this` isn't accessible in the initializer of a static field.
+    await assertThisTypes(r'''
+class C {
+  static final Object x = /*this: null*/ 0;
+}
+''');
+  }
+
   test_thisPromotion_inStaticMethod() async {
     // Static methods don't have access to `this`, but it's still important to
     // make sure that querying the type of `this` doesn't lead to a
@@ -254,6 +412,28 @@ class C {
     await assertThisTypes(r'''
 f() {
   /*this: null*/
+}
+''');
+  }
+
+  test_thisPromotion_inTopLevelVariableInitializer() async {
+    // `this` isn't accessible in a top level variable initializer, but it's
+    // still important to make sure that querying the type of `this` doesn't
+    // lead to a crash.
+    await assertThisTypes(r'''
+final Object x = /*this: null*/ 0;
+''');
+  }
+
+  test_thisPromotion_outsideAnyFlowAnalysisRoot() async {
+    // Some offsets aren't inside any flow analysis root at all; querying them
+    // should simply return `null`.
+    await assertThisTypes(r'''
+/*this: null*/
+class C {
+  f() {}
+  /*this: null*/
+  g() {}
 }
 ''');
   }
@@ -323,6 +503,89 @@ class C {
 ''');
   }
 
+  test_thisPromotion_inConstructorInitializerList_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  final Object x;
+  C() : x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ] {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfConstructor_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  C({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfMethod_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfPrimaryConstructor_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+  this {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfStaticMethod_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+class C {
+  static void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    /*this: null*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inDefaultValueOfTopLevelFunction_anonymousMethod() async {
+    // Although an anonymous method in a default value is illegal, it should
+    // still be analyzed correctly.
+    await assertThisTypes(r'''
+void f({Object? p = /*this: null*/ (0 as num).=> /*this: num*/ 1}) {
+//                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+  /*this: null*/
+}
+''');
+  }
+
   test_thisPromotion_inFactoryConstructor_anonymousMethod() async {
     await assertThisTypes(r'''
 class C {
@@ -353,6 +616,35 @@ class C {
     /*this: C*/
   }
 }
+''');
+  }
+
+  test_thisPromotion_inInstanceFieldInitializer_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  final Object x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+}
+''');
+  }
+
+  test_thisPromotion_inLateInstanceFieldInitializer_anonymousMethod() async {
+    // In a `late` instance field initializer, `this` is bound to the enclosing
+    // class outside the anonymous method, and to the anonymous method's
+    // receiver inside it.
+    await assertThisTypes(r'''
+class C {
+  late final Object x = (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+  late final Object y = this is D ? /*this: D*/ 0 : /*this: C*/ 1;
+}
+class D extends C {}
 ''');
   }
 
@@ -388,6 +680,33 @@ class C() {
 ''');
   }
 
+  test_thisPromotion_inPrimaryConstructorInitializerList_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C(int y) {
+  final Object x;
+  this : x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ] {
+    /*this: C*/
+  }
+}
+''');
+  }
+
+  test_thisPromotion_inStaticFieldInitializer_anonymousMethod() async {
+    await assertThisTypes(r'''
+class C {
+  static final Object x = /*this: null*/ (0 as num).=> [
+    /*this: num*/
+    this as int,
+    /*this: int*/
+  ];
+}
+''');
+  }
+
   test_thisPromotion_inStaticMethod_anonymousMethod() async {
     await assertThisTypes(r'''
 class C {
@@ -415,6 +734,18 @@ f() {
     };
     /*this: null*/
 }
+''');
+  }
+
+  test_thisPromotion_inTopLevelVariableInitializer_anonymousMethod() async {
+    // An anonymous method binds `this` even though there's no enclosing
+    // function body.
+    await assertThisTypes(r'''
+final Object x = /*this: null*/ (0 as num).=> [
+  /*this: num*/
+  this as int,
+  /*this: int*/
+];
 ''');
   }
 
