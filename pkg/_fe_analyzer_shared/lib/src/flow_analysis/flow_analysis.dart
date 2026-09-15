@@ -7448,10 +7448,8 @@ class _FlowAnalysisImpl<
         // No conclusions can be drawn about `cannotMatch` or `knownType`.
         break;
     }
-    _PatternContext context = _stack.last as _PatternContext;
-    _Reference matchedValueReference = context.createReference(
+    _Reference matchedValueReference = _createMatchedValueReference(
       matchedType,
-      _current,
     );
     bool coversMatchedType = operations.isSubtypeOf(
       operations.extensionTypeErasure(matchedType),
@@ -8344,6 +8342,21 @@ class _FlowAnalysisImpl<
     return newModel;
   }
 
+  /// Creates a [_Reference] representing the value currently being matched by
+  /// the pattern that's being analyzed, having type [matchedValueType].
+  ///
+  /// May only be called in the context of a pattern.
+  ///
+  /// Note that [matchedValueType] is not necessarily the same as the value
+  /// returned by [_getMatchedValueType]; some callers deliberately pass the
+  /// matched value type as it was *before* an earlier promotion of the matched
+  /// value (see [promoteForPattern]).
+  _Reference _createMatchedValueReference(SharedTypeView matchedValueType) =>
+      (_stack.last as _PatternContext).createReference(
+        matchedValueType,
+        _current,
+      );
+
   @override
   void _dumpState() {
     print('  current: $_current');
@@ -8563,17 +8576,13 @@ class _FlowAnalysisImpl<
     _logBuilder?.checkOffset(offset);
 
     assert(identical(matchedValueType, _getMatchedValueType()));
-    _PatternContext context = _stack.last as _PatternContext;
     // Create a `_Reference` to represent the matched value; this will be the
     // LHS of the equality comparison. Note that it's not necessary to use
     // `restoreConditionVariableState` because `_equalityCheck` uses the
     // `_Reference` solely to decide if the matched value needs to be promoted
     // to non-null; it doesn't attempt to read any stored condition variable
     // state from it.
-    _Reference lhsReference = context.createReference(
-      matchedValueType,
-      _current,
-    );
+    _Reference lhsReference = _createMatchedValueReference(matchedValueType);
     switch (_equalityCheck(
       lhsReference,
       matchedValueType,
@@ -8903,13 +8912,10 @@ class _FlowAnalysisImpl<
   ///
   /// If the matched value's type is non-nullable, then `null` is returned.
   FlowModel? _nullCheckPattern({required SharedTypeView matchedValueType}) {
-    _PatternContext context = _stack.last as _PatternContext;
     assert(identical(matchedValueType, _getMatchedValueType()));
-    _Reference matchedValueReference = context.createReference(
+    _Reference matchedValueReference = _createMatchedValueReference(
       matchedValueType,
-      _current,
     );
-    // Promote
     TypeClassification typeClassification = operations.classifyType(
       matchedValueType,
     );
