@@ -24,7 +24,8 @@ class C {}
   test_animation_missingWidth() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@animation}
-// [diag.docDirectiveMissingThreeArguments][column 5][length 13] The 'animation' directive is missing a 'width', a 'height', and a 'url' argument.
+//  ^^^^^^^^^^^^
+// [diag.docDirectiveMissingThreeArguments] The 'animation' directive is missing a 'width', a 'height', and a 'url' argument.
 class C {}
 ''');
   }
@@ -39,7 +40,8 @@ class C {}
   test_youtube_missingWidth() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube}
-// [diag.docDirectiveMissingThreeArguments][column 5][length 11] The 'youtube' directive is missing a 'width', a 'height', and a 'url' argument.
+//  ^^^^^^^^^^
+// [diag.docDirectiveMissingThreeArguments] The 'youtube' directive is missing a 'width', a 'height', and a 'url' argument.
 class C {}
 ''');
   }
@@ -47,7 +49,8 @@ class C {}
   test_youtube_missingWidth_andCurlyBrace() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube
-// [diag.docDirectiveMissingThreeArguments][column 5][length 10] The 'youtube' directive is missing a 'width', a 'height', and a 'url' argument.
+//  ^^^^^^^^^
+// [diag.docDirectiveMissingThreeArguments] The 'youtube' directive is missing a 'width', a 'height', and a 'url' argument.
 class C {}
 ''');
   }

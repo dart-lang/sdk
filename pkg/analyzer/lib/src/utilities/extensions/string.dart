@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension IntExtension on int {
+  /// Whether this, as an ASCII character, is a carriage return (`\r`).
+  bool get isCarriageReturn => this == 0x0D;
+
   bool get isComma => this == 0x2C;
 
   bool get isDigit => this >= 0x30 && this <= 0x39;

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Given a comment reference without a closing `]`, search for a possible
 /// place where `]` should be.
@@ -1000,10 +1001,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
 
     if (_offset == -1) {
       _offset = tokenOffset;
-      var endIndex = lexeme.indexOf('\n');
-      if (endIndex == -1) {
-        endIndex = lexeme.length;
-      }
+      var endIndex = _indexOfEndOfLine(lexeme);
       _end = tokenOffset + endIndex;
       var indexInLexeme = _offset - tokenOffset;
       return (
@@ -1023,10 +1021,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
       }
     }
 
-    var endIndex = lexeme.indexOf('\n', _offset - tokenOffset);
-    if (endIndex == -1) {
-      endIndex = lexeme.length;
-    }
+    var endIndex = _indexOfEndOfLine(lexeme, _offset - tokenOffset);
     _end = tokenOffset + endIndex;
 
     const starSpaceLength = '* '.length;
@@ -1042,6 +1037,19 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
       offset: _offset,
       content: lexeme.substring(_offset - tokenOffset, endIndex),
     );
+  }
+
+  /// Return the index of the end of line characters (`\r\n` or `\n`) in
+  /// [content] searching from [start].
+  int _indexOfEndOfLine(String content, [int start = 0]) {
+    var endIndex = content.indexOf('\n', start);
+    if (endIndex == -1) {
+      endIndex = content.length;
+    } else if (endIndex > start &&
+        content.codeUnitAt(endIndex - 1).isCarriageReturn) {
+      endIndex--;
+    }
+    return endIndex;
   }
 }
 
@@ -1071,12 +1079,12 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       while (!_token.lexeme.startsWith('///'));
     }
 
-    _offset += threeSlashesLength;
+    var prefixLength = _token.lexeme.startsWith('/// ')
+        ? threeSlashesLength + 1
+        : threeSlashesLength;
+    _offset += prefixLength;
 
-    return (
-      offset: _offset,
-      content: _token.lexeme.substring(threeSlashesLength),
-    );
+    return (offset: _offset, content: _token.lexeme.substring(prefixLength));
   }
 }
 
