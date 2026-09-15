@@ -166,6 +166,84 @@ Comment
 ''');
   }
 
+  test_codeSpan_unterminated_blockComment_fenced() {
+    // https://github.com/Dart-Code/Dart-Code/issues/6154
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+  * Test
+  * ```dart
+  * void foo() {}
+  *
+  * `
+  */
+class C;
+''');
+
+    var node = parseResult.findNode.comment('Test');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+  * Test
+  * ```dart
+  * void foo() {}
+  *
+  * `
+  */
+  codeBlocks
+    MdCodeBlock
+      infoString: dart
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 17
+          length: 7
+        MdCodeBlockLine
+          offset: 29
+          length: 13
+        MdCodeBlockLine
+          offset: 46
+          length: 0
+        MdCodeBlockLine
+          offset: 51
+          length: 1
+''');
+  }
+
+  /// Check we only exclude the end-of-comment marker and not anything else on
+  /// the same line.
+  test_codeSpan_unterminated_blockComment_fenced_endOfCommentMarkerOnPreviousLine() {
+    // https://github.com/Dart-Code/Dart-Code/issues/6154
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+  * Test
+  * ```dart
+  * code*/
+class C;
+''');
+
+    var node = parseResult.findNode.comment('Test');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+  * Test
+  * ```dart
+  * code*/
+  codeBlocks
+    MdCodeBlock
+      infoString: dart
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 17
+          length: 7
+        MdCodeBlockLine
+          offset: 29
+          length: 4
+''');
+  }
+
   void test_commentReference_beforeAbstractClass() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /** [String] */ abstract class A {}

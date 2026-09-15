@@ -1002,12 +1002,22 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
     if (_offset == -1) {
       _offset = tokenOffset;
       var endIndex = _indexOfEndOfLine(lexeme);
+      // Handle excluding the end-of-comment marker if it's on this first line.
+      if (endIndex == lexeme.length && lexeme.endsWith('*/')) {
+        endIndex -= '*/'.length;
+      }
       _end = tokenOffset + endIndex;
       var indexInLexeme = _offset - tokenOffset;
       return (
         offset: _offset,
         content: lexeme.substring(indexInLexeme, endIndex),
       );
+    }
+
+    // If this line is entirely the end-of-line marker, skip it.
+    if (_end == tokenOffset + lexeme.length - '*/'.length &&
+        lexeme.endsWith('*/')) {
+      return null;
     }
 
     _offset = _end + 1;
@@ -1022,6 +1032,14 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
     }
 
     var endIndex = _indexOfEndOfLine(lexeme, _offset - tokenOffset);
+
+    // Check if the end-of-comment marker is at the end of this line before
+    // consuming any star.
+    var lineIncludesEndOfComment =
+        endIndex == lexeme.length && lexeme.endsWith('*/');
+    if (lineIncludesEndOfComment) {
+      endIndex -= '*/'.length;
+    }
     _end = tokenOffset + endIndex;
 
     const starSpaceLength = '* '.length;
@@ -1031,6 +1049,12 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
     } else if (_end == _offset + 1 &&
         lexeme.codeUnitAt(_offset - tokenOffset) == 0x2A /* '*' */ ) {
       _offset += starLength;
+    }
+
+    // If after removing the end-of-comment marker we had nothing left, return
+    // nothing.
+    if (lineIncludesEndOfComment && _offset == _end) {
+      return null;
     }
 
     return (
