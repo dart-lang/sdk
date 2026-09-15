@@ -240,6 +240,9 @@ class DeeplyImmutableValidator {
         requiresRuntimeCheck: false,
       );
     }
+    if (dartType is ExtensionType) {
+      return _isDeeplyImmutableDartType(dartType.extensionTypeErasure);
+    }
     if (dartType is TypeParameterType) {
       return _isDeeplyImmutableDartType(dartType.bound);
     }

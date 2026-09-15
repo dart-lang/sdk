@@ -585,7 +585,6 @@ class Driver implements ServerStarter {
       performanceLogger,
       environment: environment,
     );
-    errorNotifier.server = socketServer.analysisServer;
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
 
     if (diagnosticServerPort != null) {
@@ -594,7 +593,12 @@ class Driver implements ServerStarter {
 
     capture(instrumentationService, () {
       var stdioServer = LspStdioAnalysisServer(socketServer);
-      stdioServer.serveStdio().then((_) {
+      var serveResult = stdioServer.serveStdio();
+      errorNotifier.server = socketServer.analysisServer;
+      if (args.flag(disableSilentAnalysisExceptionsOption)) {
+        errorNotifier.sendSilentExceptionsToClient = true;
+      }
+      serveResult.then((_) {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {

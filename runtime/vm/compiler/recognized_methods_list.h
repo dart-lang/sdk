@@ -519,6 +519,7 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, min, Float64x2Min, 0x3611c492)               \
   V(TypedDataLibrary, _Float64x2, max, Float64x2Max, 0x18414663)               \
   V(TypedDataLibrary, Int32x4, ., Int32x4FromInts, 0xe136fe3e)                 \
+  V(TypedDataLibrary, Int32x4, Int32x4.splat, Int32x4Splat, 0x5401e067)        \
   V(TypedDataLibrary, Int32x4, Int32x4.bool, Int32x4FromBools, 0x18dcc3b4)     \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \
@@ -708,6 +709,8 @@ namespace dart {
     0xd8edbf39)                                                                \
   V(TypedDataLibrary, _TypedList, _getFloat32x4, TypedList_GetFloat32x4,       \
     0x8535083e)                                                                \
+  V(TypedDataLibrary, _TypedList, _getFloat64x2, TypedList_GetFloat64x2,       \
+    0x601cfc98)                                                                \
   V(TypedDataLibrary, _TypedList, _getInt32x4, TypedList_GetInt32x4,           \
     0x5492ada5)                                                                \
   V(TypedDataLibrary, _TypedList, _setInt8, TypedList_SetInt8, 0xc407fda1)     \
@@ -724,6 +727,8 @@ namespace dart {
     0x0c2e6726)                                                                \
   V(TypedDataLibrary, _TypedList, _setFloat32x4, TypedList_SetFloat32x4,       \
     0x3dc17446)                                                                \
+  V(TypedDataLibrary, _TypedList, _setFloat64x2, TypedList_SetFloat64x2,       \
+    0x90fdf042)                                                                \
   V(TypedDataLibrary, _TypedList, _setInt32x4, TypedList_SetInt32x4,           \
     0x5f4a7491)                                                                \
   V(CoreLibrary, Object, get:runtimeType, ObjectRuntimeType, 0x0364b091)       \

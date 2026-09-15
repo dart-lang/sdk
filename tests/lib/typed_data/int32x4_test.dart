@@ -49,7 +49,7 @@ void testBigArguments() {
     [0x7fffffff, 2147483647],
     [-0x7fffffff, -2147483647],
   ];
-  var int32x4;
+  Int32x4 int32x4;
 
   for (var test in tests) {
     var input = test[0];

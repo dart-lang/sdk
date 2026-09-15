@@ -1578,6 +1578,60 @@ PrimaryConstructorBody
 ''');
   }
 
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_deadCode() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so unreachable code is
+    // reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    return;
+    0;
+// [diag.deadCode][column 5][length 6] Dead code.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_definiteAssignment() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so the use of an
+    // unassigned local variable is reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    int v;
+    v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_promotion() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so `i` is promoted to
+    // `int`.
+    await resolveTestCodeWithDiagnostics(r'''
+int? f() => 0;
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    var i = f();
+    if (i != null) {
+      i.isEven;
+    }
+  }
+}
+''');
+  }
+
   test_primaryConstructorBody_primaryInitializerScope_declaringFormalParameter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A(final bool a) {

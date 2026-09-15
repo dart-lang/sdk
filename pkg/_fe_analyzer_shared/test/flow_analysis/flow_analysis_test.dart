@@ -5828,6 +5828,98 @@ main() {
           ifCase(this_, wildcard(type: 'D'), [checkNotPromoted(this_)]),
         ]);
       });
+
+      test('nullAssertPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullAssert, [checkPromoted(this_, 'C')]),
+        ]);
+      });
+
+      test('nullAssertPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullAssert, [checkNotPromoted(this_)]),
+        ]);
+      });
+
+      test('nullCheckPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullCheck, [checkPromoted(this_, 'C')]),
+        ]);
+      });
+
+      test('nullCheckPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullCheck, [checkNotPromoted(this_)]),
+        ]);
+      });
+
+      test('switchStatement nullAssertPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addExhaustiveness('C?', false);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard().nullAssert.then([checkPromoted(this_, 'C')]),
+          ]),
+        ]);
+      });
+
+      test('switchStatement nullAssertPattern this does not promote when '
+          'disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addExhaustiveness('C?', false);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard().nullAssert.then([checkNotPromoted(this_)]),
+          ]),
+        ]);
+      });
+
+      test('patternAssignment this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([wildcard().nullAssert.assign(this_), checkPromoted(this_, 'C')]);
+      });
+
+      test('patternAssignment this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([wildcard().nullAssert.assign(this_), checkNotPromoted(this_)]);
+      });
+
+      test('relationalPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, relationalPattern('!=', nullLiteral), [
+            checkPromoted(this_, 'C'),
+          ]),
+        ]);
+      });
+
+      test('relationalPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, relationalPattern('!=', nullLiteral), [
+            checkNotPromoted(this_),
+          ]),
+        ]);
+      });
     });
   });
 

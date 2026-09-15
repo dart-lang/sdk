@@ -4641,20 +4641,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
 
-        if (primaryConstructorDeclaration != null) {
-          var enterOffset = (node.colon ?? node.thisKeyword).offset;
-          flowAnalysis.flowAnalysisRoot_enter(
-            node,
-            element!.formalParameters,
-            offset: enterOffset,
-          );
-          flowAnalysis.executableDeclaration_enter(
-            node,
-            element.formalParameters,
-            isClosure: false,
-            offset: enterOffset,
-          );
-        }
+        var enterOffset = (node.colon ?? node.thisKeyword).offset;
+        flowAnalysis.flowAnalysisRoot_enter(
+          node,
+          element?.formalParameters,
+          offset: enterOffset,
+        );
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element?.formalParameters,
+          isClosure: false,
+          offset: enterOffset,
+        );
 
         node.initializers.accept2(this);
         if (primaryConstructorDeclaration != null) {
@@ -4673,14 +4671,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         );
 
         if (primaryConstructorDeclaration != null) {
-          flowAnalysis.executableDeclaration_exit(
-            node.body,
-            false,
-            offset: node.body.flowEndOffset,
-          );
           flow.thisBinding_end(offset: node.body.flowEndOffset);
-          flowAnalysis.flowAnalysisRoot_exit();
         }
+        flowAnalysis.executableDeclaration_exit(
+          node.body,
+          false,
+          offset: node.body.flowEndOffset,
+        );
+        flowAnalysis.flowAnalysisRoot_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });

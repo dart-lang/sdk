@@ -2396,6 +2396,11 @@ class SimdLowering : public ValueObject {
         Gather(4);
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4Splat:
+        UnboxScalar(0, kUnboxedInt32, 4);
+        Splat(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
       case MethodRecognizer::kInt32x4FromBools:
         UnboxBool(0, 4);
         UnboxBool(1, 4);
@@ -3092,6 +3097,7 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
       break;
     }
 
+    case MethodRecognizer::kInt32x4Splat:
     case MethodRecognizer::kFloat32x4Zero:
     case MethodRecognizer::kFloat32x4ToFloat64x2:
     case MethodRecognizer::kFloat64x2ToFloat32x4:
@@ -3474,6 +3480,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kInt32x4FromBools:
     case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4Splat:
     case MethodRecognizer::kInt32x4GetW:
     case MethodRecognizer::kInt32x4GetX:
     case MethodRecognizer::kInt32x4GetY:
