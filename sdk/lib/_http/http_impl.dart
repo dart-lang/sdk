@@ -1273,6 +1273,14 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   String get reasonPhrase => _findReasonPhrase(statusCode);
   void set reasonPhrase(String reasonPhrase) {
     if (_outgoing.headersWritten) throw StateError("Header already sent");
+    var errorAt = _HttpHeaders._isValidValueString(reasonPhrase);
+    if (errorAt >= 0) {
+      throw FormatException(
+        "Invalid HTTP reason phrase",
+        reasonPhrase,
+        errorAt,
+      );
+    }
     _reasonPhrase = reasonPhrase;
   }
 
