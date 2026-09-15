@@ -55,6 +55,17 @@ String? f(C c) => c.foo();
     await assertNoFix();
   }
 
+  Future<void> test_staticMethod_noFix() async {
+    await resolveTestCode('''
+class C {}
+
+void f() {
+  C.m();
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
 void f() {
@@ -326,6 +337,17 @@ class A {
 
 void f() {
   int _ = A.Test;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_class_staticMethod() async {
+    await resolveTestCode('''
+class A {}
+
+void f() {
+  A.Test();
 }
 ''');
     await assertNoFix();
@@ -636,6 +658,18 @@ var a = [Foo.bar];
 ''');
     await assertHasFix('''
 var a = [Foo.bar];
+
+class Foo {
+}
+''');
+  }
+
+  Future<void> test_withStaticMethod() async {
+    await resolveTestCode('''
+var a = [Foo.bar()];
+''');
+    await assertHasFix('''
+var a = [Foo.bar()];
 
 class Foo {
 }
