@@ -12,6 +12,7 @@
   // Scripts to load into the sandbox at startup
   self.$dartpadSandboxScripts = self.$dartpadSandboxScripts || [
     './ddc_module_loader.js',
+    './dart_stack_trace_mapper.js',
     './dart_sdk.js',
   ];
   // Execution modes
@@ -152,6 +153,29 @@
     });
   }
 
+  // Set sourceMapProvider for dart_stack_trace_mapper.js which is used when
+  // Dart renders a stacktrace.
+  // `createAndRegisterBlob` names each script `<moduleName>.js?<generation>`,
+  // DDC modules register their source map with `dartDevEmbedder`.
+  // The generation is present to purge cache in dart_stack_trace_mapper.js
+  function setupStackTraceMapper() {
+    self.$dartStackTraceUtility.setSourceMapProvider((scriptUrl) => {
+      const moduleName = scriptUrl.replace(/\.js\?\d+$/, '');
+      return self.dartDevEmbedder?.debugger?.getSourceMap(moduleName) ?? null;
+    });
+  }
+
+  // Map JavaScript stack traces caught in JS world to Dart sources
+  function mapStackTrace(stack) {
+    const mapper = self.$dartStackTraceUtility?.mapper;
+    if (!mapper || typeof stack !== 'string') return stack;
+    try {
+      return mapper(stack) || stack;
+    } catch (e) {
+      return stack;
+    }
+  }
+
   async function initialize() {
     try {
       await Promise.all(self.$dartpadSandboxScripts.map(
@@ -161,6 +185,12 @@
       if (!self.dartDevEmbedder) {
         throw new Error("dartDevEmbedder is not initialized.");
       }
+
+      if (!self.$dartStackTraceUtility) {
+        throw new Error("$dartStackTraceUtility is not initialized.");
+      }
+
+      setupStackTraceMapper();
 
       rpcPort.onmessage = onRcpMessage;
       rpcPort.start();
@@ -213,11 +243,27 @@
     };
   }
 
+  // Render an Javascript `Error` and map to Dart sources.
+  function renderError(e) {
+    const header = `${e}`;
+    if (typeof e.stack !== 'string' || !e.stack) {
+      return header;
+    }
+    // Mapping keeps only the frames, so the header is re-attached by hand.
+    const mapped = mapStackTrace(e.stack);
+    if (mapped !== e.stack) {
+      return `${header}\n${mapped}`;
+    }
+    // Unmapped: V8 repeats the header in `e.stack`, Firefox/Safari do not.
+    const firstFrame = e.stack.search(/^[ \t]*at /m);
+    return `${header}\n${firstFrame < 0 ? e.stack : e.stack.slice(firstFrame)}`;
+  }
+
   // Surface browser runtime failures on a dedicated channel instead of
   // forcing the host to infer them from console text.
   window.addEventListener('error', (e) => {
     const message = e.error instanceof Error
-      ? (e.error.stack || e.error.message || String(e.error))
+      ? renderError(e.error)
       : `Uncaught: ${e.message}`;
     sendNotification('error', { message });
 
@@ -225,7 +271,7 @@
   });
   window.addEventListener('unhandledrejection', (e) => {
     const message = e.reason instanceof Error
-      ? (e.reason.stack || e.reason.message || String(e.reason))
+      ? renderError(e.reason)
       : `Unhandled Rejection: ${safeSerialize(e.reason)}`;
     sendNotification('unhandledRejection', { message });
 
@@ -248,9 +294,20 @@
   // This is required for ddc to not ignore extension events.
   self.$dwdsVersion = '1.0.0';
 
+  let generation = 0;
+
   // Create a blob URL and register it with DDC's internal loader.
   function createAndRegisterBlob(moduleName, code) {
-    const blob = new Blob([code], { type: 'application/javascript' });
+    // sourceUrl is used by browsers to name files in stack traces.
+    // We use it because blob-urls are ugly, and we don't want them in our
+    // stack traces.
+    // We put <moduleName> so that sourceMapProvider can find the source map,
+    // and we put <generation> in to burst the cache in
+    // dart_stack_trace_mapper.js
+    const blob = new Blob(
+      [code, `\n//# sourceURL=${moduleName}.js?${generation++}\n`],
+      { type: 'application/javascript' },
+    );
     const newUrl = URL.createObjectURL(blob);
 
     if (self.$dartLoader) {

@@ -45,7 +45,11 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(errorFuture).completes(.it()..contains('Error\n'));
+    // The message of the Dart exception, not just the bare `Error` that V8
+    // captured before DDC filled it in. See `renderError` in `sandbox.js`.
+    await check(
+      errorFuture,
+    ).completes(.it()..contains('Exception: uncaught error in sandbox'));
   });
 
   testDartIntegration('sandbox handles unhandled promise rejection', (
