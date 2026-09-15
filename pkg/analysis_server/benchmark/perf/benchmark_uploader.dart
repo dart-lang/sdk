@@ -109,10 +109,18 @@ Future<void> uploadResults(List<Map<String, dynamic>> results) async {
     }
     var cloudStoragePath =
         'gs://dart-test-results/benchmarks/$taskId/results.json';
-    var args = ['gcloud', 'storage', 'cp', resultsFile.path, cloudStoragePath];
-    var python = 'python3.exe';
-    print('Running $python ${args.join(' ')}');
-    var commandResult = await Process.run(python, args);
+    var args = ['storage', 'cp', resultsFile.path, cloudStoragePath];
+    var gcloudSuffix = Platform.isWindows ? '.cmd' : '';
+    var gcloud = Platform.script
+        .resolve('../../../../third_party/gcloud/bin/gcloud$gcloudSuffix')
+        .toFilePath();
+
+    print('Running $gcloud ${args.join(' ')}');
+    var commandResult = await Process.run(
+      gcloud,
+      args,
+      runInShell: Platform.isWindows,
+    );
     var exitCode = commandResult.exitCode;
     print(commandResult.stdout);
     print(commandResult.stderr);
