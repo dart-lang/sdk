@@ -79,6 +79,9 @@ vars = {
   "jsshell_tag": "version:155.0.1",
   "jsc_tag": "version:320707",
 
+  # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/gcloud
+  "gcloud_version": "version:3@584.0.0.chromium.4",
+
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:5e63f2ce42db2c42f1d0012a3b5fa9c6113f750a",
 
@@ -295,6 +298,14 @@ deps = {
           "version": "version:3@5.35",
       }],
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/gcloud": {
+      "packages": [{
+          "package": "infra/3pp/tools/gcloud/${{platform}}",
+          "version": Var("gcloud_version"),
+      }],
+      "dep_type": "cipd"
   },
 
   Var("dart_root") + "/third_party/emsdk":
