@@ -7455,42 +7455,11 @@ class _FlowAnalysisImpl<
       operations.extensionTypeErasure(matchedType),
       operations.extensionTypeErasure(knownType),
     );
-    // Promote the synthetic cache variable the pattern is being matched
-    // against.
-    ExpressionInfo promotionInfo = _current.tryPromoteForTypeCheck(
-      this,
+    var (:ifTrue, :ifFalse) = _promoteMatchedValueAndScrutinee(
       matchedValueReference,
-      knownType,
+      (model, reference) =>
+          model.tryPromoteForTypeCheck(this, reference, knownType),
     );
-    FlowModel ifTrue = promotionInfo.ifTrue;
-    FlowModel ifFalse = promotionInfo.ifFalse;
-    _Reference? scrutineeReference = _scrutineeReference;
-    // If the scrutinee is a variable reference, and the variable hasn't changed
-    // since the start of the matching operation, promote it too.
-    //
-    // If the scrutinee is a property reference, promote it too. (This is safe
-    // even if the underlying variable whose property is being referenced has
-    // changed, because the next time the property is accessed, it will be
-    // accessed through a new SSA node, and thus a new promotion key).
-    //
-    // If the scrutinee is `this`, promote it too.
-    if (scrutineeReference != null &&
-        (scrutineeReference is _PropertyReference ||
-            (scrutineeReference.isThisOrSuper &&
-                typeAnalyzerOptions.thisPromotionEnabled) ||
-            _current.promotionInfo
-                    ?.get(this, matchedValueReference.promotionKey)!
-                    .ssaNode ==
-                _current.promotionInfo
-                    ?.get(this, scrutineeReference.promotionKey)
-                    ?.ssaNode)) {
-      ifTrue = ifTrue
-          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
-          .ifTrue;
-      ifFalse = ifFalse
-          .tryPromoteForTypeCheck(this, scrutineeReference, knownType)
-          .ifFalse;
-    }
     FlowModel newState = ifTrue;
     if (cannotMatch) {
       newState = newState.setUnreachable();
@@ -8922,33 +8891,10 @@ class _FlowAnalysisImpl<
     if (typeClassification == TypeClassification.nonNullable) {
       return null;
     } else {
-      FlowModel? ifNotNull = _current
-          .tryMarkNonNullable(this, matchedValueReference)
-          .ifTrue;
-      _Reference? scrutineeReference = _scrutineeReference;
-      // If the scrutinee is a variable reference, and the variable hasn't
-      // changed since the start of the matching operation, promote it too.
-      //
-      // If the scrutinee is a property reference, promote it too. (This is safe
-      // even if the underlying variable whose property is being referenced has
-      // changed, because the next time the property is accessed, it will be
-      // accessed through a new SSA node, and thus a new promotion key).
-      //
-      // If the scrutinee is `this`, promote it too.
-      if (scrutineeReference != null &&
-          (scrutineeReference is _PropertyReference ||
-              (scrutineeReference.isThisOrSuper &&
-                  typeAnalyzerOptions.thisPromotionEnabled) ||
-              _current.promotionInfo
-                      ?.get(this, matchedValueReference.promotionKey)!
-                      .ssaNode ==
-                  _current.promotionInfo
-                      ?.get(this, scrutineeReference.promotionKey)
-                      ?.ssaNode)) {
-        ifNotNull = ifNotNull
-            .tryMarkNonNullable(this, scrutineeReference)
-            .ifTrue;
-      }
+      FlowModel ifNotNull = _promoteMatchedValueAndScrutinee(
+        matchedValueReference,
+        (model, reference) => model.tryMarkNonNullable(this, reference),
+      ).ifTrue;
       if (typeClassification == TypeClassification.nullOrEquivalent) {
         ifNotNull = ifNotNull.setUnreachable();
       }
@@ -8969,6 +8915,37 @@ class _FlowAnalysisImpl<
   void _popScrutinee() {
     _ScrutineeContext context = _stack.removeLast() as _ScrutineeContext;
     _scrutineeReference = context.previousScrutineeReference;
+  }
+
+  /// Promotes the value currently being matched by the pattern that's being
+  /// analyzed, by applying [promote] to [matchedValueReference].
+  ///
+  /// If the scrutinee of the enclosing pattern match denotes the same value as
+  /// the matched value (see [_scrutineeDenotesMatchedValue]), then [promote] is
+  /// applied to the scrutinee too, so that the promotion is also visible to
+  /// code that refers to the scrutinee directly.
+  ///
+  /// Returns the flow models describing the program state in the circumstances
+  /// where the promotion succeeded and failed, respectively.
+  ({FlowModel ifTrue, FlowModel ifFalse}) _promoteMatchedValueAndScrutinee(
+    _Reference matchedValueReference,
+    ExpressionInfo Function(FlowModel model, _Reference reference) promote,
+  ) {
+    // Promote the synthetic cache variable the pattern is being matched
+    // against.
+    ExpressionInfo promotionInfo = promote(_current, matchedValueReference);
+    FlowModel ifTrue = promotionInfo.ifTrue;
+    FlowModel ifFalse = promotionInfo.ifFalse;
+    _Reference? scrutineeReference = _scrutineeReference;
+    if (scrutineeReference != null &&
+        _scrutineeDenotesMatchedValue(
+          scrutineeReference,
+          matchedValueReference,
+        )) {
+      ifTrue = promote(ifTrue, scrutineeReference).ifTrue;
+      ifFalse = promote(ifFalse, scrutineeReference).ifFalse;
+    }
+    return (ifTrue: ifTrue, ifFalse: ifFalse);
   }
 
   /// Updates the [_stack] to reflect the fact that flow analysis is entering
@@ -9014,6 +8991,41 @@ class _FlowAnalysisImpl<
       scrutineeType,
       offset: offset,
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
+  }
+
+  /// Determines whether [scrutineeReference] (the scrutinee of the pattern
+  /// match that's in progress) is known to denote the same value as
+  /// [matchedValueReference] (the value being matched by the pattern that's
+  /// being analyzed).
+  ///
+  /// If it does, then anything a pattern establishes about the matched value is
+  /// necessarily also true of the scrutinee, so the scrutinee may be promoted
+  /// along with the matched value.
+  bool _scrutineeDenotesMatchedValue(
+    _Reference scrutineeReference,
+    _Reference matchedValueReference,
+  ) {
+    // If the scrutinee is a property reference, it denotes the matched value.
+    // (This is safe even if the underlying variable whose property is being
+    // referenced has changed, because the next time the property is accessed,
+    // it will be accessed through a new SSA node, and thus a new promotion
+    // key).
+    if (scrutineeReference is _PropertyReference) return true;
+    // If the scrutinee is `this`, it denotes the matched value, since `this`
+    // can never be reassigned.
+    if (scrutineeReference.isThisOrSuper &&
+        typeAnalyzerOptions.thisPromotionEnabled) {
+      return true;
+    }
+    // Otherwise the scrutinee is a variable reference; it denotes the matched
+    // value provided that the variable hasn't changed since the start of the
+    // matching operation.
+    return _current.promotionInfo
+            ?.get(this, matchedValueReference.promotionKey)!
+            .ssaNode ==
+        _current.promotionInfo
+            ?.get(this, scrutineeReference.promotionKey)
+            ?.ssaNode;
   }
 
   void _setCurrent(FlowModel value, {required int offset}) {
