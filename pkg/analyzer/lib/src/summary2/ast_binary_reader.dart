@@ -235,7 +235,7 @@ class AstBinaryReader {
   CascadePropertyAssignmentTarget _readCascadePropertyAssignmentTarget() {
     var propertyName = _readStringReference();
     var node = CascadePropertyAssignmentTargetImpl(
-      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+      name: StringToken(TokenType.STRING, propertyName, -1),
     );
     node.read = _reader.readOptionalObject(_readNamedReadResolution);
     node.write = _reader.readOptionalObject(_readNamedWriteResolution);
@@ -1699,7 +1699,7 @@ class AstBinaryReader {
     var node = ReceiverPropertyAssignmentTargetImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
-      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+      name: StringToken(TokenType.STRING, propertyName, -1),
     );
     node.read = _reader.readOptionalObject(_readNamedReadResolution);
     node.write = _reader.readOptionalObject(_readNamedWriteResolution);

@@ -2217,10 +2217,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         .tryCast<InvalidNamedWriteResolution>()
         ?.recoveryElement
         .tryCast<MultiplyDefinedElementImpl>();
-    _checkForAmbiguousImport(
-      element: ambiguousElement,
-      name: node.propertyName,
-    );
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       _checkForUnnecessaryNullAware(
         node.receiver,

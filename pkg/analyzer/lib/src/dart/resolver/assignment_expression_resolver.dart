@@ -67,7 +67,7 @@ class AssignmentExpressionResolver {
       );
       _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
         node,
-        target.propertyName,
+        target.name,
       );
       _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
         node,
@@ -214,7 +214,7 @@ class AssignmentExpressionResolver {
   ) {
     var result = _resolver.resolveCascadeProperty(
       node,
-      target.propertyName,
+      target.name,
       hasRead: true,
       hasWrite: true,
     );
@@ -430,7 +430,7 @@ class AssignmentExpressionResolver {
       case CascadePropertyAssignmentTargetImpl():
         var result = _resolver.resolveCascadeProperty(
           node,
-          target.propertyName,
+          target.name,
           hasRead: false,
           hasWrite: true,
         );

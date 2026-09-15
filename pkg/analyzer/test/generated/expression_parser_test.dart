@@ -1299,7 +1299,7 @@ CascadeExpression
       operator: ..
       body: DirectAssignment
         target: CascadePropertyAssignmentTarget
-          propertyName: a
+          name: a
         operator: =
         value: IntegerLiteral
           literal: 3
@@ -1331,7 +1331,7 @@ CascadeExpression
       operator: ..
       body: DirectAssignment
         target: CascadePropertyAssignmentTarget
-          propertyName: a
+          name: a
         operator: =
         value: IntegerLiteral
           literal: 3
@@ -1378,7 +1378,7 @@ CascadeExpression
       operator: ..
       body: DirectAssignment
         target: CascadePropertyAssignmentTarget
-          propertyName: a
+          name: a
         operator: =
         value: IntegerLiteral
           literal: 3
@@ -2285,7 +2285,7 @@ BinaryOperatorInvocation
       receiver: SimpleIdentifier
         token: a
       operator: .
-      propertyName: b
+      name: b
     operation: decrement
     position: prefix
   operator: ==
@@ -2753,7 +2753,7 @@ BinaryOperatorInvocation
       receiver: SimpleIdentifier
         token: a
       operator: .
-      propertyName: b
+      name: b
     operation: decrement
     position: prefix
   operator: ==
@@ -5581,7 +5581,7 @@ IncrementOrDecrementExpression
     receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: x
+    name: x
   operation: decrement
   position: prefix
 V1: PrefixExpression
@@ -5698,7 +5698,7 @@ IncrementOrDecrementExpression
     receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: x
+    name: x
   operation: increment
   position: prefix
 V1: PrefixExpression

@@ -136,7 +136,7 @@ Block
             operator: ..
             body: DirectAssignment
               target: CascadePropertyAssignmentTarget
-                propertyName: x27
+                name: x27
               operator: =
               value: NullAssertionExpression
                 operand: SimpleIdentifier

@@ -324,14 +324,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _elementUsageFrontierDetector.compoundAssignment(node);
-    switch (node.target) {
-      case PropertyAssignmentTarget target:
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget target:
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitCompoundAssignment(node);
   }
 
@@ -390,17 +382,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     _elementUsageFrontierDetector.directAssignment(node);
-    var target = node.target;
-    switch (target) {
-      case IndexAssignmentTarget():
-        break;
-      case PropertyAssignmentTarget():
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget():
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitDirectAssignment(node);
   }
 
@@ -656,14 +637,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _elementUsageFrontierDetector.ifNullAssignment(node);
-    switch (node.target) {
-      case PropertyAssignmentTarget target:
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget target:
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitIfNullAssignment(node);
   }
 
@@ -676,14 +649,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
     _invalidAccessVerifier.verifyImport(node);
     super.visitImportDirective(node);
-  }
-
-  @override
-  void visitImportPrefixedAssignmentTarget(
-    ImportPrefixedAssignmentTarget node,
-  ) {
-    _invalidAccessVerifier.verifyImportPrefixedAssignmentTarget(node);
-    super.visitImportPrefixedAssignmentTarget(node);
   }
 
   @override
@@ -871,6 +836,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     if (node is NameExpression) {
       _elementUsageFrontierDetector.nameExpression(node);
       _invalidAccessVerifier.verifyNameExpression(node);
+    } else if (node is NamedAssignmentTarget) {
+      _invalidAccessVerifier.verifyNamedAssignmentTarget(node);
     }
     node.visitChildren2(this);
   }
@@ -1975,16 +1942,6 @@ class _InvalidAccessVerifier {
     }
   }
 
-  void verifyImportPrefixedAssignmentTarget(
-    ImportPrefixedAssignmentTarget node,
-  ) {
-    var readElement = node.read?.elementOrRecovery;
-    var writeElement = node.write?.elementOrRecovery;
-    for (var element in {readElement, writeElement}) {
-      _verify(node: node, nameToken: node.name, element: element);
-    }
-  }
-
   void verifyNamedArgument(NamedArgument node) {
     var element = node.correspondingParameter;
     if (element == null) {
@@ -2002,6 +1959,14 @@ class _InvalidAccessVerifier {
     );
 
     _checkForOtherInvalidAccess(node, element);
+  }
+
+  void verifyNamedAssignmentTarget(NamedAssignmentTarget node) {
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.name, element: element);
+    }
   }
 
   void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
@@ -2066,14 +2031,6 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
-  void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = node.read?.elementOrRecovery;
-    var writeElement = node.write?.elementOrRecovery;
-    for (var element in {readElement, writeElement}) {
-      _verify(node: node, nameToken: node.propertyName, element: element);
-    }
-  }
-
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (element == null || _inCurrentLibrary(element)) return;
@@ -2100,16 +2057,6 @@ class _InvalidAccessVerifier {
       element: element,
     );
     _checkForOtherInvalidAccess(selector, element);
-  }
-
-  void verifyUnqualifiedNameAssignmentTarget(
-    UnqualifiedNameAssignmentTarget node,
-  ) {
-    var readElement = node.read?.elementOrRecovery;
-    var writeElement = node.write?.elementOrRecovery;
-    for (var element in {readElement, writeElement}) {
-      _verify(node: node, nameToken: node.name, element: element);
-    }
   }
 
   void _checkForInvalidInternalAccess({
@@ -2351,16 +2298,10 @@ class _InvalidAccessVerifier {
     } else if (node is CombinatorName) {
       name = node.name.lexeme;
       errorEntity = node.name;
-    } else if (node is PropertyAssignmentTarget) {
-      name = node.propertyName.lexeme;
-      errorEntity = node.propertyName;
+    } else if (node is NamedAssignmentTarget) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is NameExpression) {
-      name = node.name.lexeme;
-      errorEntity = node.name;
-    } else if (node is ImportPrefixedAssignmentTarget) {
-      name = node.name.lexeme;
-      errorEntity = node.name;
-    } else if (node is UnqualifiedNameAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedType) {

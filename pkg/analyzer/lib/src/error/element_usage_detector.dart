@@ -127,10 +127,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
-    } else if (node is ImportPrefixedAssignmentTarget) {
+    } else if (node is NamedAssignmentTarget) {
       errorEntity = node.name;
-    } else if (node is PropertyAssignmentTarget) {
-      errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
       errorEntity = node.name;
     } else if (node is ExtensionOverride) {
@@ -1045,8 +1043,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
-    ImportPrefixedAssignmentTarget(:var name) => name.sourceRange,
-    PropertyAssignmentTarget(:var propertyName) => propertyName.sourceRange,
+    NamedAssignmentTarget(:var name) => name.sourceRange,
     PrefixedIdentifier(:var identifier) => identifier.sourceRange,
     PropertyAccess(:var propertyName) => propertyName.sourceRange,
     _ => target.sourceRange,

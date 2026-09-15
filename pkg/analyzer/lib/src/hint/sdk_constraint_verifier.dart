@@ -293,8 +293,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     }
 
     var errorEntity = switch (target) {
-      PropertyAssignmentTarget() => target.propertyName,
-      UnqualifiedNameAssignmentTarget() => target.name,
+      NamedAssignmentTarget() => target.name,
       _ => null,
     };
     _checkSinceSdkVersion(

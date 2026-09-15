@@ -6414,7 +6414,7 @@ abstract final class CascadePropertyAssignmentTarget
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('propertyName', isSuper: true)],
+  childEntitiesOrder: [GenerateNodeProperty('name', isSuper: true)],
 )
 final class CascadePropertyAssignmentTargetImpl
     extends PropertyAssignmentTargetImpl
@@ -6422,18 +6422,18 @@ final class CascadePropertyAssignmentTargetImpl
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyAssignmentTargetImpl({required super.propertyName});
+  CascadePropertyAssignmentTargetImpl({required super.name});
 
   @generated
   @override
   Token get beginToken {
-    return propertyName;
+    return name;
   }
 
   @generated
   @override
   Token get endToken {
-    return propertyName;
+    return name;
   }
 
   /// The cached V1 compatibility projection for this target.
@@ -6455,8 +6455,7 @@ final class CascadePropertyAssignmentTargetImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('propertyName', propertyName);
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   Element? get _legacyReadElement => read?.elementOrRecovery;
 
@@ -30028,18 +30027,9 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImportPrefixedAssignmentTarget
-    implements AssignmentTarget {
+    implements NamedAssignmentTarget {
   /// The namespace qualifier selecting the imported declaration.
   ImportPrefixReference get importPrefix;
-
-  /// The written name of the imported declaration.
-  Token get name;
-
-  @override
-  NamedReadResolution? get read;
-
-  @override
-  NamedWriteResolution? get write;
 }
 
 @GenerateNodeImpl(
@@ -38618,6 +38608,20 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 }
 
+/// A named destination of an assignment.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NamedAssignmentTarget implements AssignmentTarget {
+  /// The written name.
+  Token get name;
+
+  @override
+  NamedReadResolution? get read;
+
+  @override
+  NamedWriteResolution? get write;
+}
+
 /// A direct invocation through a written function or method name.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -44582,9 +44586,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(
     CascadePropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
-      _propertyName = SimpleIdentifierImpl.v1Projection(
-        token: origin.propertyName,
-      ),
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
@@ -44612,9 +44614,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ReceiverPropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
       _operator = origin.operator,
-      _propertyName = SimpleIdentifierImpl.v1Projection(
-        token: origin.propertyName,
-      ),
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
@@ -44883,7 +44883,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   String toSource() => switch (_v1ProjectionOrigin) {
     CascadePropertyAssignmentTargetImpl origin =>
-      '${operator.lexeme}${origin.propertyName.lexeme}',
+      '${operator.lexeme}${origin.name.lexeme}',
     CascadePropertyExtractionImpl origin =>
       '${operator.lexeme}${origin.name.lexeme}',
     var origin? => origin.toSource(),
@@ -44991,21 +44991,13 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 /// A property used as an assignment destination.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PropertyAssignmentTarget implements AssignmentTarget {
-  /// The written property name.
-  Token get propertyName;
-
-  @override
-  NamedReadResolution? get read;
-
-  @override
-  NamedWriteResolution? get write;
-}
+abstract final class PropertyAssignmentTarget
+    implements NamedAssignmentTarget {}
 
 sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
     implements PropertyAssignmentTarget {
   @override
-  final Token propertyName;
+  final Token name;
 
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   @override
@@ -45015,7 +45007,7 @@ sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
-  PropertyAssignmentTargetImpl({required this.propertyName});
+  PropertyAssignmentTargetImpl({required this.name});
 
   /// The cached V1 compatibility projection for this target.
   PropertyAccessImpl get propertyAccess;
@@ -45723,7 +45715,7 @@ abstract final class ReceiverPropertyAssignmentTarget
   childEntitiesOrder: [
     GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('propertyName', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
   ],
 )
 final class ReceiverPropertyAssignmentTargetImpl
@@ -45742,7 +45734,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   ReceiverPropertyAssignmentTargetImpl({
     required ExpressionImpl receiver,
     required this.operator,
-    required super.propertyName,
+    required super.name,
   }) : _receiver = receiver {
     _becomeParentOf2(receiver);
   }
@@ -45756,7 +45748,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   @generated
   @override
   Token get endToken {
-    return propertyName;
+    return name;
   }
 
   /// The cached V1 compatibility projection for this target.
@@ -45791,7 +45783,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('receiver', receiver)
     ..addToken('operator', operator)
-    ..addToken('propertyName', propertyName);
+    ..addToken('name', name);
 
   Element? get _legacyReadElement => read?.element;
 
@@ -55323,16 +55315,7 @@ final class UnqualifiedFunctionInvocationImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class UnqualifiedNameAssignmentTarget
-    implements AssignmentTarget {
-  /// The written name.
-  Token get name;
-
-  @override
-  NamedReadResolution? get read;
-
-  @override
-  NamedWriteResolution? get write;
-}
+    implements NamedAssignmentTarget {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,

@@ -45,9 +45,9 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
     if (_cascadeTarget(node) is SuperExpression) {
       if (node.parent2 is CompoundAssignment ||
           node.parent2 is IfNullAssignment) {
-        _names.add(node.propertyName.lexeme);
+        _names.add(node.name.lexeme);
       }
-      _names.add('${node.propertyName.lexeme}=');
+      _names.add('${node.name.lexeme}=');
     }
     super.visitCascadePropertyAssignmentTarget(node);
   }
