@@ -55,7 +55,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     // Display analysis options entries inside this context root.
     var optionsList = getOptionsList(folder, driver);
     var foldersInContextRoot = [
-      for (var options in optionsList) options.file!.path,
+      for (var options in optionsList) options.file!.parent.path,
     ];
     var separator = folder.provider.pathContext.separator;
     ul(foldersInContextRoot, (folderPath) {
