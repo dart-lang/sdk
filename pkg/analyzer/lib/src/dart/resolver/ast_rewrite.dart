@@ -259,6 +259,34 @@ class AstRewriter {
     return node;
   }
 
+  ExpressionImpl parsedExpressionChain(
+    Scope nameScope,
+    ParsedExpressionChainImpl node,
+  ) {
+    var name = node.head.name;
+    var element = nameScope.lookup(name.lexeme).getter;
+    ExpressionImpl expression;
+    switch (element) {
+      case DynamicElementImpl():
+      case InterfaceElementImpl():
+      case NeverElementImpl():
+      case TypeAliasElementImpl():
+      case TypeParameterElementImpl():
+        expression = TypeLiteralImpl(
+          type: NamedTypeImpl(
+            importPrefix: null,
+            name: name,
+            typeArguments: null,
+            question: null,
+          ),
+        );
+      default:
+        expression = UnqualifiedNameExpressionImpl(name: name);
+    }
+    node.replaceWith(expression);
+    return expression;
+  }
+
   /// Possibly rewrites [node] as a [ConstructorTearOff].
   ///
   /// Code such as `List.filled;` is parsed as (an [ExpressionStatement] with) a

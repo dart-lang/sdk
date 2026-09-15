@@ -2189,6 +2189,20 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitParsedExpressionChain(ParsedExpressionChain node) {
+    _runSubscriptions(node, _registry._forParsedExpressionChain);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitParsedNameHead(ParsedNameHead node) {
+    _runSubscriptions(node, _registry._forParsedNameHead);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitPartDirective(PartDirective node) {
     _runSubscriptions(node, _registry._forPartDirective);
@@ -4795,6 +4809,11 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParenthesizedPattern>> _forParenthesizedPattern =
       [];
 
+  final List<_Subscription2<ParsedExpressionChain>> _forParsedExpressionChain =
+      [];
+
+  final List<_Subscription2<ParsedNameHead>> _forParsedNameHead = [];
+
   final List<_Subscription2<PartDirective>> _forPartDirective = [];
 
   final List<_Subscription2<PartOfDirective>> _forPartOfDirective = [];
@@ -6138,6 +6157,23 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forParenthesizedPattern.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addParsedExpressionChain(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forParsedExpressionChain.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addParsedNameHead(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forParsedNameHead.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

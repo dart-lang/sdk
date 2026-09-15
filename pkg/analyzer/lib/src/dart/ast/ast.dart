@@ -41685,6 +41685,262 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 }
 
+/// A parser-only name whose value-producing interpretation requires lookup.
+///
+/// This initial chain form contains a bare name. Resolution replaces it with
+/// a name expression or type literal before exposing the resolved AST.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedExpressionChain implements Expression {
+  ParsedNameHead get head;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('head')],
+)
+final class ParsedExpressionChainImpl extends ExpressionImpl
+    implements ParsedExpressionChain {
+  @generated
+  ParsedNameHeadImpl _head;
+
+  SimpleIdentifierImpl? _simpleIdentifier;
+
+  @generated
+  ParsedExpressionChainImpl({required ParsedNameHeadImpl head}) : _head = head {
+    _becomeParentOf2(head);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return head.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return head.endToken;
+  }
+
+  @generated
+  @override
+  ParsedNameHeadImpl get head => _head;
+
+  @generated
+  set head(ParsedNameHeadImpl head) {
+    _head = _becomeParentOf2(head);
+  }
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  SimpleIdentifierImpl get simpleIdentifier => _simpleIdentifier ??=
+      SimpleIdentifierImpl.v1Projection(token: head.name, origin: this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addNode('head', head);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedExpressionChain(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(head, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'head'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(head, oldNode)) {
+      head = newNode as ParsedNameHeadImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError(
+      'ParsedExpressionChain must be lowered before resolution.',
+    );
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    head.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ParsedNameHeadImpl)? visitHead,
+  }) {
+    if (visitHead != null) {
+      visitHead(head);
+    } else {
+      head.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (head._containsOffset(rangeOffset, rangeEnd)) {
+      return head;
+    }
+    return null;
+  }
+}
+
+/// The neutral leading name of a parser-only expression chain.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedNameHead implements AstNode {
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class ParsedNameHeadImpl extends AstNodeImpl implements ParsedNameHead {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedNameHeadImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedNameHead is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedNameHead is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedNameHead(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedNameHead is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedNameHead is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// A part directive.
 ///
 ///     partDirective ::=
@@ -55765,6 +56021,9 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
+    if (node is ParsedExpressionChainImpl) {
+      return createIfAbsent ? node.simpleIdentifier : node._simpleIdentifier;
+    }
     // Some V1 forms fold instantiation into the operand. Both V2 nodes then
     // project to the same V1 expression, including when queried independently.
     var parent = node._parent2;

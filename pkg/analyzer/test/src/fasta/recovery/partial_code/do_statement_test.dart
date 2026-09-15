@@ -45,7 +45,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -89,7 +92,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -131,7 +137,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -173,7 +182,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -213,7 +225,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -261,7 +276,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -298,7 +316,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -310,7 +331,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -349,7 +373,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -395,7 +422,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -440,7 +470,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -490,7 +523,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -540,7 +576,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -584,7 +623,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -624,14 +666,20 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -669,7 +717,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -715,7 +766,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1013,7 +1067,10 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -1327,7 +1384,10 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -1742,7 +1802,10 @@ CompilationUnit
                           keyword: var
                           name: x
                         inKeyword: in
-                        iterable2: SimpleIdentifier
+                        iterable2: ParsedExpressionChain
+                          head: ParsedNameHead
+                            name: y
+                        iterable(v1): SimpleIdentifier
                           token: y
                       rightParenthesis: )
                       body: Block
@@ -2091,7 +2154,10 @@ CompilationUnit
                     SwitchStatement
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression2: SimpleIdentifier
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: x
+                      expression(v1): SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
@@ -2514,7 +2580,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2603,7 +2672,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: l
+                condition(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2824,7 +2896,10 @@ CompilationUnit
                 condition2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -3237,7 +3312,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3572,7 +3650,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3694,7 +3775,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3736,7 +3820,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3776,7 +3863,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3816,7 +3906,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3854,7 +3947,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3900,7 +3996,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3935,7 +4034,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3947,7 +4049,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3984,7 +4089,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4028,7 +4136,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4071,7 +4182,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4119,7 +4233,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4167,7 +4284,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4209,7 +4329,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4247,14 +4370,20 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4290,7 +4419,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4334,7 +4466,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4650,7 +4785,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -4978,7 +5116,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {

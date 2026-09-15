@@ -1303,6 +1303,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitParsedExpressionChain(ParsedExpressionChain node) {
+    _visitNode(node.head);
+  }
+
+  @override
+  void visitParsedNameHead(ParsedNameHead node) {
+    _visitToken(node.name);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('part ');

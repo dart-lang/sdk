@@ -38,7 +38,10 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IntegerLiteral
@@ -73,13 +76,19 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
+        expression(v1): SimpleIdentifier
           token: c
         rightParenthesis: )
         thenElement2: IntegerLiteral
@@ -119,8 +128,9 @@ ListLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: x
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
@@ -240,7 +250,10 @@ ListLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: SimpleIdentifier
+          iterable2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: b
+          iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: IntegerLiteral
@@ -323,7 +336,10 @@ ListLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: SimpleIdentifier
+          iterable2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: b
+          iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: IntegerLiteral
@@ -448,7 +464,10 @@ SetOrMapLiteral
         identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: MapLiteralEntry
@@ -492,13 +511,19 @@ SetOrMapLiteral
         identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
+        expression(v1): SimpleIdentifier
           token: c
         rightParenthesis: )
         thenElement2: MapLiteralEntry
@@ -550,8 +575,9 @@ SetOrMapLiteral
             literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: x
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
@@ -707,7 +733,10 @@ SetOrMapLiteral
           identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
-          iterable2: SimpleIdentifier
+          iterable2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
+          iterable(v1): SimpleIdentifier
             token: d
         rightParenthesis: )
         body2: MapLiteralEntry
@@ -814,7 +843,10 @@ SetOrMapLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: SimpleIdentifier
+          iterable2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: b
+          iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )
         body2: MapLiteralEntry

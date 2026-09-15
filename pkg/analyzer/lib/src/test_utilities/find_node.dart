@@ -592,6 +592,8 @@ abstract class _FindNodeBase {
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();
 
+  WhenClause get singleWhenClause => _single();
+
   WhileStatement get singleWhileStatement => _single();
 
   WildcardPattern get singleWildcardPattern => _single();

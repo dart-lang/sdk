@@ -38,7 +38,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               AssertStatement
@@ -74,7 +77,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               Block
@@ -108,7 +114,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               BreakStatement
@@ -142,7 +151,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ContinueStatement
@@ -174,7 +186,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               DoStatement
@@ -214,7 +229,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -243,7 +261,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ForStatement
@@ -254,7 +275,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -286,7 +310,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               IfStatement
@@ -324,7 +351,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               LabeledStatement
@@ -361,7 +391,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -403,7 +436,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -445,7 +481,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -481,7 +520,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               ReturnStatement
@@ -513,13 +555,19 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -550,7 +598,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               TryStatement
@@ -588,7 +639,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               WhileStatement
@@ -856,7 +910,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -931,7 +988,10 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: l
+                expression(v1): SimpleIdentifier
                   token: l
                 semicolon: ; <synthetic>
               ExpressionStatement
@@ -1113,7 +1173,10 @@ CompilationUnit
                 expression2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {

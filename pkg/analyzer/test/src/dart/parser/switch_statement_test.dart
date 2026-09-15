@@ -34,7 +34,10 @@ SwitchCase
   keyword: case
   expression2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: ParsedExpressionChain
+      head: ParsedNameHead
+        name: int
+    expression(v1): SimpleIdentifier
       token: int
     rightParenthesis: )
   colon: :

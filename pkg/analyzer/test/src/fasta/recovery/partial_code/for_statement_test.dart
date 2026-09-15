@@ -313,7 +313,10 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -634,7 +637,10 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -1480,7 +1486,10 @@ CompilationUnit
                         initializer2: SwitchExpression
                           switchKeyword: switch
                           leftParenthesis: (
-                          expression2: SimpleIdentifier
+                          expression2: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: x
+                          expression(v1): SimpleIdentifier
                             token: x
                           rightParenthesis: )
                           leftBracket: {
@@ -2093,7 +2102,10 @@ CompilationUnit
                         initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: l
+                  condition(v1): SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
                   updaters2
@@ -2366,7 +2378,10 @@ CompilationUnit
                   condition2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -2982,7 +2997,10 @@ CompilationUnit
                         initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: l
+                  condition(v1): SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
                   updaters2
@@ -3263,7 +3281,10 @@ CompilationUnit
                   condition2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -3668,7 +3689,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3975,7 +3999,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4740,7 +4767,10 @@ CompilationUnit
                   initialization2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -5156,7 +5186,10 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -5477,7 +5510,10 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -6042,6 +6078,10 @@ CompilationUnit
                   leftSeparator: ;
                   rightSeparator: ;
                   updaters2
+                    ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: l
+                  updaters(v1)
                     SimpleIdentifier
                       token: l
                 rightParenthesis: ) <synthetic>
@@ -6313,7 +6353,10 @@ CompilationUnit
                     SwitchExpression
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression2: SimpleIdentifier
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: x
+                      expression(v1): SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
@@ -7155,7 +7198,10 @@ CompilationUnit
                   condition2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -8003,7 +8049,10 @@ CompilationUnit
                   condition2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {

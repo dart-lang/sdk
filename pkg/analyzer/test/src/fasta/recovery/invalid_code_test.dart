@@ -43,11 +43,13 @@ CompilationUnit
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: BinaryOperatorInvocation
-                leftOperand: SimpleIdentifier
-                  token: cont
+                leftOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: cont
                 operator: <
-                rightOperand: SimpleIdentifier
-                  token: String
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: String
                 binaryOperator: lessThan
               operator: >
               rightOperand: ListLiteral

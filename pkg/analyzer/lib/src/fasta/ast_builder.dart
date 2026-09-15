@@ -208,7 +208,7 @@ class AstBuilder extends StackListener {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     push(token);
     if (expression is CascadeExpressionImpl) {
       push(expression);
@@ -978,6 +978,10 @@ class AstBuilder extends StackListener {
     var formals = pop(NullValues.FormalParameters) as FormalParameterListImpl?;
     var target = pop() as ExpressionImpl?;
 
+    if (target != null) {
+      target = _toParsedExpression(target);
+    }
+
     if (formals != null) {
       var formalParameters = formals.allFormalParameters;
       if (formalParameters.isEmpty ||
@@ -998,7 +1002,7 @@ class AstBuilder extends StackListener {
       expressionOrBlock as ExpressionImpl;
       methodBody = AnonymousExpressionBodyImpl(
         functionDefinition: functionDefinition!,
-        expression2: expressionOrBlock,
+        expression2: _toParsedExpression(expressionOrBlock),
       );
     } else {
       expressionOrBlock as BlockImpl;
@@ -1022,6 +1026,11 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<ArgumentImpl>(count);
+    for (var i = 0; i < expressions.length; i++) {
+      if (expressions[i] case ExpressionImpl expression) {
+        expressions[i] = _toParsedExpression(expression);
+      }
+    }
     for (var argument in expressions) {
       reportErrorIfSuper(argument.argumentExpression2);
     }
@@ -1071,7 +1080,10 @@ class AstBuilder extends StackListener {
     debugEvent("Assert");
 
     var message = popIfNotNull(comma) as ExpressionImpl?;
-    var condition = pop() as ExpressionImpl;
+    if (message != null) {
+      message = _toParsedExpression(message);
+    }
+    var condition = _popParsedExpression();
     switch (kind) {
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
@@ -1122,7 +1134,7 @@ class AstBuilder extends StackListener {
     assert(optional('await', awaitKeyword));
     debugEvent("AwaitExpression");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -1139,8 +1151,8 @@ class AstBuilder extends StackListener {
     );
     debugEvent("BinaryExpression");
 
-    var right = pop() as ExpressionImpl;
-    var left = pop() as ExpressionImpl;
+    var right = _popParsedExpression();
+    var left = _popParsedExpression();
     reportErrorIfSuper(right);
     var expression = switch (operatorToken.type) {
       TokenType.QUESTION_QUESTION => IfNullImpl(
@@ -1279,7 +1291,7 @@ class AstBuilder extends StackListener {
 
     WhenClauseImpl? whenClause;
     if (when != null) {
-      var expression = pop() as ExpressionImpl;
+      var expression = _popParsedExpression();
       whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
 
@@ -1375,9 +1387,9 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("ConditionalExpression");
 
-    var elseExpression = pop() as ExpressionImpl;
-    var thenExpression = pop() as ExpressionImpl;
-    var condition = pop() as ExpressionImpl;
+    var elseExpression = _popParsedExpression();
+    var thenExpression = _popParsedExpression();
+    var condition = _popParsedExpression();
     reportErrorIfSuper(elseExpression);
     reportErrorIfSuper(thenExpression);
     push(
@@ -1734,7 +1746,7 @@ class AstBuilder extends StackListener {
     assert(optional('=', equals));
     debugEvent("FieldInitializer");
 
-    var initializer = pop() as ExpressionImpl;
+    var initializer = _popParsedExpression();
     var name = pop() as SimpleIdentifierImpl;
     reportErrorIfSuper(initializer);
     push(
@@ -1780,7 +1792,7 @@ class AstBuilder extends StackListener {
   @override
   void endForControlFlow(Token token) {
     debugEvent("endForControlFlow");
-    var body = pop() as CollectionElementImpl;
+    var body = _popCollectionElement();
     var forLoopParts = pop() as ForPartsImpl;
     var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
@@ -1828,7 +1840,7 @@ class AstBuilder extends StackListener {
   void endForInControlFlow(Token token) {
     debugEvent("endForInControlFlow");
 
-    var body = pop() as CollectionElementImpl;
+    var body = _popCollectionElement();
     var forLoopParts = pop() as ForEachPartsImpl;
     var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
@@ -2153,7 +2165,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endIfControlFlow(Token token) {
-    var thenElement = pop() as CollectionElementImpl;
+    var thenElement = _popCollectionElement();
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     push(
@@ -2172,9 +2184,9 @@ class AstBuilder extends StackListener {
 
   @override
   void endIfElseControlFlow(Token token) {
-    var elseElement = pop() as CollectionElementImpl;
+    var elseElement = _popCollectionElement();
     var elseToken = pop() as Token;
-    var thenElement = pop() as CollectionElementImpl;
+    var thenElement = _popCollectionElement();
     var condition = pop() as _ParenthesizedCondition;
     var ifToken = pop() as Token;
     push(
@@ -2706,7 +2718,7 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     debugEvent("ParenthesizedExpression");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -2784,7 +2796,7 @@ class AstBuilder extends StackListener {
   @override
   void endPatternGuard(Token when) {
     debugEvent("PatternGuard");
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     push(WhenClauseImpl(whenKeyword: when, expression2: expression));
   }
 
@@ -2877,6 +2889,11 @@ class AstBuilder extends StackListener {
     debugEvent("RecordLiteral");
 
     var fields = popTypedList<RecordLiteralFieldImpl>(count) ?? const [];
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i] case ExpressionImpl expression) {
+        fields[i] = _toParsedExpression(expression);
+      }
+    }
     var rightParenthesis = leftParenthesis.endGroup!;
 
     if (enableRecords) {
@@ -2894,7 +2911,7 @@ class AstBuilder extends StackListener {
         startToken: leftParenthesis,
       );
 
-      var expression = fields.firstOrNull?.fieldExpression;
+      var expression = fields.firstOrNull?.fieldExpression2;
       expression ??= SimpleIdentifierImpl(
         token: parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
       );
@@ -3041,7 +3058,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ReturnStatement");
 
-    var expression = hasExpression ? pop() as ExpressionImpl : null;
+    var expression = hasExpression ? _popParsedExpression() : null;
     push(
       ReturnStatementImpl(
         returnKeyword: returnKeyword,
@@ -3249,10 +3266,10 @@ class AstBuilder extends StackListener {
     Token endToken,
   ) {
     debugEvent("SwitchExpressionCase");
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     WhenClauseImpl? whenClause;
     if (when != null) {
-      var expression = pop() as ExpressionImpl;
+      var expression = _popParsedExpression();
       whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
     var pattern = pop() as DartPatternImpl;
@@ -3576,7 +3593,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('=', equals));
     debugEvent("VariableInitializer");
 
-    var initializer = pop() as ExpressionImpl;
+    var initializer = _popParsedExpression();
     var identifier = pop() as SimpleIdentifierImpl;
     reportErrorIfSuper(initializer);
     // TODO(ahe): Don't push initializers, instead install them.
@@ -3712,7 +3729,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("YieldStatement");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     push(
       YieldStatementImpl(
         yieldKeyword: yieldToken,
@@ -3737,7 +3754,7 @@ class AstBuilder extends StackListener {
     debugEvent("AsOperator");
 
     var type = pop() as TypeAnnotationImpl;
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -3762,7 +3779,7 @@ class AstBuilder extends StackListener {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
 
-    var rhs = pop() as ExpressionImpl;
+    var rhs = _popParsedExpression();
     var lhs = pop() as ExpressionImpl;
     var isAssignable = lhs.isAssignable;
     if (!isAssignable) {
@@ -4458,7 +4475,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("ExpressionFunctionBody");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     reportErrorIfSuper(expression);
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
@@ -4515,7 +4532,10 @@ class AstBuilder extends StackListener {
       );
     }
     push(
-      ExpressionStatementImpl(expression2: expression, semicolon: semicolon),
+      ExpressionStatementImpl(
+        expression2: _toParsedExpression(expression),
+        semicolon: semicolon,
+      ),
     );
   }
 
@@ -4546,7 +4566,7 @@ class AstBuilder extends StackListener {
     Token keyword,
     Token equals,
   ) {
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     var pattern = pop() as DartPatternImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     push(
@@ -4574,7 +4594,7 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
-    var iterable = pop() as ExpressionImpl;
+    var iterable = _popParsedExpression();
     var variableOrDeclaration = pop()!;
     reportErrorIfSuper(iterable);
 
@@ -4638,6 +4658,9 @@ class AstBuilder extends StackListener {
     assert(updateExpressionCount >= 0);
 
     var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
+    for (var i = 0; i < updates.length; i++) {
+      updates[i] = _toParsedExpression(updates[i]);
+    }
     var conditionStatement = pop() as StatementImpl;
     var initializerPart = pop();
 
@@ -4673,7 +4696,9 @@ class AstBuilder extends StackListener {
       );
     } else {
       forLoopParts = ForPartsWithExpressionImpl(
-        initialization2: initializerPart as ExpressionImpl?,
+        initialization2: initializerPart == null
+            ? null
+            : _toParsedExpression(initializerPart as ExpressionImpl),
         leftSeparator: leftSeparator,
         condition2: condition,
         rightSeparator: rightSeparator,
@@ -4796,8 +4821,11 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 
-    var index = pop() as ExpressionImpl;
+    var index = _popParsedExpression();
     var target = pop() as ExpressionImpl?;
+    if (target != null) {
+      target = _toParsedExpression(target);
+    }
     reportErrorIfSuper(index);
     if (target == null) {
       var receiver = pop() as CascadeExpressionImpl;
@@ -4823,7 +4851,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     push(
       InterpolationExpressionImpl(
         leftBracket: leftBracket,
@@ -4912,7 +4940,7 @@ class AstBuilder extends StackListener {
     debugEvent("IsOperator");
 
     var type = pop() as TypeAnnotationImpl;
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -5073,8 +5101,8 @@ class AstBuilder extends StackListener {
       nullAwareValueToken = null;
     }
 
-    var value = pop() as ExpressionImpl;
-    var key = pop() as ExpressionImpl;
+    var value = _popParsedExpression();
+    var key = _popParsedExpression();
     push(
       MapLiteralEntryImpl(
         keyQuestion: nullAwareKeyToken,
@@ -5140,7 +5168,7 @@ class AstBuilder extends StackListener {
     debugEvent("MapPatternEntry");
 
     var value = pop() as DartPatternImpl;
-    var key = pop() as ExpressionImpl;
+    var key = _popParsedExpression();
     push(MapPatternEntryImpl(key2: key, separator: colon, value: value));
   }
 
@@ -5210,7 +5238,7 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("NamedArgument");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     var name = pop() as SimpleIdentifierImpl;
 
     push(
@@ -5235,7 +5263,7 @@ class AstBuilder extends StackListener {
   void handleNamedRecordField(Token colon) {
     debugEvent("NamedRecordField");
 
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     var name = pop() as SimpleIdentifierImpl;
 
     push(
@@ -5375,7 +5403,7 @@ class AstBuilder extends StackListener {
 
     push(
       NullAssertionExpressionImpl(
-        operand: pop() as ExpressionImpl,
+        operand: _popParsedExpression(),
         operator: bang,
       ),
     );
@@ -5421,7 +5449,7 @@ class AstBuilder extends StackListener {
         startToken: nullAwareElement,
       );
     } else {
-      var expression = pop() as ExpressionImpl;
+      var expression = _popParsedExpression();
       push(
         NullAwareElementImpl(question: nullAwareElement, value2: expression),
       );
@@ -5527,7 +5555,7 @@ class AstBuilder extends StackListener {
         ),
       );
     }
-    condition = pop() as ExpressionImpl;
+    condition = _popParsedExpression();
     reportErrorIfSuper(condition);
     push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));
   }
@@ -5549,7 +5577,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handlePatternAssignment(Token equals) {
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     var pattern = pop() as DartPatternImpl;
     push(
       PatternAssignmentImpl(
@@ -5579,7 +5607,7 @@ class AstBuilder extends StackListener {
     Token equals,
     Token semicolon,
   ) {
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     var pattern = pop() as DartPatternImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, keyword);
@@ -5793,7 +5821,7 @@ class AstBuilder extends StackListener {
   void handleRelationalPattern(Token token) {
     debugEvent("RelationalPattern");
     push(
-      RelationalPatternImpl(operator: token, operand2: pop() as ExpressionImpl),
+      RelationalPatternImpl(operator: token, operand2: _popParsedExpression()),
     );
   }
 
@@ -5833,7 +5861,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    var expression = pop() as ExpressionImpl;
+    var expression = _popParsedExpression();
     push(
       SpreadElementImpl(spreadOperator: spreadToken, expression2: expression),
     );
@@ -5888,7 +5916,7 @@ class AstBuilder extends StackListener {
     push(
       ThrowExpressionImpl(
         throwKeyword: throwToken,
-        expression2: pop() as ExpressionImpl,
+        expression2: _popParsedExpression(),
       ),
     );
   }
@@ -5978,7 +6006,7 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
 
-    var operand = pop() as ExpressionImpl;
+    var operand = _popParsedExpression();
     if (!(operator.type == TokenType.MINUS ||
         operator.type == TokenType.TILDE)) {
       reportErrorIfSuper(operand);
@@ -6000,7 +6028,7 @@ class AstBuilder extends StackListener {
     assert(optional('=', equals) || optional(':', equals));
     debugEvent("ValuedFormalParameter");
 
-    var value = pop() as ExpressionImpl;
+    var value = _popParsedExpression();
     push(FormalParameterDefaultClauseImpl(separator: equals, value2: value));
   }
 
@@ -6071,8 +6099,7 @@ class AstBuilder extends StackListener {
     // TODO(scheglov): Not efficient.
     var elements = <CollectionElementImpl>[];
     for (int index = count - 1; index >= 0; --index) {
-      var element = pop();
-      elements.add(element as CollectionElementImpl);
+      elements.add(_popCollectionElement());
     }
     return elements.reversed.toList();
   }
@@ -6666,6 +6693,14 @@ class AstBuilder extends StackListener {
     }
   }
 
+  CollectionElementImpl _popCollectionElement() {
+    var element = pop() as CollectionElementImpl;
+    if (element is ExpressionImpl) {
+      return _toParsedExpression(element);
+    }
+    return element;
+  }
+
   List<NamedTypeImpl> _popNamedTypeList({
     required LocatableDiagnostic locatableDiagnostic,
   }) {
@@ -6681,6 +6716,10 @@ class AstBuilder extends StackListener {
       }
     }
     return namedTypes;
+  }
+
+  ExpressionImpl _popParsedExpression() {
+    return _toParsedExpression(pop() as ExpressionImpl);
   }
 
   void _reportFeatureNotEnabled({
@@ -6804,6 +6843,18 @@ class AstBuilder extends StackListener {
     // Preserve an invalid operand as an expression so later phases can still
     // analyze it and provide useful recovery information.
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
+  }
+
+  /// Commits a completed bare name to a value slot without selecting its
+  /// interpretation. Selector and assignment construction still consumes the
+  /// temporary identifier directly until those parser paths are migrated.
+  ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
+    if (expression is SimpleIdentifierImpl && !expression.isSynthetic) {
+      return ParsedExpressionChainImpl(
+        head: ParsedNameHeadImpl(name: expression.token),
+      );
+    }
+    return expression;
   }
 
   static String _versionAsString(Version version) {

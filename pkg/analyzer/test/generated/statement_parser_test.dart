@@ -33,7 +33,10 @@ Block
         receiver: CallInvocation
           receiver: ParenthesizedExpression
             leftParenthesis: (
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: f
+            expression(v1): SimpleIdentifier
               token: f
             rightParenthesis: )
           argumentList: ArgumentList
@@ -374,7 +377,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -396,7 +402,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: ThrowExpression
@@ -423,7 +432,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: SimpleStringLiteral
@@ -448,7 +460,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: SimpleStringLiteral
@@ -473,7 +488,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -676,7 +694,10 @@ Block
         rightBracket: }
       whileKeyword: while
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -751,7 +772,10 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: $code
+      expression(v1): SimpleIdentifier
         token: $code
       semicolon: ; <synthetic>
   rightBracket: }
@@ -778,7 +802,10 @@ Block
         identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -807,7 +834,10 @@ Block
           keyword: final
           name: external
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -836,7 +866,10 @@ Block
           keyword: final
           name: required
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -887,7 +920,10 @@ Block
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -938,7 +974,10 @@ Block
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -967,7 +1006,10 @@ Block
         identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -996,7 +1038,10 @@ Block
         identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1030,7 +1075,10 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1064,7 +1112,10 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1094,7 +1145,10 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1124,7 +1178,10 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1153,7 +1210,10 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1182,7 +1242,10 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1209,11 +1272,13 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1247,11 +1312,13 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1285,11 +1352,13 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1335,11 +1404,13 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1395,11 +1466,13 @@ Block
           operator: --
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1455,11 +1528,13 @@ Block
           operator: --
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1655,11 +1730,13 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1701,11 +1778,13 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1747,11 +1826,13 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1805,11 +1886,13 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1865,15 +1948,20 @@ Block
             VariableDeclaration
               name: j
               equals: =
-              initializer2: SimpleIdentifier
+              initializer2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: count
+              initializer(v1): SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: j
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: j
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1939,15 +2027,20 @@ Block
             VariableDeclaration
               name: j
               equals: =
-              initializer2: SimpleIdentifier
+              initializer2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: count
+              initializer(v1): SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: j
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: j
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -2185,8 +2278,9 @@ Block
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: p
               operator: *
               rightOperand: IntegerLiteral
                 literal: 2
@@ -2243,8 +2337,9 @@ Block
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: p
               operator: *
               rightOperand: IntegerLiteral
                 literal: 2
@@ -2299,8 +2394,9 @@ Block
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: p
               operator: *
               rightOperand: IntegerLiteral
                 literal: 2
@@ -2331,7 +2427,10 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: Block
@@ -2391,7 +2490,10 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
@@ -2401,6 +2503,10 @@ Block
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
+            arguments(v1)
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -2413,6 +2519,10 @@ Block
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: y
+            arguments(v1)
               SimpleIdentifier
                 token: y
             rightParenthesis: )
@@ -2435,7 +2545,10 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: Block
@@ -2459,7 +2572,10 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
@@ -2469,6 +2585,10 @@ Block
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
+            arguments(v1)
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -2988,11 +3108,13 @@ Block
                 ReturnStatement
                   returnKeyword: return
                   expression2: BinaryOperatorInvocation
-                    leftOperand: SimpleIdentifier
-                      token: a
+                    leftOperand: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: a
                     operator: +
-                    rightOperand: SimpleIdentifier
-                      token: a
+                    rightOperand: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: a
                     binaryOperator: add
                   expression(v1): BinaryExpression
                     leftOperand: SimpleIdentifier
@@ -3925,7 +4047,10 @@ Block
           colon: :
       statement: ReturnStatement
         returnKeyword: return
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: x
+        expression(v1): SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3945,7 +4070,10 @@ Block
   statements
     ReturnStatement
       returnKeyword: return
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -3971,7 +4099,10 @@ Block
           colon: :
       statement: ReturnStatement
         returnKeyword: return
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: x
+        expression(v1): SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3995,7 +4126,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4032,7 +4166,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4060,7 +4197,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4110,7 +4250,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4165,7 +4308,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4208,7 +4354,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4260,7 +4409,10 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4940,7 +5092,10 @@ Block
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       body: Block
@@ -4964,7 +5119,10 @@ Block
     YieldStatement
       yieldKeyword: yield
       star: *
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -4984,7 +5142,10 @@ Block
   statements
     YieldStatement
       yieldKeyword: yield
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }

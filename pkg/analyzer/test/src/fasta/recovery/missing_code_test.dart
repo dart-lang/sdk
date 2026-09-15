@@ -42,6 +42,15 @@ CompilationUnit
           expression2: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              SimpleIdentifier
+                token: <empty> <synthetic>
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+            elements(v1)
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -74,6 +83,16 @@ CompilationUnit
           expression2: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               SimpleIdentifier
@@ -106,15 +125,36 @@ CompilationUnit
           expression2: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                thenElement(v1): SimpleIdentifier
+                  token: b
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement2: SimpleIdentifier
+                thenElement: SimpleIdentifier
                   token: b
               SimpleIdentifier
                 token: c
@@ -144,18 +184,45 @@ CompilationUnit
           expression2: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              IfElement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                thenElement2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                thenElement(v1): SimpleIdentifier
+                  token: b
+                elseKeyword: else
+                elseElement2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: y
+                elseElement(v1): SimpleIdentifier
+                  token: y
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: c
+            elements(v1)
               SimpleIdentifier
                 token: a
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
-                thenElement2: SimpleIdentifier
+                thenElement: SimpleIdentifier
                   token: b
                 elseKeyword: else
-                elseElement2: SimpleIdentifier
+                elseElement: SimpleIdentifier
                   token: y
               SimpleIdentifier
                 token: c
@@ -190,22 +257,40 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                value(v1): SimpleIdentifier
                   token: b
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: c
+                key(v1): SimpleIdentifier
                   token: c
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: d
+                value(v1): SimpleIdentifier
                   token: d
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -235,28 +320,49 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                value(v1): SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 thenElement2: MapLiteralEntry
-                  key2: SimpleIdentifier
+                  key2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: c
+                  key(v1): SimpleIdentifier
                     token: c
                   separator: :
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: d
+                  value(v1): SimpleIdentifier
                     token: d
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -286,35 +392,62 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                value(v1): SimpleIdentifier
                   token: b
               IfElement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 thenElement2: MapLiteralEntry
-                  key2: SimpleIdentifier
+                  key2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: c
+                  key(v1): SimpleIdentifier
                     token: c
                   separator: :
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: d
+                  value(v1): SimpleIdentifier
                     token: d
                 elseKeyword: else
                 elseElement2: MapLiteralEntry
-                  key2: SimpleIdentifier
+                  key2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  key(v1): SimpleIdentifier
                     token: y
                   separator: :
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: z
+                  value(v1): SimpleIdentifier
                     token: z
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: e
+                key(v1): SimpleIdentifier
                   token: e
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: f
+                value(v1): SimpleIdentifier
                   token: f
             rightBracket: }
             isMap: false
@@ -347,7 +480,10 @@ CompilationUnit
                 key2: SimpleIdentifier
                   token: <empty> <synthetic>
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                value(v1): SimpleIdentifier
                   token: b
             rightBracket: }
             isMap: false
@@ -377,7 +513,10 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
                 value2: SimpleIdentifier
@@ -410,16 +549,25 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                key(v1): SimpleIdentifier
                   token: a
                 separator: :
                 value2: SimpleIdentifier
                   token: <empty> <synthetic>
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                key(v1): SimpleIdentifier
                   token: b
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: c
+                value(v1): SimpleIdentifier
                   token: c
             rightBracket: }
             isMap: false
@@ -452,8 +600,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: &
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -552,7 +701,10 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: as
+          expression(v1): SimpleIdentifier
             token: as
           semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -591,7 +743,10 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: AsExpression
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            expression(v1): SimpleIdentifier
               token: x
             asOperator: as
             type: NamedType
@@ -670,8 +825,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: |
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -775,7 +931,10 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: CascadeExpression
-                  target2: SimpleIdentifier
+                  target2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  target(v1): SimpleIdentifier
                     token: x
                   sections
                     CascadeSection
@@ -895,10 +1054,16 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ConditionalExpression
-            condition2: SimpleIdentifier
+            condition2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            condition(v1): SimpleIdentifier
               token: x
             question: ?
-            thenExpression2: SimpleIdentifier
+            thenExpression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: y
+            thenExpression(v1): SimpleIdentifier
               token: y
             colon: :
             elseExpression2: SimpleIdentifier
@@ -928,13 +1093,19 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ConditionalExpression
-            condition2: SimpleIdentifier
+            condition2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            condition(v1): SimpleIdentifier
               token: x
             question: ?
             thenExpression2: SimpleIdentifier
               token: <empty> <synthetic>
             colon: :
-            elseExpression2: SimpleIdentifier
+            elseExpression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: z
+            elseExpression(v1): SimpleIdentifier
               token: z
           semicolon: ; <synthetic>
 ''');
@@ -961,8 +1132,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: ==
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1059,7 +1231,10 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
+          expression(v1): SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -1091,7 +1266,10 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: => <synthetic>
-          expression2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
+          expression(v1): SimpleIdentifier
             token: x
           semicolon: ;
 ''');
@@ -1118,8 +1296,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: >
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1211,8 +1390,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: >>
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1304,8 +1484,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: >=
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1397,8 +1578,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: ^
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1691,7 +1873,10 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: IsExpression
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   isOperator: is
                   type: NamedType
@@ -1725,8 +1910,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: <
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1818,8 +2004,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: <<
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -1911,8 +2098,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: <=
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2004,8 +2192,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: -
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2189,11 +2378,13 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: IfNull
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: ??
-            rightOperand: SimpleIdentifier
-              token: throw
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: throw
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
               token: x
@@ -2225,8 +2416,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: %
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2318,8 +2510,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: +
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2457,8 +2650,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: /
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2550,8 +2744,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: *
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -2696,8 +2891,9 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: ~/
             rightOperand: SimpleIdentifier
               token: <empty> <synthetic>
@@ -3544,19 +3740,23 @@ CompilationUnit
                     arguments2
                       LogicalOr
                         leftOperand: BinaryOperatorInvocation
-                          leftOperand: SimpleIdentifier
-                            token: v1
+                          leftOperand: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: v1
                           operator: ==
-                          rightOperand: SimpleIdentifier
-                            token: v2
+                          rightOperand: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: v2
                           binaryOperator: equal
                         operator: ||
                         rightOperand: BinaryOperatorInvocation
-                          leftOperand: SimpleIdentifier
-                            token: v1
+                          leftOperand: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: v1
                           operator: ==
-                          rightOperand: SimpleIdentifier
-                            token: v
+                          rightOperand: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: v
                           binaryOperator: equal
                       IntegerLiteral
                         literal: 3

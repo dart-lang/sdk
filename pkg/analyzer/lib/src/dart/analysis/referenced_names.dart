@@ -423,6 +423,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitParsedNameHead(ParsedNameHead node) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     if (node.effectiveName case var name?) {
       names.add(name);

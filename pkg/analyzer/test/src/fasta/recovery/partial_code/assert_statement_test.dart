@@ -39,7 +39,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: CallInvocation
@@ -91,7 +94,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SetOrMapLiteral
@@ -132,7 +138,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -174,7 +183,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -215,7 +227,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -262,7 +277,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -297,7 +315,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -312,7 +333,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -349,7 +373,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -396,10 +423,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: l
+                message(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -441,7 +474,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: FunctionExpression
@@ -485,7 +521,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: FunctionExpression
@@ -529,7 +568,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -573,7 +615,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -609,13 +654,19 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -653,7 +704,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -700,7 +754,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SimpleIdentifier
@@ -745,7 +802,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -785,7 +845,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -823,7 +886,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -861,7 +927,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -897,7 +966,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -941,7 +1013,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -974,7 +1049,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -986,7 +1064,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1021,7 +1102,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1063,7 +1147,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1104,7 +1191,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1150,7 +1240,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1196,7 +1289,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1236,7 +1332,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1272,14 +1371,20 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1313,7 +1418,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1355,7 +1463,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1636,7 +1747,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1929,7 +2043,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -2301,7 +2418,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2382,7 +2502,10 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: l
+                condition(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2583,7 +2706,10 @@ CompilationUnit
                 condition2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -2707,10 +2833,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2750,10 +2882,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2791,10 +2929,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2832,10 +2976,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2871,10 +3021,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2918,10 +3074,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2954,10 +3116,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2969,7 +3137,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3004,10 +3175,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3049,10 +3226,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3093,10 +3276,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3142,10 +3331,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3191,10 +3386,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3234,10 +3435,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3273,17 +3480,26 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3317,10 +3533,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3362,10 +3584,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3405,10 +3633,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3446,10 +3680,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3485,10 +3725,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3524,10 +3770,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3561,10 +3813,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3606,10 +3864,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3640,10 +3904,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3655,7 +3925,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3688,10 +3961,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3731,10 +4010,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3773,10 +4058,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3820,10 +4111,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3867,10 +4164,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3908,10 +4211,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3945,17 +4254,26 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3987,10 +4305,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4030,10 +4354,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4075,10 +4405,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4118,10 +4454,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4159,10 +4501,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4200,10 +4548,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4239,10 +4593,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4286,10 +4646,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4322,10 +4688,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4337,7 +4709,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -4372,10 +4747,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4417,10 +4798,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4461,10 +4848,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4510,10 +4903,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4559,10 +4958,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4602,10 +5007,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4641,17 +5052,26 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4685,10 +5105,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4730,10 +5156,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
