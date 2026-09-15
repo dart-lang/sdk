@@ -1,5 +1,7 @@
 ## 3.13.4
 
+**Released on:** 2026-09-15
+
 This is a patch release that:
 
 - Fixes crash during dart2js compilation when using --merge-fragments-threshold
