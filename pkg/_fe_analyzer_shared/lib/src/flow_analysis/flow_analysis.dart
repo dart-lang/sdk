@@ -1210,6 +1210,9 @@ abstract class FlowAnalysis<
   /// [offset] is the last source offset that should be considered to be prior
   /// to entry into the pattern. The start offset of the pattern is probably the
   /// best choice.
+  ///
+  /// Returns `true` if the matched value type is non-nullable, and hence the
+  /// null check or null assert is unnecessary.
   bool nullCheckOrAssertPattern_begin({
     required bool isAssert,
     required SharedTypeView matchedValueType,
@@ -7196,28 +7199,30 @@ class _FlowAnalysisImpl<
     // `checkOffset` directly.
     _logBuilder?.checkOffset(offset);
 
-    if (!isAssert) {
-      if (_isGuaranteedNonNullWithSoundNullSafety(matchedValueType)) {
-        // The pattern is guaranteed to match.
-      } else {
-        // The pattern might not match, either because matchedValueType is
-        // nullable, or because sound flow analysis is disabled (in which case
-        // we presume the user might be running under an older version of Dart
-        // that supported weak null safety mode).
-        _unmatched = _join(_unmatched, _current);
+    if (isAssert) {
+      // A null-assert pattern always matches; if the matched value turns out to
+      // be `null`, it throws rather than failing to match.  So there's no need
+      // to update `_unmatched`; we just need to promote the matched value.
+      FlowModel? ifNotNull = _nullCheckPattern(
+        matchedValueType: matchedValueType,
+      );
+      if (ifNotNull != null) {
+        _setCurrent(ifNotNull, offset: offset);
       }
-    }
-    FlowModel? ifNotNull = _nullCheckPattern(
-      matchedValueType: matchedValueType,
-    );
-    if (ifNotNull != null) {
-      _setCurrent(ifNotNull, offset: offset);
+    } else {
+      // A null-check pattern matches if and only if the matched value is not
+      // `null`, so it behaves the same way as the constant pattern `!= null`.
+      _handleNullTestPattern(
+        matchesIfNull: false,
+        matchedValueType: matchedValueType,
+        offset: offset,
+      );
     }
     // Note: we don't need to push a new pattern context for the subpattern,
     // because (a) the subpattern matches the same value as the outer pattern,
     // and (b) promotion of the synthetic cache variable takes care of
     // establishing the correct matched value type.
-    return ifNotNull == null;
+    return _isNonNullableType(matchedValueType);
   }
 
   @override
@@ -8550,28 +8555,7 @@ class _FlowAnalysisImpl<
         // might not match.
         _unmatched = _join(_unmatched!, _current);
       case _EqualityCheckIsNullCheck(:var isReferenceOnRight):
-        FlowModel? ifNotNull;
-        if (!isReferenceOnRight) {
-          // The `null` literal is on the right hand side of the implicit
-          // equality check, meaning it is the constant value.  So the user is
-          // doing something like this:
-          //
-          //     if (v case == null) { ... }
-          //
-          // So we want to promote the type of `v` in the case where the
-          // constant pattern *didn't* match.
-          ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
-          if (ifNotNull == null) {
-            // `_nullCheckPattern` returns `null` in the case where the matched
-            // value type is non-nullable.  In fully sound programs, this would
-            // mean that the pattern cannot possibly match.  However, in mixed
-            // mode programs it might match due to unsoundness.  Since we don't
-            // want type inference results to change when a program becomes
-            // fully sound, we have to assume that we're in mixed mode, and thus
-            // the pattern might match.
-            ifNotNull = _current;
-          }
-        } else {
+        if (isReferenceOnRight) {
           // The `null` literal is on the left hand side of the implicit
           // equality check, meaning it is the scrutinee.  So the user is doing
           // something silly like this:
@@ -8583,13 +8567,28 @@ class _FlowAnalysisImpl<
           // Since flow analysis can't make use of the results of constant
           // evaluation, we can't really assume anything; as far as we know, the
           // pattern might or might not match.
-          ifNotNull = _current;
-        }
-        if (notEqual) {
           _unmatched = _join(_unmatched!, _current);
-          _setCurrent(ifNotNull, offset: offset);
         } else {
-          _unmatched = _join(_unmatched!, ifNotNull);
+          // The `null` literal is on the right hand side of the implicit
+          // equality check, meaning it is the constant value.  So the user is
+          // doing something like this:
+          //
+          //     if (v case == null) { ... }
+          //
+          // In other words, the pattern is a test of whether the matched value
+          // is `null`, so it can be handled the same way as a null-check
+          // pattern.
+          //
+          // Note that the matched value type is necessarily nullable here;
+          // otherwise `_equalityCheck` would have found the operand types to be
+          // disjoint, and returned `_EqualityCheckHasKnownResult` or
+          // `_NoEqualityInformation` rather than `_EqualityCheckIsNullCheck`.
+          assert(!_isNonNullableType(matchedValueType));
+          _handleNullTestPattern(
+            matchesIfNull: !notEqual,
+            matchedValueType: matchedValueType,
+            offset: offset,
+          );
         }
       case _EqualityCheckHasKnownResult(:var areEqual):
         if (areEqual != notEqual) {
@@ -8607,6 +8606,58 @@ class _FlowAnalysisImpl<
           _unmatched = _join(_unmatched!, _current);
           _setCurrent(_current.setUnreachable(), offset: offset);
         }
+    }
+  }
+
+  /// Updates the flow model to account for a pattern that matches if and only
+  /// if the matched value is `null` (if [matchesIfNull] is `true`) or is not
+  /// `null` (if [matchesIfNull] is `false`).
+  ///
+  /// This is used to analyze null-check patterns (`subpattern?`) as well as
+  /// constant patterns that compare the matched value to `null` (`== null` and
+  /// `!= null`); these are all the same operation as far as flow analysis is
+  /// concerned.
+  ///
+  /// [matchedValueType] should be the type returned by [_getMatchedValueType].
+  ///
+  /// May only be called in the context of a pattern.
+  void _handleNullTestPattern({
+    required bool matchesIfNull,
+    required SharedTypeView matchedValueType,
+    required int offset,
+  }) {
+    // Note: `_nullCheckPattern` returns `null` if the matched value is known
+    // not to be `null`; in that circumstance there is nothing to promote.
+    FlowModel? ifNotNull = _nullCheckPattern(
+      matchedValueType: matchedValueType,
+    );
+    if (matchesIfNull) {
+      // The pattern fails to match in the circumstance where the matched value
+      // is not `null`.
+      //
+      // Note that even if the matched value is known not to be `null` (so that
+      // in a fully sound program the pattern could never match), we still have
+      // to assume that the pattern might match, because in mixed mode programs
+      // the matched value might be `null` due to unsoundness, and we don't want
+      // type inference results to change when a program becomes fully sound.
+      _unmatched = _join(_unmatched!, ifNotNull ?? _current);
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(matchedValueType)) {
+      // The matched value is known not to be `null`, so the pattern is
+      // guaranteed to match.  Since our approach to handling patterns in flow
+      // analysis uses "implicit and" semantics (initially assuming that the
+      // pattern always matches, and then updating the `_current` and
+      // `_unmatched` states to reflect what values the pattern rejects), we
+      // don't have to do any updates.
+    } else {
+      // The pattern fails to match in the circumstance where the matched value
+      // is `null`.  (Note that this includes the case where the matched value
+      // type is non-nullable but sound flow analysis is disabled, since in that
+      // case we presume the user might be running under an older version of
+      // Dart that supported weak null safety mode.)
+      _unmatched = _join(_unmatched!, _current);
+      if (ifNotNull != null) {
+        _setCurrent(ifNotNull, offset: offset);
+      }
     }
   }
 
