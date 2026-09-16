@@ -2687,10 +2687,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = [];
 
     bool isInvalidated(Uri importUri, Uri? fileUri) {
-      if (invalidatedUris.contains(importUri)) return true;
-      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
-        return true;
-      }
+      // Check translation of package uris before checking direct invalidation
+      // to ensure proper setting of [invalidatedBecauseOfPackageUpdate].
       if (_hasToCheckPackageUris &&
           // Coverage-ignore(suite): Not run.
           importUri.isScheme("package")) {
@@ -2718,6 +2716,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
         }
       }
+
+      if (invalidatedUris.contains(importUri)) return true;
+      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
+        return true;
+      }
+
       if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
     }
