@@ -5496,16 +5496,17 @@ void f(({T Function<T>(T) f1, String f2}) r) {
     var node = result.findNode.implicitFunctionInstantiation(r'.f1;');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: PropertyAccess
-    target2: SimpleIdentifier
-      token: r
-      element: <testLibrary>::@function::f::@formalParameter::r
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: r
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::r
+        type: ({T Function<T>(T) f1, String f2})
       staticType: ({T Function<T>(T) f1, String f2})
     operator: .
-    propertyName: SimpleIdentifier
-      token: f1
-      element: <null>
-      staticType: T Function<T>(T)
+    name: f1
+    resolution: RecordFieldReadResolution
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -5540,16 +5541,17 @@ void f((T Function<T>(T), String) r) {
     var node = result.findNode.implicitFunctionInstantiation(r'.$1;');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: PropertyAccess
-    target2: SimpleIdentifier
-      token: r
-      element: <testLibrary>::@function::f::@formalParameter::r
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: r
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::r
+        type: (T Function<T>(T), String)
       staticType: (T Function<T>(T), String)
     operator: .
-    propertyName: SimpleIdentifier
-      token: $1
-      element: <null>
-      staticType: T Function<T>(T)
+    name: $1
+    resolution: RecordFieldReadResolution
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -7825,17 +7827,19 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitFunctionInstantiation('c.f;');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
-    period: .
-    identifier: SimpleIdentifier
-      token: f
+    operator: .
+    name: f
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::C::@getter::f
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes

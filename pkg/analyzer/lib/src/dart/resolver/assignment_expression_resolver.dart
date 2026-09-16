@@ -65,7 +65,7 @@ class AssignmentExpressionResolver {
         target.receiver,
         offset: target.operator.offset,
       );
-      _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
+      _resolver.nullSafetyDeadCodeVerifier.recordDeadIntervalAt(
         node,
         target.name,
       );

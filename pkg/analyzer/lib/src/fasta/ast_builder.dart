@@ -694,7 +694,7 @@ class AstBuilder extends StackListener {
 
     if (initializerObject is ReceiverPropertyExtractionImpl) {
       return buildInitializerTargetExpressionRecovery(
-        initializerObject.receiver,
+        _parsedPropertyReceiver(initializerObject.receiver),
         initializerObject,
       );
     }
@@ -802,7 +802,7 @@ class AstBuilder extends StackListener {
         target = target.target2;
       } else if (target is ReceiverPropertyExtractionImpl) {
         argumentList = null;
-        target = target.receiver;
+        target = _parsedPropertyReceiver(target.receiver);
       } else {
         break;
       }
@@ -3796,7 +3796,7 @@ class AstBuilder extends StackListener {
         CascadePropertyAssignmentTargetImpl(name: name),
       ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
         ReceiverPropertyAssignmentTargetImpl(
-          receiver: receiver,
+          receiver: _parsedPropertyReceiver(receiver),
           operator: operator,
           name: name,
         ),
@@ -6687,10 +6687,16 @@ class AstBuilder extends StackListener {
           when operator.type == TokenType.PERIOD:
         return _isSupportedPropertyReceiver(target);
       case ReceiverPropertyExtractionImpl(:var receiver):
-        return _isSupportedPropertyReceiver(receiver);
+        return _isSupportedPropertyReceiver(_parsedPropertyReceiver(receiver));
       default:
         return false;
     }
+  }
+
+  /// Parser-built property extractions always have expression receivers.
+  /// Static qualifiers are introduced later, when resolution lowers a chain.
+  ExpressionImpl _parsedPropertyReceiver(NamedReceiverImpl receiver) {
+    return receiver as ExpressionImpl;
   }
 
   CollectionElementImpl _popCollectionElement() {
@@ -6809,7 +6815,7 @@ class AstBuilder extends StackListener {
     // ReceiverPropertyExtraction is the canonical V2 representation of `receiver.x`.
     if (expression is ReceiverPropertyExtractionImpl) {
       return ReceiverPropertyAssignmentTargetImpl(
-        receiver: expression.receiver,
+        receiver: _parsedPropertyReceiver(expression.receiver),
         operator: expression.operator,
         name: expression.name,
       );
@@ -6845,16 +6851,45 @@ class AstBuilder extends StackListener {
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
-  /// Commits a completed bare name to a value slot without selecting its
+  /// Commits a completed name chain to a value slot without selecting its
   /// interpretation. Selector and assignment construction still consumes the
   /// temporary identifier directly until those parser paths are migrated.
   ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
-    if (expression is SimpleIdentifierImpl && !expression.isSynthetic) {
-      return ParsedExpressionChainImpl(
-        head: ParsedNameHeadImpl(name: expression.token),
-      );
+    List<ParsedNameAccessImpl>? components;
+    var receiver = expression;
+    while (true) {
+      switch (receiver) {
+        case SimpleIdentifierImpl() when !receiver.isSynthetic:
+          return ParsedExpressionChainImpl(
+            head: ParsedNameHeadImpl(name: receiver.token),
+            components: components?.reversed.toList() ?? const [],
+          );
+        case PrefixedIdentifierImpl() when !receiver.identifier.isSynthetic:
+          (components ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.period,
+              name: receiver.identifier.token,
+            ),
+          );
+          receiver = receiver.prefix;
+        // Only convert identifier or keyword property names. Recovery may use
+        // punctuation, such as '(' in C.(), even though the token is not synthetic.
+        // TODO(scheglov): Avoid using punctuation tokens as property names during
+        // parser recovery.
+        case PropertyAccessImpl(target2: var target?)
+            when !receiver.propertyName.isSynthetic &&
+                receiver.propertyName.token.isKeywordOrIdentifier:
+          (components ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.operator,
+              name: receiver.propertyName.token,
+            ),
+          );
+          receiver = target;
+        default:
+          return expression;
+      }
     }
-    return expression;
   }
 
   static String _versionAsString(Version version) {

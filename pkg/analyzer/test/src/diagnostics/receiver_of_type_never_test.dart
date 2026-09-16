@@ -1477,9 +1477,20 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
+    staticType: Never
+  operator: .
+  name: foo
+  resolution: <null>
+  staticType: Never
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1503,9 +1514,23 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
+    staticType: Never
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    invokeType: int Function()
+    type: int
+  staticType: Never
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1518,6 +1543,32 @@ PrefixedIdentifier
   element: dart:core::@class::Object::@getter::hashCode
   staticType: Never
 ''');
+  }
+
+  test_propertyAccess_never_read_hashCode_typeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+void f(N x) {
+  x.hashCode;
+//  ^^^^^^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertType(node, 'Never');
+    assertType(result.findNodeV1.prefixed('x.hashCode').identifier, 'Never');
+  }
+
+  test_propertyAccess_never_read_unknown_typeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+void f(N x) {
+  x.foo;
+//  ^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+    assertType(result.findNode.singleReceiverPropertyExtraction, 'Never');
   }
 
   test_propertyAccess_never_readWrite() async {
@@ -1567,9 +1618,22 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
+    staticType: Never
+  operator: .
+  name: toString
+  resolution: ExecutableTearOffResolution
+    element: dart:core::@class::Object::@method::toString
+    type: String Function()
+  staticType: Never
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1631,9 +1695,21 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
+    staticType: Never?
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1655,9 +1731,23 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
+    staticType: Never?
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -1679,9 +1769,22 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
+    staticType: Never?
+  operator: .
+  name: toString
+  resolution: ExecutableTearOffResolution
+    element: dart:core::@class::Object::@method::toString
+    type: String Function()
+  staticType: String Function()
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x

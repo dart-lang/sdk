@@ -29,9 +29,25 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: int}
+    invokeType: List<int> Function()
+    type: List<int>
+  staticType: List<int>
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -179,9 +195,24 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    type: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a

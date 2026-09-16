@@ -423,6 +423,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
   void visitParsedNameHead(ParsedNameHead node) {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
   }

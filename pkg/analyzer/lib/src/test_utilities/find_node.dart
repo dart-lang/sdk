@@ -1117,6 +1117,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ParenthesizedPattern);
   }
 
+  ParsedExpressionChain parsedExpressionChain(String search) {
+    return _node(search, (n) => n is ParsedExpressionChain);
+  }
+
   PartDirective part(String search) {
     return _node(search, (n) => n is PartDirective);
   }

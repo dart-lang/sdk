@@ -950,12 +950,78 @@ class PropertyElementResolver with ScopeHelpers {
   })
   resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
+    if (receiver is StaticQualifierImpl) {
+      if (receiver.scopeLookupResult case var lookupResult?) {
+        reportDeprecatedExportUseGetter(
+          scopeLookupResult: lookupResult,
+          nameToken: receiver.name,
+        );
+      }
+      var element = receiver.element;
+      PropertyElementResolverResult result;
+      var propertyName = SimpleIdentifierImpl(token: node.name);
+      var interfaceElement = switch (element) {
+        InterfaceElement element => element,
+        TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+        _ => null,
+      };
+      if (interfaceElement != null) {
+        result = _resolveTargetInterfaceElement(
+          typeReference: interfaceElement,
+          isCascaded: false,
+          propertyName: propertyName,
+          hasRead: true,
+          hasWrite: false,
+        );
+      } else if (element is ExtensionElement) {
+        result = _resolveTargetExtensionElement(
+          extension: element,
+          propertyName: propertyName,
+          hasRead: true,
+          hasWrite: false,
+        );
+      } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
+        diagnosticReporter.report(
+          diag.undefinedGetterOnFunctionType
+              .withArguments(
+                getterName: node.name.lexeme,
+                functionTypeAliasName: receiver.name.lexeme,
+              )
+              .at(node.name),
+        );
+        result = PropertyElementResolverResult();
+      } else {
+        throw StateError('Unexpected static qualifier element: $element');
+      }
+      var readElement = result.readElementRequested2;
+      var resolution =
+          _createNamedReadResolutionWithElement(
+            readElement,
+            type: _namedReadType(readElement),
+          ) ??
+          InvalidNamedReadResolutionImpl(
+            recoveryElement: result.readElementRecovery2,
+          );
+      return (
+        expressionInfo: null,
+        resolution: resolution,
+        type: resolution.type,
+      );
+    }
+    receiver as ExpressionImpl;
     var receiverType = receiver.typeOrThrow;
 
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
-      return (expressionInfo: null, resolution: null, type: receiverType);
+      // Bare-name reads retain the legacy dead-code diagnostic at the selected
+      // name. Other receiver forms report receiverOfTypeNever instead.
+      // TODO(scheglov): Unify diagnostics for Never receivers across receiver
+      // forms. Preserve the legacy bare-name diagnostic during this migration.
+      if (receiver is! UnqualifiedNameExpressionImpl ||
+          node.operator.type != TokenType.PERIOD) {
+        diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+        return (expressionInfo: null, resolution: null, type: receiverType);
+      }
     }
 
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
@@ -972,15 +1038,6 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
       var resolution = InvalidNamedReadResolutionImpl(recoveryElement: null);
-      return (
-        expressionInfo: null,
-        resolution: resolution,
-        type: resolution.type,
-      );
-    }
-
-    if (_typeSystem.isDynamicBounded(receiverType)) {
-      var resolution = DynamicPropertyReadResolutionImpl();
       return (
         expressionInfo: null,
         resolution: resolution,
@@ -1055,6 +1112,14 @@ class PropertyElementResolver with ScopeHelpers {
       recordField: recordField,
       type: readType,
     );
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      return (
+        expressionInfo: expressionInfo,
+        resolution: resolution,
+        type: receiverType,
+      );
+    }
     resolution ??= _typeSystem.isDynamicBounded(receiverType)
         ? DynamicPropertyReadResolutionImpl()
         : InvalidNamedReadResolutionImpl(

@@ -674,16 +674,16 @@ ArgumentList
           name: b
       binaryOperator: lessThan
     BinaryOperatorInvocation
-      leftOperand: PropertyAccess
-        target2: PrefixedIdentifier
-          prefix: SimpleIdentifier
-            token: p
-          period: .
-          identifier: SimpleIdentifier
-            token: q
-        operator: .
-        propertyName: SimpleIdentifier
-          token: c
+      leftOperand: ParsedExpressionChain
+        head: ParsedNameHead
+          name: p
+        components
+          ParsedNameAccess
+            operator: .
+            name: q
+          ParsedNameAccess
+            operator: .
+            name: c
       operator: >
       rightOperand: ParenthesizedExpression
         leftParenthesis: (

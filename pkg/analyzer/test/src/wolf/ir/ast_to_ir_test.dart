@@ -2084,8 +2084,11 @@ test(String? s) => (s)?.length;
 test(String? s) => s?.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.propertyAccess('s?.length')]
-        .containsSubrange(astNodes[result.findNode.simple('s?.length')]!);
+    check(
+      astNodes,
+    )[result.findNode.receiverPropertyExtraction('s?.length')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('s?.length')]!,
+    );
     check(runInterpreter(result, [null])).equals(null);
     check(runInterpreter(result, ['foo'])).equals(3);
   }
@@ -2095,8 +2098,10 @@ test(String? s) => s?.length;
 test(int i) => i.isEven;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.prefixed('i.isEven')].containsSubrange(
-      astNodes[result.findNode.simple('i.')]!,
+    check(
+      astNodes,
+    )[result.findNode.receiverPropertyExtraction('i.isEven')].containsSubrange(
+      astNodes[result.findNode.unqualifiedNameExpression('i.')]!,
     );
     check(runInterpreter(result, [1])).equals(false);
     check(runInterpreter(result, [2])).equals(true);

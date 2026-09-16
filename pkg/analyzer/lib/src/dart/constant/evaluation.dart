@@ -1326,6 +1326,21 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   Constant visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
+    if (node.receiver case StaticQualifierImpl(:var importPrefix, :var name)) {
+      if (importPrefix?.element case PrefixElement prefix
+          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+        return _getDeferredLibraryError(
+          node,
+          SimpleIdentifierImpl(token: name),
+        );
+      }
+      return _getConstantValue(
+        errorNode: node,
+        expression: node,
+        identifier: SimpleIdentifierImpl(token: node.name),
+        element: node.resolution?.element,
+      );
+    }
     var targetResult = evaluateConstant(node.receiver);
     if (targetResult is! DartObjectImpl) {
       return targetResult;
@@ -1337,7 +1352,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
           node,
           propertyName: node.name.lexeme,
           propertyElement: propertyElement,
-          isNullAware: false,
+          isNullAware: node.operator.type == TokenType.QUESTION_PERIOD,
         ) ??
         InvalidConstant.genericError(node: node);
   }

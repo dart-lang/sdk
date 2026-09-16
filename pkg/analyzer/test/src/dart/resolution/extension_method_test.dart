@@ -224,9 +224,23 @@ f(C c) {
   c.a;
 }
 ''');
-    var node = result.findNode.prefixed('c.a');
+    var node = result.findNode.receiverPropertyExtraction('c.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -259,9 +273,23 @@ f(Object o, A a) {
   o.a;
 }
 ''');
-    var node = result.findNode.prefixed('o.a');
+    var node = result.findNode.receiverPropertyExtraction('o.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: o
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::o
+      type: Object
+    staticType: Object
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib1.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: o
     element: <testLibrary>::@function::f::@formalParameter::o
@@ -293,9 +321,23 @@ f(C c) {
   c.a;
 }
 ''');
-    var node = result.findNode.prefixed('c.a');
+    var node = result.findNode.receiverPropertyExtraction('c.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -323,9 +365,23 @@ f(C c) {
   c.a;
 }
 ''');
-    var node = result.findNode.prefixed('c.a');
+    var node = result.findNode.receiverPropertyExtraction('c.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -355,9 +411,23 @@ f(C c) {
   c.a;
 }
 ''');
-    var node = result.findNode.prefixed('c.a');
+    var node = result.findNode.receiverPropertyExtraction('c.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1054,9 +1124,23 @@ g(int Function(int) f) {
   f.a;
 }
 ''');
-    var node = result.findNode.prefixed('f.a');
+    var node = result.findNode.receiverPropertyExtraction('f.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    staticType: int Function(int)
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -1083,9 +1167,23 @@ f(C c) {
   c.a;
 }
 ''');
-    var node = result.findNode.prefixed('c.a');
+    var node = result.findNode.receiverPropertyExtraction('c.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1113,9 +1211,23 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1142,9 +1254,20 @@ f(Never a) {
 // [diag.deadCode] Dead code.
 }
 ''');
-    var node = result.findNode.prefixed('a.foo');
+    var node = result.findNode.receiverPropertyExtraction('a.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Never
+    staticType: Never
+  operator: .
+  name: foo
+  resolution: <null>
+  staticType: Never
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1169,9 +1292,23 @@ f(int? a) {
   a.foo;
 }
 ''');
-    var node = result.findNode.prefixed('a.foo');
+    var node = result.findNode.receiverPropertyExtraction('a.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int?
+    staticType: int?
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1196,10 +1333,24 @@ f(int? a) {
   a?.foo;
 }
 ''');
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int?
+    staticType: int?
+  operator: ?.
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
@@ -1292,9 +1443,23 @@ f(B b) {
   b.a;
 }
 ''');
-    var node = result.findNode.prefixed('b.a');
+    var node = result.findNode.receiverPropertyExtraction('b.a');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: B
+    staticType: B
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::B_Ext::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
@@ -3325,9 +3490,22 @@ extension E on int Function(int) {
 }
 g(int Function(int) f) => f.a;
 ''');
-    var node = result.findNode.prefixed('a;');
+    var node = result.findNode.receiverPropertyExtraction('a;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    staticType: int Function(int)
+  operator: .
+  name: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -3352,9 +3530,22 @@ extension E on C {
 
 f(C c) => c.a;
 ''');
-    var node = result.findNode.prefixed('a;');
+    var node = result.findNode.receiverPropertyExtraction('a;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -3384,10 +3575,25 @@ f() {
   p.E.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('p.E.a;');
+    var node = result.findNode.receiverPropertyExtraction('p.E.a;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    element: package:test/lib.dart::@extension::E
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -3420,9 +3626,20 @@ f() {
   E.a;
 }
 ''');
-    var node = result.findNode.prefixed('E.a;');
+    var node = result.findNode.receiverPropertyExtraction('E.a;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: E
+    element: <testLibrary>::@extension::E
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
@@ -3510,10 +3727,25 @@ f() {
   p.E.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('p.E.a;');
+    var node = result.findNode.receiverPropertyExtraction('p.E.a;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    element: package:test/lib.dart::@extension::E
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/lib.dart::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -3546,9 +3778,20 @@ f() {
   E.a;
 }
 ''');
-    var node = result.findNode.prefixed('E.a;');
+    var node = result.findNode.receiverPropertyExtraction('E.a;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: E
+    element: <testLibrary>::@extension::E
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
@@ -3576,9 +3819,20 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -3605,9 +3859,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -3637,9 +3902,20 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -3669,9 +3945,20 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -3698,9 +3985,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@enum::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@enum::A
@@ -3727,9 +4025,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@enum::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@enum::A
@@ -3756,9 +4065,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extensionType::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
@@ -3785,9 +4105,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extensionType::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
@@ -3814,9 +4145,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@mixin::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@mixin::A
@@ -3843,9 +4185,20 @@ void f() {
   A.foo;
 }
 ''');
-    var node = result.findNode.prefixed('A.foo');
+    var node = result.findNode.receiverPropertyExtraction('A.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@mixin::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@mixin::A
@@ -3875,9 +4228,20 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('T.foo');
+    var node = result.findNode.receiverPropertyExtraction('T.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: T
+    element: <testLibrary>::@typeAlias::T
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: T
     element: <testLibrary>::@typeAlias::T
@@ -3907,9 +4271,20 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('T.foo');
+    var node = result.findNode.receiverPropertyExtraction('T.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: T
+    element: <testLibrary>::@typeAlias::T
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: T
     element: <testLibrary>::@typeAlias::T
@@ -4665,9 +5040,19 @@ extension E on C {
 
 f() => E.a;
 ''');
-    var node = result.findNode.prefixed('E.a;');
+    var node = result.findNode.receiverPropertyExtraction('E.a;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: E
+    element: <testLibrary>::@extension::E
+  operator: .
+  name: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E

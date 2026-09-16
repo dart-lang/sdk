@@ -1475,16 +1475,17 @@ void f((void Function(int),) r) {
 CallInvocation
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: PropertyAccess
-      target2: SimpleIdentifier
-        token: r
-        element: <testLibrary>::@function::f::@formalParameter::r
+    expression2: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: r
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::r
+          type: (void Function(int),)
         staticType: (void Function(int),)
       operator: .
-      propertyName: SimpleIdentifier
-        token: $1
-        element: <null>
-        staticType: void Function(int)
+      name: $1
+      resolution: RecordFieldReadResolution
+        type: void Function(int)
       staticType: void Function(int)
     rightParenthesis: )
     staticType: void Function(int)

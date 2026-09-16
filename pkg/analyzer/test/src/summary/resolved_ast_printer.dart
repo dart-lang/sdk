@@ -1644,6 +1644,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    _sink.writeln('ParsedNameAccess');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitParsedNameHead(ParsedNameHead node) {
     _sink.writeln('ParsedNameHead');
     _sink.withIndent(() {
@@ -2045,6 +2053,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('SpreadElement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _sink.writeln('StaticQualifier');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('element', node.element);
+      }
     });
   }
 

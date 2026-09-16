@@ -1477,6 +1477,14 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: c
+              components
+                ParsedNameAccess
+                  operator: .
+                  name: late
+          arguments(v1)
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: c
@@ -1516,6 +1524,14 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: c
+              components
+                ParsedNameAccess
+                  operator: .
+                  name: late
+          arguments(v1)
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: c
@@ -1693,7 +1709,14 @@ CompilationUnit
                       name: String
                       question: ?
                   question: ?
-                  thenExpression2: PrefixedIdentifier
+                  thenExpression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: o
+                    components
+                      ParsedNameAccess
+                        operator: .
+                        name: length
+                  thenExpression(v1): PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: o
                     period: .
@@ -1791,7 +1814,14 @@ CompilationUnit
                     type: NamedType
                       name: String
                   question: ?
-                  thenExpression2: PrefixedIdentifier
+                  thenExpression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: o
+                    components
+                      ParsedNameAccess
+                        operator: .
+                        name: length
+                  thenExpression(v1): PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: o
                     period: .
@@ -1866,12 +1896,13 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: PropertyAccess
                 target2: NullAssertionExpression
-                  operand: PrefixedIdentifier
-                    prefix: SimpleIdentifier
-                      token: g
-                    period: .
-                    identifier: SimpleIdentifier
-                      token: x
+                  operand: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: g
+                    components
+                      ParsedNameAccess
+                        operator: .
+                        name: x
                   operator: !
                 target(v1): PostfixExpression
                   operand: PrefixedIdentifier
@@ -2050,12 +2081,13 @@ Block
       expression2: ReceiverIndexExpression
         receiver: PropertyAccess
           target2: NullAssertionExpression
-            operand: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: foo
-              period: .
-              identifier: SimpleIdentifier
-                token: bar
+            operand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: foo
+              components
+                ParsedNameAccess
+                  operator: .
+                  name: bar
             operator: !
           target(v1): PostfixExpression
             operand: PrefixedIdentifier
@@ -2703,12 +2735,13 @@ Block
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: PrefixedIdentifier
-            prefix: SimpleIdentifier
-              token: foo
-            period: .
-            identifier: SimpleIdentifier
-              token: bar
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: foo
+            components
+              ParsedNameAccess
+                operator: .
+                name: bar
           operator: !
         leftBracket: [
         index: ParsedExpressionChain
@@ -2802,12 +2835,13 @@ Block
         receiver: NullAssertionExpression
           operand: ReceiverIndexExpression
             receiver: NullAssertionExpression
-              operand: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: foo
-                period: .
-                identifier: SimpleIdentifier
-                  token: bar
+              operand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: foo
+                components
+                  ParsedNameAccess
+                    operator: .
+                    name: bar
               operator: !
             leftBracket: [
             index: ParsedExpressionChain
@@ -3339,12 +3373,13 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: p
-                  period: .
-                  identifier: SimpleIdentifier
-                    token: y
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: p
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: y
                 operator: !
               operator: +
               rightOperand: IntegerLiteral
@@ -3436,12 +3471,13 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: g
-                  period: .
-                  identifier: SimpleIdentifier
-                    token: p
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: p
                 operator: !
               operator: +
               rightOperand: IntegerLiteral
@@ -3484,12 +3520,13 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: PropertyAccess
-                  target2: SimpleIdentifier
-                    token: g
-                  operator: ?.
-                  propertyName: SimpleIdentifier
-                    token: p
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedNameAccess
+                      operator: ?.
+                      name: p
                 operator: !
               operator: +
               rightOperand: IntegerLiteral

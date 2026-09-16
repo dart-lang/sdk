@@ -622,6 +622,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
+    // These getters are instance members. Static accesses have only a recovery
+    // element, so they do not reach the expression-receiver casts in the validators.
     var element = node.resolution?.element;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
@@ -1473,6 +1475,10 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         if (type?.isCompoundSubtype ?? false) {
           return;
         }
+      case ReceiverPropertyExtraction(receiver: Expression compound):
+        if (compound.staticType?.isCompoundSubtype ?? false) {
+          return;
+        }
       default:
     }
     _diagnosticReporter.report(diag.addressReceiver.at(errorNode));
@@ -1485,7 +1491,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var errorNode = node.name;
     _validateAddressPosition(node, errorNode);
     var extensionName = element.enclosingElement?.name;
-    _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
+    _validateAddressReceiver(
+      node,
+      extensionName,
+      node.receiver as Expression,
+      errorNode,
+    );
   }
 
   void _validateAllocate(CallInvocationImpl node) {
@@ -2390,7 +2401,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void _validateRefReceiverPropertyExtraction(
     ReceiverPropertyExtractionImpl node,
   ) {
-    var targetType = node.receiver.typeOrThrow;
+    var targetType = (node.receiver as ExpressionImpl).typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument

@@ -3295,7 +3295,14 @@ Block
   statements
     ExpressionStatement
       expression2: AsExpression
-        expression2: PrefixedIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: double
+          components
+            ParsedNameAccess
+              operator: .
+              name: nan
+        expression(v1): PrefixedIdentifier
           prefix: SimpleIdentifier
             token: double
           period: .

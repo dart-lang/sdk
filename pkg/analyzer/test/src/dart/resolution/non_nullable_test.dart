@@ -80,7 +80,10 @@ f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_local_interfaceType() async {
@@ -676,7 +679,10 @@ void f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_parameter_interfaceType() async {

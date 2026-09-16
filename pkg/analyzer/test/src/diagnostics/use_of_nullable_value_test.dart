@@ -1112,10 +1112,32 @@ m() {
 }
 ''');
 
-    var node = result.findNode.simple('isEven;');
+    var node = result.findNode.receiverPropertyExtraction('isEven;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: isEven
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: x@13
+      type: int?
+    staticType: int?
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    element: x@13
+    staticType: int?
+  period: .
+  identifier: SimpleIdentifier
+    token: isEven
+    element: dart:core::@class::int::@getter::isEven
+    staticType: bool
   element: dart:core::@class::int::@getter::isEven
   staticType: bool
 ''');
@@ -1344,8 +1366,8 @@ void f(A? a) {
   a?.foo.isEven;
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.propertyAccess('.isEven'), 'bool?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverPropertyExtraction('.isEven'), 'bool?');
   }
 
   test_operatorMinus_nonNullable() async {
@@ -1582,13 +1604,17 @@ m(A? a) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('a?.x; // 1');
-    var propertyAccess2 = result.findNode.prefixed('a.x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.prefix, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      'a?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      'a.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.identifier, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1613,13 +1639,17 @@ m(B b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('b.a?.x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('b.a.x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.target2, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      '?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      '.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1644,13 +1674,13 @@ m(B? b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target2, 'A');
-    assertType(propertyAccess2.target2, 'A');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A');
+    assertType(propertyAccess2.receiver, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1680,13 +1710,13 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.target2, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1716,17 +1746,19 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    var propertyAccess1t = propertyAccess1.target2 as PropertyAccess;
-    var propertyAccess2t = propertyAccess1.target2 as PropertyAccess;
-    assertType(propertyAccess1t.target2, 'B?');
-    assertType(propertyAccess2t.target2, 'B?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    var propertyAccess1t =
+        propertyAccess1.receiver as ReceiverPropertyExtraction;
+    var propertyAccess2t =
+        propertyAccess2.receiver as ReceiverPropertyExtraction;
+    assertType(propertyAccess1t.receiver, 'B?');
+    assertType(propertyAccess2t.receiver, 'B?');
     assertType(propertyAccess1t, 'A');
     assertType(propertyAccess2t, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');

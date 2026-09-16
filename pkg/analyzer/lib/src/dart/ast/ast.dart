@@ -18031,6 +18031,8 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///       | [ConditionalExpression] cascadeSection*
 ///       | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+// Expression remains stable while its InstanceReceiver supertype is experimental.
+// ignore: analyzer_public_api_experimental_inconsistency
 abstract final class Expression
     implements
         Argument,
@@ -29647,7 +29649,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
     var expression = switch (operand) {
       UnqualifiedNameExpressionImpl() => operand.simpleIdentifier,
       ImportPrefixedNameExpressionImpl() => operand.prefixedIdentifier,
-      ReceiverPropertyExtractionImpl() => operand.propertyAccess,
+      ReceiverPropertyExtractionImpl() => operand.v1Projection,
       CascadePropertyExtractionImpl() => operand.propertyAccess,
       _ => operand,
     };
@@ -32197,10 +32199,11 @@ sealed class InstanceDeclarationBody implements AstNode {
 /// such as `super` and extension overrides can also fill this role. Supported
 /// operations include property access, method or `call` invocation, indexing,
 /// and overloadable operators.
+@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class InstanceReceiver implements AstNode {}
+abstract final class InstanceReceiver implements NamedReceiver {}
 
-sealed class InstanceReceiverImpl extends AstNodeImpl
+sealed class InstanceReceiverImpl extends NamedReceiverImpl
     implements InstanceReceiver {}
 
 /// An integer literal expression.
@@ -38676,6 +38679,13 @@ sealed class NamedReadResolutionWithElementImpl extends NamedReadResolutionImpl
   NamedReadResolutionWithElementImpl();
 }
 
+/// A value receiver or static namespace before a named selection.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NamedReceiver implements AstNode {}
+
+sealed class NamedReceiverImpl extends AstNodeImpl implements NamedReceiver {}
+
 /// A named type, which can optionally include type arguments.
 ///
 ///     namedType ::=
@@ -41687,28 +41697,44 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
 /// A parser-only name whose value-producing interpretation requires lookup.
 ///
-/// This initial chain form contains a bare name. Resolution replaces it with
-/// a name expression or type literal before exposing the resolved AST.
+/// This chain form contains a name followed by named selectors. Resolution
+/// determines receiver roles and replaces the chain before exposing the
+/// resolved AST.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParsedExpressionChain implements Expression {
+  /// The named selectors following [head], in source order.
+  NodeList<ParsedNameAccess> get components;
+
+  /// The name that begins the chain.
   ParsedNameHead get head;
 }
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('head')],
+  childEntitiesOrder: [
+    GenerateNodeProperty('head'),
+    GenerateNodeProperty('components'),
+  ],
 )
 final class ParsedExpressionChainImpl extends ExpressionImpl
     implements ParsedExpressionChain {
   @generated
   ParsedNameHeadImpl _head;
 
-  SimpleIdentifierImpl? _simpleIdentifier;
+  @generated
+  @override
+  final NodeListImpl<ParsedNameAccessImpl> components = NodeListImpl._();
+
+  ExpressionImpl? _v1Projection;
 
   @generated
-  ParsedExpressionChainImpl({required ParsedNameHeadImpl head}) : _head = head {
+  ParsedExpressionChainImpl({
+    required ParsedNameHeadImpl head,
+    required List<ParsedNameAccessImpl> components,
+  }) : _head = head {
     _becomeParentOf2(head);
+    this.components._initialize(this, components);
   }
 
   @generated
@@ -41720,6 +41746,9 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   @generated
   @override
   Token get endToken {
+    if (components.endToken case var result?) {
+      return result;
+    }
     return head.endToken;
   }
 
@@ -41733,10 +41762,10 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   }
 
   @override
-  Precedence get precedence => Precedence.primary;
+  Precedence get precedence =>
+      components.isEmpty ? Precedence.primary : Precedence.postfix;
 
-  SimpleIdentifierImpl get simpleIdentifier => _simpleIdentifier ??=
-      SimpleIdentifierImpl.v1Projection(token: head.name, origin: this);
+  ExpressionImpl get v1Projection => _v1Projection ??= _createV1Projection();
 
   @generated
   @override
@@ -41750,7 +41779,9 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()..addNode('head', head);
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('head', head)
+    ..addNodeList('components', components);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -41778,6 +41809,11 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
     if (identical(head, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'head'.");
     }
+    if (components.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'components' because NodeList cannot be resized.",
+      );
+    }
     super.removeChild(oldNode);
   }
 
@@ -41786,6 +41822,9 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(head, oldNode)) {
       head = newNode as ParsedNameHeadImpl;
+      return;
+    }
+    if (components.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -41811,6 +41850,7 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     head.accept2(visitor);
+    components.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -41823,11 +41863,17 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ParsedNameHeadImpl)? visitHead,
+    void Function(NodeListImpl<ParsedNameAccessImpl>)? visitComponents,
   }) {
     if (visitHead != null) {
       visitHead(head);
     } else {
       head.accept2(visitor);
+    }
+    if (visitComponents != null) {
+      visitComponents(components);
+    } else {
+      components.accept2(visitor);
     }
   }
 
@@ -41843,6 +41889,149 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
     if (head._containsOffset(rangeOffset, rangeEnd)) {
       return head;
     }
+    if (components._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+
+  ExpressionImpl _createV1Projection() {
+    // PropertyAccessImpl requires a non-null origin to identify a V1 projection,
+    // so intermediate property accesses also use this chain as their origin.
+    // Their delegated staticType is null because the chain is unresolved.
+    // Identifier projection constructors do not require an origin.
+    ExpressionImpl result = SimpleIdentifierImpl.v1Projection(
+      token: head.name,
+      origin: components.isEmpty ? this : null,
+    );
+    for (var component in components) {
+      var identifier = SimpleIdentifierImpl.v1Projection(token: component.name);
+      if (result is SimpleIdentifierImpl &&
+          component.operator.type == TokenType.PERIOD) {
+        result = PrefixedIdentifierImpl.v1Projection(
+          prefix: result,
+          period: component.operator,
+          identifier: identifier,
+          origin: identical(component, components.last) ? this : null,
+        );
+      } else {
+        result = PropertyAccessImpl.v1ProjectionFromParsedChain(
+          this,
+          result,
+          component.operator,
+          identifier,
+        );
+      }
+    }
+    return result;
+  }
+}
+
+/// A named selector whose receiver role has not been resolved.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedNameAccess implements AstNode {
+  /// The selected name.
+  Token get name;
+
+  /// The `.` or `?.` separating this name from its receiver.
+  Token get operator;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class ParsedNameAccessImpl extends AstNodeImpl
+    implements ParsedNameAccess {
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedNameAccessImpl({required this.operator, required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return operator;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedNameAccess is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('operator', operator)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedNameAccess is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedNameAccess(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedNameAccess is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedNameAccess is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -43588,12 +43777,12 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   final Token period;
 
-  @generated
-  SimpleIdentifierImpl _identifier;
-
   AstNodeApi? _astNodeApiOverride;
 
   ExpressionImpl? _v1ProjectionOrigin;
+
+  @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
+  SimpleIdentifierImpl _identifier;
 
   @generated
   PrefixedIdentifierImpl({
@@ -43635,20 +43824,34 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   Element? get element {
-    return _identifier.element;
+    return identifier.element;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'The generator skips the custom identifier getter')
   @override
-  Token get endToken {
-    return identifier.endToken;
+  Token get endToken => identifier.endToken;
+
+  @DoNotGenerate(
+    reason:
+        'Copies the element and type from the V2 origin into the identifier',
+  )
+  @override
+  SimpleIdentifierImpl get identifier {
+    if (_v1ProjectionOrigin case ReceiverPropertyExtractionImpl origin) {
+      _identifier.element = origin._legacyReadElement;
+      // V1 keeps the member's type before implicit function instantiation on
+      // the identifier. An unreachable read instead has type Never on both
+      // the identifier and the containing expression.
+      _identifier.setPseudoExpressionStaticType(
+        origin.staticType is NeverType
+            ? origin.staticType
+            : origin.resolution?.type ?? origin.staticType,
+      );
+    }
+    return _identifier;
   }
 
-  @generated
-  @override
-  SimpleIdentifierImpl get identifier => _identifier;
-
-  @generated
+  @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
   set identifier(SimpleIdentifierImpl identifier) {
     _identifier = _becomeParentOf12(identifier);
   }
@@ -43680,6 +43883,12 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   set prefix(SimpleIdentifierImpl prefix) {
     _prefix = _becomeParentOf12(prefix);
   }
+
+  @override
+  TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
+    ReceiverPropertyExtractionImpl origin => origin.staticType,
+    _ => super.staticType,
+  };
 
   @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
   @override
@@ -44866,6 +45075,18 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
+  PropertyAccessImpl.v1ProjectionFromParsedChain(
+    ParsedExpressionChainImpl origin,
+    ExpressionImpl target,
+    Token operator,
+    SimpleIdentifierImpl propertyName,
+  ) : _target2 = target,
+      _operator = operator,
+      _propertyName = propertyName,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
   PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(
     ReceiverPropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
@@ -45003,7 +45224,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ReceiverPropertyAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.receiver,
     ),
-    ReceiverPropertyExtractionImpl origin => V1Projection.toV1Expression(
+    ReceiverPropertyExtractionImpl origin => V1Projection.toV1NamedReceiver(
       origin.receiver,
     ),
     _ => _target2,
@@ -46139,21 +46360,18 @@ final class ReceiverPropertyAssignmentTargetImpl
   }
 }
 
-/// A property value selected on an explicitly written expression receiver.
+/// A property value selected on an explicitly written receiver.
 ///
-/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
-/// at a literal, parenthesized expression, explicit instance creation,
-/// ordinary index expression, or explicit `this`. Other receiver forms and
-/// language versions without constructor tear-offs remain on their existing
-/// AST shapes. Cascade selections use [CascadePropertyExtraction].
+/// The receiver is an expression or a static qualifier. Cascade selections use
+/// [CascadePropertyExtraction].
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
   /// The property access operator.
   Token get operator;
 
-  /// The expression whose value receives the property selection.
-  Expression get receiver;
+  /// The value or static namespace that receives the property selection.
+  NamedReceiver get receiver;
 }
 
 @GenerateNodeImpl(
@@ -46167,17 +46385,17 @@ abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
 final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     implements ReceiverPropertyExtraction {
   @generated
-  ExpressionImpl _receiver;
+  NamedReceiverImpl _receiver;
 
   @generated
   @override
   final Token operator;
 
-  PropertyAccessImpl? _propertyAccess;
+  ExpressionImpl? _v1Projection;
 
   @generated
   ReceiverPropertyExtractionImpl({
-    required ExpressionImpl receiver,
+    required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
   }) : _receiver = receiver {
@@ -46196,18 +46414,56 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     return name;
   }
 
-  /// The cached V1 compatibility projection for this expression.
-  PropertyAccessImpl get propertyAccess => _propertyAccess ??=
-      PropertyAccessImpl.v1ProjectionFromReceiverExtraction(this);
-
   @generated
   @override
-  ExpressionImpl get receiver => _receiver;
+  NamedReceiverImpl get receiver => _receiver;
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
+  set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _propertyAccess?._attachV1Children();
+    if (_v1Projection case PropertyAccessImpl projection) {
+      projection._attachV1Children();
+    }
+  }
+
+  ExpressionImpl get v1Projection {
+    var target = V1Projection.toV1NamedReceiver(receiver);
+    var receiverType = switch (receiver) {
+      ExpressionImpl(:var staticType) => staticType,
+      _ => null,
+    };
+    while (receiverType is TypeParameterTypeImpl) {
+      receiverType = receiverType.bound;
+    }
+    var previous = _v1Projection;
+    ExpressionImpl result;
+    // V1 uses PropertyAccess for record receivers, including record-bounded
+    // type parameters, even when the syntax would allow PrefixedIdentifier.
+    if (operator.type == TokenType.PERIOD &&
+        target is SimpleIdentifierImpl &&
+        receiverType is! RecordType) {
+      if (previous is PrefixedIdentifierImpl) {
+        return previous;
+      }
+      result = PrefixedIdentifierImpl.v1Projection(
+        prefix: target,
+        period: operator,
+        identifier: SimpleIdentifierImpl.v1Projection(token: name),
+        origin: this,
+      );
+    } else {
+      if (previous is PropertyAccessImpl) {
+        return previous;
+      }
+      result = PropertyAccessImpl.v1ProjectionFromReceiverExtraction(this);
+    }
+    // Internal AST construction can attach a projection before the receiver
+    // type is known. Preserve that attachment when resolution changes its shape.
+    if (previous != null) {
+      result._parent = previous._parent;
+      previous._parent = null;
+    }
+    return _v1Projection = result;
   }
 
   @generated
@@ -46240,12 +46496,12 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyExtraction(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
     assert(identical(receiver, child));
-    return true;
+    return receiver is ExpressionImpl;
   }
 
   @generated
@@ -46261,7 +46517,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
+      receiver = newNode as NamedReceiverImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -46296,7 +46552,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
+    void Function(NamedReceiverImpl)? visitReceiver,
   }) {
     if (visitReceiver != null) {
       visitReceiver(receiver);
@@ -50605,6 +50861,201 @@ sealed class StaticInvocationResolutionImpl
 
   @override
   FunctionTypeImpl get invokeType;
+}
+
+/// A type or named extension used as a namespace for static member lookup.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class StaticQualifier implements NamedReceiver {
+  /// The interface, type alias, or named extension denoted by [name].
+  ///
+  /// This is null before the qualifier has been resolved.
+  Element? get element;
+
+  /// The import prefix, or null for an unprefixed qualifier.
+  ImportPrefixReference? get importPrefix;
+
+  /// The name of the type or extension used as a static namespace.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class StaticQualifierImpl extends NamedReceiverImpl
+    implements StaticQualifier {
+  @generated
+  ImportPrefixReferenceImpl? _importPrefix;
+
+  @generated
+  @override
+  final Token name;
+
+  @override
+  Element? element;
+
+  ScopeLookupResult? scopeLookupResult;
+
+  IdentifierImpl? _v1Projection;
+
+  @generated
+  StaticQualifierImpl({
+    required ImportPrefixReferenceImpl? importPrefix,
+    required this.name,
+  }) : _importPrefix = importPrefix {
+    _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (importPrefix case var importPrefix?) {
+      return importPrefix.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl? get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  IdentifierImpl get v1Projection {
+    if (_v1Projection case var result?) {
+      return result;
+    }
+    var identifier = SimpleIdentifierImpl.v1Projection(token: name)
+      ..element = element;
+    return _v1Projection = switch (importPrefix) {
+      var prefix? => PrefixedIdentifierImpl.v1Projection(
+        prefix: SimpleIdentifierImpl.v1Projection(token: prefix.name)
+          ..element = prefix.element,
+        period: prefix.period,
+        identifier: identifier,
+      ),
+      _ => identifier,
+    };
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('StaticQualifier is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('StaticQualifier is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitStaticQualifier(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('StaticQualifier is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+  }) {
+    if (importPrefix case var importPrefix?) {
+      if (visitImportPrefix != null) {
+        visitImportPrefix(importPrefix);
+      } else {
+        importPrefix.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('StaticQualifier is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    return null;
+  }
 }
 
 /// A string interpolation literal.
@@ -55998,6 +56449,13 @@ enum V1Projection {
     return _toV1Expression(node, createIfAbsent: true)!;
   }
 
+  static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
+    if (node is StaticQualifierImpl) {
+      return node.v1Projection;
+    }
+    return toV1Expression(node as ExpressionImpl);
+  }
+
   static RecordLiteralFieldImpl toV1RecordLiteralField(
     RecordLiteralFieldImpl node,
   ) {
@@ -56022,7 +56480,7 @@ enum V1Projection {
     required bool createIfAbsent,
   }) {
     if (node is ParsedExpressionChainImpl) {
-      return createIfAbsent ? node.simpleIdentifier : node._simpleIdentifier;
+      return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
     // Some V1 forms fold instantiation into the operand. Both V2 nodes then
     // project to the same V1 expression, including when queried independently.
@@ -56138,7 +56596,7 @@ enum V1Projection {
       return createIfAbsent ? node.methodInvocation : node._methodInvocation;
     }
     if (node is ReceiverPropertyExtractionImpl) {
-      return createIfAbsent ? node.propertyAccess : node._propertyAccess;
+      return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
     if (node is UnaryOperatorInvocationImpl) {
       return createIfAbsent ? node.prefixExpression : node._prefixExpression;

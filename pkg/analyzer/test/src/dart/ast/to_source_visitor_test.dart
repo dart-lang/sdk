@@ -3437,6 +3437,26 @@ void f(x) {
     _assertSource('(3)', node);
   }
 
+  void test_visitParsedExpressionChain_nullAwareProperty() {
+    var code = 'foo?.bar';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
+  }
+
+  void test_visitParsedExpressionChain_property() {
+    var code = 'foo.bar';
+    var parseResult = parseTestCodeWithDiagnostics('''
+int f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
+  }
+
   void test_visitPartDirective() {
     var code = "part 'a.dart';";
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -3593,17 +3613,6 @@ void f(x) {
     _assertSource('true!', node);
   }
 
-  void test_visitPrefixedIdentifier() {
-    var code = 'foo.bar';
-    var parseResult = parseTestCodeWithDiagnostics('''
-int f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singlePrefixedIdentifier;
-    _assertSource(code, node);
-  }
-
   void test_visitPrefixExpression_precedence() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !(a == b);
@@ -3655,15 +3664,6 @@ class A() {
 }
 ''');
     var node = parseResult.findNode.singlePrimaryConstructorBody;
-    _assertSource(code, node);
-  }
-
-  void test_visitPropertyAccess_conditional() {
-    var code = 'foo?.bar';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singlePropertyAccess;
     _assertSource(code, node);
   }
 

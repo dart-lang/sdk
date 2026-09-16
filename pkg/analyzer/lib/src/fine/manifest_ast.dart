@@ -508,6 +508,12 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation node) {
     node.visitChildren2(this);
   }

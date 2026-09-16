@@ -1385,6 +1385,20 @@ void f() {
     );
   }
 
+  void test_parsedExpressionChain() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a.foo;
+  b.bar;
+}
+''');
+    _assertReplacementForChildren<ParsedExpressionChain>(
+      destination: parseResult.findNode.parsedExpressionChain('a.foo'),
+      source: parseResult.findNode.parsedExpressionChain('b.bar'),
+      childAccessors: [(node) => node.head, (node) => node.components.single],
+    );
+  }
+
   void test_partDirective() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1457,20 +1471,6 @@ void f() {
       destination: parseResult.findNode.incrementOrDecrement('a++'),
       source: parseResult.findNode.incrementOrDecrement('b++'),
       childAccessors: [(node) => node.target],
-    );
-  }
-
-  void test_prefixedIdentifier() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo;
-  b.bar;
-}
-''');
-    _assertReplacementForChildren<PrefixedIdentifier>(
-      destination: parseResult.findNode.prefixed('a.foo'),
-      source: parseResult.findNode.prefixed('b.bar'),
-      childAccessors: [(node) => node.prefix, (node) => node.identifier],
     );
   }
 

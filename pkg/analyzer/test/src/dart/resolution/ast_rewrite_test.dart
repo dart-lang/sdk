@@ -588,17 +588,19 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallTearOff('c.c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallTearOff
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
-    period: .
-    identifier: SimpleIdentifier
-      token: c
+    operator: .
+    name: c
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      staticType: C
-    element: <testLibrary>::@class::C::@getter::c
+      invokeType: C Function()
+      type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
@@ -635,24 +637,27 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallTearOff('c.c.c');
     assertResolvedNodeText(node, r'''
 ImplicitCallTearOff
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::c
+          type: C
         staticType: C
-      period: .
-      identifier: SimpleIdentifier
-        token: c
+      operator: .
+      name: c
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::c
-        staticType: C
-      element: <testLibrary>::@class::C::@getter::c
+        invokeType: C Function()
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: c
+    name: c
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      staticType: C
+      invokeType: C Function()
+      type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)

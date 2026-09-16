@@ -2198,6 +2198,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    _runSubscriptions(node, _registry._forParsedNameAccess);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitParsedNameHead(ParsedNameHead node) {
     _runSubscriptions(node, _registry._forParsedNameHead);
     node.visitChildren2(this);
@@ -2440,6 +2447,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitSpreadElement(SpreadElement node) {
     _runSubscriptions(node, _registry._forSpreadElement);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _runSubscriptions(node, _registry._forStaticQualifier);
     node.visitChildren2(this);
   }
 
@@ -4812,6 +4826,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParsedExpressionChain>> _forParsedExpressionChain =
       [];
 
+  final List<_Subscription2<ParsedNameAccess>> _forParsedNameAccess = [];
+
   final List<_Subscription2<ParsedNameHead>> _forParsedNameHead = [];
 
   final List<_Subscription2<PartDirective>> _forPartDirective = [];
@@ -4904,6 +4920,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<SimpleStringLiteral>> _forSimpleStringLiteral = [];
 
   final List<_Subscription2<SpreadElement>> _forSpreadElement = [];
+
+  final List<_Subscription2<StaticQualifier>> _forStaticQualifier = [];
 
   final List<_Subscription2<StringInterpolation>> _forStringInterpolation = [];
 
@@ -6171,6 +6189,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forParsedNameAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addParsedNameHead(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forParsedNameHead.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -6478,6 +6502,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addSpreadElement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forSpreadElement.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addStaticQualifier(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forStaticQualifier.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

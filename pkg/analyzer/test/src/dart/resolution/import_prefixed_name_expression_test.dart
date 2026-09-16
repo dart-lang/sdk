@@ -422,9 +422,22 @@ void f() {
 // [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
 ''');
-    assertResolvedNodeText(result.findNode.propertyAccess('p?.value'), r'''
-PropertyAccess
-  target2: SimpleIdentifier
+    assertResolvedNodeText(
+      result.findNode.receiverPropertyExtraction('p?.value'),
+      r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: p
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <testLibraryFragment>::@prefix::p
+    staticType: InvalidType
+  operator: ?.
+  name: value
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: p
     element: <testLibraryFragment>::@prefix::p
     staticType: InvalidType
@@ -434,7 +447,8 @@ PropertyAccess
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
-''');
+''',
+    );
   }
 
   test_receiver() async {

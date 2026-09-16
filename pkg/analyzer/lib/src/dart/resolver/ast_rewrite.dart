@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -264,25 +265,79 @@ class AstRewriter {
     ParsedExpressionChainImpl node,
   ) {
     var name = node.head.name;
-    var element = nameScope.lookup(name.lexeme).getter;
-    ExpressionImpl expression;
-    switch (element) {
-      case DynamicElementImpl():
-      case InterfaceElementImpl():
-      case NeverElementImpl():
-      case TypeAliasElementImpl():
-      case TypeParameterElementImpl():
-        expression = TypeLiteralImpl(
-          type: NamedTypeImpl(
-            importPrefix: null,
-            name: name,
-            typeArguments: null,
-            question: null,
-          ),
-        );
-      default:
-        expression = UnqualifiedNameExpressionImpl(name: name);
+    var lookupResult = nameScope.lookup(name.lexeme);
+    var element = lookupResult.getter;
+    ImportPrefixReferenceImpl? importPrefix;
+    var componentIndex = 0;
+    if (element is PrefixElement && node.components.isNotEmpty) {
+      var component = node.components.first;
+      // Look up the member even for an invalid prefix access, so that the
+      // import is still recorded as used.
+      var prefixedLookupResult = element.scope.lookup(component.name.lexeme);
+      if (component.operator.type == TokenType.PERIOD) {
+        componentIndex++;
+        importPrefix = ImportPrefixReferenceImpl(
+          name: name,
+          period: component.operator,
+        )..element = element;
+        name = component.name;
+        lookupResult = prefixedLookupResult;
+        element = lookupResult.getter;
+      }
     }
+
+    NamedReceiverImpl receiver;
+    if (componentIndex < node.components.length &&
+        (element is InterfaceElement ||
+            element is TypeAliasElement &&
+                (element.aliasedType is InterfaceType ||
+                    // Function-type aliases have no static members, but must
+                    // remain qualifiers so accesses report
+                    // undefinedGetterOnFunctionType.
+                    element.aliasedType is FunctionType) ||
+            element is ExtensionElement)) {
+      receiver = StaticQualifierImpl(importPrefix: importPrefix, name: name)
+        ..element = element
+        ..scopeLookupResult = lookupResult;
+    } else {
+      receiver = _parsedNameExpression(importPrefix, name, element);
+    }
+
+    for (; componentIndex < node.components.length; componentIndex++) {
+      var component = node.components[componentIndex];
+      if (receiver is StaticQualifierImpl) {
+        var interfaceElement = switch (receiver.element) {
+          InterfaceElement element => element,
+          TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+          _ => null,
+        };
+        var constructor = component.name.lexeme == 'new'
+            ? interfaceElement?.unnamedConstructor
+            : interfaceElement?.getNamedConstructor(component.name.lexeme);
+        if (constructor != null) {
+          receiver = ConstructorTearOffImpl(
+            typeReference: ConstructorTypeReferenceImpl(
+              importPrefix: receiver.importPrefix,
+              name: receiver.name,
+              typeArguments: null,
+            ),
+            selector: ConstructorSelectorImpl.v2(
+              period: component.operator,
+              name2: component.name,
+            ),
+          );
+          continue;
+        }
+      }
+      receiver = ReceiverPropertyExtractionImpl(
+        receiver: receiver,
+        operator: component.operator,
+        name: component.name,
+      );
+    }
+    // A static qualifier is only created with a remaining selector. Processing
+    // that selector always produces a value expression.
+    var expression = receiver as ExpressionImpl;
     node.replaceWith(expression);
     return expression;
   }
@@ -584,6 +639,36 @@ class AstRewriter {
       return parent.isInValueExpressionSlot(node);
     }
     return false;
+  }
+
+  ExpressionImpl _parsedNameExpression(
+    ImportPrefixReferenceImpl? importPrefix,
+    Token name,
+    Element? element,
+  ) {
+    switch (element) {
+      case DynamicElementImpl():
+      case InterfaceElementImpl():
+      case NeverElementImpl():
+      case TypeAliasElementImpl():
+      case TypeParameterElementImpl():
+        return TypeLiteralImpl(
+          type: NamedTypeImpl(
+            importPrefix: importPrefix,
+            name: name,
+            typeArguments: null,
+            question: null,
+          ),
+        );
+      default:
+        if (importPrefix != null) {
+          return ImportPrefixedNameExpressionImpl(
+            importPrefix: importPrefix,
+            name: name,
+          );
+        }
+        return UnqualifiedNameExpressionImpl(name: name);
+    }
   }
 
   ConstructorInvocation _toConstructorInvocation_prefix_type({

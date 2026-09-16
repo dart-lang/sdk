@@ -777,6 +777,9 @@ abstract class AstVisitor2<R> {
   R? visitParsedExpressionChain(ParsedExpressionChain node);
 
   @experimental
+  R? visitParsedNameAccess(ParsedNameAccess node);
+
+  @experimental
   R? visitParsedNameHead(ParsedNameHead node);
 
   R? visitPartDirective(PartDirective node);
@@ -866,6 +869,9 @@ abstract class AstVisitor2<R> {
   R? visitSimpleStringLiteral(SimpleStringLiteral node);
 
   R? visitSpreadElement(SpreadElement node);
+
+  @experimental
+  R? visitStaticQualifier(StaticQualifier node);
 
   R? visitStringInterpolation(StringInterpolation node);
 

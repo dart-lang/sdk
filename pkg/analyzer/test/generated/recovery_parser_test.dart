@@ -237,12 +237,13 @@ var v = a.b[];
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-    period: .
-    identifier: SimpleIdentifier
-      token: b
+  receiver: ParsedExpressionChain
+    head: ParsedNameHead
+      name: a
+    components
+      ParsedNameAccess
+        operator: .
+        name: b
   leftBracket: [
   index: SimpleIdentifier
     token: <empty> <synthetic>

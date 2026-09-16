@@ -1519,6 +1519,8 @@ class AstBinaryReader {
         return _readSimpleStringLiteral();
       case AstNodeTag.SpreadElement:
         return _readSpreadElement();
+      case AstNodeTag.StaticQualifier:
+        return _readStaticQualifier();
       case AstNodeTag.StringInterpolation:
         return _readStringInterpolation();
       case AstNodeTag.SuperConstructorInvocation:
@@ -1707,7 +1709,7 @@ class AstBinaryReader {
   }
 
   ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
-    var receiver = _readNode() as ExpressionImpl;
+    var receiver = _readNode() as NamedReceiverImpl;
     var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var name = _readStringReference();
     var node = ReceiverPropertyExtractionImpl(
@@ -1927,6 +1929,15 @@ class AstBinaryReader {
           : Tokens.periodPeriodPeriod(),
       expression2: expression,
     );
+  }
+
+  StaticQualifierImpl _readStaticQualifier() {
+    var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
+    var name = _readStringReference();
+    return StaticQualifierImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, name, -1),
+    )..element = _reader.readElement();
   }
 
   StringInterpolation _readStringInterpolation() {

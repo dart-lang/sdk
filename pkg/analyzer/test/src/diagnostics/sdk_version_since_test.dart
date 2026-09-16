@@ -855,9 +855,22 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: dart:foo::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a

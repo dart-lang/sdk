@@ -1523,6 +1523,15 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (node.constructorSelector case var selector?) {

@@ -512,7 +512,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return switch (node) {
       IncrementOrDecrementExpression(:var element) => element,
       Identifier() => _visitIdentifier(node),
+      ReceiverPropertyExtraction(
+        resolution: FunctionCallTearOffResolution(),
+        :var receiver,
+      ) =>
+        receiver.accept2(this),
       NameExpression(:var resolution) => resolution?.elementOrRecovery,
+      StaticQualifier(:var element) => element,
       StringLiteral() => _visitStringLiteral(node),
       _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
     };

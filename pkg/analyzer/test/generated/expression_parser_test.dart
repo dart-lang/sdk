@@ -729,7 +729,14 @@ var v = x.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedNameAccess
+      operator: .
+      name: y
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
   period: .
@@ -769,8 +776,15 @@ var v = x?.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedNameAccess
+      operator: ?.
+      name: y
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: x
   operator: ?.
   propertyName: SimpleIdentifier
@@ -823,7 +837,14 @@ var v = x.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedNameAccess
+      operator: .
+      name: x
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: x
   period: .
@@ -877,8 +898,15 @@ var v = x?.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedNameAccess
+      operator: ?.
+      name: x
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: x
   operator: ?.
   propertyName: SimpleIdentifier
@@ -4177,7 +4205,14 @@ var v = a.b;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: a
+  components
+    ParsedNameAccess
+      operator: .
+      name: b
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
   period: .

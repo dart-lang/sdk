@@ -2874,7 +2874,23 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       AsExpression
-        expression2: PrefixedIdentifier
+        expression2: ReceiverPropertyExtraction
+          receiver: UnqualifiedNameExpression
+            name: values
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::test::@formalParameter::values
+              type: Iterable<dynamic>
+            staticType: Iterable<dynamic>
+          operator: .
+          name: first
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::Iterable::@getter::first
+              substitution: {T: dynamic}
+            invokeType: dynamic Function()
+            type: dynamic
+          staticType: dynamic
+        expression(v1): PrefixedIdentifier
           prefix: SimpleIdentifier
             token: values
             element: <testLibrary>::@function::test::@formalParameter::values

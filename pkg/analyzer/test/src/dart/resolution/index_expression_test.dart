@@ -1629,16 +1629,19 @@ int Function(int)? f(B? b) => b?.a[0];
     var node = result.findNode.implicitFunctionInstantiation('b?.a[0]');
     assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
   operand: ReceiverIndexExpression
-    receiver: PropertyAccess
-      target2: SimpleIdentifier
-        token: b
-        element: <testLibrary>::@function::f::@formalParameter::b
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: B?
         staticType: B?
       operator: ?.
-      propertyName: SimpleIdentifier
-        token: a
+      name: a
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        staticType: A
+        invokeType: A Function()
+        type: A
       staticType: A
     leftBracket: [
     index: IntegerLiteral

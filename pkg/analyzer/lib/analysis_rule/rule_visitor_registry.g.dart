@@ -965,6 +965,9 @@ abstract class RuleVisitorRegistry2 {
   void addParsedExpressionChain(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
   void addParsedNameHead(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPartDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1094,6 +1097,9 @@ abstract class RuleVisitorRegistry2 {
   void addSimpleStringLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addSpreadElement(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addStaticQualifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addStringInterpolation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

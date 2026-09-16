@@ -1760,7 +1760,14 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: PrefixedIdentifier
+  condition2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: b
+    components
+      ParsedNameAccess
+        operator: .
+        name: x
+  condition(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: b
     period: .
@@ -1799,7 +1806,14 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: PrefixedIdentifier
+  condition2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: a
+    components
+      ParsedNameAccess
+        operator: .
+        name: b
+  condition(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
@@ -1830,14 +1844,28 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: PrefixedIdentifier
+  condition2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: a
+    components
+      ParsedNameAccess
+        operator: .
+        name: b
+  condition(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
     identifier: SimpleIdentifier
       token: b
   question: ?
-  thenExpression2: PrefixedIdentifier
+  thenExpression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: x
+    components
+      ParsedNameAccess
+        operator: .
+        name: y
+  thenExpression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
     period: .

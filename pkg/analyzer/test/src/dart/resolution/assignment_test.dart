@@ -1565,16 +1565,19 @@ test(A? a, String s) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: PropertyAccess
-      target2: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::test::@formalParameter::a
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::test::@formalParameter::a
+          type: A?
         staticType: A?
       operator: ?.
-      propertyName: SimpleIdentifier
-        token: b
+      name: b
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        staticType: B
+        invokeType: B Function()
+        type: B
       staticType: B
     leftBracket: [
     index: UnqualifiedNameExpression
@@ -1651,16 +1654,19 @@ test(A? a, String s) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: PropertyAccess
-      target2: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@function::test::@formalParameter::a
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::test::@formalParameter::a
+          type: A?
         staticType: A?
       operator: ?.
-      propertyName: SimpleIdentifier
-        token: b
+      name: b
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        staticType: B
+        invokeType: B Function()
+        type: B
       staticType: B
     leftBracket: [
     index: UnqualifiedNameExpression

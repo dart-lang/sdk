@@ -704,6 +704,12 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedRead(node.name, node.resolution);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -741,6 +747,16 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       }
       references.add(MatchInfo(node.offset, node.length, kind));
     }
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+    node.importPrefix?.accept2(this);
   }
 
   @override

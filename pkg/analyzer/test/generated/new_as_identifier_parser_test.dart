@@ -600,7 +600,7 @@ ConstructorDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new;
 ''');
-    var node = parseResult.findNode.singlePrefixedIdentifier;
+    var node = parseResult.findNodeV1.singlePrefixedIdentifier;
     assertParsedNodeText(node, r'''
 PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -705,10 +705,10 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNodeV1.singlePropertyAccess;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target2: PrefixedIdentifier
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .

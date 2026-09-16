@@ -133,16 +133,19 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 LogicalNot
   operator: !
-  operand: PropertyAccess
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: bool
+      invokeType: bool Function()
+      type: bool
     staticType: bool?
   staticType: bool
 V1: PrefixExpression
@@ -642,16 +645,19 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: PropertyAccess
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: int
+      invokeType: int Function()
+      type: int
     staticType: int?
   unaryOperator: negate
   element: dart:core::@class::int::@method::unary-
@@ -1794,16 +1800,19 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: ~
-  operand: PropertyAccess
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: int
+      invokeType: int Function()
+      type: int
     staticType: int?
   unaryOperator: bitwiseComplement
   element: dart:core::@class::int::@method::~
