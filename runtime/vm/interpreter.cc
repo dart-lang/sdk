@@ -1769,6 +1769,33 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
   }
 }
 
+// Allocate an _Int32x4 box for the given simd value and put it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateInt32x4(Thread* thread,
+                                                simd128_value_t value,
+                                                const KBCInstr* pc,
+                                                ObjectPtr* FP,
+                                                ObjectPtr* SP) {
+  Int32x4Ptr result;
+  if (TryAllocate(thread, kInt32x4Cid, Int32x4::InstanceSize(),
+                  reinterpret_cast<ObjectPtr*>(&result))) {
+    value.writeTo(result->untag()->value_);
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate_group()->object_store()->int32x4_class();
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    value.writeTo(Int32x4::RawCast(SP[0])->untag()->value_);
+    return true;
+  }
+}
+
 // Allocate a _List with the given type arguments and length and put it into
 // SP[0]. Returns false on exception.
 bool Interpreter::AllocateArray(Thread* thread,

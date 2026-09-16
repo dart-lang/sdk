@@ -5323,8 +5323,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4AnyTrue)                                                         \
-  ____(Int32x4AnyTrue)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
