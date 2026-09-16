@@ -531,8 +531,11 @@ void main() {
       );
     });
     test('loadClassId', () {
-      asm.loadClassId(R0, R0);
-      asm.loadClassId(R1, R5);
+      asm.loadClassId(R0, R0, canBeSmi: false);
+      asm.loadClassId(R1, R5, canBeSmi: false);
+      asm.loadClassId(R1, R0, canBeSmi: true);
+      asm.loadClassId(R0, R0, canBeSmi: true);
+      asm.loadClassId(R1, R1, canBeSmi: true, scratch: R2);
       final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
       final highBit =
           vmOffsets.UntaggedObject_kClassIdTagPos +
@@ -542,20 +545,20 @@ void main() {
         'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
-        'ubfm r1, r1, #$lowBit, #$highBit\n',
-      );
-    });
-    test('loadClassIdMayBeSmi', () {
-      asm.loadClassIdMayBeSmi(R1, R0);
-      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
-      final highBit =
-          vmOffsets.UntaggedObject_kClassIdTagPos +
-          vmOffsets.UntaggedObject_kClassIdTagSize -
-          1;
-      expectDisassembly(
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
         'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r0, #${smiBit}, +12\n'
         'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        'mov r17, r0\n'
+        'movz r0, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r17, #${smiBit}, +12\n'
+        'ldr r0, [r17, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        'mov r2, r1\n'
+        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +12\n'
+        'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n',
       );
     });
