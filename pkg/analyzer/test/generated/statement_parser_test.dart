@@ -1369,8 +1369,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1421,8 +1422,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1455,8 +1457,9 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: UnqualifiedNameAssignmentTarget
-            name: i
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: i
           operator: --
           operation: decrement
           position: postfix
@@ -1483,8 +1486,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1517,8 +1521,9 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: UnqualifiedNameAssignmentTarget
-            name: i
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: i
           operator: --
           operation: decrement
           position: postfix
@@ -1545,8 +1550,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1843,8 +1849,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1903,8 +1910,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1972,14 +1980,16 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: j
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: j
             operator: --
             operation: decrement
             position: postfix
@@ -2051,14 +2061,16 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: j
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: j
             operator: --
             operation: decrement
             position: postfix
@@ -2106,8 +2118,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2151,8 +2164,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2188,8 +2202,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2225,8 +2240,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2497,32 +2513,54 @@ Block
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
-        expression2: MethodInvocation
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: f
+          components
+            ParsedArguments
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                arguments(v1)
+                  SimpleIdentifier
+                    token: x
+                rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: x
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: x
             rightParenthesis: )
         semicolon: ;
       elseKeyword: else
       elseStatement: ExpressionStatement
-        expression2: MethodInvocation
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: f
+          components
+            ParsedArguments
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                arguments(v1)
+                  SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: y
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: y
             rightParenthesis: )
@@ -2579,16 +2617,27 @@ Block
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
-        expression2: MethodInvocation
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: f
+          components
+            ParsedArguments
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                arguments(v1)
+                  SimpleIdentifier
+                    token: x
+                rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: x
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -3063,7 +3112,15 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: f
+        components
+          ParsedArguments
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: f
         argumentList: ArgumentList
@@ -3249,8 +3306,19 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: library
+        components
+          ParsedNameAccess
+            operator: .
+            name: getName
+          ParsedArguments
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: SimpleIdentifier
           token: library
         operator: .
         methodName: SimpleIdentifier
@@ -3295,7 +3363,14 @@ Block
   statements
     ExpressionStatement
       expression2: AsExpression
-        expression2: PrefixedIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: double
+          components
+            ParsedNameAccess
+              operator: .
+              name: nan
+        expression(v1): PrefixedIdentifier
           prefix: SimpleIdentifier
             token: double
           period: .
@@ -4426,7 +4501,15 @@ Block
           colon: :
           statements
             ExpressionStatement
-              expression2: MethodInvocation
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: f
+                components
+                  ParsedArguments
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: f
                 argumentList: ArgumentList
@@ -4439,7 +4522,15 @@ Block
                   name: l1
                   colon: :
               statement: ExpressionStatement
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList

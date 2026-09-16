@@ -1531,8 +1531,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1594,8 +1595,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1645,8 +1647,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1703,8 +1706,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1764,8 +1768,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1825,8 +1830,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1886,8 +1892,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1957,8 +1964,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -2027,8 +2035,9 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: UnqualifiedNameAssignmentTarget
-                    name: f
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: f
                   operator: ++
                   operation: increment
                   position: postfix

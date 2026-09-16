@@ -185,10 +185,24 @@ V1: PropertyAccess
 ''');
     // But the promotion doesn't last beyond the cascade expression, due to the
     // implicit control flow join when the `?..` stops taking effect.
-    var node = result.findNode.propertyAccess('c?._field');
+    var node = result.findNode.receiverPropertyExtraction('c?._field');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C?
+    staticType: C?
+  operator: ?.
+  name: _field
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_field
+    invokeType: Object? Function()
+    type: Object?
+  staticType: Object?
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C?
@@ -227,9 +241,23 @@ void g(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::g::@formalParameter::c
@@ -701,9 +729,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -731,9 +773,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('.foo;');
+    var node = result.findNode.receiverPropertyExtraction('.foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -761,9 +817,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -902,9 +972,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -954,9 +1038,23 @@ void f(E e) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: e
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::e
+      type: E
+    staticType: E
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::E::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
     element: <testLibrary>::@function::f::@formalParameter::e
@@ -981,9 +1079,23 @@ void f(A a) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('a._it;');
+    var node = result.findNode.receiverPropertyExtraction('a._it;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: _it
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::_it
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1009,9 +1121,23 @@ void f(C c) {
   c._field;
 }
 ''');
-    var node = result.findNode.prefixed('c._field;');
+    var node = result.findNode.receiverPropertyExtraction('c._field;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _field
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_field
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1059,9 +1185,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1108,9 +1248,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1147,9 +1301,23 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.prefixed('c._foo;');
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c

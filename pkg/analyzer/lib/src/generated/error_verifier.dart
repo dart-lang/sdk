@@ -702,6 +702,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
@@ -2219,11 +2221,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         .tryCast<MultiplyDefinedElementImpl>();
     _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        node.operator,
-        kind: _NullAwareKind.access,
-      );
+      switch (node.receiver) {
+        case StaticQualifier():
+          diagnosticReporter.report(
+            diag.invalidNullAwareOperator
+                .withArguments(operator: '?.', replacement: '.')
+                .at(node.operator),
+          );
+        case Expression receiver:
+          _checkForUnnecessaryNullAware(
+            receiver,
+            node.operator,
+            kind: _NullAwareKind.access,
+          );
+      }
     }
     super.visitReceiverPropertyAssignmentTarget(node);
   }
@@ -2234,11 +2245,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ) {
     _constArgumentsVerifier.checkNameExpression(node);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        node.operator,
-        kind: _NullAwareKind.access,
-      );
+      switch (node.receiver) {
+        case StaticQualifier():
+          diagnosticReporter.report(
+            diag.invalidNullAwareOperator
+                .withArguments(operator: '?.', replacement: '.')
+                .at(node.operator),
+          );
+        case ExpressionImpl receiver:
+          _checkForUnnecessaryNullAware(
+            receiver,
+            node.operator,
+            kind: _NullAwareKind.access,
+          );
+      }
     }
     _checkUseVerifier.checkPropertyExtraction(node);
     super.visitReceiverPropertyExtraction(node);
@@ -7978,7 +7998,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     /// If the operator is not valid because the target already makes use of a
     /// null aware operator, return the null aware operator from the target.
     Token? previousShortCircuitingOperator(Expression? target) {
-      if (target is PropertyAccess) {
+      if (target case ReceiverPropertyExtraction(:Expression receiver)) {
+        if (target.operator.type == TokenType.QUESTION_PERIOD) {
+          return previousShortCircuitingOperator(receiver) ?? target.operator;
+        }
+      } else if (target is PropertyAccess) {
         var operator = target.operator;
         var type = operator.type;
         if (type == TokenType.QUESTION_PERIOD) {

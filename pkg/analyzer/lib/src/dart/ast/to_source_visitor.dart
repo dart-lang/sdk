@@ -1303,13 +1303,36 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitParsedArguments(ParsedArguments node) {
+    _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    _visitNode(node.head);
+    _visitNodeList(node.components);
+  }
+
+  @override
   void visitParsedExpressionChain(ParsedExpressionChain node) {
     _visitNode(node.head);
+    _visitNodeList(node.components);
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    _visitToken(node.operator);
+    _visitToken(node.name);
   }
 
   @override
   void visitParsedNameHead(ParsedNameHead node) {
     _visitToken(node.name);
+  }
+
+  @override
+  void visitParsedTypeArguments(ParsedTypeArguments node) {
+    _visitNode(node.typeArguments);
   }
 
   @override
@@ -1620,6 +1643,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitSpreadElement(SpreadElement node) {
     sink.write(node.spreadOperator.lexeme);
     _visitNode(node.expression2);
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
   }
 
   @override

@@ -449,8 +449,7 @@ Annotation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(3);
 ''');
-    var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments2[0];
+    var node = parseResult.findNode.singleArgumentList.arguments2[0];
     assertParsedNodeText(node, r'''
 IntegerLiteral
   literal: 3
@@ -461,8 +460,7 @@ IntegerLiteral
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(foo: "a");
 ''');
-    var node =
-        parseResult.findNode.singleMethodInvocation.argumentList.arguments2[0];
+    var node = parseResult.findNode.singleArgumentList.arguments2[0];
     assertParsedNodeText(node, r'''
 NamedArgument
   name: foo
@@ -476,7 +474,7 @@ NamedArgument
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m();
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -488,7 +486,7 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(w, x, y: y, z: z);
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -538,7 +536,7 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x, y, z);
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -567,7 +565,7 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x: x, y: y);
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -596,7 +594,7 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(x, y, z);
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -625,11 +623,36 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a<b, c>(d));
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(a');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
   arguments2
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: a
+      components
+        ParsedTypeArguments
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: b
+              NamedType
+                name: c
+            rightBracket: >
+        ParsedArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: d
+            arguments(v1)
+              SimpleIdentifier
+                token: d
+            rightParenthesis: )
+  arguments(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: a
@@ -643,11 +666,7 @@ ArgumentList
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
-          ParsedExpressionChain
-            head: ParsedNameHead
-              name: d
-        arguments(v1)
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -659,7 +678,7 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a < b, p.q.c > (d));
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(a');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
@@ -674,16 +693,16 @@ ArgumentList
           name: b
       binaryOperator: lessThan
     BinaryOperatorInvocation
-      leftOperand: PropertyAccess
-        target2: PrefixedIdentifier
-          prefix: SimpleIdentifier
-            token: p
-          period: .
-          identifier: SimpleIdentifier
-            token: q
-        operator: .
-        propertyName: SimpleIdentifier
-          token: c
+      leftOperand: ParsedExpressionChain
+        head: ParsedNameHead
+          name: p
+        components
+          ParsedNameAccess
+            operator: .
+            name: q
+          ParsedNameAccess
+            operator: .
+            name: c
       operator: >
       rightOperand: ParenthesizedExpression
         leftParenthesis: (
@@ -726,11 +745,39 @@ ArgumentList
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = m(a<b, p.c>(d));
 ''');
-    var node = parseResult.findNode.methodInvocation('m(').argumentList;
+    var node = parseResult.findNode.argumentList('(a');
     assertParsedNodeText(node, r'''
 ArgumentList
   leftParenthesis: (
   arguments2
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: a
+      components
+        ParsedTypeArguments
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: b
+              NamedType
+                importPrefix: ImportPrefixReference
+                  name: p
+                  period: .
+                name: c
+            rightBracket: >
+        ParsedArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: d
+            arguments(v1)
+              SimpleIdentifier
+                token: d
+            rightParenthesis: )
+  arguments(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: a
@@ -747,11 +794,7 @@ ArgumentList
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
-          ParsedExpressionChain
-            head: ParsedNameHead
-              name: d
-        arguments(v1)
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1947,33 +1990,69 @@ CompilationUnit
           VariableDeclaration
             name: c
             equals: =
-            initializer2: MethodInvocation
-              target2: ConstructorInvocation
-                constructorReference: ConstructorReference2
-                  typeReference: ConstructorTypeReference
-                    name: Future
-                    typeArguments: TypeArgumentList
-                      leftBracket: <
-                      arguments
-                        NamedType
-                          name: int
-                      rightBracket: >
-                  selector: ConstructorSelector
-                    period: .
-                    name2: sync
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  arguments2
-                    FunctionExpression
-                      parameters: FormalParameterList
-                        leftParenthesis: (
-                        rightParenthesis: )
-                      body: ExpressionFunctionBody
-                        functionDefinition: =>
-                        expression2: IntegerLiteral
-                          literal: 3
-                  rightParenthesis: )
-              target(v1): InstanceCreationExpression
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: Future
+              components
+                ParsedTypeArguments
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: int
+                    rightBracket: >
+                ParsedNameAccess
+                  operator: .
+                  name: sync
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: ExpressionFunctionBody
+                          functionDefinition: =>
+                          expression2: IntegerLiteral
+                            literal: 3
+                    rightParenthesis: )
+                ParsedNameAccess
+                  operator: .
+                  name: then
+                ParsedTypeArguments
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: int
+                    rightBracket: >
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              name: e
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            name: e
+                          rightParenthesis: )
+                        body: ExpressionFunctionBody
+                          functionDefinition: =>
+                          expression2: ParsedExpressionChain
+                            head: ParsedNameHead
+                              name: e
+                          expression(v1): SimpleIdentifier
+                            token: e
+                    rightParenthesis: )
+            initializer(v1): MethodInvocation
+              target: InstanceCreationExpression
                 constructorName: ConstructorName
                   type: NamedType
                     name: Future
@@ -2009,25 +2088,16 @@ CompilationUnit
                 rightBracket: >
               argumentList: ArgumentList
                 leftParenthesis: (
-                arguments2
+                arguments
                   FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: e
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: e
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: e
-                      expression(v1): SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: e
                 rightParenthesis: )
       semicolon: ;
@@ -2050,22 +2120,24 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: C
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: C
+            components
+              ParsedTypeArguments
                 typeArguments: TypeArgumentList
                   leftBracket: <
                   arguments
                     NamedType
                       name: E
                   rightBracket: >
-              selector: ConstructorSelector
-                period: .
-                name2: n
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
+              ParsedNameAccess
+                operator: .
+                name: n
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
           expression(v1): InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
@@ -2102,9 +2174,34 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: MethodInvocation
-            target2: FunctionReference
-              function2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: C
+            components
+              ParsedTypeArguments
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              ParsedNameAccess
+                operator: .
+                name: n
+              ParsedTypeArguments
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: B
+                  rightBracket: >
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+          expression(v1): MethodInvocation
+            target: FunctionReference
+              function: SimpleIdentifier
                 token: C
               typeArguments: TypeArgumentList
                 leftBracket: <
@@ -2144,25 +2241,27 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: p
-                  period: .
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: p
+            components
+              ParsedNameAccess
+                operator: .
                 name: C
+              ParsedTypeArguments
                 typeArguments: TypeArgumentList
                   leftBracket: <
                   arguments
                     NamedType
                       name: E
                   rightBracket: >
-              selector: ConstructorSelector
-                period: .
-                name2: n
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
+              ParsedNameAccess
+                operator: .
+                name: n
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
           expression(v1): InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
@@ -2232,7 +2331,39 @@ CompilationUnit
                     VariableDeclaration
                       name: c
                       equals: =
-                      initializer2: MethodInvocation
+                      initializer2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: C
+                        components
+                          ParsedTypeArguments
+                            typeArguments: TypeArgumentList
+                              leftBracket: <
+                              arguments
+                                NamedType
+                                  name: int
+                                GenericFunctionType
+                                  returnType: NamedType
+                                    name: int
+                                  functionKeyword: Function
+                                  parameters: FormalParameterList
+                                    leftParenthesis: (
+                                    requiredPositionalFormalParameters
+                                      RegularFormalParameter
+                                        type: NamedType
+                                          name: String
+                                    rightParenthesis: )
+                                  parameters(v1): FormalParameterList
+                                    leftParenthesis: (
+                                    parameter: RegularFormalParameter
+                                      type: NamedType
+                                        name: String
+                                    rightParenthesis: )
+                              rightBracket: >
+                          ParsedArguments
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                      initializer(v1): MethodInvocation
                         methodName: SimpleIdentifier
                           token: C
                         typeArguments: TypeArgumentList
@@ -2245,13 +2376,6 @@ CompilationUnit
                                 name: int
                               functionKeyword: Function
                               parameters: FormalParameterList
-                                leftParenthesis: (
-                                requiredPositionalFormalParameters
-                                  RegularFormalParameter
-                                    type: NamedType
-                                      name: String
-                                rightParenthesis: )
-                              parameters(v1): FormalParameterList
                                 leftParenthesis: (
                                 parameter: RegularFormalParameter
                                   type: NamedType

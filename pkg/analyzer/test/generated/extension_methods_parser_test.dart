@@ -300,7 +300,15 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: MethodInvocation
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: late
+              components
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            expression(v1): MethodInvocation
               methodName: SimpleIdentifier
                 token: late
               argumentList: ArgumentList

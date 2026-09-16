@@ -413,7 +413,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
       visitExpression(node);
 
-  R? visitInstanceReceiver(InstanceReceiver node) => visitNode(node);
+  @experimental
+  R? visitInstanceReceiver(InstanceReceiver node) => visitNamedReceiver(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => visitLiteral(node);
@@ -492,6 +493,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @experimental
   R? visitNamedFunctionInvocation(NamedFunctionInvocation node) =>
       visitFunctionInvocation(node);
+
+  @experimental
+  R? visitNamedReceiver(NamedReceiver node) => visitNode(node);
 
   @override
   R? visitNamedType(NamedType node) => visitTypeAnnotation(node);
@@ -2896,6 +2900,20 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedArguments(ParsedArguments node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) {
     node.visitChildren2(this);
     return null;
@@ -2903,7 +2921,21 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedNameAccess(ParsedNameAccess node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitParsedNameHead(ParsedNameHead node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedTypeArguments(ParsedTypeArguments node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3142,6 +3174,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitSpreadElement(SpreadElement node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitStaticQualifier(StaticQualifier node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4462,11 +4501,27 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedArguments(ParsedArguments node) => null;
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) => null;
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) => null;
 
   @experimental
   @override
+  R? visitParsedNameAccess(ParsedNameAccess node) => null;
+
+  @experimental
+  @override
   R? visitParsedNameHead(ParsedNameHead node) => null;
+
+  @experimental
+  @override
+  R? visitParsedTypeArguments(ParsedTypeArguments node) => null;
 
   @override
   R? visitPartDirective(PartDirective node) => null;
@@ -4597,6 +4652,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitSpreadElement(SpreadElement node) => null;
+
+  @experimental
+  @override
+  R? visitStaticQualifier(StaticQualifier node) => null;
 
   @override
   R? visitStringInterpolation(StringInterpolation node) => null;
@@ -5853,11 +5912,28 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedArguments(ParsedArguments node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
+      _throw(node);
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) => _throw(node);
 
   @experimental
   @override
+  R? visitParsedNameAccess(ParsedNameAccess node) => _throw(node);
+
+  @experimental
+  @override
   R? visitParsedNameHead(ParsedNameHead node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedTypeArguments(ParsedTypeArguments node) => _throw(node);
 
   @override
   R? visitPartDirective(PartDirective node) => _throw(node);
@@ -5991,6 +6067,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitSpreadElement(SpreadElement node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitStaticQualifier(StaticQualifier node) => _throw(node);
 
   @override
   R? visitStringInterpolation(StringInterpolation node) => _throw(node);
@@ -8907,6 +8987,24 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitParsedArguments(ParsedArguments node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedArguments(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedAssignmentTargetChain(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitParsedExpressionChain(ParsedExpressionChain node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedExpressionChain(node);
@@ -8916,9 +9014,27 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitParsedNameAccess(ParsedNameAccess node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedNameAccess(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitParsedNameHead(ParsedNameHead node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedNameHead(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedTypeArguments(ParsedTypeArguments node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedTypeArguments(node);
     stopwatch.stop();
     return result;
   }
@@ -9231,6 +9347,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitSpreadElement(SpreadElement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSpreadElement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitStaticQualifier(StaticQualifier node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitStaticQualifier(node);
     stopwatch.stop();
     return result;
   }
@@ -10690,11 +10815,28 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedArguments(ParsedArguments node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
+      visitNode(node);
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) => visitNode(node);
 
   @experimental
   @override
+  R? visitParsedNameAccess(ParsedNameAccess node) => visitNode(node);
+
+  @experimental
+  @override
   R? visitParsedNameHead(ParsedNameHead node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedTypeArguments(ParsedTypeArguments node) => visitNode(node);
 
   @override
   R? visitPartDirective(PartDirective node) => visitNode(node);
@@ -10833,6 +10975,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitSpreadElement(SpreadElement node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitStaticQualifier(StaticQualifier node) => visitNode(node);
 
   @override
   R? visitStringInterpolation(StringInterpolation node) => visitNode(node);

@@ -1839,7 +1839,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@24
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@24
@@ -1908,7 +1922,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@29
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@29
@@ -1988,7 +2016,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@25
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@25
@@ -2068,7 +2110,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@30
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@30

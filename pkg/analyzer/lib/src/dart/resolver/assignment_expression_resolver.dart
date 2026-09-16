@@ -41,37 +41,41 @@ class AssignmentExpressionResolver {
     AstNode node,
     ReceiverPropertyAssignmentTargetImpl target,
   ) {
-    if (target.receiver case ExtensionOverrideImpl receiver) {
+    var receiver = target.receiver;
+    if (receiver is StaticQualifierImpl) return;
+    receiver as ExpressionImpl;
+    if (receiver is ExtensionOverrideImpl) {
       _resolver.visitExtensionOverride(receiver);
       receiver.setPseudoExpressionStaticType(
         receiver.extendedType ?? InvalidTypeImpl.instance,
       );
     } else {
       _resolver.analyzeExpression(
-        target.receiver,
+        receiver,
         SharedTypeSchemaView(UnknownInferredType.instance),
         continueNullShorting: true,
       );
-      target.receiver = _resolver.popRewrite()!;
+      receiver = _resolver.popRewrite()!;
+      target.receiver = receiver;
     }
 
     var receiverDoesNotComplete = identical(
-      _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+      _typeSystem.resolveToBound(receiver.typeOrThrow),
       NeverTypeImpl.instance,
     );
     if (target.operator.type == TokenType.QUESTION_PERIOD &&
         !receiverDoesNotComplete) {
       _resolver.startNullAwareAssignmentTarget(
-        target.receiver,
+        receiver,
         offset: target.operator.offset,
       );
-      _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
+      _resolver.nullSafetyDeadCodeVerifier.recordDeadIntervalAt(
         node,
         target.name,
       );
       _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
         node,
-        target.receiver,
+        receiver,
         target.operator,
       );
     }
@@ -303,6 +307,13 @@ class AssignmentExpressionResolver {
         target.write = targetResult.write;
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
+        if (target.receiver is UnqualifiedNameExpressionImpl &&
+            target.operator.type == TokenType.PERIOD &&
+            targetResult.read is ExecutableTearOffResolution) {
+          // V1 does not report an additional operator error when a prefixed
+          // identifier names a method that cannot be assigned.
+          readType = InvalidTypeImpl.instance;
+        }
       case ImportPrefixedAssignmentTargetImpl():
         _resolver.resolveImportPrefixedAssignmentTarget(target);
         readType = target.read!.type;
@@ -318,6 +329,8 @@ class AssignmentExpressionResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
     }
@@ -525,6 +538,8 @@ class AssignmentExpressionResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
     }
@@ -653,6 +668,8 @@ class AssignmentExpressionResolver {
         }
         readExpressionInfo = targetResult.readExpressionInfo;
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
     }

@@ -22,6 +22,7 @@ main() {
     defineReflectiveTests(ForEachPartsImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
     defineReflectiveTests(NodeCoveringTest);
+    defineReflectiveTests(ReceiverPropertyExtractionImplTest);
   });
 }
 
@@ -476,7 +477,9 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
+    var node = testUnit
+        .nodeCovering2(offset: index)!
+        .thisOrAncestorOfType2<ExpressionImpl>();
     expect(node, TypeMatcher<ExpressionImpl>());
     expect(
       (node as ExpressionImpl).inConstantContext,
@@ -1834,5 +1837,46 @@ class C { void call() {} }  Function f = C^();
         sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
     var result = await resolveTestCode(testCode);
     return (result, SourceRange(offset, 0));
+  }
+}
+
+@reflectiveTest
+class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
+  test_v1Projection_recordReceiver_parent() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f((int,) r) {
+  (r.$1);
+}
+''');
+    var resolved =
+        result.findNode.singleReceiverPropertyExtraction
+            as ReceiverPropertyExtractionImpl;
+    var resolvedParent = resolved.parent2 as ParenthesizedExpressionImpl;
+    var receiver = resolved.receiver as ExpressionImpl;
+    var receiverType = receiver.staticType;
+    receiver.setPseudoExpressionStaticType(null);
+    var node = ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: resolved.operator,
+      name: resolved.name,
+    );
+    var parent = ParenthesizedExpressionImpl(
+      leftParenthesis: resolvedParent.leftParenthesis,
+      expression2: node,
+      rightParenthesis: resolvedParent.rightParenthesis,
+    );
+
+    var provisional = parent.expression;
+    expect(provisional, isA<PrefixedIdentifier>());
+    expect(provisional.parent, same(parent));
+
+    receiver.setPseudoExpressionStaticType(receiverType);
+
+    var finalized = parent.expression;
+    expect(finalized, isA<PropertyAccess>());
+    expect(finalized.parent, same(parent));
+    expect(provisional.parent, isNull);
+    expect(node.parent2, same(parent));
+    expect(node.v1Projection, same(finalized));
   }
 }

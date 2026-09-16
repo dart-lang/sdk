@@ -181,17 +181,15 @@ int Function(int) test() {
     var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: C
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: C
       element: <testLibrary>::@class::C
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: f
+    operator: .
+    name: f
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::f
-      staticType: T Function<T>(T)
-    element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes

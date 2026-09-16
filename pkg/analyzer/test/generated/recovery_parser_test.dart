@@ -237,12 +237,13 @@ var v = a.b[];
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-    period: .
-    identifier: SimpleIdentifier
-      token: b
+  receiver: ParsedExpressionChain
+    head: ParsedNameHead
+      name: a
+    components
+      ParsedNameAccess
+        operator: .
+        name: b
   leftBracket: [
   index: SimpleIdentifier
     token: <empty> <synthetic>
@@ -274,8 +275,9 @@ DirectAssignment
     name: <empty> <synthetic>
   operator: =
   value: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: y
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: y
     operator: =
     value: IntegerLiteral
       literal: 0
@@ -301,8 +303,9 @@ var v = x = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: DirectAssignment
     target: UnqualifiedNameAssignmentTarget
@@ -332,12 +335,14 @@ var v = x = y =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: y
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: y
     operator: =
     value: SimpleIdentifier
       token: <empty> <synthetic>
@@ -386,8 +391,9 @@ var v = x =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: SimpleIdentifier
     token: <empty> <synthetic>
@@ -1590,19 +1596,36 @@ var v = m(f() => 0);;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: m
+  components
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+        rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
     rightParenthesis: )
 ''');
@@ -1628,16 +1651,27 @@ IfStatement
     token: x
   rightParenthesis: )
   thenStatement: ExpressionStatement
-    expression2: MethodInvocation
+    expression2: ParsedExpressionChain
+      head: ParsedNameHead
+        name: f
+      components
+        ParsedArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
+            arguments(v1)
+              SimpleIdentifier
+                token: x
+            rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
-          ParsedExpressionChain
-            head: ParsedNameHead
-              name: x
-        arguments(v1)
+        arguments
           SimpleIdentifier
             token: x
         rightParenthesis: )
@@ -2129,25 +2163,98 @@ CompilationUnit
                           rightParenthesis: )
                 semicolon: ;
               ExpressionStatement
-                expression2: MethodInvocation
-                  target2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: map
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: forEach
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          FunctionExpression
+                            parameters: FormalParameterList
+                              leftParenthesis: (
+                              requiredPositionalFormalParameters
+                                RegularFormalParameter
+                                  name: name
+                                RegularFormalParameter
+                                  name: value
+                              rightParenthesis: )
+                            parameters(v1): FormalParameterList
+                              leftParenthesis: (
+                              parameter: RegularFormalParameter
+                                name: name
+                              parameter: RegularFormalParameter
+                                name: value
+                              rightParenthesis: )
+                            body: BlockFunctionBody
+                              block: Block
+                                leftBracket: {
+                                statements
+                                  ExpressionStatement
+                                    expression2: DirectAssignment
+                                      target: ReceiverIndexAssignmentTarget
+                                        receiver: ParsedExpressionChain
+                                          head: ParsedNameHead
+                                            name: result
+                                        leftBracket: [
+                                        index: ConstructorInvocation
+                                          keyword: new
+                                          constructorReference: ConstructorReference2
+                                            typeReference: ConstructorTypeReference
+                                              name: Symbol
+                                          argumentList: ArgumentList
+                                            leftParenthesis: (
+                                            arguments2
+                                              ParsedExpressionChain
+                                                head: ParsedNameHead
+                                                  name: name
+                                            arguments(v1)
+                                              SimpleIdentifier
+                                                token: name
+                                            rightParenthesis: )
+                                        rightBracket: ]
+                                      operator: =
+                                      value: ParsedExpressionChain
+                                        head: ParsedNameHead
+                                          name: value
+                                    expression(v1): AssignmentExpression
+                                      leftHandSide: IndexExpression
+                                        target: SimpleIdentifier
+                                          token: result
+                                        leftBracket: [
+                                        index: InstanceCreationExpression
+                                          keyword: new
+                                          constructorName: ConstructorName
+                                            type: NamedType
+                                              name: Symbol
+                                          argumentList: ArgumentList
+                                            leftParenthesis: (
+                                            arguments
+                                              SimpleIdentifier
+                                                token: name
+                                            rightParenthesis: )
+                                        rightBracket: ]
+                                      operator: =
+                                      rightHandSide: SimpleIdentifier
+                                        token: value
+                                    semicolon: ;
+                                rightBracket: }
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
+                  target: SimpleIdentifier
                     token: map
                   operator: .
                   methodName: SimpleIdentifier
                     token: forEach
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       FunctionExpression
                         parameters: FormalParameterList
-                          leftParenthesis: (
-                          requiredPositionalFormalParameters
-                            RegularFormalParameter
-                              name: name
-                            RegularFormalParameter
-                              name: value
-                          rightParenthesis: )
-                        parameters(v1): FormalParameterList
                           leftParenthesis: (
                           parameter: RegularFormalParameter
                             name: name
@@ -2159,33 +2266,7 @@ CompilationUnit
                             leftBracket: {
                             statements
                               ExpressionStatement
-                                expression2: DirectAssignment
-                                  target: ReceiverIndexAssignmentTarget
-                                    receiver: ParsedExpressionChain
-                                      head: ParsedNameHead
-                                        name: result
-                                    leftBracket: [
-                                    index: ConstructorInvocation
-                                      keyword: new
-                                      constructorReference: ConstructorReference2
-                                        typeReference: ConstructorTypeReference
-                                          name: Symbol
-                                      argumentList: ArgumentList
-                                        leftParenthesis: (
-                                        arguments2
-                                          ParsedExpressionChain
-                                            head: ParsedNameHead
-                                              name: name
-                                        arguments(v1)
-                                          SimpleIdentifier
-                                            token: name
-                                        rightParenthesis: )
-                                    rightBracket: ]
-                                  operator: =
-                                  value: ParsedExpressionChain
-                                    head: ParsedNameHead
-                                      name: value
-                                expression(v1): AssignmentExpression
+                                expression: AssignmentExpression
                                   leftHandSide: IndexExpression
                                     target: SimpleIdentifier
                                       token: result
@@ -3620,21 +3701,40 @@ var v = f(x: 1 y: 2);
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: f
+  components
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          NamedArgument
+            name: x
+            colon: :
+            argumentExpression2: IntegerLiteral
+              literal: 1
+          NamedArgument
+            name: y
+            colon: :
+            argumentExpression2: IntegerLiteral
+              literal: 2
+        rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NamedArgument
         name: x
         colon: :
-        argumentExpression2: IntegerLiteral
+        argumentExpression: IntegerLiteral
           literal: 1
       NamedArgument
         name: y
         colon: :
-        argumentExpression2: IntegerLiteral
+        argumentExpression: IntegerLiteral
           literal: 2
     rightParenthesis: )
 ''');

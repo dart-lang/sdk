@@ -29,9 +29,25 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: int}
+    invokeType: List<int> Function()
+    type: List<int>
+  staticType: List<int>
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -179,9 +195,24 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.prefixed('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    type: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -212,10 +243,34 @@ void f(A<int> a) {
   a.foo = 0;
 }
 ''');
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<int>
+      staticType: A<int>
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: int}
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -228,7 +283,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
@@ -344,9 +399,46 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.assignment('(x).test');
+    var node = result.findNode.directAssignment('(x).test');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: S
+        staticType: S
+      rightParenthesis: )
+      staticType: S
+    operator: .
+    name: test
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::Test::@setter::test
+        substitution: {T: S}
+      acceptedType: S
+  operator: =
+  value: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: S Function()
+      type: S
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@setter::test::@formalParameter::_
+      substitution: {T: S}
+    staticType: S
+    typeArgumentTypes
+      S
+  staticType: S
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (

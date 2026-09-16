@@ -469,6 +469,12 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _useIdentifierElement(node.element);
+    super.visitStaticQualifier(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     usedElements.addElement(element);
@@ -693,6 +699,10 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   void _visitNameExpression(NameExpression node) {
+    if (node is PropertyExtraction &&
+        node.resolution?.elementOrRecovery == null) {
+      usedElements.unresolvedReadMembers.add(node.name.lexeme);
+    }
     // The omitted qualifier also refers to the enclosing declaration.
     if (node is DotShorthandNameExpression) {
       usedElements.addElement(node.resolution?.element?.enclosingElement);

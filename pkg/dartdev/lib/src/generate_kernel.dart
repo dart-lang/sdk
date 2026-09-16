@@ -24,10 +24,59 @@ typedef CompileRequestGeneratorCallback =
     String Function({
       required String executable,
       required String outputDill,
-      required ArgResults args,
+      required GenerateKernelArguments args,
       String? packages,
       String? nativeAssetsYaml,
     });
+
+class GenerateKernelArguments {
+  final List<String>? defines;
+  final String? verbosity;
+  final List<String>? enabledExperiments;
+  final bool? enableAsserts;
+
+  GenerateKernelArguments(
+    this.defines,
+    this.verbosity,
+    this.enabledExperiments,
+    this.enableAsserts,
+  );
+
+  factory GenerateKernelArguments.fromArgResults(List<ArgResults> listOfArgs) {
+    List<String>? defines;
+    String? verbosity;
+    List<String>? enabledExperiments;
+    bool? enableAsserts;
+
+    for (ArgResults args in listOfArgs) {
+      if (args.wasParsed(defineOption)) {
+        (defines ??= []).addAll(args.multiOption(defineOption));
+      }
+
+      if (args.options.contains(enableAssertsOption) &&
+          args.wasParsed(enableAssertsOption)) {
+        enableAsserts = args.flag(enableAssertsOption);
+      }
+
+      if (args.wasParsed(enableExperimentOption)) {
+        (enabledExperiments ??= []).addAll(
+          args.multiOption(enableExperimentOption),
+        );
+      }
+
+      if (args.wasParsed(verbosityOption)) {
+        verbosity = args[verbosityOption];
+      }
+    }
+
+    return GenerateKernelArguments(
+      defines,
+      verbosity,
+      enabledExperiments,
+      enableAsserts,
+    );
+  }
+}
 
 /// Uses the resident frontend compiler to compute a kernel file for
 /// [executable]. Throws a [FrontendCompilerException] if the compilation
@@ -49,7 +98,7 @@ typedef CompileRequestGeneratorCallback =
 Future<DartExecutableWithPackageConfig> generateKernel(
   DartExecutableWithPackageConfig executable,
   File serverInfoFile,
-  ArgResults args,
+  GenerateKernelArguments args,
   CompileRequestGeneratorCallback compileRequestGenerator, {
   required bool quiet,
   bool aot = false,

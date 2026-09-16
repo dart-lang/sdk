@@ -372,13 +372,13 @@ class NodeTextExpectationsCollector {
 
         var invocation = file.findInvocation(invocationLine: line);
         if (invocation == null) {
-          fail('Cannot find MethodInvocation.');
+          fail('Cannot find assertion invocation.');
         }
 
-        if (invocation.methodName.name != assertMethod.methodName) {
+        if (invocation.name != assertMethod.methodName) {
           fail(
             'Expected: ${assertMethod.methodName}\n'
-            'Actual: ${invocation.methodName.name}\n',
+            'Actual: ${invocation.name}\n',
           );
         }
 
@@ -579,7 +579,9 @@ class _File {
     io.File(path).writeAsStringSync(newCode);
   }
 
-  MethodInvocation? findInvocation({required int invocationLine}) {
+  ({String name, ArgumentList argumentList})? findInvocation({
+    required int invocationLine,
+  }) {
     var visitor = _InvocationVisitor(
       lineInfo: lineInfo,
       requestedLine: invocationLine,
@@ -592,7 +594,7 @@ class _File {
 class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   final LineInfo lineInfo;
   final int requestedLine;
-  MethodInvocation? result;
+  ({String name, ArgumentList argumentList})? result;
 
   _InvocationVisitor({required this.lineInfo, required this.requestedLine});
 
@@ -604,10 +606,28 @@ class _InvocationVisitor extends RecursiveAstVisitor2<void> {
 
     var nodeLine = lineInfo.getLocation(node.offset).lineNumber;
     if (nodeLine == requestedLine) {
-      result = node;
+      result = (name: node.methodName.name, argumentList: node.argumentList);
     }
 
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitParsedExpressionChain(ParsedExpressionChain node) {
+    if (result != null) {
+      return;
+    }
+    if (lineInfo.getLocation(node.offset).lineNumber == requestedLine &&
+        node.components.lastOrNull is ParsedArguments) {
+      var name =
+          node.components.whereType<ParsedNameAccess>().lastOrNull?.name ??
+          node.head.name;
+      result = (
+        name: name.lexeme,
+        argumentList: (node.components.last as ParsedArguments).argumentList,
+      );
+    }
+    super.visitParsedExpressionChain(node);
   }
 }
 

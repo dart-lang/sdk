@@ -385,6 +385,16 @@ class NullSafetyDeadCodeVerifier {
     }
   }
 
+  /// Records a dead interval structurally anchored at [node] and beginning at
+  /// [firstToken].
+  ///
+  /// Canonical property nodes store the selected name as a token, so unlike
+  /// their V1 projections they have no name child at which dead-code
+  /// traversal can begin.
+  void recordDeadIntervalAt(AstNode node, Token firstToken) {
+    _visitNode(node, firstToken);
+  }
+
   void tryStatementEnter(TryStatement node) {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
@@ -450,16 +460,6 @@ class NullSafetyDeadCodeVerifier {
 
   void visitNode(AstNode node) {
     _visitNode(node, node.beginToken);
-  }
-
-  /// Records a dead interval structurally anchored at [node] and beginning at
-  /// [firstToken].
-  ///
-  /// Canonical property nodes store the selected name as a token, so unlike
-  /// their V1 projections they have no name child at which dead-code
-  /// traversal can begin.
-  void visitNullAwareAccess(AstNode node, Token firstToken) {
-    _visitNode(node, firstToken);
   }
 
   bool _containsFirstDeadNode(AstNode parent) {

@@ -942,6 +942,13 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _elementUsageFrontierDetector.staticQualifier(node);
+    _invalidAccessVerifier.verifyStaticQualifier(node);
+    super.visitStaticQualifier(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _elementUsageFrontierDetector.superConstructorInvocation(node);
     _invalidAccessVerifier.verifySuperConstructorInvocation(node);
@@ -2031,6 +2038,10 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyStaticQualifier(StaticQualifier node) {
+    _verify(node: node, nameToken: node.name, element: node.element);
+  }
+
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     if (element == null || _inCurrentLibrary(element)) return;
@@ -2304,6 +2315,9 @@ class _InvalidAccessVerifier {
     } else if (node is NameExpression) {
       name = node.name.lexeme;
       errorEntity = node.name;
+    } else if (node is StaticQualifier) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {
@@ -2365,6 +2379,13 @@ extension on Expression {
   // and for `import 'foo.dart' as double; double.nan`.
   bool get isDoubleNan {
     var self = this;
+    if (self case ReceiverPropertyExtraction(
+      resolution: GetterInvocationResolution(:var element),
+    )) {
+      return element.name == 'nan' &&
+          element.enclosingElement.name == 'double' &&
+          element.library.isDartCore;
+    }
     return self is PrefixedIdentifier &&
         self.prefix.name == 'double' &&
         self.identifier.name == 'nan';

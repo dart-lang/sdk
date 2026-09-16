@@ -480,6 +480,20 @@ class _Collector {
   }
 
   void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (node.receiver case StaticQualifier(:var importPrefix)) {
+      if (importPrefix?.element case PrefixElement prefix
+          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+        nodes.add(node);
+        return;
+      }
+      switch (node.resolution?.element) {
+        case GetterElement(variable: VariableElement(isConst: true)):
+        case MethodElement(isStatic: true):
+          return;
+      }
+      nodes.add(node);
+      return;
+    }
     if (node.name.lexeme == 'length') {
       collect(node.receiver);
       return;

@@ -12,6 +12,7 @@ import 'package:frontend_server/resident_frontend_server_utils.dart'
 import 'package:path/path.dart' as p;
 
 import 'commands/compilation_server.dart' show CompilationServerCommand;
+import 'generate_kernel.dart';
 import 'resident_frontend_constants.dart';
 
 /// The Resident Frontend Compiler's shutdown command.
@@ -142,7 +143,7 @@ Future<bool> isFileAotSnapshot(File file) async {
 String createCompileJitJson({
   required String executable,
   required String outputDill,
-  required ArgResults args,
+  required GenerateKernelArguments args,
   String? packages,
   bool verbose = false,
   String? nativeAssetsYaml,
@@ -151,21 +152,13 @@ String createCompileJitJson({
     commandString: compileString,
     sourceString: executable,
     outputString: outputDill,
-    if (args.wasParsed(defineOption))
-      defineOption: args
-          .multiOption(defineOption)
-          .map((e) => '--define=$e')
-          .toList(),
-    if (args.options.contains(enableAssertsOption) &&
-        args.wasParsed(enableAssertsOption))
-      enableAssertsOption: true,
-    if (args.wasParsed(enableExperimentOption))
-      enableExperimentOption: args
-          .multiOption(enableExperimentOption)
-          .map((e) => '--enable-experiment=$e')
-          .toList(),
+    defineOption: ?args.defines?.map((e) => '--define=$e').toList(),
+    enableAssertsOption: ?args.enableAsserts,
+    enableExperimentOption: ?args.enabledExperiments
+        ?.map((e) => '--enable-experiment=$e')
+        .toList(),
     packageString: ?packages,
-    if (args.wasParsed(verbosityOption)) verbosityOption: args[verbosityOption],
+    verbosityOption: ?args.verbosity,
     nativeAssetsOption: ?nativeAssetsYaml,
   });
 }

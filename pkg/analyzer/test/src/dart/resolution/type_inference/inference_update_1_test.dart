@@ -45,7 +45,7 @@ test() {
   f((x: ''), (s) { s.length; });
 }
 ''');
-    assertType(result.findNode.simple('s.length'), 'String');
+    assertType(result.findNode.unqualifiedNameExpression('s.length'), 'String');
   }
 
   test_record_field_unnamed() async {
@@ -59,7 +59,7 @@ test() {
   f(('',), (s) { s.length; });
 }
 ''');
-    assertType(result.findNode.simple('s.length'), 'String');
+    assertType(result.findNode.unqualifiedNameExpression('s.length'), 'String');
   }
 }
 

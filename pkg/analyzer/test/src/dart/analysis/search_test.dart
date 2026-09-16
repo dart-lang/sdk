@@ -5081,6 +5081,10 @@ enum E {
     foo = 1;
   }
 }
+void g(E e) {
+  e.foo = 2;
+  e..foo = 3;
+}
 ''');
     var field = result.findElement.field('foo');
 
@@ -5095,6 +5099,14 @@ enum E {
     ^^^ field REFERENCE
     ^^^ getter REFERENCE
   }
+}
+void g(E e) {
+  e.foo = 2;
+    ^^^ field REFERENCE qualified
+    ^^^ getter REFERENCE qualified
+  e..foo = 3;
+     ^^^ field REFERENCE qualified
+     ^^^ getter REFERENCE qualified
 }
 ''',
     );

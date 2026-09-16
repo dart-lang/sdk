@@ -94,7 +94,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: PrefixedIdentifier
+                expression2: ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: A
+                    element: <testLibrary>::@enum::A
+                  operator: .
+                  name: v2
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@enum::A::@getter::v2
+                    invokeType: A Function()
+                    type: A
+                  staticType: A
+                expression(v1): PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -212,7 +223,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: PrefixedIdentifier
+                expression2: ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: A
+                    element: <testLibrary>::@enum::A
+                  operator: .
+                  name: values
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@enum::A::@getter::values
+                    invokeType: List<A> Function()
+                    type: List<A>
+                  staticType: List<A>
+                expression(v1): PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -2542,10 +2564,29 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.receiverPropertyExtraction('.index');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: E
+      element: <testLibrary>::@enum::E
+    operator: .
+    name: _
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@enum::E::@getter::_
+      invokeType: E Function()
+      type: E
+    staticType: E
+  operator: .
+  name: index
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Enum::@getter::index
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@enum::E

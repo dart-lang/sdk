@@ -1416,6 +1416,18 @@ Null null
 ''');
   }
 
+  test_propertyAccess_nullAware_string_length_null_parenthesized() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+const String? s = null;
+const int? c = (s)?.length;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_recordTypeAnnotation() async {
     var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const a = ('',) is (int,);

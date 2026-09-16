@@ -4815,16 +4815,28 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
-    analyzeExpression(
-      node.receiver,
-      SharedTypeSchemaView(UnknownInferredType.instance),
-      continueNullShorting: true,
-    );
-    node.receiver = popRewrite()!;
+    if (node.receiver case ExpressionImpl receiver) {
+      // Legacy bare-name property reads start the dead interval at the selected
+      // name. Capture this source form before receiver analysis can rewrite it.
+      var isBareNameRead =
+          receiver is UnqualifiedNameExpressionImpl &&
+          node.operator.type == TokenType.PERIOD;
+      analyzeExpression(
+        receiver,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
+      );
+      var resolvedReceiver = popRewrite()!;
+      node.receiver = resolvedReceiver;
 
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _startNullAwareAccess(node.receiver, offset: node.operator.offset);
-      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.name);
+      if (isBareNameRead) {
+        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
+      }
+
+      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+        _startNullAwareAccess(resolvedReceiver, offset: node.operator.offset);
+        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
+      }
     }
 
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
@@ -4838,10 +4850,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+    if (node.receiver case ExpressionImpl receiver
+        when node.operator.type == TokenType.QUESTION_PERIOD) {
       nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
         node,
-        node.receiver,
+        receiver,
         node.operator,
       );
     }

@@ -2261,6 +2261,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitParsedNameHead(ParsedNameHead node) {
     _tokenOrNull(node.name);
   }
@@ -2314,9 +2320,11 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    // Parsed chains and their lowered receivers must enumerate tokens in
+    // the same order when offsets are restored from informative data.
+    node.receiver.accept2(this);
     _tokenOrNull(node.operator);
     _tokenOrNull(node.name);
-    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -2404,6 +2412,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitSpreadElement(SpreadElement node) {
     _tokenOrNull(node.spreadOperator);
     super.visitSpreadElement(node);
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
   }
 
   @override

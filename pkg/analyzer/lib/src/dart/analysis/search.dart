@@ -2069,6 +2069,14 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    if (elements.contains(node.element)) {
+      _addResult(node.name, SearchResultKind.REFERENCE);
+    }
+    node.importPrefix?.accept2(this);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {

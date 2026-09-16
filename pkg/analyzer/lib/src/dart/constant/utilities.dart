@@ -323,6 +323,12 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedReadDependency(node.resolution);
+    node.receiver.accept2(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {

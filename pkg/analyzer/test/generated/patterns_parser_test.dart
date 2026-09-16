@@ -4005,7 +4005,15 @@ SwitchExpression
           name: _
         whenClause: WhenClause
           whenKeyword: when
-          expression2: MethodInvocation
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: a
+            components
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: a
             argumentList: ArgumentList

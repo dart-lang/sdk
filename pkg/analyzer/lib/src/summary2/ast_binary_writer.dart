@@ -1072,6 +1072,14 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _sink.writeEnum(AstNodeTag.StaticQualifier);
+    _writeOptionalNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeElement(node.element);
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation node) {
     _sink.writeEnum(AstNodeTag.StringInterpolation);
     _writeNodeList(node.elements);

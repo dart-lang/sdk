@@ -276,6 +276,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _checkSinceSdkVersion(node.element, node, errorEntity: node.name);
+    super.visitStaticQualifier(node);
+  }
+
+  @override
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     _checkNamedFunctionInvocation(node);
     super.visitUnqualifiedFunctionInvocation(node);
@@ -396,6 +402,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
         targetType = node.prefix.staticType;
       } else if (node is PropertyAccess) {
         targetType = node.realTarget2.staticType;
+      } else if (node is ReceiverPropertyExtraction &&
+          node.receiver is Expression) {
+        targetType = (node.receiver as Expression).staticType;
       }
       if (targetType != null) {
         var targetElement = targetType.element;

@@ -415,7 +415,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call').identifier;
+    var node = result.findNodeV1.prefixed('f.call').identifier;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -618,7 +618,7 @@ void f(int i) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('call').identifier;
+    var node = result.findNodeV1.prefixed('call').identifier;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -711,7 +711,7 @@ void f(int a) {
   a.isEven;
 }
 ''');
-    var node = result.findNode.prefixed('a.isEven');
+    var node = result.findNodeV1.prefixed('a.isEven');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::int::@getter::isEven
@@ -724,7 +724,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call');
+    var node = result.findNodeV1.prefixed('f.call');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1454,7 +1454,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call').identifier;
+    var node = result.findNode.receiverPropertyExtraction('f.call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1643,7 +1643,7 @@ void f(int i) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('call').identifier;
+    var node = result.findNode.receiverPropertyExtraction('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1751,7 +1751,7 @@ void f(int a) {
   a.isEven;
 }
 ''');
-    var node = result.findNode.prefixed('a.isEven');
+    var node = result.findNode.receiverPropertyExtraction('a.isEven');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::int::@getter::isEven
@@ -1764,7 +1764,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call');
+    var node = result.findNode.receiverPropertyExtraction('f.call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f

@@ -78,12 +78,29 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: f
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          FunctionExpression
+                            parameters: FormalParameterList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                            body: BlockFunctionBody
+                              block: Block
+                                leftBracket: {
+                                rightBracket: }
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
@@ -4915,8 +4932,9 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: DirectAssignment
-                      target: UnqualifiedNameAssignmentTarget
-                        name: f
+                      target: ParsedAssignmentTargetChain
+                        head: ParsedNameHead
+                          name: f
                       operator: =
                       value: ParsedExpressionChain
                         head: ParsedNameHead
@@ -4951,8 +4969,9 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: DirectAssignment
-                target: UnqualifiedNameAssignmentTarget
-                  name: f
+                target: ParsedAssignmentTargetChain
+                  head: ParsedNameHead
+                    name: f
                 operator: =
                 value: BinaryOperatorInvocation
                   leftOperand: ParsedExpressionChain

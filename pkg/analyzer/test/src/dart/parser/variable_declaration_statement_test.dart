@@ -41,8 +41,19 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+        components
+          ParsedNameAccess
+            operator: .
+            name: bar
+          ParsedArguments
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: SimpleIdentifier
           token: y
         operator: .
         methodName: SimpleIdentifier
@@ -81,8 +92,19 @@ Block
     ExpressionStatement
       expression2: AwaitExpression
         awaitKeyword: await
-        expression2: MethodInvocation
-          target2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: y
+          components
+            ParsedNameAccess
+              operator: .
+              name: foo
+            ParsedArguments
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+        expression(v1): MethodInvocation
+          target: SimpleIdentifier
             token: y
           operator: .
           methodName: SimpleIdentifier

@@ -851,6 +851,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
         break;
@@ -965,16 +967,25 @@ class _IndexContributor extends UnifyingAstVisitor2 {
               target.name,
               true,
             );
+          case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+            recordRelation(
+              element,
+              IndexRelationKind.IS_REFERENCED_BY,
+              target.name,
+              true,
+            );
           default:
             assembler.addNameRelation(
               target.name.lexeme,
               IndexRelationKind.IS_WRITTEN_BY,
               target.name.offset,
-              false,
+              true,
             );
         }
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
         break;
@@ -1201,6 +1212,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
         break;
@@ -1275,6 +1288,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
         break;
@@ -1520,6 +1535,15 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     }
 
     super.visitSimpleStringLiteral(node);
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _recordImportPrefixedElement(
+      importPrefix: node.importPrefix,
+      name: node.name,
+      element: node.element,
+    );
   }
 
   @override

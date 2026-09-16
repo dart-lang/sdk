@@ -935,6 +935,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     _simpleIdentifier(node);
   }
 
+  void staticQualifier(StaticQualifier node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
+  }
+
   void superConstructorInvocation(SuperConstructorInvocation node) {
     checkUsage(
       node.element,
