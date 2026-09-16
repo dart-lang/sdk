@@ -543,8 +543,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: &
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -664,8 +665,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: *
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -862,8 +864,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: |
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -928,8 +931,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: ^
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -994,8 +998,9 @@ ParsedExpressionChain
                 head: ParsedNameHead
                   name: c
               operator: >
-              rightOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               binaryOperator: greaterThan
             isOperator: is
             type: NamedType
@@ -1375,8 +1380,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: %
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -1441,8 +1447,9 @@ ParsedExpressionChain
                 head: ParsedNameHead
                   name: c
               operator: >
-              rightOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               binaryOperator: greaterThan
             sections
               CascadeSection
@@ -1516,8 +1523,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: +
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -1582,8 +1590,9 @@ ParsedExpressionChain
                 head: ParsedNameHead
                   name: c
               operator: >
-              rightOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               binaryOperator: greaterThan
             question: ?
             thenExpression2: NullLiteral
@@ -1651,15 +1660,17 @@ ParsedExpressionChain
               head: ParsedNameHead
                 name: c
             operator: >
-            rightOperand: MethodInvocation
-              target2: SimpleIdentifier
-                token: <empty> <synthetic>
-              operator: ?.
-              methodName: SimpleIdentifier
-                token: toString
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+              components
+                ParsedNameAccess
+                  operator: ?.
+                  name: toString
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
             binaryOperator: greaterThan
         rightParenthesis: )
 V1: MethodInvocation
@@ -1721,21 +1732,24 @@ ParsedExpressionChain
               head: ParsedNameHead
                 name: c
             operator: >
-            rightOperand: MethodInvocation
-              target2: SimpleIdentifier
-                token: <empty> <synthetic>
-              operator: ?.
-              methodName: SimpleIdentifier
-                token: foo
-              typeArguments: TypeArgumentList
-                leftBracket: <
-                arguments
-                  NamedType
-                    name: c
-                rightBracket: >
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+              components
+                ParsedNameAccess
+                  operator: ?.
+                  name: foo
+                ParsedTypeArguments
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: c
+                    rightBracket: >
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
             binaryOperator: greaterThan
         rightParenthesis: )
 V1: MethodInvocation
@@ -1805,8 +1819,9 @@ ParsedExpressionChain
               head: ParsedNameHead
                 name: c
             operator: >
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: greaterThan
           ParsedExpressionChain
             head: ParsedNameHead
@@ -1875,12 +1890,13 @@ ParsedExpressionChain
               head: ParsedNameHead
                 name: c
             operator: >
-            rightOperand: PropertyAccess
-              target2: SimpleIdentifier
-                token: <empty> <synthetic>
-              operator: ?.
-              propertyName: SimpleIdentifier
-                token: hashCode
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+              components
+                ParsedNameAccess
+                  operator: ?.
+                  name: hashCode
             binaryOperator: greaterThan
         rightParenthesis: )
 V1: MethodInvocation
@@ -1940,8 +1956,9 @@ ParsedExpressionChain
                 head: ParsedNameHead
                   name: c
               operator: >
-              rightOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               binaryOperator: greaterThan
             operator: ??
             rightOperand: ParsedExpressionChain
@@ -2005,8 +2022,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: /
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead
@@ -2071,8 +2089,9 @@ ParsedExpressionChain
                 name: c
             operator: >
             rightOperand: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: <empty> <synthetic>
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               operator: ~/
               rightOperand: ParsedExpressionChain
                 head: ParsedNameHead

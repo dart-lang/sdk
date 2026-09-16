@@ -83,6 +83,20 @@ main() {
 ''');
   }
 
+  test_constructorInvocation_missingArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  C(int x, int y);
+}
+void f() {
+  new C(;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
+}
+''');
+  }
+
   test_constructorInvocation_named() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

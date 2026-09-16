@@ -1125,7 +1125,10 @@ CompilationUnit
                   token: x
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }

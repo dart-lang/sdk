@@ -6363,7 +6363,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     for (int i = 0; i < argumentCount; i++) {
       Argument argument = arguments[i];
       if (argument is! NamedArgument) {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+        if (argument.isSynthetic) {
           noBlankArguments = false;
         }
         positionalArgumentCount++;

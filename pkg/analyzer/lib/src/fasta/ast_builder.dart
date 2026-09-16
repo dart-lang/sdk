@@ -6719,9 +6719,8 @@ class AstBuilder extends StackListener {
   /// explicit constructor syntax. This also includes parser paths that have not
   /// yet been migrated to chains.
   ///
-  /// Missing names represented by synthetic identifiers, and punctuation used
-  /// as a property name during recovery (such as `(` in `C.()`), stay in their
-  /// existing nodes instead of becoming chain names.
+  /// Punctuation used as a property name during recovery (such as `(` in
+  /// `C.()`) stays in its existing node instead of becoming a chain name.
   ///
   /// Returning `null` preserves child ownership. On success, argument and
   /// type-argument lists become children of the returned components.
@@ -6734,7 +6733,7 @@ class AstBuilder extends StackListener {
     var receiver = expression;
     while (true) {
       switch (receiver) {
-        case SimpleIdentifierImpl() when !receiver.isSynthetic:
+        case SimpleIdentifierImpl():
           return (
             head: ParsedNameHeadImpl(name: receiver.token),
             components: reversedComponents == null
@@ -6752,7 +6751,7 @@ class AstBuilder extends StackListener {
                       },
                   ],
           );
-        case PrefixedIdentifierImpl() when !receiver.identifier.isSynthetic:
+        case PrefixedIdentifierImpl():
           (reversedComponents ??= []).add(
             ParsedNameAccessImpl(
               operator: receiver.period,
@@ -6769,7 +6768,6 @@ class AstBuilder extends StackListener {
             )
             when allowInvocations &&
                 !receiver.isCascaded &&
-                !methodName.isSynthetic &&
                 methodName.token.isKeywordOrIdentifier:
           (reversedComponents ??= []).add(argumentList);
           if (typeArguments != null) {
@@ -6798,9 +6796,6 @@ class AstBuilder extends StackListener {
             when allowInvocations:
           var type = constructorReference.typeReference;
           var selector = constructorReference.selector;
-          if (type.name.isSynthetic || selector?.name2.isSynthetic == true) {
-            return null;
-          }
           (reversedComponents ??= []).add(argumentList);
           if (typeArguments != null) {
             reversedComponents.add(typeArguments);
@@ -6839,8 +6834,7 @@ class AstBuilder extends StackListener {
         // TODO(scheglov): Avoid using punctuation tokens as property names during
         // parser recovery.
         case PropertyAccessImpl(target2: var target?)
-            when !receiver.propertyName.isSynthetic &&
-                receiver.propertyName.token.isKeywordOrIdentifier:
+            when receiver.propertyName.token.isKeywordOrIdentifier:
           (reversedComponents ??= []).add(
             ParsedNameAccessImpl(
               operator: receiver.operator,

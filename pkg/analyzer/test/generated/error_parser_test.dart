@@ -1075,7 +1075,10 @@ CompilationUnit
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -3838,8 +3841,9 @@ void main() {
     var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedExpressionChain
+    head: ParsedNameHead
+      name: <empty> <synthetic>
   operator: +
   rightOperand: ParsedExpressionChain
     head: ParsedNameHead

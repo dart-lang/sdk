@@ -42194,6 +42194,9 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   }
 
   @override
+  bool get isSynthetic => components.isEmpty && head.name.isSynthetic;
+
+  @override
   Precedence get precedence =>
       components.isEmpty ? Precedence.primary : Precedence.postfix;
 
@@ -56748,6 +56751,9 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   Token get endToken {
     return name;
   }
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
 
   @override
   Precedence get precedence => Precedence.primary;

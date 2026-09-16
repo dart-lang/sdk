@@ -45,8 +45,9 @@ CompilationUnit
               ParsedExpressionChain
                 head: ParsedNameHead
                   name: a
-              SimpleIdentifier
-                token: <empty> <synthetic>
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: <empty> <synthetic>
               ParsedExpressionChain
                 head: ParsedNameHead
                   name: b
@@ -477,7 +478,10 @@ CompilationUnit
             leftBracket: {
             elements2
               MapLiteralEntry
-                key2: SimpleIdentifier
+                key2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                key(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 separator: :
                 value2: ParsedExpressionChain
@@ -519,7 +523,10 @@ CompilationUnit
                 key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                value(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             rightBracket: }
             isMap: false
@@ -555,7 +562,10 @@ CompilationUnit
                 key(v1): SimpleIdentifier
                   token: a
                 separator: :
-                value2: SimpleIdentifier
+                value2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                value(v1): SimpleIdentifier
                   token: <empty> <synthetic>
               MapLiteralEntry
                 key2: ParsedExpressionChain
@@ -604,8 +614,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: &
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: bitwiseAnd
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -659,8 +670,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: &
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: bitwiseAnd
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -792,8 +804,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: x
                   operator: =
-                  value: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  value: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                 expression(v1): AssignmentExpression
                   leftHandSide: SimpleIdentifier
                     token: x
@@ -830,8 +843,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: |
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: bitwiseOr
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -885,8 +899,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: |
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: bitwiseOr
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1067,7 +1082,10 @@ CompilationUnit
             thenExpression(v1): SimpleIdentifier
               token: y
             colon: :
-            elseExpression2: SimpleIdentifier
+            elseExpression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            elseExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
 ''');
@@ -1100,7 +1118,10 @@ CompilationUnit
             condition(v1): SimpleIdentifier
               token: x
             question: ?
-            thenExpression2: SimpleIdentifier
+            thenExpression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            thenExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
             colon: :
             elseExpression2: ParsedExpressionChain
@@ -1137,8 +1158,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: ==
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: equal
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1192,8 +1214,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ==
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: equal
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1301,8 +1324,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: >
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: greaterThan
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1356,8 +1380,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: greaterThan
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1395,8 +1420,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: >>
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: shiftRight
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1450,8 +1476,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >>
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: shiftRight
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1489,8 +1516,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: >=
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: greaterThanOrEqual
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1544,8 +1572,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >=
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: greaterThanOrEqual
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1583,8 +1612,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: ^
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: bitwiseXor
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1638,8 +1668,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ^
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: bitwiseXor
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -1827,7 +1858,10 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: IsExpression
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   isOperator: is
                   type: NamedType
@@ -1915,8 +1949,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: <
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: lessThan
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1970,8 +2005,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: lessThan
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2009,8 +2045,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: <<
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: shiftLeft
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2064,8 +2101,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <<
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: shiftLeft
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2103,8 +2141,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: <=
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: lessThanOrEqual
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2158,8 +2197,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <=
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: lessThanOrEqual
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2197,8 +2237,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: -
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: subtract
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2252,8 +2293,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: -
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: subtract
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2421,8 +2463,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: %
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: modulo
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2476,8 +2519,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: %
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: modulo
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2515,8 +2559,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: +
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: add
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2570,8 +2615,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: +
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: add
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2619,7 +2665,14 @@ CompilationUnit
                         literal: 'String'
                 semicolon: ;
               ExpressionStatement
-                expression2: PrefixedIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: v
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: <empty> <synthetic>
+                expression(v1): PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: v
                   period: .
@@ -2655,8 +2708,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: /
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: divide
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2710,8 +2764,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: /
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: divide
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2749,8 +2804,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: *
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: multiply
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2804,8 +2860,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: *
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: multiply
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -2917,8 +2974,9 @@ CompilationUnit
               head: ParsedNameHead
                 name: x
             operator: ~/
-            rightOperand: SimpleIdentifier
-              token: <empty> <synthetic>
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
             binaryOperator: truncatingDivide
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -2972,8 +3030,9 @@ CompilationUnit
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ~/
-                rightOperand: SimpleIdentifier
-                  token: <empty> <synthetic>
+                rightOperand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
                 binaryOperator: truncatingDivide
               expression(v1): BinaryExpression
                 leftOperand: SuperExpression
@@ -3859,7 +3918,10 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             rightDelimiter: }
           rightParenthesis: )
@@ -3904,7 +3966,10 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: :
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
                     token: <empty> <synthetic>
               RegularFormalParameter
                 name: b
@@ -3953,7 +4018,10 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             rightDelimiter: ]
           rightParenthesis: )
@@ -3998,7 +4066,10 @@ CompilationUnit
                 name: a
                 defaultClause: FormalParameterDefaultClause
                   separator: =
-                  value2: SimpleIdentifier
+                  value2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  value(v1): SimpleIdentifier
                     token: <empty> <synthetic>
               RegularFormalParameter
                 name: b

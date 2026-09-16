@@ -2498,8 +2498,9 @@ DirectAssignment
         head: ParsedNameHead
           name: x
       operator: ||
-      rightOperand: SimpleIdentifier
-        token: <empty> <synthetic>
+      rightOperand: ParsedExpressionChain
+        head: ParsedNameHead
+          name: <empty> <synthetic>
   operator: =
   value: ParsedExpressionChain
     head: ParsedNameHead
@@ -5567,7 +5568,10 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            initializer(v1): SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5617,7 +5621,10 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            initializer(v1): SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5662,7 +5669,10 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            initializer(v1): SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5709,7 +5719,10 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            initializer(v1): SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5753,7 +5766,10 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            initializer(v1): SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration

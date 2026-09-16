@@ -64,6 +64,68 @@ V1: MethodInvocation
 ''');
   }
 
+  test_arguments_syntheticAndUndefined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  g(, unknown);
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+//    ^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unknown'.
+}
+
+void g(int a, int b) {}
+''');
+
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
+    assertResolvedNodeText(node, r'''
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      UnqualifiedNameExpression
+        name: <empty> <synthetic>
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::a
+        staticType: InvalidType
+      UnqualifiedNameExpression
+        name: unknown
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::b
+        staticType: InvalidType
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: void Function(int, int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: g
+    element: <testLibrary>::@function::g
+    staticType: void Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: <empty> <synthetic>
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::a
+        element: <null>
+        staticType: InvalidType
+      SimpleIdentifier
+        token: unknown
+        correspondingParameter: <testLibrary>::@function::g::@formalParameter::b
+        element: <null>
+        staticType: InvalidType
+    rightParenthesis: )
+  staticInvokeType: void Function(int, int)
+  staticType: void
+''');
+  }
+
   test_arguments_synthetics() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
@@ -84,15 +146,17 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: <empty> <synthetic>
+      UnqualifiedNameExpression
+        name: <empty> <synthetic>
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
         correspondingParameter: <testLibrary>::@function::g::@formalParameter::a
-        element: <null>
         staticType: InvalidType
-      SimpleIdentifier
-        token: <empty> <synthetic>
+      UnqualifiedNameExpression
+        name: <empty> <synthetic>
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
         correspondingParameter: <testLibrary>::@function::g::@formalParameter::b
-        element: <null>
         staticType: InvalidType
     rightParenthesis: )
   resolution: ExecutableInvocationResolution

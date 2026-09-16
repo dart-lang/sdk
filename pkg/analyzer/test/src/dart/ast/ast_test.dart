@@ -1537,7 +1537,8 @@ void f(int a, int b, int c) {
   f(a,^,c);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
+    expect(node.isSynthetic, isTrue);
   }
 
   Future<void> test_between_commaAndIdentifier_arguments() async {

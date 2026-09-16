@@ -310,7 +310,12 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable2: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: <empty> <synthetic>
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    iterable(v1): SimpleIdentifier
       token: <empty> <synthetic>
       element: <null>
       staticType: InvalidType
