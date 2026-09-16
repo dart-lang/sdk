@@ -176,24 +176,28 @@ FutureOr<Handler> defaultHandler({
       return devtoolsAssetHandler(request);
     }
 
-    // Host header check for all api/* requests to prevent DNS rebinding.
     if (originCheckEnabled) {
+      // Host header check for all api/* requests to prevent DNS rebinding.
       final hostHeader = request.headers[HttpHeaders.hostHeader];
       if (hostHeader == null || !isAllowedHost(hostHeader)) {
         return Response.forbidden('forbidden host');
+      }
+
+      // Origin header check for all api/* requests to prevent CSRF. Browsers
+      // set Origin on cross-origin fetch/XHR/EventSource requests, so this
+      // rejects requests from a page the DevTools server never granted trust
+      // to, even though such a request's Host header legitimately matches
+      // this server (Host reflects the request's destination, not the page
+      // that issued it, so the check above does not protect against this).
+      final origin = request.headers['Origin'];
+      if (origin != null && !isAllowedOrigin(origin)) {
+        return Response.forbidden('forbidden origin');
       }
     }
 
     final method = request.url.pathSegments[1];
 
-    // Origin check specifically for api/sse to prevent CSRF.
     if (method == 'sse') {
-      if (originCheckEnabled) {
-        final origin = request.headers['Origin'];
-        if (origin != null && !isAllowedOrigin(origin)) {
-          return Response.forbidden('forbidden origin');
-        }
-      }
       return devToolsApiHandler.handler(request);
     }
 
