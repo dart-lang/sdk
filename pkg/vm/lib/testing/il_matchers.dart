@@ -39,6 +39,28 @@ class FlowGraph {
     return inCodegenBlockOrder ? codegenBlockOrder! : _blocks;
   }
 
+  static void _collectInstructions(dynamic data, List<String> into) {
+    if (data is Map) {
+      for (var entry in data.entries) {
+        if (entry.key == "o" && entry.value is String) {
+          into.add(entry.value);
+        } else {
+          _collectInstructions(entry.value, into);
+        }
+      }
+    } else if (data is List) {
+      for (var entry in data) {
+        _collectInstructions(entry, into);
+      }
+    } else {
+      if (data is int || data is String) {
+        // ok
+      } else {
+        print("Notice: Unhandled data: ${data.runtimeType}: $data");
+      }
+    }
+  }
+
   /// Match the sequence of blocks in this flow graph against the given
   /// sequence of matchers: `expected[i]` is expected to match `blocks[i]`,
   /// but there can be more blocks in the graph than matchers (the suffix is
@@ -88,6 +110,18 @@ class FlowGraph {
     print(buffer);
   }
 }
+
+/// Whether [graph] contains an instruction with one of the given [names].
+/// Useful for asserting that an optimization did or did not fire.
+bool containsInstruction(FlowGraph graph, Set<String> names) {
+  final found = <String>[];
+  FlowGraph._collectInstructions(graph.blocks(), found);
+  return found.any(names.contains);
+}
+
+/// Whether [graph] still performs an array bounds check.
+bool hasBoundsCheck(FlowGraph graph) =>
+    containsInstruction(graph, const {'GenericCheckBound', 'CheckArrayBound'});
 
 class InstructionDescriptor {
   final List<String> attributes;
