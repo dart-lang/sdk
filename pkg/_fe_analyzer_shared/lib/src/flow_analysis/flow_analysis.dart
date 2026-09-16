@@ -1745,8 +1745,6 @@ abstract class FlowAnalysis<
   /// pseudo-expression `super`, in the case of the analyzer, which represents
   /// `super.x` as a property get whose target is `super`).
   ///
-  /// [staticType] should be the static type of `this`.
-  ///
   /// [isSuper] indicates whether the expression that was visited was the
   /// pseudo-expression `super`.
   ///
@@ -1754,10 +1752,7 @@ abstract class FlowAnalysis<
   ///
   /// `null` is returned in the event that there is no binding for `this` (which
   /// should only happen in error recovery scenarios).
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  });
+  ExpressionInfo? thisOrSuper({required bool isSuper});
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1964,8 +1959,6 @@ abstract class FlowAnalysis<
   /// promotion, to retrieve information about why an implicit reference to
   /// `this` was not promoted.
   ///
-  /// [staticType] is the (unpromoted) type of `this`.
-  ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting `this` to be promoted to, and whose
   /// values are reasons why the corresponding promotion did not occur. The
@@ -1986,9 +1979,8 @@ abstract class FlowAnalysis<
   /// freely call this method after any expression for which an error *might*
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  );
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis();
 
   /// Registers a write of the given [variable] in the current state.
   ///
@@ -3343,13 +3335,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
+  ExpressionInfo? thisOrSuper({required bool isSuper}) {
     return _wrap(
-      'thisOrSuper($staticType, isSuper: $isSuper)',
-      () => _wrapped.thisOrSuper(staticType, isSuper: isSuper),
+      'thisOrSuper(isSuper: $isSuper)',
+      () => _wrapped.thisOrSuper(isSuper: isSuper),
       isQuery: true,
       isPure: false,
     );
@@ -3495,13 +3484,11 @@ class FlowAnalysisDebug<
   }
 
   @override
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  ) {
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis() {
     return _wrap(
-      'whyNotPromotedImplicitThis($staticType)',
-      () =>
-          _trackWhyNotPromoted(_wrapped.whyNotPromotedImplicitThis(staticType)),
+      'whyNotPromotedImplicitThis()',
+      () => _trackWhyNotPromoted(_wrapped.whyNotPromotedImplicitThis()),
       isQuery: true,
     );
   }
@@ -7833,11 +7820,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
-    return _thisOrSuperReference(staticType, isSuper: isSuper);
+  ExpressionInfo? thisOrSuper({required bool isSuper}) {
+    return _thisOrSuperReference(isSuper: isSuper);
   }
 
   @override
@@ -8059,13 +8043,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  ) {
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis() {
     if (typeAnalyzerOptions.thisPromotionEnabled) {
       return () => {};
     }
-    _Reference? reference = _thisOrSuperReference(staticType, isSuper: false);
+    _Reference? reference = _thisOrSuperReference(isSuper: false);
     if (reference == null) return () => {};
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
@@ -9071,23 +9054,12 @@ class _FlowAnalysisImpl<
     _logBuilder?.promotionInfoChanged(value.promotionInfo, offset: offset);
   }
 
-  _Reference? _thisOrSuperReference(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
-    assert(() {
-      SharedTypeView expectedType =
-          (isSuper
-              ? _unpromotedThisTypes.lastOrNull
-              : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
-          operations.errorType;
-      assert(
-        staticType == expectedType,
-        'Incorrect `this` or `super` type. Got $staticType, expected '
-        '$expectedType.',
-      );
-      return true;
-    }());
+  _Reference? _thisOrSuperReference({required bool isSuper}) {
+    SharedTypeView staticType =
+        (isSuper
+            ? _unpromotedThisTypes.lastOrNull
+            : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
+        operations.errorType;
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
     PromotionKey? promotionKey = _thisPromotionKeys.lastOrNull;
     if (promotionKey == null) return null;

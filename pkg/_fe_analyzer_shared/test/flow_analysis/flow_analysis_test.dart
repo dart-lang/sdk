@@ -5719,7 +5719,7 @@ main() {
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [return_()]),
-          implicitThis_whyNotPromoted('C', (reasons) {
+          implicitThis_whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
             var nonPromotionReason = reasons.values.single as ThisNotPromoted;
             expect(
@@ -5752,7 +5752,7 @@ main() {
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [return_()]),
-          implicitThis_whyNotPromoted('C', (reasons) {
+          implicitThis_whyNotPromoted((reasons) {
             expect(reasons, isEmpty);
           }),
         ]);
