@@ -775,6 +775,12 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedExpressionChain(covariant ParsedExpressionChainImpl node) {
+    var expression = _astRewriter.parsedExpressionChain(nameScope, node);
+    expression.accept2(this);
+  }
+
+  @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
     if (partInclude != null) {

@@ -39,8 +39,9 @@ CompilationUnit
               ExpressionStatement
                 expression2: DirectAssignment
                   target: ReceiverIndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
+                    receiver: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: intList
                     leftBracket: [
                     index: SimpleIdentifier
                       token: <empty> <synthetic>
@@ -87,8 +88,9 @@ CompilationUnit
               ExpressionStatement
                 expression2: DirectAssignment
                   target: ReceiverIndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
+                    receiver: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: intList
                     leftBracket: [
                     index: SimpleIdentifier
                       token: <empty> <synthetic>
@@ -135,11 +137,13 @@ CompilationUnit
               ExpressionStatement
                 expression2: DirectAssignment
                   target: ReceiverIndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
+                    receiver: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: intList
                     leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
+                    index: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
                     rightBracket: ]
                   operator: =
                   value: IntegerLiteral
@@ -183,11 +187,13 @@ CompilationUnit
               ExpressionStatement
                 expression2: DirectAssignment
                   target: ReceiverIndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
+                    receiver: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: intList
                     leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
+                    index: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
                     rightBracket: ]
                   operator: =
                   value: IntegerLiteral
@@ -231,11 +237,13 @@ CompilationUnit
               ExpressionStatement
                 expression2: DirectAssignment
                   target: ReceiverIndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
+                    receiver: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: intList
                     leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
+                    index: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
                     rightBracket: ]
                   operator: =
                   value: IntegerLiteral
@@ -282,11 +290,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -331,11 +341,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -379,11 +391,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -427,11 +441,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -474,11 +490,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -527,11 +545,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -571,11 +591,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -593,7 +615,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -629,11 +654,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -680,11 +707,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -732,11 +761,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -789,11 +820,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -846,11 +879,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -897,11 +932,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -944,11 +981,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -961,7 +1000,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -996,11 +1038,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1049,11 +1093,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1098,8 +1144,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: CallInvocation
                     receiver: SimpleIdentifier
@@ -1154,8 +1201,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SetOrMapLiteral
                     leftBracket: {
@@ -1204,8 +1252,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1253,8 +1302,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1301,8 +1351,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1355,8 +1406,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1400,8 +1452,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1422,7 +1475,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1459,8 +1515,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1512,11 +1569,13 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: l
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: l
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1563,8 +1622,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: FunctionExpression
                     parameters: FormalParameterList
@@ -1619,8 +1679,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: FunctionExpression
                     parameters: FormalParameterList
@@ -1676,8 +1737,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1726,8 +1788,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1768,13 +1831,17 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
+                    expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -1825,8 +1892,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>
@@ -1879,8 +1947,9 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: intList
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: intList
                   leftBracket: [
                   index: SimpleIdentifier
                     token: <empty> <synthetic>

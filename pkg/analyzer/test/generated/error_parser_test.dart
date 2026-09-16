@@ -1066,7 +1066,10 @@ CompilationUnit
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
@@ -1644,11 +1647,17 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: get
+                expression(v1): SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1656,7 +1665,10 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: _x
+                    expression(v1): SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -2585,7 +2597,10 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            expression(v1): SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2611,7 +2626,10 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
 ''');
@@ -3823,8 +3841,9 @@ BinaryOperatorInvocation
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
-    token: x
+  rightOperand: ParsedExpressionChain
+    head: ParsedNameHead
+      name: x
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier

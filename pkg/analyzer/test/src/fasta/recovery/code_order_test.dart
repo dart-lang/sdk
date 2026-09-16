@@ -1107,6 +1107,10 @@ CompilationUnit
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
+                      ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: e
+                    arguments(v1)
                       SimpleIdentifier
                         token: e
                     rightParenthesis: )

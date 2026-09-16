@@ -115,12 +115,4 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   Future<void> resolveTestFile({List<DiagnosticCode>? ignore}) async {
     await getResolvedUnit(testFile, ignore: ignore);
   }
-
-  void updateTestSource(String code) {
-    if (_parsedTestCode == null) {
-      throw StateError('testCode is not set');
-    }
-    _parsedTestCode = null;
-    addTestSource(code);
-  }
 }

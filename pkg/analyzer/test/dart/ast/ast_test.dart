@@ -1532,7 +1532,7 @@ void f() {
   return test;
 }
 ''');
-    var identifier = parseResult.findNode.simple('test');
+    var identifier = parseResult.findNodeV1.simple('test');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1912,7 +1912,10 @@ StringInterpolation
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: foo
+      expression(v1): SimpleIdentifier
         token: foo
     InterpolationString
       contents: '

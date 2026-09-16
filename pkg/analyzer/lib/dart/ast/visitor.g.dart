@@ -2894,6 +2894,20 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitParsedExpressionChain(ParsedExpressionChain node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedNameHead(ParsedNameHead node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitPartDirective(PartDirective node) {
     node.visitChildren2(this);
@@ -4446,6 +4460,14 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => null;
 
+  @experimental
+  @override
+  R? visitParsedExpressionChain(ParsedExpressionChain node) => null;
+
+  @experimental
+  @override
+  R? visitParsedNameHead(ParsedNameHead node) => null;
+
   @override
   R? visitPartDirective(PartDirective node) => null;
 
@@ -5828,6 +5850,14 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedExpressionChain(ParsedExpressionChain node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedNameHead(ParsedNameHead node) => _throw(node);
 
   @override
   R? visitPartDirective(PartDirective node) => _throw(node);
@@ -8875,6 +8905,24 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitParsedExpressionChain(ParsedExpressionChain node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedExpressionChain(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedNameHead(ParsedNameHead node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedNameHead(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitPartDirective(PartDirective node) {
     stopwatch.start();
@@ -10639,6 +10687,14 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedExpressionChain(ParsedExpressionChain node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedNameHead(ParsedNameHead node) => visitNode(node);
 
   @override
   R? visitPartDirective(PartDirective node) => visitNode(node);

@@ -47,8 +47,9 @@ Block
             name: x2
             equals: =
             initializer2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: x
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
               operator: +
               rightOperand: MethodInvocation
                 methodName: SimpleIdentifier
@@ -117,7 +118,10 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: CascadeExpression
-        target2: SimpleIdentifier
+        target2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
+        target(v1): SimpleIdentifier
           token: a
         sections
           CascadeSection
@@ -139,8 +143,9 @@ Block
                 name: x27
               operator: =
               value: NullAssertionExpression
-                operand: SimpleIdentifier
-                  token: s
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: s
                 operator: !
           CascadeSection
             body: PropertyAccess
@@ -222,7 +227,10 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            initializer(v1): SimpleIdentifier
               token: x
       semicolon: ;
   rightBracket: }
@@ -253,8 +261,9 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: f1
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: f1
           operator: !
         argumentList: ArgumentList
           leftParenthesis: (
@@ -301,8 +310,9 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: f2
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: f2
           operator: !
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -352,8 +362,9 @@ Block
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: a
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: a
           operator: !
         question: ?
         leftBracket: [
@@ -388,11 +399,13 @@ Block
   statements
     ExpressionStatement
       expression2: IfNull
-        leftOperand: SimpleIdentifier
-          token: X
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: X
         operator: ??
-        rightOperand: SimpleIdentifier
-          token: x2
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: x2
       expression(v1): BinaryExpression
         leftOperand: SimpleIdentifier
           token: X
@@ -417,7 +430,10 @@ Block
   statements
     ExpressionStatement
       expression2: CascadeExpression
-        target2: SimpleIdentifier
+        target2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
+        target(v1): SimpleIdentifier
           token: a
         sections
           CascadeSection
@@ -452,7 +468,10 @@ Block
   statements
     ExpressionStatement
       expression2: CascadeExpression
-        target2: SimpleIdentifier
+        target2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
+        target(v1): SimpleIdentifier
           token: a
         sections
           CascadeSection
@@ -495,7 +514,10 @@ Block
   statements
     ExpressionStatement
       expression2: CascadeExpression
-        target2: SimpleIdentifier
+        target2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
+        target(v1): SimpleIdentifier
           token: a
         sections
           CascadeSection
@@ -532,7 +554,10 @@ Block
   statements
     ExpressionStatement
       expression2: CascadeExpression
-        target2: SimpleIdentifier
+        target2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
+        target(v1): SimpleIdentifier
           token: a
         sections
           CascadeSection
@@ -562,13 +587,19 @@ Block
   statements
     ExpressionStatement
       expression2: ConditionalExpression
-        condition2: SimpleIdentifier
+        condition2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
         thenExpression2: IntegerLiteral
           literal: 7
         colon: :
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -588,7 +619,10 @@ Block
   statements
     ExpressionStatement
       expression2: ConditionalExpression
-        condition2: SimpleIdentifier
+        condition2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
         thenExpression2: DirectAssignment
@@ -596,8 +630,9 @@ Block
             name: x2
           operator: =
           value: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: +
             rightOperand: MethodInvocation
               methodName: SimpleIdentifier
@@ -627,7 +662,10 @@ Block
                     literal: 7
                 rightParenthesis: )
         colon: :
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -650,7 +688,10 @@ Block
   statements
     ExpressionStatement
       expression2: ConditionalExpression
-        condition2: SimpleIdentifier
+        condition2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
         thenExpression2: ConditionalExpression
@@ -662,8 +703,9 @@ Block
               name: x2
             operator: =
             value: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: x
+              leftOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
               operator: +
               rightOperand: MethodInvocation
                 methodName: SimpleIdentifier
@@ -693,7 +735,10 @@ Block
                       literal: 7
                   rightParenthesis: )
           colon: :
-          elseExpression2: SimpleIdentifier
+          elseExpression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: y
+          elseExpression(v1): SimpleIdentifier
             token: y
         colon: : <synthetic>
         elseExpression2: SimpleIdentifier
@@ -716,15 +761,19 @@ Block
   statements
     ExpressionStatement
       expression2: ConditionalExpression
-        condition2: SimpleIdentifier
+        condition2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: X
+        condition(v1): SimpleIdentifier
           token: X
         question: ?
         thenExpression2: DirectAssignment
           target: UnqualifiedNameAssignmentTarget
             name: x2
           operator: =
-          value: SimpleIdentifier
-            token: x
+          value: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
         thenExpression(v1): AssignmentExpression
           leftHandSide: SimpleIdentifier
             token: x2
@@ -732,7 +781,10 @@ Block
           rightHandSide: SimpleIdentifier
             token: x
         colon: :
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: y
+        elseExpression(v1): SimpleIdentifier
           token: y
       semicolon: ;
   rightBracket: }
@@ -765,8 +817,9 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: x
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 7
@@ -814,7 +867,10 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: ConditionalExpression
-          condition2: SimpleIdentifier
+          condition2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
+          condition(v1): SimpleIdentifier
             token: x
           question: ?
           thenExpression2: DirectAssignment
@@ -844,8 +900,9 @@ Block
               literal: 8
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: y
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: y
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
@@ -904,8 +961,9 @@ Block
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: x
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 7
@@ -1029,7 +1087,10 @@ Block
       statements
         ExpressionStatement
           expression2: ConditionalExpression
-            condition2: SimpleIdentifier
+            condition2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: r
+            condition(v1): SimpleIdentifier
               token: r
             question: ?
             thenExpression2: ThisExpression
@@ -1228,8 +1289,9 @@ Block
   statements
     ExpressionStatement
       expression2: ReceiverIndexExpression
-        receiver: SimpleIdentifier
-          token: a
+        receiver: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         leftBracket: [
         index: IntegerLiteral
           literal: 7
@@ -1259,8 +1321,9 @@ Block
   statements
     ExpressionStatement
       expression2: ReceiverIndexExpression
-        receiver: SimpleIdentifier
-          token: a
+        receiver: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         question: ?
         leftBracket: [
         index: IntegerLiteral
@@ -1293,7 +1356,10 @@ Block
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: IsExpression
-          expression2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
+          expression(v1): SimpleIdentifier
             token: x
           isOperator: is
           type: NamedType
@@ -1303,11 +1369,13 @@ Block
         thenExpression2: ParenthesizedExpression
           leftParenthesis: (
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: +
-            rightOperand: SimpleIdentifier
-              token: y
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: y
             binaryOperator: add
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1317,7 +1385,10 @@ Block
               token: y
           rightParenthesis: )
         colon: :
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: z
+        elseExpression(v1): SimpleIdentifier
           token: z
       semicolon: ;
   rightBracket: }
@@ -1340,7 +1411,10 @@ Block
         condition2: ParenthesizedExpression
           leftParenthesis: (
           expression2: IsExpression
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            expression(v1): SimpleIdentifier
               token: x
             isOperator: is
             type: NamedType
@@ -1351,11 +1425,13 @@ Block
         thenExpression2: ParenthesizedExpression
           leftParenthesis: (
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: x
+            leftOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
             operator: +
-            rightOperand: SimpleIdentifier
-              token: y
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: y
             binaryOperator: add
           expression(v1): BinaryExpression
             leftOperand: SimpleIdentifier
@@ -1365,7 +1441,10 @@ Block
               token: y
           rightParenthesis: )
         colon: :
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: z
+        elseExpression(v1): SimpleIdentifier
           token: z
       semicolon: ;
   rightBracket: }
@@ -1515,7 +1594,10 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: AsExpression
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: o
+                  expression(v1): SimpleIdentifier
                     token: o
                   asOperator: as
                   type: NamedType
@@ -1601,7 +1683,10 @@ CompilationUnit
                 equals: =
                 expression2: ConditionalExpression
                   condition2: IsExpression
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: o
+                    expression(v1): SimpleIdentifier
                       token: o
                     isOperator: is
                     type: NamedType
@@ -1697,7 +1782,10 @@ CompilationUnit
                 equals: =
                 expression2: ConditionalExpression
                   condition2: IsExpression
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: o
+                    expression(v1): SimpleIdentifier
                       token: o
                     isOperator: is
                     type: NamedType
@@ -1744,8 +1832,9 @@ Block
             name: x
             equals: =
             initializer2: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: y
+              operand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: y
               operator: !
             initializer(v1): PostfixExpression
               operand: SimpleIdentifier
@@ -1914,8 +2003,9 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: PropertyAccess
                 target2: NullAssertionExpression
-                  operand: SimpleIdentifier
-                    token: g
+                  operand: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: g
                   operator: !
                 target(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1979,8 +2069,9 @@ Block
           propertyName: SimpleIdentifier
             token: baz
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg
         rightBracket: ]
       expression(v1): IndexExpression
         target: PropertyAccess
@@ -2025,8 +2116,9 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: MethodInvocation
                 target2: NullAssertionExpression
-                  operand: SimpleIdentifier
-                    token: g
+                  operand: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: g
                   operator: !
                 target(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -2131,8 +2223,9 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: y
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
                   leftBracket: [
                   index: IntegerLiteral
                     literal: 0
@@ -2238,8 +2331,9 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: SimpleIdentifier
-                  token: y
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: y
                 operator: !
               operator: +
               rightOperand: IntegerLiteral
@@ -2520,12 +2614,14 @@ Block
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: obj
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: obj
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -2557,17 +2653,20 @@ Block
         receiver: NullAssertionExpression
           operand: ReceiverIndexExpression
             receiver: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: obj
+              operand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: obj
               operator: !
             leftBracket: [
-            index: SimpleIdentifier
-              token: arg
+            index: ParsedExpressionChain
+              head: ParsedNameHead
+                name: arg
             rightBracket: ]
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg2
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg2
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -2612,8 +2711,9 @@ Block
               token: bar
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -2649,8 +2749,9 @@ Block
         receiver: NullAssertionExpression
           operand: PropertyAccess
             target2: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: foo
+              operand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: foo
               operator: !
             target(v1): PostfixExpression
               operand: SimpleIdentifier
@@ -2661,8 +2762,9 @@ Block
               token: bar
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -2708,13 +2810,15 @@ Block
                   token: bar
               operator: !
             leftBracket: [
-            index: SimpleIdentifier
-              token: arg
+            index: ParsedExpressionChain
+              head: ParsedNameHead
+                name: arg
             rightBracket: ]
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg2
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg2
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -2759,8 +2863,9 @@ Block
             receiver: NullAssertionExpression
               operand: PropertyAccess
                 target2: NullAssertionExpression
-                  operand: SimpleIdentifier
-                    token: foo
+                  operand: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: foo
                   operator: !
                 target(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -2771,13 +2876,15 @@ Block
                   token: bar
               operator: !
             leftBracket: [
-            index: SimpleIdentifier
-              token: arg
+            index: ParsedExpressionChain
+              head: ParsedNameHead
+                name: arg
             rightBracket: ]
           operator: !
         leftBracket: [
-        index: SimpleIdentifier
-          token: arg2
+        index: ParsedExpressionChain
+          head: ParsedNameHead
+            name: arg2
         rightBracket: ]
       expression(v1): IndexExpression
         target: PostfixExpression
@@ -3081,12 +3188,17 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: obj
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: obj
           operator: !
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: arg
+          arguments(v1)
             SimpleIdentifier
               token: arg
           rightParenthesis: )
@@ -3122,12 +3234,17 @@ Block
         receiver: NullAssertionExpression
           operand: CallInvocation
             receiver: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: obj
+              operand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: obj
               operator: !
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
+                ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: arg
+              arguments(v1)
                 SimpleIdentifier
                   token: arg
               rightParenthesis: )
@@ -3135,6 +3252,10 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: arg2
+          arguments(v1)
             SimpleIdentifier
               token: arg2
           rightParenthesis: )
@@ -3268,7 +3389,10 @@ Block
               leftOperand: NullAssertionExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  expression(v1): SimpleIdentifier
                     token: y
                   rightParenthesis: )
                 operator: !
@@ -3451,8 +3575,9 @@ Block
       expression2: UnaryOperatorInvocation
         operator: -
         operand: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: x
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: x
           operator: !
         unaryOperator: negate
       expression(v1): PrefixExpression

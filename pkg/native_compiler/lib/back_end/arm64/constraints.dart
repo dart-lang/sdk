@@ -544,21 +544,28 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitBoxInt(BoxInt instr) => InstructionConstraints(
-    anyCpuRegister,
-    const [anyCpuRegister],
-    const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-    Safepoint(),
-  );
+  InstructionConstraints? visitBoxInt(BoxInt instr) {
+    final inputs = [allocatableRegisters.where((r) => r != returnReg).first];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(returnReg, inputs),
+      Safepoint(),
+    );
+  }
 
   @override
-  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
-      InstructionConstraints(
-        anyCpuRegister,
-        const [anyFpuRegister],
-        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-        Safepoint(),
-      );
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) {
+    final inputs = [allocatableFPRegisters.first];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(returnReg, inputs),
+      Safepoint(),
+    );
+  }
 
   @override
   InstructionConstraints? visitUnboxInt(UnboxInt instr) =>

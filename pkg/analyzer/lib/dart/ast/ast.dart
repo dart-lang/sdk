@@ -282,6 +282,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ObjectPattern,
         OperatorDeclaration,
         ParenthesizedExpression,
+        ParsedExpressionChain,
+        ParsedNameHead,
         ParenthesizedPattern,
         PartDirective,
         PartOfDirective,

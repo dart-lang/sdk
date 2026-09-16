@@ -332,22 +332,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: &
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: bitwiseAnd
         binaryOperator: greaterThan
     arguments(v1)
@@ -384,18 +388,22 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
-        rightOperand: SimpleIdentifier
-          token: as
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: as
         binaryOperator: greaterThan
     arguments(v1)
       BinaryExpression
@@ -429,22 +437,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: *
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: multiply
         binaryOperator: greaterThan
     arguments(v1)
@@ -481,21 +493,28 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: LogicalNot
           operator: !
           operand: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: d
+            elements(v1)
               SimpleIdentifier
                 token: d
             rightBracket: ]
@@ -536,21 +555,27 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: LogicalNot
           operator: !
           operand: ParenthesizedExpression
             leftParenthesis: (
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: d
+            expression(v1): SimpleIdentifier
               token: d
             rightParenthesis: )
         binaryOperator: greaterThan
@@ -591,22 +616,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: |
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: bitwiseOr
         binaryOperator: greaterThan
     arguments(v1)
@@ -645,22 +674,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ^
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: bitwiseXor
         binaryOperator: greaterThan
     arguments(v1)
@@ -699,16 +732,19 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       IsExpression
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: c
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: c
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
@@ -755,11 +791,13 @@ var x = f<a><b>;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: f
+    leftOperand: ParsedExpressionChain
+      head: ParsedNameHead
+        name: f
     operator: <
-    rightOperand: SimpleIdentifier
-      token: a
+    rightOperand: ParsedExpressionChain
+      head: ParsedNameHead
+        name: a
     binaryOperator: lessThan
   operator: >
   rightOperand: ListLiteral
@@ -805,20 +843,24 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: UnaryOperatorInvocation
           operator: -
-          operand: SimpleIdentifier
-            token: d
+          operand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           unaryOperator: negate
         binaryOperator: greaterThan
     arguments(v1)
@@ -853,19 +895,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: ListLiteral
           leftBracket: [
           elements2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: d
+          elements(v1)
             SimpleIdentifier
               token: d
           rightBracket: ]
@@ -906,27 +955,35 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: c
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: c
           operator: >
           rightOperand: ListLiteral
             leftBracket: [
             elements2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: d
+            elements(v1)
               SimpleIdentifier
                 token: d
             rightBracket: ]
           binaryOperator: greaterThan
         operator: >
-        rightOperand: SimpleIdentifier
-          token: e
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: e
         binaryOperator: greaterThan
     arguments(v1)
       BinaryExpression
@@ -966,19 +1023,29 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: ListLiteral
           leftBracket: [
           elements2
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: d
+            ParsedExpressionChain
+              head: ParsedNameHead
+                name: e
+          elements(v1)
             SimpleIdentifier
               token: d
             SimpleIdentifier
@@ -1023,22 +1090,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: %
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: modulo
         binaryOperator: greaterThan
     arguments(v1)
@@ -1077,16 +1148,19 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       CascadeExpression
         target2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: c
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: c
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
@@ -1155,22 +1229,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: +
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: add
         binaryOperator: greaterThan
     arguments(v1)
@@ -1209,16 +1287,19 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       ConditionalExpression
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: c
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: c
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
@@ -1274,15 +1355,18 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: MethodInvocation
           target2: SimpleIdentifier
@@ -1333,15 +1417,18 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: MethodInvocation
           target2: SimpleIdentifier
@@ -1406,15 +1493,18 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: SimpleIdentifier
           token: <empty> <synthetic>
@@ -1463,15 +1553,18 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: PropertyAccess
           target2: SimpleIdentifier
@@ -1516,23 +1609,27 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       IfNull
         leftOperand: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: c
+          leftOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: c
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
           binaryOperator: greaterThan
         operator: ??
-        rightOperand: SimpleIdentifier
-          token: d
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: d
     arguments(v1)
       BinaryExpression
         leftOperand: SimpleIdentifier
@@ -1569,22 +1666,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: /
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: divide
         binaryOperator: greaterThan
     arguments(v1)
@@ -1623,22 +1724,26 @@ MethodInvocation
     leftParenthesis: (
     arguments2
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: a
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: a
         operator: <
-        rightOperand: SimpleIdentifier
-          token: b
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
         binaryOperator: lessThan
       BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: c
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: c
         operator: >
         rightOperand: BinaryOperatorInvocation
           leftOperand: SimpleIdentifier
             token: <empty> <synthetic>
           operator: ~/
-          rightOperand: SimpleIdentifier
-            token: d
+          rightOperand: ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
           binaryOperator: truncatingDivide
         binaryOperator: greaterThan
     arguments(v1)
@@ -1670,8 +1775,9 @@ var x = x[0]<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: ReceiverIndexExpression
-    receiver: SimpleIdentifier
-      token: x
+    receiver: ParsedExpressionChain
+      head: ParsedNameHead
+        name: x
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -1703,8 +1809,9 @@ var x = x[0]!<a, b>;
 FunctionReference
   function2: NullAssertionExpression
     operand: ReceiverIndexExpression
-      receiver: SimpleIdentifier
-        token: x
+      receiver: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
       leftBracket: [
       index: IntegerLiteral
         literal: 0
@@ -1739,8 +1846,9 @@ var x = x[0]()<a, b>;
 FunctionReference
   function2: CallInvocation
     receiver: ReceiverIndexExpression
-      receiver: SimpleIdentifier
-        token: x
+      receiver: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
       leftBracket: [
       index: IntegerLiteral
         literal: 0
@@ -1778,8 +1886,9 @@ var x = x?[0]<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: ReceiverIndexExpression
-    receiver: SimpleIdentifier
-      token: x
+    receiver: ParsedExpressionChain
+      head: ParsedNameHead
+        name: x
     question: ?
     leftBracket: [
     index: IntegerLiteral

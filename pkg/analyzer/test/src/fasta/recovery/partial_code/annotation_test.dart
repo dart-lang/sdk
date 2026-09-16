@@ -547,6 +547,16 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: int
+                    ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: get
+                    ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: a
+                  arguments(v1)
                     SimpleIdentifier
                       token: int
                     SimpleIdentifier
@@ -929,7 +939,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1216,7 +1229,10 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1666,7 +1682,10 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2007,7 +2026,10 @@ CompilationUnit
                           SwitchExpression
                             switchKeyword: switch
                             leftParenthesis: (
-                            expression2: SimpleIdentifier
+                            expression2: ParsedExpressionChain
+                              head: ParsedNameHead
+                                name: x
+                            expression(v1): SimpleIdentifier
                               token: x
                             rightParenthesis: )
                             leftBracket: {
@@ -2430,7 +2452,10 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: B
+            initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration

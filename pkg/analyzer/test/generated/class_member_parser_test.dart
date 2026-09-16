@@ -117,7 +117,10 @@ MethodDeclaration
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: SimpleIdentifier
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: x
+            expression(v1): SimpleIdentifier
               token: x
           semicolon: ;
       rightBracket: }
@@ -183,12 +186,18 @@ MethodDeclaration
           expression2: BinaryOperatorInvocation
             leftOperand: AwaitExpression
               awaitKeyword: await
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
+              expression(v1): SimpleIdentifier
                 token: x
             operator: +
             rightOperand: AwaitExpression
               awaitKeyword: await
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: y
+              expression(v1): SimpleIdentifier
                 token: y
             binaryOperator: add
           expression(v1): BinaryExpression
@@ -595,7 +604,10 @@ ConstructorDeclaration
       equals: =
       expression2: ConditionalExpression
         condition2: IsExpression
-          expression2: SimpleIdentifier
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: a
+          expression(v1): SimpleIdentifier
             token: a
           isOperator: is
           type: NamedType
@@ -666,7 +678,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -675,7 +690,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -735,7 +753,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -745,7 +766,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -808,7 +832,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -817,7 +844,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -881,7 +911,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -891,7 +924,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -950,7 +986,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -959,7 +998,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1019,7 +1061,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1029,7 +1074,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1092,7 +1140,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1101,7 +1152,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1165,7 +1219,10 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1175,7 +1232,10 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1251,11 +1311,13 @@ ConstructorDeclaration
         token: _a
       equals: =
       expression2: BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: _
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: _
         operator: +
-        rightOperand: SimpleIdentifier
-          token: _$
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: _$
         binaryOperator: add
       expression(v1): BinaryExpression
         leftOperand: SimpleIdentifier
@@ -2681,8 +2743,9 @@ CompilationUnit
                       target: UnqualifiedNameAssignmentTarget
                         name: x
                       operator: >>>=
-                      value: SimpleIdentifier
-                        token: value
+                      value: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: value
                       binaryOperator: unsignedShiftRight
                     expression(v1): AssignmentExpression
                       leftHandSide: SimpleIdentifier
@@ -2927,17 +2990,22 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
       condition2: BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: x
+        leftOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: x
         operator: <
-        rightOperand: SimpleIdentifier
-          token: y
+        rightOperand: ParsedExpressionChain
+          head: ParsedNameHead
+            name: y
         binaryOperator: lessThan
       condition(v1): BinaryExpression
         leftOperand: SimpleIdentifier
@@ -2951,7 +3019,10 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+      expression(v1): SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -3043,7 +3114,10 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      expression(v1): SimpleIdentifier
         token: x
     ConstructorFieldInitializer
       thisKeyword: this
@@ -3052,7 +3126,10 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+      expression(v1): SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -3164,7 +3241,10 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression2: SimpleIdentifier
+                    expression2: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: n
+                    expression(v1): SimpleIdentifier
                       token: n
                     semicolon: ; <synthetic>
                 rightBracket: } <synthetic>
@@ -3315,7 +3395,10 @@ ConstructorDeclaration
       equals: =
       expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: b
+        expression(v1): SimpleIdentifier
           token: b
         rightParenthesis: )
   body: BlockFunctionBody
@@ -3341,7 +3424,10 @@ ConstructorFieldInitializer
   fieldName(v1): SimpleIdentifier
     token: a
   equals: =
-  expression2: SimpleIdentifier
+  expression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: b
+  expression(v1): SimpleIdentifier
     token: b
 ''');
   }
@@ -3360,7 +3446,10 @@ ConstructorFieldInitializer
   fieldName(v1): SimpleIdentifier
     token: a
   equals: =
-  expression2: SimpleIdentifier
+  expression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: b
+  expression(v1): SimpleIdentifier
     token: b
 ''');
   }

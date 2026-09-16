@@ -773,6 +773,12 @@ abstract class AstVisitor2<R> {
 
   R? visitParenthesizedPattern(ParenthesizedPattern node);
 
+  @experimental
+  R? visitParsedExpressionChain(ParsedExpressionChain node);
+
+  @experimental
+  R? visitParsedNameHead(ParsedNameHead node);
+
   R? visitPartDirective(PartDirective node);
 
   R? visitPartOfDirective(PartOfDirective node);

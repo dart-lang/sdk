@@ -8,6 +8,9 @@
 - update `simplify_variable_pattern` to support inherited getters and methods.
 - update `use_key_in_widget_constructors` to no longer report classes whose
   superclass constructor has no `Key` parameter to forward.
+- update `public_member_api_docs` to no longer report the primary constructor
+  of a class that is `sealed`, `abstract final`, `abstract interface`, or
+  annotated with `@internal`.
 
 # 3.13.0
 

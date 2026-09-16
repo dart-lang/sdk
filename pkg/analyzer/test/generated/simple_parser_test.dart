@@ -322,6 +322,13 @@ Annotation
   arguments: ArgumentList
     leftParenthesis: (
     arguments2
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+    arguments(v1)
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -366,6 +373,13 @@ Annotation
   arguments: ArgumentList
     leftParenthesis: (
     arguments2
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+    arguments(v1)
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -416,6 +430,13 @@ Annotation
   arguments: ArgumentList
     leftParenthesis: (
     arguments2
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+    arguments(v1)
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -472,6 +493,29 @@ var v = m(w, x, y: y, z: z);
 ArgumentList
   leftParenthesis: (
   arguments2
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: w
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: x
+    NamedArgument
+      name: y
+      colon: :
+      argumentExpression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+      argumentExpression(v1): SimpleIdentifier
+        token: y
+    NamedArgument
+      name: z
+      colon: :
+      argumentExpression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: z
+      argumentExpression(v1): SimpleIdentifier
+        token: z
+  arguments(v1)
     SimpleIdentifier
       token: w
     SimpleIdentifier
@@ -479,12 +523,12 @@ ArgumentList
     NamedArgument
       name: y
       colon: :
-      argumentExpression2: SimpleIdentifier
+      argumentExpression: SimpleIdentifier
         token: y
     NamedArgument
       name: z
       colon: :
-      argumentExpression2: SimpleIdentifier
+      argumentExpression: SimpleIdentifier
         token: z
   rightParenthesis: )
 ''');
@@ -499,6 +543,16 @@ var v = m(x, y, z);
 ArgumentList
   leftParenthesis: (
   arguments2
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: x
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: y
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: z
+  arguments(v1)
     SimpleIdentifier
       token: x
     SimpleIdentifier
@@ -521,12 +575,18 @@ ArgumentList
     NamedArgument
       name: x
       colon: :
-      argumentExpression2: SimpleIdentifier
+      argumentExpression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: x
+      argumentExpression(v1): SimpleIdentifier
         token: x
     NamedArgument
       name: y
       colon: :
-      argumentExpression2: SimpleIdentifier
+      argumentExpression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: y
+      argumentExpression(v1): SimpleIdentifier
         token: y
   rightParenthesis: )
 ''');
@@ -541,6 +601,16 @@ var v = m(x, y, z);
 ArgumentList
   leftParenthesis: (
   arguments2
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: x
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: y
+    ParsedExpressionChain
+      head: ParsedNameHead
+        name: z
+  arguments(v1)
     SimpleIdentifier
       token: x
     SimpleIdentifier
@@ -574,6 +644,10 @@ ArgumentList
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
+        arguments(v1)
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -591,11 +665,13 @@ ArgumentList
   leftParenthesis: (
   arguments2
     BinaryOperatorInvocation
-      leftOperand: SimpleIdentifier
-        token: a
+      leftOperand: ParsedExpressionChain
+        head: ParsedNameHead
+          name: a
       operator: <
-      rightOperand: SimpleIdentifier
-        token: b
+      rightOperand: ParsedExpressionChain
+        head: ParsedNameHead
+          name: b
       binaryOperator: lessThan
     BinaryOperatorInvocation
       leftOperand: PropertyAccess
@@ -611,7 +687,10 @@ ArgumentList
       operator: >
       rightOperand: ParenthesizedExpression
         leftParenthesis: (
-        expression2: SimpleIdentifier
+        expression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: d
+        expression(v1): SimpleIdentifier
           token: d
         rightParenthesis: )
       binaryOperator: greaterThan
@@ -669,6 +748,10 @@ ArgumentList
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          ParsedExpressionChain
+            head: ParsedNameHead
+              name: d
+        arguments(v1)
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1178,6 +1261,10 @@ CompilationUnit
           arguments: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedExpressionChain
+                head: ParsedNameHead
+                  name: x
+            arguments(v1)
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -1613,7 +1700,10 @@ void f() => y;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>
-  expression2: SimpleIdentifier
+  expression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: y
+  expression(v1): SimpleIdentifier
     token: y
   semicolon: ;
 ''');
@@ -1629,7 +1719,10 @@ void f() async => y;
 ExpressionFunctionBody
   keyword: async
   functionDefinition: =>
-  expression2: SimpleIdentifier
+  expression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: y
+  expression(v1): SimpleIdentifier
     token: y
   semicolon: ;
 ''');
@@ -1829,7 +1922,10 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: SimpleIdentifier
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: e
+                      expression(v1): SimpleIdentifier
                         token: e
                 rightParenthesis: )
       semicolon: ;
@@ -1928,7 +2024,10 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: SimpleIdentifier
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: e
+                      expression(v1): SimpleIdentifier
                         token: e
                 rightParenthesis: )
       semicolon: ;
@@ -2281,7 +2380,10 @@ void f() {
     assertParsedNodeText(node, r'''
 ReturnStatement
   returnKeyword: return
-  expression2: SimpleIdentifier
+  expression2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: x
+  expression(v1): SimpleIdentifier
     token: x
   semicolon: ;
 ''');
@@ -3350,7 +3452,10 @@ var a = b;
 VariableDeclaration
   name: a
   equals: =
-  initializer2: SimpleIdentifier
+  initializer2: ParsedExpressionChain
+    head: ParsedNameHead
+      name: b
+  initializer(v1): SimpleIdentifier
     token: b
 ''');
   }

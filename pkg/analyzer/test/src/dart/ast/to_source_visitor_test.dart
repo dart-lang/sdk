@@ -3978,7 +3978,7 @@ class A {
     var parseResult = parseTestCodeWithDiagnostics('''
 var x = $code;
 ''');
-    var node = parseResult.findNode.singleSimpleIdentifier;
+    var node = parseResult.findNodeV1.singleSimpleIdentifier;
     _assertSource(code, node);
   }
 

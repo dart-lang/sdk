@@ -236,6 +236,15 @@ CompilationUnit
                                         colon: :
                                         argumentExpression2: NullLiteral
                                           literal: null
+                                      ParsedExpressionChain
+                                        head: ParsedNameHead
+                                          name: f
+                                    arguments(v1)
+                                      NamedArgument
+                                        name: e
+                                        colon: :
+                                        argumentExpression: NullLiteral
+                                          literal: null
                                       SimpleIdentifier
                                         token: f
                                     rightParenthesis: )
@@ -284,8 +293,9 @@ CompilationUnit
                     leftOperand: IntegerLiteral
                       literal: 1
                     operator: <
-                    rightOperand: SimpleIdentifier
-                      token: x
+                    rightOperand: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: x
                     binaryOperator: lessThan
                   operator: <
                   rightOperand: IntegerLiteral

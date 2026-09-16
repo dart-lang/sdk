@@ -550,12 +550,19 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   RuntimeAllocationEpilogue(thread);
 }
 
-DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
+  arguments.SetReturn(Object::Handle(
+      zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
+  RuntimeAllocationEpilogue(thread);
+}
+
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt, 0) {
+  const int64_t val = thread->unboxed_int64_runtime_arg();
   arguments.SetReturn(
-      Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
+      Object::Handle(zone, Integer::New(val, SpaceForRuntimeAllocation())));
   RuntimeAllocationEpilogue(thread);
 }
 
@@ -587,12 +594,12 @@ DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(BoxInt32x4, 0) {
   RuntimeAllocationEpilogue(thread);
 }
 
-DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateMint, 0) {
+DEFINE_RUNTIME_ENTRY_NO_LAZY_DEOPT(AllocateDouble, 0) {
   if (FLAG_shared_slow_path_triggers_gc) {
     thread->isolate_group()->heap()->CollectAllGarbage(GCReason::kDebugging);
   }
-  arguments.SetReturn(Object::Handle(
-      zone, Integer::New(kMaxInt64, SpaceForRuntimeAllocation())));
+  arguments.SetReturn(
+      Object::Handle(zone, Double::New(0.0, SpaceForRuntimeAllocation())));
   RuntimeAllocationEpilogue(thread);
 }
 

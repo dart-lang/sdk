@@ -249,7 +249,9 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     if (node.inPrivateMember) return;
-    if (node.parent?.parent is! ClassDeclaration) return;
+    var parent = node.parent?.parent;
+    if (parent is! ClassDeclaration) return;
+    if (parent.isEffectivelyPrivate) return;
 
     check(node);
   }
@@ -262,7 +264,9 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
     if (node.typeName.isPrivate) return;
     if (node.constructorName?.name.isPrivate ?? false) return;
 
-    if (node.parent is! ClassDeclaration) return;
+    var parent = node.parent;
+    if (parent is! ClassDeclaration) return;
+    if (parent.isEffectivelyPrivate) return;
 
     var token = node.constructorName?.name ?? node.typeName;
     rule.reportAtToken(token);
