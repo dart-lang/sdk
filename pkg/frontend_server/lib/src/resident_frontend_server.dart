@@ -99,24 +99,18 @@ class ResidentCompiler {
 
   new(this._entryPoint, this._compileOptions) {
     _compiler = new FrontendCompiler(_compilerOutput);
-    updateState(_compileOptions);
-  }
 
-  void resetStateToWaitingForFirstCompile() {
-    _state = _ResidentState.waitingForFirstCompile;
-  }
-
-  /// The [ResidentCompiler] will use the [newOptions] for future compilation
-  /// requests.
-  void updateState(ArgResults newOptions) {
-    final String? packages = newOptions['packages'];
-    incrementalMode = newOptions['incremental'] == true;
-    _compileOptions = newOptions;
+    final String? packages = _compileOptions['packages'];
+    incrementalMode = _compileOptions['incremental'] == true;
     _currentPackage = packages == null ? null : new File(packages);
     // Refresh the compiler's output for the next compile
     _compilerOutput.clear();
     _formattedOutput.clear();
     resetStateToWaitingForFirstCompile();
+  }
+
+  void resetStateToWaitingForFirstCompile() {
+    _state = _ResidentState.waitingForFirstCompile;
   }
 
   /// The current compiler options are outdated when any option has changed
@@ -388,13 +382,9 @@ class ResidentFrontendServer {
     required String canonicalizedLibraryPath,
     required ArgResults compileOptions,
     required File cachedCompilerOptions,
+    required File cachedDill,
   }) {
-    cachedCompilerOptions.createSync();
-    cachedCompilerOptions.writeAsStringSync(
-      compileOptions.arguments.map(jsonEncode).toList().toString(),
-    );
-
-    late final ResidentCompiler residentCompiler;
+    final ResidentCompiler residentCompiler;
     if (compilers[canonicalizedLibraryPath] == null) {
       // Avoids using too much memory.
       if (compilers.length >= ResidentFrontendServer._compilerLimit) {
@@ -405,14 +395,72 @@ class ResidentFrontendServer {
         compileOptions,
       );
       compilers[canonicalizedLibraryPath] = residentCompiler;
+      if (cachedCompilerOptions.existsSync()) {
+        final String cachedCompilerOptionsContents = cachedCompilerOptions
+            .readAsStringSync();
+        bool optionsOutdated = false;
+        try {
+          final List<String> cachedCompilerOptionsAsList = (jsonDecode(
+            cachedCompilerOptionsContents,
+          ) as List<dynamic>).cast<String>();
+          final ArgResults cachedOptions = argParser.parse(
+            cachedCompilerOptionsAsList,
+          );
+          optionsOutdated = residentCompiler.areOptionsOutdated(cachedOptions);
+        } catch (e) {
+          optionsOutdated = true;
+        }
+        if (optionsOutdated) {
+          // If the options are outdated or an exception was thrown when trying
+          // to read and/or understand the file we can't reuse the old dill.
+          _deleteCacheFor(
+            cachedCompilerOptions: cachedCompilerOptions,
+            cachedDill: cachedDill,
+          );
+        }
+      } else if (cachedDill.existsSync()) {
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+      }
     } else {
-      residentCompiler = compilers[canonicalizedLibraryPath]!;
-      if (residentCompiler.areOptionsOutdated(compileOptions)) {
-        residentCompiler.updateState(compileOptions);
+      ResidentCompiler cachedCompiler = compilers[canonicalizedLibraryPath]!;
+      if (cachedCompiler.areOptionsOutdated(compileOptions)) {
+        // If the options are outdated we can't reuse the compiler.
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+        residentCompiler = new ResidentCompiler(
+          new File(canonicalizedLibraryPath),
+          compileOptions,
+        );
+        compilers[canonicalizedLibraryPath] = residentCompiler;
+      } else {
+        residentCompiler = cachedCompiler;
       }
     }
 
+    cachedCompilerOptions.createSync();
+    cachedCompilerOptions.writeAsStringSync(
+      compileOptions.arguments.map(jsonEncode).toList().toString(),
+    );
+
     return residentCompiler;
+  }
+
+  static void _deleteCacheFor({
+    required File cachedCompilerOptions,
+    required File cachedDill,
+  }) {
+    // TODO(jensj): If we can't delete these what do we do?
+    if (cachedCompilerOptions.existsSync()) {
+      cachedCompilerOptions.deleteSync();
+    }
+    if (cachedDill.existsSync()) {
+      cachedDill.deleteSync();
+    }
   }
 
   static Future<String> _handleReplaceCachedDillRequest(
@@ -503,6 +551,7 @@ class ResidentFrontendServer {
       canonicalizedLibraryPath: canonicalizedExecutablePath,
       compileOptions: options,
       cachedCompilerOptions: cachedCompilerOptions,
+      cachedDill: new File(cachedDillPath),
     );
     final Map<String, dynamic> response = await residentCompiler.compile();
 
@@ -583,6 +632,7 @@ class ResidentFrontendServer {
       canonicalizedLibraryPath: canonicalizedLibraryPath,
       compileOptions: options,
       cachedCompilerOptions: cachedCompilerOptions,
+      cachedDill: new File(cachedDillPath),
     );
 
     final String expression = request[_expressionString];
@@ -753,51 +803,6 @@ class ResidentFrontendServer {
   static String _encodeErrorMessage(String message) => jsonEncode(
     <String, Object>{_successString: false, 'errorMessage': message},
   );
-
-  /// Used to create compile requests for the ResidentFrontendServer.
-  /// Returns a JSON string that the resident compiler will be able to
-  /// interpret.
-  static String createCompileJSON({
-    required String executable,
-    String? packages,
-    required String outputDill,
-    bool? supportMirrors,
-    bool? enableAsserts,
-    bool? soundNullSafety,
-    String? verbosity,
-    bool? aot,
-    bool? tfa,
-    bool? rta,
-    bool? treeShakeWriteOnlyFields,
-    bool? protobufTreeShakerV2,
-    List<String>? define,
-    List<String>? enableExperiment,
-    bool verbose = false,
-    String? nativeAssetsYaml,
-    String? recordUses,
-  }) {
-    return jsonEncode(<String, Object>{
-      "command": "compile",
-      "executable": executable,
-      "output-dill": outputDill,
-      if (aot != null) "aot": true,
-      if (define != null) "define": define,
-      if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiment != null) "enable-experiment": enableExperiment,
-      if (packages != null) "packages": packages,
-      if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
-      if (rta != null) "rta": true,
-      if (soundNullSafety != null) "sound-null-safety": soundNullSafety,
-      if (supportMirrors != null) "support-mirrors": true,
-      if (tfa != null) "tfa": true,
-      if (treeShakeWriteOnlyFields != null)
-        "tree-shaker-write-only-fields": true,
-      if (verbosity != null) "verbosity": verbosity,
-      "verbose": verbose,
-      if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
-      if (recordUses != null) _recordUsesString: recordUses,
-    });
-  }
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used

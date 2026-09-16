@@ -3097,13 +3097,19 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
       break;
     }
 
-    case MethodRecognizer::kInt32x4Splat:
     case MethodRecognizer::kFloat32x4Zero:
-    case MethodRecognizer::kFloat32x4ToFloat64x2:
-    case MethodRecognizer::kFloat64x2ToFloat32x4:
-    case MethodRecognizer::kFloat32x4ToInt32x4:
-    case MethodRecognizer::kInt32x4ToFloat32x4:
     case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kFloat32x4FromDoubles:
+    case MethodRecognizer::kFloat64x2FromDoubles:
+    case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4FromBools:
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kFloat32x4Splat:
+    case MethodRecognizer::kFloat64x2Splat:
+    case MethodRecognizer::kInt32x4Splat:
       *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
       break;
     case MethodRecognizer::kFloat32x4Mul:

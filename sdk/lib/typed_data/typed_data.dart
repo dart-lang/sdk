@@ -479,6 +479,7 @@ abstract final class ByteData implements TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory ByteData.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -787,6 +788,7 @@ abstract final class Int8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int8List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -911,6 +913,7 @@ abstract final class Uint8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint8List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1043,6 +1046,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint8ClampedList.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1176,6 +1180,7 @@ abstract final class Int16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int16List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1315,6 +1320,7 @@ abstract final class Uint16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint16List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1453,6 +1459,7 @@ abstract final class Int32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1592,6 +1599,7 @@ abstract final class Uint32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1730,6 +1738,7 @@ abstract final class Int64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1869,6 +1878,7 @@ abstract final class Uint64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2008,6 +2018,7 @@ abstract final class Float32List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2140,6 +2151,7 @@ abstract final class Float64List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2272,6 +2284,7 @@ abstract final class Float32x4List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float32x4List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2412,6 +2425,7 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int32x4List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2562,6 +2576,7 @@ abstract final class Float64x2List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float64x2List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,

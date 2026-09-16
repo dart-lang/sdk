@@ -4579,8 +4579,7 @@ DEFINE_EMIT(Int32x4NotEqual,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
-  CASE(Int32x4NotEqual)                                                        \
-  ____(Int32x4NotEqual)                                                        \
+  SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4619,8 +4618,7 @@ DEFINE_EMIT(Int32x4NotEqual,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4AnyTrue)                                                         \
-  ____(Int32x4AnyTrue)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \

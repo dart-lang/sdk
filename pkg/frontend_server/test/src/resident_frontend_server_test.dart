@@ -177,7 +177,7 @@ void main() async {
 
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -250,10 +250,24 @@ void main() async {
       ResidentFrontendServer.compilers.clear();
     });
 
+    void executeDillExpectStdout(
+      Map<String, dynamic> compileResult,
+      String expectedStdOut,
+    ) {
+      expect(outputDill.path, equals(compileResult['output-dill']));
+      ProcessResult runResult = Process.runSync(Platform.resolvedExecutable, [
+        outputDill.path,
+      ], workingDirectory: d.path);
+      String stderr = runResult.stderr.toString();
+      expect(stderr, isEmpty);
+      String stdout = runResult.stdout.toString().trim();
+      expect(stdout, expectedStdOut.trim());
+    }
+
     test('initial compile, basic', () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -270,7 +284,7 @@ void main() async {
       executable.writeAsStringSync('void main() { int x = 1; }');
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -279,19 +293,192 @@ void main() async {
             soundNullSafety: true,
             verbosity: 'all',
             define: <String>['-Dvar=2'],
-            enableExperiment: <String>['experimental-flag=vm_name'],
+            enableExperiment: <String>['--enable-experiment=test-experiment'],
           ),
         ),
       );
 
       expect(compileResult1['success'], true);
       expect(compileResult1['errorCount'], 0);
+
+      List<String> savedOptions = getCachedCompilerOptions(executable.path);
+      expect(savedOptions, contains('--define=var=2'));
+      expect(savedOptions, contains('--enable-experiment=test-experiment'));
+    });
+
+    test('can run compiled dill', () async {
+      executable.writeAsStringSync('void main() { print("hello world"); }');
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+          ),
+        ),
+      );
+
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+
+      executeDillExpectStdout(compileResult, "hello world");
+    });
+
+    test('Works with -D', () async {
+      executable.writeAsStringSync(
+        'void main() { print(const String.fromEnvironment("foo")); }',
+      );
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=bar'],
+          ),
+        ),
+      );
+
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "bar");
+    });
+
+    test('Works with changing -D on same entry', () async {
+      executable.writeAsStringSync(
+        'void main() { print(const String.fromEnvironment("foo")); }',
+      );
+      // Let everything be old.
+      await new Future.delayed(const Duration(milliseconds: statGranularity));
+
+      // First compile.
+      for (int i = 0; i < 2; i++) {
+        Map<String, dynamic> compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+              define: ['--define=foo=bar'],
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        expect(compileResult['errorCount'], 0);
+        executeDillExpectStdout(compileResult, "bar");
+        if (i == 1) {
+          // Compiling with the same settings again (with data in memory) should
+          // reuse existing.
+          expect(compileResult['returnedStoredKernel'], true);
+        }
+      }
+
+      // Second compile with other define. The compiler is in memory.
+      Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=baz'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "baz");
+
+      // TODO(jensj): Find a way to do the second compile again - with cleared
+      // compilers - where we can verify that it didn't actually compile
+      // anything.
+
+      // Third compile with other define. The compiler is removed from memory
+      // before calling.
+      ResidentFrontendServer.compilers.clear();
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=qux'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "qux");
+
+      // Fourth compile with other define. The compiler is removed from memory
+      // before calling. The cached compiler options have been removed from disk
+      // too.
+      ResidentFrontendServer.compilers.clear();
+      new File(
+        computeCachedDillAndCompilerOptionsPaths(executable.path)
+            .cachedCompilerOptionsPath,
+      ).deleteSync();
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=quux'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "quux");
+
+      // Fifth compile with other define. The compiler is removed from memory
+      // before calling. The cached compiler options have been overwritten with
+      // nonsense.
+      ResidentFrontendServer.compilers.clear();
+      new File(
+        computeCachedDillAndCompilerOptionsPaths(executable.path)
+            .cachedCompilerOptionsPath,
+      ).writeAsStringSync("æbler");
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=corge'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "corge");
     });
 
     test('produces aot kernel', () async {
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -313,7 +500,7 @@ void main() async {
     test('no package_config.json provided', () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -329,7 +516,7 @@ void main() async {
       await new Future.delayed(const Duration(milliseconds: statGranularity));
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -342,7 +529,7 @@ void main() async {
 
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -378,7 +565,7 @@ void main() async {
       await new Future.delayed(const Duration(milliseconds: statGranularity));
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -387,7 +574,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -414,7 +601,7 @@ void main() async {
 
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -423,7 +610,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable2.path,
             packages: package.path,
             outputDill: entryPointDill.path,
@@ -467,7 +654,7 @@ void main() async {
       await new Future.delayed(const Duration(milliseconds: statGranularity));
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -483,7 +670,7 @@ void main() async {
 
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -517,13 +704,13 @@ void main() async {
       // adding or removing package_config.json while maintaining the same
       // entrypoint should not alter tracked sources
       await ResidentFrontendServer.handleRequest(
-        ResidentFrontendServer.createCompileJSON(
+        createCompileJSON(
           executable: executable.path,
           outputDill: outputDill.path,
         ),
       );
       await ResidentFrontendServer.handleRequest(
-        ResidentFrontendServer.createCompileJSON(
+        createCompileJSON(
           executable: executable.path,
           packages: package.path,
           outputDill: outputDill.path,
@@ -531,7 +718,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -555,13 +742,13 @@ void main() async {
 
       // switching entrypoints, packages, and modifying packages
       await ResidentFrontendServer.handleRequest(
-        ResidentFrontendServer.createCompileJSON(
+        createCompileJSON(
           executable: executable2.path,
           outputDill: outputDill.path,
         ),
       );
       await ResidentFrontendServer.handleRequest(
-        ResidentFrontendServer.createCompileJSON(
+        createCompileJSON(
           executable: executable2.path,
           packages: package.path,
           outputDill: outputDill.path,
@@ -575,7 +762,7 @@ void main() async {
 
       final Map<String, dynamic> compileResult2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable2.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -604,7 +791,7 @@ void main() async {
       executable2.writeAsStringSync('void main() {}');
       final Map<String, dynamic> compileResult3 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable2.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -634,7 +821,7 @@ void main() async {
       executable.writeAsStringSync(newContent);
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -645,7 +832,7 @@ void main() async {
       executable.writeAsStringSync(originalContent);
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -678,7 +865,7 @@ void main() async {
 
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -687,7 +874,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -697,7 +884,7 @@ void main() async {
       executable.writeAsStringSync(originalContent);
       final Map<String, dynamic> compileResults3 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -736,7 +923,7 @@ void main() async {
             void main() {}''');
       final Map<String, dynamic> compileResults1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -745,7 +932,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults2 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable2.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -754,7 +941,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults3 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable3.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -763,7 +950,7 @@ void main() async {
       );
       final Map<String, dynamic> compileResults4 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable4.path,
             packages: package.path,
             outputDill: outputDill.path,
@@ -807,7 +994,7 @@ void main() async {
     test('basic', () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -841,7 +1028,7 @@ void main() async {
     test("when the 'libraryUri' argument begins with 'dart:'", () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -876,7 +1063,7 @@ void main() async {
     test('invalid expression', () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: executable.path,
             outputDill: outputDill.path,
           ),
@@ -1037,7 +1224,7 @@ void main() async {
   group("Resident Frontend Server: 'record-uses' property tests: ", () {
     test('record-uses is rejected in JIT mode', () async {
       final String jsonResponse = await ResidentFrontendServer.handleRequest(
-        ResidentFrontendServer.createCompileJSON(
+        createCompileJSON(
           executable: 'a.dart',
           outputDill: 'a.dart.dill',
           recordUses: 'out.json',
@@ -1117,24 +1304,90 @@ void main() {
         final File outputDill = new File(path.join(d.path, 'app.dill'));
 
         final String jsonResponse = await ResidentFrontendServer.handleRequest(
-          ResidentFrontendServer.createCompileJSON(
+          createCompileJSON(
             executable: mainFile.path,
             outputDill: outputDill.path,
             packages: packageConfigFile.path,
             aot: true,
             tfa: true,
             recordUses: recordedUsesFile.path,
-            enableExperiment: ['record-use'],
+            enableExperiment: ['--enable-experiment=record-use'],
           ),
         );
         final Map<String, dynamic> response = jsonDecode(jsonResponse);
         expect(response['success'], true);
         expect(recordedUsesFile.existsSync(), true);
         expect(recordedUsesFile.readAsStringSync(), contains('bar'));
+
+        List<String> savedOptions = getCachedCompilerOptions(mainFile.path);
+        expect(savedOptions, contains('--enable-experiment=record-use'));
       } finally {
         d.deleteSync(recursive: true);
         ResidentFrontendServer.compilers.clear();
       }
     });
+  });
+}
+
+List<String> getCachedCompilerOptions(String mainPath) {
+  List cachedCompilerOptionsFileContents = jsonDecode(
+    new File(
+      computeCachedDillAndCompilerOptionsPaths(mainPath)
+          .cachedCompilerOptionsPath,
+    ).readAsStringSync(),
+  );
+  return [...cachedCompilerOptionsFileContents];
+}
+
+/// Used to create compile requests for the ResidentFrontendServer.
+/// Returns a JSON string that the resident compiler will be able to
+/// interpret.
+String createCompileJSON({
+  required String executable,
+  String? packages,
+  required String outputDill,
+  bool? supportMirrors,
+  bool? enableAsserts,
+  bool? soundNullSafety,
+  String? verbosity,
+  bool? aot,
+  bool? tfa,
+  bool? rta,
+  bool? treeShakeWriteOnlyFields,
+  bool? protobufTreeShakerV2,
+  List<String>? define,
+  List<String>? enableExperiment,
+  bool verbose = false,
+  String? nativeAssetsYaml,
+  String? recordUses,
+}) {
+  assert(
+    define == null ||
+        define.every((s) => s.startsWith("--define=")) ||
+        define.every((s) => s.startsWith("-D")),
+  );
+  assert(
+    enableExperiment == null ||
+        enableExperiment.every((s) => s.startsWith("--")),
+  );
+  return jsonEncode(<String, Object>{
+    "command": "compile",
+    "executable": executable,
+    "output-dill": outputDill,
+    "aot": ?aot,
+    "define": ?define,
+    "enable-asserts": ?enableAsserts,
+    "enable-experiment": ?enableExperiment,
+    "packages": ?packages,
+    "protobuf-tree-shaker-v2": ?protobufTreeShakerV2,
+    "rta": ?rta,
+    "sound-null-safety": ?soundNullSafety,
+    "support-mirrors": ?supportMirrors,
+    "tfa": ?tfa,
+    "tree-shaker-write-only-fields": ?treeShakeWriteOnlyFields,
+    "verbosity": ?verbosity,
+    "verbose": verbose,
+    "native-assets": ?nativeAssetsYaml,
+    "record-uses": ?recordUses,
   });
 }
