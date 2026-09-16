@@ -891,8 +891,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
     required this.functionDefinition,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -910,7 +909,8 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -920,8 +920,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -1148,11 +1147,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }) : _target2 = target2,
        _parameters = parameters,
        _body = body {
-    _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(target2);
     _becomeParentOf12(parameters);
     _becomeParentOf12(body);
   }
@@ -1234,10 +1229,10 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl? get target => switch (target2) {
+  ExpressionImpl? get target => _becomeParentOf1(switch (target2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
-  };
+  });
 
   @generated
   @experimental
@@ -1247,11 +1242,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @generated
   @experimental
   set target2(ExpressionImpl? target2) {
-    _target2 = _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _target2 = _becomeParentOf2AndExisting1(target2);
   }
 
   /// The cascade that contains this [AnonymousMethodInvocation].
@@ -1756,8 +1747,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     required TypeAnnotationImpl type,
   }) : _expression2 = expression2,
        _type = type {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(type);
   }
 
@@ -1776,7 +1766,8 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -1786,8 +1777,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -1992,13 +1982,8 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
     required this.rightParenthesis,
   }) : _condition2 = condition2,
        _message2 = message2 {
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
-    _becomeParentOf2(message2);
-    _becomeParentOf1(switch (message2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(condition2);
+    _becomeParentOf2AndExisting1(message2);
   }
 
   @generated
@@ -2010,7 +1995,8 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @generated
   @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
+  ExpressionImpl get condition =>
+      _becomeParentOf1(V1Projection.toV1Expression(condition2));
 
   @generated
   @experimental
@@ -2020,8 +2006,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @generated
   @experimental
   set condition2(ExpressionImpl condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
@@ -2033,10 +2018,10 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @generated
   @ToBeDeprecated('Use message2 instead.')
   @override
-  ExpressionImpl? get message => switch (message2) {
+  ExpressionImpl? get message => _becomeParentOf1(switch (message2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
-  };
+  });
 
   @generated
   @experimental
@@ -2046,11 +2031,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @generated
   @experimental
   set message2(ExpressionImpl? message2) {
-    _message2 = _becomeParentOf2(message2);
-    _becomeParentOf1(switch (message2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _message2 = _becomeParentOf2AndExisting1(message2);
   }
 
   @generated
@@ -2290,13 +2271,8 @@ final class AssertStatementImpl extends StatementImpl
     required this.semicolon,
   }) : _condition2 = condition2,
        _message2 = message2 {
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
-    _becomeParentOf2(message2);
-    _becomeParentOf1(switch (message2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(condition2);
+    _becomeParentOf2AndExisting1(message2);
   }
 
   @generated
@@ -2308,7 +2284,8 @@ final class AssertStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
+  ExpressionImpl get condition =>
+      _becomeParentOf1(V1Projection.toV1Expression(condition2));
 
   @generated
   @experimental
@@ -2318,8 +2295,7 @@ final class AssertStatementImpl extends StatementImpl
   @generated
   @experimental
   set condition2(ExpressionImpl condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
@@ -2331,10 +2307,10 @@ final class AssertStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use message2 instead.')
   @override
-  ExpressionImpl? get message => switch (message2) {
+  ExpressionImpl? get message => _becomeParentOf1(switch (message2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
-  };
+  });
 
   @generated
   @experimental
@@ -2344,11 +2320,7 @@ final class AssertStatementImpl extends StatementImpl
   @generated
   @experimental
   set message2(ExpressionImpl? message2) {
-    _message2 = _becomeParentOf2(message2);
-    _becomeParentOf1(switch (message2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _message2 = _becomeParentOf2AndExisting1(message2);
   }
 
   @generated
@@ -2741,10 +2713,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     required ExpressionImpl rightHandSide2,
   }) : _leftHandSide2 = leftHandSide2,
        _rightHandSide2 = rightHandSide2 {
-    _becomeParentOf2(leftHandSide2);
-    _becomeParentOf1(V1Projection.toV1Expression(leftHandSide2));
-    _becomeParentOf2(rightHandSide2);
-    _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
+    _becomeParentOf2AndExisting1(leftHandSide2);
+    _becomeParentOf2AndExisting1(rightHandSide2);
   }
 
   AssignmentExpressionImpl.v1ProjectionFromCompound(
@@ -2826,8 +2796,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     if (_v1ProjectionOrigin != null) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _leftHandSide2 = _becomeParentOf2(leftHandSide2);
-    _becomeParentOf1(V1Projection.toV1Expression(leftHandSide2));
+    _leftHandSide2 = _becomeParentOf2AndExisting1(leftHandSide2);
   }
 
   @override
@@ -2896,8 +2865,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     if (_v1ProjectionOrigin != null) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _rightHandSide2 = _becomeParentOf2(rightHandSide2);
-    _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
+    _rightHandSide2 = _becomeParentOf2AndExisting1(rightHandSide2);
   }
 
   @override
@@ -3493,7 +3461,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @ToBeDeprecated('Use parent2 instead')
   AstNodeImpl? get parent {
     _checkV1View();
-    return _parent;
+    return _parentInV1;
   }
 
   @override
@@ -3504,7 +3472,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   AstNodeImpl? get parentInPrimaryView {
-    return _astNodeApi == AstNodeApi.v1 ? _parent : _parent2;
+    return _astNodeApi == AstNodeApi.v1 ? _parentInV1 : _parent2;
   }
 
   @override
@@ -3512,10 +3480,10 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNode get root {
     _checkV1View();
     AstNodeImpl root = this;
-    var rootParent = _parent;
+    var rootParent = _parentInV1;
     while (rootParent != null) {
       root = rootParent;
-      rootParent = root._parent;
+      rootParent = root._parentInV1;
     }
     return root;
   }
@@ -3539,9 +3507,28 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   ChildEntities get _childEntities2 => _childEntities;
 
+  /// V1 topology is materialized only when observed. A shared child can be
+  /// reached through V2 before its compatibility parent exists, and that
+  /// parent need not correspond one-to-one with its canonical parent.
+  AstNodeImpl? get _parentInV1 {
+    if (_parent case var parent?) {
+      return parent;
+    }
+    var source = _astNodeApi == AstNodeApi.v1
+        ? V1Projection._sourceOf(this)
+        : this;
+    if (source != null) {
+      V1Projection._materializeEnclosingTree(source);
+    }
+    return _parent;
+  }
+
   void detachFromParent() {
-    if (this case ExpressionImpl expression) {
-      V1Projection._cachedV1Expression(expression)?.detachFromParent();
+    var projection = V1Projection._existingNode(this);
+    if (projection != null && !identical(projection, this)) {
+      // A flattened projection can itself be a shared canonical child, as
+      // with a cascade section body. Preserve that child's V2 ownership.
+      projection._parent = null;
     }
     _parent = null;
     _parent2 = null;
@@ -3549,7 +3536,8 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   @override
   Token? findPrevious(Token target) =>
-      util.findPrevious(beginToken, target) ?? _parent?.findPrevious(target);
+      util.findPrevious(beginToken, target) ??
+      _parentInV1?.findPrevious(target);
 
   /// Returns `true` if [child] is in a slot of this node that allows a value
   /// expression.
@@ -3613,7 +3601,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     _checkV1View();
     AstNode? node = this;
     while (node != null && !predicate(node)) {
-      node = (node as AstNodeImpl)._parent;
+      node = (node as AstNodeImpl)._parentInV1;
     }
     return node as E?;
   }
@@ -3637,7 +3625,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     _checkV1View();
     AstNode? node = this;
     while (node != null && node is! E) {
-      node = (node as AstNodeImpl)._parent;
+      node = (node as AstNodeImpl)._parentInV1;
     }
     return node as E?;
   }
@@ -3682,6 +3670,24 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// node in the V2 tree view.
   T _becomeParentOf2<T extends AstNodeImpl?>(T child) {
     child?._parent2 = this;
+    child?._parent = null;
+    return child;
+  }
+
+  /// Attaches [child] in V2 and its existing representation in V1.
+  /// Does not create a V1 projection.
+  @pragma('vm:prefer-inline')
+  T _becomeParentOf2AndExisting1<T extends AstNodeImpl?>(T child) {
+    _becomeParentOf2(child);
+    if (child != null) {
+      // A shared child already is its V1 representation. Avoid dispatching
+      // through the projection kinds on this common parser path.
+      _becomeParentOf1(
+        child._astNodeApi == AstNodeApi.shared
+            ? child
+            : V1Projection._existingNode(child),
+      );
+    }
     return child;
   }
 
@@ -3849,8 +3855,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
     required this.awaitKeyword,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -3868,7 +3873,8 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -3878,8 +3884,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -5767,8 +5772,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
     required ExpressionImpl target2,
     required List<CascadeSectionImpl> sections,
   }) : _target2 = target2 {
-    _becomeParentOf2(target2);
-    _becomeParentOf1(V1Projection.toV1Expression(target2));
+    _becomeParentOf2AndExisting1(target2);
     this.sections._initializeProjected(
       this,
       sections,
@@ -5802,7 +5806,8 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use target2 instead.')
   @override
-  ExpressionImpl get target => V1Projection.toV1Expression(target2);
+  ExpressionImpl get target =>
+      _becomeParentOf1(V1Projection.toV1Expression(target2));
 
   @generated
   @experimental
@@ -5812,8 +5817,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set target2(ExpressionImpl target2) {
-    _target2 = _becomeParentOf2(target2);
-    _becomeParentOf1(V1Projection.toV1Expression(target2));
+    _target2 = _becomeParentOf2AndExisting1(target2);
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
@@ -6677,7 +6681,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   set body(ExpressionImpl body) {
     _body = _becomeParentOf2(body);
     if (parent2 case CascadeExpressionImpl cascade) {
-      cascade._becomeParentOf1(V1Projection.toV1Expression(body));
+      cascade._becomeParentOf1(V1Projection._existingNode(body));
     }
   }
 
@@ -8806,8 +8810,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
 
   Element? _setterElement;
 
-  late final SimpleIdentifierImpl v1Projection =
-      SimpleIdentifierImpl.v1Projection(token: name);
+  SimpleIdentifierImpl? _v1Projection;
 
   @generated
   CombinatorNameImpl({required this.name});
@@ -8838,6 +8841,15 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   set setterElement(Element? value) {
     _setterElement = value;
     _updateV1Projection();
+  }
+
+  SimpleIdentifierImpl get v1Projection {
+    var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
+      token: name,
+    );
+    _updateV1Projection();
+    _parent2?._becomeParentOf1(result);
+    return result;
   }
 
   @generated
@@ -8907,7 +8919,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
-    v1Projection.element = element;
+    _v1Projection?.element = element;
   }
 }
 
@@ -9113,8 +9125,7 @@ final class CommentReferenceImpl extends AstNodeImpl
     required CommentReferableExpressionImpl expression2,
     required this.isSynthetic,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1CommentReferableExpression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -9135,8 +9146,9 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  CommentReferableExpressionImpl get expression =>
-      V1Projection.toV1CommentReferableExpression(expression2);
+  CommentReferableExpressionImpl get expression => _becomeParentOf1(
+    V1Projection.toV1CommentReferableExpression(expression2),
+  );
 
   @generated
   @experimental
@@ -9146,8 +9158,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @experimental
   set expression2(CommentReferableExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1CommentReferableExpression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -10086,12 +10097,9 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }) : _condition2 = condition2,
        _thenExpression2 = thenExpression2,
        _elseExpression2 = elseExpression2 {
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
-    _becomeParentOf2(thenExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
-    _becomeParentOf2(elseExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
+    _becomeParentOf2AndExisting1(condition2);
+    _becomeParentOf2AndExisting1(thenExpression2);
+    _becomeParentOf2AndExisting1(elseExpression2);
   }
 
   @generated
@@ -10103,7 +10111,8 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
+  ExpressionImpl get condition =>
+      _becomeParentOf1(V1Projection.toV1Expression(condition2));
 
   @generated
   @experimental
@@ -10113,15 +10122,14 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set condition2(ExpressionImpl condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
   @ToBeDeprecated('Use elseExpression2 instead.')
   @override
   ExpressionImpl get elseExpression =>
-      V1Projection.toV1Expression(elseExpression2);
+      _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
 
   @generated
   @experimental
@@ -10131,8 +10139,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set elseExpression2(ExpressionImpl elseExpression2) {
-    _elseExpression2 = _becomeParentOf2(elseExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
+    _elseExpression2 = _becomeParentOf2AndExisting1(elseExpression2);
   }
 
   @generated
@@ -10148,7 +10155,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @ToBeDeprecated('Use thenExpression2 instead.')
   @override
   ExpressionImpl get thenExpression =>
-      V1Projection.toV1Expression(thenExpression2);
+      _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
 
   @generated
   @experimental
@@ -10158,8 +10165,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set thenExpression2(ExpressionImpl thenExpression2) {
-    _thenExpression2 = _becomeParentOf2(thenExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
+    _thenExpression2 = _becomeParentOf2AndExisting1(thenExpression2);
   }
 
   @generated
@@ -10684,8 +10690,7 @@ final class ConstantPatternImpl extends DartPatternImpl
     required this.constKeyword,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -10706,7 +10711,8 @@ final class ConstantPatternImpl extends DartPatternImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -10716,8 +10722,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -11465,10 +11470,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   InternalFieldElement? _fieldElement;
 
-  @override
-  late final SimpleIdentifierImpl fieldName = _becomeParentOf1(
-    SimpleIdentifierImpl.v1Projection(token: fieldName2),
-  );
+  SimpleIdentifierImpl? _fieldName;
 
   @generated
   ConstructorFieldInitializerImpl({
@@ -11478,8 +11480,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     required this.equals,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -11503,7 +11504,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -11513,8 +11515,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -11522,8 +11523,15 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   set fieldElement(InternalFieldElement? value) {
     _fieldElement = value;
-    fieldName.element = value;
+    _fieldName?.element = value;
   }
+
+  @override
+  SimpleIdentifierImpl get fieldName =>
+      _fieldName ??= _becomeParentOf1<SimpleIdentifierImpl>(
+        SimpleIdentifierImpl.v1Projection(token: fieldName2)
+          ..element = _fieldElement,
+      );
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
@@ -12256,7 +12264,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   @override
   set element(InternalConstructorElement? element) {
     _element = element;
-    selector?.name.element = element;
+    selector?.element = element;
   }
 
   @generated
@@ -12603,10 +12611,9 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   AstNodeApi? _astNodeApiOverride;
 
-  @override
-  late final SimpleIdentifierImpl name = _becomeParentOf1(
-    SimpleIdentifierImpl.v1Projection(token: name2),
-  );
+  SimpleIdentifierImpl? _name;
+
+  InternalConstructorElement? _element;
 
   @generated
   ConstructorSelectorImpl({required this.period, required this.name2});
@@ -12620,11 +12627,22 @@ final class ConstructorSelectorImpl extends AstNodeImpl
     return period;
   }
 
+  set element(InternalConstructorElement? element) {
+    _element = element;
+    _name?.element = element;
+  }
+
   @generated
   @override
   Token get endToken {
     return name2;
   }
+
+  @override
+  SimpleIdentifierImpl get name =>
+      _name ??= _becomeParentOf1<SimpleIdentifierImpl>(
+        SimpleIdentifierImpl.v1Projection(token: name2)..element = _element,
+      );
 
   @DoNotGenerate(reason: 'Some instances exist only in the V2 AST view')
   @override
@@ -12768,7 +12786,7 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   @override
   set element(InternalConstructorElement? element) {
     _element = element;
-    selector.name.element = element;
+    selector.element = element;
   }
 
   @generated
@@ -14417,8 +14435,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }) : _body = body,
        _condition2 = condition2 {
     _becomeParentOf12(body);
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
@@ -14439,7 +14456,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
+  ExpressionImpl get condition =>
+      _becomeParentOf1(V1Projection.toV1Expression(condition2));
 
   @generated
   @experimental
@@ -14449,8 +14467,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @experimental
   set condition2(ExpressionImpl condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
@@ -18227,8 +18244,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     required ExpressionImpl expression2,
     required this.semicolon,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -18255,7 +18271,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -18265,8 +18282,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -18764,8 +18780,7 @@ final class ExpressionStatementImpl extends StatementImpl
     required ExpressionImpl expression2,
     required this.semicolon,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -18786,7 +18801,8 @@ final class ExpressionStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -18796,8 +18812,7 @@ final class ExpressionStatementImpl extends StatementImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -20781,8 +20796,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   /// is declared internally (in the for-loop part).
   ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable2})
     : _iterable2 = iterable2 {
-    _becomeParentOf2(iterable2);
-    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
+    _becomeParentOf2AndExisting1(iterable2);
   }
 
   @override
@@ -20801,8 +20815,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 
   @experimental
   set iterable2(ExpressionImpl iterable2) {
-    _iterable2 = _becomeParentOf2(iterable2);
-    _becomeParentOf1(V1Projection.toV1Expression(iterable2));
+    _iterable2 = _becomeParentOf2AndExisting1(iterable2);
   }
 
   @override
@@ -21056,10 +21069,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   NamedWriteResolutionImpl? _write;
 
-  @override
-  late final SimpleIdentifierImpl identifier = _becomeParentOf1(
-    SimpleIdentifierImpl.v1Projection(token: identifier2),
-  );
+  SimpleIdentifierImpl? _identifier;
 
   @generated
   ForEachPartsWithIdentifierImpl({
@@ -21081,11 +21091,18 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @override
+  SimpleIdentifierImpl get identifier =>
+      _identifier ??= _becomeParentOf1<SimpleIdentifierImpl>(
+        SimpleIdentifierImpl.v1Projection(token: identifier2)
+          ..element = writeElement,
+      );
+
+  @override
   NamedWriteResolutionImpl? get write => _write;
 
   set write(NamedWriteResolutionImpl? value) {
     _write = value;
-    identifier.element = writeElement;
+    _identifier?.element = writeElement;
   }
 
   Element? get writeElement => _write?.elementOrRecovery;
@@ -21510,8 +21527,7 @@ final class ForElementImpl extends AstNodeImpl
   }) : _forLoopParts = forLoopParts,
        _body2 = body2 {
     _becomeParentOf12(forLoopParts);
-    _becomeParentOf2(body2);
-    _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
+    _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -21526,7 +21542,8 @@ final class ForElementImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use body2 instead.')
   @override
-  CollectionElementImpl get body => V1Projection.toV1CollectionElement(body2);
+  CollectionElementImpl get body =>
+      _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
 
   @generated
   @experimental
@@ -21536,8 +21553,7 @@ final class ForElementImpl extends AstNodeImpl
   @generated
   @experimental
   set body2(CollectionElementImpl body2) {
-    _body2 = _becomeParentOf2(body2);
-    _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -21899,8 +21915,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
     required this.separator,
     required ExpressionImpl value2,
   }) : _value2 = value2 {
-    _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -21918,7 +21933,8 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => V1Projection.toV1Expression(value2);
+  ExpressionImpl get value =>
+      _becomeParentOf1(V1Projection.toV1Expression(value2));
 
   @generated
   @experimental
@@ -21928,8 +21944,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @generated
   @experimental
   set value2(ExpressionImpl value2) {
-    _value2 = _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _value2 = _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -22682,11 +22697,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     required this.rightSeparator,
     required List<ExpressionImpl>? updaters2,
   }) : _condition2 = condition2 {
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(switch (condition2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(condition2);
     _updaters2._initializeProjected(
       this,
       updaters2,
@@ -22708,11 +22719,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   ExpressionImpl? get condition2 => _condition2;
 
   set condition2(ExpressionImpl? condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(switch (condition2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @override
@@ -23036,11 +23043,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
     required super.rightSeparator,
     required super.updaters2,
   }) : _initialization2 = initialization2 {
-    _becomeParentOf2(initialization2);
-    _becomeParentOf1(switch (initialization2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(initialization2);
   }
 
   @generated
@@ -23064,10 +23067,11 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @generated
   @ToBeDeprecated('Use initialization2 instead.')
   @override
-  ExpressionImpl? get initialization => switch (initialization2) {
-    var node? => V1Projection.toV1Expression(node),
-    _ => null,
-  };
+  ExpressionImpl? get initialization =>
+      _becomeParentOf1(switch (initialization2) {
+        var node? => V1Projection.toV1Expression(node),
+        _ => null,
+      });
 
   @generated
   @experimental
@@ -23077,11 +23081,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @generated
   @experimental
   set initialization2(ExpressionImpl? initialization2) {
-    _initialization2 = _becomeParentOf2(initialization2);
-    _becomeParentOf1(switch (initialization2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _initialization2 = _becomeParentOf2AndExisting1(initialization2);
   }
 
   @generated
@@ -25447,8 +25447,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     required TypeArgumentListImpl? typeArguments,
   }) : _function2 = function2,
        _typeArguments = typeArguments {
-    _becomeParentOf2(function2);
-    _becomeParentOf1(V1Projection.toV1Expression(function2));
+    _becomeParentOf2AndExisting1(function2);
     _becomeParentOf12(typeArguments);
   }
 
@@ -25504,7 +25503,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @generated
   @ToBeDeprecated('Use function2 instead.')
   @override
-  ExpressionImpl get function => V1Projection.toV1Expression(function2);
+  ExpressionImpl get function =>
+      _becomeParentOf1(V1Projection.toV1Expression(function2));
 
   @generated
   @experimental
@@ -25515,8 +25515,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @experimental
   set function2(ExpressionImpl function2) {
     _checkV2View();
-    _function2 = _becomeParentOf2(function2);
-    _becomeParentOf1(V1Projection.toV1Expression(function2));
+    _function2 = _becomeParentOf2AndExisting1(function2);
   }
 
   @override
@@ -27698,16 +27697,10 @@ final class IfElementImpl extends AstNodeImpl
        _caseClause = caseClause,
        _thenElement2 = thenElement2,
        _elseElement2 = elseElement2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(caseClause);
-    _becomeParentOf2(thenElement2);
-    _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
-    _becomeParentOf2(elseElement2);
-    _becomeParentOf1(switch (elseElement2) {
-      var node? => V1Projection.toV1CollectionElement(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(thenElement2);
+    _becomeParentOf2AndExisting1(elseElement2);
   }
 
   @generated
@@ -27732,10 +27725,11 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use elseElement2 instead.')
   @override
-  CollectionElementImpl? get elseElement => switch (elseElement2) {
-    var node? => V1Projection.toV1CollectionElement(node),
-    _ => null,
-  };
+  CollectionElementImpl? get elseElement =>
+      _becomeParentOf1(switch (elseElement2) {
+        var node? => V1Projection.toV1CollectionElement(node),
+        _ => null,
+      });
 
   @generated
   @experimental
@@ -27745,11 +27739,7 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @experimental
   set elseElement2(CollectionElementImpl? elseElement2) {
-    _elseElement2 = _becomeParentOf2(elseElement2);
-    _becomeParentOf1(switch (elseElement2) {
-      var node? => V1Projection.toV1CollectionElement(node),
-      _ => null,
-    });
+    _elseElement2 = _becomeParentOf2AndExisting1(elseElement2);
   }
 
   @generated
@@ -27767,7 +27757,8 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -27777,8 +27768,7 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -27797,7 +27787,7 @@ final class IfElementImpl extends AstNodeImpl
   @ToBeDeprecated('Use thenElement2 instead.')
   @override
   CollectionElementImpl get thenElement =>
-      V1Projection.toV1CollectionElement(thenElement2);
+      _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
 
   @generated
   @experimental
@@ -27807,8 +27797,7 @@ final class IfElementImpl extends AstNodeImpl
   @generated
   @experimental
   set thenElement2(CollectionElementImpl thenElement2) {
-    _thenElement2 = _becomeParentOf2(thenElement2);
-    _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
+    _thenElement2 = _becomeParentOf2AndExisting1(thenElement2);
   }
 
   @generated
@@ -28543,8 +28532,7 @@ final class IfStatementImpl extends StatementImpl
        _caseClause = caseClause,
        _thenStatement = thenStatement,
        _elseStatement = elseStatement {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(caseClause);
     _becomeParentOf12(thenStatement);
     _becomeParentOf12(elseStatement);
@@ -28593,7 +28581,8 @@ final class IfStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -28603,8 +28592,7 @@ final class IfStatementImpl extends StatementImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -29034,8 +29022,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     required this.typeArgumentTypes,
   }) : _expression2 = expression2,
        _typeArguments = typeArguments {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(typeArguments);
   }
 
@@ -29075,7 +29062,8 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -29086,8 +29074,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @experimental
   set expression2(ExpressionImpl expression2) {
     _checkV2View();
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -29799,13 +29786,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   LibraryImportImpl? _libraryImport;
 
-  @override
-  late final SimpleIdentifierImpl? prefix = switch (prefixName) {
-    null => null,
-    var prefixName => _becomeParentOf1(
-      SimpleIdentifierImpl.v1Projection(token: prefixName),
-    ),
-  };
+  SimpleIdentifierImpl? _prefix;
 
   @generated
   ImportDirectiveImpl({
@@ -29838,8 +29819,17 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   set libraryImport(LibraryImportImpl? value) {
     _libraryImport = value;
-    prefix?.element = value?.prefix?.element;
+    _prefix?.element = value?.prefix?.element;
   }
+
+  @override
+  SimpleIdentifierImpl? get prefix => _prefix ??= switch (prefixName) {
+    null => null,
+    var prefixName => _becomeParentOf1(
+      SimpleIdentifierImpl.v1Projection(token: prefixName)
+        ..element = _libraryImport?.prefix?.element,
+    ),
+  };
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @override
@@ -31461,13 +31451,8 @@ final class IndexExpressionImpl extends ExpressionImpl
   }) : _period = period,
        _target2 = target2,
        _index2 = index2 {
-    _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
-    _becomeParentOf2(index2);
-    _becomeParentOf1(V1Projection.toV1Expression(index2));
+    _becomeParentOf2AndExisting1(target2);
+    _becomeParentOf2AndExisting1(index2);
   }
 
   IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(
@@ -31591,8 +31576,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     if (_v1ProjectionOrigin != null) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _index2 = _becomeParentOf2(index2);
-    _becomeParentOf1(V1Projection.toV1Expression(index2));
+    _index2 = _becomeParentOf2AndExisting1(index2);
   }
 
   @override
@@ -31673,11 +31657,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     if (_v1ProjectionOrigin != null) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _target2 = _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _target2 = _becomeParentOf2AndExisting1(target2);
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -32556,8 +32536,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
     required ExpressionImpl expression2,
     required this.rightBracket,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -32578,7 +32557,8 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -32588,8 +32568,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -33361,8 +33340,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     required TypeAnnotationImpl type,
   }) : _expression2 = expression2,
        _type = type {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(type);
   }
 
@@ -33381,7 +33359,8 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -33391,8 +33370,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -35779,10 +35757,8 @@ final class MapLiteralEntryImpl extends AstNodeImpl
     required ExpressionImpl value2,
   }) : _key2 = key2,
        _value2 = value2 {
-    _becomeParentOf2(key2);
-    _becomeParentOf1(V1Projection.toV1Expression(key2));
-    _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _becomeParentOf2AndExisting1(key2);
+    _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -35803,7 +35779,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use key2 instead.')
   @override
-  ExpressionImpl get key => V1Projection.toV1Expression(key2);
+  ExpressionImpl get key => _becomeParentOf1(V1Projection.toV1Expression(key2));
 
   @generated
   @experimental
@@ -35813,14 +35789,14 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @generated
   @experimental
   set key2(ExpressionImpl key2) {
-    _key2 = _becomeParentOf2(key2);
-    _becomeParentOf1(V1Projection.toV1Expression(key2));
+    _key2 = _becomeParentOf2AndExisting1(key2);
   }
 
   @generated
   @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => V1Projection.toV1Expression(value2);
+  ExpressionImpl get value =>
+      _becomeParentOf1(V1Projection.toV1Expression(value2));
 
   @generated
   @experimental
@@ -35830,8 +35806,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @generated
   @experimental
   set value2(ExpressionImpl value2) {
-    _value2 = _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _value2 = _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -36050,8 +36025,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
     required DartPatternImpl value,
   }) : _key2 = key2,
        _value = value {
-    _becomeParentOf2(key2);
-    _becomeParentOf1(V1Projection.toV1Expression(key2));
+    _becomeParentOf2AndExisting1(key2);
     _becomeParentOf12(value);
   }
 
@@ -36070,7 +36044,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use key2 instead.')
   @override
-  ExpressionImpl get key => V1Projection.toV1Expression(key2);
+  ExpressionImpl get key => _becomeParentOf1(V1Projection.toV1Expression(key2));
 
   @generated
   @experimental
@@ -36080,8 +36054,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   @generated
   @experimental
   set key2(ExpressionImpl key2) {
-    _key2 = _becomeParentOf2(key2);
-    _becomeParentOf1(V1Projection.toV1Expression(key2));
+    _key2 = _becomeParentOf2AndExisting1(key2);
   }
 
   @generated
@@ -37419,11 +37392,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }) : _target2 = target2,
        _operator = operator,
        _methodName = methodName {
-    _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(target2);
     _becomeParentOf12(methodName);
   }
 
@@ -37662,11 +37631,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     if (_astNodeApi == AstNodeApi.v1) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _target2 = _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _target2 = _becomeParentOf2AndExisting1(target2);
   }
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
@@ -38571,15 +38536,14 @@ final class NamedArgumentImpl extends AstNodeImpl
     required this.colon,
     required ExpressionImpl argumentExpression2,
   }) : _argumentExpression2 = argumentExpression2 {
-    _becomeParentOf2(argumentExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
+    _becomeParentOf2AndExisting1(argumentExpression2);
   }
 
   @generated
   @ToBeDeprecated('Use argumentExpression2 instead.')
   @override
   ExpressionImpl get argumentExpression =>
-      V1Projection.toV1Expression(argumentExpression2);
+      _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
 
   @generated
   @experimental
@@ -38589,8 +38553,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   @generated
   @experimental
   set argumentExpression2(ExpressionImpl argumentExpression2) {
-    _argumentExpression2 = _becomeParentOf2(argumentExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
+    _argumentExpression2 = _becomeParentOf2AndExisting1(argumentExpression2);
   }
 
   @generated
@@ -39963,9 +39926,8 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 
   void _attach(E node) {
-    if (_toV1 case var toV1?) {
-      _owner._becomeParentOf2(node);
-      _owner._becomeParentOf1(toV1(node));
+    if (_toV1 != null) {
+      _owner._becomeParentOf2AndExisting1(node);
     } else {
       _owner._becomeParentOfOwnedView(node);
     }
@@ -40432,8 +40394,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   @generated
   NullAwareElementImpl({required this.question, required ExpressionImpl value2})
     : _value2 = value2 {
-    _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -40451,7 +40412,8 @@ final class NullAwareElementImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use value2 instead.')
   @override
-  ExpressionImpl get value => V1Projection.toV1Expression(value2);
+  ExpressionImpl get value =>
+      _becomeParentOf1(V1Projection.toV1Expression(value2));
 
   @generated
   @experimental
@@ -40461,8 +40423,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   @generated
   @experimental
   set value2(ExpressionImpl value2) {
-    _value2 = _becomeParentOf2(value2);
-    _becomeParentOf1(V1Projection.toV1Expression(value2));
+    _value2 = _becomeParentOf2AndExisting1(value2);
   }
 
   @generated
@@ -41441,8 +41402,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
     required ExpressionImpl expression2,
     required this.rightParenthesis,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -41460,7 +41420,8 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -41470,8 +41431,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -42232,6 +42192,9 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   set head(ParsedNameHeadImpl head) {
     _head = _becomeParentOf2(head);
   }
+
+  @override
+  bool get isSynthetic => components.isEmpty && head.name.isSynthetic;
 
   @override
   Precedence get precedence =>
@@ -43215,8 +43178,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }) : _pattern = pattern,
        _expression2 = expression2 {
     _becomeParentOf12(pattern);
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -43234,7 +43196,8 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -43244,8 +43207,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -43788,8 +43750,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }) : _pattern = pattern,
        _expression2 = expression2 {
     _becomeParentOf12(pattern);
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -43801,7 +43762,8 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -43811,8 +43773,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   /// If [keyword] is `final`, returns it.
@@ -45652,11 +45613,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }) : _target2 = target2,
        _operator = operator,
        _propertyName = propertyName {
-    _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(target2);
     _becomeParentOf12(propertyName);
   }
 
@@ -45847,11 +45804,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     if (_v1ProjectionOrigin != null) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
-    _target2 = _becomeParentOf2(target2);
-    _becomeParentOf1(switch (target2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _target2 = _becomeParentOf2AndExisting1(target2);
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -47493,8 +47446,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
     required this.colon,
     required ExpressionImpl fieldExpression2,
   }) : _fieldExpression2 = fieldExpression2 {
-    _becomeParentOf2(fieldExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
+    _becomeParentOf2AndExisting1(fieldExpression2);
   }
 
   @generated
@@ -47513,7 +47465,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @ToBeDeprecated('Use fieldExpression2 instead.')
   @override
   ExpressionImpl get fieldExpression =>
-      V1Projection.toV1Expression(fieldExpression2);
+      _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
 
   @generated
   @experimental
@@ -47523,8 +47475,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @generated
   @experimental
   set fieldExpression2(ExpressionImpl fieldExpression2) {
-    _fieldExpression2 = _becomeParentOf2(fieldExpression2);
-    _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
+    _fieldExpression2 = _becomeParentOf2AndExisting1(fieldExpression2);
   }
 
   @generated
@@ -48709,7 +48660,7 @@ final class RedirectingConstructorInvocationImpl
        _argumentList = argumentList {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf1(constructorSelector?._name);
     _becomeParentOf12(argumentList);
   }
 
@@ -48729,7 +48680,8 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @override
-  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
+  SimpleIdentifierImpl? get constructorName =>
+      _becomeParentOf1(constructorSelector?.name);
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
@@ -48739,7 +48691,7 @@ final class RedirectingConstructorInvocationImpl
   set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _constructorSelector = _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf1(constructorSelector?._name);
   }
 
   @generated
@@ -49232,8 +49184,7 @@ final class RelationalPatternImpl extends DartPatternImpl
     required this.operator,
     required ExpressionImpl operand2,
   }) : _operand2 = operand2 {
-    _becomeParentOf2(operand2);
-    _becomeParentOf1(V1Projection.toV1Expression(operand2));
+    _becomeParentOf2AndExisting1(operand2);
   }
 
   @generated
@@ -49251,7 +49202,8 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   @ToBeDeprecated('Use operand2 instead.')
   @override
-  ExpressionImpl get operand => V1Projection.toV1Expression(operand2);
+  ExpressionImpl get operand =>
+      _becomeParentOf1(V1Projection.toV1Expression(operand2));
 
   @generated
   @experimental
@@ -49261,8 +49213,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   @generated
   @experimental
   set operand2(ExpressionImpl operand2) {
-    _operand2 = _becomeParentOf2(operand2);
-    _becomeParentOf1(V1Projection.toV1Expression(operand2));
+    _operand2 = _becomeParentOf2AndExisting1(operand2);
   }
 
   @override
@@ -49709,11 +49660,7 @@ final class ReturnStatementImpl extends StatementImpl
     required ExpressionImpl? expression2,
     required this.semicolon,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(switch (expression2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -49731,10 +49678,10 @@ final class ReturnStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl? get expression => switch (expression2) {
+  ExpressionImpl? get expression => _becomeParentOf1(switch (expression2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
-  };
+  });
 
   @generated
   @experimental
@@ -49744,11 +49691,7 @@ final class ReturnStatementImpl extends StatementImpl
   @generated
   @experimental
   set expression2(ExpressionImpl? expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(switch (expression2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -50975,11 +50918,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       }
     }
     if (parent is ConstructorFieldInitializer &&
-        identical(parent.fieldName, target)) {
+        target is SimpleIdentifier &&
+        identical(parent.fieldName2, target.token)) {
       return false;
     }
     if (parent is ForEachPartsWithIdentifier) {
-      if (identical(parent.identifier, target)) {
+      if (target is SimpleIdentifier &&
+          identical(parent.identifier2, target.token)) {
         return false;
       }
     }
@@ -51016,7 +50961,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide2, target);
     } else if (parent is ForEachPartsWithIdentifier) {
-      return identical(parent.identifier, target);
+      return target is SimpleIdentifier &&
+          identical(parent.identifier2, target.token);
     }
     return false;
   }
@@ -51288,8 +51234,7 @@ final class SpreadElementImpl extends AstNodeImpl
     required this.spreadOperator,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -51307,7 +51252,8 @@ final class SpreadElementImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -51317,8 +51263,7 @@ final class SpreadElementImpl extends AstNodeImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -52076,7 +52021,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
        _argumentList = argumentList {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf1(constructorSelector?._name);
     _becomeParentOf12(argumentList);
   }
 
@@ -52096,7 +52041,8 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @override
-  SimpleIdentifierImpl? get constructorName => constructorSelector?.name;
+  SimpleIdentifierImpl? get constructorName =>
+      _becomeParentOf1(constructorSelector?.name);
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
   @override
@@ -52106,7 +52052,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _constructorSelector = _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?.name);
+    _becomeParentOf1(constructorSelector?._name);
   }
 
   @generated
@@ -52679,8 +52625,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     required super.colon,
     required super.statements,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -52704,7 +52649,8 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -52714,8 +52660,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -53131,8 +53076,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }) : _guardedPattern = guardedPattern,
        _expression2 = expression2 {
     _becomeParentOf12(guardedPattern);
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -53150,7 +53094,8 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -53160,8 +53105,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -53352,8 +53296,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
     required List<SwitchExpressionCaseImpl> cases,
     required this.rightBracket,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     this.cases._initialize(this, cases);
   }
 
@@ -53372,7 +53315,8 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -53382,8 +53326,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -53925,8 +53868,7 @@ final class SwitchStatementImpl extends StatementImpl
     required List<SwitchMemberImpl> members,
     required this.rightBracket,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
     this.members._initialize(this, members);
   }
 
@@ -53945,7 +53887,8 @@ final class SwitchStatementImpl extends StatementImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -53955,8 +53898,7 @@ final class SwitchStatementImpl extends StatementImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -54371,8 +54313,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
     required this.throwKeyword,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -54390,7 +54331,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -54400,8 +54342,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @override
@@ -54627,8 +54568,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   GetterFragmentImpl? declaredFragment;
 
-  late final FunctionDeclarationImpl v1Projection =
-      FunctionDeclarationImpl.v1ProjectionFromGetter(this);
+  FunctionDeclarationImpl? _v1Projection;
 
   @generated
   TopLevelGetterDeclarationImpl({
@@ -54659,7 +54599,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set body(FunctionBodyImpl body) {
     _body = _becomeParentOf2(body);
-    v1Projection.functionExpression._attachV1Children();
+    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
@@ -54695,7 +54635,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     FormalParameterListImpl? recoveryFormalParameters,
   ) {
     _recoveryFormalParameters = _becomeParentOf2(recoveryFormalParameters);
-    v1Projection.functionExpression._attachV1Children();
+    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
@@ -54704,7 +54644,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
     _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
-    v1Projection.functionExpression._attachV1Children();
+    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
@@ -54714,8 +54654,11 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set returnType(TypeAnnotationImpl? returnType) {
     _returnType = _becomeParentOf2(returnType);
-    v1Projection._attachV1Children();
+    _v1Projection?._attachV1Children();
   }
+
+  FunctionDeclarationImpl get v1Projection =>
+      _v1Projection ??= FunctionDeclarationImpl.v1ProjectionFromGetter(this);
 
   @generated
   @override
@@ -56810,6 +56753,9 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   }
 
   @override
+  bool get isSynthetic => name.isSynthetic;
+
+  @override
   Precedence get precedence => Precedence.primary;
 
   @override
@@ -57083,16 +57029,6 @@ enum V1Projection {
     return node;
   }
 
-  /// Returns the cached V1 projection of [node], without creating one.
-  ///
-  /// A canonical V2 node and its V1 projection have distinct parent fields.
-  /// Code that detaches the canonical node must also detach an existing
-  /// projection, or the projection can retain the original compilation unit.
-  static ExpressionImpl? _cachedV1Expression(ExpressionImpl node) {
-    var result = _toV1Expression(node, createIfAbsent: false);
-    return identical(result, node) ? null : result;
-  }
-
   static ExpressionImpl _createParsedChain(
     AstNodeImpl origin,
     ParsedNameHeadImpl head,
@@ -57134,6 +57070,65 @@ enum V1Projection {
     }
     return result;
   }
+
+  static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
+    ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
+    CascadeSectionImpl() => _existingNode(node.body),
+    CombinatorNameImpl() => node._v1Projection,
+    TopLevelGetterDeclarationImpl() => node._v1Projection,
+    _ => node._astNodeApi == AstNodeApi.shared ? node : null,
+  };
+
+  /// Materializes the V2-only region containing [node]. Shared nodes delimit
+  /// these regions; projection constructors establish the internal V1 links,
+  /// including links that skip or expand canonical nodes.
+  static void _materializeEnclosingTree(AstNodeImpl node) {
+    var root = node;
+    while (root._parent2?._astNodeApi == AstNodeApi.v2) {
+      root = root._parent2!;
+    }
+    var projection = switch (root) {
+      ExpressionImpl() => toV1Expression(root),
+      CascadeSectionImpl() => toV1Expression(root.body),
+      ConstructorReference2Impl() => root.constructorName,
+      ConstructorTypeReferenceImpl() => root.namedType,
+      TopLevelGetterDeclarationImpl() => root.v1Projection,
+      AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
+      StaticQualifierImpl() => root.v1Projection,
+      _ => null,
+    };
+    if (projection != null && !identical(projection, root)) {
+      root._parent2?._becomeParentOf1(projection);
+    }
+  }
+
+  /// Existing origin fields let a projection requested directly from its
+  /// canonical node discover its parent without retaining another tree link.
+  static AstNodeImpl? _sourceOf(AstNodeImpl node) => switch (node) {
+    AssignmentExpressionImpl() => node._v1ProjectionOrigin,
+    BinaryExpressionImpl() => node._origin,
+    ConstructorReferenceImpl() => node._origin,
+    ConstructorNameImpl() => node._origin as AstNodeImpl?,
+    DotShorthandConstructorInvocationImpl() => node._v1ProjectionOrigin,
+    DotShorthandInvocationImpl() => node._v1ProjectionOrigin,
+    DotShorthandPropertyAccessImpl() => node._v1ProjectionOrigin,
+    FunctionDeclarationImpl() => node._v1ProjectionOrigin,
+    FunctionExpressionImpl() => node._v1ProjectionOrigin,
+    FunctionExpressionInvocationImpl() => node._origin,
+    FunctionReferenceImpl() => node._v1ProjectionOrigin,
+    ImplicitCallReferenceImpl() => node._v1ProjectionOrigin,
+    IndexExpressionImpl() => node._v1ProjectionOrigin,
+    InstanceCreationExpressionImpl() => node._origin ?? node._parsedOrigin,
+    MethodInvocationImpl() =>
+      node._v1ProjectionOrigin ?? node._parsedChainOrigin,
+    NamedTypeImpl() => node._constructorTypeReferenceOrigin,
+    PostfixExpressionImpl() => node._origin,
+    PrefixedIdentifierImpl() => node._v1ProjectionOrigin,
+    PrefixExpressionImpl() => node._origin,
+    PropertyAccessImpl() => node._v1ProjectionOrigin,
+    SimpleIdentifierImpl() => node._v1ProjectionOrigin,
+    _ => null,
+  };
 
   static ExpressionImpl? _toV1Expression(
     ExpressionImpl node, {
@@ -57440,11 +57435,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
     required this.equals,
     required ExpressionImpl? initializer2,
   }) : _initializer2 = initializer2 {
-    _becomeParentOf2(initializer2);
-    _becomeParentOf1(switch (initializer2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _becomeParentOf2AndExisting1(initializer2);
   }
 
   /// This overridden implementation of [documentationComment] looks in the
@@ -57483,10 +57474,10 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @ToBeDeprecated('Use initializer2 instead.')
   @override
-  ExpressionImpl? get initializer => switch (initializer2) {
+  ExpressionImpl? get initializer => _becomeParentOf1(switch (initializer2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
-  };
+  });
 
   @generated
   @experimental
@@ -57496,11 +57487,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @experimental
   set initializer2(ExpressionImpl? initializer2) {
-    _initializer2 = _becomeParentOf2(initializer2);
-    _becomeParentOf1(switch (initializer2) {
-      var node? => V1Projection.toV1Expression(node),
-      _ => null,
-    });
+    _initializer2 = _becomeParentOf2AndExisting1(initializer2);
   }
 
   @override
@@ -58191,8 +58178,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
     required this.whenKeyword,
     required ExpressionImpl expression2,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -58210,7 +58196,8 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -58220,8 +58207,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -58392,8 +58378,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     required StatementImpl body,
   }) : _condition2 = condition2,
        _body = body {
-    _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _becomeParentOf2AndExisting1(condition2);
     _becomeParentOf12(body);
   }
 
@@ -58415,7 +58400,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @generated
   @ToBeDeprecated('Use condition2 instead.')
   @override
-  ExpressionImpl get condition => V1Projection.toV1Expression(condition2);
+  ExpressionImpl get condition =>
+      _becomeParentOf1(V1Projection.toV1Expression(condition2));
 
   @generated
   @experimental
@@ -58425,8 +58411,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @generated
   @experimental
   set condition2(ExpressionImpl condition2) {
-    _condition2 = _becomeParentOf2(condition2);
-    _becomeParentOf1(V1Projection.toV1Expression(condition2));
+    _condition2 = _becomeParentOf2AndExisting1(condition2);
   }
 
   @generated
@@ -59027,8 +59012,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
     required ExpressionImpl expression2,
     required this.semicolon,
   }) : _expression2 = expression2 {
-    _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -59046,7 +59030,8 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @generated
   @ToBeDeprecated('Use expression2 instead.')
   @override
-  ExpressionImpl get expression => V1Projection.toV1Expression(expression2);
+  ExpressionImpl get expression =>
+      _becomeParentOf1(V1Projection.toV1Expression(expression2));
 
   @generated
   @experimental
@@ -59056,8 +59041,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @generated
   @experimental
   set expression2(ExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2(expression2);
-    _becomeParentOf1(V1Projection.toV1Expression(expression2));
+    _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
   @generated
@@ -59184,7 +59168,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   CommentImpl? get documentationComment => _documentationComment;
 
   set documentationComment(CommentImpl? comment) {
-    _documentationComment = _becomeParentOf12(comment);
+    _documentationComment = _becomeParentOfOwnedView(comment);
   }
 
   /// The first token following the comment and metadata.
@@ -59680,7 +59664,7 @@ final class _V1ProjectedNodeListImpl<
 
   @override
   V1Node operator [](int index) {
-    return _project(_base[index]);
+    return owner._becomeParentOf1(_project(_base[index]));
   }
 
   @override
@@ -59728,7 +59712,7 @@ final class _V1ProjectedNodeListImpl<
   @override
   AstNodeImpl? _elementContainingRange(int rangeOffset, int rangeEnd) {
     if (_base._elementContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return _project(result as V2Node);
+      return owner._becomeParentOf1(_project(result as V2Node));
     }
     return null;
   }

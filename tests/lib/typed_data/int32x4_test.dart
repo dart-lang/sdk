@@ -158,6 +158,60 @@ void testSetters() {
   Expect.equals(true, m.flagW);
 }
 
+void testWithLane() {
+  // Each with* replaces exactly one lane and leaves the other three alone.
+  final v = Int32x4(1, 2, 3, 4);
+
+  final x = v.withX(-5);
+  Expect.equals(-5, x.x);
+  Expect.equals(2, x.y);
+  Expect.equals(3, x.z);
+  Expect.equals(4, x.w);
+
+  final y = v.withY(-5);
+  Expect.equals(1, y.x);
+  Expect.equals(-5, y.y);
+  Expect.equals(3, y.z);
+  Expect.equals(4, y.w);
+
+  final z = v.withZ(-5);
+  Expect.equals(1, z.x);
+  Expect.equals(2, z.y);
+  Expect.equals(-5, z.z);
+  Expect.equals(4, z.w);
+
+  final w = v.withW(-5);
+  Expect.equals(1, w.x);
+  Expect.equals(2, w.y);
+  Expect.equals(3, w.z);
+  Expect.equals(-5, w.w);
+
+  // The new lane is truncated to a signed 32-bit value, like the constructor.
+  var tests = [
+    [0x8901234567890, 0x34567890],
+    [0x89012A4567890, -1537836912],
+    [0x80000000, -2147483648],
+    [-0x80000000, -2147483648],
+    [0x7fffffff, 2147483647],
+    [-0x7fffffff, -2147483647],
+  ];
+  for (var test in tests) {
+    var input = test[0];
+    var expected = test[1];
+    Expect.equals(expected, v.withX(input).x);
+    Expect.equals(expected, v.withY(input).y);
+    Expect.equals(expected, v.withZ(input).z);
+    Expect.equals(expected, v.withW(input).w);
+  }
+
+  // Replacing every lane in turn rebuilds the vector.
+  final all = v.withX(9).withY(8).withZ(7).withW(6);
+  Expect.equals(9, all.x);
+  Expect.equals(8, all.y);
+  Expect.equals(7, all.z);
+  Expect.equals(6, all.w);
+}
+
 void testGetters() {
   var m = Int32x4.bool(false, true, true, false);
   Expect.equals(false, m.flagX);
@@ -210,6 +264,7 @@ main() {
     testBadArguments();
     testBitOperators();
     testSetters();
+    testWithLane();
     testGetters();
     testNot();
     testSplat();

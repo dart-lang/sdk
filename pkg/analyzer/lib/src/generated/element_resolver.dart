@@ -287,7 +287,7 @@ class ElementResolver {
       // associate with the node.
       return;
     }
-    selector?.name.element = element;
+    selector?.element = element;
     node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
@@ -342,7 +342,7 @@ class ElementResolver {
         );
       }
     }
-    selector?.name.element = element;
+    selector?.element = element;
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).

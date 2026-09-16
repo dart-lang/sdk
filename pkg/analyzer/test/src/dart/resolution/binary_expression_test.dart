@@ -889,15 +889,17 @@ void f() {
     var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
-    element: <null>
+  leftOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     correspondingParameter: <null>
-    element: <null>
     staticType: InvalidType
   binaryOperator: multiply
   element: <null>
@@ -933,9 +935,10 @@ void f() {
     var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
-    element: <null>
+  leftOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   operator: *
   rightOperand: IntegerLiteral
@@ -979,10 +982,11 @@ BinaryOperatorInvocation
     literal: 2
     staticType: int
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
-    element: <null>
     staticType: InvalidType
   binaryOperator: multiply
   element: dart:core::@class::num::@method::*

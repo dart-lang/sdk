@@ -700,7 +700,10 @@ Block
           token: X
         question: ?
         thenExpression2: ConditionalExpression
-          condition2: SimpleIdentifier
+          condition2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: <empty> <synthetic>
+          condition(v1): SimpleIdentifier
             token: <empty> <synthetic>
           question: ?
           thenExpression2: DirectAssignment
@@ -749,7 +752,10 @@ Block
           elseExpression(v1): SimpleIdentifier
             token: y
         colon: : <synthetic>
-        elseExpression2: SimpleIdentifier
+        elseExpression2: ParsedExpressionChain
+          head: ParsedNameHead
+            name: <empty> <synthetic>
+        elseExpression(v1): SimpleIdentifier
           token: <empty> <synthetic>
       semicolon: ;
   rightBracket: }
@@ -1110,7 +1116,10 @@ Block
             thenExpression2: ThisExpression
               thisKeyword: this
             colon: : <synthetic>
-            elseExpression2: SimpleIdentifier
+            elseExpression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: <empty> <synthetic>
+            elseExpression(v1): SimpleIdentifier
               token: <empty> <synthetic>
           semicolon: ; <synthetic>
       rightBracket: }

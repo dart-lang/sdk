@@ -43,8 +43,9 @@ CompilationUnit
                       head: ParsedNameHead
                         name: intList
                     leftBracket: [
-                    index: SimpleIdentifier
-                      token: <empty> <synthetic>
+                    index: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: <empty> <synthetic>
                     rightBracket: ]
                   operator: =
                   value: IntegerLiteral
@@ -92,8 +93,9 @@ CompilationUnit
                       head: ParsedNameHead
                         name: intList
                     leftBracket: [
-                    index: SimpleIdentifier
-                      token: <empty> <synthetic>
+                    index: ParsedExpressionChain
+                      head: ParsedNameHead
+                        name: <empty> <synthetic>
                     rightBracket: ]
                   operator: =
                   value: IntegerLiteral
@@ -1256,8 +1258,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1306,8 +1309,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1355,8 +1359,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1410,8 +1415,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1456,8 +1462,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1519,8 +1526,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1586,7 +1594,10 @@ CompilationUnit
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1741,8 +1752,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1792,8 +1804,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1896,8 +1909,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier
@@ -1951,8 +1965,9 @@ CompilationUnit
                     head: ParsedNameHead
                       name: intList
                   leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
+                  index: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 expression(v1): IndexExpression
                   target: SimpleIdentifier

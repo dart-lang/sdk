@@ -11813,7 +11813,10 @@ SwitchPatternCase
             expression2: SimpleIdentifier
               token: <empty> <synthetic>
         MapPatternEntry
-          key2: SimpleIdentifier
+          key2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: <empty> <synthetic>
+          key(v1): SimpleIdentifier
             token: <empty> <synthetic>
           separator: : <synthetic>
           value: ConstantPattern
@@ -11908,7 +11911,10 @@ SwitchExpression
           expression2: SimpleIdentifier
             token: <empty> <synthetic>
       arrow: => <synthetic>
-      expression2: SimpleIdentifier
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: <empty> <synthetic>
+      expression(v1): SimpleIdentifier
         token: <empty> <synthetic>
   rightBracket: }
 ''');

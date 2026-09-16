@@ -280,32 +280,52 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
+      switch (instr.kind) {
+        .float32List ||
+        .float64List ||
+        .float32ListView ||
+        .float64ListView ||
+        .float32ByteData ||
+        .float64ByteData => InstructionConstraints(anyFpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+        ]),
+        _ => InstructionConstraints(anyCpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+        ]),
+      };
 
   @override
-  InstructionConstraints? visitStoreArrayElement(StoreArrayElement instr) {
-    if (instr.kind == .fixedLengthList) {
-      return InstructionConstraints(
-        null,
-        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        const [anyCpuRegister, anyCpuRegister],
-        Safepoint(), // For write barrier.
-      );
-    } else {
-      return InstructionConstraints(
-        null,
-        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        [
-          if (instr.kind == .uint8ClampedList ||
-              instr.kind == .uint8ClampedListView)
-            anyCpuRegister,
-        ],
-      );
-    }
-  }
+  InstructionConstraints? visitStoreArrayElement(StoreArrayElement instr) =>
+      switch (instr.kind) {
+        .fixedLengthList => InstructionConstraints(
+          null,
+          [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+          const [anyCpuRegister, anyCpuRegister],
+          Safepoint(), // For write barrier.
+        ),
+        .uint8ClampedList || .uint8ClampedListView => InstructionConstraints(
+          null,
+          [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+          const [anyCpuRegister],
+        ),
+        .float32List ||
+        .float64List ||
+        .float32ListView ||
+        .float64ListView ||
+        .float32ByteData ||
+        .float64ByteData => InstructionConstraints(null, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.index),
+          anyFpuRegister,
+        ]),
+        _ => InstructionConstraints(null, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.index),
+          anyCpuRegister,
+        ]),
+      };
 
   @override
   InstructionConstraints? visitLoadExternalArrayElement(

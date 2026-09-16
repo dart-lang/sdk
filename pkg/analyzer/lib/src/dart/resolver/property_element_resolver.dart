@@ -2470,7 +2470,8 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (readElementRequested == null &&
         readLookup?.callFunctionType == null &&
-        readLookup?.recordField == null) {
+        readLookup?.recordField == null &&
+        !name.isSynthetic) {
       if (name.lexeme == 'await' &&
           _resolver.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));

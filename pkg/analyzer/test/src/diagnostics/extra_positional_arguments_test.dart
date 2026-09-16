@@ -164,6 +164,18 @@ class B extends A {
 ''');
   }
 
+  test_constructorInvocation_missingArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+void f() {
+  new C(;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
+}
+''');
+  }
+
   test_enumConstant() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

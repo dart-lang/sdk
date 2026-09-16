@@ -592,8 +592,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.and(tempReg, leftReg, rightReg);
     _asm.tbz(tempReg, smiBit, done); // Z is not set (from previous cmp).
 
-    _asm.loadClassId(scratch1Reg, leftReg);
-    _asm.loadClassId(scratch2Reg, rightReg);
+    _asm.loadClassId(scratch1Reg, leftReg, canBeSmi: false);
+    _asm.loadClassId(scratch2Reg, rightReg, canBeSmi: false);
 
     // Different class ids => not identical.
     _asm.cmp(scratch1Reg, scratch2Reg);
@@ -851,7 +851,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final field = instr.field;
 
     if (field == objectLayout.Object_classId) {
-      _asm.loadClassId(valueReg, objectReg);
+      _asm.loadClassId(valueReg, objectReg, canBeSmi: _canBeSmi(instr.object));
       return;
     }
 
@@ -967,10 +967,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
     });
 
     if (valueCanBeSmi) {
-      _asm.tbz(valueReg, smiBit, done);
+      _asm.branchIfSmi(valueReg, done);
     } else {
       final ok = Label();
-      _asm.tbnz(valueReg, smiBit, ok);
+      _asm.branchIfNotSmi(valueReg, ok);
       _asm.unimplemented('Smi value in _writeBarrier');
       _asm.bind(ok);
     }
@@ -1266,19 +1266,26 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final indexReg = (instr.index is Constant)
         ? invalidReg
         : inputReg(instr, 1);
-    final resultReg = outputReg(instr);
 
-    _asm.ldr(
-      resultReg,
-      _computeArrayElementAddress(
-        instr.kind,
-        arrayReg,
-        instr.index,
-        indexReg,
-        tempReg,
-      ),
-      sz,
+    final elementAddr = _computeArrayElementAddress(
+      instr.kind,
+      arrayReg,
+      instr.index,
+      indexReg,
+      tempReg,
     );
+
+    switch (instr.kind) {
+      case .float32List ||
+          .float64List ||
+          .float32ListView ||
+          .float64ListView ||
+          .float32ByteData ||
+          .float64ByteData:
+        _asm.fldr(outputFPReg(instr), elementAddr, sz);
+      default:
+        _asm.ldr(outputReg(instr), elementAddr, sz);
+    }
   }
 
   @override
@@ -1288,35 +1295,43 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final indexReg = (instr.index is Constant)
         ? invalidReg
         : inputReg(instr, 1);
-    Register valueReg = inputReg(instr, 2);
 
-    if (instr.kind == .uint8ClampedList ||
-        instr.kind == .uint8ClampedListView) {
-      // Clamp value to [0, 0xff] range.
-      final scratchReg = temporaryReg(instr, 0);
-      _asm.cmpImmediate(valueReg, 0xff);
-      // x = value > 0xff ? 0xff : 0
-      _asm.csetm(scratchReg, .greater);
-      // y = value in range ? value : x
-      _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
-      valueReg = scratchReg;
-    }
-
-    _asm.str(
-      valueReg,
-      _computeArrayElementAddress(
-        instr.kind,
-        arrayReg,
-        instr.index,
-        indexReg,
-        tempReg,
-      ),
-      sz,
+    final elementAddr = _computeArrayElementAddress(
+      instr.kind,
+      arrayReg,
+      instr.index,
+      indexReg,
+      tempReg,
     );
+
+    switch (instr.kind) {
+      case .uint8ClampedList || .uint8ClampedListView:
+        // Clamp value to [0, 0xff] range.
+        final valueReg = inputReg(instr, 2);
+        final scratchReg = temporaryReg(instr, 0);
+        _asm.cmpImmediate(valueReg, 0xff);
+        // x = value > 0xff ? 0xff : 0
+        _asm.csetm(scratchReg, .greater);
+        // y = value in range ? value : x
+        _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
+        _asm.str(scratchReg, elementAddr, sz);
+
+      case .float32List ||
+          .float64List ||
+          .float32ListView ||
+          .float64ListView ||
+          .float32ByteData ||
+          .float64ByteData:
+        _asm.fstr(inputFPReg(instr, 2), elementAddr, sz);
+
+      default:
+        _asm.str(inputReg(instr, 2), elementAddr, sz);
+    }
 
     if (instr.kind == .fixedLengthList &&
         !_canSkipWriteBarrier(instr.array, instr.value)) {
       // TODO: array-specific write barrier.
+      final valueReg = inputReg(instr, 2);
       final scratch1Reg = temporaryReg(instr, 0);
       final scratch2Reg = temporaryReg(instr, 1);
       _writeBarrier(
@@ -1642,30 +1657,30 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.b(slowPath, .notEqual);
       case IntType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(resultReg, smiBit, done);
+          _asm.branchIfSmi(resultReg, done);
         }
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.loadClassId(tempReg, resultReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(slowPath, .notEqual);
       case DoubleType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(resultReg, smiBit, slowPath);
+          _asm.branchIfSmi(resultReg, slowPath);
         }
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.loadClassId(tempReg, resultReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(slowPath, .notEqual);
       case BoolType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(resultReg, smiBit, slowPath);
+          _asm.branchIfSmi(resultReg, slowPath);
         }
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.loadClassId(tempReg, resultReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(slowPath, .notEqual);
       case StringType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(resultReg, smiBit, slowPath);
+          _asm.branchIfSmi(resultReg, slowPath);
         }
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.loadClassId(tempReg, resultReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(done, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
@@ -1673,9 +1688,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         if (_canBeSmi(instr.operand)) {
           if (const IntType().isSubtypeOf(type)) {
-            _asm.tbz(resultReg, smiBit, done);
+            _asm.branchIfSmi(resultReg, done);
           } else if (!type.canBeInt) {
-            _asm.tbz(resultReg, smiBit, slowPath);
+            _asm.branchIfSmi(resultReg, slowPath);
           }
         }
         if (type.isNullable && instr.operand.canBeNull) {
@@ -1759,30 +1774,30 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.b(doneTrue, .equal);
       case IntType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(operandReg, smiBit, doneTrue);
+          _asm.branchIfSmi(operandReg, doneTrue);
         }
-        _asm.loadClassId(tempReg, operandReg);
+        _asm.loadClassId(tempReg, operandReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(doneTrue, .equal);
       case DoubleType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(operandReg, smiBit, doneFalse);
+          _asm.branchIfSmi(operandReg, doneFalse);
         }
-        _asm.loadClassId(tempReg, operandReg);
+        _asm.loadClassId(tempReg, operandReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(doneTrue, .equal);
       case BoolType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(operandReg, smiBit, doneFalse);
+          _asm.branchIfSmi(operandReg, doneFalse);
         }
-        _asm.loadClassId(tempReg, operandReg);
+        _asm.loadClassId(tempReg, operandReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(doneTrue, .equal);
       case StringType():
         if (_canBeSmi(instr.operand)) {
-          _asm.tbz(operandReg, smiBit, doneFalse);
+          _asm.branchIfSmi(operandReg, doneFalse);
         }
-        _asm.loadClassId(tempReg, operandReg);
+        _asm.loadClassId(tempReg, operandReg, canBeSmi: false);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(doneTrue, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
@@ -1790,9 +1805,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
       default:
         if (_canBeSmi(instr.operand)) {
           if (const IntType().isSubtypeOf(type)) {
-            _asm.tbz(operandReg, smiBit, doneTrue);
+            _asm.branchIfSmi(operandReg, doneTrue);
           } else if (!type.canBeInt) {
-            _asm.tbz(operandReg, smiBit, doneFalse);
+            _asm.branchIfSmi(operandReg, doneFalse);
           }
         }
         if (type.isNullable && instr.operand.canBeNull) {
@@ -2269,7 +2284,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       }
     } else {
       // Make sure length is a Smi and between 0 and maxElements.
-      _asm.tbnz(lengthReg, smiBit, slowPath);
+      _asm.branchIfNotSmi(lengthReg, slowPath);
       _asm.cmpImmediate(lengthReg, maxElements << smiShift);
       _asm.b(slowPath, .unsignedGreater);
 
@@ -2491,7 +2506,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     if (_canBeSmi(instr.operand)) {
       _asm.asr(resultReg, operandReg, smiShift);
-      _asm.tbz(operandReg, smiBit, done);
+      _asm.branchIfSmi(operandReg, done);
     }
     _asm.ldr(
       resultReg,

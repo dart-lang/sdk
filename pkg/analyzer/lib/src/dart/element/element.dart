@@ -600,7 +600,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               ),
             )
           : null;
-      constructorSelector?.name.element = superConstructor.baseElement;
+      constructorSelector?.element = superConstructor.baseElement;
       var superInvocation = SuperConstructorInvocationImpl(
         superKeyword: Tokens.super_(),
         constructorSelector: constructorSelector,

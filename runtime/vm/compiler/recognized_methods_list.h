@@ -539,6 +539,10 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x75cf0a33)           \
   V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x0d425838)     \
   V(TypedDataLibrary, _Int32x4, select, Int32x4Select, 0x68ad87e0)             \
+  V(TypedDataLibrary, _Int32x4, withX, Int32x4WithX, 0x49df2c7c)               \
+  V(TypedDataLibrary, _Int32x4, withY, Int32x4WithY, 0x09c70ed2)               \
+  V(TypedDataLibrary, _Int32x4, withZ, Int32x4WithZ, 0xac036895)               \
+  V(TypedDataLibrary, _Int32x4, withW, Int32x4WithW, 0xe7cdfd22)               \
   V(TypedDataLibrary, _Int32x4, withFlagX, Int32x4WithFlagX, 0x56b3f64d)       \
   V(TypedDataLibrary, _Int32x4, withFlagY, Int32x4WithFlagY, 0x896f0288)       \
   V(TypedDataLibrary, _Int32x4, withFlagZ, Int32x4WithFlagZ, 0x2cc7f3f4)       \

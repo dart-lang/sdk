@@ -1004,7 +1004,22 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
-  void loadClassId(Register result, Register object) {
+  void loadClassId(
+    Register result,
+    Register object, {
+    required bool canBeSmi,
+    Register scratch = temp2Reg,
+  }) {
+    final done = Label();
+    if (canBeSmi) {
+      if (result == object) {
+        // Use another register to avoid clobbering [object].
+        mov(scratch, object);
+        object = scratch;
+      }
+      loadImmediate(result, ClassId.SmiCid.index);
+      branchIfSmi(object, done);
+    }
     ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
     ubfx(
       result,
@@ -1012,15 +1027,6 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
-  }
-
-  @override
-  void loadClassIdMayBeSmi(Register result, Register object) {
-    assert(result != object);
-    final done = Label();
-    loadImmediate(result, ClassId.SmiCid.index);
-    branchIfSmi(object, done);
-    loadClassId(result, object);
     bind(done);
   }
 
@@ -2087,6 +2093,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           opcode |
               rt.encodingRt |
               a.encoding(sz) |
+              (sz.is128 ? B23 : 0) |
+              ((sz.log2sizeInBytes & 3) << 30),
+        );
+      case RegExtRegAddress():
+        emit(
+          opcode |
+              rt.encodingRt |
+              a.encoding |
               (sz.is128 ? B23 : 0) |
               ((sz.log2sizeInBytes & 3) << 30),
         );

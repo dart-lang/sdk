@@ -42,7 +42,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -87,7 +90,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -120,7 +126,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -216,7 +225,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1495,7 +1507,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1540,7 +1555,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -1573,7 +1591,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1669,7 +1690,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2949,7 +2973,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2995,7 +3022,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -3029,7 +3059,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3127,7 +3160,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4438,7 +4474,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4484,7 +4523,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -4518,7 +4560,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4616,7 +4661,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5928,7 +5976,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5975,7 +6026,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -6010,7 +6064,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -6110,7 +6167,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7484,7 +7544,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7530,7 +7593,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -7564,7 +7630,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7662,7 +7731,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -8977,7 +9049,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9023,7 +9098,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -9057,7 +9135,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9155,7 +9236,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10889,7 +10973,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10934,7 +11021,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -10967,7 +11057,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -11063,7 +11156,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration

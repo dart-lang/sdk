@@ -795,7 +795,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               BreakStatement
@@ -832,7 +835,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ContinueStatement
@@ -868,7 +874,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               DoStatement
@@ -912,7 +921,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -945,7 +957,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ForStatement
@@ -995,7 +1010,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
@@ -1045,7 +1063,10 @@ CompilationUnit
                   token: l
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1159,7 +1180,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -1199,7 +1223,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ;
             rightBracket: }
@@ -1272,7 +1299,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               TryStatement
@@ -1314,7 +1344,10 @@ CompilationUnit
             statements
               YieldStatement
                 yieldKeyword: yield
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
@@ -1438,7 +1471,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               BreakStatement
@@ -1476,7 +1512,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ContinueStatement
@@ -1513,7 +1552,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               DoStatement
@@ -1558,7 +1600,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -2282,7 +2327,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ForStatement
@@ -2333,7 +2381,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
@@ -2384,7 +2435,10 @@ CompilationUnit
                   token: l
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -2501,7 +2555,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -2542,7 +2599,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ;
             rightBracket: }
@@ -2617,7 +2677,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               TryStatement
@@ -2660,7 +2723,10 @@ CompilationUnit
               YieldStatement
                 yieldKeyword: yield
                 star: *
-                expression2: SimpleIdentifier
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement

@@ -4321,6 +4321,17 @@ DEFINE_EMIT(Int32x4Select,
   __ vorr(out, temp1, temp2);
 }
 
+DEFINE_EMIT(Int32x4WithLane,
+            (SameAsFirstInput, VRegister value, Register newLaneValue)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ vinsw(value, lane_index, newLaneValue);
+}
+
 DEFINE_EMIT(Int32x4WithFlag,
             (SameAsFirstInput, VRegister mask, Register flag)) {
   const VRegister result = mask;
@@ -4413,6 +4424,11 @@ DEFINE_EMIT(Int32x4WithFlag,
   ____(Int32x4GetFlag)                                                         \
   SIMPLE(Int32x4AnyTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
