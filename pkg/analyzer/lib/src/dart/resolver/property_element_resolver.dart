@@ -873,10 +873,30 @@ class PropertyElementResolver with ScopeHelpers {
     ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var receiver = node.receiver;
+    if (receiver is StaticQualifierImpl) {
+      var result = _resolveStaticQualifier(
+        receiver,
+        name: node.name,
+        hasRead: false,
+        hasWrite: true,
+      );
+      return _createNamedWriteResolutionWithElement(
+            result.writeElementRequested2,
+          ) ??
+          InvalidNamedWriteResolutionImpl(
+            recoveryElement: result.writeElementRecovery2,
+          );
+    }
+    receiver as ExpressionImpl;
     var receiverType = receiver.typeOrThrow;
 
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      // V1 prefixed assignment targets recover without receiverOfTypeNever.
+      if (receiver is UnqualifiedNameExpressionImpl &&
+          node.operator.type == TokenType.PERIOD) {
+        return InvalidNamedWriteResolutionImpl(recoveryElement: null);
+      }
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
     }
@@ -888,7 +908,7 @@ class PropertyElementResolver with ScopeHelpers {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    if (receiverType is DynamicType) {
+    if (receiverType is DynamicType && node.name.lexeme != 'new') {
       return const DynamicPropertyWriteResolutionImpl();
     }
 
@@ -951,48 +971,12 @@ class PropertyElementResolver with ScopeHelpers {
   resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
     if (receiver is StaticQualifierImpl) {
-      if (receiver.scopeLookupResult case var lookupResult?) {
-        reportDeprecatedExportUseGetter(
-          scopeLookupResult: lookupResult,
-          nameToken: receiver.name,
-        );
-      }
-      var element = receiver.element;
-      PropertyElementResolverResult result;
-      var propertyName = SimpleIdentifierImpl(token: node.name);
-      var interfaceElement = switch (element) {
-        InterfaceElement element => element,
-        TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
-        _ => null,
-      };
-      if (interfaceElement != null) {
-        result = _resolveTargetInterfaceElement(
-          typeReference: interfaceElement,
-          isCascaded: false,
-          propertyName: propertyName,
-          hasRead: true,
-          hasWrite: false,
-        );
-      } else if (element is ExtensionElement) {
-        result = _resolveTargetExtensionElement(
-          extension: element,
-          propertyName: propertyName,
-          hasRead: true,
-          hasWrite: false,
-        );
-      } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
-        diagnosticReporter.report(
-          diag.undefinedGetterOnFunctionType
-              .withArguments(
-                getterName: node.name.lexeme,
-                functionTypeAliasName: receiver.name.lexeme,
-              )
-              .at(node.name),
-        );
-        result = PropertyElementResolverResult();
-      } else {
-        throw StateError('Unexpected static qualifier element: $element');
-      }
+      var result = _resolveStaticQualifier(
+        receiver,
+        name: node.name,
+        hasRead: true,
+        hasWrite: false,
+      );
       var readElement = result.readElementRequested2;
       var resolution =
           _createNamedReadResolutionWithElement(
@@ -1141,6 +1125,17 @@ class PropertyElementResolver with ScopeHelpers {
     ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var receiver = node.receiver;
+    if (receiver is StaticQualifierImpl) {
+      return _propertyReadWriteTargetResult(
+        _resolveStaticQualifier(
+          receiver,
+          name: node.name,
+          hasRead: true,
+          hasWrite: true,
+        ),
+      );
+    }
+    receiver as ExpressionImpl;
 
     if (receiver is ExtensionOverrideImpl) {
       var result = _resolveTargetExtensionOverride(
@@ -1184,6 +1179,16 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      // Increment targets retain their existing receiverOfTypeNever behavior.
+      if (node.parent2 is AssignmentExpression2Impl &&
+          receiver is UnqualifiedNameExpressionImpl &&
+          node.operator.type == TokenType.PERIOD) {
+        return (
+          read: InvalidNamedReadResolutionImpl(recoveryElement: null),
+          write: InvalidNamedWriteResolutionImpl(recoveryElement: null),
+          readExpressionInfo: null,
+        );
+      }
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
     }
@@ -1204,7 +1209,8 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    if (_typeSystem.isDynamicBounded(receiverType)) {
+    if (_typeSystem.isDynamicBounded(receiverType) &&
+        node.name.lexeme != 'new') {
       return (
         read: DynamicPropertyReadResolutionImpl(),
         write: const DynamicPropertyWriteResolutionImpl(),
@@ -1220,7 +1226,7 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: true,
       propertyErrorEntity: node.name,
       nameErrorEntity: node.name,
-      parentNode: node.parent2,
+      parentNode: node,
     );
 
     var functionCallTearOffResolution = _functionCallTearOffResolution(
@@ -1947,6 +1953,65 @@ class PropertyElementResolver with ScopeHelpers {
       recordField: result.recordField,
       getType: getType,
     );
+  }
+
+  PropertyElementResolverResult _resolveStaticQualifier(
+    StaticQualifierImpl receiver, {
+    required Token name,
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    if (receiver.scopeLookupResult case var lookupResult?) {
+      reportDeprecatedExportUseGetter(
+        scopeLookupResult: lookupResult,
+        nameToken: receiver.name,
+      );
+    }
+    var element = receiver.element;
+    var propertyName = SimpleIdentifierImpl(token: name);
+    var interfaceElement = switch (element) {
+      InterfaceElement element => element,
+      TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+      _ => null,
+    };
+    if (interfaceElement != null) {
+      return _resolveTargetInterfaceElement(
+        typeReference: interfaceElement,
+        isCascaded: false,
+        propertyName: propertyName,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    } else if (element is ExtensionElement) {
+      return _resolveTargetExtensionElement(
+        extension: element,
+        propertyName: propertyName,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
+      if (hasRead) {
+        diagnosticReporter.report(
+          diag.undefinedGetterOnFunctionType
+              .withArguments(
+                getterName: name.lexeme,
+                functionTypeAliasName: receiver.name.lexeme,
+              )
+              .at(name),
+        );
+      } else if (hasWrite) {
+        diagnosticReporter.report(
+          diag.undefinedSetterOnFunctionType
+              .withArguments(
+                setterName: name.lexeme,
+                functionTypeAliasName: receiver.name.lexeme,
+              )
+              .at(name),
+        );
+      }
+      return PropertyElementResolverResult();
+    }
+    throw StateError('Unexpected static qualifier element: $element');
   }
 
   PropertyElementResolverResult _resolveTargetExtensionElement({

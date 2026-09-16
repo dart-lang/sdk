@@ -626,8 +626,9 @@ Block
           token: X
         question: ?
         thenExpression2: DirectAssignment
-          target: UnqualifiedNameAssignmentTarget
-            name: x2
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: x2
           operator: =
           value: BinaryOperatorInvocation
             leftOperand: ParsedExpressionChain
@@ -699,8 +700,9 @@ Block
             token: <empty> <synthetic>
           question: ?
           thenExpression2: DirectAssignment
-            target: UnqualifiedNameAssignmentTarget
-              name: x2
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: x2
             operator: =
             value: BinaryOperatorInvocation
               leftOperand: ParsedExpressionChain
@@ -768,8 +770,9 @@ Block
           token: X
         question: ?
         thenExpression2: DirectAssignment
-          target: UnqualifiedNameAssignmentTarget
-            name: x2
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: x2
           operator: =
           value: ParsedExpressionChain
             head: ParsedNameHead
@@ -834,8 +837,9 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: UnqualifiedNameAssignmentTarget
-              name: x
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: x
             operation: increment
             position: prefix
         updaters(v1)
@@ -874,8 +878,9 @@ Block
             token: x
           question: ?
           thenExpression2: DirectAssignment
-            target: UnqualifiedNameAssignmentTarget
-              name: y
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: y
             operator: =
             value: IntegerLiteral
               literal: 7
@@ -887,8 +892,9 @@ Block
               literal: 7
           colon: :
           elseExpression2: DirectAssignment
-            target: UnqualifiedNameAssignmentTarget
-              name: y
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: y
             operator: =
             value: IntegerLiteral
               literal: 8
@@ -917,8 +923,9 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: UnqualifiedNameAssignmentTarget
-              name: y
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: y
             operation: increment
             position: prefix
         updaters(v1)
@@ -978,8 +985,9 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: UnqualifiedNameAssignmentTarget
-              name: x
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: x
             operation: increment
             position: prefix
         updaters(v1)
@@ -3642,8 +3650,9 @@ Block
     ExpressionStatement
       expression2: NullAssertionExpression
         operand: IncrementOrDecrementExpression
-          target: UnqualifiedNameAssignmentTarget
-            name: x
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: x
           operator: ++
           operation: increment
           position: postfix

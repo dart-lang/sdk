@@ -91,8 +91,9 @@ CompilationUnit
             name: v
             equals: =
             initializer2: DirectAssignment
-              target: UnqualifiedNameAssignmentTarget
-                name: n
+              target: ParsedAssignmentTargetChain
+                head: ParsedNameHead
+                  name: n
               operator: =
               value: ListLiteral
                 typeArguments: TypeArgumentList
@@ -2416,8 +2417,9 @@ var v = x = y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: ParsedExpressionChain
     head: ParsedNameHead
@@ -2476,11 +2478,13 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: IncrementOrDecrementExpression
     operator: --
-    target: ReceiverPropertyAssignmentTarget
-      receiver: SimpleIdentifier
-        token: a
-      operator: .
-      name: b
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: a
+      components
+        ParsedNameAccess
+          operator: .
+          name: b
     operation: decrement
     position: prefix
   operator: ==
@@ -2491,11 +2495,11 @@ BinaryOperatorInvocation
 V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PropertyAccess
-      target: SimpleIdentifier
+    operand: PrefixedIdentifier
+      prefix: SimpleIdentifier
         token: a
-      operator: .
-      propertyName: SimpleIdentifier
+      period: .
+      identifier: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -2930,8 +2934,9 @@ var v = x = y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: ParsedExpressionChain
     head: ParsedNameHead
@@ -2954,11 +2959,13 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: IncrementOrDecrementExpression
     operator: --
-    target: ReceiverPropertyAssignmentTarget
-      receiver: SimpleIdentifier
-        token: a
-      operator: .
-      name: b
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: a
+      components
+        ParsedNameAccess
+          operator: .
+          name: b
     operation: decrement
     position: prefix
   operator: ==
@@ -2969,11 +2976,11 @@ BinaryOperatorInvocation
 V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PropertyAccess
-      target: SimpleIdentifier
+    operand: PrefixedIdentifier
+      prefix: SimpleIdentifier
         token: a
-      operator: .
-      propertyName: SimpleIdentifier
+      period: .
+      identifier: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -3049,8 +3056,9 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: UnqualifiedNameAssignmentTarget
-        name: i
+      target: ParsedAssignmentTargetChain
+        head: ParsedNameHead
+          name: i
       operator: ++
       operation: increment
       position: postfix
@@ -3094,8 +3102,9 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: UnqualifiedNameAssignmentTarget
-        name: i
+      target: ParsedAssignmentTargetChain
+        head: ParsedNameHead
+          name: i
       operator: ++
       operation: increment
       position: postfix
@@ -3164,8 +3173,9 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: UnqualifiedNameAssignmentTarget
-        name: i
+      target: ParsedAssignmentTargetChain
+        head: ParsedNameHead
+          name: i
       operator: ++
       operation: increment
       position: postfix
@@ -4059,8 +4069,9 @@ var v = i--;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: UnqualifiedNameAssignmentTarget
-    name: i
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: i
   operator: --
   operation: decrement
   position: postfix
@@ -4078,8 +4089,9 @@ var v = i++;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: UnqualifiedNameAssignmentTarget
-    name: i
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: i
   operator: ++
   operation: increment
   position: postfix
@@ -5909,8 +5921,9 @@ var v = --x;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: --
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operation: decrement
   position: prefix
 V1: PrefixExpression
@@ -6012,8 +6025,9 @@ var v = ++x;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operation: increment
   position: prefix
 V1: PrefixExpression

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2307,13 +2308,9 @@ void f() {
 }
 ''');
 
-    var identifier = result.findNode.prefixed('C.new');
-    // The left side of the assignment is resolved by
-    // [PropertyElementResolver._resolveTargetClassElement], which looks for
-    // getters and setters on `C`, and does not recover with other elements
-    // (methods, constructors). This prefixed identifier can have a real
-    // `staticElement` if we add such recovery.
-    expect(identifier.element, isNull);
+    var target = result.findNode.singleDirectAssignment.target;
+    // A constructor name in a write position is not a constructor tear-off.
+    expect(target.write!.elementOrRecovery, isNull);
   }
 
   test_constructorTearOff_inAssignment_onRightSide() async {

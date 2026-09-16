@@ -788,8 +788,9 @@ CompilationUnit
                 semicolon: ;
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: UnqualifiedNameAssignmentTarget
-                    name: x
+                  target: ParsedAssignmentTargetChain
+                    head: ParsedNameHead
+                      name: x
                   operator: =
                   value: SimpleIdentifier
                     token: <empty> <synthetic>

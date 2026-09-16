@@ -275,8 +275,9 @@ DirectAssignment
     name: <empty> <synthetic>
   operator: =
   value: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: y
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: y
     operator: =
     value: IntegerLiteral
       literal: 0
@@ -302,8 +303,9 @@ var v = x = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: DirectAssignment
     target: UnqualifiedNameAssignmentTarget
@@ -333,12 +335,14 @@ var v = x = y =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: y
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: y
     operator: =
     value: SimpleIdentifier
       token: <empty> <synthetic>
@@ -387,8 +391,9 @@ var v = x =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: SimpleIdentifier
     token: <empty> <synthetic>

@@ -775,6 +775,14 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedAssignmentTargetChain(
+    covariant ParsedAssignmentTargetChainImpl node,
+  ) {
+    var target = _astRewriter.parsedAssignmentTargetChain(nameScope, node);
+    target.accept2(this);
+  }
+
+  @override
   void visitParsedExpressionChain(covariant ParsedExpressionChainImpl node) {
     var expression = _astRewriter.parsedExpressionChain(nameScope, node);
     expression.accept2(this);

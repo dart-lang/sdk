@@ -1303,6 +1303,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    _visitNode(node.head);
+    _visitNodeList(node.components);
+  }
+
+  @override
   void visitParsedExpressionChain(ParsedExpressionChain node) {
     _visitNode(node.head);
     _visitNodeList(node.components);

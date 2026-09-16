@@ -1636,6 +1636,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    _sink.writeln('ParsedAssignmentTargetChain');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitParsedExpressionChain(ParsedExpressionChain node) {
     _sink.writeln('ParsedExpressionChain');
     _sink.withIndent(() {

@@ -4915,8 +4915,9 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: DirectAssignment
-                      target: UnqualifiedNameAssignmentTarget
-                        name: f
+                      target: ParsedAssignmentTargetChain
+                        head: ParsedNameHead
+                          name: f
                       operator: =
                       value: ParsedExpressionChain
                         head: ParsedNameHead
@@ -4951,8 +4952,9 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: DirectAssignment
-                target: UnqualifiedNameAssignmentTarget
-                  name: f
+                target: ParsedAssignmentTargetChain
+                  head: ParsedNameHead
+                    name: f
                 operator: =
                 value: BinaryOperatorInvocation
                   leftOperand: ParsedExpressionChain

@@ -702,6 +702,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
@@ -2219,11 +2221,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         .tryCast<MultiplyDefinedElementImpl>();
     _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        node.operator,
-        kind: _NullAwareKind.access,
-      );
+      switch (node.receiver) {
+        case StaticQualifier():
+          diagnosticReporter.report(
+            diag.invalidNullAwareOperator
+                .withArguments(operator: '?.', replacement: '.')
+                .at(node.operator),
+          );
+        case Expression receiver:
+          _checkForUnnecessaryNullAware(
+            receiver,
+            node.operator,
+            kind: _NullAwareKind.access,
+          );
+      }
     }
     super.visitReceiverPropertyAssignmentTarget(node);
   }

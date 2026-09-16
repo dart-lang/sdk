@@ -418,12 +418,14 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: UnqualifiedNameAssignmentTarget
-    name: x
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
   operator: =
   value: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: y
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: y
     operator: =
     value: IntegerLiteral
       literal: 0
@@ -484,15 +486,26 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ParsedAssignmentTargetChain
+    head: ParsedNameHead
+      name: x
+    components
+      ParsedNameAccess
+        operator: .
+        name: y
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: x
     period: .
     identifier: SimpleIdentifier
       token: y
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
 ''');
   }
@@ -1729,8 +1742,9 @@ ConditionalExpression
     token: b
   question: ?
   thenExpression2: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: c
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: c
     operator: =
     value: BooleanLiteral
       literal: true
@@ -1775,8 +1789,9 @@ ConditionalExpression
       token: x
   question: ?
   thenExpression2: DirectAssignment
-    target: UnqualifiedNameAssignmentTarget
-      name: c
+    target: ParsedAssignmentTargetChain
+      head: ParsedNameHead
+        name: c
     operator: =
     value: BooleanLiteral
       literal: true

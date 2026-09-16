@@ -1369,8 +1369,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1421,8 +1422,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1455,8 +1457,9 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: UnqualifiedNameAssignmentTarget
-            name: i
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: i
           operator: --
           operation: decrement
           position: postfix
@@ -1483,8 +1486,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1517,8 +1521,9 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: UnqualifiedNameAssignmentTarget
-            name: i
+          target: ParsedAssignmentTargetChain
+            head: ParsedNameHead
+              name: i
           operator: --
           operation: decrement
           position: postfix
@@ -1545,8 +1550,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1843,8 +1849,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1903,8 +1910,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -1972,14 +1980,16 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: j
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: j
             operator: --
             operation: decrement
             position: postfix
@@ -2051,14 +2061,16 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: j
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: j
             operator: --
             operation: decrement
             position: postfix
@@ -2106,8 +2118,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2151,8 +2164,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2188,8 +2202,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix
@@ -2225,8 +2240,9 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: UnqualifiedNameAssignmentTarget
-              name: i
+            target: ParsedAssignmentTargetChain
+              head: ParsedNameHead
+                name: i
             operator: ++
             operation: increment
             position: postfix

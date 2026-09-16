@@ -1832,6 +1832,74 @@ V1: PostfixExpression
 ''');
   }
 
+  test_inc_staticQualifier_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  static int get value => 0;
+  static set value(int value) {}
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+void f() {
+  p.C.value++;
+}
+''');
+    assertResolvedNodeText(result.findNode.singleIncrementOrDecrement, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      element: package:test/a.dart::@class::C
+    operator: .
+    name: value
+    read: GetterInvocationResolution
+      element: package:test/a.dart::@class::C::@getter::value
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@class::C::@setter::value
+      acceptedType: int
+  operator: ++
+  operation: increment
+  position: postfix
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        element: <testLibraryFragment>::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        element: package:test/a.dart::@class::C
+        staticType: null
+      element: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: value
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: package:test/a.dart::@class::C::@getter::value
+  readType: int
+  writeElement: package:test/a.dart::@class::C::@setter::value
+  writeType: int
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_inc_super() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {

@@ -2900,6 +2900,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) {
     node.visitChildren2(this);
     return null;
@@ -4480,6 +4487,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) => null;
+
+  @experimental
+  @override
   R? visitParsedExpressionChain(ParsedExpressionChain node) => null;
 
   @experimental
@@ -5876,6 +5887,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -8941,6 +8957,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedAssignmentTargetChain(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitParsedExpressionChain(ParsedExpressionChain node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedExpressionChain(node);
@@ -10739,6 +10764,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
+      visitNode(node);
 
   @experimental
   @override

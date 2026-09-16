@@ -2740,8 +2740,9 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: CompoundAssignment
-                      target: UnqualifiedNameAssignmentTarget
-                        name: x
+                      target: ParsedAssignmentTargetChain
+                        head: ParsedNameHead
+                          name: x
                       operator: >>>=
                       value: ParsedExpressionChain
                         head: ParsedNameHead

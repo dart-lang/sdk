@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         InvalidExpressionAssignmentTargetImpl,
         NamedFunctionInvocationImpl,
         NamedReadResolutionImpl,
+        ParsedAssignmentTargetChainImpl,
         ReceiverIndexAssignmentTargetImpl,
         ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
@@ -495,6 +496,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -567,6 +570,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -764,6 +769,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetChainImpl():
+        throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():

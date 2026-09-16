@@ -1695,7 +1695,7 @@ class AstBinaryReader {
   }
 
   ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
-    var receiver = _readNode() as ExpressionImpl;
+    var receiver = _readNode() as NamedReceiverImpl;
     var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var propertyName = _readStringReference();
     var node = ReceiverPropertyAssignmentTargetImpl(

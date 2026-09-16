@@ -284,6 +284,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         OperatorDeclaration,
         ParenthesizedExpression,
         ParenthesizedPattern,
+        ParsedAssignmentTargetChain,
         ParsedExpressionChain,
         ParsedNameAccess,
         ParsedNameHead,

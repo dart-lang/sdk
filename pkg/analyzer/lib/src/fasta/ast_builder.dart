@@ -713,7 +713,15 @@ class AstBuilder extends StackListener {
           thisKeyword = writtenThisKeyword;
           period = operator;
           fieldName = name;
+        // Synthetic names from parser recovery aren't converted to parsed chains.
+        // TODO(scheglov): Check whether parsed chains can preserve recovery for
+        // synthetic names, allowing this case to be removed.
         case UnqualifiedNameAssignmentTargetImpl(:var name):
+          fieldName = name;
+        case ParsedAssignmentTargetChainImpl(
+          head: ParsedNameHeadImpl(:var name),
+          components: [],
+        ):
           fieldName = name;
         default:
           return null;
@@ -3791,25 +3799,31 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    var propertyTarget = switch (lhs) {
-      CascadePropertyExtractionImpl(:var name) =>
-        CascadePropertyAssignmentTargetImpl(name: name),
-      ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
-        ReceiverPropertyAssignmentTargetImpl(
-          receiver: _parsedPropertyReceiver(receiver),
-          operator: operator,
-          name: name,
-        ),
-      PropertyAccessImpl(target2: var receiver?, :var operator)
-          when operator.type == TokenType.PERIOD &&
-              _isSupportedPropertyReceiver(receiver) =>
-        ReceiverPropertyAssignmentTargetImpl(
-          receiver: receiver,
-          operator: operator,
-          name: lhs.propertyName.token,
-        ),
-      _ => null,
-    };
+    var namedTarget =
+        _toParsedAssignmentTarget(lhs) ??
+        switch (lhs) {
+          CascadePropertyExtractionImpl(:var name) =>
+            CascadePropertyAssignmentTargetImpl(name: name),
+          ReceiverPropertyExtractionImpl(
+            :var receiver,
+            :var operator,
+            :var name,
+          ) =>
+            ReceiverPropertyAssignmentTargetImpl(
+              receiver: _parsedPropertyReceiver(receiver),
+              operator: operator,
+              name: name,
+            ),
+          PropertyAccessImpl(target2: var receiver?, :var operator)
+              when operator.type == TokenType.PERIOD &&
+                  _isSupportedPropertyReceiver(receiver) =>
+            ReceiverPropertyAssignmentTargetImpl(
+              receiver: receiver,
+              operator: operator,
+              name: lhs.propertyName.token,
+            ),
+          _ => null,
+        };
     var indexTarget = switch (lhs) {
       CascadeIndexExpressionImpl(
         :var leftBracket,
@@ -3896,11 +3910,11 @@ class AstBuilder extends StackListener {
           ),
         );
       }
-    } else if (propertyTarget != null) {
+    } else if (namedTarget != null) {
       if (token.type == TokenType.EQ) {
         push(
           DirectAssignmentImpl(
-            target: propertyTarget,
+            target: namedTarget,
             operator: token,
             value: rhs,
           ),
@@ -3908,7 +3922,7 @@ class AstBuilder extends StackListener {
       } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
         push(
           IfNullAssignmentImpl(
-            target: propertyTarget,
+            target: namedTarget,
             operator: token,
             value: rhs,
           ),
@@ -3916,7 +3930,7 @@ class AstBuilder extends StackListener {
       } else {
         push(
           CompoundAssignmentImpl(
-            target: propertyTarget,
+            target: namedTarget,
             operator: token,
             value: rhs,
           ),
@@ -6693,6 +6707,45 @@ class AstBuilder extends StackListener {
     }
   }
 
+  ({ParsedNameHeadImpl head, List<ParsedNameAccessImpl> components})?
+  _parsedNameChain(ExpressionImpl expression) {
+    List<ParsedNameAccessImpl>? components;
+    var receiver = expression;
+    while (true) {
+      switch (receiver) {
+        case SimpleIdentifierImpl() when !receiver.isSynthetic:
+          return (
+            head: ParsedNameHeadImpl(name: receiver.token),
+            components: components?.reversed.toList() ?? const [],
+          );
+        case PrefixedIdentifierImpl() when !receiver.identifier.isSynthetic:
+          (components ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.period,
+              name: receiver.identifier.token,
+            ),
+          );
+          receiver = receiver.prefix;
+        // Only convert identifier or keyword property names. Recovery may use
+        // punctuation, such as '(' in C.(), even though the token is not synthetic.
+        // TODO(scheglov): Avoid using punctuation tokens as property names during
+        // parser recovery.
+        case PropertyAccessImpl(target2: var target?)
+            when !receiver.propertyName.isSynthetic &&
+                receiver.propertyName.token.isKeywordOrIdentifier:
+          (components ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.operator,
+              name: receiver.propertyName.token,
+            ),
+          );
+          receiver = target;
+        default:
+          return null;
+      }
+    }
+  }
+
   /// Parser-built property extractions always have expression receivers.
   /// Static qualifiers are introduced later, when resolution lowers a chain.
   ExpressionImpl _parsedPropertyReceiver(NamedReceiverImpl receiver) {
@@ -6782,6 +6835,9 @@ class AstBuilder extends StackListener {
   AssignmentTargetImpl _toIncrementOrDecrementTarget(
     ExpressionImpl expression,
   ) {
+    if (_toParsedAssignmentTarget(expression) case var target?) {
+      return target;
+    }
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
     if (expression is ReceiverIndexExpressionImpl &&
@@ -6851,45 +6907,26 @@ class AstBuilder extends StackListener {
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
-  /// Commits a completed name chain to a value slot without selecting its
-  /// interpretation. Selector and assignment construction still consumes the
-  /// temporary identifier directly until those parser paths are migrated.
-  ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
-    List<ParsedNameAccessImpl>? components;
-    var receiver = expression;
-    while (true) {
-      switch (receiver) {
-        case SimpleIdentifierImpl() when !receiver.isSynthetic:
-          return ParsedExpressionChainImpl(
-            head: ParsedNameHeadImpl(name: receiver.token),
-            components: components?.reversed.toList() ?? const [],
-          );
-        case PrefixedIdentifierImpl() when !receiver.identifier.isSynthetic:
-          (components ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.period,
-              name: receiver.identifier.token,
-            ),
-          );
-          receiver = receiver.prefix;
-        // Only convert identifier or keyword property names. Recovery may use
-        // punctuation, such as '(' in C.(), even though the token is not synthetic.
-        // TODO(scheglov): Avoid using punctuation tokens as property names during
-        // parser recovery.
-        case PropertyAccessImpl(target2: var target?)
-            when !receiver.propertyName.isSynthetic &&
-                receiver.propertyName.token.isKeywordOrIdentifier:
-          (components ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.operator,
-              name: receiver.propertyName.token,
-            ),
-          );
-          receiver = target;
-        default:
-          return expression;
-      }
+  ParsedAssignmentTargetChainImpl? _toParsedAssignmentTarget(
+    ExpressionImpl expression,
+  ) {
+    if (_parsedNameChain(expression) case (:var head, :var components)) {
+      return ParsedAssignmentTargetChainImpl(
+        head: head,
+        components: components,
+      );
     }
+    return null;
+  }
+
+  /// Commits a completed name chain to a value slot without selecting its
+  /// interpretation. Selectors consume temporary identifier nodes until the
+  /// completed value or assignment-target boundary.
+  ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
+    if (_parsedNameChain(expression) case (:var head, :var components)) {
+      return ParsedExpressionChainImpl(head: head, components: components);
+    }
+    return expression;
   }
 
   static String _versionAsString(Version version) {

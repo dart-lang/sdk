@@ -962,6 +962,12 @@ abstract class RuleVisitorRegistry2 {
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addParsedAssignmentTargetChain(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addParsedExpressionChain(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

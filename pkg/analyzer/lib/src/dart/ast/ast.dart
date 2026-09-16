@@ -3181,7 +3181,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
       switch (target) {
-        PropertyAssignmentTargetImpl target => target.propertyAccess,
+        ParsedAssignmentTargetChainImpl target => target.v1Projection,
+        CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
+        ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
         IndexAssignmentTargetImpl target => target.indexExpression,
         UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
         ImportPrefixedAssignmentTargetImpl target => target.prefixedIdentifier,
@@ -3199,7 +3201,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
+    InvalidExpressionAssignmentTargetImpl() ||
+    ParsedAssignmentTargetChainImpl() => null,
   };
 
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
@@ -3221,7 +3224,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
+    InvalidExpressionAssignmentTargetImpl() ||
+    ParsedAssignmentTargetChainImpl() => null,
   };
 }
 
@@ -6437,7 +6441,6 @@ final class CascadePropertyAssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
-  @override
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(this);
 
@@ -30905,7 +30908,9 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   ExpressionImpl get _legacyOperand => switch (target) {
-    PropertyAssignmentTargetImpl target => target.propertyAccess,
+    ParsedAssignmentTargetChainImpl target => target.v1Projection,
+    CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
+    ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
     IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     ImportPrefixedAssignmentTargetImpl target => target.prefixedIdentifier,
@@ -30922,7 +30927,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
+    InvalidExpressionAssignmentTargetImpl() ||
+    ParsedAssignmentTargetChainImpl() => null,
   };
 
   TypeImpl? get _legacyReadType => switch (target) {
@@ -30938,7 +30944,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
+    InvalidExpressionAssignmentTargetImpl() ||
+    ParsedAssignmentTargetChainImpl() => null,
   };
 
   TypeImpl? get _legacyWriteType => switch (target) {
@@ -41695,6 +41702,203 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 }
 
+/// A parser-only name chain used as an assignment destination.
+///
+/// Resolution replaces the chain with an assignment target. The enclosing
+/// operation determines whether the target requires write resolution alone
+/// or both read and write resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedAssignmentTargetChain implements AssignmentTarget {
+  /// The named selectors following [head], in source order.
+  NodeList<ParsedNameAccess> get components;
+
+  /// The name that begins the chain.
+  ParsedNameHead get head;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('head'),
+    GenerateNodeProperty('components'),
+  ],
+)
+final class ParsedAssignmentTargetChainImpl extends AssignmentTargetImpl
+    implements ParsedAssignmentTargetChain {
+  @generated
+  ParsedNameHeadImpl _head;
+
+  @generated
+  @override
+  final NodeListImpl<ParsedNameAccessImpl> components = NodeListImpl._();
+
+  ExpressionImpl? _v1Projection;
+
+  @generated
+  ParsedAssignmentTargetChainImpl({
+    required ParsedNameHeadImpl head,
+    required List<ParsedNameAccessImpl> components,
+  }) : _head = head {
+    _becomeParentOf2(head);
+    this.components._initialize(this, components);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return head.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (components.endToken case var result?) {
+      return result;
+    }
+    return head.endToken;
+  }
+
+  @generated
+  @override
+  ParsedNameHeadImpl get head => _head;
+
+  @generated
+  set head(ParsedNameHeadImpl head) {
+    _head = _becomeParentOf2(head);
+  }
+
+  @override
+  ReadResolutionImpl? get read => null;
+
+  ExpressionImpl get v1Projection =>
+      _v1Projection ??= V1Projection._createParsedChain(this, head, components);
+
+  @override
+  WriteResolutionImpl? get write => null;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('head', head)
+    ..addNodeList('components', components);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedAssignmentTargetChain(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(head, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'head'.");
+    }
+    if (components.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'components' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(head, oldNode)) {
+      head = newNode as ParsedNameHeadImpl;
+      return;
+    }
+    if (components.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    head.accept2(visitor);
+    components.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ParsedNameHeadImpl)? visitHead,
+    void Function(NodeListImpl<ParsedNameAccessImpl>)? visitComponents,
+  }) {
+    if (visitHead != null) {
+      visitHead(head);
+    } else {
+      head.accept2(visitor);
+    }
+    if (visitComponents != null) {
+      visitComponents(components);
+    } else {
+      components.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (head._containsOffset(rangeOffset, rangeEnd)) {
+      return head;
+    }
+    if (components._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
 /// A parser-only name whose value-producing interpretation requires lookup.
 ///
 /// This chain form contains a name followed by named selectors. Resolution
@@ -41765,7 +41969,8 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
   Precedence get precedence =>
       components.isEmpty ? Precedence.primary : Precedence.postfix;
 
-  ExpressionImpl get v1Projection => _v1Projection ??= _createV1Projection();
+  ExpressionImpl get v1Projection =>
+      _v1Projection ??= V1Projection._createParsedChain(this, head, components);
 
   @generated
   @override
@@ -41894,37 +42099,6 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
       return result;
     }
     return null;
-  }
-
-  ExpressionImpl _createV1Projection() {
-    // PropertyAccessImpl requires a non-null origin to identify a V1 projection,
-    // so intermediate property accesses also use this chain as their origin.
-    // Their delegated staticType is null because the chain is unresolved.
-    // Identifier projection constructors do not require an origin.
-    ExpressionImpl result = SimpleIdentifierImpl.v1Projection(
-      token: head.name,
-      origin: components.isEmpty ? this : null,
-    );
-    for (var component in components) {
-      var identifier = SimpleIdentifierImpl.v1Projection(token: component.name);
-      if (result is SimpleIdentifierImpl &&
-          component.operator.type == TokenType.PERIOD) {
-        result = PrefixedIdentifierImpl.v1Projection(
-          prefix: result,
-          period: component.operator,
-          identifier: identifier,
-          origin: identical(component, components.last) ? this : null,
-        );
-      } else {
-        result = PropertyAccessImpl.v1ProjectionFromParsedChain(
-          this,
-          result,
-          component.operator,
-          identifier,
-        );
-      }
-    }
-    return result;
   }
 }
 
@@ -45076,7 +45250,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   PropertyAccessImpl.v1ProjectionFromParsedChain(
-    ParsedExpressionChainImpl origin,
+    AstNodeImpl origin,
     ExpressionImpl target,
     Token operator,
     SimpleIdentifierImpl propertyName,
@@ -45221,9 +45395,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @experimental
   @override
   ExpressionImpl? get target2 => switch (_v1ProjectionOrigin) {
-    ReceiverPropertyAssignmentTargetImpl origin => V1Projection.toV1Expression(
-      origin.receiver,
-    ),
+    ReceiverPropertyAssignmentTargetImpl origin =>
+      V1Projection.toV1NamedReceiver(origin.receiver),
     ReceiverPropertyExtractionImpl origin => V1Projection.toV1NamedReceiver(
       origin.receiver,
     ),
@@ -45485,9 +45658,6 @@ sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   NamedWriteResolutionImpl? write;
 
   PropertyAssignmentTargetImpl({required this.name});
-
-  /// The cached V1 compatibility projection for this target.
-  PropertyAccessImpl get propertyAccess;
 }
 
 /// A property value selected from a receiver.
@@ -46168,14 +46338,8 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 }
 
-/// A property selected on an explicitly written expression receiver and used
-/// as an assignment destination.
-///
-/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
-/// at a literal, parenthesized expression, explicit instance creation,
-/// ordinary index expression, or explicit `this`. Other receiver forms remain
-/// on their existing AST shapes. Cascade selections use
-/// [CascadePropertyAssignmentTarget].
+/// A property selected on a value receiver or static qualifier and used as an
+/// assignment destination. Cascade selections use [CascadePropertyAssignmentTarget].
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ReceiverPropertyAssignmentTarget
@@ -46183,8 +46347,8 @@ abstract final class ReceiverPropertyAssignmentTarget
   /// The property access operator.
   Token get operator;
 
-  /// The expression whose value receives the property selection.
-  Expression get receiver;
+  /// The value receiver or static qualifier of the property selection.
+  NamedReceiver get receiver;
 }
 
 @GenerateNodeImpl(
@@ -46199,17 +46363,17 @@ final class ReceiverPropertyAssignmentTargetImpl
     extends PropertyAssignmentTargetImpl
     implements ReceiverPropertyAssignmentTarget {
   @generated
-  ExpressionImpl _receiver;
+  NamedReceiverImpl _receiver;
 
   @generated
   @override
   final Token operator;
 
-  PropertyAccessImpl? _propertyAccess;
+  ExpressionImpl? _v1Projection;
 
   @generated
   ReceiverPropertyAssignmentTargetImpl({
-    required ExpressionImpl receiver,
+    required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
   }) : _receiver = receiver {
@@ -46228,19 +46392,43 @@ final class ReceiverPropertyAssignmentTargetImpl
     return name;
   }
 
-  /// The cached V1 compatibility projection for this target.
-  @override
-  PropertyAccessImpl get propertyAccess => _propertyAccess ??=
-      PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(this);
-
   @generated
   @override
-  ExpressionImpl get receiver => _receiver;
+  NamedReceiverImpl get receiver => _receiver;
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
+  set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _propertyAccess?._attachV1Children();
+    if (_v1Projection case PropertyAccessImpl projection) {
+      projection._attachV1Children();
+    }
+  }
+
+  ExpressionImpl get v1Projection {
+    var target = V1Projection.toV1NamedReceiver(receiver);
+    var previous = _v1Projection;
+    ExpressionImpl result;
+    // Increment targets already used PropertyAccess before parsed chains.
+    // Assignments retain the identifier shape for a bare, non-record receiver.
+    if (parent2 is AssignmentExpression2Impl &&
+        V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
+      if (previous is PrefixedIdentifierImpl) return previous;
+      result = PrefixedIdentifierImpl.v1Projection(
+        prefix: target as SimpleIdentifierImpl,
+        period: operator,
+        identifier: SimpleIdentifierImpl.v1Projection(token: name),
+      );
+    } else {
+      if (previous is PropertyAccessImpl) return previous;
+      result = PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(
+        this,
+      );
+    }
+    if (previous != null) {
+      result._parent = previous._parent;
+      previous._parent = null;
+    }
+    return _v1Projection = result;
   }
 
   @generated
@@ -46281,12 +46469,12 @@ final class ReceiverPropertyAssignmentTargetImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyAssignmentTarget(this);
 
-  @generated
+  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
     assert(identical(receiver, child));
-    return true;
+    return receiver is ExpressionImpl;
   }
 
   @generated
@@ -46302,7 +46490,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
+      receiver = newNode as NamedReceiverImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -46333,7 +46521,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
+    void Function(NamedReceiverImpl)? visitReceiver,
   }) {
     if (visitReceiver != null) {
       visitReceiver(receiver);
@@ -46428,25 +46616,16 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
 
   ExpressionImpl get v1Projection {
     var target = V1Projection.toV1NamedReceiver(receiver);
-    var receiverType = switch (receiver) {
-      ExpressionImpl(:var staticType) => staticType,
-      _ => null,
-    };
-    while (receiverType is TypeParameterTypeImpl) {
-      receiverType = receiverType.bound;
-    }
     var previous = _v1Projection;
     ExpressionImpl result;
     // V1 uses PropertyAccess for record receivers, including record-bounded
     // type parameters, even when the syntax would allow PrefixedIdentifier.
-    if (operator.type == TokenType.PERIOD &&
-        target is SimpleIdentifierImpl &&
-        receiverType is! RecordType) {
+    if (V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
       if (previous is PrefixedIdentifierImpl) {
         return previous;
       }
       result = PrefixedIdentifierImpl.v1Projection(
-        prefix: target,
+        prefix: target as SimpleIdentifierImpl,
         period: operator,
         identifier: SimpleIdentifierImpl.v1Projection(token: name),
         origin: this,
@@ -56475,6 +56654,44 @@ enum V1Projection {
     return identical(result, node) ? null : result;
   }
 
+  static ExpressionImpl _createParsedChain(
+    AstNodeImpl origin,
+    ParsedNameHeadImpl head,
+    NodeListImpl<ParsedNameAccessImpl> components,
+  ) {
+    // PropertyAccessImpl requires a non-null origin to identify a V1 projection,
+    // so intermediate property accesses also use this chain as their origin.
+    // Their delegated staticType is null because the chain is unresolved.
+    // Identifier projection constructors do not require an origin.
+    ExpressionImpl result = SimpleIdentifierImpl.v1Projection(
+      token: head.name,
+      origin: components.isEmpty && origin is ExpressionImpl ? origin : null,
+    );
+    for (var component in components) {
+      var identifier = SimpleIdentifierImpl.v1Projection(token: component.name);
+      if (result is SimpleIdentifierImpl &&
+          component.operator.type == TokenType.PERIOD) {
+        result = PrefixedIdentifierImpl.v1Projection(
+          prefix: result,
+          period: component.operator,
+          identifier: identifier,
+          origin:
+              identical(component, components.last) && origin is ExpressionImpl
+              ? origin
+              : null,
+        );
+      } else {
+        result = PropertyAccessImpl.v1ProjectionFromParsedChain(
+          origin,
+          result,
+          component.operator,
+          identifier,
+        );
+      }
+    }
+    return result;
+  }
+
   static ExpressionImpl? _toV1Expression(
     ExpressionImpl node, {
     required bool createIfAbsent,
@@ -56608,6 +56825,24 @@ enum V1Projection {
       return createIfAbsent ? node.simpleIdentifier : node._simpleIdentifier;
     }
     return node;
+  }
+
+  static bool _usesPrefixedIdentifier(
+    NamedReceiverImpl receiver,
+    Token operator,
+    ExpressionImpl target,
+  ) {
+    if (operator.type != TokenType.PERIOD || target is! SimpleIdentifierImpl) {
+      return false;
+    }
+    var receiverType = switch (receiver) {
+      ExpressionImpl(:var staticType) => staticType,
+      _ => null,
+    };
+    while (receiverType is TypeParameterTypeImpl) {
+      receiverType = receiverType.bound;
+    }
+    return receiverType is! RecordType;
   }
 }
 

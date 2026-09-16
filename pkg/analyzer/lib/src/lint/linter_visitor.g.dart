@@ -2191,6 +2191,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
+    _runSubscriptions(node, _registry._forParsedAssignmentTargetChain);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitParsedExpressionChain(ParsedExpressionChain node) {
     _runSubscriptions(node, _registry._forParsedExpressionChain);
     node.visitChildren2(this);
@@ -4823,6 +4830,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParenthesizedPattern>> _forParenthesizedPattern =
       [];
 
+  final List<_Subscription2<ParsedAssignmentTargetChain>>
+  _forParsedAssignmentTargetChain = [];
+
   final List<_Subscription2<ParsedExpressionChain>> _forParsedExpressionChain =
       [];
 
@@ -6173,6 +6183,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forParenthesizedPattern.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addParsedAssignmentTargetChain(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forParsedAssignmentTargetChain.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
