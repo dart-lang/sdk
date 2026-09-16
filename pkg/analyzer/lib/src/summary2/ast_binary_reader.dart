@@ -1812,7 +1812,7 @@ class AstBinaryReader {
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as ConstructorElementImpl?;
-    node.constructorName?.element = node.element;
+    node.constructorSelector?.element = node.element;
     _resolveArguments(node.element, node.argumentList);
     return node;
   }
@@ -1960,7 +1960,7 @@ class AstBinaryReader {
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as InternalConstructorElement?;
-    node.constructorName?.element = node.element;
+    node.constructorSelector?.element = node.element;
     _resolveArguments(node.element, node.argumentList);
     return node;
   }
