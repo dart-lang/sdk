@@ -165,6 +165,7 @@ class DartdevRunner extends CommandRunner<int> {
         verbose: verbose,
         nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
         dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+        vmArgs: vmArgs,
       ),
     );
     addCommand(

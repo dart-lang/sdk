@@ -55,11 +55,13 @@ class RunCommand extends DartdevCommand {
 
   final bool nativeAssetsExperimentEnabled;
   final bool dataAssetsExperimentEnabled;
+  final List<String> vmArgs;
 
   RunCommand({
     bool verbose = false,
     this.nativeAssetsExperimentEnabled = false,
     this.dataAssetsExperimentEnabled = false,
+    this.vmArgs = const <String>[],
   }) : super(cmdName, '''
 Run a Dart program from a file or a local or remote package.
 
@@ -397,7 +399,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   _compileToKernelUsingResidentCompiler({
     required DartExecutableWithPackageConfig executable,
     required File residentCompilerInfoFile,
-    required ArgResults args,
+    required GenerateKernelArguments args,
     required bool shouldRetryOnFrontendCompilerException,
     required bool quiet,
     String? nativeAssetsYaml,
@@ -629,6 +631,28 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     DartExecutableWithPackageConfig executableOriginal = executable;
 
     if (useResidentCompiler) {
+      // We need to merge the vm given arguments and the `dart run` given
+      // arguments because `dart -Dfoo=bar run -Dbar=baz file.dart` will have
+      // both `foo=bar` and `bar=baz` as defines, so `run -r` should too.
+      // We filter because we don't want the parser to throw on other things.
+      var vmArgsResult = argParser.parse(
+        vmArgs.where(
+          (s) {
+            // The arg parser supports "--define foo=bar", but the VM doesn't,
+            // so filtering like this for the vm arguments is fine.
+            return s.startsWith('--define=') ||
+                s.startsWith('-D') ||
+                s == '--enable-asserts' ||
+                s == '--no-enable-asserts' ||
+                s.startsWith('--enable-experiment=') ||
+                s.startsWith('--verbosity=');
+          },
+        ),
+      );
+
+      GenerateKernelArguments generateKernelArguments =
+          GenerateKernelArguments.fromArgResults([vmArgsResult, args]);
+
       final File? residentCompilerInfoFile =
           getResidentCompilerInfoFileConsideringArgs(args);
       if (residentCompilerInfoFile == null) {
@@ -673,7 +697,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         final compiledKernelFile = await _compileToKernelUsingResidentCompiler(
           executable: executable,
           residentCompilerInfoFile: residentCompilerInfoFile,
-          args: args,
+          args: generateKernelArguments,
           shouldRetryOnFrontendCompilerException: true,
           quiet: args[quietOption] ?? false,
           nativeAssetsYaml: nativeAssets,

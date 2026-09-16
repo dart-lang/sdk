@@ -1164,50 +1164,31 @@ Future<void> main() async {
     },
   );
 
-  test('resident compiler environment declaration after run', () async {
+  Future<Set<String>> runResidentExpectGoodAndReturnOptionsReceived(
+    List<String> arguments, {
+    String? scriptData,
+  }) async {
     p = project();
-    p.file('file.dart', r'''
-void main() async {
-  // Non-const.
-  if (String.fromEnvironment('x1') != '1') throw "Bad string";
-  if (int.fromEnvironment('x1') != 1) throw "Bad int";
-  if (String.fromEnvironment('x2') != '2') throw "Bad string";
-  if (int.fromEnvironment('x2') != 2) throw "Bad int";
-
-  // Const.
-  if (const String.fromEnvironment('x1') != '1') throw "Bad string";
-  if (const int.fromEnvironment('x1') != 1) throw "Bad int";
-  if (const String.fromEnvironment('x2') != '2') throw "Bad string";
-  if (const int.fromEnvironment('x2') != 2) throw "Bad int";
-
-  print("Good");
-}
-''');
-
+    p.file('file.dart', scriptData ?? 'void main() => print("Good");');
     var script = File(path.join(p.dir.path, 'file.dart'));
     expect(script.existsSync(), true);
 
-    ProcessResult result = await p.run([
-      'run',
-      '--resident',
-      '--$residentCompilerInfoFileOption=$serverInfoFile',
-      '-Dx1=1',
-      '-Dx2=2',
-      'file.dart',
-    ]);
+    ProcessResult result = await p.run(arguments);
 
-    expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     String stdout = result.stdout.toString().trim();
     expect(stdout, 'Good');
-  });
+    expect(result.exitCode, 0);
 
-  test(
-    skip: 'currently fails',
-    'resident compiler environment declaration before and after run',
-    () async {
-      p = project();
-      p.file('file.dart', r'''
+    return getCachedCompilerOptions(
+      script.path,
+    ).toSet();
+  }
+
+  test('resident compiler environment declaration after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived(
+          scriptData: r'''
 void main() async {
   // Non-const.
   if (String.fromEnvironment('x1') != '1') throw "Bad string";
@@ -1223,26 +1204,151 @@ void main() async {
 
   print("Good");
 }
-''');
+''',
+          [
+            'run',
+            '--resident',
+            '--$residentCompilerInfoFileOption=$serverInfoFile',
+            '-Dx1=1',
+            '-Dx2=2',
+            'file.dart',
+            // This is not a define, but an argument to the script.
+            '-Dx3=3',
+          ],
+        );
 
-      var script = File(path.join(p.dir.path, 'file.dart'));
-      expect(script.existsSync(), true);
+    expect(optionsReceived, contains('--define=x1=1'));
+    expect(optionsReceived, contains('--define=x2=2'));
+    expect(optionsReceived, isNot(contains('--define=x3=3')));
+  });
 
-      ProcessResult result = await p.run([
-        '-Dx1=1',
-        'run',
-        '--resident',
-        '--$residentCompilerInfoFileOption=$serverInfoFile',
-        '-Dx2=2',
-        'file.dart',
-      ]);
+  test(
+    'resident compiler environment declaration before and after run',
+    () async {
+      Set<String> optionsReceived =
+          await runResidentExpectGoodAndReturnOptionsReceived(
+            scriptData: r'''
+void main() async {
+  // Non-const.
+  if (String.fromEnvironment('x1') != '1') throw "Bad string x1";
+  if (int.fromEnvironment('x1') != 1) throw "Bad int x1";
+  if (String.fromEnvironment('x2') != '2') throw "Bad string x2";
+  if (int.fromEnvironment('x2') != 2) throw "Bad int x2";
+  if (String.fromEnvironment('x3') == '3') throw "Bad string x3";
+  if (int.fromEnvironment('x3') == 3) throw "Bad int x3";
 
-      expect(result.exitCode, 0);
-      expect(result.stderr, isEmpty);
-      String stdout = result.stdout.toString().trim();
-      expect(stdout, 'Good');
+  // Const.
+  if (const String.fromEnvironment('x1') != '1') throw "Bad string const x1";
+  if (const int.fromEnvironment('x1') != 1) throw "Bad int const x1";
+  if (const String.fromEnvironment('x2') != '2') throw "Bad string const x2";
+  if (const int.fromEnvironment('x2') != 2) throw "Bad int const x2";
+  if (const String.fromEnvironment('x3') == '3') throw "Bad string const x3";
+  if (const int.fromEnvironment('x3') == 3) throw "Bad int const x3";
+
+  print("Good");
+}
+''',
+            [
+              '-Dx1=1',
+              'run',
+              '--resident',
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+              '-Dx2=2',
+              'file.dart',
+              // This is not a define, but an argument to the script.
+              '-Dx3=3',
+            ],
+          );
+
+      expect(optionsReceived, contains('--define=x1=1'));
+      expect(optionsReceived, contains('--define=x2=2'));
+      expect(optionsReceived, isNot(contains('--define=x3=3')));
     },
   );
+
+  test('resident compiler experiment before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--enable-experiment=test-experiment',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+          // This is not an experiment, but an argument to the script.
+          '--enable-experiment=foo',
+        ]);
+
+    expect(optionsReceived, contains('--enable-experiment=test-experiment'));
+    expect(optionsReceived, isNot(contains('--enable-experiment=foo')));
+  });
+
+  test('resident compiler experiment after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--enable-experiment=test-experiment',
+          'file.dart',
+          // This is not an experiment, but an argument to the script.
+          '--enable-experiment=foo',
+        ]);
+
+    expect(optionsReceived, contains('--enable-experiment=test-experiment'));
+    expect(optionsReceived, isNot(contains('--enable-experiment=foo')));
+  });
+
+  test('resident compiler enable asserts before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--enable-asserts',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, contains('--enable-asserts'));
+  });
+
+  test('resident compiler enable asserts after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--enable-asserts',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, contains('--enable-asserts'));
+  });
+
+  test('resident compiler negated enable asserts before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--no-enable-asserts',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, isNot(contains('--enable-asserts')));
+  });
+
+  test('resident compiler negated enable asserts after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--no-enable-asserts',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, isNot(contains('--enable-asserts')));
+  });
 
   test(
     'passing --resident is a prerequisite for passing --resident-compiler-info-file',
@@ -1901,4 +2007,15 @@ cmd() {
       expect(getPackageForCommand('my_package'), equals('my_package'));
     });
   });
+}
+
+List<String> getCachedCompilerOptions(String mainPath) {
+  final cachedCompilerOptionsFileContents = jsonDecode(
+    File(
+      computeCachedDillAndCompilerOptionsPaths(
+        mainPath,
+      ).cachedCompilerOptionsPath,
+    ).readAsStringSync(),
+  );
+  return [...cachedCompilerOptionsFileContents];
 }
