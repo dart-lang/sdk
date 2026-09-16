@@ -50915,11 +50915,13 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       }
     }
     if (parent is ConstructorFieldInitializer &&
-        identical(parent.fieldName, target)) {
+        target is SimpleIdentifier &&
+        identical(parent.fieldName2, target.token)) {
       return false;
     }
     if (parent is ForEachPartsWithIdentifier) {
-      if (identical(parent.identifier, target)) {
+      if (target is SimpleIdentifier &&
+          identical(parent.identifier2, target.token)) {
         return false;
       }
     }
@@ -50956,7 +50958,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide2, target);
     } else if (parent is ForEachPartsWithIdentifier) {
-      return identical(parent.identifier, target);
+      return target is SimpleIdentifier &&
+          identical(parent.identifier2, target.token);
     }
     return false;
   }

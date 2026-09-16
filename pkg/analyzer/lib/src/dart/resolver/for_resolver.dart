@@ -56,7 +56,7 @@ class ForResolver {
         forLoopParts,
         visitBody,
         rightParenthesisOffset: node.rightParenthesis.offset,
-        bodyEndOffset: node.body.end,
+        bodyEndOffset: node.body2.end,
       );
     }
   }
