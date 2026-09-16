@@ -538,16 +538,6 @@ class _FixContext {
     required this.variableLists,
   });
 
-  List<FormalParameterElement>? get superNamed {
-    var superConstructor = superType.constructors.singleOrNull;
-    if (superConstructor != null) {
-      var superAll = superConstructor.formalParameters;
-      var superNamed = superAll.where((e) => e.isNamed).toList();
-      return superNamed.length == superAll.length ? superNamed : null;
-    }
-    return null;
-  }
-
   /// Whether a generated constructor initializing [variableLists] can be
   /// `const`. A `const` constructor requires every instance field, own or
   /// inherited, to be final.
@@ -556,6 +546,16 @@ class _FixContext {
     return classElement != null
         ? !classElement.hasNonFinalField
         : variableLists.every((e) => e.isFinal);
+  }
+
+  List<FormalParameterElement>? get superNamed {
+    var superConstructor = superType.constructors.singleOrNull;
+    if (superConstructor != null) {
+      var superAll = superConstructor.formalParameters;
+      var superNamed = superAll.where((e) => e.isNamed).toList();
+      return superNamed.length == superAll.length ? superNamed : null;
+    }
+    return null;
   }
 }
 
