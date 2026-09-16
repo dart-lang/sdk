@@ -2847,19 +2847,40 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: print
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          StringInterpolation
+                            elements
+                              InterpolationString
+                                contents: "
+                              InterpolationExpression
+                                leftBracket: ${
+                                expression2: IntegerLiteral
+                                  literal: 42
+                                rightBracket: }
+                              InterpolationString
+                                contents: " <synthetic>
+                            stringValue: null
+                        rightParenthesis: ) <synthetic>
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: print
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       StringInterpolation
                         elements
                           InterpolationString
                             contents: "
                           InterpolationExpression
                             leftBracket: ${
-                            expression2: IntegerLiteral
+                            expression: IntegerLiteral
                               literal: 42
                             rightBracket: }
                           InterpolationString
@@ -3733,37 +3754,64 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          LogicalOr
+                            leftOperand: BinaryOperatorInvocation
+                              leftOperand: ParsedExpressionChain
+                                head: ParsedNameHead
+                                  name: v1
+                              operator: ==
+                              rightOperand: ParsedExpressionChain
+                                head: ParsedNameHead
+                                  name: v2
+                              binaryOperator: equal
+                            operator: ||
+                            rightOperand: BinaryOperatorInvocation
+                              leftOperand: ParsedExpressionChain
+                                head: ParsedNameHead
+                                  name: v1
+                              operator: ==
+                              rightOperand: ParsedExpressionChain
+                                head: ParsedNameHead
+                                  name: v
+                              binaryOperator: equal
+                          IntegerLiteral
+                            literal: 3
+                          BooleanLiteral
+                            literal: true
+                        arguments(v1)
+                          BinaryExpression
+                            leftOperand: BinaryExpression
+                              leftOperand: SimpleIdentifier
+                                token: v1
+                              operator: ==
+                              rightOperand: SimpleIdentifier
+                                token: v2
+                            operator: ||
+                            rightOperand: BinaryExpression
+                              leftOperand: SimpleIdentifier
+                                token: v1
+                              operator: ==
+                              rightOperand: SimpleIdentifier
+                                token: v
+                          IntegerLiteral
+                            literal: 3
+                          BooleanLiteral
+                            literal: true
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
-                      LogicalOr
-                        leftOperand: BinaryOperatorInvocation
-                          leftOperand: ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: v1
-                          operator: ==
-                          rightOperand: ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: v2
-                          binaryOperator: equal
-                        operator: ||
-                        rightOperand: BinaryOperatorInvocation
-                          leftOperand: ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: v1
-                          operator: ==
-                          rightOperand: ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: v
-                          binaryOperator: equal
-                      IntegerLiteral
-                        literal: 3
-                      BooleanLiteral
-                        literal: true
-                    arguments(v1)
+                    arguments
                       BinaryExpression
                         leftOperand: BinaryExpression
                           leftOperand: SimpleIdentifier

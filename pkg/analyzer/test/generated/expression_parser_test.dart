@@ -360,21 +360,40 @@ var v = m(a: 1, b: 2);
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: m
+  components
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          NamedArgument
+            name: a
+            colon: :
+            argumentExpression2: IntegerLiteral
+              literal: 1
+          NamedArgument
+            name: b
+            colon: :
+            argumentExpression2: IntegerLiteral
+              literal: 2
+        rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NamedArgument
         name: a
         colon: :
-        argumentExpression2: IntegerLiteral
+        argumentExpression: IntegerLiteral
           literal: 1
       NamedArgument
         name: b
         colon: :
-        argumentExpression2: IntegerLiteral
+        argumentExpression: IntegerLiteral
           literal: 2
     rightParenthesis: )
 ''');
@@ -672,17 +691,28 @@ var v = x(y).z;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          ParsedExpressionChain
+            head: ParsedNameHead
+              name: y
+        rightParenthesis: )
+    ParsedNameAccess
+      operator: .
+      name: z
+V1: PropertyAccess
+  target: MethodInvocation
     methodName: SimpleIdentifier
       token: x
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
-        ParsedExpressionChain
-          head: ParsedNameHead
-            name: y
-      arguments(v1)
+      arguments
         SimpleIdentifier
           token: y
       rightParenthesis: )
@@ -698,8 +728,30 @@ var v = x<E>(y).z;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: x
+  components
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          ParsedExpressionChain
+            head: ParsedNameHead
+              name: y
+        rightParenthesis: )
+    ParsedNameAccess
+      operator: .
+      name: z
+V1: PropertyAccess
+  target: MethodInvocation
     methodName: SimpleIdentifier
       token: x
     typeArguments: TypeArgumentList
@@ -710,11 +762,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
-        ParsedExpressionChain
-          head: ParsedNameHead
-            name: y
-      arguments(v1)
+      arguments
         SimpleIdentifier
           token: y
       rightParenthesis: )
@@ -2469,6 +2517,155 @@ V1: AssignmentExpression
 ''');
   }
 
+  void test_parseExpression_chain_genericConstructor() {
+    var result = parseTestCodeWithDiagnostics('var v = p.C<int>.named(0);');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: p
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: named
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: named
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  void test_parseExpression_chain_instantiation() {
+    var result = parseTestCodeWithDiagnostics('var v = p.f<int>;');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: p
+  components
+    ParsedNameAccess
+      operator: .
+      name: f
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+    rightBracket: >
+''');
+  }
+
+  void test_parseExpression_chain_typeArguments_beforeAndAfterSelector() {
+    var result = parseTestCodeWithDiagnostics(
+      'var v = C<int>.named<String>(0);',
+    );
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: named
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+        rightBracket: >
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+V1: MethodInvocation
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  methodName: SimpleIdentifier
+    token: named
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
   void test_parseExpression_comparison() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --a.b == c;
@@ -2676,7 +2873,15 @@ var v = await();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: await
+  components
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: await
   argumentList: ArgumentList
@@ -2773,19 +2978,21 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: CallInvocation
-                  receiver: MethodInvocation
-                    methodName: SimpleIdentifier
-                      token: factories
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        ParsedExpressionChain
-                          head: ParsedNameHead
-                            name: C
-                      arguments(v1)
-                        SimpleIdentifier
-                          token: C
-                      rightParenthesis: )
+                  receiver: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: factories
+                    components
+                      ParsedArguments
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedExpressionChain
+                              head: ParsedNameHead
+                                name: C
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: C
+                          rightParenthesis: )
                   typeArguments: TypeArgumentList
                     leftBracket: <
                     arguments
@@ -4132,8 +4339,19 @@ var v = a.m();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: a
+  components
+    ParsedNameAccess
+      operator: .
+      name: m
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
   operator: .
   methodName: SimpleIdentifier
@@ -4150,8 +4368,19 @@ var v = a?.m();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: a
+  components
+    ParsedNameAccess
+      operator: ?.
+      name: m
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
   operator: ?.
   methodName: SimpleIdentifier
@@ -4169,8 +4398,26 @@ var v = a?.m<E>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: a
+  components
+    ParsedNameAccess
+      operator: ?.
+      name: m
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
   operator: ?.
   methodName: SimpleIdentifier
@@ -4193,8 +4440,26 @@ var v = a.m<E>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: a
+  components
+    ParsedNameAccess
+      operator: .
+      name: m
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
   operator: .
   methodName: SimpleIdentifier

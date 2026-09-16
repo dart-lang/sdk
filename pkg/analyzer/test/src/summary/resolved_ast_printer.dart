@@ -1636,6 +1636,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedArguments(ParsedArguments node) {
+    _sink.writeln('ParsedArguments');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
     _sink.writeln('ParsedAssignmentTargetChain');
     _sink.withIndent(() {
@@ -1662,6 +1670,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitParsedNameHead(ParsedNameHead node) {
     _sink.writeln('ParsedNameHead');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitParsedTypeArguments(ParsedTypeArguments node) {
+    _sink.writeln('ParsedTypeArguments');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });

@@ -3213,50 +3213,6 @@ class A {
     _assertSource(code, node);
   }
 
-  void test_visitMethodInvocation_conditional() {
-    var code = 'a?.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleMethodInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitMethodInvocation_noTarget() {
-    var code = 'foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleMethodInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitMethodInvocation_target() {
-    var code = 'a.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleMethodInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitMethodInvocation_typeArguments() {
-    var code = 'foo<int>()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleMethodInvocation;
-    _assertSource(code, node);
-  }
-
   void test_visitMixinDeclaration_augment() {
     var code = 'augment mixin M {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -3435,6 +3391,50 @@ void f(x) {
 ''');
     var node = parseResult.findNode.singleParenthesizedPattern;
     _assertSource('(3)', node);
+  }
+
+  void test_visitParsedExpressionChain_invocation_conditional() {
+    var code = 'a?.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
+  }
+
+  void test_visitParsedExpressionChain_invocation_noTarget() {
+    var code = 'foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
+  }
+
+  void test_visitParsedExpressionChain_invocation_target() {
+    var code = 'a.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
+  }
+
+  void test_visitParsedExpressionChain_invocation_typeArguments() {
+    var code = 'foo<int>()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpressionChain(code);
+    _assertSource(code, node);
   }
 
   void test_visitParsedExpressionChain_nullAwareProperty() {

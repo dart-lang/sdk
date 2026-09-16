@@ -239,7 +239,15 @@ MethodDeclaration
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: MethodInvocation
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: returnsFuture
+              components
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            expression(v1): MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -279,7 +287,15 @@ MethodDeclaration
           leftParenthesis: (
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: MethodInvocation
+            expression2: ParsedExpressionChain
+              head: ParsedNameHead
+                name: returnsFuture
+              components
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            expression(v1): MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -297,7 +313,15 @@ MethodDeclaration
               operator: !
               operand: AwaitExpression
                 awaitKeyword: await
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: returnsFuture
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: returnsFuture
                   argumentList: ArgumentList
@@ -343,15 +367,40 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: print
+            components
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    AwaitExpression
+                      awaitKeyword: await
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: returnsFuture
+                        components
+                          ParsedArguments
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                      expression(v1): MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: returnsFuture
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                  rightParenthesis: )
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: print
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -389,15 +438,72 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: xor
+            components
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    AwaitExpression
+                      awaitKeyword: await
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: returnsFuture
+                        components
+                          ParsedArguments
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                      expression(v1): MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: returnsFuture
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                    AwaitExpression
+                      awaitKeyword: await
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: returnsFuture
+                        components
+                          ParsedArguments
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                      expression(v1): MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: returnsFuture
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                    AwaitExpression
+                      awaitKeyword: await
+                      expression2: ParsedExpressionChain
+                        head: ParsedNameHead
+                          name: returnsFuture
+                        components
+                          ParsedArguments
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                      expression(v1): MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: returnsFuture
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                  rightParenthesis: )
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: xor
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -405,7 +511,7 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -413,7 +519,7 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -452,7 +558,15 @@ MethodDeclaration
           expression2: BinaryOperatorInvocation
             leftOperand: AwaitExpression
               awaitKeyword: await
-              expression2: MethodInvocation
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: returnsFuture
+                components
+                  ParsedArguments
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -461,7 +575,15 @@ MethodDeclaration
             operator: ^
             rightOperand: AwaitExpression
               awaitKeyword: await
-              expression2: MethodInvocation
+              expression2: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: returnsFuture
+                components
+                  ParsedArguments
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -515,32 +637,75 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
+          expression2: ParsedExpressionChain
+            head: ParsedNameHead
+              name: print
+            components
+              ParsedArguments
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    BinaryOperatorInvocation
+                      leftOperand: AwaitExpression
+                        awaitKeyword: await
+                        expression2: ParsedExpressionChain
+                          head: ParsedNameHead
+                            name: returnsFuture
+                          components
+                            ParsedArguments
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                        expression(v1): MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: returnsFuture
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                      operator: ^
+                      rightOperand: AwaitExpression
+                        awaitKeyword: await
+                        expression2: ParsedExpressionChain
+                          head: ParsedNameHead
+                            name: returnsFuture
+                          components
+                            ParsedArguments
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                        expression(v1): MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: returnsFuture
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                      binaryOperator: bitwiseXor
+                  arguments(v1)
+                    BinaryExpression
+                      leftOperand: AwaitExpression
+                        awaitKeyword: await
+                        expression: MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: returnsFuture
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                      operator: ^
+                      rightOperand: AwaitExpression
+                        awaitKeyword: await
+                        expression: MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: returnsFuture
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                  rightParenthesis: )
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: print
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
-                BinaryOperatorInvocation
-                  leftOperand: AwaitExpression
-                    awaitKeyword: await
-                    expression2: MethodInvocation
-                      methodName: SimpleIdentifier
-                        token: returnsFuture
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        rightParenthesis: )
-                  operator: ^
-                  rightOperand: AwaitExpression
-                    awaitKeyword: await
-                    expression2: MethodInvocation
-                      methodName: SimpleIdentifier
-                        token: returnsFuture
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        rightParenthesis: )
-                  binaryOperator: bitwiseXor
-              arguments(v1)
+              arguments
                 BinaryExpression
                   leftOperand: AwaitExpression
                     awaitKeyword: await

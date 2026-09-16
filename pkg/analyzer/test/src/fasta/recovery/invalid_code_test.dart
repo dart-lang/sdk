@@ -291,16 +291,30 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: MethodInvocation
+                expression2: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: f
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          NamedArgument
+                            name: with
+                            colon: :
+                            argumentExpression2: IntegerLiteral
+                              literal: 3
+                        rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       NamedArgument
                         name: with
                         colon: :
-                        argumentExpression2: IntegerLiteral
+                        argumentExpression: IntegerLiteral
                           literal: 3
                     rightParenthesis: )
                 semicolon: ;

@@ -416,10 +416,21 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
   operator: .
   methodName: SimpleIdentifier
@@ -434,24 +445,26 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new();
 ''');
-    var node = parseResult.findNode.singleConstructorInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ConstructorInvocation
-  constructorReference: ConstructorReference2
-    typeReference: ConstructorTypeReference
-      name: C
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedTypeArguments
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
         rightBracket: >
-    selector: ConstructorSelector
-      period: .
-      name2: new
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -475,10 +488,24 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
     period: .
@@ -497,27 +524,29 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleConstructorInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ConstructorInvocation
-  constructorReference: ConstructorReference2
-    typeReference: ConstructorTypeReference
-      importPrefix: ImportPrefixReference
-        name: prefix
-        period: .
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
       name: C
+    ParsedTypeArguments
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
         rightBracket: >
-    selector: ConstructorSelector
-      period: .
-      name2: new
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -583,8 +612,19 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
-      target2: SimpleIdentifier
+    expression2: ParsedExpressionChain
+      head: ParsedNameHead
+        name: C
+      components
+        ParsedNameAccess
+          operator: .
+          name: _
+        ParsedArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    expression(v1): MethodInvocation
+      target: SimpleIdentifier
         token: C
       operator: .
       methodName: SimpleIdentifier
@@ -615,11 +655,25 @@ PrefixedIdentifier
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: FunctionReference
-    function2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: new
+V1: PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
       token: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -637,12 +691,33 @@ PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PropertyAccess
-    target2: FunctionReference
-      function2: SimpleIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedNameAccess
+      operator: .
+      name: toString
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: PropertyAccess
+    target: FunctionReference
+      function: SimpleIdentifier
         token: C
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -683,10 +758,24 @@ CommentReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new.toString();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: C
+  components
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedNameAccess
+      operator: .
+      name: toString
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .
@@ -705,9 +794,19 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new;
 ''');
-    var node = parseResult.findNodeV1.singlePropertyAccess;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedNameAccess
+      operator: .
+      name: new
+V1: PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -724,11 +823,28 @@ PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: FunctionReference
-    function2: PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: new
+V1: PropertyAccess
+  target: FunctionReference
+    function: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .
@@ -750,12 +866,36 @@ PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PropertyAccess
-    target2: FunctionReference
-      function2: PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedTypeArguments
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedNameAccess
+      operator: .
+      name: toString
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: PropertyAccess
+    target: FunctionReference
+      function: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
         period: .
@@ -783,11 +923,28 @@ MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new.toString();
 ''');
-    var node = parseResult.findNode.singleMethodInvocation;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PropertyAccess
-    target2: PrefixedIdentifier
+ParsedExpressionChain
+  head: ParsedNameHead
+    name: prefix
+  components
+    ParsedNameAccess
+      operator: .
+      name: C
+    ParsedNameAccess
+      operator: .
+      name: new
+    ParsedNameAccess
+      operator: .
+      name: toString
+    ParsedArguments
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+V1: MethodInvocation
+  target: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
       period: .

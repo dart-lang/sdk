@@ -1285,8 +1285,8 @@ class A {
   void test_methodInvocation() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
-  a.foo<int>(0);
-  b.bar<double>(1);
+  (a).foo<int>(0);
+  (b).bar<double>(1);
 }
 ''');
     _assertReplacementForChildren<MethodInvocation>(

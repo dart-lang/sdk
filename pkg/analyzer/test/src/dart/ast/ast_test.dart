@@ -477,7 +477,9 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
+    var node = testUnit
+        .nodeCovering2(offset: index)!
+        .thisOrAncestorOfType2<ExpressionImpl>();
     expect(node, TypeMatcher<ExpressionImpl>());
     expect(
       (node as ExpressionImpl).inConstantContext,

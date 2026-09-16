@@ -304,13 +304,20 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionChainImpl node,
   ) {
+    if (node.components.any(
+      (component) => component is! ParsedNameAccessImpl,
+    )) {
+      var expression = node.buildUnresolvedExpression();
+      node.replaceWith(expression);
+      return expression;
+    }
     // Processing every selector produces a value expression, even when the
     // chain starts with a static qualifier.
     var expression =
         _parsedChainReceiver(
               nameScope,
               node.head,
-              node.components,
+              node.components.cast<ParsedNameAccessImpl>(),
               readComponentCount: node.components.length,
             )
             as ExpressionImpl;

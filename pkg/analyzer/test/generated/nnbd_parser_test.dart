@@ -51,15 +51,17 @@ Block
                 head: ParsedNameHead
                   name: x
               operator: +
-              rightOperand: MethodInvocation
-                methodName: SimpleIdentifier
-                  token: bar
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  arguments2
-                    IntegerLiteral
-                      literal: 7
-                  rightParenthesis: )
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: bar
+                components
+                  ParsedArguments
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        IntegerLiteral
+                          literal: 7
+                      rightParenthesis: )
               binaryOperator: add
             initializer(v1): BinaryExpression
               leftOperand: SimpleIdentifier
@@ -635,15 +637,17 @@ Block
               head: ParsedNameHead
                 name: x
             operator: +
-            rightOperand: MethodInvocation
-              methodName: SimpleIdentifier
-                token: bar
-              argumentList: ArgumentList
-                leftParenthesis: (
-                arguments2
-                  IntegerLiteral
-                    literal: 7
-                rightParenthesis: )
+            rightOperand: ParsedExpressionChain
+              head: ParsedNameHead
+                name: bar
+              components
+                ParsedArguments
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      IntegerLiteral
+                        literal: 7
+                    rightParenthesis: )
             binaryOperator: add
         thenExpression(v1): AssignmentExpression
           leftHandSide: SimpleIdentifier
@@ -709,15 +713,17 @@ Block
                 head: ParsedNameHead
                   name: x
               operator: +
-              rightOperand: MethodInvocation
-                methodName: SimpleIdentifier
-                  token: bar
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  arguments2
-                    IntegerLiteral
-                      literal: 7
-                  rightParenthesis: )
+              rightOperand: ParsedExpressionChain
+                head: ParsedNameHead
+                  name: bar
+                components
+                  ParsedArguments
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        IntegerLiteral
+                          literal: 7
+                      rightParenthesis: )
               binaryOperator: add
           thenExpression(v1): AssignmentExpression
             leftHandSide: SimpleIdentifier
@@ -1479,20 +1485,35 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: print
+        components
+          ParsedArguments
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: c
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: late
+              arguments(v1)
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: c
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: late
+              rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: print
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
-            ParsedExpressionChain
-              head: ParsedNameHead
-                name: c
-              components
-                ParsedNameAccess
-                  operator: .
-                  name: late
-          arguments(v1)
+          arguments
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: c
@@ -1526,20 +1547,35 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: ParsedExpressionChain
+        head: ParsedNameHead
+          name: print
+        components
+          ParsedArguments
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: c
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: late
+              arguments(v1)
+                PrefixedIdentifier
+                  prefix: SimpleIdentifier
+                    token: c
+                  period: .
+                  identifier: SimpleIdentifier
+                    token: late
+              rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: print
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
-            ParsedExpressionChain
-              head: ParsedNameHead
-                name: c
-              components
-                ParsedNameAccess
-                  operator: .
-                  name: late
-          arguments(v1)
+          arguments
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: c
@@ -1969,15 +2005,17 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: PropertyAccess
                 target2: NullAssertionExpression
-                  operand: MethodInvocation
-                    target2: SimpleIdentifier
-                      token: g
-                    operator: .
-                    methodName: SimpleIdentifier
-                      token: m
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      rightParenthesis: )
+                  operand: ParsedExpressionChain
+                    head: ParsedNameHead
+                      name: g
+                    components
+                      ParsedNameAccess
+                        operator: .
+                        name: m
+                      ParsedArguments
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
                   operator: !
                 target(v1): PostfixExpression
                   operand: MethodInvocation
@@ -2214,12 +2252,14 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: MethodInvocation
-                  methodName: SimpleIdentifier
-                    token: g
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    rightParenthesis: )
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
                 operator: !
               operator: +
               rightOperand: IntegerLiteral
@@ -2412,15 +2452,17 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: MethodInvocation
-                  target2: SimpleIdentifier
-                    token: g
-                  operator: .
-                  methodName: SimpleIdentifier
-                    token: m
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    rightParenthesis: )
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedNameAccess
+                      operator: .
+                      name: m
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
                 operator: !
               operator: +
               rightOperand: IntegerLiteral
@@ -2466,15 +2508,17 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: MethodInvocation
-                  target2: SimpleIdentifier
-                    token: g
-                  operator: ?.
-                  methodName: SimpleIdentifier
-                    token: m
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    rightParenthesis: )
+                operand: ParsedExpressionChain
+                  head: ParsedNameHead
+                    name: g
+                  components
+                    ParsedNameAccess
+                      operator: ?.
+                      name: m
+                    ParsedArguments
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
                 operator: !
               operator: +
               rightOperand: IntegerLiteral

@@ -584,7 +584,7 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
 
   @override
   Object? visitInterpolationExpression(InterpolationExpression node) {
-    var value = node.expression.accept2(this);
+    var value = node.expression2.accept2(this);
     if (value == null || value is bool || value is String || value is num) {
       return value;
     }
