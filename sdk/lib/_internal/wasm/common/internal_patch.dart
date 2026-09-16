@@ -184,3 +184,27 @@ void Function(String)? get printToZone => _printToZone;
 set printToZone(void Function(String)? value) {
   _printToZone = value;
 }
+
+@patch
+@pragma("vm:entry-point")
+final class _IsolateExperimental {
+  @patch
+  static R runSync<R>(Isolate isolate, R Function() f) =>
+      throw UnsupportedError("");
+  @patch
+  static Isolate create({String? debugName}) => throw UnsupportedError("");
+  @patch
+  static void shutdownSync(Isolate isolate) => throw UnsupportedError("");
+  @patch
+  static bool pinToCurrentThread() => throw UnsupportedError("");
+  @patch
+  static bool getIsPinnedToCurrentThread(Isolate isolate) =>
+      throw UnsupportedError("");
+  @patch
+  static void runEventLoopSync(Isolate isolate) => throw UnsupportedError("");
+  @patch
+  static void setOnEvent(Isolate isolate, void Function(Isolate) callback) =>
+      throw UnsupportedError("");
+  @patch
+  static void handleEvent(Isolate isolate) => throw UnsupportedError("");
+}

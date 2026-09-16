@@ -10,6 +10,7 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
 import 'dart:typed_data' show Uint8List;
+import 'dart:isolate' show Isolate;
 
 /// No-op in dart2js.
 ///
@@ -99,6 +100,30 @@ abstract interface class IsolateGroup {
   @patch
   static Object? _runSync(Object computation) =>
       throw UnsupportedError("_runSync");
+}
+
+@patch
+@pragma("vm:entry-point")
+final class _IsolateExperimental {
+  @patch
+  static R runSync<R>(Isolate isolate, R Function() f) =>
+      throw UnsupportedError("");
+  @patch
+  static Isolate create({String? debugName}) => throw UnsupportedError("");
+  @patch
+  static void shutdownSync(Isolate isolate) => throw UnsupportedError("");
+  @patch
+  static bool pinToCurrentThread() => throw UnsupportedError("");
+  @patch
+  static bool getIsPinnedToCurrentThread(Isolate isolate) =>
+      throw UnsupportedError("");
+  @patch
+  static void runEventLoopSync(Isolate isolate) => throw UnsupportedError("");
+  @patch
+  static void setOnEvent(Isolate isolate, void Function(Isolate) callback) =>
+      throw UnsupportedError("");
+  @patch
+  static void handleEvent(Isolate isolate) => throw UnsupportedError("");
 }
 
 final List<Object> _toStringVisiting = [];

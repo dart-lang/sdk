@@ -9,7 +9,7 @@
 // SharedObjects=ffi_test_functions
 
 // ignore: import_internal_library
-import 'dart:_internal' show IsolateGroup;
+import 'dart:_internal' show IsolateExperimental, IsolateGroup;
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -55,7 +55,7 @@ int threadMain(Pointer<Void> data) {
   Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
   callback.close();
 
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = IsolateExperimental.create(debugName: "helper");
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
   });

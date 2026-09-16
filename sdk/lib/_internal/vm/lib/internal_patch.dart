@@ -10,7 +10,7 @@
 import "dart:async" show Timer;
 import "dart:core" hide Symbol;
 import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
-import "dart:isolate" show SendPort;
+import "dart:isolate" show Isolate, SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 import "dart:_vm" show FinalThreadLocal, ThreadLocal;
 
@@ -458,6 +458,75 @@ abstract interface class IsolateGroup {
   @patch
   @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
   external static Object? _runSync(Object computation);
+}
+
+@patch
+@pragma("vm:entry-point")
+final class _IsolateExperimental {
+  @pragma("vm:external-name", "Isolate_runSync_")
+  external static R _runSync<R>(SendPort controlPort, R Function() f);
+
+  @patch
+  static R runSync<R>(Isolate isolate, R Function() f) {
+    return _runSync(isolate.controlPort, f);
+  }
+
+  @pragma("vm:external-name", "Isolate_create_")
+  external static List _create(String? debugName);
+
+  @patch
+  static Isolate create({String? debugName}) {
+    final List created = _create(debugName);
+    final SendPort controlPort = created[0];
+    final List capabilities = created[1];
+    return Isolate(
+      controlPort,
+      pauseCapability: capabilities[0],
+      terminateCapability: capabilities[1],
+    );
+  }
+
+  @pragma("vm:external-name", "Isolate_shutdownSync_")
+  external static void _shutdownSync(SendPort controlPort);
+
+  @patch
+  static void shutdownSync(Isolate isolate) {
+    _shutdownSync(isolate.controlPort);
+  }
+
+  @pragma("vm:external-name", "Isolate_pinToCurrentThread")
+  external static bool _pinToCurrentThread();
+
+  @patch
+  static bool pinToCurrentThread() {
+    return _pinToCurrentThread();
+  }
+
+  @pragma("vm:external-name", "Isolate_isPinnedToCurrentThread")
+  external static bool _isPinnedToCurrentThread(SendPort controlPort);
+
+  @patch
+  static bool getIsPinnedToCurrentThread(Isolate isolate) {
+    return _isPinnedToCurrentThread(isolate.controlPort);
+  }
+
+  @pragma("vm:external-name", "Isolate_runEventLoopSync_")
+  external static void _runEventLoopSync(SendPort controlPort);
+
+  @patch
+  static void runEventLoopSync(Isolate isolate) {
+    _runEventLoopSync(isolate.controlPort);
+  }
+
+  @patch
+  static void setOnEvent(Isolate isolate, void Function(Isolate) callback) {
+    throw UnsupportedError("Isolate.onEvent");
+  }
+
+  @patch
+  static void handleEvent(Isolate isolate) {
+    throw UnsupportedError("Isolate.handleEvent");
+  }
 }
 
 @pragma("vm:shared")
