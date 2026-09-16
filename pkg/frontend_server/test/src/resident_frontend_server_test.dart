@@ -250,6 +250,20 @@ void main() async {
       ResidentFrontendServer.compilers.clear();
     });
 
+    void executeDillExpectStdout(
+      Map<String, dynamic> compileResult,
+      String expectedStdOut,
+    ) {
+      expect(outputDill.path, equals(compileResult['output-dill']));
+      ProcessResult runResult = Process.runSync(Platform.resolvedExecutable, [
+        outputDill.path,
+      ], workingDirectory: d.path);
+      String stderr = runResult.stderr.toString();
+      expect(stderr, isEmpty);
+      String stdout = runResult.stdout.toString().trim();
+      expect(stdout, expectedStdOut.trim());
+    }
+
     test('initial compile, basic', () async {
       final Map<String, dynamic> compileResult = jsonDecode(
         await ResidentFrontendServer.handleRequest(
@@ -290,6 +304,175 @@ void main() async {
       List<String> savedOptions = getCachedCompilerOptions(executable.path);
       expect(savedOptions, contains('--define=var=2'));
       expect(savedOptions, contains('--enable-experiment=test-experiment'));
+    });
+
+    test('can run compiled dill', () async {
+      executable.writeAsStringSync('void main() { print("hello world"); }');
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+          ),
+        ),
+      );
+
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+
+      executeDillExpectStdout(compileResult, "hello world");
+    });
+
+    test('Works with -D', () async {
+      executable.writeAsStringSync(
+        'void main() { print(const String.fromEnvironment("foo")); }',
+      );
+      final Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=bar'],
+          ),
+        ),
+      );
+
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "bar");
+    });
+
+    test('Works with changing -D on same entry', () async {
+      executable.writeAsStringSync(
+        'void main() { print(const String.fromEnvironment("foo")); }',
+      );
+      // Let everything be old.
+      await new Future.delayed(const Duration(milliseconds: statGranularity));
+
+      // First compile.
+      for (int i = 0; i < 2; i++) {
+        Map<String, dynamic> compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+              define: ['--define=foo=bar'],
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        expect(compileResult['errorCount'], 0);
+        executeDillExpectStdout(compileResult, "bar");
+        if (i == 1) {
+          // Compiling with the same settings again (with data in memory) should
+          // reuse existing.
+          expect(compileResult['returnedStoredKernel'], true);
+        }
+      }
+
+      // Second compile with other define. The compiler is in memory.
+      Map<String, dynamic> compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=baz'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "baz");
+
+      // TODO(jensj): Find a way to do the second compile again - with cleared
+      // compilers - where we can verify that it didn't actually compile
+      // anything.
+
+      // Third compile with other define. The compiler is removed from memory
+      // before calling.
+      ResidentFrontendServer.compilers.clear();
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=qux'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "qux");
+
+      // Fourth compile with other define. The compiler is removed from memory
+      // before calling. The cached compiler options have been removed from disk
+      // too.
+      ResidentFrontendServer.compilers.clear();
+      new File(
+        computeCachedDillAndCompilerOptionsPaths(executable.path)
+            .cachedCompilerOptionsPath,
+      ).deleteSync();
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=quux'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "quux");
+
+      // Fifth compile with other define. The compiler is removed from memory
+      // before calling. The cached compiler options have been overwritten with
+      // nonsense.
+      ResidentFrontendServer.compilers.clear();
+      new File(
+        computeCachedDillAndCompilerOptionsPaths(executable.path)
+            .cachedCompilerOptionsPath,
+      ).writeAsStringSync("æbler");
+      compileResult = jsonDecode(
+        await ResidentFrontendServer.handleRequest(
+          createCompileJSON(
+            executable: executable.path,
+            packages: package.path,
+            outputDill: outputDill.path,
+            supportMirrors: true,
+            enableAsserts: true,
+            soundNullSafety: true,
+            define: ['--define=foo=corge'],
+          ),
+        ),
+      );
+      expect(compileResult['success'], true);
+      expect(compileResult['errorCount'], 0);
+      executeDillExpectStdout(compileResult, "corge");
     });
 
     test('produces aot kernel', () async {
