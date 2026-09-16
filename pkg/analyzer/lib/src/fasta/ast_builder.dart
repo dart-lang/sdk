@@ -6730,39 +6730,35 @@ class AstBuilder extends StackListener {
     List<ParsedExpressionChainComponentImpl> components,
   })?
   _parsedNameChain(ExpressionImpl expression, {bool allowInvocations = false}) {
-    // Defer creating child-owning components until a supported head is found.
-    // Expressions kept in their existing representation must retain their
-    // argument/type-argument parent links.
-    var components = <ParsedExpressionChainComponentImpl Function()>[];
-
-    void addName(Token operator, Token name) {
-      components.add(
-        () => ParsedNameAccessImpl(operator: operator, name: name),
-      );
-    }
-
-    void addTypeArguments(TypeArgumentListImpl? typeArguments) {
-      if (typeArguments != null) {
-        components.add(
-          () => ParsedTypeArgumentsImpl(typeArguments: typeArguments),
-        );
-      }
-    }
-
-    void addArguments(ArgumentListImpl argumentList) {
-      components.add(() => ParsedArgumentsImpl(argumentList: argumentList));
-    }
-
+    List<AstNodeImpl>? reversedComponents;
     var receiver = expression;
     while (true) {
       switch (receiver) {
         case SimpleIdentifierImpl() when !receiver.isSynthetic:
           return (
             head: ParsedNameHeadImpl(name: receiver.token),
-            components: components.reversed.map((create) => create()).toList(),
+            components: reversedComponents == null
+                ? const []
+                : [
+                    for (var i = reversedComponents.length - 1; i >= 0; i--)
+                      switch (reversedComponents[i]) {
+                        TypeArgumentListImpl list => ParsedTypeArgumentsImpl(
+                          typeArguments: list,
+                        ),
+                        ArgumentListImpl list => ParsedArgumentsImpl(
+                          argumentList: list,
+                        ),
+                        var component => component as ParsedNameAccessImpl,
+                      },
+                  ],
           );
         case PrefixedIdentifierImpl() when !receiver.identifier.isSynthetic:
-          addName(receiver.period, receiver.identifier.token);
+          (reversedComponents ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.period,
+              name: receiver.identifier.token,
+            ),
+          );
           receiver = receiver.prefix;
         case MethodInvocationImpl(
               :var methodName,
@@ -6775,19 +6771,23 @@ class AstBuilder extends StackListener {
                 !receiver.isCascaded &&
                 !methodName.isSynthetic &&
                 methodName.token.isKeywordOrIdentifier:
-          addArguments(argumentList);
-          addTypeArguments(typeArguments);
+          (reversedComponents ??= []).add(argumentList);
+          if (typeArguments != null) {
+            reversedComponents.add(typeArguments);
+          }
           if (target == null) {
             receiver = methodName;
           } else if (operator != null) {
-            addName(operator, methodName.token);
+            reversedComponents.add(
+              ParsedNameAccessImpl(operator: operator, name: methodName.token),
+            );
             receiver = target;
           } else {
             return null;
           }
         case FunctionReferenceImpl(function2: var target, :var typeArguments)
             when allowInvocations && typeArguments != null:
-          addTypeArguments(typeArguments);
+          (reversedComponents ??= []).add(typeArguments);
           receiver = target;
         case ConstructorInvocationImpl(
               keyword: null,
@@ -6801,14 +6801,25 @@ class AstBuilder extends StackListener {
           if (type.name.isSynthetic || selector?.name2.isSynthetic == true) {
             return null;
           }
-          addArguments(argumentList);
-          addTypeArguments(typeArguments);
-          if (selector != null) {
-            addName(selector.period, selector.name2);
+          (reversedComponents ??= []).add(argumentList);
+          if (typeArguments != null) {
+            reversedComponents.add(typeArguments);
           }
-          addTypeArguments(type.typeArguments);
+          if (selector != null) {
+            reversedComponents.add(
+              ParsedNameAccessImpl(
+                operator: selector.period,
+                name: selector.name2,
+              ),
+            );
+          }
+          if (type.typeArguments case var typeArguments?) {
+            reversedComponents.add(typeArguments);
+          }
           if (type.importPrefix case var prefix?) {
-            addName(prefix.period, type.name);
+            reversedComponents.add(
+              ParsedNameAccessImpl(operator: prefix.period, name: type.name),
+            );
             receiver = SimpleIdentifierImpl(token: prefix.name);
           } else {
             receiver = SimpleIdentifierImpl(token: type.name);
@@ -6819,7 +6830,9 @@ class AstBuilder extends StackListener {
               :var name,
             )
             when allowInvocations:
-          addName(operator, name);
+          (reversedComponents ??= []).add(
+            ParsedNameAccessImpl(operator: operator, name: name),
+          );
           receiver = target;
         // Only convert identifier or keyword property names. Recovery may use
         // punctuation, such as '(' in C.(), even though the token is not synthetic.
@@ -6828,7 +6841,12 @@ class AstBuilder extends StackListener {
         case PropertyAccessImpl(target2: var target?)
             when !receiver.propertyName.isSynthetic &&
                 receiver.propertyName.token.isKeywordOrIdentifier:
-          addName(receiver.operator, receiver.propertyName.token);
+          (reversedComponents ??= []).add(
+            ParsedNameAccessImpl(
+              operator: receiver.operator,
+              name: receiver.propertyName.token,
+            ),
+          );
           receiver = target;
         default:
           return null;
