@@ -597,6 +597,11 @@ void IsolateGroup::IncreaseMutatorCount(Thread* thread,
     // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
+    if (active_mutators_ == max_active_mutators_ && !was_stolen) {
+      active_mutators_ -=
+          thread_registry()->StealActiveMutators(thread_pool(), /*limit=*/1);
+      ASSERT(active_mutators_ >= 0);
+    }
     while (active_mutators_ == max_active_mutators_) {
       waiting_mutators_++;
       bool timed_out = false;
