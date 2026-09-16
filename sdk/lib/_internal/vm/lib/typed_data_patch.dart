@@ -4157,16 +4157,16 @@ final class _Int32x4 implements Int32x4 {
     );
   }
 
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   Int32x4 withX(int newX) => Int32x4(newX, y, z, w);
 
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   Int32x4 withY(int newY) => Int32x4(x, newY, z, w);
 
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   Int32x4 withZ(int newZ) => Int32x4(x, y, newZ, w);
 
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   Int32x4 withW(int newW) => Int32x4(x, y, z, newW);
 
   @pragma("vm:recognized", "other")

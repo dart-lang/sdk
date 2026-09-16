@@ -2445,6 +2445,30 @@ class SimdLowering : public ValueObject {
         IntToBool();
         Return(3);
         return true;
+      case MethodRecognizer::kInt32x4WithX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(0);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(1);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(2);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(3);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
       case MethodRecognizer::kInt32x4WithFlagX:
         UnboxVector(0, kUnboxedInt32, kMintCid, 4);
         UnboxBool(1, 4);
@@ -3498,6 +3522,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4GetSignMask:
     case MethodRecognizer::kInt32x4Select:
     case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kInt32x4WithW:
+    case MethodRecognizer::kInt32x4WithX:
+    case MethodRecognizer::kInt32x4WithY:
+    case MethodRecognizer::kInt32x4WithZ:
     case MethodRecognizer::kInt32x4WithFlagW:
     case MethodRecognizer::kInt32x4WithFlagX:
     case MethodRecognizer::kInt32x4WithFlagY:
