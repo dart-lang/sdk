@@ -159,6 +159,31 @@ B82 = TargetBlock() idom:B62 in-loop:B33
   v95 = InterfaceCall List.[](v1, v132)
   Goto(B33)
 
+--- typeTest
+B0 = EntryBlock() dominates:(B39, B41, B38)
+  Constant("abc")
+  Constant("def")
+  v8 = Constant(true)
+  Constant(42)
+  v16 = Constant(null)
+  v34 = Constant("nullable1")
+  v43 = Constant("nullable2")
+  v49 = Constant(false)
+  v1 = Parameter(#functionTypeParameters)
+  v3 = TypeParameters(v1)
+  DirectCall print(v8)
+  DirectCall print(v49)
+  DirectCall print(v34)
+  v37 = TypeTest(v16, v16, v3, typeTest.T%)
+  Branch(v37, true: B38, false: B39)
+B38 = TargetBlock() idom:B0
+  DirectCall print(v43)
+  Goto(B41)
+B39 = TargetBlock() idom:B0
+  Goto(B41)
+B41 = JoinBlock(B39, B38) idom:B0
+  Return(v16)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
