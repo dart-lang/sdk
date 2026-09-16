@@ -2096,6 +2096,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               (sz.is128 ? B23 : 0) |
               ((sz.log2sizeInBytes & 3) << 30),
         );
+      case RegExtRegAddress():
+        emit(
+          opcode |
+              rt.encodingRt |
+              a.encoding |
+              (sz.is128 ? B23 : 0) |
+              ((sz.log2sizeInBytes & 3) << 30),
+        );
       case WritebackRegOffsetAddress():
         emit(
           opcode |

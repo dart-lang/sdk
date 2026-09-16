@@ -526,6 +526,52 @@ extension on ArrayKind {
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementName is not defined for $this',
   };
+  CType get elementType => switch (this) {
+    .int8List ||
+    .int8ListView ||
+    .int8ByteData ||
+    .uint8List ||
+    .uint8ListView ||
+    .uint8ByteData ||
+    .uint8ClampedList ||
+    .uint8ClampedListView ||
+    .int16List ||
+    .int16ListView ||
+    .int16ByteData ||
+    .uint16List ||
+    .uint16ListView ||
+    .uint16ByteData ||
+    .int32List ||
+    .int32ListView ||
+    .int32ByteData ||
+    .uint32List ||
+    .uint32ListView ||
+    .uint32ByteData ||
+    .int64List ||
+    .int64ListView ||
+    .int64ByteData ||
+    .uint64List ||
+    .uint64ListView ||
+    .uint64ByteData => const IntType(),
+    .float32List ||
+    .float32ListView ||
+    .float32ByteData ||
+    .float64List ||
+    .float64ListView ||
+    .float64ByteData => const DoubleType(),
+    .float32x4List ||
+    .float32x4ListView ||
+    .float32x4ByteData ||
+    .float64x2List ||
+    .float64x2ListView ||
+    .float64x2ByteData ||
+    .int32x4List ||
+    .int32x4ListView ||
+    .int32x4ByteData ||
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString => throw 'ArrayKind.elementType is not defined for $this',
+  };
   int get elementSize => switch (this) {
     .uint8List => 1,
     .uint16List => 2,
@@ -1245,6 +1291,8 @@ final class VmRecognizedMethods(
       .uint32List,
       .int64List,
       .uint64List,
+      .float32List,
+      .float64List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1255,7 +1303,7 @@ final class VmRecognizedMethods(
           builder,
           arrayKind,
           objectLayout.TypedListBase_length,
-          const IntType(),
+          arrayKind.elementType,
         );
       },
     for (ArrayKind arrayKind in [
@@ -1268,6 +1316,8 @@ final class VmRecognizedMethods(
       .uint32ListView,
       .int64ListView,
       .uint64ListView,
+      .float32ListView,
+      .float64ListView,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1278,7 +1328,7 @@ final class VmRecognizedMethods(
           builder,
           arrayKind,
           objectLayout.TypedListBase_length,
-          const IntType(),
+          arrayKind.elementType,
         );
       },
     for (ArrayKind arrayKind in [
@@ -1291,6 +1341,8 @@ final class VmRecognizedMethods(
       .uint32ListView,
       .int64ListView,
       .uint64ListView,
+      .float32ListView,
+      .float64ListView,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1301,7 +1353,7 @@ final class VmRecognizedMethods(
           builder,
           arrayKind,
           objectLayout.TypedListBase_length,
-          const IntType(),
+          arrayKind.elementType,
         );
       },
 
@@ -1315,6 +1367,8 @@ final class VmRecognizedMethods(
       .uint32List,
       .int64List,
       .uint64List,
+      .float32List,
+      .float64List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1337,6 +1391,8 @@ final class VmRecognizedMethods(
       .uint32ByteData,
       .int64ByteData,
       .uint64ByteData,
+      .float32ByteData,
+      .float64ByteData,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1347,7 +1403,7 @@ final class VmRecognizedMethods(
           builder,
           arrayKind,
           objectLayout.TypedListBase_length,
-          const IntType(),
+          arrayKind.elementType,
           checkIndex: false,
         );
       },
@@ -1361,6 +1417,8 @@ final class VmRecognizedMethods(
       .uint32ByteData,
       .int64ByteData,
       .uint64ByteData,
+      .float32ByteData,
+      .float64ByteData,
     ])
       index.getProcedure(
         'dart:typed_data',

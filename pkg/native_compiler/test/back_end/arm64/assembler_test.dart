@@ -1724,6 +1724,8 @@ void main() {
       asm.fldr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fldr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fldr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fldr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fldr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .s32);
       asm.fldr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fldr(
         V6,
@@ -1737,6 +1739,8 @@ void main() {
         'fldrs v2, [r1, #32]\n'
         'fldrd v3, [r1, #-5]\n'
         'fldrq v4, [csp, #32768]\n'
+        'fldrd v0, [r0, r1 uxtx scaled]\n'
+        'fldrs v31, [csp, r0 sxtw]\n'
         'fldrd v5, [r1], #16 !\n'
         'fldrq v6, [r1, #-8]!\n'
         'fldrs v0, [r0], #8 !\n',
@@ -1749,6 +1753,9 @@ void main() {
       });
       expectThrows(() {
         asm.fldr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fldr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fldr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
@@ -1764,6 +1771,8 @@ void main() {
       asm.fstr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fstr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fstr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fstr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fstr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .simd128);
       asm.fstr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fstr(
         V6,
@@ -1777,6 +1786,8 @@ void main() {
         'fstrs v2, [r1, #32]\n'
         'fstrd v3, [r1, #-5]\n'
         'fstrq v4, [csp, #32768]\n'
+        'fstrd v0, [r0, r1 uxtx scaled]\n'
+        'fstrq v31, [csp, r0 sxtw]\n'
         'fstrd v5, [r1], #16 !\n'
         'fstrq v6, [r1, #-8]!\n'
         'fstrs v0, [r0], #8 !\n',
@@ -1789,6 +1800,9 @@ void main() {
       });
       expectThrows(() {
         asm.fstr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fstr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fstr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));

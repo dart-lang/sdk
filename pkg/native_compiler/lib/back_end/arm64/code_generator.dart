@@ -1266,19 +1266,26 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final indexReg = (instr.index is Constant)
         ? invalidReg
         : inputReg(instr, 1);
-    final resultReg = outputReg(instr);
 
-    _asm.ldr(
-      resultReg,
-      _computeArrayElementAddress(
-        instr.kind,
-        arrayReg,
-        instr.index,
-        indexReg,
-        tempReg,
-      ),
-      sz,
+    final elementAddr = _computeArrayElementAddress(
+      instr.kind,
+      arrayReg,
+      instr.index,
+      indexReg,
+      tempReg,
     );
+
+    switch (instr.kind) {
+      case .float32List ||
+          .float64List ||
+          .float32ListView ||
+          .float64ListView ||
+          .float32ByteData ||
+          .float64ByteData:
+        _asm.fldr(outputFPReg(instr), elementAddr, sz);
+      default:
+        _asm.ldr(outputReg(instr), elementAddr, sz);
+    }
   }
 
   @override
@@ -1288,35 +1295,43 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final indexReg = (instr.index is Constant)
         ? invalidReg
         : inputReg(instr, 1);
-    Register valueReg = inputReg(instr, 2);
 
-    if (instr.kind == .uint8ClampedList ||
-        instr.kind == .uint8ClampedListView) {
-      // Clamp value to [0, 0xff] range.
-      final scratchReg = temporaryReg(instr, 0);
-      _asm.cmpImmediate(valueReg, 0xff);
-      // x = value > 0xff ? 0xff : 0
-      _asm.csetm(scratchReg, .greater);
-      // y = value in range ? value : x
-      _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
-      valueReg = scratchReg;
-    }
-
-    _asm.str(
-      valueReg,
-      _computeArrayElementAddress(
-        instr.kind,
-        arrayReg,
-        instr.index,
-        indexReg,
-        tempReg,
-      ),
-      sz,
+    final elementAddr = _computeArrayElementAddress(
+      instr.kind,
+      arrayReg,
+      instr.index,
+      indexReg,
+      tempReg,
     );
+
+    switch (instr.kind) {
+      case .uint8ClampedList || .uint8ClampedListView:
+        // Clamp value to [0, 0xff] range.
+        final valueReg = inputReg(instr, 2);
+        final scratchReg = temporaryReg(instr, 0);
+        _asm.cmpImmediate(valueReg, 0xff);
+        // x = value > 0xff ? 0xff : 0
+        _asm.csetm(scratchReg, .greater);
+        // y = value in range ? value : x
+        _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
+        _asm.str(scratchReg, elementAddr, sz);
+
+      case .float32List ||
+          .float64List ||
+          .float32ListView ||
+          .float64ListView ||
+          .float32ByteData ||
+          .float64ByteData:
+        _asm.fstr(inputFPReg(instr, 2), elementAddr, sz);
+
+      default:
+        _asm.str(inputReg(instr, 2), elementAddr, sz);
+    }
 
     if (instr.kind == .fixedLengthList &&
         !_canSkipWriteBarrier(instr.array, instr.value)) {
       // TODO: array-specific write barrier.
+      final valueReg = inputReg(instr, 2);
       final scratch1Reg = temporaryReg(instr, 0);
       final scratch2Reg = temporaryReg(instr, 1);
       _writeBarrier(
