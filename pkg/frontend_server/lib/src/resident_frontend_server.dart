@@ -753,51 +753,6 @@ class ResidentFrontendServer {
   static String _encodeErrorMessage(String message) => jsonEncode(
     <String, Object>{_successString: false, 'errorMessage': message},
   );
-
-  /// Used to create compile requests for the ResidentFrontendServer.
-  /// Returns a JSON string that the resident compiler will be able to
-  /// interpret.
-  static String createCompileJSON({
-    required String executable,
-    String? packages,
-    required String outputDill,
-    bool? supportMirrors,
-    bool? enableAsserts,
-    bool? soundNullSafety,
-    String? verbosity,
-    bool? aot,
-    bool? tfa,
-    bool? rta,
-    bool? treeShakeWriteOnlyFields,
-    bool? protobufTreeShakerV2,
-    List<String>? define,
-    List<String>? enableExperiment,
-    bool verbose = false,
-    String? nativeAssetsYaml,
-    String? recordUses,
-  }) {
-    return jsonEncode(<String, Object>{
-      "command": "compile",
-      "executable": executable,
-      "output-dill": outputDill,
-      if (aot != null) "aot": true,
-      if (define != null) "define": define,
-      if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiment != null) "enable-experiment": enableExperiment,
-      if (packages != null) "packages": packages,
-      if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
-      if (rta != null) "rta": true,
-      if (soundNullSafety != null) "sound-null-safety": soundNullSafety,
-      if (supportMirrors != null) "support-mirrors": true,
-      if (tfa != null) "tfa": true,
-      if (treeShakeWriteOnlyFields != null)
-        "tree-shaker-write-only-fields": true,
-      if (verbosity != null) "verbosity": verbosity,
-      "verbose": verbose,
-      if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
-      if (recordUses != null) _recordUsesString: recordUses,
-    });
-  }
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
