@@ -6786,19 +6786,13 @@ class _FlowAnalysisImpl<
     } else {
       shortcutState = _current;
     }
-    switch (operations.classifyType(leftHandSideType)) {
-      case TypeClassification.nullOrEquivalent:
-        // The control path that skips the "if null" code is unreachable.
-        shortcutState = shortcutState.setUnreachable();
-      case TypeClassification.nonNullable:
-        // The control path containing the "if null" code is unreachable,
-        // assuming sound null safety.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          _setCurrent(_current.setUnreachable(), offset: offset);
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNullType(leftHandSideType)) {
+      // The control path that skips the "if null" code is unreachable.
+      shortcutState = shortcutState.setUnreachable();
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(leftHandSideType)) {
+      // The control path containing the "if null" code is unreachable,
+      // assuming sound null safety.
+      _setCurrent(_current.setUnreachable(), offset: offset);
     }
     _stack.add(new _IfNullExpressionContext(shortcutState));
   }
@@ -7161,21 +7155,18 @@ class _FlowAnalysisImpl<
     } else {
       shortcutState = _current;
     }
-    switch (operations.classifyType(keyType)) {
-      case TypeClassification.nonNullable:
-        // The control flow path that skips the value expression is unreachable.
-        shortcutState = shortcutState.setUnreachable();
-      case TypeClassification.nullOrEquivalent:
-        // The control flow path containing the value expression is unreachable.
-        // This functionality was added as part of the `sound-flow-analysis`
-        // language feature, even though it would have been a sound reasoning
-        // step before then.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          _setCurrent(_current.setUnreachable(), offset: offset);
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNonNullableType(keyType)) {
+      // The control flow path that skips the value expression is unreachable.
+      // (Note: unlike the analogous reasoning steps elsewhere in this class,
+      // this one is performed even when sound flow analysis is disabled.)
+      shortcutState = shortcutState.setUnreachable();
+    } else if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+        _isNullType(keyType)) {
+      // The control flow path containing the value expression is unreachable.
+      // This functionality was added as part of the `sound-flow-analysis`
+      // language feature, even though it would have been a sound reasoning
+      // step before then.
+      _setCurrent(_current.setUnreachable(), offset: offset);
     }
     _stack.add(new _NullAwareMapEntryContext(shortcutState));
   }
@@ -7192,9 +7183,7 @@ class _FlowAnalysisImpl<
     _logBuilder?.checkOffset(offset);
 
     if (!isAssert) {
-      if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-          operations.classifyType(matchedValueType) ==
-              TypeClassification.nonNullable) {
+      if (_isGuaranteedNonNullWithSoundNullSafety(matchedValueType)) {
         // The pattern is guaranteed to match.
       } else {
         // The pattern might not match, either because matchedValueType is
@@ -7421,33 +7410,18 @@ class _FlowAnalysisImpl<
       return false;
     }
 
-    bool cannotMatch = false;
-    switch (operations.classifyType(matchedType)) {
-      case TypeClassification.nonNullable:
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-            operations.classifyType(knownType) ==
-                TypeClassification.nullOrEquivalent) {
-          // `Null()` cannot match a non-nullable matched value, assuming sound
-          // null safety.
-          cannotMatch = true;
-        }
-        // The matched type is non-nullable, so promote to a non-nullable type.
-        // This allows for code like `case int? x?` to promote `x` to
-        // non-nullable.
-        knownType = operations.promoteToNonNull(knownType);
-      case TypeClassification.nullOrEquivalent:
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-            operations.classifyType(knownType) ==
-                TypeClassification.nonNullable) {
-          // If `T` is a non-nullable type, `T()` cannot match a matched value
-          // of type `Null`. This reasoning step is sound regardless of whether
-          // sound null safety, but it is a new reasoning step that was added to
-          // flow analysis as part of the `sound-flow-analysis` feature.
-          cannotMatch = true;
-        }
-      case TypeClassification.potentiallyNullable:
-        // No conclusions can be drawn about `cannotMatch` or `knownType`.
-        break;
+    // A pattern whose required type is `Null` (or a type equivalent to it) can
+    // never match a matched value whose type is non-nullable, and vice versa
+    // (assuming sound null safety).
+    bool cannotMatch = _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+      staticType: matchedType,
+      checkedType: knownType,
+    );
+    if (_isNonNullableType(matchedType)) {
+      // The matched type is non-nullable, so promote to a non-nullable type.
+      // This allows for code like `case int? x?` to promote `x` to
+      // non-nullable.
+      knownType = operations.promoteToNonNull(knownType);
     }
     _Reference matchedValueReference = _createMatchedValueReference(
       matchedType,
@@ -8362,21 +8336,9 @@ class _FlowAnalysisImpl<
     ExpressionInfo? rhsInfo,
     SharedTypeView rhsType,
   ) {
-    TypeClassification leftOperandTypeClassification = operations.classifyType(
-      lhsType,
-    );
-    TypeClassification rightOperandTypeClassification = operations.classifyType(
-      rhsType,
-    );
-    if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
-        rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
+    if (_isNullType(lhsType) && _isNullType(rhsType)) {
       return const _GuaranteedEqual();
-    } else if ((leftOperandTypeClassification ==
-                TypeClassification.nullOrEquivalent &&
-            rightOperandTypeClassification == TypeClassification.nonNullable) ||
-        (rightOperandTypeClassification ==
-                TypeClassification.nullOrEquivalent &&
-            leftOperandTypeClassification == TypeClassification.nonNullable)) {
+    } else if (_typesAreDisjointDueToNullability(lhsType, rhsType)) {
       // In strong mode the test is guaranteed to produce a "not equal" result,
       // but weak mode it might produce an "equal" result. If sound flow
       // analysis is enabled, we assume that the user isn't running in weak mode
@@ -8734,6 +8696,31 @@ class _FlowAnalysisImpl<
     _setCurrent(current, offset: offset);
   }
 
+  /// Determines whether a value whose static type is [type] is guaranteed not
+  /// to be `null`, due to sound null safety.
+  ///
+  /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
+  /// will return `false` regardless of its input. This reflects the fact that
+  /// in language versions prior to the introduction of sound flow analysis,
+  /// flow analysis assumed that the program might be executing in unsound null
+  /// safety mode (in which a value whose static type is non-nullable might
+  /// nonetheless be `null`).
+  bool _isGuaranteedNonNullWithSoundNullSafety(SharedTypeView type) =>
+      typeAnalyzerOptions.soundFlowAnalysisEnabled && _isNonNullableType(type);
+
+  /// Determines whether [type] is a non-nullable type.
+  ///
+  /// Note that this doesn't necessarily mean that a value of this type can't be
+  /// `null`; see [_isGuaranteedNonNullWithSoundNullSafety].
+  bool _isNonNullableType(SharedTypeView type) =>
+      operations.classifyType(type) == TypeClassification.nonNullable;
+
+  /// Determines whether [type] is `Null`, or a type that behaves equivalently
+  /// to it (such as `Never?`), and hence a value of this type is guaranteed to
+  /// be `null`.
+  bool _isNullType(SharedTypeView type) =>
+      operations.classifyType(type) == TypeClassification.nullOrEquivalent;
+
   /// Determines whether an expression having the given [staticType] is
   /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
   /// null safety.
@@ -8747,19 +8734,8 @@ class _FlowAnalysisImpl<
     required SharedTypeView staticType,
     required SharedTypeView checkedType,
   }) {
-    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
-    switch (typeOperations.classifyType(staticType)) {
-      case TypeClassification.nonNullable
-          when typeOperations.classifyType(checkedType) ==
-              TypeClassification.nullOrEquivalent:
-      case TypeClassification.nullOrEquivalent
-          when typeOperations.classifyType(checkedType) ==
-              TypeClassification.nonNullable:
-        // Guaranteed to fail due to nullability mismatch.
-        return true;
-      default:
-        return false;
-    }
+    return typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+        _typesAreDisjointDueToNullability(staticType, checkedType);
   }
 
   /// Whether an expression having the given [staticType] is guaranteed to fail
@@ -8835,19 +8811,13 @@ class _FlowAnalysisImpl<
         offset: offset,
       );
     }
-    switch (operations.classifyType(targetType)) {
-      case TypeClassification.nullOrEquivalent:
-        // The control flow path containing the null-aware code is unreachable.
-        _setCurrent(_current.setUnreachable(), offset: offset);
-      case TypeClassification.nonNullable:
-        // The control flow path that skips the null-aware code is unreachable,
-        // assuming sound null safety.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          shortcutControlPath = shortcutControlPath.setUnreachable();
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNullType(targetType)) {
+      // The control flow path containing the null-aware code is unreachable.
+      _setCurrent(_current.setUnreachable(), offset: offset);
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(targetType)) {
+      // The control flow path that skips the null-aware code is unreachable,
+      // assuming sound null safety.
+      shortcutControlPath = shortcutControlPath.setUnreachable();
     }
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
@@ -8896,17 +8866,14 @@ class _FlowAnalysisImpl<
     _Reference matchedValueReference = _createMatchedValueReference(
       matchedValueType,
     );
-    TypeClassification typeClassification = operations.classifyType(
-      matchedValueType,
-    );
-    if (typeClassification == TypeClassification.nonNullable) {
+    if (_isNonNullableType(matchedValueType)) {
       return null;
     } else {
       FlowModel ifNotNull = _promoteMatchedValueAndScrutinee(
         matchedValueReference,
         (model, reference) => model.tryMarkNonNullable(this, reference),
       ).ifTrue;
-      if (typeClassification == TypeClassification.nullOrEquivalent) {
+      if (_isNullType(matchedValueType)) {
         ifNotNull = ifNotNull.setUnreachable();
       }
       return ifNotNull;
@@ -9083,6 +9050,25 @@ class _FlowAnalysisImpl<
       _current,
     );
   }
+
+  /// Determines whether no value can belong to both [type1] and [type2], on the
+  /// basis of nullability alone; that is, whether one of the types is `Null`
+  /// (or an equivalent type) and the other is non-nullable.
+  ///
+  /// Callers should usually guard their use of this method with a check of
+  /// [TypeAnalyzerOptions.soundFlowAnalysisEnabled], for two reasons:
+  /// - In unsound null safety mode, a value whose static type is non-nullable
+  ///   might nonetheless be `null`, so the reasoning step isn't sound.
+  /// - Even in the direction that *is* sound regardless of null safety mode (a
+  ///   value whose static type is `Null` is always `null`), flow analysis
+  ///   didn't take advantage of this reasoning step until it was added as part
+  ///   of the `sound-flow-analysis` feature.
+  bool _typesAreDisjointDueToNullability(
+    SharedTypeView type1,
+    SharedTypeView type2,
+  ) =>
+      (_isNullType(type1) && _isNonNullableType(type2)) ||
+      (_isNullType(type2) && _isNonNullableType(type1));
 
   TrivialVariableReference _variableReference(
     PromotionKey variableKey,
