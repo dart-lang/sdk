@@ -6045,8 +6045,9 @@ class _FlowAnalysisImpl<
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
   /// be relevant to type promotion as a consequence of the pattern match,
-  /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
-  _Reference? _scrutineeReference;
+  /// [_Reference] object referring to the portion of the scrutinee that might
+  /// correspond to the current matched value.  Otherwise `null`.
+  _Reference? _correspondingScrutineeReference;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -6579,7 +6580,7 @@ class _FlowAnalysisImpl<
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
-    assert(_scrutineeReference == null);
+    assert(_correspondingScrutineeReference == null);
     assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
@@ -7350,13 +7351,13 @@ class _FlowAnalysisImpl<
   void popPropertySubpattern() {
     _PropertyPatternContext context =
         _stack.removeLast() as _PropertyPatternContext;
-    _scrutineeReference = context._previousScrutinee;
+    _correspondingScrutineeReference = context._previousCorrespondingScrutinee;
   }
 
   @override
   void popSubpattern() {
-    _FlowContext context = _stack.removeLast();
-    assert(context is _PatternContext);
+    _SubpatternContext context = _stack.removeLast() as _SubpatternContext;
+    _correspondingScrutineeReference = context._previousCorrespondingScrutinee;
   }
 
   @override
@@ -7572,10 +7573,10 @@ class _FlowAnalysisImpl<
           promotedType ?? unpromotedType,
           offset: offset,
         ),
-        _scrutineeReference,
+        _correspondingScrutineeReference,
       ),
     );
-    _scrutineeReference = propertyReference;
+    _correspondingScrutineeReference = propertyReference;
     return promotedType;
   }
 
@@ -7584,10 +7585,18 @@ class _FlowAnalysisImpl<
     assert(_stack.last is _PatternContext);
     assert(_unmatched != null);
     _stack.add(
-      new _PatternContext(
+      new _SubpatternContext(
         _makeTemporaryReference(new SsaNode(), matchedType, offset: offset),
+        _correspondingScrutineeReference,
       ),
     );
+    // The subpattern matches some other value derived from the matched value
+    // (e.g. a list element), so while it's being analyzed, there is no
+    // part of the scrutinee that's known to correspond to the matched value.
+    // (Note that [pushPropertySubpattern] behaves differently; since it knows
+    // precisely which property is being matched, it can set
+    // [_correspondingScrutineeReference] to a reference to that property.)
+    _correspondingScrutineeReference = null;
   }
 
   @override
@@ -8332,8 +8341,10 @@ class _FlowAnalysisImpl<
     if (_unmatched != null) {
       print('  unmatched: $_unmatched');
     }
-    if (_scrutineeReference != null) {
-      print('  scrutineeReference: $_scrutineeReference');
+    if (_correspondingScrutineeReference != null) {
+      print(
+        '  correspondingScrutineeReference: $_correspondingScrutineeReference',
+      );
     }
     if (_stack.isNotEmpty) {
       print('  stack:');
@@ -8914,16 +8925,18 @@ class _FlowAnalysisImpl<
 
   void _popScrutinee() {
     _ScrutineeContext context = _stack.removeLast() as _ScrutineeContext;
-    _scrutineeReference = context.previousScrutineeReference;
+    _correspondingScrutineeReference =
+        context.previousCorrespondingScrutineeReference;
   }
 
   /// Promotes the value currently being matched by the pattern that's being
   /// analyzed, by applying [promote] to [matchedValueReference].
   ///
   /// If the scrutinee of the enclosing pattern match denotes the same value as
-  /// the matched value (see [_scrutineeDenotesMatchedValue]), then [promote] is
-  /// applied to the scrutinee too, so that the promotion is also visible to
-  /// code that refers to the scrutinee directly.
+  /// the matched value (see [_correspondingScrutineeDenotesMatchedValue]), then
+  /// [promote] is applied to the corresponding part of the scrutinee too, so
+  /// that the promotion is also visible to code that refers to the scrutinee
+  /// directly.
   ///
   /// Returns the flow models describing the program state in the circumstances
   /// where the promotion succeeded and failed, respectively.
@@ -8936,14 +8949,15 @@ class _FlowAnalysisImpl<
     ExpressionInfo promotionInfo = promote(_current, matchedValueReference);
     FlowModel ifTrue = promotionInfo.ifTrue;
     FlowModel ifFalse = promotionInfo.ifFalse;
-    _Reference? scrutineeReference = _scrutineeReference;
-    if (scrutineeReference != null &&
-        _scrutineeDenotesMatchedValue(
-          scrutineeReference,
+    _Reference? correspondingScrutineeReference =
+        _correspondingScrutineeReference;
+    if (correspondingScrutineeReference != null &&
+        _correspondingScrutineeDenotesMatchedValue(
+          correspondingScrutineeReference,
           matchedValueReference,
         )) {
-      ifTrue = promote(ifTrue, scrutineeReference).ifTrue;
-      ifFalse = promote(ifFalse, scrutineeReference).ifFalse;
+      ifTrue = promote(ifTrue, correspondingScrutineeReference).ifTrue;
+      ifFalse = promote(ifFalse, correspondingScrutineeReference).ifFalse;
     }
     return (ifTrue: ifTrue, ifFalse: ifFalse);
   }
@@ -8976,15 +8990,18 @@ class _FlowAnalysisImpl<
     required int offset,
   }) {
     _stack.add(
-      new _ScrutineeContext(previousScrutineeReference: _scrutineeReference),
+      new _ScrutineeContext(
+        previousCorrespondingScrutineeReference:
+            _correspondingScrutineeReference,
+      ),
     );
-    _Reference? scrutineeReference = scrutineeInfo is _Reference
+    _Reference? correspondingScrutineeReference = scrutineeInfo is _Reference
         ? scrutineeInfo
         : null;
-    _scrutineeReference = scrutineeReference;
+    _correspondingScrutineeReference = correspondingScrutineeReference;
     SsaNode? scrutineeSsaNode;
-    if (allowScrutineePromotion && scrutineeReference != null) {
-      scrutineeSsaNode = scrutineeReference.ssaNode;
+    if (allowScrutineePromotion && correspondingScrutineeReference != null) {
+      scrutineeSsaNode = correspondingScrutineeReference.ssaNode;
     }
     return _makeTemporaryReference(
       scrutineeSsaNode ?? new SsaNode(),
@@ -8993,38 +9010,39 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  /// Determines whether [scrutineeReference] (the scrutinee of the pattern
-  /// match that's in progress) is known to denote the same value as
-  /// [matchedValueReference] (the value being matched by the pattern that's
-  /// being analyzed).
+  /// Determines whether [correspondingScrutineeReference] (the portion of the
+  /// scrutinee of the pattern match that's hypothesized to correspond to
+  /// [matchedValueReference] *actually* denotes the same value as
+  /// [matchedValueReference].
   ///
   /// If it does, then anything a pattern establishes about the matched value is
-  /// necessarily also true of the scrutinee, so the scrutinee may be promoted
-  /// along with the matched value.
-  bool _scrutineeDenotesMatchedValue(
-    _Reference scrutineeReference,
+  /// necessarily also true of the corresponding scrutinee reference, so the
+  /// corresponding scrutinee reference may be promoted along with the matched
+  /// value.
+  bool _correspondingScrutineeDenotesMatchedValue(
+    _Reference correspondingScrutineeReference,
     _Reference matchedValueReference,
   ) {
-    // If the scrutinee is a property reference, it denotes the matched value.
-    // (This is safe even if the underlying variable whose property is being
-    // referenced has changed, because the next time the property is accessed,
-    // it will be accessed through a new SSA node, and thus a new promotion
-    // key).
-    if (scrutineeReference is _PropertyReference) return true;
-    // If the scrutinee is `this`, it denotes the matched value, since `this`
-    // can never be reassigned.
-    if (scrutineeReference.isThisOrSuper &&
+    // If the corresponding scrutinee reference is a property reference, it
+    // denotes the matched value. (This is safe even if the underlying variable
+    // whose property is being referenced has changed, because the next time the
+    // property is accessed, it will be accessed through a new SSA node, and
+    // thus a new promotion key).
+    if (correspondingScrutineeReference is _PropertyReference) return true;
+    // If the corresponding scrutinee reference is `this`, it denotes the
+    // matched value, since `this` can never be reassigned.
+    if (correspondingScrutineeReference.isThisOrSuper &&
         typeAnalyzerOptions.thisPromotionEnabled) {
       return true;
     }
-    // Otherwise the scrutinee is a variable reference; it denotes the matched
-    // value provided that the variable hasn't changed since the start of the
-    // matching operation.
+    // Otherwise the corresponding scrutinee reference is a variable reference;
+    // it denotes the matched value provided that the variable hasn't changed
+    // since the start of the matching operation.
     return _current.promotionInfo
             ?.get(this, matchedValueReference.promotionKey)!
             .ssaNode ==
         _current.promotionInfo
-            ?.get(this, scrutineeReference.promotionKey)
+            ?.get(this, correspondingScrutineeReference.promotionKey)
             ?.ssaNode;
   }
 
@@ -9336,16 +9354,8 @@ class _PatternContext extends _FlowContext {
 
 /// [_FlowContext] representing a subpattern of an object pattern, which is
 /// being matched against a property of the object pattern's target.
-class _PropertyPatternContext extends _PatternContext {
-  /// The value of [_FlowAnalysisImpl._scrutineeReference] that was in effect
-  /// prior to visiting the subpattern.
-  final _Reference? _previousScrutinee;
-
-  _PropertyPatternContext(super._matchedValueInfo, this._previousScrutinee);
-
-  @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields..['previousScrutinee'] = _previousScrutinee;
+class _PropertyPatternContext extends _SubpatternContext {
+  _PropertyPatternContext(super._matchedValueInfo, super._previousScrutinee);
 
   @override
   String get _debugType => '_PropertyPatternContext';
@@ -9453,14 +9463,14 @@ class _Reference extends ExpressionInfo {
 /// [_FlowContext] representing a construct that can contain one or more
 /// patterns, and thus has a scrutinee (for example a `switch` statement).
 class _ScrutineeContext extends _FlowContext {
-  final _Reference? previousScrutineeReference;
+  final _Reference? previousCorrespondingScrutineeReference;
 
-  _ScrutineeContext({required this.previousScrutineeReference});
+  _ScrutineeContext({required this.previousCorrespondingScrutineeReference});
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['previousScrutineeReference'] = previousScrutineeReference;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousCorrespondingScrutineeReference'] =
+        previousCorrespondingScrutineeReference;
 
   @override
   String get _debugType => '_ScrutineeContext';
@@ -9500,6 +9510,26 @@ class _SimpleStatementContext extends _BranchTargetContext {
 
   @override
   String get _debugType => '_SimpleStatementContext';
+}
+
+/// [_FlowContext] representing a subpattern of some other pattern.
+class _SubpatternContext extends _PatternContext {
+  /// The value of [_FlowAnalysisImpl._correspondingScrutineeReference] that was
+  /// in effect prior to visiting the subpattern.
+  final _Reference? _previousCorrespondingScrutinee;
+
+  _SubpatternContext(
+    super._matchedValueInfo,
+    this._previousCorrespondingScrutinee,
+  );
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields
+        ..['previousCorrespondingScrutinee'] = _previousCorrespondingScrutinee;
+
+  @override
+  String get _debugType => '_SubpatternContext';
 }
 
 class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {

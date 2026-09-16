@@ -5920,6 +5920,26 @@ main() {
           ]),
         ]);
       });
+
+      test('listPattern element does not promote this', () {
+        // Equivalent Dart code:
+        //     extension on Object? {
+        //       f() {
+        //         if (this case [int _]) {
+        //           // `this` is a `List<Object?>`, but nothing is known about
+        //           // it beyond that; in particular it is *not* an `int`.
+        //         }
+        //       }
+        //     }
+        h.thisType = 'Object?';
+        h.run([
+          ifCase(
+            this_,
+            listPattern([wildcard(type: 'int')], elementType: 'Object?'),
+            [checkPromoted(this_, 'List<Object?>')],
+          ),
+        ]);
+      });
     });
   });
 
@@ -6988,6 +7008,87 @@ main() {
             if_(b, [checkNotPromoted(c.property('_field'))]),
           ]);
         });
+      });
+    });
+
+    group('And list pattern:', () {
+      test('No promotion from element subpattern', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case [int _]) {
+        //         // `c._property` is a `List<Object?>`, but nothing is known
+        //         // about it beyond that; in particular it is *not* an `int`.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            listPattern([wildcard(type: 'int')], elementType: 'Object?'),
+            [checkPromoted(c.property('_property'), 'List<Object?>')],
+          ),
+        ]);
+      });
+
+      test('No promotion from element subpattern null assert', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case [_!]) {
+        //         // `c._property` is a `List<Object?>`; the null assert
+        //         // applies to the list element, not to `c._property`.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            listPattern([wildcard().nullAssert], elementType: 'Object?'),
+            [checkPromoted(c.property('_property'), 'List<Object?>')],
+          ),
+        ]);
+      });
+
+      test('Scrutinee restored after list pattern', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<int>?')),
+          ifCase(
+            x,
+            listPattern([wildcard(type: 'int')], elementType: 'int').or(
+              // After visiting the list pattern, the scrutinee should now be
+              // restored to point to `x`, so this null check should promote
+              // `x` to `List<int>`.
+              wildcard().nullCheck,
+            ),
+            [checkPromoted(x, 'List<int>')],
+          ),
+        ]);
+      });
+    });
+
+    group('And map pattern:', () {
+      test('No promotion from value subpattern', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case {0: int _}) {
+        //         // `c._property` is a `Map<Object?, Object?>`, but nothing is
+        //         // known about it beyond that.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard(type: 'int'))]),
+            [checkPromoted(c.property('_property'), 'Map<Object?, Object?>')],
+          ),
+        ]);
       });
     });
 
