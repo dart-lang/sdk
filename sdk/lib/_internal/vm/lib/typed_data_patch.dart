@@ -1953,12 +1953,14 @@ final class _ByteBuffer implements ByteBuffer {
   bool operator ==(Object other) =>
       (other is _ByteBuffer) && identical(_data, other._data);
 
+  @pragma("vm:prefer-inline")
   ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= this.lengthInBytes - offsetInBytes;
     _rangeCheck(this._data.lengthInBytes, offsetInBytes, length);
     return _ByteDataView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
@@ -1969,6 +1971,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
@@ -1980,6 +1983,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/
@@ -1992,6 +1996,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
@@ -2004,6 +2009,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int16ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
@@ -2016,6 +2022,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
@@ -2028,6 +2035,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
@@ -2040,6 +2048,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
@@ -2052,6 +2061,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
@@ -2064,6 +2074,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
@@ -2076,6 +2087,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
@@ -2088,6 +2100,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
@@ -2100,6 +2113,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
@@ -2112,6 +2126,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
