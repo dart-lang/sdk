@@ -880,7 +880,7 @@ main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    var node = result.findNode.simple('myVar(42)');
+    var node = result.findNode.unqualifiedNameExpression('myVar(42)');
     assertType(node, 'String Function(int)');
   }
 

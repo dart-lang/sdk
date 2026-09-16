@@ -42234,9 +42234,10 @@ final class ParsedExpressionChainImpl extends ExpressionImpl
 
   /// Builds the unresolved invocation forms consumed by the existing resolver.
   ///
-  /// This is a migration bridge: invocation lookup still uses MethodInvocation
-  /// and FunctionReference before producing the resolved V2 nodes. It must not
-  /// consume the cached V1 projection, whose children have different parents.
+  /// This is a migration bridge for qualified invocations and standalone type
+  /// arguments. Unqualified calls are resolved directly from their chains.
+  /// It must not consume the cached V1 projection, whose children have different
+  /// parents.
   ExpressionImpl buildUnresolvedExpression() =>
       _ParsedChainExpressionBuilder(this, forV1: false).build();
 
@@ -56414,6 +56415,8 @@ abstract final class UnqualifiedFunctionInvocation
 final class UnqualifiedFunctionInvocationImpl
     extends NamedFunctionInvocationImpl
     implements UnqualifiedFunctionInvocation {
+  ScopeLookupResult? scopeLookupResult;
+
   MethodInvocationImpl? _methodInvocation;
 
   @generated

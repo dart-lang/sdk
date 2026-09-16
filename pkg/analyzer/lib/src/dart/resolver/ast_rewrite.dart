@@ -304,6 +304,53 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionChainImpl node,
   ) {
+    var invocationParts = switch (node.components) {
+      [ParsedArgumentsImpl(:var argumentList)] => (null, argumentList),
+      [
+        ParsedTypeArgumentsImpl(:var typeArguments),
+        ParsedArgumentsImpl(:var argumentList),
+      ] =>
+        (typeArguments, argumentList),
+      _ => null,
+    };
+    if (invocationParts case (var typeArguments, var argumentList)) {
+      var name = node.head.name;
+      var lookup = nameScope.lookup(name.lexeme);
+      var element = lookup.getter;
+      ExpressionImpl expression;
+      if (element is InterfaceElement ||
+          element is TypeAliasElement && element.aliasedType is InterfaceType) {
+        expression = ConstructorInvocationImpl(
+          keyword: null,
+          constructorReference: ConstructorReference2Impl(
+            typeReference: ConstructorTypeReferenceImpl(
+              importPrefix: null,
+              name: name,
+              typeArguments: typeArguments,
+            ),
+            selector: null,
+          ),
+          argumentList: argumentList,
+          typeArguments: null,
+        );
+      } else if (element is ExtensionElementImpl) {
+        expression = ExtensionOverrideImpl(
+          importPrefix: null,
+          name: name,
+          element: element,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        );
+      } else {
+        expression = UnqualifiedFunctionInvocationImpl(
+          name: name,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        )..scopeLookupResult = lookup;
+      }
+      node.replaceWith(expression);
+      return expression;
+    }
     if (node.components.any(
       (component) => component is! ParsedNameAccessImpl,
     )) {

@@ -432,9 +432,11 @@ IfElement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: bool Function()
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -474,9 +476,11 @@ IfElement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -544,9 +548,11 @@ IfElement
       whenClause: WhenClause
         whenKeyword: when
         expression2: CallInvocation
-          receiver: SimpleIdentifier
-            token: a
-            element: <testLibrary>::@function::f::@formalParameter::a
+          receiver: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: bool Function()
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (

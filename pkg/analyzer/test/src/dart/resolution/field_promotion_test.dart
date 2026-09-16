@@ -532,9 +532,12 @@ class D extends C {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: _foo
-    element: <testLibrary>::@class::C::@getter::_foo
+  receiver: UnqualifiedNameExpression
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: void Function()? Function()
+      type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -577,9 +580,12 @@ class D extends C {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: _foo
-    element: <testLibrary>::@class::C::@getter::_foo
+  receiver: UnqualifiedNameExpression
+    name: _foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_foo
+      invokeType: int? Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1549,9 +1555,12 @@ Block
   statements
     ExpressionStatement
       expression2: CallInvocation
-        receiver: SimpleIdentifier
-          token: _f
-          element: <testLibrary>::@class::C::@getter::_f
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::C::@getter::_f
+            invokeType: int? Function() Function()
+            type: int Function()
           staticType: int Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1618,9 +1627,12 @@ Block
   statements
     ExpressionStatement
       expression2: CallInvocation
-        receiver: SimpleIdentifier
-          token: _f
-          element: <testLibrary>::@class::C::@getter::_f
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::C::@getter::_f
+            invokeType: int? Function() Function()
+            type: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1711,11 +1723,14 @@ Block
   statements
     ExpressionStatement
       expression2: CallInvocation
-        receiver: SimpleIdentifier
-          token: _f
-          element: SubstitutedGetterElementImpl
-            baseElement: <testLibrary>::@class::C::@getter::_f
-            substitution: {T: T}
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::C::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T Function()
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1788,11 +1803,14 @@ Block
   statements
     ExpressionStatement
       expression2: CallInvocation
-        receiver: SimpleIdentifier
-          token: _f
-          element: SubstitutedGetterElementImpl
-            baseElement: <testLibrary>::@class::C::@getter::_f
-            substitution: {T: T}
+        receiver: UnqualifiedNameExpression
+          name: _f
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::C::@getter::_f
+              substitution: {T: T}
+            invokeType: T? Function() Function()
+            type: T? Function()
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (

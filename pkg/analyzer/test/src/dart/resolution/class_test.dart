@@ -1674,9 +1674,11 @@ class A(final int A()) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1747,9 +1749,11 @@ class B(this.A) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1848,9 +1852,11 @@ class B(super.A) extends A {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (

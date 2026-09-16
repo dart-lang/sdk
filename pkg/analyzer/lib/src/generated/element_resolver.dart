@@ -388,6 +388,18 @@ class ElementResolver {
 
   void visitTypeParameter(TypeParameter node) {}
 
+  void visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocationImpl node, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveUnqualified(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void visitVariableDeclarationList(VariableDeclarationList node) {}
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
