@@ -303,6 +303,84 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves a call through an import namespace without constructing an
+  /// expression receiver for the prefix.
+  void resolveImportPrefixed(
+    ImportPrefixedFunctionInvocationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
+    var prefix = node.importPrefix.element as PrefixElementImpl;
+    var name = node.name;
+    Element? candidate;
+    if (name.lexeme == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
+      var imports = prefix.imports;
+      if (imports.length == 1 && imports.single.prefix?.isDeferred == true) {
+        candidate = imports.single.importedLibrary?.loadLibraryFunction;
+      }
+    }
+    if (candidate == null) {
+      var lookup = prefix.scope.lookup(name.lexeme);
+      reportDeprecatedExportUseGetter(
+        scopeLookupResult: lookup,
+        nameToken: name,
+      );
+      candidate = lookup.getter;
+    }
+    var element = candidate;
+    if (element is MultiplyDefinedElement) {
+      element = element.conflictingElements.first;
+    }
+    if (element is InternalPropertyAccessorElement) {
+      var type = element.returnType;
+      var receiver =
+          ImportPrefixedNameExpressionImpl(
+              importPrefix: node.importPrefix,
+              name: name,
+            )
+            ..resolution = candidate is MultiplyDefinedElement
+                ? InvalidNamedReadResolutionImpl(recoveryElement: candidate)
+                : element is InternalGetterElement
+                ? GetterInvocationResolutionImpl(element: element, type: type)
+                : InvalidNamedReadResolutionImpl(recoveryElement: element);
+      inferenceLogWriter?.enterFunctionExpressionInvocationTarget(receiver);
+      receiver.recordStaticType(type, resolver: _resolver);
+      if (type.isBottom) {
+        _resolver.flowAnalysis.flow?.handleExit(offset: name.end);
+      }
+      inferenceLogWriter?.exitExpression(receiver);
+      var invocation = CallInvocationImpl(
+        receiver: receiver,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+      );
+      _resolver.replaceExpression(node, invocation);
+      _resolver.flowAnalysis.transferTestData(node, invocation);
+      _resolver.callInvocationResolver.resolve(
+        invocation,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      return;
+    }
+    if (element is! InternalExecutableElement &&
+        !_libraryFragment.shouldIgnoreUndefined(
+          prefix: prefix.name,
+          name: name.lexeme,
+        )) {
+      diagnosticReporter.report(
+        diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
+      );
+    }
+    _resolveNamedInvocation(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      candidate: candidate,
+      element: element is InternalExecutableElement ? element : null,
+    );
+  }
+
   /// Resolves a named call whose lexical scope has already been recorded.
   /// Callable values become reads followed by [CallInvocation]; executable
   /// members remain direct invocations, without an intervening tear-off.
@@ -467,64 +545,15 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    InvocationTarget? target;
-    if (element is InternalExecutableElement) {
-      target = InvocationTargetExecutableElement(element);
-      node.resolution = ExecutableInvocationResolutionImpl(
-        element: element,
-        invokeType: element.type,
-        type: element.returnType,
-      );
-      if (candidate is MultiplyDefinedElement) {
-        node.resolution = InvalidInvocationResolutionImpl(
-          candidates: [candidate],
-          recovery: FunctionCallInvocationResolutionImpl(
-            invokeType: element.type,
-            type: element.returnType,
-          ),
-          type: element.returnType,
-        );
-      }
-    } else if (callFunctionType != null) {
-      target = InvocationTargetFunctionTypedExpression(callFunctionType);
-    }
-    var type =
-        NamedFunctionInvocationInferrer(
-              resolver: _resolver,
-              node: node,
-              argumentList: node.argumentList,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              contextType: contextType,
-              target: target,
-            ).resolveInvocation()
-            as TypeImpl;
-    var invokeType = node.staticInvokeType;
-    ValidInvocationResolutionImpl? resolution;
-    if (invokeType is FunctionTypeImpl) {
-      resolution = candidate is InternalExecutableElement
-          ? ExecutableInvocationResolutionImpl(
-              element: candidate,
-              invokeType: invokeType,
-              type: type,
-            )
-          : FunctionCallInvocationResolutionImpl(
-              invokeType: invokeType,
-              type: type,
-            );
-    }
-    if (target == null && !isFunctionInterfaceCall) {
-      type = InvalidTypeImpl.instance;
-      node.staticInvokeType = type;
-    }
-    node.resolution =
-        candidate is MultiplyDefinedElement || type is InvalidTypeImpl
-        ? InvalidInvocationResolutionImpl(
-            candidates: [?candidate],
-            recovery: resolution,
-            type: type,
-          )
-        : resolution ?? DynamicInvocationResolutionImpl(type: type);
-    node.recordStaticType(type, resolver: _resolver);
+    _resolveNamedInvocation(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      candidate: candidate,
+      element: element,
+      callFunctionType: callFunctionType,
+      isFunctionInterfaceCall: isFunctionInterfaceCall,
+    );
   }
 
   bool _hasMatchingObjectMethod(
@@ -848,6 +877,75 @@ class MethodInvocationResolver with ScopeHelpers {
       contextType: contextType,
       target: InvocationTargetExecutableElement(member),
     );
+  }
+
+  void _resolveNamedInvocation(
+    NamedFunctionInvocationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+    required Element? candidate,
+    required Element? element,
+    FunctionTypeImpl? callFunctionType,
+    bool isFunctionInterfaceCall = false,
+  }) {
+    InvocationTarget? target;
+    if (element is InternalExecutableElement) {
+      target = InvocationTargetExecutableElement(element);
+      node.resolution = ExecutableInvocationResolutionImpl(
+        element: element,
+        invokeType: element.type,
+        type: element.returnType,
+      );
+      if (candidate is MultiplyDefinedElement) {
+        node.resolution = InvalidInvocationResolutionImpl(
+          candidates: [candidate],
+          recovery: FunctionCallInvocationResolutionImpl(
+            invokeType: element.type,
+            type: element.returnType,
+          ),
+          type: element.returnType,
+        );
+      }
+    } else if (callFunctionType != null) {
+      target = InvocationTargetFunctionTypedExpression(callFunctionType);
+    }
+    var type =
+        NamedFunctionInvocationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: node.argumentList,
+              whyNotPromotedArguments: whyNotPromotedArguments,
+              contextType: contextType,
+              target: target,
+            ).resolveInvocation()
+            as TypeImpl;
+    var invokeType = node.staticInvokeType;
+    ValidInvocationResolutionImpl? resolution;
+    if (invokeType is FunctionTypeImpl) {
+      resolution = candidate is InternalExecutableElement
+          ? ExecutableInvocationResolutionImpl(
+              element: candidate,
+              invokeType: invokeType,
+              type: type,
+            )
+          : FunctionCallInvocationResolutionImpl(
+              invokeType: invokeType,
+              type: type,
+            );
+    }
+    if (target == null && !isFunctionInterfaceCall) {
+      type = InvalidTypeImpl.instance;
+      node.staticInvokeType = type;
+    }
+    node.resolution =
+        candidate is MultiplyDefinedElement || type is InvalidTypeImpl
+        ? InvalidInvocationResolutionImpl(
+            candidates: [?candidate],
+            recovery: resolution,
+            type: type,
+          )
+        : resolution ?? DynamicInvocationResolutionImpl(type: type);
+    node.recordStaticType(type, resolver: _resolver);
   }
 
   void _resolveReceiverDynamicBounded(

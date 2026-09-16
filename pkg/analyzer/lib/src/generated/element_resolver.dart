@@ -234,6 +234,18 @@ class ElementResolver {
     }
   }
 
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocationImpl node, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveImportPrefixed(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void visitLibraryDirective(LibraryDirective node) {}
 
   void visitMethodDeclaration(MethodDeclaration node) {}

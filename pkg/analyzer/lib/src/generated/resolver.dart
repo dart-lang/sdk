@@ -3896,7 +3896,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant ImportPrefixedFunctionInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+    _resolveScopeFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -5348,31 +5348,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant UnqualifiedFunctionInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    // Direct lowering records lexical lookup but leaves invocation resolution
-    // unset. Nodes with an existing resolution use the re-inference path.
-    if (node.resolution != null) {
-      _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
-      return;
-    }
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    node.typeArguments?.accept2(this);
-    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
-    elementResolver.visitUnqualifiedFunctionInvocation(
-      node,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    var replacement = insertGenericFunctionInstantiation(
-      peekRewrite()!,
-      contextType: contextType,
-    );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-    inferenceLogWriter?.exitExpression(node);
+    _resolveScopeFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -5949,6 +5925,48 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
 
     _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
+  void _resolveScopeFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    // Direct lowering records lexical lookup but leaves invocation resolution
+    // unset. Nodes with an existing resolution use the re-inference path.
+    if (node.resolution != null) {
+      _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+      return;
+    }
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    switch (node) {
+      case ImportPrefixedFunctionInvocationImpl():
+        elementResolver.visitImportPrefixedFunctionInvocation(
+          node,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      case UnqualifiedFunctionInvocationImpl():
+        elementResolver.visitUnqualifiedFunctionInvocation(
+          node,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      default:
+        throw StateError('Unexpected scope invocation: $node');
+    }
+    var replacement = insertGenericFunctionInstantiation(
+      peekRewrite()!,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
   }
 
   CascadeMethodInvocationImpl _rewriteCascadeMethodInvocation(

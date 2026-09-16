@@ -5391,6 +5391,85 @@ V1: MethodInvocation
 ''');
   }
 
+  test_hasReceiver_importPrefix_topFunction_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+T foo<T extends num>(T value) => value;
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo<num>(1);
+}
+''');
+    var node = result.findNode.importPrefixedFunctionInvocation('foo<num>(1)');
+    assertResolvedNodeText(node, r'''
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::value
+          substitution: {T: num}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::foo
+    invokeType: num Function(num)
+    type: num
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    element: <testLibraryFragment>::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: package:test/a.dart::@function::foo
+    staticType: T Function<T extends num>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::value
+          substitution: {T: num}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num)
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+  }
+
   test_hasReceiver_importPrefix_topGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 T Function<T>(T a, T b) get foo => null;
@@ -5407,17 +5486,16 @@ main() {
     var node = result.findNode.callInvocation('foo(1, 2);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
+  receiver: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
       element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      staticType: T Function<T>(T, T)
-    element: package:test/a.dart::@getter::foo
+      invokeType: T Function<T>(T, T) Function()
+      type: T Function<T>(T, T)
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7866,6 +7944,159 @@ V1: FunctionExpressionInvocation
   element: <null>
   staticInvokeType: dynamic
   staticType: dynamic
+''');
+  }
+
+  test_importPrefixedFunction_topLevelInitializer_secondResolution() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+T id<T>(T value) => value;
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+var x = prefix.id(0);
+''');
+    var node = result.findNode.importPrefixedFunctionInvocation('id(0)');
+    assertResolvedNodeText(node, r'''
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    element: <testLibraryFragment>::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: id
+    element: package:test/a.dart::@function::id
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_importPrefixedVariable_implicitCall_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  T call<T>(T value) => value;
+}
+final a = A();
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.a<int>(0);
+}
+''');
+    var node = result.findNode.callInvocation('a<int>(0)');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: a
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@getter::a
+      invokeType: A Function()
+      type: A
+    staticType: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::A::@method::call
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      element: package:test/a.dart::@getter::a
+      staticType: A
+    element: package:test/a.dart::@getter::a
+    staticType: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  element: package:test/a.dart::@class::A::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
 ''');
   }
 
