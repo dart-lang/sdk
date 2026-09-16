@@ -30,8 +30,8 @@ void main() {
 
   memory.storeInt32(memory.size, WasmI32.fromInt(32), offset: 10);
 
-  // Ensure the memory index and offset are correctly ordered; 
-  // if not, wasm-opt must reject before the IR snapshot is produced.
+  // Ensure the memory index and offset are correctly ordered;
+  // if not, wasm-opt must reject before the expectation file is produced.
   // See https://dart-review.googlesource.com/c/sdk/+/547420
   secondMemory.storeFloat64(
     secondMemory.size,

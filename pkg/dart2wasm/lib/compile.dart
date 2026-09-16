@@ -161,7 +161,6 @@ const List<String> _binaryenFlags = [
   '--enable-gc',
   '--enable-reference-types',
   '--enable-multivalue',
-  '--enable-multimemory',
   '--enable-exception-handling',
   '--enable-nontrapping-float-to-int',
   '--enable-sign-ext',
@@ -188,7 +187,6 @@ const List<String> _binaryenFlagsMultiModule = [
   '--enable-gc',
   '--enable-reference-types',
   '--enable-multivalue',
-  '--enable-multimemory',
   '--enable-exception-handling',
   '--enable-nontrapping-float-to-int',
   '--enable-sign-ext',
@@ -736,6 +734,8 @@ Future<CompilationResult> _runOptPhase(
 
   final wasmOptFlags = <String>[
     ...(options.useMultiModuleOpt ? _binaryenFlagsMultiModule : _binaryenFlags),
+    if (options.translatorOptions.enableExperimentalWasmInterop)
+      '--enable-multimemory',
     if (options.stripToolchainAnnotations) '--strip-toolchain-annotations',
     '--emit-module-names',
   ];
@@ -907,6 +907,15 @@ String _generateSupportJs(TranslatorOptions options) {
   const String supportsWasmSimd =
       'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]))';
 
+  // Declares two memories so only engines with multi-memory support validate:
+  // ```
+  //     (module
+  //       (memory 1)
+  //       (memory 1))
+  // ```
+  const String supportsWasmMultiMemory =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,5,5,2,0,1,0,1]))';
+
   // Imports a `js-string` builtin spec function *with wrong signature*. An engine
   //
   //   * *without* knowledge about `js-string` builtin would accept such an import at
@@ -927,6 +936,7 @@ String _generateSupportJs(TranslatorOptions options) {
     supportsWasmGC,
     supportsWasmSimd,
     supportsJsStringBuiltins,
+    if (options.enableExperimentalWasmInterop) supportsWasmMultiMemory,
   ];
   return '(${requiredFeatures.join('&&')})';
 }
