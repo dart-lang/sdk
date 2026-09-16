@@ -1032,6 +1032,17 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    var lookup = node.scopeLookupResult ??= nameScope.lookup(node.name.lexeme);
+    if (lookup.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {

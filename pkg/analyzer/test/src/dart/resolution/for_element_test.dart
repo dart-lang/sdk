@@ -1325,9 +1325,11 @@ f(bool Function() b) {
     var node = result.findNode.callInvocation('b()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: b
-    element: <testLibrary>::@function::f::@formalParameter::b
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool Function()
     staticType: bool Function()
   argumentList: ArgumentList
     leftParenthesis: (

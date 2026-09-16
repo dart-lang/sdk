@@ -411,9 +411,17 @@ main() {
   toString(); // marker
 }''');
 
-    var node = result.findNode.simple('toString(); // marker');
+    var node = result.findNode.unqualifiedNameExpression(
+      'toString(); // marker',
+    );
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: toString
+  resolution: VariableReadResolution
+    element: toString@19
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: toString
   element: toString@19
   staticType: dynamic

@@ -771,9 +771,11 @@ f(C c) {
     var node = result.findNode.callInvocation('c(2)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -822,9 +824,11 @@ f(C c) {
     var node = result.findNode.callInvocation('c(2)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (

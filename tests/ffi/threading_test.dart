@@ -7,7 +7,7 @@
 // VMOptions=--experimental-shared-data
 
 // ignore: import_internal_library
-import 'dart:_internal' show IsolateGroup;
+import 'dart:_internal' show IsolateExperimental, IsolateGroup;
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
@@ -130,7 +130,7 @@ final dartSetCurrentThreadOwnsIsolate = DynamicLibrary.executable()
     .asFunction<void Function()>();
 
 int threadMain(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helperMain");
+  final new_isolate = IsolateExperimental.create(debugName: "helperMain");
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
   });
@@ -198,7 +198,7 @@ void openLatch() {
 }
 
 int threadMainPinned(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helperPinned");
+  final new_isolate = IsolateExperimental.create(debugName: "helperPinned");
 
   new_isolate.runSync(() {
     dartSetCurrentThreadOwnsIsolate();
@@ -268,7 +268,7 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
 final isHelperInThreadMainWaitingLatchRunning = Uint8List(1);
 
 int threadMainWaitingLatch(Pointer<Void> data) {
-  final helper = Isolate.create(debugName: "helperWaitingLatch");
+  final helper = IsolateExperimental.create(debugName: "helperWaitingLatch");
 
   dartNewSendPort(nativeSendPort[0]).send(helper);
 
@@ -357,7 +357,9 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
 }
 
 int threadMainCreatesTimer(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helperMainCreatesTimer");
+  final new_isolate = IsolateExperimental.create(
+    debugName: "helperMainCreatesTimer",
+  );
   new_isolate.runSync(() {
     print(Future.delayed(Duration(seconds: 1)));
   });

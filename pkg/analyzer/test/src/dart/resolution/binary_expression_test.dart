@@ -2362,9 +2362,11 @@ f(int Function() a, int b) {
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (

@@ -158,6 +158,7 @@ class UseResultVerifier {
     var displayName = switch (toAnnotate) {
       Token(:var lexeme) => lexeme,
       SimpleIdentifier(:var name) => name,
+      UnqualifiedNameExpression(:var name) => name.lexeme,
       _ => element.displayName,
     };
 

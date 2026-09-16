@@ -896,9 +896,8 @@ class MethodInvocationInferrer
   }
 }
 
-/// Performs invocation inference when a canonical direct named function
-/// invocation is encountered again, as happens during the second resolution
-/// pass for a top-level initializer.
+/// Performs invocation inference for a canonical direct named function
+/// invocation, including repeated resolution of top-level initializers.
 class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
     extends FullInvocationInferrer<Node> {
   NamedFunctionInvocationInferrer({

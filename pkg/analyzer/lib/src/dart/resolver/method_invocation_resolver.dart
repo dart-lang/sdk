@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
-import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 class MethodInvocationResolver with ScopeHelpers {
   /// The resolver driving this participant.
@@ -48,9 +47,6 @@ class MethodInvocationResolver with ScopeHelpers {
   /// The library fragment of the compilation unit being visited.
   final LibraryFragmentImpl _libraryFragment;
 
-  /// The object providing promoted or declared types of variables.
-  final LocalVariableTypeProvider _localVariableTypeProvider;
-
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
@@ -70,7 +66,6 @@ class MethodInvocationResolver with ScopeHelpers {
        _definingLibrary = _resolver.definingLibrary,
        _definingLibraryUri = _resolver.definingLibrary.uri,
        _libraryFragment = _resolver.libraryFragment,
-       _localVariableTypeProvider = _resolver.localVariableTypeProvider,
        _extensionResolver = _resolver.extensionResolver,
        _inferenceHelper = inferenceHelper;
 
@@ -94,10 +89,15 @@ class MethodInvocationResolver with ScopeHelpers {
     var receiver = node.realTarget2;
 
     if (receiver == null) {
-      return _resolveReceiverNull(
-        node,
-        nameNode,
-        name,
+      var invocation = UnqualifiedFunctionInvocationImpl(
+        name: nameNode.token,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+      )..scopeLookupResult = nameNode.scopeLookupResult;
+      _resolver.replaceExpression(node, invocation);
+      _resolver.flowAnalysis.transferTestData(node, invocation);
+      return resolveUnqualified(
+        invocation,
         whyNotPromotedArguments,
         contextType: contextType,
       );
@@ -303,6 +303,259 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
+  /// Resolves a call through an import namespace without constructing an
+  /// expression receiver for the prefix.
+  void resolveImportPrefixed(
+    ImportPrefixedFunctionInvocationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
+    var prefix = node.importPrefix.element as PrefixElementImpl;
+    var name = node.name;
+    Element? candidate;
+    if (name.lexeme == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
+      var imports = prefix.imports;
+      if (imports.length == 1 && imports.single.prefix?.isDeferred == true) {
+        candidate = imports.single.importedLibrary?.loadLibraryFunction;
+      }
+    }
+    if (candidate == null) {
+      var lookup = prefix.scope.lookup(name.lexeme);
+      reportDeprecatedExportUseGetter(
+        scopeLookupResult: lookup,
+        nameToken: name,
+      );
+      candidate = lookup.getter;
+    }
+    var element = candidate;
+    if (element is MultiplyDefinedElement) {
+      element = element.conflictingElements.first;
+    }
+    if (element is InternalPropertyAccessorElement) {
+      var type = element.returnType;
+      var receiver =
+          ImportPrefixedNameExpressionImpl(
+              importPrefix: node.importPrefix,
+              name: name,
+            )
+            ..resolution = candidate is MultiplyDefinedElement
+                ? InvalidNamedReadResolutionImpl(recoveryElement: candidate)
+                : element is InternalGetterElement
+                ? GetterInvocationResolutionImpl(element: element, type: type)
+                : InvalidNamedReadResolutionImpl(recoveryElement: element);
+      inferenceLogWriter?.enterFunctionExpressionInvocationTarget(receiver);
+      receiver.recordStaticType(type, resolver: _resolver);
+      if (type.isBottom) {
+        _resolver.flowAnalysis.flow?.handleExit(offset: name.end);
+      }
+      inferenceLogWriter?.exitExpression(receiver);
+      var invocation = CallInvocationImpl(
+        receiver: receiver,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+      );
+      _resolver.replaceExpression(node, invocation);
+      _resolver.flowAnalysis.transferTestData(node, invocation);
+      _resolver.callInvocationResolver.resolve(
+        invocation,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      return;
+    }
+    if (element is! InternalExecutableElement &&
+        !_libraryFragment.shouldIgnoreUndefined(
+          prefix: prefix.name,
+          name: name.lexeme,
+        )) {
+      diagnosticReporter.report(
+        diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
+      );
+    }
+    _resolveNamedInvocation(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      candidate: candidate,
+      element: element is InternalExecutableElement ? element : null,
+    );
+  }
+
+  /// Resolves a named call whose lexical scope has already been recorded.
+  /// Callable values become reads followed by [CallInvocation]; executable
+  /// members remain direct invocations, without an intervening tear-off.
+  void resolveUnqualified(
+    UnqualifiedFunctionInvocationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
+    var name = node.name;
+    var lookup = node.scopeLookupResult!;
+    reportDeprecatedExportUseGetter(scopeLookupResult: lookup, nameToken: name);
+    var candidate = lookup.getter;
+    Element? element = candidate;
+    FunctionTypeImpl? callFunctionType;
+    TypeImpl? recordFieldType;
+    var isFunctionInterfaceCall = false;
+    if (element is MultiplyDefinedElement) {
+      element = element.conflictingElements.first;
+    }
+    if (element == null) {
+      var receiverType = _resolver.thisType;
+      if (receiverType == null) {
+        if (!_libraryFragment.shouldIgnoreUndefined(
+          prefix: null,
+          name: name.lexeme,
+        )) {
+          diagnosticReporter.report(
+            diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
+          );
+        }
+      } else {
+        var setter = lookup.setter;
+        // An instance setter can hide an inherited getter. A top-level,
+        // extension, or static setter instead ends lexical lookup.
+        var stopsLookup =
+            setter != null &&
+            (setter.enclosingElement is LibraryElement ||
+                setter.enclosingElement is ExtensionElement ||
+                setter is ExecutableElement && setter.isStatic);
+        var needsError = true;
+        if (stopsLookup) {
+          candidate = setter;
+        } else {
+          var result = _resolver.typePropertyResolver.resolve(
+            receiver: null,
+            receiverType: receiverType,
+            name: name.lexeme,
+            hasRead: true,
+            hasWrite: false,
+            propertyErrorEntity: name,
+            nameErrorEntity: name,
+            parentNode: node,
+          );
+          candidate = element = result.getter2;
+          callFunctionType = result.callFunctionType;
+          recordFieldType = result.recordField?.type;
+          isFunctionInterfaceCall =
+              receiverType.isDartCoreFunction &&
+              name.lexeme == MethodElement.CALL_METHOD_NAME;
+          needsError = result.needsGetterError;
+          if (element is InternalExecutableElement && element.isStatic) {
+            _reportInstanceAccessToStaticMember(name, element, true);
+          }
+        }
+        if (element == null &&
+            callFunctionType == null &&
+            recordFieldType == null &&
+            !isFunctionInterfaceCall &&
+            needsError &&
+            !(receiverType is InterfaceTypeImpl &&
+                receiverType.element.name == null) &&
+            !name.isSynthetic) {
+          diagnosticReporter.report(
+            diag.undefinedMethod
+                .withArguments(methodName: name.lexeme, type: receiverType)
+                .at(name),
+          );
+        }
+      }
+    } else if (element is PrefixElement) {
+      diagnosticReporter.report(
+        diag.prefixIdentifierNotFollowedByDot
+            .withArguments(name: name.lexeme)
+            .at(name),
+      );
+    } else if (element is! InternalExecutableElement &&
+        element is! InternalVariableElement) {
+      diagnosticReporter.report(
+        diag.invocationOfNonFunction.withArguments(name: name.lexeme).at(name),
+      );
+    }
+
+    if (element is InternalVariableElement ||
+        element is InternalPropertyAccessorElement ||
+        recordFieldType != null) {
+      var receiver = UnqualifiedNameExpressionImpl(name: name)
+        ..scopeLookupResult = lookup;
+      TypeImpl type;
+      var flow = _resolver.flowAnalysis.flow;
+      if (recordFieldType != null) {
+        type = recordFieldType;
+        receiver.resolution = RecordFieldReadResolutionImpl(type: type);
+      } else if (element is InternalVariableElement) {
+        _resolver.checkReadOfNotAssignedLocalVariable2(
+          receiver,
+          name: name.lexeme,
+          element: element,
+        );
+        type = element.type;
+        if (element is PromotableElementImpl && flow != null) {
+          var (promotedType, expressionInfo) = flow.variableRead(
+            element,
+            offset: name.offset,
+          );
+          type = promotedType?.unwrapTypeView<TypeImpl>() ?? type;
+          _resolver.flowAnalysis.storeExpressionInfo(receiver, expressionInfo);
+        }
+        receiver.resolution = VariableReadResolutionImpl(
+          element: element,
+          type: type,
+        );
+      } else {
+        element as InternalPropertyAccessorElement;
+        type = element.returnType;
+        if (!element.isStatic && flow != null) {
+          var (promotedType, expressionInfo) = flow.propertyGet(
+            ThisPropertyTarget.singleton,
+            name.lexeme,
+            element,
+            SharedTypeView(type),
+          );
+          type = promotedType?.unwrapTypeView<TypeImpl>() ?? type;
+          _resolver.flowAnalysis.storeExpressionInfo(receiver, expressionInfo);
+        }
+        receiver.resolution = element is InternalGetterElement
+            ? GetterInvocationResolutionImpl(element: element, type: type)
+            : InvalidNamedReadResolutionImpl(recoveryElement: element);
+      }
+      if (candidate is MultiplyDefinedElement) {
+        receiver.resolution = InvalidNamedReadResolutionImpl(
+          recoveryElement: candidate,
+        );
+      }
+      inferenceLogWriter?.enterFunctionExpressionInvocationTarget(receiver);
+      receiver.recordStaticType(type, resolver: _resolver);
+      if (type.isBottom) {
+        flow?.handleExit(offset: name.end);
+      }
+      inferenceLogWriter?.exitExpression(receiver);
+      var invocation = CallInvocationImpl(
+        receiver: receiver,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+      );
+      _resolver.replaceExpression(node, invocation);
+      _resolver.flowAnalysis.transferTestData(node, invocation);
+      _resolver.callInvocationResolver.resolve(
+        invocation,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      return;
+    }
+
+    _resolveNamedInvocation(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+      candidate: candidate,
+      element: element,
+      callFunctionType: callFunctionType,
+      isFunctionInterfaceCall: isFunctionInterfaceCall,
+    );
+  }
+
   bool _hasMatchingObjectMethod(
     MethodElement target,
     NodeListImpl<ArgumentImpl> arguments,
@@ -317,7 +570,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportInstanceAccessToStaticMember(
-    SimpleIdentifier nameNode,
+    Token nameNode,
     ExecutableElement element,
     bool nullReceiver,
   ) {
@@ -340,7 +593,10 @@ class MethodInvocationResolver with ScopeHelpers {
         enclosingElement.name == null) {
       _resolver.diagnosticReporter.report(
         diag.instanceAccessToStaticMemberOfUnnamedExtension
-            .withArguments(name: nameNode.name, kind: element.kind.displayName)
+            .withArguments(
+              name: nameNode.lexeme,
+              kind: element.kind.displayName,
+            )
             .at(nameNode),
       );
     } else {
@@ -349,7 +605,7 @@ class MethodInvocationResolver with ScopeHelpers {
       _resolver.diagnosticReporter.report(
         diag.instanceAccessToStaticMember
             .withArguments(
-              memberName: nameNode.name,
+              memberName: nameNode.lexeme,
               memberKind: element.kind.displayName,
               enclosingElementName: enclosingElement.name!,
               enclosingElementKind: enclosingElement is MixinElement
@@ -366,14 +622,6 @@ class MethodInvocationResolver with ScopeHelpers {
       diag.invocationOfNonFunction
           .withArguments(name: methodName.name)
           .at(methodName),
-    );
-  }
-
-  void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
-    _resolver.diagnosticReporter.report(
-      diag.prefixIdentifierNotFollowedByDot
-          .withArguments(name: target.name)
-          .at(target),
     );
   }
 
@@ -631,6 +879,75 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
+  void _resolveNamedInvocation(
+    NamedFunctionInvocationImpl node,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+    required Element? candidate,
+    required Element? element,
+    FunctionTypeImpl? callFunctionType,
+    bool isFunctionInterfaceCall = false,
+  }) {
+    InvocationTarget? target;
+    if (element is InternalExecutableElement) {
+      target = InvocationTargetExecutableElement(element);
+      node.resolution = ExecutableInvocationResolutionImpl(
+        element: element,
+        invokeType: element.type,
+        type: element.returnType,
+      );
+      if (candidate is MultiplyDefinedElement) {
+        node.resolution = InvalidInvocationResolutionImpl(
+          candidates: [candidate],
+          recovery: FunctionCallInvocationResolutionImpl(
+            invokeType: element.type,
+            type: element.returnType,
+          ),
+          type: element.returnType,
+        );
+      }
+    } else if (callFunctionType != null) {
+      target = InvocationTargetFunctionTypedExpression(callFunctionType);
+    }
+    var type =
+        NamedFunctionInvocationInferrer(
+              resolver: _resolver,
+              node: node,
+              argumentList: node.argumentList,
+              whyNotPromotedArguments: whyNotPromotedArguments,
+              contextType: contextType,
+              target: target,
+            ).resolveInvocation()
+            as TypeImpl;
+    var invokeType = node.staticInvokeType;
+    ValidInvocationResolutionImpl? resolution;
+    if (invokeType is FunctionTypeImpl) {
+      resolution = candidate is InternalExecutableElement
+          ? ExecutableInvocationResolutionImpl(
+              element: candidate,
+              invokeType: invokeType,
+              type: type,
+            )
+          : FunctionCallInvocationResolutionImpl(
+              invokeType: invokeType,
+              type: type,
+            );
+    }
+    if (target == null && !isFunctionInterfaceCall) {
+      type = InvalidTypeImpl.instance;
+      node.staticInvokeType = type;
+    }
+    node.resolution =
+        candidate is MultiplyDefinedElement || type is InvalidTypeImpl
+        ? InvalidInvocationResolutionImpl(
+            candidates: [?candidate],
+            recovery: resolution,
+            type: type,
+          )
+        : resolution ?? DynamicInvocationResolutionImpl(type: type);
+    node.recordStaticType(type, resolver: _resolver);
+  }
+
   void _resolveReceiverDynamicBounded(
     MethodInvocationImpl node,
     DartType receiverType,
@@ -756,144 +1073,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
   /// Resolves the method invocation, [node], as an instance invocation on an
   /// expression of type `Null`.
-  void _resolveReceiverNull(
-    MethodInvocationImpl node,
-    SimpleIdentifierImpl nameNode,
-    String name,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-  }) {
-    var scopeLookupResult = nameNode.scopeLookupResult!;
-    reportDeprecatedExportUseGetter(
-      scopeLookupResult: scopeLookupResult,
-      nameToken: nameNode.token,
-    );
-
-    var element = scopeLookupResult.getter;
-    if (element != null) {
-      nameNode.element = element;
-      if (element is MultiplyDefinedElement) {
-        element = element.conflictingElements[0];
-      }
-      if (element is InternalPropertyAccessorElement) {
-        _rewriteAsCallInvocation(
-          node,
-          node.target2,
-          node.operator,
-          node.methodName,
-          node.typeArguments,
-          node.argumentList,
-          element.returnType,
-          isCascaded: node.isCascaded,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        );
-        return;
-      }
-      if (element is InternalExecutableElement) {
-        _setResolution(
-          node,
-          element.type,
-          whyNotPromotedArguments,
-          contextType: contextType,
-          target: InvocationTargetExecutableElement(element),
-        );
-        return;
-      }
-      if (element is VariableElement) {
-        _resolver.checkReadOfNotAssignedLocalVariable(nameNode, element);
-        var targetType = _localVariableTypeProvider.getType(
-          nameNode,
-          isRead: true,
-        );
-        _rewriteAsCallInvocation(
-          node,
-          node.target2,
-          node.operator,
-          node.methodName,
-          node.typeArguments,
-          node.argumentList,
-          targetType,
-          isCascaded: node.isCascaded,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        );
-        return;
-      }
-      // TODO(scheglov): This is a questionable distinction.
-      if (element is PrefixElement) {
-        _setInvalidTypeResolution(
-          node,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        );
-        _reportPrefixIdentifierNotFollowedByDot(nameNode);
-        return;
-      }
-      _setInvalidTypeResolution(
-        node,
-        setNameTypeToDynamic: false,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      _reportInvocationOfNonFunction(node.methodName);
-      return;
-    }
-
-    var receiverType = _resolver.thisType;
-    if (receiverType == null) {
-      _reportUndefinedFunction(
-        node,
-        prefix: null,
-        name: node.methodName.name,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    element = scopeLookupResult.setter;
-    if (element != null) {
-      // If the scope lookup reveals a setter, but no getter, then we may still
-      // find the getter by looking up the inheritance chain (via
-      // TypePropertyResolver, via `_resolveReceiverType`). However, if the
-      // setter that was found is either top-level, or declared in an extension,
-      // or is static, then we do not keep searching for the getter; this
-      // setter represents the property being accessed (erroneously).
-      var noGetterIsPossible =
-          element.enclosingElement is LibraryElement ||
-          element.enclosingElement is ExtensionElement ||
-          (element is ExecutableElement && element.isStatic);
-      if (noGetterIsPossible) {
-        nameNode.element = element;
-
-        _setInvalidTypeResolution(
-          node,
-          setNameTypeToDynamic: false,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        );
-        _resolver.diagnosticReporter.report(
-          diag.undefinedMethod
-              .withArguments(methodName: name, type: receiverType)
-              .at(nameNode),
-        );
-        return;
-      }
-    }
-
-    _resolveReceiverType(
-      node: node,
-      receiver: null,
-      receiverType: receiverType,
-      nameNode: nameNode,
-      name: name,
-      receiverErrorNode: nameNode,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
   /// Resolves the method invocation, [node], as a top-level function
   /// invocation, referenced with a prefix.
   void _resolveReceiverPrefix(
@@ -1147,7 +1326,11 @@ class MethodInvocationResolver with ScopeHelpers {
       nameNode.element = target;
 
       if (target.isStatic) {
-        _reportInstanceAccessToStaticMember(nameNode, target, receiver == null);
+        _reportInstanceAccessToStaticMember(
+          nameNode.token,
+          target,
+          receiver == null,
+        );
       }
 
       if (target is PropertyAccessorElement) {

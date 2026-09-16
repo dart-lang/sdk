@@ -30,9 +30,11 @@ void f(A a) {
     var node = result.findNode.callInvocation('a(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -92,9 +94,11 @@ main(A a) {
     var node = result.findNode.callInvocation('a([');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::main::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::main::@formalParameter::a
+      type: A
     staticType: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -162,9 +166,11 @@ void f(A a, int context) {
     var node = result.findNode.callInvocation('a()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   argumentList: ArgumentList
     leftParenthesis: (
@@ -209,9 +215,11 @@ void f(A a) {
     var node = result.findNode.callInvocation('a<int>()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -434,9 +442,11 @@ extension on int? {
     var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int?
     staticType: int?
   argumentList: ArgumentList
     leftParenthesis: (
@@ -473,9 +483,11 @@ extension on (String,) {
     var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: (String,)
     staticType: (String,)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -511,9 +523,11 @@ void f() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: r
-    element: r@17
+  receiver: UnqualifiedNameExpression
+    name: r
+    resolution: VariableReadResolution
+      element: r@17
+      type: ({int Function() call})
     staticType: ({int Function() call})
   argumentList: ArgumentList
     leftParenthesis: (
@@ -547,9 +561,11 @@ void f((String,) a) {
     var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: (String,)
     staticType: (String,)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -582,9 +598,11 @@ void f(T Function<T>(T a) g) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: g
-    element: <testLibrary>::@function::f::@formalParameter::g
+  receiver: UnqualifiedNameExpression
+    name: g
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::g
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -637,9 +655,14 @@ void f(F<int> a) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int Function<T>(T)
+        alias: <testLibrary>::@typeAlias::F
+          typeArguments
+            int
     staticType: int Function<T>(T)
       alias: <testLibrary>::@typeAlias::F
         typeArguments
@@ -706,9 +729,11 @@ void f(int Function() g, int a) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: g
-    element: <testLibrary>::@function::f::@formalParameter::g
+  receiver: UnqualifiedNameExpression
+    name: g
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::g
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -761,9 +786,13 @@ class A {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: String Function(int, {int b}) Function()
+      type: String Function(int, {int b})
+        alias: <testLibrary>::@typeAlias::F
     staticType: String Function(int, {int b})
       alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
@@ -831,9 +860,12 @@ class B extends A {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: Function Function()
+      type: Function
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -868,9 +900,12 @@ const c = id(a, b);
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: id
-    element: <testLibrary>::@getter::id
+  receiver: UnqualifiedNameExpression
+    name: id
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::id
+      invokeType: bool Function(Object?, Object?) Function()
+      type: bool Function(Object?, Object?)
     staticType: bool Function(Object?, Object?)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -935,9 +970,11 @@ void f(Never x) {
     var node = result.findNode.callInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1018,9 +1055,11 @@ void f(Never? x) {
     var node = result.findNode.callInvocation('x<int>(1 + 2)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   typeArguments: TypeArgumentList
     leftBracket: <

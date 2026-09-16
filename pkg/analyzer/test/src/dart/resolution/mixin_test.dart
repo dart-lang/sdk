@@ -278,9 +278,11 @@ mixin M<T> on C<T> {}
     var node = result.findNode.callInvocation('f()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: f
-    element: <testLibrary>::@function::g::@formalParameter::f
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: M<T> Function<T>()
     staticType: M<T> Function<T>()
   argumentList: ArgumentList
     leftParenthesis: (

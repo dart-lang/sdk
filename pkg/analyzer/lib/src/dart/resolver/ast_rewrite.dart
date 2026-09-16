@@ -304,6 +304,101 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionChainImpl node,
   ) {
+    var invocationParts = switch (node.components) {
+      [ParsedArgumentsImpl(:var argumentList)] => (
+        access: null,
+        typeArguments: null,
+        argumentList: argumentList,
+      ),
+      [
+        ParsedTypeArgumentsImpl(:var typeArguments),
+        ParsedArgumentsImpl(:var argumentList),
+      ] =>
+        (
+          access: null,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        ),
+      [ParsedNameAccessImpl access, ParsedArgumentsImpl(:var argumentList)]
+          when access.operator.type == TokenType.PERIOD =>
+        (access: access, typeArguments: null, argumentList: argumentList),
+      [
+        ParsedNameAccessImpl access,
+        ParsedTypeArgumentsImpl(:var typeArguments),
+        ParsedArgumentsImpl(:var argumentList),
+      ]
+          when access.operator.type == TokenType.PERIOD =>
+        (
+          access: access,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        ),
+      _ => null,
+    };
+    if (invocationParts case (
+      :var access,
+      :var typeArguments,
+      :var argumentList,
+    )) {
+      var name = node.head.name;
+      var lookup = nameScope.lookup(name.lexeme);
+      ImportPrefixReferenceImpl? importPrefix;
+      if (access != null) {
+        var prefix = lookup.getter;
+        if (prefix is! PrefixElement) {
+          var expression = node.buildUnresolvedExpression();
+          node.replaceWith(expression);
+          return expression;
+        }
+        importPrefix = ImportPrefixReferenceImpl(
+          name: name,
+          period: access.operator,
+        )..element = prefix;
+        name = access.name;
+        lookup = prefix.scope.lookup(name.lexeme);
+      }
+      var element = lookup.getter;
+      ExpressionImpl expression;
+      if (element is InterfaceElement ||
+          element is TypeAliasElement && element.aliasedType is InterfaceType) {
+        expression = ConstructorInvocationImpl(
+          keyword: null,
+          constructorReference: ConstructorReference2Impl(
+            typeReference: ConstructorTypeReferenceImpl(
+              importPrefix: importPrefix,
+              name: name,
+              typeArguments: typeArguments,
+            ),
+            selector: null,
+          ),
+          argumentList: argumentList,
+          typeArguments: null,
+        );
+      } else if (element is ExtensionElementImpl) {
+        expression = ExtensionOverrideImpl(
+          importPrefix: importPrefix,
+          name: name,
+          element: element,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        );
+      } else if (importPrefix != null) {
+        expression = ImportPrefixedFunctionInvocationImpl(
+          importPrefix: importPrefix,
+          name: name,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        );
+      } else {
+        expression = UnqualifiedFunctionInvocationImpl(
+          name: name,
+          typeArguments: typeArguments,
+          argumentList: argumentList,
+        )..scopeLookupResult = lookup;
+      }
+      node.replaceWith(expression);
+      return expression;
+    }
     if (node.components.any(
       (component) => component is! ParsedNameAccessImpl,
     )) {

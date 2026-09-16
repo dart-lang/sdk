@@ -367,7 +367,7 @@ class GenericInferrer {
                 typeParameterName: name,
                 detailText: _formatError(parameter, inferred, constraints),
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
 
         // Heuristic: even if we failed, keep the erroneous type.
@@ -402,7 +402,7 @@ class GenericInferrer {
                     ' [$typeParametersStr], but a function with'
                     ' type parameters cannot be used as a type argument.',
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
 
@@ -458,7 +458,7 @@ class GenericInferrer {
                     "\nConsider passing explicit type argument(s) "
                     "to the generic.\n\n'",
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
     }
@@ -512,7 +512,7 @@ class GenericInferrer {
                     ", instantiated from '${_typeStr(rawBound)}'"
                     " using type arguments ${typeArguments.map(_typeStr).toList()}.",
               )
-              .at(errorEntity!),
+              .at(_diagnosticEntity(errorEntity!)),
         );
       }
     }
@@ -523,6 +523,13 @@ class GenericInferrer {
       types[i] = _typeSystem.demoteType(types[i]);
     }
   }
+
+  /// Named invocations supply semantic context for inference, but diagnostics
+  /// are anchored on the written name, as for the legacy identifier child.
+  SyntacticEntity _diagnosticEntity(SyntacticEntity entity) => switch (entity) {
+    NamedFunctionInvocation(:var name) => name,
+    _ => entity,
+  };
 
   String _elementStr(ElementImpl element) {
     return element.displayString();
@@ -610,6 +617,28 @@ class GenericInferrer {
       // Casts via `as` do not play a part in downward inference. We allow an
       // exception when inference has "failed" but the return value is
       // immediately cast with `as`.
+      return;
+    }
+    if (errorEntity is NamedFunctionInvocation) {
+      if (errorEntity.parent2 is AsExpression) {
+        return;
+      }
+      _reportNamedInferenceFailure(
+        diagnosticReporter: diagnosticReporter,
+        errorEntity: errorEntity.name,
+        element: switch (errorEntity.resolution) {
+          ExecutableInvocationResolution(:var element) => element,
+          InvalidInvocationResolution(:var candidates)
+              when candidates.isNotEmpty =>
+            candidates.first,
+          InvalidInvocationResolution(
+            recovery: ExecutableInvocationResolution(:var element),
+          ) =>
+            element,
+          _ => null,
+        },
+        name: errorEntity.name.lexeme,
+      );
       return;
     }
     if (errorEntity is ConstructorReference2Impl) {

@@ -3533,9 +3533,11 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     condition2: CallInvocation
-      receiver: SimpleIdentifier
-        token: b
-        element: <testLibrary>::@function::f::@formalParameter::b
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: bool Function()
         staticType: bool Function()
       argumentList: ArgumentList
         leftParenthesis: (

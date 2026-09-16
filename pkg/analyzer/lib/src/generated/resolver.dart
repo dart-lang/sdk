@@ -3896,7 +3896,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant ImportPrefixedFunctionInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+    _resolveScopeFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -4317,8 +4317,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     ExpressionImpl resolvedNode = peekRewrite()!;
     if (identical(resolvedNode, node) && node.isCascaded) {
       resolvedNode = _rewriteCascadeMethodInvocation(node);
-    } else if (identical(resolvedNode, node) && node.target2 == null) {
-      resolvedNode = _rewriteUnqualifiedFunctionInvocation(node);
     } else if (identical(resolvedNode, node)) {
       var target = node.target2;
       if (target is SimpleIdentifierImpl) {
@@ -5350,7 +5348,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant UnqualifiedFunctionInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+    _resolveScopeFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -5929,6 +5927,48 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     _insertImplicitCallTearOff(replacement, contextType: contextType);
   }
 
+  void _resolveScopeFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    // Direct lowering records lexical lookup but leaves invocation resolution
+    // unset. Nodes with an existing resolution use the re-inference path.
+    if (node.resolution != null) {
+      _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+      return;
+    }
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    switch (node) {
+      case ImportPrefixedFunctionInvocationImpl():
+        elementResolver.visitImportPrefixedFunctionInvocation(
+          node,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      case UnqualifiedFunctionInvocationImpl():
+        elementResolver.visitUnqualifiedFunctionInvocation(
+          node,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      default:
+        throw StateError('Unexpected scope invocation: $node');
+    }
+    var replacement = insertGenericFunctionInstantiation(
+      peekRewrite()!,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
   CascadeMethodInvocationImpl _rewriteCascadeMethodInvocation(
     MethodInvocationImpl node,
   ) {
@@ -6086,22 +6126,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       argumentList: node.argumentList,
     );
     _transferReceiverMethodInvocationResolution(node, invocation);
-    replaceExpression(node, invocation);
-    flowAnalysis.transferExpressionInfo(node, invocation);
-    flowAnalysis.transferTestData(node, invocation);
-    inferenceHelper.transferTestData(node, invocation);
-    return invocation;
-  }
-
-  UnqualifiedFunctionInvocationImpl _rewriteUnqualifiedFunctionInvocation(
-    MethodInvocationImpl node,
-  ) {
-    var invocation = UnqualifiedFunctionInvocationImpl(
-      name: node.methodName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    );
-    _transferNamedFunctionInvocationResolution(node, invocation);
     replaceExpression(node, invocation);
     flowAnalysis.transferExpressionInfo(node, invocation);
     flowAnalysis.transferTestData(node, invocation);
@@ -6508,10 +6532,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
     } else if (nameNode is MethodInvocation) {
       name = nameNode.methodName.name;
+    } else if (nameNode is NamedFunctionInvocation) {
+      name = nameNode.name.lexeme;
     } else if (nameNode is CallInvocation) {
       var function = nameNode.receiver;
       if (function is SimpleIdentifier) {
         name = function.name;
+      } else if (function is UnqualifiedNameExpression) {
+        name = function.name.lexeme;
       }
     } else if (nameNode is EnumConstantArguments) {
       var parent = nameNode.parent2;

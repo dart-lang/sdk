@@ -1130,9 +1130,11 @@ int test<T extends int Function(int)>(T Function() createT) {
     var node = result.findNode.callInvocation("('')");
     assertResolvedNodeText(node, r'''CallInvocation
   receiver: CallInvocation
-    receiver: SimpleIdentifier
-      token: createT
-      element: <testLibrary>::@function::test::@formalParameter::createT
+    receiver: UnqualifiedNameExpression
+      name: createT
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::createT
+        type: T Function()
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1185,9 +1187,11 @@ int test<T extends int Function(int)>(T Function() createT) {
     var node = result.findNode.callInvocation('(0)');
     assertResolvedNodeText(node, r'''CallInvocation
   receiver: CallInvocation
-    receiver: SimpleIdentifier
-      token: createT
-      element: <testLibrary>::@function::test::@formalParameter::createT
+    receiver: UnqualifiedNameExpression
+      name: createT
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::createT
+        type: T Function()
       staticType: T Function()
     argumentList: ArgumentList
       leftParenthesis: (

@@ -2777,9 +2777,11 @@ void f(C c) {
     var node = result.findNode.callInvocation('c();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2820,9 +2822,11 @@ void f(C c) {
     var node = result.findNode.callInvocation('c();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2915,9 +2919,12 @@ class B extends A {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2953,9 +2960,12 @@ class C {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::foo
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2987,9 +2997,11 @@ f(Function foo) {
     var node = result.findNode.callInvocation('foo(1, 2);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::f::@formalParameter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: Function
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3046,11 +3058,14 @@ class C<T extends MyFunction> {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: SubstitutedGetterElementImpl
-      baseElement: <testLibrary>::@class::C::@getter::foo
-      substitution: {T: T}
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: SubstitutedGetterElementImpl
+        baseElement: <testLibrary>::@class::C::@getter::foo
+        substitution: {T: T}
+      invokeType: T Function()
+      type: T
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3099,9 +3114,11 @@ main(Object foo) {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::main::@formalParameter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::main::@formalParameter::foo
+      type: Object
     staticType: Object
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3134,9 +3151,11 @@ main(foo) {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::main::@formalParameter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::main::@formalParameter::foo
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3229,9 +3248,12 @@ class C {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::foo
+      invokeType: int Function()
+      type: int
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4375,9 +4397,11 @@ main() {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: foo@16
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: foo@16
+      type: void
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4449,9 +4473,12 @@ main() {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: void Function()
+      type: void
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5364,6 +5391,85 @@ V1: MethodInvocation
 ''');
   }
 
+  test_hasReceiver_importPrefix_topFunction_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+T foo<T extends num>(T value) => value;
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.foo<num>(1);
+}
+''');
+    var node = result.findNode.importPrefixedFunctionInvocation('foo<num>(1)');
+    assertResolvedNodeText(node, r'''
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::value
+          substitution: {T: num}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::foo
+    invokeType: num Function(num)
+    type: num
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    element: <testLibraryFragment>::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: package:test/a.dart::@function::foo
+    staticType: T Function<T extends num>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::foo::@formalParameter::value
+          substitution: {T: num}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: num Function(num)
+  staticType: num
+  typeArgumentTypes
+    num
+''');
+  }
+
   test_hasReceiver_importPrefix_topGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 T Function<T>(T a, T b) get foo => null;
@@ -5380,17 +5486,16 @@ main() {
     var node = result.findNode.callInvocation('foo(1, 2);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
+  receiver: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
       element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      staticType: T Function<T>(T, T)
-    element: package:test/a.dart::@getter::foo
+      invokeType: T Function<T>(T, T) Function()
+      type: T Function<T>(T, T)
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7482,9 +7587,12 @@ class A {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7531,9 +7639,12 @@ class A {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7579,9 +7690,12 @@ class A {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7623,9 +7737,11 @@ void f(foo) {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::f::@formalParameter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7744,9 +7860,12 @@ void f() {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: int Function()
+      type: int
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7791,9 +7910,12 @@ void f() {
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7822,6 +7944,159 @@ V1: FunctionExpressionInvocation
   element: <null>
   staticInvokeType: dynamic
   staticType: dynamic
+''');
+  }
+
+  test_importPrefixedFunction_topLevelInitializer_secondResolution() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+T id<T>(T value) => value;
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+var x = prefix.id(0);
+''');
+    var node = result.findNode.importPrefixedFunctionInvocation('id(0)');
+    assertResolvedNodeText(node, r'''
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: prefix
+    element: <testLibraryFragment>::@prefix::prefix
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: id
+    element: package:test/a.dart::@function::id
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_importPrefixedVariable_implicitCall_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  T call<T>(T value) => value;
+}
+final a = A();
+''');
+    var result = await resolveTestCode(r'''
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.a<int>(0);
+}
+''');
+    var node = result.findNode.callInvocation('a<int>(0)');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: a
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@getter::a
+      invokeType: A Function()
+      type: A
+    staticType: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::A::@method::call
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: a
+      element: package:test/a.dart::@getter::a
+      staticType: A
+    element: package:test/a.dart::@getter::a
+    staticType: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::A::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  element: package:test/a.dart::@class::A::@method::call
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -8698,9 +8973,12 @@ class B extends A {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8747,9 +9025,12 @@ class C {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::foo
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8877,9 +9158,11 @@ void f(C c) {
     var node = result.findNode.callInvocation('c(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8926,9 +9209,11 @@ main() {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: foo@15
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: foo@15
+      type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -9065,9 +9350,11 @@ void f(void Function(int) foo) {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@function::f::@formalParameter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -9146,9 +9433,12 @@ void f(F a) {
     var node = result.findNode.callInvocation('a();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
     staticType: void Function()
       alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
@@ -9172,6 +9462,47 @@ V1: FunctionExpressionInvocation
   staticInvokeType: void Function()
     alias: <testLibrary>::@typeAlias::F
   staticType: void
+''');
+  }
+
+  test_noReceiver_recordField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on (int Function(String),) {
+  int f() => $1('x');
+}
+''');
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: $1
+    resolution: RecordFieldReadResolution
+      type: int Function(String)
+    staticType: int Function(String)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: 'x'
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: $1
+    element: <null>
+    staticType: int Function(String)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: 'x'
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function(String)
+  staticType: int
 ''');
   }
 
@@ -9231,9 +9562,12 @@ main() {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -9278,9 +9612,12 @@ main() {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@getter::foo
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: void Function(int) Function()
+      type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -10221,9 +10558,11 @@ f(int Function() a, int b) {
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -10532,11 +10871,14 @@ extension E<T extends Function> on List<T> {
     var node = result.findNode.callInvocation('first()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: first
-    element: SubstitutedGetterElementImpl
-      baseElement: dart:core::@class::Iterable::@getter::first
-      substitution: {E: T}
+  receiver: UnqualifiedNameExpression
+    name: first
+    resolution: GetterInvocationResolution
+      element: SubstitutedGetterElementImpl
+        baseElement: dart:core::@class::Iterable::@getter::first
+        substitution: {E: T}
+      invokeType: T Function()
+      type: T
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
