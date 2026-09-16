@@ -6557,6 +6557,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           : '${nameNodeName.name}.new';
     } else if (nameNode is DotShorthandConstructorInvocation) {
       name = nameNode.constructorName.name;
+    } else if (nameNode is DotShorthandConstructorInvocation2) {
+      name = nameNode.name.lexeme;
     } else if (nameNode is DotShorthandInvocation) {
       name = nameNode.memberName.name;
     } else {

@@ -125,6 +125,61 @@ void f() {
 ''');
   }
 
+  test_dotShorthandConstructorInvocation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x);
+}
+A f() => .named();
+//              ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'named', but 0 found.
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_named_plural() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x, int y);
+}
+A f() => .named(1);
+//               ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'named', but 1 found.
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x);
+}
+A f() => .new();
+//            ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'new', but 0 found.
+''');
+  }
+
+  test_dotShorthandMethodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A make(int x) => throw 0;
+}
+A f() => .make();
+//             ^
+// [diag.notEnoughPositionalArgumentsNameSingular] 1 positional argument expected by 'make', but 0 found.
+''');
+  }
+
+  test_dotShorthandMethodInvocation_plural() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A make(int x, int y) => throw 0;
+}
+A f() => .make(1);
+//              ^
+// [diag.notEnoughPositionalArgumentsNamePlural] 2 positional arguments expected by 'make', but 1 found.
+''');
+  }
+
   test_enumConstant_withArgumentList() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
