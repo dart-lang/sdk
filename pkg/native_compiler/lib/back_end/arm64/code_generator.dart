@@ -952,6 +952,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     Register scratch1Reg,
     Register scratch2Reg, {
     required bool valueCanBeSmi,
+    bool isArray = false,
   }) {
     // Test whether
     //  - object is old and not remembered and value is new, or
@@ -961,7 +962,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final done = Label();
     Label slowPath = addSlowPath(() {
       _asm.callStub(
-        backEndState.stubFactory.getWriteBarrierStub(objectReg, valueReg),
+        backEndState.stubFactory.getWriteBarrierStub(
+          objectReg,
+          valueReg,
+          isArray,
+        ),
       );
       _asm.b(done);
     });
@@ -1330,7 +1335,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     if (instr.kind == .fixedLengthList &&
         !_canSkipWriteBarrier(instr.array, instr.value)) {
-      // TODO: array-specific write barrier.
+      assert(temporaryReg(instr, 2) == WriteBarrierStub.slotReg);
+      final addr = elementAddr as RegOffsetAddress;
+      _asm.addImmediate(WriteBarrierStub.slotReg, addr.base, addr.offset);
       final valueReg = inputReg(instr, 2);
       final scratch1Reg = temporaryReg(instr, 0);
       final scratch2Reg = temporaryReg(instr, 1);
@@ -1340,6 +1347,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         scratch1Reg,
         scratch2Reg,
         valueCanBeSmi: _canBeSmi(instr.value),
+        isArray: true,
       );
     }
   }
@@ -2411,6 +2419,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         RegOffsetAddress(stackPointerReg, 0),
       );
       _callRuntime(RuntimeEntry.BoxInt, 0);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 0));
       _asm.b(done);
     });
 
@@ -2466,6 +2475,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         RegOffsetAddress(stackPointerReg, 0),
       );
       _callRuntime(RuntimeEntry.BoxDouble, 0);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 0));
       _asm.b(done);
     });
 

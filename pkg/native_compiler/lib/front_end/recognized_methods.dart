@@ -667,6 +667,13 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .bitLength);
     },
+    index.getProcedure(
+      'dart:core',
+      '_IntegerImplementation',
+      'toDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .toDouble);
+    },
     // TODO: implement 'operator ==' instead of '_equalToInteger'
     index.getProcedure(
       'dart:core',
