@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_extensions.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_schedule.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
@@ -247,49 +248,18 @@ class MigrationRunner({
     var runBump = steps.runBump;
     var runCleanup = steps.runCleanup;
 
+    var schedule = MigrationSchedule.plan(
+      targets: pubspecTargets,
+      summaryBuilder: summaryBuilder,
+      targetSdkVersion: targetSdk,
+      steps: steps,
+    );
+
     try {
-      for (var pubspec in pubspecTargets) {
-        var packageSummary = summaryBuilder.forPackage(pubspec);
-
-        var pubspecFile = pubspec.file;
-        var initialVersion = minimumSdkConstraint(pubspecFile);
-        if (initialVersion == null) {
-          packageSummary.recordSkipped('Unknown SDK version.');
-          continue;
-        }
-
-        var truncatedInitialVersion = initialVersion.truncatedToMinor;
-        if (!knownSdkVersions.contains(truncatedInitialVersion)) {
-          packageSummary.recordSkipped(
-            'The package SDK version "$initialVersion" is not supported for '
-            'migration. It must be between ${knownSdkVersions.first} and '
-            '${knownSdkVersions.last}.',
-          );
-          continue;
-        }
-
-        if (targetSdk == null &&
-            (runPrepare || runBump) &&
-            truncatedInitialVersion == knownSdkVersions.last) {
-          packageSummary.recordSkipped(
-            'The package is already at the latest supported SDK version '
-            '(${knownSdkVersions.last}).',
-          );
-          continue;
-        }
-
-        if (targetSdk != null && _hasReachedTarget(initialVersion, targetSdk)) {
-          packageSummary.recordSkipped(
-            'Already at target SDK version $targetSdk.',
-          );
-          continue;
-        }
-
-        if (!runPrepare && !runBump && !runCleanup) {
-          continue;
-        }
-
-        var currentVersion = initialVersion;
+      for (var package in schedule.packages) {
+        var pubspec = package.pubspec;
+        var packageSummary = package.summary;
+        var currentVersion = package.initialVersion;
 
         // Perform sequential version bumps until the target SDK is reached.
         while (!_hasReachedTarget(currentVersion, targetSdk)) {

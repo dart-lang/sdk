@@ -394,6 +394,25 @@ test_project:
     );
   }
 
+  /// A prerelease constraint counts as the version it belongs to.
+  Future<void> test_alreadyAtTargetSdk_prerelease() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0-dev.1'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+test_project:
+  Skipped (Already at target SDK version 3.13.0.)''',
+    );
+  }
+
   Future<void> test_dependencyConflictIntermediateStep() async {
     var depPath = convertPath('/dep_package');
     writePubspecFile(join(depPath, 'pubspec.yaml'), '''
@@ -1180,8 +1199,7 @@ resolution: workspace
     );
   }
 
-  Future<void> test_internalError_unableToCalculateNextSdkVersion() async {
-    failTestOnAnyErrorNotification = false;
+  Future<void> test_targetSdkAboveKnownRange() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
@@ -1199,9 +1217,6 @@ environment:
       steps: [MigrationStep.All],
     );
 
-    // Target a version higher than knownSdkVersions.last directly in
-    // MigrationRunner to simulate an internal error where nextSdkVersion
-    // returns null.
     var targetSdk = Version(
       knownSdkVersions.last.major,
       knownSdkVersions.last.minor + 1,
@@ -1219,7 +1234,9 @@ environment:
     expect(
       summaryBuilder.generate(),
       contains(
-        'Skipped (Internal error: Unable to calculate next SDK version.)',
+        'Skipped (The target SDK version "$targetSdk" is not supported for '
+        'migration. It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.)',
       ),
     );
   }
@@ -1839,6 +1856,30 @@ class C {
   new name();
 }
 ''',
+    );
+  }
+
+  /// Cleanup does not advance the SDK version, so a package that is already at
+  /// the latest known version is still eligible for it.
+  Future<void> test_cleanup_atLatestKnownSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary:
+          '''
+test_project:
+  ${knownSdkVersions.last}:
+    Cleanup changes:
+      0 changes made in 0 files.''',
     );
   }
 
