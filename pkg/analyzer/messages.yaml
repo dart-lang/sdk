@@ -23294,6 +23294,13 @@ HintCode:
       If some of the names imported by this import are intended to be used but
       aren't yet, and if those names aren't imported by other imports, then add
       the missing references to those names.
+JsInteropCode:
+  jsInteropExtensionConstructorJsAnnotationHasNoEffect:
+    type: compileTimeError
+    parameters: none
+    problemMessage: "The '@JS' annotation on an extension type constructor has no effect and is disallowed."
+    correctionMessage: "Try removing the '@JS' annotation from the constructor, and putting it on the extension type to rename non-object literal constructors."
+    hasPublishedDocs: false
 ManifestWarningCode:
   cameraPermissionsIncompatible:
     type: staticWarning

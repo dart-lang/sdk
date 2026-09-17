@@ -525,6 +525,8 @@ import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
+import 'js_interop_extension_constructor_js_annotation_has_no_effect_test.dart'
+    as js_interop_extension_constructor_js_annotation_has_no_effect;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_local_already_assigned_test.dart'
@@ -1294,6 +1296,7 @@ main() {
     invalid_widget_preview_private_argument.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
+    js_interop_extension_constructor_js_annotation_has_no_effect.main();
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_local_already_assigned.main();

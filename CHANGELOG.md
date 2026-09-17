@@ -97,6 +97,16 @@
 
 ### Tools
 
+#### Analyzer
+
+- Report an error (`js_interop_extension_constructor_js_annotation_has_no_effect`)
+  when an `@JS` annotation is placed on an `external` constructor or factory of a
+  `dart:js_interop` extension type, matching the CFE. Move the `@JS` annotation to
+  the extension type declaration itself to rename non-object literal constructors.
+  For more details, see SDK issue [#54366][].
+
+[#54366]: https://github.com/dart-lang/sdk/issues/54366
+
 #### Formatter
 
 The following bug fixes are *not* language versioned and apply also when

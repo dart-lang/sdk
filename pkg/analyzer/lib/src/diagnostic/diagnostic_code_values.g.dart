@@ -645,6 +645,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.invocationOfExtensionWithoutCall,
   diag.invocationOfNonFunction,
   diag.invocationOfNonFunctionExpression,
+  diag.jsInteropExtensionConstructorJsAnnotationHasNoEffect,
   diag.labelInOuterScope,
   diag.labelUndefined,
   diag.lateFinalFieldWithConstConstructor,

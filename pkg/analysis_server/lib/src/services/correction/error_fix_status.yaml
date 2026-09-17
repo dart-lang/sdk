@@ -1107,6 +1107,11 @@ invocation_of_non_function:
     Suggest similarly named functions.
 invocation_of_non_function_expression:
   status: hasFix
+js_interop_extension_constructor_js_annotation_has_no_effect:
+  status: needsFix
+  notes: |-
+    Move the `@JS` annotation to the extension type declaration.
+    Remove the `@JS` annotation (`RemoveAnnotation`).
 label_in_outer_scope:
   status: noFix
 label_undefined:
