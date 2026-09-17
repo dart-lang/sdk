@@ -400,6 +400,16 @@ var x = 1 + 2;
     expect(result.value!.toIntValue(), 3);
   }
 
+  test_hasValue_booleanLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = true;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toBoolValue(), isTrue);
+  }
+
   test_hasValue_constantReference() async {
     var unitResult = await resolveTestCode('''
 const a = 42;
@@ -444,6 +454,16 @@ const x = p.a;
     }
   }
 
+  test_hasValue_doubleLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 3.14;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toDoubleValue(), 3.14);
+  }
+
   test_hasValue_intLiteral() async {
     var unitResult = await resolveTestCode('''
 var x = 42;
@@ -454,10 +474,110 @@ var x = 42;
     expect(result.value!.toIntValue(), 42);
   }
 
+  test_hasValue_nullLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = null;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.isNull, isTrue);
+  }
+
+  test_hasValue_stringLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 'hello';
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toStringValue(), 'hello');
+  }
+
   test_nonConstant() async {
     var unitResult = await resolveTestCode('''
 var a = 42;
 var x = a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_assignment() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = (a = 1);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_cascade() async {
+    var unitResult = await resolveTestCode('''
+var x = [1]..add(2);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_functionExpression() async {
+    var unitResult = await resolveTestCode('''
+var x = () => 42;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_getter() async {
+    var unitResult = await resolveTestCode('''
+int get g => 42;
+var x = g;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_instanceCreation() async {
+    var unitResult = await resolveTestCode('''
+class C {
+  C();
+}
+var x = C();
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_nullAssertion() async {
+    var unitResult = await resolveTestCode('''
+int? a = 42;
+var x = a!;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_postfix() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = a++;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_prefixIncrement() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = ++a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_throw() async {
+    var unitResult = await resolveTestCode('''
+var x = throw 42;
 ''');
     var result = _evaluateX(unitResult);
     expect(result, isNull);

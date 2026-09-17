@@ -18507,6 +18507,101 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     }
 
     var libraryElement = unitFragment.element;
+
+    switch (this) {
+      case AssignmentExpression() ||
+          AwaitExpression() ||
+          CascadeExpression() ||
+          FunctionExpression() ||
+          IncrementOrDecrementExpression() ||
+          NullAssertionExpression() ||
+          PostfixExpression() ||
+          RethrowExpression() ||
+          SuperExpression() ||
+          ThisExpression() ||
+          ThrowExpression():
+        return null;
+      case PrefixExpression(:var operator)
+          when operator.type == TokenType.PLUS_PLUS ||
+              operator.type == TokenType.MINUS_MINUS:
+        return null;
+      case ConstructorInvocation(isConst: false) ||
+              DotShorthandConstructorInvocation(isConst: false) ||
+              DotShorthandConstructorInvocation2(isConst: false) ||
+              InstanceCreationExpression(isConst: false)
+          when !inConstantContext:
+        return null;
+      case SimpleIdentifier(:var element):
+        if (element case MethodElement(isStatic: false)) {
+          return null;
+        }
+        var variableElement = element is PropertyAccessorElement
+            ? element.variable
+            : element;
+        if (variableElement case VariableElement(isConst: false)) {
+          return null;
+        }
+      case UnqualifiedNameExpression(
+        resolution: NamedReadResolutionWithElement(:var element),
+      ):
+        if (element case MethodElement(isStatic: false)) {
+          return null;
+        }
+        var variableElement = element is PropertyAccessorElement
+            ? element.variable
+            : element;
+        if (variableElement case VariableElement(isConst: false)) {
+          return null;
+        }
+      case BooleanLiteral(:var value):
+        return AttemptedConstantEvaluationResult._(
+          DartObjectImpl(
+            libraryElement.typeSystem,
+            libraryElement.typeProvider.boolType,
+            BoolState.from(value),
+          ),
+          const [],
+        );
+      case DoubleLiteral(:var value):
+        return AttemptedConstantEvaluationResult._(
+          DartObjectImpl(
+            libraryElement.typeSystem,
+            libraryElement.typeProvider.doubleType,
+            DoubleState(value),
+          ),
+          const [],
+        );
+      case IntegerLiteral(:var value):
+        return AttemptedConstantEvaluationResult._(
+          DartObjectImpl(
+            libraryElement.typeSystem,
+            libraryElement.typeProvider.intType,
+            IntState(value),
+          ),
+          const [],
+        );
+      case NullLiteral():
+        return AttemptedConstantEvaluationResult._(
+          DartObjectImpl(
+            libraryElement.typeSystem,
+            libraryElement.typeProvider.nullType,
+            NullState.NULL_STATE,
+          ),
+          const [],
+        );
+      case SimpleStringLiteral(:var value):
+        return AttemptedConstantEvaluationResult._(
+          DartObjectImpl(
+            libraryElement.typeSystem,
+            libraryElement.typeProvider.stringType,
+            StringState(value),
+          ),
+          const [],
+        );
+      default:
+        break;
+    }
+
     var declaredVariables = libraryElement.session.declaredVariables;
 
     var evaluationEngine = ConstantEvaluationEngine(
@@ -18517,12 +18612,14 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     var dependencies = <ConstantEvaluationTarget>[];
     accept2(ReferenceFinder(dependencies.add));
 
-    computeConstants(
-      declaredVariables: declaredVariables,
-      constants: dependencies,
-      featureSet: libraryElement.featureSet,
-      configuration: ConstantEvaluationConfiguration(),
-    );
+    if (dependencies.isNotEmpty) {
+      computeConstants(
+        declaredVariables: declaredVariables,
+        constants: dependencies,
+        featureSet: libraryElement.featureSet,
+        configuration: ConstantEvaluationConfiguration(),
+      );
+    }
 
     var diagnosticListener = RecordingDiagnosticListener();
     var visitor = ConstantVisitor(
