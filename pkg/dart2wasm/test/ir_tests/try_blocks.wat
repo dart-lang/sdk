@@ -4,6 +4,7 @@
   (type $Array<WasmI32> <...>)
   (type $JSExternWrapper <...>)
   (type $JavaScriptStack <...>)
+  (tag $WebAssembly.JSTag (import "WebAssembly" "JSTag") (param externref))
   (tag $tag0 (param (ref $#Top) (ref $#Top)))
   (global $"WasmArray<WasmI16>[718]" (ref $Array<WasmI16>) <...>)
   (global $"WasmArray<WasmI32>[249]" (ref $Array<WasmI32>) <...>)
