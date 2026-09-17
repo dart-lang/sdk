@@ -301,12 +301,18 @@ class MigrationRunner({
               // This should be unreachable because `initialVersion` and
               // `targetSdk` have already been verified to be in
               // `knownSdkVersions`.
+              var stateError = StateError(
+                'Unable to calculate the next SDK version after '
+                '$currentVersion (target: $targetSdk).',
+              );
+              var stackTrace = StackTrace.current;
               server.instrumentationService.logException(
-                StateError(
-                  'Unable to calculate the next SDK version after '
-                  '$currentVersion (target: $targetSdk).',
-                ),
-                StackTrace.current,
+                stateError,
+                stackTrace,
+              );
+              server.sessionLogger.logException(
+                exception: stateError,
+                stackTrace: stackTrace,
               );
               packageSummary.recordSkipped(
                 'Internal error: Unable to calculate next SDK version.',

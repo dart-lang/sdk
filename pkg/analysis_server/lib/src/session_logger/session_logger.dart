@@ -59,6 +59,31 @@ class SessionLogger {
     });
   }
 
+  /// Log that the given [arguments] were included on the command-line.
+  void logException({
+    required Object exception,
+    StackTrace? stackTrace,
+    List<Object>? attachments,
+  }) {
+    // TODO(brianwilkerson): Provide special handling for `CaughtException` and
+    //  `FatalException`. See implementations of
+    //  `InstrumentationService.logException` for more details.
+    // TODO(brianwilkerson): `InstrumentationService` is defined in the
+    //  `analyzer` package and is used in several places to report exceptions.
+    //  Those eceptions are not currently being recorded. There are two possible
+    //  paths:
+    //  - move `SessionLogger` to the analyzer package
+    //  - pass in an `InstrumentationService` that forwards exceptions to a
+    //    session logger
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.exception.name,
+      key.message: exception.toString(),
+      key.stackTrace: ?stackTrace?.toString(),
+      key.attachments: ?attachments,
+    });
+  }
+
   /// Logs that the given [message] was sent [from] one process [to] another.
   void logMessage({
     required ProcessId from,

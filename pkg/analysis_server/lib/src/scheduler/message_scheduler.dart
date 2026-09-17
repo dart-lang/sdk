@@ -274,10 +274,22 @@ final class MessageScheduler {
         );
       }
     } catch (error, stackTrace) {
+      var fatalException = FatalException(
+        'Failed to process message',
+        error,
+        stackTrace,
+      );
+      var attachments = server.crashReportingAttachmentsBuilder.forException(
+        error,
+      );
       server.instrumentationService.logException(
-        FatalException('Failed to process message', error, stackTrace),
+        fatalException,
         null,
-        server.crashReportingAttachmentsBuilder.forException(error),
+        attachments,
+      );
+      server.sessionLogger.logException(
+        exception: fatalException,
+        attachments: attachments,
       );
     }
     _processingIsScheduled = false;

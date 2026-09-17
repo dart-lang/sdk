@@ -681,14 +681,22 @@ class LegacyAnalysisServer extends AnalysisServer {
           sendResponse(exception.response);
         } else {
           // Log the exception.
+          var fatalException = FatalException(
+            'Failed to handle request: ${request.method}',
+            exception,
+            stackTrace,
+          );
+          var attachments = crashReportingAttachmentsBuilder.forException(
+            exception,
+          );
           instrumentationService.logException(
-            FatalException(
-              'Failed to handle request: ${request.method}',
-              exception,
-              stackTrace,
-            ),
+            fatalException,
             null,
-            crashReportingAttachmentsBuilder.forException(exception),
+            attachments,
+          );
+          sessionLogger.logException(
+            exception: fatalException,
+            attachments: attachments,
           );
           // Then return an error response to the client.
           var error = RequestError(
