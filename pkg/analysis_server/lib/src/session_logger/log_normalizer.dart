@@ -19,8 +19,8 @@ class LogNormalizer {
   final Map<String, String> _replacements =
       CanonicalizedMap<String, String, String>((key) => key.toLowerCase());
 
-  /// A lazily built reverse map for [_replacements].
-  Map<String, String>? _denormalizedReplacements;
+  /// A map of reverse replacement patterns for denormalizing.
+  final Map<String, String> _denormalizedReplacements = {};
 
   /// A cached regex for all current replacements to allow them to occur in a
   /// single pass.
@@ -71,8 +71,16 @@ class LogNormalizer {
   void addReplacementsForPath(String inputPath, String name) {
     if (inputPath.isEmpty) return;
 
+    while (inputPath.endsWith('/') || inputPath.endsWith(r'\')) {
+      inputPath = inputPath.substring(0, inputPath.length - 1);
+    }
+    if (inputPath.isEmpty) return;
+
     var uri = Uri.file(inputPath);
     var uriString = uri.toString();
+    while (uriString.endsWith('/')) {
+      uriString = uriString.substring(0, uriString.length - 1);
+    }
 
     void addWithQuotesAndTrailingSlash(
       String input,
@@ -80,8 +88,13 @@ class LogNormalizer {
       String replacement,
     ) {
       _replacements['"$input"'] = '"$replacement"';
+      _denormalizedReplacements.putIfAbsent('"$replacement"', () => '"$input"');
       for (var separator in separators) {
         _replacements['"$input$separator'] = '"$replacement$separator';
+        _denormalizedReplacements.putIfAbsent(
+          '"$replacement$separator',
+          () => '"$input$separator',
+        );
       }
     }
 
@@ -113,7 +126,6 @@ class LogNormalizer {
 
     // Reset the cached pattern so it's built on the next call to normalize.
     _replacementPattern = null;
-    _denormalizedReplacements = null;
     _denormalizationPattern = null;
   }
 
@@ -134,18 +146,18 @@ class LogNormalizer {
   /// example different casing or URI encoding), they will all be restored to
   /// a single canonical version.
   String denormalize(String normalizedContent) {
-    if (_replacements.isEmpty) return normalizedContent;
-
-    var denormalizedReplacements = _denormalizedReplacements ??=
-        _buildDenormalizedReplacements();
+    if (_denormalizedReplacements.isEmpty) return normalizedContent;
 
     var denormalizationPattern = _denormalizationPattern ??= RegExp(
-      denormalizedReplacements.keys.map(RegExp.escape).join('|'),
+      (_denormalizedReplacements.keys.toList()
+            ..sort((a, b) => b.length.compareTo(a.length)))
+          .map(RegExp.escape)
+          .join('|'),
     );
 
     return normalizedContent.replaceAllMapped(
       denormalizationPattern,
-      (match) => denormalizedReplacements[match[0]]!,
+      (match) => _denormalizedReplacements[match[0]]!,
     );
   }
 
@@ -171,16 +183,6 @@ class LogNormalizer {
       replacementPattern,
       (match) => _replacements[match[0]]!,
     );
-  }
-
-  Map<String, String> _buildDenormalizedReplacements() {
-    var denormalizedReplacements = <String, String>{};
-    for (var MapEntry(:key, :value) in _replacements.entries) {
-      // Multiple original strings can normalize to the same placeholder.
-      // Use the first value as the canonical form.
-      denormalizedReplacements.putIfAbsent(value, () => key);
-    }
-    return denormalizedReplacements;
   }
 
   /// A 'toEncodable' implementation for [JsonEncoder] that will canonicalize
