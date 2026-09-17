@@ -14,10 +14,10 @@ import '../mini_ir.dart';
 import '../mini_types.dart';
 
 /// Creates an [Expression] that, when analyzed, will cause [callback] to be
-/// passed an [SsaNodeHarness] allowing the test to examine the values of
-/// variables' SSA nodes.
-Expression getSsaNodes(void Function(SsaNodeHarness) callback) =>
-    new _GetSsaNodes(callback, location: computeLocation());
+/// passed an [ValueVersionHarness] allowing the test to examine the values of
+/// variables' value versions.
+Expression getVersions(void Function(ValueVersionHarness) callback) =>
+    new _GetVersions(callback, location: computeLocation());
 
 Expression implicitThis_whyNotPromoted(
   void Function(Map<SharedTypeView, NonPromotionReason>) callback,
@@ -63,15 +63,16 @@ class FlowAnalysisTestHarness extends Harness with FlowModelHelper {
   }
 }
 
-/// Helper class allowing tests to examine the values of variables' SSA nodes.
-class SsaNodeHarness {
+/// Helper class allowing tests to examine the values of variables' value
+/// versions.
+class ValueVersionHarness {
   final FlowAnalysis<Node, Statement, Expression, Var> _flow;
 
-  SsaNodeHarness(this._flow);
+  ValueVersionHarness(this._flow);
 
-  /// Gets the SSA node associated with [variable] at the current point in
+  /// Gets the value version associated with [variable] at the current point in
   /// control flow, or `null` if the variable has been write captured.
-  SsaNode? operator [](Var variable) => _flow.ssaNodeForTesting(variable);
+  ValueVersion? operator [](Var variable) => _flow.versionForTesting(variable);
 }
 
 class _GetExpressionInfo extends Expression {
@@ -97,17 +98,17 @@ class _GetExpressionInfo extends Expression {
   }
 }
 
-class _GetSsaNodes extends Expression {
-  final void Function(SsaNodeHarness) callback;
+class _GetVersions extends Expression {
+  final void Function(ValueVersionHarness) callback;
 
-  _GetSsaNodes(this.callback, {required super.location});
+  _GetVersions(this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    callback(SsaNodeHarness(h.flow));
+    callback(ValueVersionHarness(h.flow));
     h.irBuilder.atom('null', Kind.expression, location: location);
     return ExpressionTypeAnalysisResult(
       type: SharedTypeView(h.typeAnalyzer.nullType),
