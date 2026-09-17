@@ -335,6 +335,7 @@ class ModulePrinter {
       printOrdered(_module.memories.defined, memoryNamer, _memories);
       printOrdered(_module.tables.imported, tableNamer, _tables);
       printOrdered(_module.tables.defined, tableNamer, _tables);
+      printOrdered(_module.tags.imported, tagNamer, _tags);
       printOrdered(_module.tags.defined, tagNamer, _tags);
       printOrdered(_module.globals.defined, globalNamer, _globals);
 

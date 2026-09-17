@@ -4920,6 +4920,17 @@ class BeginNoEffectTryTable extends Instruction {
 
   @override
   String get name => 'try_table';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.write(' ');
+    p.writeLabelDefinition(0);
+    for (final catch_ in catches) {
+      p.write(' ');
+      catch_.printTo(p);
+    }
+  }
 }
 
 class BeginOneOutputTryTable extends Instruction {
@@ -4953,6 +4964,20 @@ class BeginOneOutputTryTable extends Instruction {
 
   @override
   String get name => 'try_table';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.write(' ');
+    p.writeLabelDefinition(0);
+    p.write(' (result ');
+    p.writeValueType(type);
+    p.write(')');
+    for (final catch_ in catches) {
+      p.write(' ');
+      catch_.printTo(p);
+    }
+  }
 }
 
 class BeginFunctionTryTable extends Instruction {
@@ -4986,6 +5011,19 @@ class BeginFunctionTryTable extends Instruction {
 
   @override
   String get name => 'try_table';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.write(' ');
+    p.writeLabelDefinition(0);
+    p.write(' ');
+    p.writeFunctionType(type);
+    for (final catch_ in catches) {
+      p.write(' ');
+      catch_.printTo(p);
+    }
+  }
 }
 
 abstract class TryTableCatch {
@@ -4994,6 +5032,8 @@ abstract class TryTableCatch {
   TryTableCatch(this.labelIndex);
 
   void serialize(Serializer s);
+
+  void printTo(IrPrinter p);
 
   static TryTableCatch deserialize(Deserializer d, Tags tags) {
     final kind = d.readByte();
@@ -5029,6 +5069,15 @@ class Catch extends TryTableCatch {
     s.writeUnsigned(tag.index);
     s.writeUnsigned(labelIndex);
   }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(catch ');
+    p.writeTagReference(tag);
+    p.write(' ');
+    p.writeLabelReference(labelIndex + 1);
+    p.write(')');
+  }
 }
 
 class CatchRef extends TryTableCatch {
@@ -5042,6 +5091,15 @@ class CatchRef extends TryTableCatch {
     s.writeUnsigned(tag.index);
     s.writeUnsigned(labelIndex);
   }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(catch_ref ');
+    p.writeTagReference(tag);
+    p.write(' ');
+    p.writeLabelReference(labelIndex + 1);
+    p.write(')');
+  }
 }
 
 class CatchAll extends TryTableCatch {
@@ -5052,6 +5110,13 @@ class CatchAll extends TryTableCatch {
     s.writeByte(0x02);
     s.writeUnsigned(labelIndex);
   }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(catch_all ');
+    p.writeLabelReference(labelIndex + 1);
+    p.write(')');
+  }
 }
 
 class CatchAllRef extends TryTableCatch {
@@ -5061,6 +5126,13 @@ class CatchAllRef extends TryTableCatch {
   void serialize(Serializer s) {
     s.writeByte(0x03);
     s.writeUnsigned(labelIndex);
+  }
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write('(catch_all_ref ');
+    p.writeLabelReference(labelIndex + 1);
+    p.write(')');
   }
 }
 
