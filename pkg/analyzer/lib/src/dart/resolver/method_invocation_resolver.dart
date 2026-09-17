@@ -579,13 +579,13 @@ class MethodInvocationResolver with ScopeHelpers {
       if (_resolver.enclosingInstanceElement is ExtensionElementImpl) {
         _resolver.diagnosticReporter.report(
           diag.unqualifiedReferenceToStaticMemberOfExtendedType
-              .withArguments(name: enclosingElement.displayString())
+              .withArguments(name: enclosingElement.displayName)
               .at(nameNode),
         );
       } else {
         _resolver.diagnosticReporter.report(
           diag.unqualifiedReferenceToNonLocalStaticMember
-              .withArguments(name: enclosingElement.displayString())
+              .withArguments(name: enclosingElement.displayName)
               .at(nameNode),
         );
       }
