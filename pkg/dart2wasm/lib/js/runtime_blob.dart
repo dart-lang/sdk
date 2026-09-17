@@ -199,7 +199,8 @@ const jsStringPolyfill = {
 final moduleLoadingHelperTemplate = Template(r'''
     async function handleDeferredModuleBytes(moduleName, source) {
       const builtins = this.builtins;
-      const module = await ((source instanceof Response)
+      source = await source;
+      const module = await ((typeof Response != 'undefined' && source instanceof Response)
           ? WebAssembly.compileStreaming(source, builtins)
           : WebAssembly.compile(source, builtins));
       let moduleInstance = await WebAssembly.instantiate(module, {
