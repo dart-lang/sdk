@@ -1596,16 +1596,16 @@ class MemoryOffsetAlign implements Serializable {
       s.writeUnsigned(offset);
     } else {
       s.writeByte(64 + align);
-      s.writeUnsigned(offset);
       s.writeUnsigned(memory.index);
+      s.writeUnsigned(offset);
     }
   }
 
   static MemoryOffsetAlign deserialize(Deserializer d, Memories memories) {
     final alignAndMemory = d.readByte();
     final align = alignAndMemory & 0x3F;
-    final offset = d.readUnsigned();
     final memoryIndex = (alignAndMemory & 0x40) != 0 ? d.readUnsigned() : 0;
+    final offset = d.readUnsigned();
     return MemoryOffsetAlign(
       memories[memoryIndex],
       offset: offset,
