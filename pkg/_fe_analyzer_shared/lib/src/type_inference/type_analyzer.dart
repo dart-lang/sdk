@@ -3127,6 +3127,10 @@ mixin TypeAnalyzer<
   void setVariableType(Variable variable, SharedTypeView type);
 
   /// Gets the offset of the end of a statement.
+  ///
+  /// Typically, this is the offset of the statement's terminating token (e.g.
+  /// `;` or `}`), so that positions immediately following the statement are
+  /// considered to be outside of it.
   int statementEndOffset(Statement statement);
 
   /// Computes the type that should be inferred for an implicitly typed variable

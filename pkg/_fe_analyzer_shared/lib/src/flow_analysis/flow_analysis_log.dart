@@ -229,7 +229,10 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   /// The sanity check is done using an assertion, so this method has no effect
   /// when assertions are disabled.
   void checkOffset(int offset) {
-    assert(offset >= _minValidOffset, 'Offsets out of order');
+    assert(
+      offset >= _minValidOffset,
+      'Offsets out of order ($offset < $_minValidOffset)',
+    );
     assert(() {
       _minValidOffset = offset;
       return true;

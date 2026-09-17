@@ -856,7 +856,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void dispatchStatement(Statement statement) {
     flowAnalysis.flow?.checkOffset(statement.offset);
     statement.accept2(this);
-    flowAnalysis.flow?.checkOffset(statement.end);
+    flowAnalysis.flow?.checkOffset(statement.endToken.offset);
   }
 
   @override
@@ -1966,7 +1966,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  int statementEndOffset(StatementImpl statement) => statement.end;
+  int statementEndOffset(StatementImpl statement) => statement.endToken.offset;
 
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
   /// in a getter context, or `null` if no match was found.
@@ -5281,7 +5281,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
 
       flow.tryCatchStatement_end(
-        offset: node.finallyKeyword?.offset ?? node.end,
+        offset: node.finallyKeyword?.offset ?? node.endToken.offset,
       );
     }
     nullSafetyDeadCodeVerifier.tryStatementExit(node);
@@ -5292,7 +5292,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         offset: node.finallyKeyword!.offset,
       );
       finallyBlock.accept2(this);
-      flow.tryFinallyStatement_end(offset: node.end);
+      flow.tryFinallyStatement_end(offset: node.endToken.offset);
     }
     inferenceLogWriter?.exitStatement(node);
   }
@@ -5444,7 +5444,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       offset: node.rightParenthesis.offset,
     );
     node.body.accept2(this);
-    flowAnalysis.flow?.whileStatement_end(offset: node.end);
+    flowAnalysis.flow?.whileStatement_end(offset: node.endToken.offset);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);

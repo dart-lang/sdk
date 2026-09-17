@@ -380,7 +380,7 @@ class FlowAnalysisHelper {
   void labeledStatement_exit(LabeledStatement node) {
     if (flow == null) return;
 
-    flow!.labeledStatement_end(offset: node.end);
+    flow!.labeledStatement_end(offset: node.statement.endToken.offset);
   }
 
   /// Associates [expression] with the given [expressionInfo] object, for later
