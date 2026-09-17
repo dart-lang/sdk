@@ -1561,6 +1561,19 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Remove '{0}'",
   );
+
+  /// Remove an `await` flagged by `await_only_futures`.
+  ///
+  /// This has the same message as [removeKeyword] but a higher priority. When
+  /// `await` is used in a function that isn't `async`, both
+  /// `await_in_wrong_context` and `await_only_futures` are reported. Removing
+  /// the `await` resolves both diagnostics, while "Add 'async'" only resolves
+  /// the first, so this fix should be listed first.
+  static const removeKeywordAwait = FixKind(
+    'dart.fix.remove.keyword.await',
+    DartFixKindPriority.standard + 1,
+    "Remove '{0}'",
+  );
   static const removeKeywordMulti = FixKind(
     'dart.fix.remove.keyword.multi',
     DartFixKindPriority.inFile,
