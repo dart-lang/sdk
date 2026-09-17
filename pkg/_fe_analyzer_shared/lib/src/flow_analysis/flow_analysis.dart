@@ -5086,7 +5086,11 @@ class PromotionModel {
           if (result != null) return result;
           // Result not allocated yet so the join must equal
           // chain1.sublist(0, i1).
-          if (i1 == chain1.length) return chain1;
+          //
+          // Note that i1 < chain1.length (otherwise the `return chain1;`
+          // statement above would have already executed), so there's no need
+          // check whether we can just return chain1; we can't.
+          assert(i1 < chain1.length);
           return chain1.sublist(0, i1);
         }
         t2 = chain2[i2];
