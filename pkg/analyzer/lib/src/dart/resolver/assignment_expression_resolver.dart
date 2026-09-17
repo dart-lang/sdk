@@ -329,7 +329,7 @@ class AssignmentExpressionResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
@@ -538,7 +538,7 @@ class AssignmentExpressionResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
@@ -668,7 +668,7 @@ class AssignmentExpressionResolver {
         }
         readExpressionInfo = targetResult.readExpressionInfo;
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');

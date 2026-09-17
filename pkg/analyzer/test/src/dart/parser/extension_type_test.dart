@@ -126,17 +126,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: A
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
@@ -194,17 +192,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: A
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
@@ -390,17 +386,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: A
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
@@ -433,17 +427,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: A
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
@@ -795,17 +787,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: E
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: E

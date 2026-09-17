@@ -613,21 +613,23 @@ class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedExpressionChain(ParsedExpressionChain node) {
-    if (result != null) {
-      return;
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    if (result != null) return;
+    if (lineInfo.getLocation(node.offset).lineNumber == requestedLine) {
+      Expression operand = node.operand;
+      if (operand is ParsedTypeArguments) {
+        operand = operand.operand;
+      }
+      var name = switch (operand) {
+        ParsedUnqualifiedName(:var name) => name,
+        ParsedNameAccess(:var name) => name,
+        _ => null,
+      };
+      if (name != null) {
+        result = (name: name.lexeme, argumentList: node.argumentList);
+      }
     }
-    if (lineInfo.getLocation(node.offset).lineNumber == requestedLine &&
-        node.components.lastOrNull is ParsedArguments) {
-      var name =
-          node.components.whereType<ParsedNameAccess>().lastOrNull?.name ??
-          node.head.name;
-      result = (
-        name: name.lexeme,
-        argumentList: (node.components.last as ParsedArguments).argumentList,
-      );
-    }
-    super.visitParsedExpressionChain(node);
+    super.visitParsedValueArguments(node);
   }
 }
 

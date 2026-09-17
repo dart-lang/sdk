@@ -1101,21 +1101,18 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
                     name: catch
-                  components
-                    ParsedArguments
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: e
-                        arguments(v1)
-                          SimpleIdentifier
-                            token: e
-                        rightParenthesis: )
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: e
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: e
+                    rightParenthesis: )
                 expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch

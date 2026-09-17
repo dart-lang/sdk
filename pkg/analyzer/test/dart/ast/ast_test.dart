@@ -1912,9 +1912,8 @@ StringInterpolation
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: foo
+      expression2: ParsedUnqualifiedName
+        name: foo
       expression(v1): SimpleIdentifier
         token: foo
     InterpolationString

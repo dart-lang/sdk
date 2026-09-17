@@ -85,9 +85,8 @@ CompilationUnit
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
-                ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
               arguments(v1)
                 SimpleIdentifier
                   token: <empty> <synthetic>
@@ -137,9 +136,8 @@ CompilationUnit
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
-                ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
               arguments(v1)
                 SimpleIdentifier
                   token: <empty> <synthetic>
@@ -355,9 +353,8 @@ CompilationUnit
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
-                ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
               arguments(v1)
                 SimpleIdentifier
                   token: <empty> <synthetic>
@@ -407,9 +404,8 @@ CompilationUnit
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
-                ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
               arguments(v1)
                 SimpleIdentifier
                   token: <empty> <synthetic>

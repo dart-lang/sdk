@@ -28,13 +28,11 @@ var v = + y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -56,13 +54,11 @@ var v = +;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -82,13 +78,11 @@ var v = x +;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -111,9 +105,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -138,18 +131,15 @@ var v = * +;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: *
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: multiply
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -177,18 +167,15 @@ var v = + *;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: *
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: multiply
   binaryOperator: add
 V1: BinaryExpression
@@ -219,14 +206,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: +
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -250,17 +235,14 @@ var v = a.b[];
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: ParsedExpressionChain
-    head: ParsedNameHead
+  receiver: ParsedNameAccess
+    operand: ParsedUnqualifiedName
       name: a
-    components
-      ParsedNameAccess
-        operator: .
-        name: b
+    operator: .
+    name: b
   leftBracket: [
-  index: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  index: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   rightBracket: ]
 V1: IndexExpression
   target: PrefixedIdentifier
@@ -285,14 +267,12 @@ var v = = y = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedAssignmentTargetChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
   operator: =
   value: DirectAssignment
-    target: ParsedAssignmentTargetChain
-      head: ParsedNameHead
-        name: y
+    target: ParsedUnqualifiedNameAssignmentTarget
+      name: y
     operator: =
     value: IntegerLiteral
       literal: 0
@@ -318,14 +298,12 @@ var v = x = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedAssignmentTargetChain
-    head: ParsedNameHead
-      name: x
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: x
   operator: =
   value: DirectAssignment
-    target: ParsedAssignmentTargetChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    target: ParsedUnqualifiedNameAssignmentTarget
+      name: <empty> <synthetic>
     operator: =
     value: IntegerLiteral
       literal: 0
@@ -351,18 +329,15 @@ var v = x = y =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedAssignmentTargetChain
-    head: ParsedNameHead
-      name: x
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: x
   operator: =
   value: DirectAssignment
-    target: ParsedAssignmentTargetChain
-      head: ParsedNameHead
-        name: y
+    target: ParsedUnqualifiedNameAssignmentTarget
+      name: y
     operator: =
-    value: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    value: ParsedUnqualifiedName
+      name: <empty> <synthetic>
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -385,9 +360,8 @@ var v = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedAssignmentTargetChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: <empty> <synthetic>
   operator: =
   value: IntegerLiteral
     literal: 0
@@ -409,13 +383,11 @@ var v = x =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedAssignmentTargetChain
-    head: ParsedNameHead
-      name: x
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: x
   operator: =
-  value: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  value: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -434,13 +406,11 @@ var v = & y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -462,13 +432,11 @@ var v = &;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -488,13 +456,11 @@ var v = x &;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: &
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -517,9 +483,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: &
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -544,18 +509,15 @@ var v = == &&;
     assertParsedNodeText(node, r'''
 LogicalAnd
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ==
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: &&
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -582,18 +544,15 @@ var v = && ==;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ==
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -623,14 +582,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: &
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   operator: &
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseAnd
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -654,13 +611,11 @@ var v = | y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -682,13 +637,11 @@ var v = |;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -708,13 +661,11 @@ var v = x |;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -737,9 +688,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -764,18 +714,15 @@ var v = ^ |;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ^
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -803,18 +750,15 @@ var v = | ^;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: |
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: ^
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   binaryOperator: bitwiseOr
 V1: BinaryExpression
@@ -845,14 +789,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: |
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
   operator: |
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -876,13 +818,11 @@ var v = ^ y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -904,13 +844,11 @@ var v = ^;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -930,13 +868,11 @@ var v = x ^;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -959,9 +895,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -986,18 +921,15 @@ var v = & ^;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -1025,18 +957,15 @@ var v = ^ &;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ^
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseAnd
   binaryOperator: bitwiseXor
 V1: BinaryExpression
@@ -1067,14 +996,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: ^
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseXor
   operator: ^
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: bitwiseXor
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -1197,21 +1124,18 @@ var v = x ? y :;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  condition2: ParsedUnqualifiedName
+    name: x
   condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  thenExpression2: ParsedUnqualifiedName
+    name: y
   thenExpression(v1): SimpleIdentifier
     token: y
   colon: :
-  elseExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
@@ -1226,21 +1150,18 @@ var v = x ? : z;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  condition2: ParsedUnqualifiedName
+    name: x
   condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  thenExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   thenExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   colon: :
-  elseExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: z
+  elseExpression2: ParsedUnqualifiedName
+    name: z
   elseExpression(v1): SimpleIdentifier
     token: z
 ''');
@@ -1255,18 +1176,16 @@ var v = x ? super : z;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  condition2: ParsedUnqualifiedName
+    name: x
   condition(v1): SimpleIdentifier
     token: x
   question: ?
   thenExpression2: SuperExpression
     superKeyword: super
   colon: :
-  elseExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: z
+  elseExpression2: ParsedUnqualifiedName
+    name: z
   elseExpression(v1): SimpleIdentifier
     token: z
 ''');
@@ -1281,15 +1200,13 @@ var v = x ? z : super;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  condition2: ParsedUnqualifiedName
+    name: x
   condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: z
+  thenExpression2: ParsedUnqualifiedName
+    name: z
   thenExpression(v1): SimpleIdentifier
     token: z
   colon: :
@@ -1349,13 +1266,11 @@ var v = == y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1377,13 +1292,11 @@ var v = ==;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1403,13 +1316,11 @@ var v = x ==;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -1432,9 +1343,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -1458,14 +1368,12 @@ var v = == is;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ==
   rightOperand: IsExpression
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    expression2: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     isOperator: is
     type: NamedType
       name: <empty> <synthetic>
@@ -1499,14 +1407,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: ==
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -1556,9 +1462,8 @@ var v = [, 2, 3, 4];
 ListLiteral
   leftBracket: [
   elements2
-    ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    ParsedUnqualifiedName
+      name: <empty> <synthetic>
     IntegerLiteral
       literal: 2
     IntegerLiteral
@@ -1593,9 +1498,8 @@ ListLiteral
       literal: 1
     IntegerLiteral
       literal: 2
-    ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    ParsedUnqualifiedName
+      name: <empty> <synthetic>
     IntegerLiteral
       literal: 4
   elements(v1)
@@ -1689,23 +1593,21 @@ var v = m(f() => 0);;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
     name: m
-  components
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          FunctionExpression
-            parameters: FormalParameterList
-              leftParenthesis: (
-              rightParenthesis: )
-            body: ExpressionFunctionBody
-              functionDefinition: =>
-              expression2: IntegerLiteral
-                literal: 0
-        rightParenthesis: )
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+    rightParenthesis: )
 V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
@@ -1737,28 +1639,24 @@ void f() {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
   thenStatement: ExpressionStatement
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
         name: f
-      components
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: x
-            arguments(v1)
-              SimpleIdentifier
-                token: x
-            rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          ParsedUnqualifiedName
+            name: x
+        arguments(v1)
+          SimpleIdentifier
+            token: x
+        rightParenthesis: )
     expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
@@ -1858,18 +1756,16 @@ var v = x ? 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  condition2: ParsedUnqualifiedName
+    name: x
   condition(v1): SimpleIdentifier
     token: x
   question: ?
   thenExpression2: IntegerLiteral
     literal: 0
   colon: : <synthetic>
-  elseExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
@@ -2190,9 +2086,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BinaryOperatorInvocation
-                  leftOperand: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: map
+                  leftOperand: ParsedUnqualifiedName
+                    name: map
                   operator: ==
                   rightOperand: NullLiteral
                     literal: null
@@ -2259,87 +2154,82 @@ CompilationUnit
                           rightParenthesis: )
                 semicolon: ;
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: map
-                  components
-                    ParsedNameAccess
-                      operator: .
-                      name: forEach
-                    ParsedArguments
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          FunctionExpression
-                            parameters: FormalParameterList
-                              leftParenthesis: (
-                              requiredPositionalFormalParameters
-                                RegularFormalParameter
-                                  name: name
-                                RegularFormalParameter
-                                  name: value
-                              rightParenthesis: )
-                            parameters(v1): FormalParameterList
-                              leftParenthesis: (
-                              parameter: RegularFormalParameter
-                                name: name
-                              parameter: RegularFormalParameter
-                                name: value
-                              rightParenthesis: )
-                            body: BlockFunctionBody
-                              block: Block
-                                leftBracket: {
-                                statements
-                                  ExpressionStatement
-                                    expression2: DirectAssignment
-                                      target: ReceiverIndexAssignmentTarget
-                                        receiver: ParsedExpressionChain
-                                          head: ParsedNameHead
-                                            name: result
-                                        leftBracket: [
-                                        index: ConstructorInvocation
-                                          keyword: new
-                                          constructorReference: ConstructorReference2
-                                            typeReference: ConstructorTypeReference
-                                              name: Symbol
-                                          argumentList: ArgumentList
-                                            leftParenthesis: (
-                                            arguments2
-                                              ParsedExpressionChain
-                                                head: ParsedNameHead
-                                                  name: name
-                                            arguments(v1)
-                                              SimpleIdentifier
-                                                token: name
-                                            rightParenthesis: )
-                                        rightBracket: ]
-                                      operator: =
-                                      value: ParsedExpressionChain
-                                        head: ParsedNameHead
-                                          name: value
-                                    expression(v1): AssignmentExpression
-                                      leftHandSide: IndexExpression
-                                        target: SimpleIdentifier
-                                          token: result
-                                        leftBracket: [
-                                        index: InstanceCreationExpression
-                                          keyword: new
-                                          constructorName: ConstructorName
-                                            type: NamedType
-                                              name: Symbol
-                                          argumentList: ArgumentList
-                                            leftParenthesis: (
-                                            arguments
-                                              SimpleIdentifier
-                                                token: name
-                                            rightParenthesis: )
-                                        rightBracket: ]
-                                      operator: =
-                                      rightHandSide: SimpleIdentifier
-                                        token: value
-                                    semicolon: ;
-                                rightBracket: }
-                        rightParenthesis: )
+                expression2: ParsedValueArguments
+                  operand: ParsedNameAccess
+                    operand: ParsedUnqualifiedName
+                      name: map
+                    operator: .
+                    name: forEach
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              name: name
+                            RegularFormalParameter
+                              name: value
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            name: name
+                          parameter: RegularFormalParameter
+                            name: value
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            statements
+                              ExpressionStatement
+                                expression2: DirectAssignment
+                                  target: ReceiverIndexAssignmentTarget
+                                    receiver: ParsedUnqualifiedName
+                                      name: result
+                                    leftBracket: [
+                                    index: ConstructorInvocation
+                                      keyword: new
+                                      constructorReference: ConstructorReference2
+                                        typeReference: ConstructorTypeReference
+                                          name: Symbol
+                                      argumentList: ArgumentList
+                                        leftParenthesis: (
+                                        arguments2
+                                          ParsedUnqualifiedName
+                                            name: name
+                                        arguments(v1)
+                                          SimpleIdentifier
+                                            token: name
+                                        rightParenthesis: )
+                                    rightBracket: ]
+                                  operator: =
+                                  value: ParsedUnqualifiedName
+                                    name: value
+                                expression(v1): AssignmentExpression
+                                  leftHandSide: IndexExpression
+                                    target: SimpleIdentifier
+                                      token: result
+                                    leftBracket: [
+                                    index: InstanceCreationExpression
+                                      keyword: new
+                                      constructorName: ConstructorName
+                                        type: NamedType
+                                          name: Symbol
+                                      argumentList: ArgumentList
+                                        leftParenthesis: (
+                                        arguments
+                                          SimpleIdentifier
+                                            token: name
+                                        rightParenthesis: )
+                                    rightBracket: ]
+                                  operator: =
+                                  rightHandSide: SimpleIdentifier
+                                    token: value
+                                semicolon: ;
+                            rightBracket: }
+                    rightParenthesis: )
                 expression(v1): MethodInvocation
                   target: SimpleIdentifier
                     token: map
@@ -2388,9 +2278,8 @@ CompilationUnit
                 semicolon: ;
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: result
+                expression2: ParsedUnqualifiedName
+                  name: result
                 expression(v1): SimpleIdentifier
                   token: result
                 semicolon: ;
@@ -2730,9 +2619,8 @@ ForStatement
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: i
+    condition2: ParsedUnqualifiedName
+      name: i
     condition(v1): SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
@@ -2766,9 +2654,8 @@ ForStatement
         VariableDeclaration
           name: item
     leftSeparator: ; <synthetic>
-    condition2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: i
+    condition2: ParsedUnqualifiedName
+      name: i
     condition(v1): SimpleIdentifier
       token: i
     rightSeparator: ; <synthetic>
@@ -3233,9 +3120,8 @@ CompilationUnit
                     ifKeyword: if
                     leftParenthesis: (
                     expression2: IsExpression
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: x
+                      expression2: ParsedUnqualifiedName
+                        name: x
                       expression(v1): SimpleIdentifier
                         token: x
                       isOperator: is
@@ -3249,9 +3135,8 @@ CompilationUnit
                     ifKeyword: if
                     leftParenthesis: (
                     expression2: IsExpression
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: x
+                      expression2: ParsedUnqualifiedName
+                        name: x
                       expression(v1): SimpleIdentifier
                         token: x
                       isOperator: is
@@ -3260,9 +3145,8 @@ CompilationUnit
                         name: <empty> <synthetic>
                     rightParenthesis: )
                     thenStatement: ExpressionStatement
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: <empty> <synthetic>
+                      expression2: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       expression(v1): SimpleIdentifier
                         token: <empty> <synthetic>
                       semicolon: ; <synthetic>
@@ -3483,13 +3367,11 @@ var v = && y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3510,13 +3392,11 @@ var v = &&;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3535,13 +3415,11 @@ var v = x &&;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: &&
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -3565,18 +3443,15 @@ var v = | &&;
     assertParsedNodeText(node, r'''
 LogicalAnd
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: |
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
   operator: &&
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -3603,18 +3478,15 @@ var v = && |;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalAnd
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: &&
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: |
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: bitwiseOr
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -3638,13 +3510,11 @@ var v = || y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3665,13 +3535,11 @@ var v = ||;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3690,13 +3558,11 @@ var v = x ||;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: ||
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
@@ -3720,17 +3586,14 @@ var v = && ||;
     assertParsedNodeText(node, r'''
 LogicalOr
   leftOperand: LogicalAnd
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
-    operator: &&
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
-  operator: ||
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
+    leftOperand: ParsedUnqualifiedName
       name: <empty> <synthetic>
+    operator: &&
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
+  operator: ||
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
@@ -3757,18 +3620,15 @@ var v = || &&;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 LogicalOr
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: ||
   rightOperand: LogicalAnd
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: &&
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
@@ -3820,25 +3680,23 @@ var v = f(x: 1 y: 2);
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
+ParsedValueArguments
+  operand: ParsedUnqualifiedName
     name: f
-  components
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          NamedArgument
-            name: x
-            colon: :
-            argumentExpression2: IntegerLiteral
-              literal: 1
-          NamedArgument
-            name: y
-            colon: :
-            argumentExpression2: IntegerLiteral
-              literal: 2
-        rightParenthesis: )
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 1
+      NamedArgument
+        name: y
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 2
+    rightParenthesis: )
 V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
@@ -3993,13 +3851,11 @@ var v = * y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4021,13 +3877,11 @@ var v = *;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4047,13 +3901,11 @@ var v = x *;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: *
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4076,9 +3928,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: *
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -4100,14 +3951,12 @@ var v = -x *;
 BinaryOperatorInvocation
   leftOperand: UnaryOperatorInvocation
     operator: -
-    operand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    operand: ParsedUnqualifiedName
+      name: x
     unaryOperator: negate
   operator: *
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: multiply
 V1: BinaryExpression
   leftOperand: PrefixExpression
@@ -4129,15 +3978,13 @@ var v = * -y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: *
   rightOperand: UnaryOperatorInvocation
     operator: -
-    operand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: y
+    operand: ParsedUnqualifiedName
+      name: y
     unaryOperator: negate
   binaryOperator: multiply
 V1: BinaryExpression
@@ -4167,14 +4014,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: ==
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: equal
   operator: ==
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -4312,9 +4157,8 @@ var v = -;
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  operand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   unaryOperator: negate
 V1: PrefixExpression
   operator: -
@@ -4335,21 +4179,18 @@ var v = ?a;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  condition2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   condition(v1): SimpleIdentifier
     token: <empty> <synthetic>
   question: ?
-  thenExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: a
+  thenExpression2: ParsedUnqualifiedName
+    name: a
   thenExpression(v1): SimpleIdentifier
     token: a
   colon: : <synthetic>
-  elseExpression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  elseExpression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   elseExpression(v1): SimpleIdentifier
     token: <empty> <synthetic>
 ''');
@@ -4364,9 +4205,8 @@ var v = is y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  expression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   expression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   isOperator: is
@@ -4386,9 +4226,8 @@ var v = is;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  expression2: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   expression(v1): SimpleIdentifier
     token: <empty> <synthetic>
   isOperator: is
@@ -4406,9 +4245,8 @@ var v = x is;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IsExpression
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   isOperator: is
@@ -4431,13 +4269,11 @@ var v = << is;
     assertParsedNodeText(node, r'''
 IsExpression
   expression2: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: <<
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: shiftLeft
   expression(v1): BinaryExpression
     leftOperand: SimpleIdentifier
@@ -4460,13 +4296,11 @@ var v = << y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  rightOperand: ParsedUnqualifiedName
+    name: y
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4488,13 +4322,11 @@ var v = <<;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4514,13 +4346,11 @@ var v = x <<;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  leftOperand: ParsedUnqualifiedName
+    name: x
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SimpleIdentifier
@@ -4543,9 +4373,8 @@ BinaryOperatorInvocation
   leftOperand: SuperExpression
     superKeyword: super
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: SuperExpression
@@ -4570,18 +4399,15 @@ var v = + <<;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: +
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -4609,18 +4435,15 @@ var v = << +;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: <<
   rightOperand: BinaryOperatorInvocation
-    leftOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    leftOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     operator: +
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: add
   binaryOperator: shiftLeft
 V1: BinaryExpression
@@ -4651,14 +4474,12 @@ BinaryOperatorInvocation
     leftOperand: SuperExpression
       superKeyword: super
     operator: <<
-    rightOperand: ParsedExpressionChain
-      head: ParsedNameHead
-        name: <empty> <synthetic>
+    rightOperand: ParsedUnqualifiedName
+      name: <empty> <synthetic>
     binaryOperator: shiftLeft
   operator: <<
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  rightOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   binaryOperator: shiftLeft
 V1: BinaryExpression
   leftOperand: BinaryExpression
@@ -4704,9 +4525,8 @@ var v = +2;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
   rightOperand: IntegerLiteral
     literal: 2

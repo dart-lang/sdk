@@ -41,17 +41,15 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: y
-        components
-          ParsedNameAccess
-            operator: .
-            name: bar
-          ParsedArguments
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
+      expression2: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: y
+          operator: .
+          name: bar
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
       expression(v1): MethodInvocation
         target: SimpleIdentifier
           token: y
@@ -92,17 +90,15 @@ Block
     ExpressionStatement
       expression2: AwaitExpression
         awaitKeyword: await
-        expression2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: y
-          components
-            ParsedNameAccess
-              operator: .
-              name: foo
-            ParsedArguments
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
+        expression2: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: y
+            operator: .
+            name: foo
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
         expression(v1): MethodInvocation
           target: SimpleIdentifier
             token: y

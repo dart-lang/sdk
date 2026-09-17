@@ -1284,9 +1284,11 @@ class A {
 
   void test_methodInvocation() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  (a).foo<int>(0);
-  (b).bar<double>(1);
+class A {
+  void f() {
+    super.foo<int>(0);
+    super.bar<double>(1);
+  }
 }
 ''');
     _assertReplacementForChildren<MethodInvocation>(
@@ -1385,17 +1387,59 @@ void f() {
     );
   }
 
-  void test_parsedExpressionChain() {
+  void test_parsedNameAccess() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
   a.foo;
   b.bar;
 }
 ''');
-    _assertReplacementForChildren<ParsedExpressionChain>(
-      destination: parseResult.findNode.parsedExpressionChain('a.foo'),
-      source: parseResult.findNode.parsedExpressionChain('b.bar'),
-      childAccessors: [(node) => node.head, (node) => node.components.single],
+    _assertReplacementForChildren<ParsedNameAccess>(
+      destination:
+          parseResult.findNode.parsedExpression('a.foo') as ParsedNameAccess,
+      source:
+          parseResult.findNode.parsedExpression('b.bar') as ParsedNameAccess,
+      childAccessors: [(node) => node.operand],
+    );
+  }
+
+  void test_parsedTypeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedTypeArguments>(
+      destination:
+          (parseResult.findNode.expressionStatement('(a)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      source:
+          (parseResult.findNode.expressionStatement('(b)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      childAccessors: [(node) => node.operand, (node) => node.typeArguments],
+    );
+  }
+
+  void test_parsedValueArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.expressionStatement('(a)').expression2
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.expressionStatement('(b)').expression2
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
     );
   }
 

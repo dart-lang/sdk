@@ -4144,9 +4144,8 @@ PrimaryConstructorBody
       assertKeyword: assert
       leftParenthesis: (
       condition2: BinaryOperatorInvocation
-        leftOperand: ParsedExpressionChain
-          head: ParsedNameHead
-            name: x
+        leftOperand: ParsedUnqualifiedName
+          name: x
         operator: >
         rightOperand: IntegerLiteral
           literal: 0

@@ -560,9 +560,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BinaryOperatorInvocation
-                  leftOperand: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  leftOperand: ParsedUnqualifiedName
+                    name: x
                   operator: !=
                   rightOperand: NullLiteral
                     literal: null
@@ -615,9 +614,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BinaryOperatorInvocation
-                  leftOperand: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  leftOperand: ParsedUnqualifiedName
+                    name: x
                   operator: !=
                   rightOperand: NullLiteral
                     literal: null
@@ -636,9 +634,8 @@ CompilationUnit
                       whileKeyword: while
                       leftParenthesis: (
                       condition2: BinaryOperatorInvocation
-                        leftOperand: ParsedExpressionChain
-                          head: ParsedNameHead
-                            name: x
+                        leftOperand: ParsedUnqualifiedName
+                          name: x
                         operator: ==
                         rightOperand: NullLiteral
                           literal: null
@@ -692,16 +689,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: class
+                expression2: ParsedUnqualifiedName
+                  name: class
                 expression(v1): SimpleIdentifier
                   token: class
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: C
+                expression2: ParsedUnqualifiedName
+                  name: C
                 expression(v1): SimpleIdentifier
                   token: C
                 semicolon: ; <synthetic>
@@ -757,9 +752,8 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: y
+                      expression2: ParsedUnqualifiedName
+                        name: y
                       expression(v1): SimpleIdentifier
                         token: y
                       semicolon: ;
@@ -872,13 +866,11 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ReceiverIndexExpression
-            receiver: ParsedExpressionChain
-              head: ParsedNameHead
-                name: l
+            receiver: ParsedUnqualifiedName
+              name: l
             leftBracket: [
-            index: ParsedExpressionChain
-              head: ParsedNameHead
-                name: x
+            index: ParsedUnqualifiedName
+              name: x
             rightBracket: ] <synthetic>
           expression(v1): IndexExpression
             target: SimpleIdentifier
@@ -919,14 +911,12 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ReceiverIndexExpression
-            receiver: ParsedExpressionChain
-              head: ParsedNameHead
-                name: l
+            receiver: ParsedUnqualifiedName
+              name: l
             question: ?
             leftBracket: [
-            index: ParsedExpressionChain
-              head: ParsedNameHead
-                name: x
+            index: ParsedUnqualifiedName
+              name: x
             rightBracket: ] <synthetic>
           expression(v1): IndexExpression
             target: SimpleIdentifier
@@ -1118,16 +1108,14 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1169,9 +1157,8 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: ) <synthetic>
@@ -1179,9 +1166,8 @@ CompilationUnit
                   whileKeyword: while
                   leftParenthesis: (
                   condition2: BinaryOperatorInvocation
-                    leftOperand: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    leftOperand: ParsedUnqualifiedName
+                      name: x
                     operator: !=
                     rightOperand: NullLiteral
                       literal: null

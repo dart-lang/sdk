@@ -3341,10 +3341,10 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.isEven');
+    var node = result.findNode.receiverPropertyExtraction('.isEven');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SwitchExpression
+ReceiverPropertyExtraction
+  receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
@@ -3353,7 +3353,32 @@ PropertyAccess
         element: <testLibrary>::@function::f::@formalParameter::x
         type: Object?
       staticType: Object?
-    expression(v1): SimpleIdentifier
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: PropertyAccess
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -3366,7 +3391,7 @@ PropertyAccess
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression2: IntegerLiteral
+        expression: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }
@@ -3903,9 +3928,12 @@ void f(int? x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNodeV1.singlePropertyAccess;
     expect(node.realTarget, isA<PostfixExpression>());
-    expect(node.realTarget2, isA<NullAssertionExpression>());
+    expect(
+      result.findNode.singleReceiverPropertyExtraction.receiver,
+      isA<NullAssertionExpression>(),
+    );
   }
 
   test_rewrite_nullShorting() async {

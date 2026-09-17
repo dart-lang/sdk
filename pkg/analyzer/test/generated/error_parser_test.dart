@@ -1066,18 +1066,16 @@ CompilationUnit
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  expression2: ParsedUnqualifiedName
+                    name: x
                   expression(v1): SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
@@ -1650,16 +1648,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: get
+                expression2: ParsedUnqualifiedName
+                  name: get
                 expression(v1): SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
@@ -1668,9 +1664,8 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: _x
+                    expression2: ParsedUnqualifiedName
+                      name: _x
                     expression(v1): SimpleIdentifier
                       token: _x
                     semicolon: ;
@@ -2600,9 +2595,8 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: ParsedExpressionChain
-              head: ParsedNameHead
-                name: x
+            expression2: ParsedUnqualifiedName
+              name: x
             expression(v1): SimpleIdentifier
               token: x
             semicolon: ;
@@ -2629,9 +2623,8 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
@@ -3841,13 +3834,11 @@ void main() {
     var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
 BinaryOperatorInvocation
-  leftOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  rightOperand: ParsedUnqualifiedName
+    name: x
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier

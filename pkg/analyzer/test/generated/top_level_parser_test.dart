@@ -78,23 +78,21 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
                     name: f
-                  components
-                    ParsedArguments
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          FunctionExpression
-                            parameters: FormalParameterList
-                              leftParenthesis: (
-                              rightParenthesis: )
-                            body: BlockFunctionBody
-                              block: Block
-                                leftBracket: {
-                                rightBracket: }
-                        rightParenthesis: )
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                    rightParenthesis: )
                 expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
@@ -149,9 +147,8 @@ CompilationUnit
                   token: a
                 equals: =
                 expression2: ReceiverIndexExpression
-                  receiver: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  receiver: ParsedUnqualifiedName
+                    name: x
                   leftBracket: [
                   index: FunctionExpression
                     parameters: FormalParameterList
@@ -1361,9 +1358,8 @@ CompilationUnit
                       contents: "
                     InterpolationExpression
                       leftBracket: ${
-                      expression2: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: n
+                      expression2: ParsedUnqualifiedName
+                        name: n
                       expression(v1): SimpleIdentifier
                         token: n
                       rightBracket: }
@@ -4902,9 +4898,8 @@ CompilationUnit
             name: g
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: ParsedExpressionChain
-                head: ParsedNameHead
-                  name: f
+              expression2: ParsedUnqualifiedName
+                name: f
               expression(v1): SimpleIdentifier
                 token: f
               semicolon: ;
@@ -4932,13 +4927,11 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: DirectAssignment
-                      target: ParsedAssignmentTargetChain
-                        head: ParsedNameHead
-                          name: f
+                      target: ParsedUnqualifiedNameAssignmentTarget
+                        name: f
                       operator: =
-                      value: ParsedExpressionChain
-                        head: ParsedNameHead
-                          name: v
+                      value: ParsedUnqualifiedName
+                        name: v
                     expression(v1): AssignmentExpression
                       leftHandSide: SimpleIdentifier
                         token: f
@@ -4969,18 +4962,15 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: DirectAssignment
-                target: ParsedAssignmentTargetChain
-                  head: ParsedNameHead
-                    name: f
+                target: ParsedUnqualifiedNameAssignmentTarget
+                  name: f
                 operator: =
                 value: BinaryOperatorInvocation
-                  leftOperand: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: f
+                  leftOperand: ParsedUnqualifiedName
+                    name: f
                   operator: +
-                  rightOperand: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: v
+                  rightOperand: ParsedUnqualifiedName
+                    name: v
                   binaryOperator: add
               expression(v1): AssignmentExpression
                 leftHandSide: SimpleIdentifier

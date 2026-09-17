@@ -713,15 +713,9 @@ class AstBuilder extends StackListener {
           thisKeyword = writtenThisKeyword;
           period = operator;
           fieldName = name;
-        // Synthetic names from parser recovery aren't converted to parsed chains.
-        // TODO(scheglov): Check whether parsed chains can preserve recovery for
-        // synthetic names, allowing this case to be removed.
         case UnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
-        case ParsedAssignmentTargetChainImpl(
-          head: ParsedNameHeadImpl(:var name),
-          components: [],
-        ):
+        case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
         default:
           return null;
@@ -6707,147 +6701,6 @@ class AstBuilder extends StackListener {
     }
   }
 
-  /// Flattens name-led syntax into a head and components in source order,
-  /// leaving resolution to determine what the names denote.
-  ///
-  /// By default, accepts only name accesses for assignment-target chains.
-  /// With [allowInvocations], also accepts calls and explicit type arguments
-  /// for value-expression chains.
-  ///
-  /// Returns `null` when the expression should keep its existing representation.
-  /// For example, `(a).b` already has an expression receiver, and `new C()` is
-  /// explicit constructor syntax. This also includes parser paths that have not
-  /// yet been migrated to chains.
-  ///
-  /// Punctuation used as a property name during recovery (such as `(` in
-  /// `C.()`) stays in its existing node instead of becoming a chain name.
-  ///
-  /// Returning `null` preserves child ownership. On success, argument and
-  /// type-argument lists become children of the returned components.
-  ({
-    ParsedNameHeadImpl head,
-    List<ParsedExpressionChainComponentImpl> components,
-  })?
-  _parsedNameChain(ExpressionImpl expression, {bool allowInvocations = false}) {
-    List<AstNodeImpl>? reversedComponents;
-    var receiver = expression;
-    while (true) {
-      switch (receiver) {
-        case SimpleIdentifierImpl():
-          return (
-            head: ParsedNameHeadImpl(name: receiver.token),
-            components: reversedComponents == null
-                ? const []
-                : [
-                    for (var i = reversedComponents.length - 1; i >= 0; i--)
-                      switch (reversedComponents[i]) {
-                        TypeArgumentListImpl list => ParsedTypeArgumentsImpl(
-                          typeArguments: list,
-                        ),
-                        ArgumentListImpl list => ParsedArgumentsImpl(
-                          argumentList: list,
-                        ),
-                        var component => component as ParsedNameAccessImpl,
-                      },
-                  ],
-          );
-        case PrefixedIdentifierImpl():
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.period,
-              name: receiver.identifier.token,
-            ),
-          );
-          receiver = receiver.prefix;
-        case MethodInvocationImpl(
-              :var methodName,
-              :var typeArguments,
-              :var argumentList,
-              target2: var target,
-              :var operator,
-            )
-            when allowInvocations &&
-                !receiver.isCascaded &&
-                methodName.token.isKeywordOrIdentifier:
-          (reversedComponents ??= []).add(argumentList);
-          if (typeArguments != null) {
-            reversedComponents.add(typeArguments);
-          }
-          if (target == null) {
-            receiver = methodName;
-          } else if (operator != null) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(operator: operator, name: methodName.token),
-            );
-            receiver = target;
-          } else {
-            return null;
-          }
-        case FunctionReferenceImpl(function2: var target, :var typeArguments)
-            when allowInvocations && typeArguments != null:
-          (reversedComponents ??= []).add(typeArguments);
-          receiver = target;
-        case ConstructorInvocationImpl(
-              keyword: null,
-              :var constructorReference,
-              :var typeArguments,
-              :var argumentList,
-            )
-            when allowInvocations:
-          var type = constructorReference.typeReference;
-          var selector = constructorReference.selector;
-          (reversedComponents ??= []).add(argumentList);
-          if (typeArguments != null) {
-            reversedComponents.add(typeArguments);
-          }
-          if (selector != null) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(
-                operator: selector.period,
-                name: selector.name2,
-              ),
-            );
-          }
-          if (type.typeArguments case var typeArguments?) {
-            reversedComponents.add(typeArguments);
-          }
-          if (type.importPrefix case var prefix?) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(operator: prefix.period, name: type.name),
-            );
-            receiver = SimpleIdentifierImpl(token: prefix.name);
-          } else {
-            receiver = SimpleIdentifierImpl(token: type.name);
-          }
-        case ReceiverPropertyExtractionImpl(
-              receiver: ExpressionImpl target,
-              :var operator,
-              :var name,
-            )
-            when allowInvocations:
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(operator: operator, name: name),
-          );
-          receiver = target;
-        // Only convert identifier or keyword property names. Recovery may use
-        // punctuation, such as '(' in C.(), even though the token is not synthetic.
-        // TODO(scheglov): Avoid using punctuation tokens as property names during
-        // parser recovery.
-        case PropertyAccessImpl(target2: var target?)
-            when receiver.propertyName.token.isKeywordOrIdentifier:
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.operator,
-              name: receiver.propertyName.token,
-            ),
-          );
-          receiver = target;
-        default:
-          return null;
-      }
-    }
-  }
-
   /// Parser-built property extractions always have expression receivers.
   /// Static qualifiers are introduced later, when resolution lowers a chain.
   ExpressionImpl _parsedPropertyReceiver(NamedReceiverImpl receiver) {
@@ -7009,29 +6862,208 @@ class AstBuilder extends StackListener {
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
-  ParsedAssignmentTargetChainImpl? _toParsedAssignmentTarget(
+  /// Walks inward to a name or an ordinary expression boundary, then builds
+  /// parsed nodes outward. Saves each original parent before reparenting the
+  /// operand, so the return path needs neither recursion nor a temporary list.
+  ParsedExpressionImpl? _toNestedParsedExpression(ExpressionImpl expression) {
+    var node = expression;
+    ExpressionImpl result;
+    while (true) {
+      switch (node) {
+        case SimpleIdentifierImpl(:var token):
+          result = ParsedUnqualifiedNameImpl(name: token);
+        case PrefixedIdentifierImpl(:var prefix, :var period, :var identifier):
+          result = ParsedNameAccessImpl(
+            operand: ParsedUnqualifiedNameImpl(name: prefix.token),
+            operator: period,
+            name: identifier.token,
+          );
+        case ConstructorInvocationImpl(
+          keyword: null,
+          :var constructorReference,
+          :var typeArguments,
+          :var argumentList,
+        ):
+          var type = constructorReference.typeReference;
+          ParsedExpressionImpl operand;
+          if (type.importPrefix case var prefix?) {
+            operand = ParsedNameAccessImpl(
+              operand: ParsedUnqualifiedNameImpl(name: prefix.name),
+              operator: prefix.period,
+              name: type.name,
+            );
+          } else {
+            operand = ParsedUnqualifiedNameImpl(name: type.name);
+          }
+          if (constructorReference.selector case var selector?) {
+            if (type.typeArguments case var arguments?) {
+              operand = ParsedTypeArgumentsImpl(
+                operand: operand,
+                typeArguments: arguments,
+              );
+            }
+            operand = ParsedNameAccessImpl(
+              operand: operand,
+              operator: selector.period,
+              name: selector.name2,
+            );
+          } else {
+            typeArguments ??= type.typeArguments;
+          }
+          if (typeArguments != null) {
+            operand = ParsedTypeArgumentsImpl(
+              operand: operand,
+              typeArguments: typeArguments,
+            );
+          }
+          result = ParsedValueArgumentsImpl(
+            operand: operand,
+            argumentList: argumentList,
+          );
+        case MethodInvocationImpl(
+              :var methodName,
+              target2: var target,
+              :var operator,
+            )
+            when !node.isCascaded && methodName.token.isKeywordOrIdentifier:
+          if (target != null && operator == null) return null;
+          node = target ?? methodName;
+          continue;
+        case FunctionReferenceImpl(
+          function2: var target,
+          typeArguments: != null,
+        ):
+          node = target;
+          continue;
+        case PropertyAccessImpl(target2: var target?, :var propertyName)
+            when propertyName.token.isKeywordOrIdentifier:
+          node = target;
+          continue;
+        // Dot-shorthand heads depend on the context boundary recorded on the
+        // enclosing selector expression. They cannot be ordinary value
+        // boundaries for nested parsed syntax without preserving that boundary.
+        // TODO(scheglov): Reconsider how nested parsed syntax represents the
+        // dot-shorthand context boundary, currently carried by isDotShorthand
+        // on the enclosing selector expression.
+        case DotShorthandConstructorInvocationImpl():
+        case DotShorthandInvocationImpl():
+        case DotShorthandPropertyAccessImpl():
+        // These shapes retain their existing recovery or receiver semantics.
+        case SuperExpressionImpl():
+        case MethodInvocationImpl():
+        case PropertyAccessImpl():
+        case FunctionReferenceImpl():
+          return null;
+        default:
+          if (identical(node, expression)) return null;
+          result = node;
+      }
+      break;
+    }
+    var parent = node.parent2;
+    while (!identical(node, expression)) {
+      node = parent as ExpressionImpl;
+      parent = node.parent2;
+      switch (node) {
+        case MethodInvocationImpl(
+          :var methodName,
+          :var typeArguments,
+          :var argumentList,
+          target2: var target,
+          :var operator,
+        ):
+          if (target != null) {
+            result = ParsedNameAccessImpl(
+              operand: result,
+              operator: operator!,
+              name: methodName.token,
+            );
+          }
+          if (typeArguments != null) {
+            result = ParsedTypeArgumentsImpl(
+              operand: result,
+              typeArguments: typeArguments,
+            );
+          }
+          result = ParsedValueArgumentsImpl(
+            operand: result as ParsedExpressionImpl,
+            argumentList: argumentList,
+          );
+        case FunctionReferenceImpl(typeArguments: var typeArguments?):
+          result = ParsedTypeArgumentsImpl(
+            operand: result,
+            typeArguments: typeArguments,
+          );
+        case PropertyAccessImpl(:var operator, :var propertyName):
+          result = ParsedNameAccessImpl(
+            operand: result,
+            operator: operator,
+            name: propertyName.token,
+          );
+        default:
+          throw StateError(
+            'Unexpected parsed operand parent: ${node.runtimeType}',
+          );
+      }
+    }
+    return result as ParsedExpressionImpl;
+  }
+
+  /// Other receiver shapes use the existing canonical assignment-target path.
+  /// Only name-only regions need this neutral assignment representation.
+  ParsedExpressionImpl? _toParsedAssignmentOperand(ExpressionImpl expression) {
+    var node = expression;
+    while (true) {
+      switch (node) {
+        case SimpleIdentifierImpl():
+        case PrefixedIdentifierImpl():
+          return _toNestedParsedExpression(expression);
+        case PropertyAccessImpl(target2: var target?, :var propertyName)
+            when propertyName.token.isKeywordOrIdentifier:
+          node = target;
+        default:
+          return null;
+      }
+    }
+  }
+
+  ParsedAssignmentTargetImpl? _toParsedAssignmentTarget(
     ExpressionImpl expression,
   ) {
-    if (_parsedNameChain(expression) case (:var head, :var components)) {
-      return ParsedAssignmentTargetChainImpl(
-        head: head,
-        components: components.cast<ParsedNameAccessImpl>(),
-      );
+    switch (expression) {
+      case SimpleIdentifierImpl(:var token):
+        return ParsedUnqualifiedNameAssignmentTargetImpl(name: token);
+      case PrefixedIdentifierImpl(:var prefix, :var period, :var identifier):
+        return ParsedNameAccessAssignmentTargetImpl(
+          operand: ParsedUnqualifiedNameImpl(name: prefix.token),
+          operator: period,
+          name: identifier.token,
+        );
+      case PropertyAccessImpl(
+            target2: var target?,
+            :var operator,
+            :var propertyName,
+          )
+          when propertyName.token.isKeywordOrIdentifier:
+        var operand = _toParsedAssignmentOperand(target);
+        if (operand != null) {
+          return ParsedNameAccessAssignmentTargetImpl(
+            operand: operand,
+            operator: operator,
+            name: propertyName.token,
+          );
+        }
+      default:
+        break;
     }
     return null;
   }
 
-  /// Commits a completed name chain to a value slot without selecting its
+  /// Commits a completed expression to a value slot without selecting its
   /// interpretation. Selectors consume temporary identifier nodes until the
   /// completed value or assignment-target boundary.
   ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
-    if (_parsedNameChain(expression, allowInvocations: true) case (
-      :var head,
-      :var components,
-    )) {
-      return ParsedExpressionChainImpl(head: head, components: components);
-    }
-    return expression;
+    return _toNestedParsedExpression(expression) ?? expression;
   }
 
   static String _versionAsString(Version version) {

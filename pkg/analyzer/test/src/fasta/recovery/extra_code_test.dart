@@ -207,93 +207,86 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
                     name: b
-                  components
-                    ParsedArguments
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          NamedArgument
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      NamedArgument
+                        name: c
+                        colon: :
+                        argumentExpression2: ParsedValueArguments
+                          operand: ParsedUnqualifiedName
                             name: c
-                            colon: :
-                            argumentExpression2: ParsedExpressionChain
-                              head: ParsedNameHead
-                                name: c
-                              components
-                                ParsedArguments
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments2
+                              NamedArgument
+                                name: d
+                                colon: :
+                                argumentExpression2: ParsedValueArguments
+                                  operand: ParsedUnqualifiedName
+                                    name: d
                                   argumentList: ArgumentList
                                     leftParenthesis: (
                                     arguments2
                                       NamedArgument
-                                        name: d
+                                        name: e
                                         colon: :
-                                        argumentExpression2: ParsedExpressionChain
-                                          head: ParsedNameHead
-                                            name: d
-                                          components
-                                            ParsedArguments
-                                              argumentList: ArgumentList
-                                                leftParenthesis: (
-                                                arguments2
-                                                  NamedArgument
-                                                    name: e
-                                                    colon: :
-                                                    argumentExpression2: NullLiteral
-                                                      literal: null
-                                                  ParsedExpressionChain
-                                                    head: ParsedNameHead
-                                                      name: f
-                                                arguments(v1)
-                                                  NamedArgument
-                                                    name: e
-                                                    colon: :
-                                                    argumentExpression: NullLiteral
-                                                      literal: null
-                                                  SimpleIdentifier
-                                                    token: f
-                                                rightParenthesis: )
-                                        argumentExpression(v1): MethodInvocation
-                                          methodName: SimpleIdentifier
-                                            token: d
-                                          argumentList: ArgumentList
-                                            leftParenthesis: (
-                                            arguments
-                                              NamedArgument
-                                                name: e
-                                                colon: :
-                                                argumentExpression: NullLiteral
-                                                  literal: null
-                                              SimpleIdentifier
-                                                token: f
-                                            rightParenthesis: )
+                                        argumentExpression2: NullLiteral
+                                          literal: null
+                                      ParsedUnqualifiedName
+                                        name: f
+                                    arguments(v1)
+                                      NamedArgument
+                                        name: e
+                                        colon: :
+                                        argumentExpression: NullLiteral
+                                          literal: null
+                                      SimpleIdentifier
+                                        token: f
                                     rightParenthesis: )
-                            argumentExpression(v1): MethodInvocation
-                              methodName: SimpleIdentifier
-                                token: c
-                              argumentList: ArgumentList
-                                leftParenthesis: (
-                                arguments
-                                  NamedArgument
-                                    name: d
-                                    colon: :
-                                    argumentExpression: MethodInvocation
-                                      methodName: SimpleIdentifier
-                                        token: d
-                                      argumentList: ArgumentList
-                                        leftParenthesis: (
-                                        arguments
-                                          NamedArgument
-                                            name: e
-                                            colon: :
-                                            argumentExpression: NullLiteral
-                                              literal: null
-                                          SimpleIdentifier
-                                            token: f
-                                        rightParenthesis: )
-                                rightParenthesis: )
-                        rightParenthesis: )
+                                argumentExpression(v1): MethodInvocation
+                                  methodName: SimpleIdentifier
+                                    token: d
+                                  argumentList: ArgumentList
+                                    leftParenthesis: (
+                                    arguments
+                                      NamedArgument
+                                        name: e
+                                        colon: :
+                                        argumentExpression: NullLiteral
+                                          literal: null
+                                      SimpleIdentifier
+                                        token: f
+                                    rightParenthesis: )
+                            rightParenthesis: )
+                        argumentExpression(v1): MethodInvocation
+                          methodName: SimpleIdentifier
+                            token: c
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
+                              NamedArgument
+                                name: d
+                                colon: :
+                                argumentExpression: MethodInvocation
+                                  methodName: SimpleIdentifier
+                                    token: d
+                                  argumentList: ArgumentList
+                                    leftParenthesis: (
+                                    arguments
+                                      NamedArgument
+                                        name: e
+                                        colon: :
+                                        argumentExpression: NullLiteral
+                                          literal: null
+                                      SimpleIdentifier
+                                        token: f
+                                    rightParenthesis: )
+                            rightParenthesis: )
+                    rightParenthesis: )
                 expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: b
@@ -371,9 +364,8 @@ CompilationUnit
                     leftOperand: IntegerLiteral
                       literal: 1
                     operator: <
-                    rightOperand: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    rightOperand: ParsedUnqualifiedName
+                      name: x
                     binaryOperator: lessThan
                   operator: <
                   rightOperand: IntegerLiteral

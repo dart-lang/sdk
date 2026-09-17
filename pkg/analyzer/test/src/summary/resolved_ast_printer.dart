@@ -1636,51 +1636,43 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitParsedArguments(ParsedArguments node) {
-    _sink.writeln('ParsedArguments');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
-    _sink.writeln('ParsedAssignmentTargetChain');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitParsedExpressionChain(ParsedExpressionChain node) {
-    _sink.writeln('ParsedExpressionChain');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _sink.writeln('ParsedNameAccess');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override
-  void visitParsedNameHead(ParsedNameHead node) {
-    _sink.writeln('ParsedNameHead');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    _sink.writeln('ParsedNameAccessAssignmentTarget');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override
   void visitParsedTypeArguments(ParsedTypeArguments node) {
     _sink.writeln('ParsedTypeArguments');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _sink.writeln('ParsedUnqualifiedName');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _sink.writeln('ParsedUnqualifiedNameAssignmentTarget');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    _sink.writeln('ParsedValueArguments');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override

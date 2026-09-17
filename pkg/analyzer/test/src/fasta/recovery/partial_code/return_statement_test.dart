@@ -38,9 +38,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -77,9 +76,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -114,9 +112,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -151,9 +148,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -186,9 +182,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -229,9 +224,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -261,9 +255,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -275,9 +268,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -310,9 +302,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -351,9 +342,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -391,9 +381,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -436,9 +425,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -481,9 +469,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -520,9 +507,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -555,18 +541,16 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -598,9 +582,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -639,9 +622,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 semicolon: ; <synthetic>
@@ -757,9 +739,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -795,9 +776,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -832,9 +812,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -877,9 +856,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -911,9 +889,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -925,9 +902,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -962,9 +938,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -1006,16 +981,14 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: l
+                expression2: ParsedUnqualifiedName
+                  name: l
                 expression(v1): SimpleIdentifier
                   token: l
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -1124,9 +1097,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -1165,9 +1137,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ;
@@ -1200,9 +1171,8 @@ CompilationUnit
                 expression2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  expression2: ParsedUnqualifiedName
+                    name: x
                   expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
@@ -1237,9 +1207,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -1280,9 +1249,8 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>

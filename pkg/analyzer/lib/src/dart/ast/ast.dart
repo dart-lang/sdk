@@ -3149,7 +3149,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
       switch (target) {
-        ParsedAssignmentTargetChainImpl target => target.v1Projection,
+        ParsedAssignmentTargetImpl target => target.v1Projection,
         CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
         ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
         IndexAssignmentTargetImpl target => target.indexExpression,
@@ -3170,7 +3170,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
-    ParsedAssignmentTargetChainImpl() => null,
+    ParsedAssignmentTargetImpl() => null,
   };
 
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
@@ -3193,7 +3193,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
-    ParsedAssignmentTargetChainImpl() => null,
+    ParsedAssignmentTargetImpl() => null,
   };
 }
 
@@ -11989,7 +11989,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   final SimpleIdentifierImpl? _parsedName;
 
-  ConstructorNameImpl.v1ProjectionFromParsedChain({
+  ConstructorNameImpl.v1ProjectionFromParsedExpression({
     required NamedTypeImpl type,
     required Token period,
     required Token name,
@@ -25566,7 +25566,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _becomeParentOf1(typeArguments);
   }
 
-  FunctionReferenceImpl.v1ProjectionFromParsedChain(
+  FunctionReferenceImpl.v1ProjectionFromParsedExpression(
     ExpressionImpl origin,
     ExpressionImpl function,
     TypeArgumentListImpl typeArguments,
@@ -25725,7 +25725,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   String toSource() => switch (_v1ProjectionOrigin) {
-    ParsedExpressionChainImpl origin => origin._toSourceThrough(endToken),
+    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
     var origin? => origin.toSource(),
     null => super.toSource(),
   };
@@ -31038,7 +31038,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   ExpressionImpl get _legacyOperand => switch (target) {
-    ParsedAssignmentTargetChainImpl target => target.v1Projection,
+    ParsedAssignmentTargetImpl target => target.v1Projection,
     CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
     ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
     IndexAssignmentTargetImpl target => target.indexExpression,
@@ -31058,7 +31058,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
-    ParsedAssignmentTargetChainImpl() => null,
+    ParsedAssignmentTargetImpl() => null,
   };
 
   TypeImpl? get _legacyReadType => switch (target) {
@@ -31075,7 +31075,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
-    ParsedAssignmentTargetChainImpl() => null,
+    ParsedAssignmentTargetImpl() => null,
   };
 
   TypeImpl? get _legacyWriteType => switch (target) {
@@ -32134,14 +32134,14 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   final ConstructorInvocationImpl? _origin;
 
-  final ParsedExpressionChainImpl? _parsedOrigin;
+  final ParsedExpressionImpl? _parsedOrigin;
 
   final ConstructorNameImpl? _parsedConstructorName;
 
   final ArgumentListImpl? _parsedArgumentList;
 
-  InstanceCreationExpressionImpl.v1ProjectionFromParsedChain({
-    required ParsedExpressionChainImpl origin,
+  InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression({
+    required ParsedExpressionImpl origin,
     required ConstructorNameImpl constructorName,
     required ArgumentListImpl argumentList,
   }) : _origin = null,
@@ -37473,7 +37473,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   NamedFunctionInvocationImpl? _v1ProjectionOrigin;
 
-  ParsedExpressionChainImpl? _parsedChainOrigin;
+  ParsedExpressionImpl? _parsedExpressionOrigin;
 
   /// The invoke type of the [methodName] if the target element is a getter,
   /// or `null` otherwise.
@@ -37511,8 +37511,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _attachV1Children();
   }
 
-  MethodInvocationImpl.v1ProjectionFromParsedChain({
-    required ParsedExpressionChainImpl origin,
+  MethodInvocationImpl.v1ProjectionFromParsedExpression({
+    required ParsedExpressionImpl origin,
     required ExpressionImpl? target,
     required Token? operator,
     required Token name,
@@ -37521,7 +37521,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }) : _target2 = target,
        _operator = operator,
        _methodName = SimpleIdentifierImpl.v1Projection(token: name),
-       _parsedChainOrigin = origin,
+       _parsedExpressionOrigin = origin,
        super.v1Projection() {
     _becomeParentOf1(target);
     _becomeParentOf1(_methodName);
@@ -37556,7 +37556,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   InternalFormalParameterElement? get correspondingParameter =>
       _v1ProjectionOrigin?.correspondingParameter ??
-      _parsedChainOrigin?.correspondingParameter ??
+      _parsedExpressionOrigin?.correspondingParameter ??
       super.correspondingParameter;
 
   @DoNotGenerate(reason: 'V1 projections have custom token ownership')
@@ -37569,7 +37569,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   bool get inConstantContext =>
       _v1ProjectionOrigin?.inConstantContext ??
-      _parsedChainOrigin?.inConstantContext ??
+      _parsedExpressionOrigin?.inConstantContext ??
       super.inConstantContext;
 
   @override
@@ -37776,7 +37776,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   @override
   AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null && _parsedChainOrigin == null
+      _v1ProjectionOrigin == null && _parsedExpressionOrigin == null
       ? AstNodeApi.shared
       : AstNodeApi.v1;
 
@@ -37895,7 +37895,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   String toSource() =>
       _v1ProjectionOrigin?.toSource() ??
-      _parsedChainOrigin?._toSourceThrough(endToken) ??
+      _parsedExpressionOrigin?._toSourceThrough(endToken) ??
       super.toSource();
 
   @generated
@@ -38937,7 +38937,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf1(_typeArguments);
   }
 
-  NamedTypeImpl.v1ProjectionFromParsedChain({
+  NamedTypeImpl.v1ProjectionFromParsedExpression({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl typeArguments,
@@ -41871,609 +41871,133 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 }
 
-/// An argument list whose invocation has not been resolved.
+/// An assignment destination whose names have not yet been classified.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedArguments implements ParsedExpressionChainComponent {
-  /// The written argument list.
-  ArgumentList get argumentList;
-}
+sealed class ParsedAssignmentTarget implements AssignmentTarget {}
 
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('argumentList')],
-)
-final class ParsedArgumentsImpl extends ParsedExpressionChainComponentImpl
-    implements ParsedArguments {
-  @generated
-  ArgumentListImpl _argumentList;
-
-  @generated
-  ParsedArgumentsImpl({required ArgumentListImpl argumentList})
-    : _argumentList = argumentList {
-    _becomeParentOf2(argumentList);
-  }
-
-  @generated
-  @override
-  ArgumentListImpl get argumentList => _argumentList;
-
-  @generated
-  set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf2(argumentList);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return argumentList.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return argumentList.endToken;
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('ParsedArguments is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addNode('argumentList', argumentList);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('ParsedArguments is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(argumentList, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'argumentList'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(argumentList, oldNode)) {
-      argumentList = newNode as ArgumentListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('ParsedArguments is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    argumentList.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ArgumentListImpl)? visitArgumentList,
-  }) {
-    if (visitArgumentList != null) {
-      visitArgumentList(argumentList);
-    } else {
-      argumentList.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('ParsedArguments is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
-      return argumentList;
-    }
-    return null;
-  }
-}
-
-/// A parser-only name chain used as an assignment destination.
-///
-/// Resolution replaces the chain with an assignment target. The enclosing
-/// operation determines whether the target requires write resolution alone
-/// or both read and write resolution.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedAssignmentTargetChain implements AssignmentTarget {
-  /// The named selectors following [head], in source order.
-  NodeList<ParsedNameAccess> get components;
-
-  /// The name that begins the chain.
-  ParsedNameHead get head;
-}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('head'),
-    GenerateNodeProperty('components'),
-  ],
-)
-final class ParsedAssignmentTargetChainImpl extends AssignmentTargetImpl
-    implements ParsedAssignmentTargetChain {
-  @generated
-  ParsedNameHeadImpl _head;
-
-  @generated
-  @override
-  final NodeListImpl<ParsedNameAccessImpl> components = NodeListImpl._();
-
+@GenerateNodeImpl(api: AstNodeApi.v2, childEntitiesOrder: [])
+sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
+    implements ParsedAssignmentTarget {
   ExpressionImpl? _v1Projection;
-
-  @generated
-  ParsedAssignmentTargetChainImpl({
-    required ParsedNameHeadImpl head,
-    required List<ParsedNameAccessImpl> components,
-  }) : _head = head {
-    _becomeParentOf2(head);
-    this.components._initialize(this, components);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return head.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    if (components.endToken case var result?) {
-      return result;
-    }
-    return head.endToken;
-  }
-
-  @generated
-  @override
-  ParsedNameHeadImpl get head => _head;
-
-  @generated
-  set head(ParsedNameHeadImpl head) {
-    _head = _becomeParentOf2(head);
-  }
 
   @override
   ReadResolutionImpl? get read => null;
 
-  ExpressionImpl get v1Projection =>
-      _v1Projection ??= V1Projection._createParsedChain(this, head, components);
+  ExpressionImpl get v1Projection => _v1Projection ??= switch (this) {
+    ParsedUnqualifiedNameAssignmentTargetImpl(:var name) =>
+      SimpleIdentifierImpl.v1Projection(token: name),
+    ParsedNameAccessAssignmentTargetImpl(
+      :var operand,
+      :var operator,
+      :var name,
+    ) =>
+      V1Projection._parsedProperty(this, operand.v1Projection, operator, name),
+  };
 
   @override
   WriteResolutionImpl? get write => null;
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('head', head)
-    ..addNodeList('components', components);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitParsedAssignmentTargetChain(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(head, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'head'.");
-    }
-    if (components.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'components' because NodeList cannot be resized.",
-      );
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(head, oldNode)) {
-      head = newNode as ParsedNameHeadImpl;
-      return;
-    }
-    if (components.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    head.accept2(visitor);
-    components.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ParsedNameHeadImpl)? visitHead,
-    void Function(NodeListImpl<ParsedNameAccessImpl>)? visitComponents,
-  }) {
-    if (visitHead != null) {
-      visitHead(head);
-    } else {
-      head.accept2(visitor);
-    }
-    if (visitComponents != null) {
-      visitComponents(components);
-    } else {
-      components.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('ParsedAssignmentTargetChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (head._containsOffset(rangeOffset, rangeEnd)) {
-      return head;
-    }
-    if (components._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    return null;
-  }
 }
 
-/// A parser-only name chain whose interpretation requires lookup.
-///
-/// This chain form contains a name followed by selectors, type arguments, and
-/// argument lists. Resolution
-/// determines receiver roles and replaces the chain before exposing the
-/// resolved AST.
+/// A parser-only expression whose names have not yet been assigned receiver roles.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedExpressionChain implements Expression {
-  /// The operations following [head], in source order.
-  NodeList<ParsedExpressionChainComponent> get components;
-
-  /// The name that begins the chain.
-  ParsedNameHead get head;
-}
-
-/// An operation in a parser-only expression chain.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class ParsedExpressionChainComponent implements AstNode {}
+sealed class ParsedExpression implements Expression {}
 
 @GenerateNodeImpl(api: AstNodeApi.v2, childEntitiesOrder: [])
-sealed class ParsedExpressionChainComponentImpl extends AstNodeImpl
-    implements ParsedExpressionChainComponent {}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('head'),
-    GenerateNodeProperty('components'),
-  ],
-)
-final class ParsedExpressionChainImpl extends ExpressionImpl
-    implements ParsedExpressionChain {
-  @generated
-  ParsedNameHeadImpl _head;
-
-  @generated
-  @override
-  final NodeListImpl<ParsedExpressionChainComponentImpl> components =
-      NodeListImpl._();
-
+sealed class ParsedExpressionImpl extends ExpressionImpl
+    implements ParsedExpression {
   ExpressionImpl? _v1Projection;
 
-  @generated
-  ParsedExpressionChainImpl({
-    required ParsedNameHeadImpl head,
-    required List<ParsedExpressionChainComponentImpl> components,
-  }) : _head = head {
-    _becomeParentOf2(head);
-    this.components._initialize(this, components);
-  }
-
-  @generated
   @override
   Token get beginToken {
-    return head.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    if (components.endToken case var result?) {
-      return result;
+    ExpressionImpl node = this;
+    while (true) {
+      switch (node) {
+        case ParsedUnqualifiedNameImpl(:var name):
+          return name;
+        case ParsedNameAccessImpl(:var operand):
+          node = operand;
+        case ParsedTypeArgumentsImpl(:var operand):
+          node = operand;
+        case ParsedValueArgumentsImpl(:var operand):
+          node = operand;
+        default:
+          return node.beginToken;
+      }
     }
-    return head.endToken;
-  }
-
-  @generated
-  @override
-  ParsedNameHeadImpl get head => _head;
-
-  @generated
-  set head(ParsedNameHeadImpl head) {
-    _head = _becomeParentOf2(head);
   }
 
   @override
-  bool get isSynthetic => components.isEmpty && head.name.isSynthetic;
-
-  @override
-  Precedence get precedence =>
-      components.isEmpty ? Precedence.primary : Precedence.postfix;
+  Precedence get precedence => Precedence.postfix;
 
   ExpressionImpl get v1Projection =>
-      _v1Projection ??= V1Projection._createParsedChain(this, head, components);
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('head', head)
-    ..addNodeList('components', components);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitParsedExpressionChain(this);
+      _v1Projection ??= _ParsedExpressionBuilder(this, forV1: true).build();
 
   /// Builds the unresolved invocation forms consumed by the existing resolver.
   ///
-  /// This is a migration bridge for qualified invocations and standalone type
-  /// arguments. Unqualified calls are resolved directly from their chains.
+  /// This is a migration bridge for invocations and standalone type arguments
+  /// that are not resolved directly from their parsed syntax.
   /// It must not consume the cached V1 projection, whose children have different
   /// parents.
   ExpressionImpl buildUnresolvedExpression() =>
-      _ParsedChainExpressionBuilder(this, forV1: false).build();
+      _ParsedExpressionBuilder(this, forV1: false).build();
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(head, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'head'.");
-    }
-    if (components.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'components' because NodeList cannot be resized.",
-      );
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(head, oldNode)) {
-      head = newNode as ParsedNameHeadImpl;
-      return;
-    }
-    if (components.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError(
-      'ParsedExpressionChain must be lowered before resolution.',
-    );
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    head.accept2(visitor);
-    components.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ParsedNameHeadImpl)? visitHead,
-    void Function(NodeListImpl<ParsedExpressionChainComponentImpl>)?
-    visitComponents,
-  }) {
-    if (visitHead != null) {
-      visitHead(head);
-    } else {
-      head.accept2(visitor);
-    }
-    if (visitComponents != null) {
-      visitComponents(components);
-    } else {
-      components.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('ParsedExpressionChain is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (head._containsOffset(rangeOffset, rangeEnd)) {
-      return head;
-    }
-    if (components._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    return null;
-  }
-
-  /// Prints only the prefix represented by an intermediate V1 projection.
   String _toSourceThrough(Token endToken) {
-    var buffer = StringBuffer(head.name.lexeme);
-    var visitor = ToSourceVisitor(buffer);
-    for (var component in components) {
-      if (component.end > endToken.offset + endToken.length) {
-        break;
-      }
-      component.accept2(visitor);
+    ExpressionImpl node = this;
+    while (node.end > endToken.end) {
+      node = switch (node) {
+        ParsedNameAccessImpl(:var operand) => operand,
+        ParsedTypeArgumentsImpl(:var operand) => operand,
+        ParsedValueArgumentsImpl(:var operand) => operand,
+        _ => throw StateError('No parsed prefix ending at $endToken'),
+      };
     }
-    return buffer.toString();
+    return node.toSource();
   }
 }
 
-/// A named selector whose receiver role has not been resolved.
+/// An operand followed by a selector operator and a name.
+///
+/// Resolution determines whether this selects a declaration through a namespace,
+/// accesses a member, or contributes to a constructor reference.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedNameAccess
-    implements ParsedExpressionChainComponent {
-  /// The selected name.
+abstract final class ParsedNameAccess implements ParsedExpression {
   Token get name;
 
-  /// The `.` or `?.` separating this name from its receiver.
+  /// A parsed operand can denote an import prefix or static qualifier. An
+  /// ordinary expression establishes a value-expression boundary instead.
+  Expression get operand;
+  Token get operator;
+}
+
+/// A final name selector used as a syntactic assignment destination.
+///
+/// Resolution determines what the name denotes and whether it is writable.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedNameAccessAssignmentTarget
+    implements ParsedAssignmentTarget {
+  Token get name;
+  ParsedExpression get operand;
   Token get operator;
 }
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name'),
   ],
 )
-final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
-    implements ParsedNameAccess {
+final class ParsedNameAccessAssignmentTargetImpl
+    extends ParsedAssignmentTargetImpl
+    implements ParsedNameAccessAssignmentTarget {
+  @generated
+  ParsedExpressionImpl _operand;
+
   @generated
   @override
   final Token operator;
@@ -42483,18 +42007,194 @@ final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
   final Token name;
 
   @generated
-  ParsedNameAccessImpl({required this.operator, required this.name});
+  ParsedNameAccessAssignmentTargetImpl({
+    required ParsedExpressionImpl operand,
+    required this.operator,
+    required this.name,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
 
   @generated
   @override
   Token get beginToken {
-    return operator;
+    return operand.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
     return name;
+  }
+
+  @generated
+  @override
+  ParsedExpressionImpl get operand => _operand;
+
+  @generated
+  set operand(ParsedExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ParsedNameAccessAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
+    ..addToken('operator', operator)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ParsedNameAccessAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedNameAccessAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ParsedExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ParsedNameAccessAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ParsedExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ParsedNameAccessAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class ParsedNameAccessImpl extends ParsedExpressionImpl
+    implements ParsedNameAccess {
+  @generated
+  ExpressionImpl _operand;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedNameAccessImpl({
+    required ExpressionImpl operand,
+    required this.operator,
+    required this.name,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @DoNotGenerate(reason: 'Finds the head iteratively for deeply nested syntax')
+  @override
+  Token get beginToken => super.beginToken;
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @generated
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
   }
 
   @generated
@@ -42510,6 +42210,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
     ..addToken('operator', operator)
     ..addToken('name', name);
 
@@ -42533,6 +42234,31 @@ final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
   }
 
   @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -42542,12 +42268,27 @@ final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
 
   /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
   @generated
   @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
 
   @generated
   @override
@@ -42558,138 +42299,63 @@ final class ParsedNameAccessImpl extends ParsedExpressionChainComponentImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
     return null;
   }
 }
 
-/// The neutral leading name of a parser-only expression chain.
+/// An operand followed by a type-argument list.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedNameHead implements AstNode {
-  Token get name;
-}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('name')],
-)
-final class ParsedNameHeadImpl extends AstNodeImpl implements ParsedNameHead {
-  @generated
-  @override
-  final Token name;
-
-  @generated
-  ParsedNameHeadImpl({required this.name});
-
-  @generated
-  @override
-  Token get beginToken {
-    return name;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return name;
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('ParsedNameHead is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('ParsedNameHead is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedNameHead(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('ParsedNameHead is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('ParsedNameHead is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
-  }
-}
-
-/// Explicit type arguments whose application has not been resolved.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedTypeArguments
-    implements ParsedExpressionChainComponent {
-  /// The written type argument list.
+abstract final class ParsedTypeArguments implements ParsedExpression {
+  Expression get operand;
   TypeArgumentList get typeArguments;
 }
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('typeArguments')],
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('typeArguments'),
+  ],
 )
-final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
+final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
     implements ParsedTypeArguments {
+  @generated
+  ExpressionImpl _operand;
+
   @generated
   TypeArgumentListImpl _typeArguments;
 
   @generated
-  ParsedTypeArgumentsImpl({required TypeArgumentListImpl typeArguments})
-    : _typeArguments = typeArguments {
+  ParsedTypeArgumentsImpl({
+    required ExpressionImpl operand,
+    required TypeArgumentListImpl typeArguments,
+  }) : _operand = operand,
+       _typeArguments = typeArguments {
+    _becomeParentOf2(operand);
     _becomeParentOf2(typeArguments);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Finds the head iteratively for deeply nested syntax')
   @override
-  Token get beginToken {
-    return typeArguments.beginToken;
-  }
+  Token get beginToken => super.beginToken;
 
   @generated
   @override
   Token get endToken {
     return typeArguments.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @generated
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
   }
 
   @generated
@@ -42713,8 +42379,9 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addNode('typeArguments', typeArguments);
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
+    ..addNode('typeArguments', typeArguments);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -42739,6 +42406,9 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
     if (identical(typeArguments, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'typeArguments'.");
     }
@@ -42748,11 +42418,21 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
     if (identical(typeArguments, oldNode)) {
       typeArguments = newNode as TypeArgumentListImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
   @generated
@@ -42766,6 +42446,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
     typeArguments.accept2(visitor);
   }
 
@@ -42778,8 +42459,14 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
   }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
     if (visitTypeArguments != null) {
       visitTypeArguments(typeArguments);
     } else {
@@ -42796,8 +42483,413 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionChainComponentImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
     if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
       return typeArguments;
+    }
+    return null;
+  }
+}
+
+/// A syntactically unqualified name whose semantic role has not yet been
+/// determined.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedUnqualifiedName implements ParsedExpression {
+  Token get name;
+}
+
+/// An unqualified name in an assignment destination.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedUnqualifiedNameAssignmentTarget
+    implements ParsedAssignmentTarget {
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class ParsedUnqualifiedNameAssignmentTargetImpl
+    extends ParsedAssignmentTargetImpl
+    implements ParsedUnqualifiedNameAssignmentTarget {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedUnqualifiedNameAssignmentTargetImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedUnqualifiedNameAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
+    implements ParsedUnqualifiedName {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedUnqualifiedNameImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedUnqualifiedName(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// An operand followed by a parenthesized value-argument list.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedValueArguments implements ParsedExpression {
+  ArgumentList get argumentList;
+  ParsedExpression get operand;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand'),
+    GenerateNodeProperty('argumentList'),
+  ],
+)
+final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
+    implements ParsedValueArguments {
+  @generated
+  ParsedExpressionImpl _operand;
+
+  @generated
+  ArgumentListImpl _argumentList;
+
+  @generated
+  ParsedValueArgumentsImpl({
+    required ParsedExpressionImpl operand,
+    required ArgumentListImpl argumentList,
+  }) : _operand = operand,
+       _argumentList = argumentList {
+    _becomeParentOf2(operand);
+    _becomeParentOf2(argumentList);
+  }
+
+  @generated
+  @override
+  ArgumentListImpl get argumentList => _argumentList;
+
+  @generated
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf2(argumentList);
+  }
+
+  @DoNotGenerate(reason: 'Finds the head iteratively for deeply nested syntax')
+  @override
+  Token get beginToken => super.beginToken;
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  @generated
+  @override
+  ParsedExpressionImpl get operand => _operand;
+
+  @generated
+  set operand(ParsedExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedValueArguments is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('operand', operand)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedValueArguments is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedValueArguments(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ParsedExpressionImpl;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedValueArguments is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ParsedExpressionImpl)? visitOperand,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedValueArguments is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
     }
     return null;
   }
@@ -45742,7 +45834,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromParsedChain(
+  PropertyAccessImpl.v1ProjectionFromParsedExpression(
     AstNodeImpl origin,
     ExpressionImpl target,
     Token operator,
@@ -46025,7 +46117,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
       '${operator.lexeme}${origin.name.lexeme}',
     CascadePropertyExtractionImpl origin =>
       '${operator.lexeme}${origin.name.lexeme}',
-    ParsedExpressionChainImpl origin => origin._toSourceThrough(endToken),
+    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
     var origin? => origin.toSource(),
     _ => super.toSource(),
   };
@@ -57129,48 +57221,6 @@ enum V1Projection {
     return node;
   }
 
-  static ExpressionImpl _createParsedChain(
-    AstNodeImpl origin,
-    ParsedNameHeadImpl head,
-    List<ParsedExpressionChainComponentImpl> components,
-  ) {
-    if (origin is ParsedExpressionChainImpl &&
-        components.any((component) => component is! ParsedNameAccessImpl)) {
-      return _ParsedChainExpressionBuilder(origin, forV1: true).build();
-    }
-    // PropertyAccessImpl requires a non-null origin to identify a V1 projection,
-    // so intermediate property accesses also use this chain as their origin.
-    // Their delegated staticType is null because the chain is unresolved.
-    // Identifier projection constructors do not require an origin.
-    ExpressionImpl result = SimpleIdentifierImpl.v1Projection(
-      token: head.name,
-      origin: components.isEmpty && origin is ExpressionImpl ? origin : null,
-    );
-    for (var component in components.cast<ParsedNameAccessImpl>()) {
-      var identifier = SimpleIdentifierImpl.v1Projection(token: component.name);
-      if (result is SimpleIdentifierImpl &&
-          component.operator.type == TokenType.PERIOD) {
-        result = PrefixedIdentifierImpl.v1Projection(
-          prefix: result,
-          period: component.operator,
-          identifier: identifier,
-          origin:
-              identical(component, components.last) && origin is ExpressionImpl
-              ? origin
-              : null,
-        );
-      } else {
-        result = PropertyAccessImpl.v1ProjectionFromParsedChain(
-          origin,
-          result,
-          component.operator,
-          identifier,
-        );
-      }
-    }
-    return result;
-  }
-
   static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
     ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
     CascadeSectionImpl() => _existingNode(node.body),
@@ -57202,6 +57252,29 @@ enum V1Projection {
     }
   }
 
+  static ExpressionImpl _parsedProperty(
+    AstNodeImpl origin,
+    ExpressionImpl operand,
+    Token operator,
+    Token name,
+  ) {
+    var identifier = SimpleIdentifierImpl.v1Projection(token: name);
+    if (operand is SimpleIdentifierImpl && operator.type == TokenType.PERIOD) {
+      return PrefixedIdentifierImpl.v1Projection(
+        prefix: operand,
+        period: operator,
+        identifier: identifier,
+        origin: origin is ExpressionImpl ? origin : null,
+      );
+    }
+    return PropertyAccessImpl.v1ProjectionFromParsedExpression(
+      origin,
+      operand,
+      operator,
+      identifier,
+    );
+  }
+
   /// Existing origin fields let a projection requested directly from its
   /// canonical node discover its parent without retaining another tree link.
   static AstNodeImpl? _sourceOf(AstNodeImpl node) => switch (node) {
@@ -57220,7 +57293,7 @@ enum V1Projection {
     IndexExpressionImpl() => node._v1ProjectionOrigin,
     InstanceCreationExpressionImpl() => node._origin ?? node._parsedOrigin,
     MethodInvocationImpl() =>
-      node._v1ProjectionOrigin ?? node._parsedChainOrigin,
+      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     NamedTypeImpl() => node._constructorTypeReferenceOrigin,
     PostfixExpressionImpl() => node._origin,
     PrefixedIdentifierImpl() => node._v1ProjectionOrigin,
@@ -57234,7 +57307,7 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
-    if (node is ParsedExpressionChainImpl) {
+    if (node is ParsedExpressionImpl) {
       return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
     // Some V1 forms fold instantiation into the operand. Both V2 nodes then
@@ -59515,94 +59588,106 @@ class _Generated {
   const _Generated();
 }
 
-/// Builds a nested expression tree from a parsed chain containing arguments or
-/// type arguments.
+/// Builds a V1 projection or an unresolved resolver tree from parsed syntax.
 ///
 /// With [forV1], builds compatibility projections and preserves canonical child
 /// ownership. Otherwise, builds unresolved expressions for the existing resolver
 /// and transfers canonical children to them. Both modes share syntactic grouping;
 /// this builder performs no name lookup or type inference.
-// TODO(scheglov): Resolve invocations directly from parsed chains, then remove
-// buildUnresolvedExpression() and the non-V1 mode of this builder.
-class _ParsedChainExpressionBuilder {
-  final ParsedExpressionChainImpl chain;
+// TODO(scheglov): Resolve invocations directly from parsed expressions, then
+// remove buildUnresolvedExpression() and the non-V1 mode of this builder.
+class _ParsedExpressionBuilder {
+  final ParsedExpressionImpl chain;
   final bool forV1;
 
-  _ParsedChainExpressionBuilder(this.chain, {required this.forV1});
+  _ParsedExpressionBuilder(this.chain, {required this.forV1});
 
   ExpressionImpl build() {
-    ExpressionImpl result = _identifier(chain.head.name);
-    var components = chain.components;
-    for (var i = 0; i < components.length; i++) {
-      switch (components[i]) {
+    ExpressionImpl node = chain;
+    while (node is ParsedExpressionImpl && node is! ParsedUnqualifiedNameImpl) {
+      node = switch (node) {
+        ParsedNameAccessImpl(:var operand) => operand,
+        ParsedTypeArgumentsImpl(:var operand) => operand,
+        ParsedValueArgumentsImpl(:var operand) => operand,
+        ParsedUnqualifiedNameImpl() => throw StateError('Already at the head.'),
+      };
+    }
+    var parent = node.parent2;
+    ExpressionImpl result;
+    if (node is ParsedUnqualifiedNameImpl) {
+      result = forV1
+          ? SimpleIdentifierImpl.v1Projection(token: node.name, origin: node)
+          : _identifier(node.name);
+    } else {
+      result = forV1 ? V1Projection.toV1Expression(node) : node;
+    }
+    // An ordinary expression operand is reused. Save its original parent
+    // before construction transfers it into the replacement tree.
+    while (!identical(node, chain)) {
+      node = parent as ParsedExpressionImpl;
+      parent = node.parent2;
+      switch (node) {
         case ParsedNameAccessImpl(:var operator, :var name):
-          var identifier = _identifier(name);
-          if (result is SimpleIdentifierImpl &&
+          if (forV1) {
+            result = V1Projection._parsedProperty(node, result, operator, name);
+          } else if (result is SimpleIdentifierImpl &&
               operator.type == TokenType.PERIOD) {
-            result = forV1
-                ? PrefixedIdentifierImpl.v1Projection(
-                    prefix: result,
-                    period: operator,
-                    identifier: identifier,
-                  )
-                : PrefixedIdentifierImpl(
-                    prefix: result,
-                    period: operator,
-                    identifier: identifier,
-                  );
+            result = PrefixedIdentifierImpl(
+              prefix: result,
+              period: operator,
+              identifier: _identifier(name),
+            );
           } else {
-            result = forV1
-                ? PropertyAccessImpl.v1ProjectionFromParsedChain(
-                    chain,
-                    result,
-                    operator,
-                    identifier,
-                  )
-                : PropertyAccessImpl(
-                    target2: result,
-                    operator: operator,
-                    propertyName: identifier,
-                  );
+            result = PropertyAccessImpl(
+              target2: result,
+              operator: operator,
+              propertyName: _identifier(name),
+            );
           }
         case ParsedTypeArgumentsImpl(:var typeArguments):
-          // C<T>.name() is parsed as constructor syntax. C.name<T>() is
-          // parsed as a method invocation, including its different recovery
-          // diagnostics. Preserve that distinction until lookup selects a role.
-          if (components.elementAtOrNull(i + 1)
-              case ParsedNameAccessImpl selector
-              when result is IdentifierImpl) {
-            if (components.elementAtOrNull(i + 2) case ParsedArgumentsImpl(
-              :var argumentList,
-            )) {
-              result = _constructor(
-                result,
-                typeArguments,
-                selector,
-                argumentList,
-              );
-              i += 2;
-              continue;
+          // Adjacent type and value arguments form one application. Avoid
+          // constructing a tear-off for the intermediate parsed prefix, but
+          // preserve that prefix when it is the requested projection root.
+          if (parent case ParsedValueArgumentsImpl arguments
+              when !identical(node, chain)) {
+            result = _invoke(result, typeArguments, arguments.argumentList);
+            node = arguments;
+            parent = node.parent2;
+            continue;
+          }
+          // C<T>.named() is constructor syntax, unlike C.named<T>(). Do not
+          // consume parents outside the particular projection being requested.
+          if (!identical(node, chain) && result is IdentifierImpl) {
+            if (parent case ParsedNameAccessImpl selector
+                when !identical(selector, chain)) {
+              if (selector.parent2 case ParsedValueArgumentsImpl arguments) {
+                result = _constructor(
+                  result,
+                  typeArguments,
+                  selector.operator,
+                  selector.name,
+                  arguments.argumentList,
+                );
+                node = arguments;
+                parent = node.parent2;
+                continue;
+              }
             }
           }
-          if (components.elementAtOrNull(i + 1) case ParsedArgumentsImpl(
-            :var argumentList,
-          )) {
-            result = _invoke(result, typeArguments, argumentList);
-            i++;
-          } else {
-            result = forV1
-                ? FunctionReferenceImpl.v1ProjectionFromParsedChain(
-                    chain,
-                    result,
-                    typeArguments,
-                  )
-                : FunctionReferenceImpl(
-                    function2: result,
-                    typeArguments: typeArguments,
-                  );
-          }
-        case ParsedArgumentsImpl(:var argumentList):
+          result = forV1
+              ? FunctionReferenceImpl.v1ProjectionFromParsedExpression(
+                  chain,
+                  result,
+                  typeArguments,
+                )
+              : FunctionReferenceImpl(
+                  function2: result,
+                  typeArguments: typeArguments,
+                );
+        case ParsedValueArgumentsImpl(:var argumentList):
           result = _invoke(result, null, argumentList);
+        case ParsedUnqualifiedNameImpl():
+          throw StateError('A parsed name cannot contain an operand.');
       }
     }
     return result;
@@ -59611,7 +59696,8 @@ class _ParsedChainExpressionBuilder {
   ExpressionImpl _constructor(
     IdentifierImpl typeName,
     TypeArgumentListImpl typeArguments,
-    ParsedNameAccessImpl selector,
+    Token selectorOperator,
+    Token selectorName,
     ArgumentListImpl argumentList,
   ) {
     Token name;
@@ -59627,16 +59713,16 @@ class _ParsedChainExpressionBuilder {
         );
     }
     if (forV1) {
-      return InstanceCreationExpressionImpl.v1ProjectionFromParsedChain(
+      return InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression(
         origin: chain,
-        constructorName: ConstructorNameImpl.v1ProjectionFromParsedChain(
-          type: NamedTypeImpl.v1ProjectionFromParsedChain(
+        constructorName: ConstructorNameImpl.v1ProjectionFromParsedExpression(
+          type: NamedTypeImpl.v1ProjectionFromParsedExpression(
             importPrefix: prefix,
             name: name,
             typeArguments: typeArguments,
           ),
-          period: selector.operator,
-          name: selector.name,
+          period: selectorOperator,
+          name: selectorName,
         ),
         argumentList: argumentList,
       );
@@ -59650,8 +59736,8 @@ class _ParsedChainExpressionBuilder {
           typeArguments: typeArguments,
         ),
         selector: ConstructorSelectorImpl.v2(
-          period: selector.operator,
-          name2: selector.name,
+          period: selectorOperator,
+          name2: selectorName,
         ),
       ),
       argumentList: argumentList,
@@ -59686,7 +59772,7 @@ class _ParsedChainExpressionBuilder {
         throw StateError('A parsed named invocation must end in a name.');
     }
     if (forV1) {
-      return MethodInvocationImpl.v1ProjectionFromParsedChain(
+      return MethodInvocationImpl.v1ProjectionFromParsedExpression(
         origin: chain,
         target: target,
         operator: operator,

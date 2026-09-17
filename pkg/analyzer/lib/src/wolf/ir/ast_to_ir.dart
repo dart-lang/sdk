@@ -22,7 +22,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         InvalidExpressionAssignmentTargetImpl,
         NamedFunctionInvocationImpl,
         NamedReadResolutionImpl,
-        ParsedAssignmentTargetChainImpl,
+        ParsedAssignmentTargetImpl,
         ReceiverIndexAssignmentTargetImpl,
         ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
@@ -496,7 +496,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
@@ -570,7 +570,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
@@ -769,7 +769,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');

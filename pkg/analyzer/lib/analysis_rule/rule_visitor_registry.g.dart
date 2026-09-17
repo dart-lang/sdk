@@ -962,25 +962,28 @@ abstract class RuleVisitorRegistry2 {
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
-  void addParsedArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
-  void addParsedAssignmentTargetChain(
+  void addParsedNameAccessAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
 
   @experimental
-  void addParsedExpressionChain(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addParsedNameHead(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
   void addParsedTypeArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedUnqualifiedName(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedValueArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPartDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
