@@ -565,6 +565,17 @@ class AstRewriter {
     }
     var receiver = node.target2!;
 
+    // Recovery syntax can retain a legacy selector around a parsed receiver.
+    // Normalize it before classifying the enclosing constructor tear-off.
+    // TODO(scheglov): Remove this bridge when recovery selectors use parsed
+    // representations too. For example, `class C<T> { const C.named(); }
+    // const x = C<int>.();` leaves a PropertyAccessImpl around a
+    // ParsedTypeArgumentsImpl. The parent rewrite runs before visiting that
+    // receiver and is not retried after the receiver is rewritten.
+    if (receiver is ParsedExpressionImpl) {
+      receiver = parsedExpression(nameScope, receiver);
+    }
+
     IdentifierImpl receiverIdentifier;
     TypeArgumentListImpl? typeArguments;
     if (receiver is PrefixedIdentifierImpl) {

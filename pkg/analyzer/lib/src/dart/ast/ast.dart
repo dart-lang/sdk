@@ -42188,6 +42188,9 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
     return name;
   }
 
+  @override
+  bool get isAssignable => true;
+
   @generated
   @override
   ExpressionImpl get operand => _operand;

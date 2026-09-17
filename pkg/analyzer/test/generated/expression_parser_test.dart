@@ -3503,6 +3503,45 @@ V1: InstanceCreationExpression
 ''');
   }
 
+  void
+  test_parseInstanceCreationExpression_type_typeArguments_named_missingName() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+PropertyAccess
+  target2: ParsedTypeArguments
+    operand: ParsedUnqualifiedName
+      name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  target(v1): FunctionReference
+    function: SimpleIdentifier
+      token: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  propertyName: SimpleIdentifier
+    token: (
+''');
+  }
+
   void test_parseListLiteral_empty_oneToken() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = [];
