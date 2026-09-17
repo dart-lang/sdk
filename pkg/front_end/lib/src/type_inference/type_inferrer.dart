@@ -195,6 +195,10 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.thisPromotion.isEnabled,
         soundFlowAnalysisEnabled:
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
+        promotionChainIntersectionJoinEnabled: libraryBuilder
+            .libraryFeatures
+            .promotionChainIntersectionJoin
+            .isEnabled,
       );
 
   bool get isClosureContextLoweringEnabled =>

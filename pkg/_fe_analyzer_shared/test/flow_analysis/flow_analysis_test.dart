@@ -5132,6 +5132,95 @@ main() {
         _matchPromotionChain(['A', 'B']),
       );
     });
+
+    test('divergent types followed by common types', () {
+      // E <: D <: B <: A
+      // E <: D <: C <: A
+      // B and C are unrelated.
+      var A = Type('A');
+      var B = Type('B');
+      var C = Type('C');
+      var D = Type('D');
+      var E = Type('E');
+      h.addSuperInterfaces(
+        'D',
+        (_) => [Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces(
+        'E',
+        (_) => [Type('D'), Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('A', (_) => [Type('Object')]);
+
+      var chain1 = [SharedTypeView(A), SharedTypeView(B), SharedTypeView(D)];
+      var chain2 = [SharedTypeView(A), SharedTypeView(C), SharedTypeView(D)];
+
+      // When promotionChainIntersectionJoin is disabled (legacy behavior):
+      // The join stops at B and C (which are unrelated) and drops D.
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+
+      // When promotionChainIntersectionJoin is enabled:
+      // The join continues and finds common subsequence [A, D].
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+
+      // Multiple common types after divergence:
+      var chain3 = [SharedTypeView(B), SharedTypeView(D), SharedTypeView(E)];
+      var chain4 = [SharedTypeView(C), SharedTypeView(D), SharedTypeView(E)];
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        isEmpty,
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['D', 'E']),
+      );
+    });
   });
 
   group('joinTypesOfInterest', () {
@@ -5434,6 +5523,72 @@ main() {
           z: same(writeCapturedModel),
           w: same(intQModel),
         });
+      });
+    });
+
+    group('promotion-chain-intersection-join', () {
+      late Type bType;
+      late Type cType;
+      late Type dType;
+
+      setUp(() {
+        bType = Type('B');
+        cType = Type('C');
+        dType = Type('D');
+        h.addSuperInterfaces(
+          'D',
+          (_) => [Type('B'), Type('C'), Type('Object')],
+        );
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+      });
+
+      test('disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: isEmpty, ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('enabled', () {
+        h.enablePromotionChainIntersectionJoin();
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: ['D'], ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('AST disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('AST enabled', () {
+        h.enablePromotionChainIntersectionJoin();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkPromoted(x, 'D'),
+        ]);
       });
     });
   });

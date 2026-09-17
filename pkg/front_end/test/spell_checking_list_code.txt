@@ -324,6 +324,7 @@ communicate
 communicates
 communicating
 communication
+commutative
 compared
 compares
 compilations

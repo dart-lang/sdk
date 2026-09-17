@@ -2915,11 +2915,11 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
   getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
-  /// Called after visiting the pattern in `if-case` statement.
-  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
-
   /// Called after visiting the pattern in `if-case` element.
   void handle_ifCaseElement_afterPattern(Node node) {}
+
+  /// Called after visiting the pattern in `if-case` statement.
+  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
 
   /// Called after visiting the expression of an `if` element.
   void handle_ifElement_conditionEnd(Node node) {}
@@ -3565,6 +3565,8 @@ class TypeAnalyzerOptions {
 
   final bool soundFlowAnalysisEnabled;
 
+  final bool promotionChainIntersectionJoinEnabled;
+
   TypeAnalyzerOptions({
     required this.patternsEnabled,
     required this.inferenceUpdate3Enabled,
@@ -3573,5 +3575,6 @@ class TypeAnalyzerOptions {
     required this.inferenceUpdate4Enabled,
     required this.thisPromotionEnabled,
     required this.soundFlowAnalysisEnabled,
+    required this.promotionChainIntersectionJoinEnabled,
   });
 }

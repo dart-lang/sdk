@@ -92,6 +92,10 @@ abstract class Feature {
   static final private_named_parameters =
       ExperimentalFeatures.private_named_parameters;
 
+  /// Feature information for promotion chain intersection join.
+  static final promotion_chain_intersection_join =
+      ExperimentalFeatures.promotion_chain_intersection_join;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 

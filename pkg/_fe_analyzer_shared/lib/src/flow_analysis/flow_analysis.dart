@@ -4964,6 +4964,8 @@ class PromotionModel {
       first.promotedTypes,
       second.promotedTypes,
       typeOperations,
+      promotionChainIntersectionJoinEnabled:
+          helper.typeAnalyzerOptions.promotionChainIntersectionJoinEnabled,
     );
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
@@ -4994,47 +4996,102 @@ class PromotionModel {
     return (newPromotionModel, newFlowModel);
   }
 
-  /// Performs the portion of the "join" algorithm that applies to promotion
-  /// chains.  Briefly, we intersect given chains.  The chains are totally
-  /// ordered subsets of a global partial order.  Their intersection is a
-  /// subset of each, and as such is also totally ordered.
+  /// Computes the greatest common subsequence of [chain1] and [chain2].
+  ///
+  /// Equivalently, this is `chain1.where((t) => chain2.contains(t))` (or vice
+  /// versa, since the operation is commutative).
+  ///
+  /// If the result is equal to one of the two inputs, that input is returned
+  /// directly without allocating a new list.
+  ///
+  /// Note that a naive implementation would have `O(m * n)` complexity (where
+  /// `m` and `n` are the lengths of the two chains), but since promotion chains
+  /// are always ordered from top to bottom, we can compute it in `O(m + n)`.
   static List<SharedTypeView> joinPromotedTypes(
     List<SharedTypeView> chain1,
     List<SharedTypeView> chain2,
-    FlowAnalysisTypeOperations typeOperations,
-  ) {
+    FlowAnalysisTypeOperations typeOperations, {
+    bool promotionChainIntersectionJoinEnabled = false,
+  }) {
+    if (!promotionChainIntersectionJoinEnabled) {
+      return _legacyJoinPromotedTypes(chain1, chain2, typeOperations);
+    }
+    // If either chain is empty, the result is trivially empty.
     if (chain1.isEmpty) return chain1;
     if (chain2.isEmpty) return chain2;
 
-    int index1 = 0;
-    int index2 = 0;
-    bool skipped1 = false;
-    bool skipped2 = false;
-    List<SharedTypeView>? result;
-    while (index1 < chain1.length && index2 < chain2.length) {
-      SharedTypeView type1 = chain1[index1];
-      SharedTypeView type2 = chain2[index2];
-      if (type1 == type2) {
-        result ??= <SharedTypeView>[];
-        result.add(type1);
-        index1++;
-        index2++;
-      } else if (typeOperations.isSubtypeOf(type2, type1)) {
-        index1++;
-        skipped1 = true;
-      } else if (typeOperations.isSubtypeOf(type1, type2)) {
-        index2++;
-        skipped2 = true;
-      } else {
-        skipped1 = true;
-        skipped2 = true;
-        break;
-      }
+    // Since the operation is commutative, we may safely re-order the arguments
+    // to ensure that chain1.length <= chain2.length. This ensures that if the
+    // output winds up being equal to one of the inputs, it will be equal to
+    // chain1.
+    if (chain1.length > chain2.length) {
+      List<SharedTypeView> tmp = chain1;
+      chain1 = chain2;
+      chain2 = tmp;
     }
 
-    if (index1 == chain1.length && !skipped1) return chain1;
-    if (index2 == chain2.length && !skipped2) return chain2;
-    return result ?? const [];
+    int i1 = 0, i2 = 0;
+    SharedTypeView t1 = chain1[0];
+    SharedTypeView t2 = chain2[0];
+    // To save on allocations, only allocate the result list once it's clear
+    // that it's not equal to chain1.
+    List<SharedTypeView>? result;
+    while (true) {
+      // Loop invariants:
+      assert(t1 == chain1[i1]);
+      assert(t2 == chain2[i2]);
+      // This invariant can't easily by tested by an assertion:
+      // - join(chain1, chain2) ~= [
+      //     ...(result ?? chain1.sublist(0, i1)),
+      //     ...join(chain1.sublist(i1), chain2.sublist(i2))
+      //   ]
+      //   (where `~=` means "same list elements, though not necessarily the
+      //    same list")
+
+      // Compare types t1 and t2 to figure out whether to advance i1, i2, or
+      // both.
+      bool advanceI1, advanceI2;
+      if (t1 == t2) {
+        result?.add(t1);
+        advanceI1 = true;
+        advanceI2 = true;
+      } else if (typeOperations.isSubtypeOf(t1, t2)) {
+        // chain1 doesn't contain t2, because if it did, it would be the next
+        // element (and hence t1 would equal t2), so advance to the next element
+        // of chain2.
+        advanceI1 = false;
+        advanceI2 = true;
+      } else {
+        // chain2 doesn't contain t1, because if it did, it would be the next
+        // element (and hence t1 would equal t2), so advance to the next element
+        // of chain1.
+        //
+        // We now know for sure (if we didn't know previously) that the result
+        // won't be equal to chain1, so allocate the result if it hasn't been
+        // allocated already.
+        result ??= chain1.sublist(0, i1);
+        advanceI1 = true;
+        advanceI2 = false;
+      }
+      if (advanceI1) {
+        if (++i1 == chain1.length) {
+          if (result != null) return result;
+          // Result not allocated yet so the join must equal chain1.
+          return chain1;
+        }
+        t1 = chain1[i1];
+      }
+      if (advanceI2) {
+        if (++i2 == chain2.length) {
+          if (result != null) return result;
+          // Result not allocated yet so the join must equal
+          // chain1.sublist(0, i1).
+          if (i1 == chain1.length) return chain1;
+          return chain1.sublist(0, i1);
+        }
+        t2 = chain2[i2];
+      }
+    }
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
@@ -5171,6 +5228,48 @@ class PromotionModel {
         version: newVersion,
       );
     }
+  }
+
+  /// Performs the legacy portion of the "join" algorithm that applies to
+  /// promotion chains when the `promotion-chain-intersection-join` experiment
+  /// is disabled.
+  static List<SharedTypeView> _legacyJoinPromotedTypes(
+    List<SharedTypeView> chain1,
+    List<SharedTypeView> chain2,
+    FlowAnalysisTypeOperations typeOperations,
+  ) {
+    if (chain1.isEmpty) return chain1;
+    if (chain2.isEmpty) return chain2;
+
+    int index1 = 0;
+    int index2 = 0;
+    bool skipped1 = false;
+    bool skipped2 = false;
+    List<SharedTypeView>? result;
+    while (index1 < chain1.length && index2 < chain2.length) {
+      SharedTypeView type1 = chain1[index1];
+      SharedTypeView type2 = chain2[index2];
+      if (type1 == type2) {
+        result ??= <SharedTypeView>[];
+        result.add(type1);
+        index1++;
+        index2++;
+      } else if (typeOperations.isSubtypeOf(type2, type1)) {
+        index1++;
+        skipped1 = true;
+      } else if (typeOperations.isSubtypeOf(type1, type2)) {
+        index2++;
+        skipped2 = true;
+      } else {
+        skipped1 = true;
+        skipped2 = true;
+        break;
+      }
+    }
+
+    if (index1 == chain1.length && !skipped1) return chain1;
+    if (index2 == chain2.length && !skipped2) return chain2;
+    return result ?? const [];
   }
 }
 

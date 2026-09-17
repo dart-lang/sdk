@@ -250,6 +250,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   ),
 
+  promotionChainIntersectionJoin(
+    name: 'promotion-chain-intersection-join',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   receiverTypeInference(
     name: 'receiver-type-inference',
     isEnabledByDefault: false,

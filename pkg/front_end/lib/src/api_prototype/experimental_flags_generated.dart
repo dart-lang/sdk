@@ -299,6 +299,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   );
 
+  static const ExperimentalFlag promotionChainIntersectionJoin =
+      const ExperimentalFlag(
+        name: 'promotion-chain-intersection-join',
+        isEnabledByDefault: false,
+        isExpired: false,
+        experimentEnabledVersion: defaultLanguageVersion,
+        experimentReleasedVersion: defaultLanguageVersion,
+      );
+
   static const ExperimentalFlag receiverTypeInference = const ExperimentalFlag(
     name: 'receiver-type-inference',
     isEnabledByDefault: false,
@@ -625,6 +634,12 @@ class GlobalFeatures {
   GlobalFeature? _privateNamedParameters;
   GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
       _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
+
+  GlobalFeature? _promotionChainIntersectionJoin;
+  GlobalFeature get promotionChainIntersectionJoin =>
+      _promotionChainIntersectionJoin ??= _computeGlobalFeature(
+        ExperimentalFlag.promotionChainIntersectionJoin,
+      );
 
   GlobalFeature? _receiverTypeInference;
   GlobalFeature get receiverTypeInference => _receiverTypeInference ??=
@@ -954,6 +969,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _promotionChainIntersectionJoin;
+  LibraryFeature get promotionChainIntersectionJoin =>
+      _promotionChainIntersectionJoin ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.promotionChainIntersectionJoin,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _receiverTypeInference;
   LibraryFeature get receiverTypeInference =>
       _receiverTypeInference ??= globalFeatures._computeLibraryFeature(
@@ -1155,6 +1178,8 @@ class LibraryFeatures {
         return primaryConstructors;
       case shared.ExperimentalFlag.privateNamedParameters:
         return privateNamedParameters;
+      case shared.ExperimentalFlag.promotionChainIntersectionJoin:
+        return promotionChainIntersectionJoin;
       case shared.ExperimentalFlag.receiverTypeInference:
         return receiverTypeInference;
       case shared.ExperimentalFlag.recordUse:
@@ -1257,6 +1282,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.primaryConstructors;
     case "private-named-parameters":
       return ExperimentalFlag.privateNamedParameters;
+    case "promotion-chain-intersection-join":
+      return ExperimentalFlag.promotionChainIntersectionJoin;
     case "receiver-type-inference":
       return ExperimentalFlag.receiverTypeInference;
     case "record-use":
@@ -1353,6 +1380,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.primaryConstructors.isEnabledByDefault,
   ExperimentalFlag.privateNamedParameters:
       ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
+  ExperimentalFlag.promotionChainIntersectionJoin:
+      ExperimentalFlag.promotionChainIntersectionJoin.isEnabledByDefault,
   ExperimentalFlag.receiverTypeInference:
       ExperimentalFlag.receiverTypeInference.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
@@ -1433,6 +1462,8 @@ ExperimentalFlag fromSharedExperimentalFlag(
     ExperimentalFlag.primaryConstructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.promotionChainIntersectionJoin =>
+    ExperimentalFlag.promotionChainIntersectionJoin,
   shared.ExperimentalFlag.receiverTypeInference =>
     ExperimentalFlag.receiverTypeInference,
   shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
