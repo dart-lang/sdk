@@ -620,10 +620,12 @@ class LspAnalysisServer extends AnalysisServer {
     // remember the last few exceptions
     exceptions.add(ServerException(message, exception, stackTrace, false));
 
-    instrumentationService.logException(
-      FatalException(message, exception, stackTrace),
-      null,
-      crashReportingAttachmentsBuilder.forException(exception),
+    var fatalException = FatalException(message, exception, stackTrace);
+    var attachments = crashReportingAttachmentsBuilder.forException(exception);
+    instrumentationService.logException(fatalException, null, attachments);
+    sessionLogger.logException(
+      exception: fatalException,
+      attachments: attachments,
     );
   }
 
@@ -1026,6 +1028,7 @@ class LspAnalysisServer extends AnalysisServer {
     // is an unhandled exception that was not awaited and is almost certainly a
     // bug.
     instrumentationService.logException(error, stackTrace);
+    sessionLogger.logException(exception: error, stackTrace: stackTrace);
 
     sendServerErrorNotification('Unhandled handler error', error, stackTrace);
   }

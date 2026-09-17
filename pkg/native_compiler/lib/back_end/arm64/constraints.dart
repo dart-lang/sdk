@@ -302,7 +302,7 @@ final class Arm64Constraints extends Constraints {
         .fixedLengthList => InstructionConstraints(
           null,
           [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-          const [anyCpuRegister, anyCpuRegister],
+          const [anyCpuRegister, anyCpuRegister, WriteBarrierStub.slotReg],
           Safepoint(), // For write barrier.
         ),
         .uint8ClampedList || .uint8ClampedListView => InstructionConstraints(

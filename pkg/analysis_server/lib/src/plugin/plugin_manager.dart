@@ -421,10 +421,14 @@ class PluginManager {
         _notifyPluginsChanged();
         try {
           plugin.stop();
-        } catch (e, st) {
-          instrumentationService.logException(
-            SilentException('Issue stopping a plugin', e, st),
+        } catch (exception, stackTrace) {
+          var silentException = SilentException(
+            'Issue stopping a plugin',
+            exception,
+            stackTrace,
           );
+          instrumentationService.logException(silentException);
+          sessionLogger.logException(exception: silentException);
         }
       }
     }
@@ -558,8 +562,12 @@ class PluginManager {
       _pluginMap.values.map((pluginIsolate) async {
         try {
           await pluginIsolate.stop();
-        } catch (e, st) {
-          instrumentationService.logException(e, st);
+        } catch (exception, stackTrace) {
+          instrumentationService.logException(exception, stackTrace);
+          sessionLogger.logException(
+            exception: exception,
+            stackTrace: stackTrace,
+          );
         }
       }),
     );
@@ -621,10 +629,11 @@ class PluginManager {
         return aotSnapshotFile;
       }
     } catch (error, stackTrace) {
-      instrumentationService.logException(
-        'Exception while checking an existing plugin AOT snapshot: '
-        '"$error"\n$stackTrace',
-      );
+      var exception =
+          'Exception while checking an existing plugin AOT snapshot: '
+          '"$error"\n$stackTrace';
+      instrumentationService.logException(exception);
+      sessionLogger.logException(exception: exception);
     }
 
     // When the Dart Analysis Server is built as AOT, then all spawned

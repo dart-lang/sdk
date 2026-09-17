@@ -139,12 +139,14 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
 
   final Register _objectReg;
   final Register _valueReg;
+  final bool isArray;
 
   WriteBarrierStub(
     super.vmOffsets,
     super.objectLayout,
     this._objectReg,
     this._valueReg,
+    this.isArray,
   );
 
   @override
@@ -152,18 +154,32 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
     _asm.push(LR);
     _asm.pushPair(objectReg, valueReg);
 
-    if (_objectReg != objectReg) {
-      _asm.mov(objectReg, _objectReg);
-    }
-    if (_valueReg != valueReg) {
-      _asm.mov(valueReg, _valueReg);
+    // Parallel move (_objectReg, _valueReg) -> (objectReg, valueReg).
+    if (objectReg == _valueReg) {
+      if (valueReg == _objectReg) {
+        _asm.mov(tempReg, _valueReg);
+        _asm.mov(objectReg, _objectReg);
+        _asm.mov(valueReg, tempReg);
+      } else {
+        _asm.mov(valueReg, _valueReg);
+        _asm.mov(objectReg, _objectReg);
+      }
+    } else {
+      if (objectReg != _objectReg) {
+        _asm.mov(objectReg, _objectReg);
+      }
+      if (valueReg != _valueReg) {
+        _asm.mov(valueReg, _valueReg);
+      }
     }
 
     _asm.ldr(
       tempReg,
       _asm.address(
         threadReg,
-        _asm.vmOffsets.Thread_write_barrier_entry_point_offset,
+        isArray
+            ? _asm.vmOffsets.Thread_array_write_barrier_entry_point_offset
+            : _asm.vmOffsets.Thread_write_barrier_entry_point_offset,
       ),
     );
     _asm.blr(tempReg);
@@ -731,7 +747,8 @@ final class Arm64StubFactory extends StubFactory {
   StubCodeGenerator writeBarrierStubGenerator(
     Register objectReg,
     Register valueReg,
-  ) => WriteBarrierStub(vmOffsets, objectLayout, objectReg, valueReg);
+    bool isArray,
+  ) => WriteBarrierStub(vmOffsets, objectLayout, objectReg, valueReg, isArray);
 
   @override
   StubCodeGenerator subtypeTestCacheStubGenerator(int n) =>

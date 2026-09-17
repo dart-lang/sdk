@@ -860,6 +860,7 @@ abstract class AnalysisServer {
       return null;
     } catch (exception, stackTrace) {
       instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -888,8 +889,12 @@ abstract class AnalysisServer {
           interactive: interactive,
         )
         .then((value) => value is ResolvedUnitResult ? value : null)
-        .catchError((Object e, StackTrace st) {
-          instrumentationService.logException(e, st);
+        .catchError((Object exception, StackTrace stackTrace) {
+          instrumentationService.logException(exception, stackTrace);
+          sessionLogger.logException(
+            exception: exception,
+            stackTrace: stackTrace,
+          );
           return null;
         });
   }
@@ -977,6 +982,10 @@ abstract class AnalysisServer {
       SilentException.wrapInMessage(message, result.exception),
       null,
       attachments,
+    );
+    sessionLogger.logException(
+      exception: SilentException.wrapInMessage(message, result.exception),
+      attachments: attachments,
     );
   }
 
@@ -1160,8 +1169,9 @@ abstract class AnalysisServer {
         offset: offset,
         performance: performance,
       );
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -1191,8 +1201,9 @@ abstract class AnalysisServer {
         column: column,
         performance: performance,
       );
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -1278,8 +1289,9 @@ abstract class AnalysisServer {
           resolvedNodes: [result.unit],
         );
       }
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }

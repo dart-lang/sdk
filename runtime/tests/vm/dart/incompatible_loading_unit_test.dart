@@ -19,6 +19,10 @@ main(List<String> args) async {
     return; // SDK tree not available on the test device.
   }
 
+  if (Platform.isMacOS) {
+    return; // Deferred loading not implemented for Mach-O.
+  }
+
   // These are the tools we need to be available to run on a given platform:
   if (!File(platformDill).existsSync()) {
     throw "Cannot run test as $platformDill does not exist";
