@@ -39,7 +39,7 @@ final compileStreamingTemplate = Template(
   r'''async function compileStreaming(source) {
   const builtins = {<<BUILTINS_MAP_BODY>>};
   return new CompiledApp(
-      await WebAssembly.compileStreaming(source, builtins), builtins);
+      await _compileStreaming(source, builtins), builtins);
 }''',
 );
 
@@ -48,7 +48,30 @@ final compileTemplate = Template(r'''async function compile(bytes) {
   return new CompiledApp(await WebAssembly.compile(bytes, builtins), builtins);
 }''');
 
+/// Helper that delegates to `WebAssembly.compileStreaming` when `compileOptions`
+/// (`{builtins: ['js-string']}`) is supported, and falls back to
+/// `WebAssembly.compile` otherwise (working around Safari <= 26.5 streaming
+/// bugs: https://bugs.webkit.org/show_bug.cgi?id=308136 and
+/// https://bugs.webkit.org/show_bug.cgi?id=318710).
+const String compileStreamingHelper = r'''
+let _isCompileStreamingSupported;
+async function _compileStreaming(source, builtins) {
+  _isCompileStreamingSupported ??= WebAssembly.compileStreaming(
+    new Response(
+      new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,2,23,1,14,119,97,115,109,58,106,115,45,115,116,114,105,110,103,4,99,97,115,116,0,0]),
+      {headers: {'Content-Type': 'application/wasm'}},
+    ),
+    builtins,
+  ).then(() => false, (e) => e instanceof WebAssembly.CompileError);
+  if (await _isCompileStreamingSupported) {
+    return WebAssembly.compileStreaming(source, builtins);
+  }
+  return WebAssembly.compile(await (await source).arrayBuffer(), builtins);
+}''';
+
 final jsRuntimeBlobTemplate = Template(r'''
+<<COMPILE_STREAMING_HELPER>>
+
 class CompiledApp {
   constructor(module, builtins) {
     this.module = module;
@@ -122,15 +145,12 @@ class CompiledApp {
       <<IMPORTED_JS_STRINGS_IN_MJS>>
     };
 
-    <<JS_STRING_POLYFILL_METHODS>>
-
     <<DEFERRED_LIBRARY_HELPER_METHODS>>
 
     dartInstance = await WebAssembly.instantiate(this.module, {
       ...baseImports,
       ...additionalImports,
       <<MODULE_LOADING_IMPORT>>
-      <<JS_POLYFILL_IMPORT>>
     });
 
     return new InstantiatedApp(this, dartInstance);
@@ -150,63 +170,16 @@ class InstantiatedApp {
 }
 ''');
 
-const String jsPolyFillMethods = r'''
-const jsStringPolyfill = {
-      "charCodeAt": (s, i) => s.charCodeAt(i),
-      "compare": (s1, s2) => {
-        if (s1 < s2) return -1;
-        if (s1 > s2) return 1;
-        return 0;
-      },
-      "concat": (s1, s2) => s1 + s2,
-      "equals": (s1, s2) => s1 === s2,
-      "fromCharCode": (i) => String.fromCharCode(i),
-      "length": (s) => s.length,
-      "substring": (s, a, b) => s.substring(a, b),
-      "fromCharCodeArray": (a, start, end) => {
-        if (end <= start) return '';
-
-        const read = dartInstance.exports.$wasmI16ArrayGet;
-        let result = '';
-        let index = start;
-        const chunkLength = Math.min(end - index, 500);
-        let array = new Array(chunkLength);
-        while (index < end) {
-          const newChunkLength = Math.min(end - index, 500);
-          for (let i = 0; i < newChunkLength; i++) {
-            array[i] = read(a, index++);
-          }
-          if (newChunkLength < chunkLength) {
-            array = array.slice(0, newChunkLength);
-          }
-          result += String.fromCharCode(...array);
-        }
-        return result;
-      },
-      "intoCharCodeArray": (s, a, start) => {
-        if (s === '') return 0;
-
-        const write = dartInstance.exports.$wasmI16ArraySet;
-        for (var i = 0; i < s.length; ++i) {
-          write(a, start++, s.charCodeAt(i));
-        }
-        return s.length;
-      },
-      "test": (s) => typeof s == "string",
-    };
-''';
-
 final moduleLoadingHelperTemplate = Template(r'''
     async function handleDeferredModuleBytes(moduleName, source) {
       const builtins = this.builtins;
       source = await source;
       const module = await ((typeof Response != 'undefined' && source instanceof Response)
-          ? WebAssembly.compileStreaming(source, builtins)
+          ? _compileStreaming(source, builtins)
           : WebAssembly.compile(source, builtins));
       let moduleInstance = await WebAssembly.instantiate(module, {
         ...baseImports,
         ...additionalImports,
-        <<JS_POLYFILL_IMPORT>>
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
     }
