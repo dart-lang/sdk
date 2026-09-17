@@ -583,6 +583,39 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
   external WasmI32x4 eq(WasmI32x4 other);
   @pragma("wasm:intrinsic")
   external WasmI32x4 ne(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ltS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ltU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gtS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 gtU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 leS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 leU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 geS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 geU(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 minS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 minU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 maxS(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 maxU(WasmI32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 shrU(WasmI32 shift);
 
   @pragma("wasm:intrinsic")
   external WasmI32 get bitmask;

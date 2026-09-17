@@ -47,8 +47,8 @@ class CascadePropertyTarget extends PropertyTarget<Never> {
   String toString() => 'CascadePropertyTarget()';
 
   @override
-  SsaNode _getSsaNode(_PropertyTargetHelper<Object> helper) =>
-      helper._cascadeTargetStack.last.ssaNode;
+  ValueVersion _getVersion(_PropertyTargetHelper<Object> helper) =>
+      helper._cascadeTargetStack.last.version;
 }
 
 /// Non-promotion reason describing the situation where a variable was not
@@ -190,8 +190,10 @@ class ExpressionPropertyTarget<Expression extends Object>
   String toString() => 'ExpressionPropertyTarget($expressionInfo)';
 
   @override
-  SsaNode? _getSsaNode(covariant _PropertyTargetHelper<Expression> helper) {
-    return _getExpressionReference(expressionInfo)?.ssaNode;
+  ValueVersion? _getVersion(
+    covariant _PropertyTargetHelper<Expression> helper,
+  ) {
+    return _getExpressionReference(expressionInfo)?.version;
   }
 }
 
@@ -1541,14 +1543,14 @@ abstract class FlowAnalysis<
   /// `)` is probably the best choice.
   void recordArgumentVisitOrderException({required int offset});
 
-  /// Retrieves the SSA node associated with [variable].
+  /// Retrieves the value version associated with [variable].
   ///
   /// **For testing only!**
   ///
-  /// Returns `null` if [variable] is not associated with an SSA node because it
-  /// is write captured.
+  /// Returns `null` if [variable] is not associated with a value version
+  /// because it is write captured.
   @visibleForTesting
-  SsaNode? ssaNodeForTesting(Variable variable);
+  ValueVersion? versionForTesting(Variable variable);
 
   /// Call this method after visiting an `await` expression or `yield`
   /// statement.
@@ -3207,10 +3209,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  SsaNode? ssaNodeForTesting(Variable variable) {
+  ValueVersion? versionForTesting(Variable variable) {
     return _wrap(
-      'ssaNodeForTesting($variable)',
-      () => _wrapped.ssaNodeForTesting(variable),
+      'versionForTesting($variable)',
+      () => _wrapped.versionForTesting(variable),
       isQuery: true,
     );
   }
@@ -3719,7 +3721,7 @@ class FlowModel {
   ) {
     PromotionModel newInfoForVar = new PromotionModel.fresh(
       assigned: initialized,
-      ssaNode: new SsaNode(),
+      version: new ValueVersion(),
     );
 
     return updatePromotionInfo(helper, variableKey, newInfoForVar);
@@ -3728,17 +3730,18 @@ class FlowModel {
   /// Gets the info for the given [promotionKey], creating it if it doesn't
   /// exist.
   ///
-  /// If new info must be created, [ssaNode] is used as its SSA node. This
+  /// If new info must be created, [version] is used as its value version. This
   /// allows the caller to ensure that when the promotion key represents a
-  /// promotable property, the SSA node will match the [_PropertySsaNode] found
-  /// in the target's [SsaNode._promotableProperties] map.
+  /// promotable property, the value version will match the
+  /// [_PropertyValueVersion] found in the target's
+  /// [ValueVersion._promotableProperties] map.
   PromotionModel infoFor(
     FlowModelHelper helper,
     PromotionKey promotionKey, {
-    required SsaNode ssaNode,
+    required ValueVersion version,
   }) =>
       promotionInfo?.get(helper, promotionKey) ??
-      new PromotionModel.fresh(ssaNode: ssaNode);
+      new PromotionModel.fresh(version: version);
 
   /// Builds a [FlowModel] based on `this`, but extending the `tested` set to
   /// include types from [other].  This is used at the bottom of certain kinds
@@ -3848,7 +3851,7 @@ class FlowModel {
       if (newWriteCaptured) {
         // Write captured variables can't be promoted.
         newPromotedTypes = const [];
-      } else if (baseModel.ssaNode != thisModel.ssaNode) {
+      } else if (baseModel.version != thisModel.version) {
         // The variable may have been written to since `thisModel`, so we can't
         // use any of the promotions from `thisModel`.
         newPromotedTypes = baseModel.promotedTypes;
@@ -3882,7 +3885,7 @@ class FlowModel {
         newTested,
         newAssigned,
         newUnassigned,
-        newWriteCaptured ? null : baseModel.ssaNode,
+        newWriteCaptured ? null : baseModel.version,
       );
       result = result.updatePromotionInfo(helper, promotionKey, newModel);
     }
@@ -3921,7 +3924,7 @@ class FlowModel {
     PromotionModel info = infoFor(
       helper,
       reference.promotionKey,
-      ssaNode: reference.ssaNode,
+      version: reference.version,
     );
     if (info.writeCaptured) {
       return new ExpressionInfo.trivial(model: this, type: helper.boolType);
@@ -3963,7 +3966,7 @@ class FlowModel {
     PromotionModel info = infoFor(
       helper,
       reference.promotionKey,
-      ssaNode: reference.ssaNode,
+      version: reference.version,
     );
     if (info.writeCaptured) {
       return this;
@@ -4002,7 +4005,7 @@ class FlowModel {
     PromotionModel info = infoFor(
       helper,
       reference.promotionKey,
-      ssaNode: reference.ssaNode,
+      version: reference.version,
     );
     if (info.writeCaptured) {
       return new ExpressionInfo.trivial(model: this, type: helper.boolType);
@@ -4108,7 +4111,7 @@ class FlowModel {
     NonPromotionReason? nonPromotionReason,
     PromotionKey variableKey,
     SharedTypeView writtenType,
-    SsaNode newSsaNode, {
+    ValueVersion newVersion, {
     bool promoteToTypeOfInterest = true,
     required SharedTypeView unpromotedType,
   }) {
@@ -4120,7 +4123,7 @@ class FlowModel {
         nonPromotionReason,
         variableKey,
         writtenType,
-        newSsaNode,
+        newVersion,
         promoteToTypeOfInterest: promoteToTypeOfInterest,
         unpromotedType: unpromotedType,
       );
@@ -4174,7 +4177,7 @@ class FlowModel {
               tested: newTested,
               assigned: info.assigned,
               unassigned: info.unassigned,
-              ssaNode: info.ssaNode,
+              version: info.version,
               nonPromotionHistory: info.nonPromotionHistory,
             ),
           );
@@ -4541,17 +4544,17 @@ class PromotionModel {
   /// Indicates whether the variable is unassigned. Not relevant for properties.
   final bool unassigned;
 
-  /// SSA node associated with this variable.  Every time the variable's value
-  /// potentially changes (either through an explicit write or a join with a
-  /// control flow path that contains a write), this field is updated to point
-  /// to a fresh node.  Thus, it can be used to detect whether a variable's
-  /// value has changed since a time in the past.
+  /// Value version associated with this variable. Every time the variable's
+  /// value potentially changes (either through an explicit write or a join with
+  /// a control flow path that contains a write), this field is updated to point
+  /// to a fresh value version. Thus, it can be used to detect whether a
+  /// variable's value has changed since a time in the past.
   ///
   /// `null` if the variable has been write captured.
   ///
-  /// For promotable properties, this is is the [_PropertySsaNode] found in the
-  /// target's [SsaNode._promotableProperties] map.
-  final SsaNode? ssaNode;
+  /// For promotable properties, this is is the [_PropertyValueVersion] found in
+  /// the target's [ValueVersion._promotableProperties] map.
+  final ValueVersion? version;
 
   /// Non-promotion history of this variable. Not relevant for properties.
   final NonPromotionHistory? nonPromotionHistory;
@@ -4561,7 +4564,7 @@ class PromotionModel {
     required this.tested,
     required this.assigned,
     required this.unassigned,
-    required this.ssaNode,
+    required this.version,
     this.nonPromotionHistory,
   }) {
     assert(
@@ -4582,7 +4585,7 @@ class PromotionModel {
 
   /// Creates a [PromotionModel] representing a variable or property that's
   /// never been seen before.
-  PromotionModel.fresh({this.assigned = false, required this.ssaNode})
+  PromotionModel.fresh({this.assigned = false, required this.version})
     : promotedTypes = const [],
       tested = const [],
       unassigned = !assigned,
@@ -4590,7 +4593,7 @@ class PromotionModel {
 
   /// Indicates whether the variable has been write captured. Not relevant for
   /// properties.
-  bool get writeCaptured => ssaNode == null;
+  bool get writeCaptured => version == null;
 
   /// Returns a new [PromotionModel] in which any promotions present have been
   /// dropped, and the variable has been marked as "not unassigned".
@@ -4616,14 +4619,14 @@ class PromotionModel {
       tested: tested,
       assigned: assigned,
       unassigned: false,
-      ssaNode: writeCaptured ? null : new SsaNode(),
+      version: writeCaptured ? null : new ValueVersion(),
       nonPromotionHistory: newNonPromotionHistory,
     );
   }
 
   @override
   String toString() {
-    List<String> parts = [ssaNode.toString()];
+    List<String> parts = [version.toString()];
     if (promotedTypes.isNotEmpty) {
       parts.add('promotedTypes: $promotedTypes');
     }
@@ -4656,7 +4659,7 @@ class PromotionModel {
     NonPromotionReason? nonPromotionReason,
     PromotionKey variableKey,
     SharedTypeView writtenType,
-    SsaNode newSsaNode, {
+    ValueVersion newVersion, {
     required bool promoteToTypeOfInterest,
     required SharedTypeView unpromotedType,
   }) {
@@ -4666,7 +4669,7 @@ class PromotionModel {
         tested: tested,
         assigned: true,
         unassigned: false,
-        ssaNode: null,
+        version: null,
       );
     }
 
@@ -4693,7 +4696,7 @@ class PromotionModel {
         tested: tested,
         assigned: assigned,
         unassigned: unassigned,
-        ssaNode: newSsaNode,
+        version: newVersion,
       );
     }
 
@@ -4714,7 +4717,7 @@ class PromotionModel {
       tested: newTested,
       assigned: true,
       unassigned: false,
-      ssaNode: newSsaNode,
+      version: newVersion,
       nonPromotionHistory: demotionResult.nonPromotionHistory,
     );
   }
@@ -4727,7 +4730,7 @@ class PromotionModel {
       tested: const [],
       assigned: assigned,
       unassigned: false,
-      ssaNode: null,
+      version: null,
     );
   }
 
@@ -4785,7 +4788,7 @@ class PromotionModel {
           tested: tested,
           assigned: true,
           unassigned: false,
-          ssaNode: ssaNode,
+          version: version,
           nonPromotionHistory: nonPromotionHistory,
         );
 
@@ -4931,7 +4934,7 @@ class PromotionModel {
       tested: newTested,
       assigned: model.assigned,
       unassigned: model.unassigned,
-      ssaNode: model.ssaNode,
+      version: model.version,
     );
   }
 
@@ -4942,11 +4945,11 @@ class PromotionModel {
   /// ([firstPromotionInfo] and [secondPromotionInfo]), as well as the promotion
   /// info map being built for the join point ([newFlowModel]).
   ///
-  /// If a non-null [propertySsaNode] is supplied, it is used as the SSA node
-  /// for the joined model, rather than joining the SSA nodes from `first` and
-  /// `second`. This avoids redundant join operations for properties, since
-  /// properties are joined recursively when this method is used on local
-  /// variables.
+  /// If a non-null [propertyVersion] is supplied, it is used as the value
+  /// version for the joined model, rather than joining the value versions from
+  /// `first` and `second`. This avoids redundant join operations for
+  /// properties, since properties are joined recursively when this method is
+  /// used on local variables.
   static (PromotionModel, FlowModel) join(
     FlowModelHelper helper,
     PromotionModel first,
@@ -4954,13 +4957,15 @@ class PromotionModel {
     PromotionModel second,
     PromotionInfo? secondPromotionInfo,
     FlowModel newFlowModel, {
-    _PropertySsaNode? propertySsaNode,
+    _PropertyValueVersion? propertyVersion,
   }) {
     FlowAnalysisTypeOperations typeOperations = helper.typeOperations;
     List<SharedTypeView> newPromotedTypes = joinPromotedTypes(
       first.promotedTypes,
       second.promotedTypes,
       typeOperations,
+      promotionChainIntersectionJoinEnabled:
+          helper.typeAnalyzerOptions.promotionChainIntersectionJoinEnabled,
     );
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
@@ -4968,13 +4973,13 @@ class PromotionModel {
     List<SharedTypeView> newTested = newWriteCaptured
         ? const []
         : joinTested(first.tested, second.tested);
-    SsaNode? newSsaNode = propertySsaNode;
-    if (newSsaNode == null && !newWriteCaptured) {
-      (newSsaNode, newFlowModel) = SsaNode._join(
+    ValueVersion? newVersion = propertyVersion;
+    if (newVersion == null && !newWriteCaptured) {
+      (newVersion, newFlowModel) = ValueVersion._join(
         helper,
-        first.ssaNode!,
+        first.version!,
         firstPromotionInfo,
-        second.ssaNode!,
+        second.version!,
         secondPromotionInfo,
         newFlowModel,
       );
@@ -4986,52 +4991,107 @@ class PromotionModel {
       newTested,
       newAssigned,
       newUnassigned,
-      newWriteCaptured ? null : newSsaNode,
+      newWriteCaptured ? null : newVersion,
     );
     return (newPromotionModel, newFlowModel);
   }
 
-  /// Performs the portion of the "join" algorithm that applies to promotion
-  /// chains.  Briefly, we intersect given chains.  The chains are totally
-  /// ordered subsets of a global partial order.  Their intersection is a
-  /// subset of each, and as such is also totally ordered.
+  /// Computes the greatest common subsequence of [chain1] and [chain2].
+  ///
+  /// Equivalently, this is `chain1.where((t) => chain2.contains(t))` (or vice
+  /// versa, since the operation is commutative).
+  ///
+  /// If the result is equal to one of the two inputs, that input is returned
+  /// directly without allocating a new list.
+  ///
+  /// Note that a naive implementation would have `O(m * n)` complexity (where
+  /// `m` and `n` are the lengths of the two chains), but since promotion chains
+  /// are always ordered from top to bottom, we can compute it in `O(m + n)`.
   static List<SharedTypeView> joinPromotedTypes(
     List<SharedTypeView> chain1,
     List<SharedTypeView> chain2,
-    FlowAnalysisTypeOperations typeOperations,
-  ) {
+    FlowAnalysisTypeOperations typeOperations, {
+    bool promotionChainIntersectionJoinEnabled = false,
+  }) {
+    if (!promotionChainIntersectionJoinEnabled) {
+      return _legacyJoinPromotedTypes(chain1, chain2, typeOperations);
+    }
+    // If either chain is empty, the result is trivially empty.
     if (chain1.isEmpty) return chain1;
     if (chain2.isEmpty) return chain2;
 
-    int index1 = 0;
-    int index2 = 0;
-    bool skipped1 = false;
-    bool skipped2 = false;
-    List<SharedTypeView>? result;
-    while (index1 < chain1.length && index2 < chain2.length) {
-      SharedTypeView type1 = chain1[index1];
-      SharedTypeView type2 = chain2[index2];
-      if (type1 == type2) {
-        result ??= <SharedTypeView>[];
-        result.add(type1);
-        index1++;
-        index2++;
-      } else if (typeOperations.isSubtypeOf(type2, type1)) {
-        index1++;
-        skipped1 = true;
-      } else if (typeOperations.isSubtypeOf(type1, type2)) {
-        index2++;
-        skipped2 = true;
-      } else {
-        skipped1 = true;
-        skipped2 = true;
-        break;
-      }
+    // Since the operation is commutative, we may safely re-order the arguments
+    // to ensure that chain1.length <= chain2.length. This ensures that if the
+    // output winds up being equal to one of the inputs, it will be equal to
+    // chain1.
+    if (chain1.length > chain2.length) {
+      List<SharedTypeView> tmp = chain1;
+      chain1 = chain2;
+      chain2 = tmp;
     }
 
-    if (index1 == chain1.length && !skipped1) return chain1;
-    if (index2 == chain2.length && !skipped2) return chain2;
-    return result ?? const [];
+    int i1 = 0, i2 = 0;
+    SharedTypeView t1 = chain1[0];
+    SharedTypeView t2 = chain2[0];
+    // To save on allocations, only allocate the result list once it's clear
+    // that it's not equal to chain1.
+    List<SharedTypeView>? result;
+    while (true) {
+      // Loop invariants:
+      assert(t1 == chain1[i1]);
+      assert(t2 == chain2[i2]);
+      // This invariant can't easily by tested by an assertion:
+      // - join(chain1, chain2) ~= [
+      //     ...(result ?? chain1.sublist(0, i1)),
+      //     ...join(chain1.sublist(i1), chain2.sublist(i2))
+      //   ]
+      //   (where `~=` means "same list elements, though not necessarily the
+      //    same list")
+
+      // Compare types t1 and t2 to figure out whether to advance i1, i2, or
+      // both.
+      bool advanceI1, advanceI2;
+      if (t1 == t2) {
+        result?.add(t1);
+        advanceI1 = true;
+        advanceI2 = true;
+      } else if (typeOperations.isSubtypeOf(t1, t2)) {
+        // chain1 doesn't contain t2, because if it did, it would be the next
+        // element (and hence t1 would equal t2), so advance to the next element
+        // of chain2.
+        advanceI1 = false;
+        advanceI2 = true;
+      } else {
+        // chain2 doesn't contain t1, because if it did, it would be the next
+        // element (and hence t1 would equal t2), so advance to the next element
+        // of chain1.
+        //
+        // We now know for sure (if we didn't know previously) that the result
+        // won't be equal to chain1, so allocate the result if it hasn't been
+        // allocated already.
+        result ??= chain1.sublist(0, i1);
+        advanceI1 = true;
+        advanceI2 = false;
+      }
+      if (advanceI1) {
+        if (++i1 == chain1.length) {
+          if (result != null) return result;
+          // Result not allocated yet so the join must equal chain1.
+          return chain1;
+        }
+        t1 = chain1[i1];
+      }
+      if (advanceI2) {
+        if (++i2 == chain2.length) {
+          if (result != null) return result;
+          // Result not allocated yet so the join must equal
+          // chain1.sublist(0, i1).
+          if (i1 == chain1.length) return chain1;
+          return chain1.sublist(0, i1);
+        }
+        t2 = chain2[i2];
+      }
+    }
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
@@ -5145,19 +5205,19 @@ class PromotionModel {
     List<SharedTypeView> newTested,
     bool newAssigned,
     bool newUnassigned,
-    SsaNode? newSsaNode,
+    ValueVersion? newVersion,
   ) {
     if (identical(first.promotedTypes, newPromotedTypes) &&
         identical(first.tested, newTested) &&
         first.assigned == newAssigned &&
         first.unassigned == newUnassigned &&
-        first.ssaNode == newSsaNode) {
+        first.version == newVersion) {
       return first;
     } else if (identical(second.promotedTypes, newPromotedTypes) &&
         identical(second.tested, newTested) &&
         second.assigned == newAssigned &&
         second.unassigned == newUnassigned &&
-        second.ssaNode == newSsaNode) {
+        second.version == newVersion) {
       return second;
     } else {
       return new PromotionModel(
@@ -5165,9 +5225,51 @@ class PromotionModel {
         tested: newTested,
         assigned: newAssigned,
         unassigned: newUnassigned,
-        ssaNode: newSsaNode,
+        version: newVersion,
       );
     }
+  }
+
+  /// Performs the legacy portion of the "join" algorithm that applies to
+  /// promotion chains when the `promotion-chain-intersection-join` experiment
+  /// is disabled.
+  static List<SharedTypeView> _legacyJoinPromotedTypes(
+    List<SharedTypeView> chain1,
+    List<SharedTypeView> chain2,
+    FlowAnalysisTypeOperations typeOperations,
+  ) {
+    if (chain1.isEmpty) return chain1;
+    if (chain2.isEmpty) return chain2;
+
+    int index1 = 0;
+    int index2 = 0;
+    bool skipped1 = false;
+    bool skipped2 = false;
+    List<SharedTypeView>? result;
+    while (index1 < chain1.length && index2 < chain2.length) {
+      SharedTypeView type1 = chain1[index1];
+      SharedTypeView type2 = chain2[index2];
+      if (type1 == type2) {
+        result ??= <SharedTypeView>[];
+        result.add(type1);
+        index1++;
+        index2++;
+      } else if (typeOperations.isSubtypeOf(type2, type1)) {
+        index1++;
+        skipped1 = true;
+      } else if (typeOperations.isSubtypeOf(type1, type2)) {
+        index2++;
+        skipped2 = true;
+      } else {
+        skipped1 = true;
+        skipped2 = true;
+        break;
+      }
+    }
+
+    if (index1 == chain1.length && !skipped1) return chain1;
+    if (index2 == chain2.length && !skipped2) return chain2;
+    return result ?? const [];
   }
 }
 
@@ -5268,8 +5370,8 @@ final class PropertyNotPromotedForNonInherentReason
 sealed class PropertyTarget<Expression extends Object> {
   const PropertyTarget._();
 
-  /// Retrieves the SSA node of the value accessed by this property target.
-  SsaNode? _getSsaNode(_PropertyTargetHelper<Object> helper);
+  /// Retrieves the value version of the value accessed by this property target.
+  ValueVersion? _getVersion(_PropertyTargetHelper<Object> helper);
 }
 
 /// Immutable data structure modeling the reachability of the given point in the
@@ -5389,25 +5491,23 @@ class Reachability {
 }
 
 /// Data structure representing a unique value that a variable might take on
-/// during execution of the code being analyzed.  SSA nodes are immutable (so
-/// they can be safety shared among data structures) and have identity (so that
-/// it is possible to tell whether one SSA node is the same as another).
+/// during execution of the code being analyzed.  Value versions are immutable
+/// (so they can be safety shared among data structures) and have identity (so
+/// that it is possible to tell whether one value version is the same as
+/// another).
 ///
 /// This is similar to the nodes used in traditional single assignment analysis
 /// (https://en.wikipedia.org/wiki/Static_single_assignment_form) except that it
 /// does not store a complete IR of the code being analyzed.
-///
-/// TODO(paulberry): rename to avoid confusion with other attributes of static
-/// single assignment analysis. Tentative new name: "Version".
 @visibleForTesting
-class SsaNode {
-  /// Expando mapping SSA nodes to debug ids.  Only used by `toString`.
+class ValueVersion {
+  /// Expando mapping value versions to debug ids.  Only used by `toString`.
   static final Expando<int> _debugIds = new Expando<int>();
 
   static int _nextDebugId = 0;
 
-  /// Flow analysis information was associated with the expression that
-  /// produced the value represented by this SSA node, if it was non-trivial.
+  /// Flow analysis information was associated with the expression that produced
+  /// the value represented by this value version, if it was non-trivial.
   ///
   /// This can be used at a later time to perform promotions if the value is
   /// used in a control flow construct. See
@@ -5419,49 +5519,49 @@ class SsaNode {
   final ExpressionInfo? conditionVariableState;
 
   /// Map containing the set of promotable properties of the value tracked by
-  /// this SSA node. Keys are the names of the properties.
-  final Map<String, _PropertySsaNode> _promotableProperties = {};
+  /// this value version. Keys are the names of the properties.
+  final Map<String, _PropertyValueVersion> _promotableProperties = {};
 
   /// Map containing the set of non-promotable properties of the value tracked
-  /// by this SSA node. These are tracked even though they're not promotable, so
-  /// that if an error occurs due to the absence of type promotion, it will be
-  /// possible to generate a message explaining to the user why type promotion
-  /// failed.
-  final Map<String, _PropertySsaNode> _nonPromotableProperties = {};
+  /// by this value version. These are tracked even though they're not
+  /// promotable, so that if an error occurs due to the absence of type
+  /// promotion, it will be possible to generate a message explaining to the
+  /// user why type promotion failed.
+  final Map<String, _PropertyValueVersion> _nonPromotableProperties = {};
 
-  SsaNode({this.conditionVariableState});
+  ValueVersion({this.conditionVariableState});
 
-  /// Gets an SSA node representing the property named [propertyName] of the
-  /// value represented by `this`, creating it if necessary.
+  /// Gets a value version representing the property named [propertyName] of
+  /// the value represented by `this`, creating it if necessary.
   ///
-  /// If a new SSA node is created, it is allocated a fresh promotion key using
-  /// [promotionKeyStore], so that type promotions for it can be tracked
+  /// If a new value version is created, it is allocated a fresh promotion key
+  /// using [promotionKeyStore], so that type promotions for it can be tracked
   /// separately from other type promotions.
-  _PropertySsaNode getOrCreatePropertyNode(
+  _PropertyValueVersion getOrCreatePropertyVersion(
     String propertyName,
     PromotionKeyStore<Object> promotionKeyStore, {
     required bool isPromotable,
   }) {
     if (isPromotable) {
       // The property is promotable, meaning it is known to produce the same (or
-      // equivalent) value every time it is queried. So we only create an SSA
-      // node if the property hasn't been accessed before; otherwise we return
-      // the old SSA node unchanged.
-      return _promotableProperties[propertyName] ??= new _PropertySsaNode(
+      // equivalent) value every time it is queried. So we only create a value
+      // version if the property hasn't been accessed before; otherwise we
+      // return the old value version unchanged.
+      return _promotableProperties[propertyName] ??= new _PropertyValueVersion(
         promotionKeyStore.makeTemporaryKey(),
       );
     } else {
       // The property isn't promotable, meaning it is not known to produce the
       // same (or equivalent) value every time it is queried. So we create a
-      // fresh SSA node for every access; but we record the previous SSA node in
-      // `_PropertySsaNode.previousSsaNode` so that the "why not promoted" logic
-      // can figure out what promotions *would* have occurred if the field had
-      // been promotable.
-      _PropertySsaNode? previousSsaNode =
+      // fresh value version for every access; but we record the previous value
+      // version in `_PropertyValueVersion.previousVersion` so that the "why not
+      // promoted" logic can figure out what promotions *would* have occurred if
+      // the field had been promotable.
+      _PropertyValueVersion? previousVersion =
           _nonPromotableProperties[propertyName];
-      return _nonPromotableProperties[propertyName] = new _PropertySsaNode(
+      return _nonPromotableProperties[propertyName] = new _PropertyValueVersion(
         promotionKeyStore.makeTemporaryKey(),
-        previousSsaNode: previousSsaNode,
+        previousVersion: previousVersion,
       );
     }
   }
@@ -5469,19 +5569,19 @@ class SsaNode {
   @override
   String toString() {
     int id = _debugIds[this] ??= _nextDebugId++;
-    return 'ssa$id';
+    return 'version$id';
   }
 
-  /// Applies the property promotions from one SSA node to another. This is done
-  /// as part of computing the effect of executing a try/finally's `try` and
-  /// `finally` blocks in sequence, to apply the promotions that occurred in the
-  /// `finally` block atop the promotions that occurred in the `try` block.
+  /// Applies the property promotions from one value version to another. This is
+  /// done as part of computing the effect of executing a try/finally's `try`
+  /// and `finally` blocks in sequence, to apply the promotions that occurred in
+  /// the `finally` block atop the promotions that occurred in the `try` block.
   ///
-  /// [afterTrySsaNode] is the SSA node from the end of the `try` block, and
-  /// [finallySsaNode] is the SSA node from the end of the `finally` block (this
-  /// method is only invoked when the variable in question was not written to in
-  /// the `finally` block, so it is also the SSA node from the beginning of the
-  /// `finally` block).
+  /// [afterTryVersion] is the value version from the end of the `try` block,
+  /// and [finallyVersion] is the value version from the end of the `finally`
+  /// block (this method is only invoked when the variable in question was not
+  /// written to in the `finally` block, so it is also the value version from
+  /// the beginning of the `finally` block).
   ///
   /// [beforeFinallyInfo] is the promotion info map from the flow state at the
   /// beginning of the `finally` block, and [afterFinallyInfo] is the promotion
@@ -5490,8 +5590,8 @@ class SsaNode {
   /// built (the flow state after the try/finally block).
   FlowModel _applyPropertyPromotions(
     FlowModelHelper helper,
-    SsaNode afterTrySsaNode,
-    SsaNode finallySsaNode,
+    ValueVersion afterTryVersion,
+    ValueVersion finallyVersion,
     PromotionInfo? beforeFinallyInfo,
     PromotionInfo? afterFinallyInfo,
     FlowModel newFlowModel,
@@ -5499,32 +5599,34 @@ class SsaNode {
     // TODO(paulberry): fix nomenclature to align with caller.
     for (var MapEntry(
           key: String propertyName,
-          value: _PropertySsaNode finallyPropertySsaNode,
+          value: _PropertyValueVersion finallyPropertyVersion,
         )
-        in finallySsaNode._promotableProperties.entries) {
+        in finallyVersion._promotableProperties.entries) {
       // Since this method is only called when a variable is assigned in a `try`
-      // block, a fresh SSA node should have been assigned for the `finally`
-      // block by the conservative join in `tryFinallyStatement_finallyBegin`.
-      // So the property should have been unpromoted (and unknown) at the
-      // beginning of the `finally` block.
+      // block, a fresh value version should have been assigned for the
+      // `finally` block by the conservative join in
+      // `tryFinallyStatement_finallyBegin`. So the property should have been
+      // unpromoted (and unknown) at the beginning of the `finally` block.
       assert(
-        beforeFinallyInfo?.get(helper, finallyPropertySsaNode.promotionKey) ==
+        beforeFinallyInfo?.get(helper, finallyPropertyVersion.promotionKey) ==
             null,
       );
       // Therefore all we need to do is apply any promotions that are in force
       // at the end of the `finally` block.
       PromotionModel? afterFinallyModel = afterFinallyInfo?.get(
         helper,
-        finallyPropertySsaNode.promotionKey,
+        finallyPropertyVersion.promotionKey,
       );
-      _PropertySsaNode afterTryPropertySsaNode =
-          afterTrySsaNode._promotableProperties[propertyName] ??=
-              new _PropertySsaNode(helper.promotionKeyStore.makeTemporaryKey());
+      _PropertyValueVersion afterTryPropertyVersion =
+          afterTryVersion._promotableProperties[propertyName] ??=
+              new _PropertyValueVersion(
+                helper.promotionKeyStore.makeTemporaryKey(),
+              );
       // Handle nested properties
       newFlowModel = _applyPropertyPromotions(
         helper,
-        afterTryPropertySsaNode,
-        finallyPropertySsaNode,
+        afterTryPropertyVersion,
+        finallyPropertyVersion,
         beforeFinallyInfo,
         afterFinallyInfo,
         newFlowModel,
@@ -5537,13 +5639,13 @@ class SsaNode {
       // the flow model from the `try` block, and see what sticks.
       PromotionModel? newModel = newFlowModel.promotionInfo?.get(
         helper,
-        afterTryPropertySsaNode.promotionKey,
+        afterTryPropertyVersion.promotionKey,
       );
       if (newModel == null) {
-        newModel = new PromotionModel.fresh(ssaNode: afterTryPropertySsaNode);
+        newModel = new PromotionModel.fresh(version: afterTryPropertyVersion);
         newFlowModel = newFlowModel.updatePromotionInfo(
           helper,
-          afterTryPropertySsaNode.promotionKey,
+          afterTryPropertyVersion.promotionKey,
           newModel,
         );
       }
@@ -5557,13 +5659,13 @@ class SsaNode {
       if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
         newFlowModel = newFlowModel.updatePromotionInfo(
           helper,
-          afterTryPropertySsaNode.promotionKey,
+          afterTryPropertyVersion.promotionKey,
           new PromotionModel(
             promotedTypes: rebasedPromotedTypes,
             tested: newModel.tested,
             assigned: true,
             unassigned: false,
-            ssaNode: newModel.ssaNode,
+            version: newModel.version,
           ),
         );
       }
@@ -5571,8 +5673,8 @@ class SsaNode {
     return newFlowModel;
   }
 
-  /// Joins the promotion information for the promotable properties of two SSA
-  /// nodes, [first] and [second], and stores the results in
+  /// Joins the promotion information for the promotable properties of two value
+  /// versions, [first] and [second], and stores the results in
   /// [_promotableProperties].
   ///
   /// Since properties may themselves be promoted, the caller must supply the
@@ -5581,9 +5683,9 @@ class SsaNode {
   /// info map being built for the join point ([newFlowModel]).
   FlowModel _joinProperties(
     FlowModelHelper helper,
-    Map<String, _PropertySsaNode> first,
+    Map<String, _PropertyValueVersion> first,
     PromotionInfo? firstPromotionInfo,
-    Map<String, _PropertySsaNode> second,
+    Map<String, _PropertyValueVersion> second,
     PromotionInfo? secondPromotionInfo,
     FlowModel newFlowModel,
   ) {
@@ -5593,10 +5695,10 @@ class SsaNode {
     // necessary to examine properties common to the `first` and `second` maps.
     for (var MapEntry(
           key: String propertyName,
-          value: _PropertySsaNode firstProperty,
+          value: _PropertyValueVersion firstProperty,
         )
         in first.entries) {
-      _PropertySsaNode? secondProperty = second[propertyName];
+      _PropertyValueVersion? secondProperty = second[propertyName];
       if (secondProperty == null) continue;
       // Make a new promotion key to represent the joined property.
       PromotionKey newPromotionKey = helper.promotionKeyStore
@@ -5608,8 +5710,10 @@ class SsaNode {
         helper,
         firstProperty.promotionKey,
       );
-      _PropertySsaNode propertySsaNode = new _PropertySsaNode(newPromotionKey);
-      _promotableProperties[propertyName] = propertySsaNode;
+      _PropertyValueVersion propertyVersion = new _PropertyValueVersion(
+        newPromotionKey,
+      );
+      _promotableProperties[propertyName] = propertyVersion;
       if (firstPromotionModel != null) {
         PromotionModel? secondPromotionModel = secondPromotionInfo?.get(
           helper,
@@ -5624,7 +5728,7 @@ class SsaNode {
             secondPromotionModel,
             secondPromotionInfo,
             newFlowModel,
-            propertySsaNode: propertySsaNode,
+            propertyVersion: propertyVersion,
           );
           newFlowModel = newFlowModel.updatePromotionInfo(
             helper,
@@ -5634,7 +5738,7 @@ class SsaNode {
         }
       }
       // Join any nested properties.
-      newFlowModel = propertySsaNode._joinProperties(
+      newFlowModel = propertyVersion._joinProperties(
         helper,
         firstProperty._promotableProperties,
         firstPromotionInfo,
@@ -5646,27 +5750,28 @@ class SsaNode {
     return newFlowModel;
   }
 
-  /// Joins the promotion information for two SSA nodes, [first] and [second].
+  /// Joins the promotion information for two value versions, [first] and
+  /// [second].
   ///
-  /// Since SSA nodes store information about properties, and properties may
-  /// themselves be promoted, the caller must supply the promotion info maps for
-  /// the two flow control paths being joined ([firstPromotionInfo] and
+  /// Since value versions store information about properties, and properties
+  /// may themselves be promoted, the caller must supply the promotion info maps
+  /// for the two flow control paths being joined ([firstPromotionInfo] and
   /// [secondPromotionInfo]), as well as the promotion info map being built for
   /// the join point ([newFlowModel]).
-  static (SsaNode, FlowModel) _join(
+  static (ValueVersion, FlowModel) _join(
     FlowModelHelper helper,
-    SsaNode first,
+    ValueVersion first,
     PromotionInfo? firstPromotionInfo,
-    SsaNode second,
+    ValueVersion second,
     PromotionInfo? secondPromotionInfo,
     FlowModel newFlowModel,
   ) {
-    SsaNode ssaNode;
+    ValueVersion version;
     if (first == second) {
-      ssaNode = first;
+      version = first;
     } else {
-      ssaNode = new SsaNode();
-      newFlowModel = ssaNode._joinProperties(
+      version = new ValueVersion();
+      newFlowModel = version._joinProperties(
         helper,
         first._promotableProperties,
         firstPromotionInfo,
@@ -5675,7 +5780,7 @@ class SsaNode {
         newFlowModel,
       );
     }
-    return (ssaNode, newFlowModel);
+    return (version, newFlowModel);
   }
 }
 
@@ -5689,8 +5794,8 @@ class SuperPropertyTarget extends PropertyTarget<Never> {
   String toString() => 'SuperPropertyTarget()';
 
   @override
-  SsaNode _getSsaNode(_PropertyTargetHelper<Object> helper) =>
-      helper._superSsaNode;
+  ValueVersion _getVersion(_PropertyTargetHelper<Object> helper) =>
+      helper._superVersion;
 }
 
 /// Non-promotion reason describing the situation where an expression was not
@@ -5719,8 +5824,8 @@ class ThisPropertyTarget extends PropertyTarget<Never> {
   String toString() => 'ThisPropertyTarget()';
 
   @override
-  SsaNode _getSsaNode(_PropertyTargetHelper<Object> helper) =>
-      helper._thisSsaNode;
+  ValueVersion _getVersion(_PropertyTargetHelper<Object> helper) =>
+      helper._thisVersion;
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -5734,7 +5839,7 @@ class TrivialVariableReference extends _Reference {
     required super.model,
     required super.promotionKey,
     required super.isThisOrSuper,
-    required super.ssaNode,
+    required super.version,
   }) : super.trivial();
 
   /// Produces an updated version of `this` reflecting flow analysis state from
@@ -5768,11 +5873,12 @@ class TrivialVariableReference extends _Reference {
   ///    written. That is, there must not be any write captures or intervening
   ///    writes of the condition variable on the control path leading up to the
   ///    read. This is addressed by saving the flow analysis state in the
-  ///    [SsaNode.conditionVariableState] field. Since a write to a variable
-  ///    causes it to be associated with a new [SsaNode], and a write capture of
-  ///    a variable causes its [SsaNode] association to be permanently set to
-  ///    `null`, this assures that an attempt to restore the saved state will
-  ///    only be made if there are no write captures or intervening writes.
+  ///    [ValueVersion.conditionVariableState] field. Since a write to a
+  ///    variable causes it to be associated with a new [ValueVersion], and a
+  ///    write capture of a variable causes its [ValueVersion] association to be
+  ///    permanently set to `null`, this assures that an attempt to restore the
+  ///    saved state will only be made if there are no write captures or
+  ///    intervening writes.
   ///
   /// 2. Considering each variable referred to in the stored state (e.g., `x`,
   ///    in the example above), it is only sound to restore the state of that
@@ -5782,8 +5888,8 @@ class TrivialVariableReference extends _Reference {
   ///    control path leading up to the read. This is addressed by
   ///    [FlowModel.rebaseForward] (which is called by this method to do the
   ///    restore); it only updates the [PromotionModel]s of variables whose
-  ///    [SsaNode] is (a) non-null (i.e., not write captured) and (b) the same
-  ///    as it was at the time the state was saved (i.e., no intervening
+  ///    [ValueVersion] is (a) non-null (i.e., not write captured) and (b) the
+  ///    same as it was at the time the state was saved (i.e., no intervening
   ///    writes).
   ///
   /// Note that this method is also invoked by
@@ -5814,7 +5920,7 @@ class TrivialVariableReference extends _Reference {
         isThisOrSuper: isThisOrSuper,
         ifTrue: conditionVariableInfo.ifTrue.rebaseForward(helper, current),
         ifFalse: conditionVariableInfo.ifFalse.rebaseForward(helper, current),
-        ssaNode: ssaNode,
+        version: version,
       );
     } else {
       // `conditionVariableInfo` didn't contain any non-trivial flow analysis
@@ -5827,7 +5933,7 @@ class TrivialVariableReference extends _Reference {
   String toString() =>
       'TrivialVariableReference(type: $_type, '
       'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper, '
-      'ssaNode: $ssaNode)';
+      'version: $version)';
 }
 
 class WhyNotPromotedInfo {}
@@ -6072,9 +6178,9 @@ class _FlowAnalysisImpl<
       new Set.identity();
 
   @override
-  late final SsaNode _superSsaNode = new SsaNode();
+  late final ValueVersion _superVersion = new ValueVersion();
 
-  final List<SsaNode> _thisSsaNodes = [new SsaNode()];
+  final List<ValueVersion> _thisVersions = [new ValueVersion()];
 
   final List<PromotionKey> _thisPromotionKeys = [];
 
@@ -6131,7 +6237,7 @@ class _FlowAnalysisImpl<
   FlowModel get _current => _currentInternal;
 
   @override
-  SsaNode get _thisSsaNode => _thisSsaNodes.last;
+  ValueVersion get _thisVersion => _thisVersions.last;
 
   @override
   void anonymousBlockBody_begin({int offset = 0}) {
@@ -6234,7 +6340,7 @@ class _FlowAnalysisImpl<
     PromotionKey mergedKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel info =
         _current.promotionInfo?.get(this, promotionKey) ??
-        new PromotionModel.fresh(ssaNode: new SsaNode());
+        new PromotionModel.fresh(version: new ValueVersion());
     // Normally flow analysis is responsible for tracking whether variables are
     // definitely assigned; however for variables appearing in patterns we
     // have other logic to make sure that a value is definitely assigned (e.g.
@@ -6279,14 +6385,15 @@ class _FlowAnalysisImpl<
     SharedTypeView promotedTargetType = isNullAware
         ? operations.promoteToNonNull(targetType)
         : targetType;
-    // Retrieve the SSA node for the cascade target, if one has been created
-    // already, so that field accesses within cascade sections will receive the
-    // benefit of previous field promotions. If an SSA node for the target
-    // hasn't been created yet (e.g. because it's not a read of a local
-    // variable), create a fresh SSA node for it, so that field promotions that
-    // occur during cascade sections will persist in later cascade sections.
+    // Retrieve the value version for the cascade target, if one has been
+    // created already, so that field accesses within cascade sections will
+    // receive the benefit of previous field promotions. If a value version for
+    // the target hasn't been created yet (e.g. because it's not a read of a
+    // local variable), create a fresh value version for it, so that field
+    // promotions that occur during cascade sections will persist in later
+    // cascade sections.
     _Reference? expressionReference = _getExpressionReference(targetInfo);
-    SsaNode ssaNode = expressionReference?.ssaNode ?? new SsaNode();
+    ValueVersion version = expressionReference?.version ?? new ValueVersion();
     // Create a temporary reference to represent the implicit temporary variable
     // that holds the cascade target. It is important that this is different
     // from `expressionReference`, because if the target is a local variable,
@@ -6296,7 +6403,7 @@ class _FlowAnalysisImpl<
     // `x.._field!.f(x = g()).._field.h()`, no `!` is needed on the second
     // access to `_field`, even though `x` has been written to).
     _cascadeTargetStack.add(
-      _makeTemporaryReference(ssaNode, promotedTargetType, offset: offset),
+      _makeTemporaryReference(version, promotedTargetType, offset: offset),
     );
     if (isNullAware) {
       _nullAwareAccess_rightBegin(
@@ -6422,7 +6529,7 @@ class _FlowAnalysisImpl<
         this,
         destinationKey,
         _current.promotionInfo?.get(this, sourceKey) ??
-            new PromotionModel.fresh(ssaNode: new SsaNode()),
+            new PromotionModel.fresh(version: new ValueVersion()),
       ),
       offset: offset,
     );
@@ -7379,10 +7486,10 @@ class _FlowAnalysisImpl<
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
-    SsaNode? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return null;
+    ValueVersion? targetVersion = target._getVersion(this);
+    if (targetVersion == null) return null;
     var (SharedTypeView? type, _) = _handleProperty(
-      targetSsaNode,
+      targetVersion,
       propertyName,
       propertyMember,
       unpromotedType,
@@ -7469,13 +7576,13 @@ class _FlowAnalysisImpl<
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
-    SsaNode? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return (null, null);
+    ValueVersion? targetVersion = target._getVersion(this);
+    if (targetVersion == null) return (null, null);
     var (
       SharedTypeView? promotedType,
-      _PropertySsaNode propertySsaNode,
+      _PropertyValueVersion propertyVersion,
     ) = _handleProperty(
-      targetSsaNode,
+      targetVersion,
       propertyName,
       propertyMember,
       unpromotedType,
@@ -7483,10 +7590,10 @@ class _FlowAnalysisImpl<
     _PropertyReference propertyReference = new _PropertyReference(
       propertyName: propertyName,
       propertyMember: propertyMember,
-      promotionKey: propertySsaNode.promotionKey,
+      promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
-      ssaNode: propertySsaNode,
+      version: propertyVersion,
     );
     return (promotedType, propertyReference);
   }
@@ -7497,26 +7604,27 @@ class _FlowAnalysisImpl<
     String propertyName,
     Object? propertyMember,
   ) {
-    SsaNode? targetSsaNode = target._getSsaNode(this);
-    if (targetSsaNode == null) return const [];
-    // Find the SSA node for the target of the property access, and figure out
-    // whether the property in question is promotable.
+    ValueVersion? targetVersion = target._getVersion(this);
+    if (targetVersion == null) return const [];
+    // Find the value version for the target of the property access, and figure
+    // out whether the property in question is promotable.
     bool isPromotable =
         propertyMember != null &&
         typeAnalyzerOptions.fieldPromotionEnabled &&
         operations.isPropertyPromotable(propertyMember);
     if (!isPromotable) return const [];
-    _PropertySsaNode propertySsaNode = targetSsaNode.getOrCreatePropertyNode(
-      propertyName,
-      promotionKeyStore,
-      isPromotable: isPromotable,
-    );
+    _PropertyValueVersion propertyVersion = targetVersion
+        .getOrCreatePropertyVersion(
+          propertyName,
+          promotionKeyStore,
+          isPromotable: isPromotable,
+        );
     PromotionModel? promotionInfo = _current.promotionInfo?.get(
       this,
-      propertySsaNode.promotionKey,
+      propertyVersion.promotionKey,
     );
     if (promotionInfo == null) return const [];
-    assert(promotionInfo.ssaNode == propertySsaNode);
+    assert(promotionInfo.version == propertyVersion);
     return promotionInfo.promotedTypes;
   }
 
@@ -7531,9 +7639,9 @@ class _FlowAnalysisImpl<
     assert(_unmatched != null);
     var (
       SharedTypeView? promotedType,
-      _PropertySsaNode? propertySsaNode,
+      _PropertyValueVersion? propertyVersion,
     ) = _handleProperty(
-      context._matchedValueInfo.ssaNode,
+      context._matchedValueInfo.version,
       propertyName,
       propertyMember,
       unpromotedType,
@@ -7541,15 +7649,15 @@ class _FlowAnalysisImpl<
     _PropertyReference propertyReference = new _PropertyReference(
       propertyName: propertyName,
       propertyMember: propertyMember,
-      promotionKey: propertySsaNode.promotionKey,
+      promotionKey: propertyVersion.promotionKey,
       model: _current,
       type: promotedType ?? unpromotedType,
-      ssaNode: propertySsaNode,
+      version: propertyVersion,
     );
     _stack.add(
       new _PropertyPatternContext(
         _makeTemporaryReference(
-          propertySsaNode,
+          propertyVersion,
           promotedType ?? unpromotedType,
           offset: offset,
         ),
@@ -7566,7 +7674,11 @@ class _FlowAnalysisImpl<
     assert(_unmatched != null);
     _stack.add(
       new _SubpatternContext(
-        _makeTemporaryReference(new SsaNode(), matchedType, offset: offset),
+        _makeTemporaryReference(
+          new ValueVersion(),
+          matchedType,
+          offset: offset,
+        ),
         _correspondingScrutineeReference,
       ),
     );
@@ -7586,9 +7698,9 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  SsaNode? ssaNodeForTesting(Variable variable) => _current.promotionInfo
+  ValueVersion? versionForTesting(Variable variable) => _current.promotionInfo
       ?.get(this, promotionKeyStore.keyForVariable(variable))
-      ?.ssaNode;
+      ?.version;
 
   @override
   void suspension(Node node, {int offset = 0}) {
@@ -7789,14 +7901,14 @@ class _FlowAnalysisImpl<
     int offset = 0,
   }) {
     _Reference? expressionReference = _getExpressionReference(targetInfo);
-    SsaNode ssaNode =
-        expressionReference?.ssaNode ??
-        new SsaNode(
+    ValueVersion version =
+        expressionReference?.version ??
+        new ValueVersion(
           conditionVariableState: targetInfo != null && targetInfo.isNonTrivial
               ? targetInfo
               : null,
         );
-    _thisSsaNodes.add(ssaNode);
+    _thisVersions.add(version);
     PromotionKey thisPromotionKey = promotionKeyStore.makeTemporaryKey();
     _thisPromotionKeys.add(thisPromotionKey);
     _unpromotedThisTypes.add(thisType);
@@ -7808,7 +7920,7 @@ class _FlowAnalysisImpl<
 
   @override
   void thisBinding_end({int offset = 0}) {
-    _thisSsaNodes.removeLast();
+    _thisVersions.removeLast();
     _thisPromotionKeys.removeLast();
     _unpromotedThisTypes.removeLast();
     _logBuilder?.thisBindingChanged(
@@ -7975,7 +8087,7 @@ class _FlowAnalysisImpl<
       variableKey,
     );
     if (promotionModel == null) {
-      promotionModel = new PromotionModel.fresh(ssaNode: new SsaNode());
+      promotionModel = new PromotionModel.fresh(version: new ValueVersion());
       _setCurrent(
         _current.updatePromotionInfo(this, variableKey, promotionModel),
         offset: offset,
@@ -7983,7 +8095,7 @@ class _FlowAnalysisImpl<
     }
     _Reference expressionInfo = _variableReference(variableKey, unpromotedType)
         .restoreConditionVariableState(
-          promotionModel.ssaNode?.conditionVariableState,
+          promotionModel.version?.conditionVariableState,
           this,
           _current,
         );
@@ -8110,7 +8222,7 @@ class _FlowAnalysisImpl<
     // `afterTry` as a starting point, and iterating through the promotion keys
     // that differ between `VI1` and `VI3`):
     FlowModel result = afterTry.setReachability(r4);
-    List<({SsaNode from, SsaNode to})> fieldPromotionsToReapply = [];
+    List<({ValueVersion from, ValueVersion to})> fieldPromotionsToReapply = [];
     for (var FlowLinkDiffEntry(
           key: int promotionKeyIndex,
           :PromotionInfo? left,
@@ -8166,11 +8278,11 @@ class _FlowAnalysisImpl<
     }
 
     // (UNSPECIFIED: if any variable was written in the try block but not the
-    // finally block, then it has a different SSA node now than it had in the
-    // finally block. Hence, if any fields of that variable were promoted in the
-    // finally block, those field promotions need to be reapplied to the new SSA
-    // node for the variable.)
-    for (var (from: SsaNode? from, to: SsaNode? to)
+    // finally block, then it has a different value version now than it had in
+    // the finally block. Hence, if any fields of that variable were promoted in
+    // the finally block, those field promotions need to be reapplied to the
+    // new value version for the variable.)
+    for (var (from: ValueVersion? from, to: ValueVersion? to)
         in fieldPromotionsToReapply) {
       result = to._applyPropertyPromotions(
         this,
@@ -8188,7 +8300,8 @@ class _FlowAnalysisImpl<
     required PromotionModel afterTry,
     required PromotionModel? beforeFinally,
     required PromotionModel afterFinally,
-    required List<({SsaNode from, SsaNode to})> fieldPromotionsToReapply,
+    required List<({ValueVersion from, ValueVersion to})>
+    fieldPromotionsToReapply,
   }) {
     // See the `attachFinally` function in
     // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#models.
@@ -8197,24 +8310,22 @@ class _FlowAnalysisImpl<
     // "tested" booleans. Sometimes it uses `s1`, `s2`, and `s3`, and other
     // times `t1`, `t2`, and `t3`. `t1`, `t2`, and `t3` is better.)
 
-    // Let `afterTry = VariableModel(d1, p1, t1, a1, u1, c1)`.
-    // (UNSPECIFIED: and we denote the SSA node of the variable in `afterTry` as
-    // `v1`, since the plan is to rename "SSA node" to "version").
-    var PromotionModel(promotedTypes: p1, assigned: a1, ssaNode: v1) = afterTry;
+    // Let `afterTry = VariableModel(d1, p1, t1, a1, u1, c1)`. (UNSPECIFIED: and
+    // we denote the value version of the variable in `afterTry` as `v1`.)
+    var PromotionModel(promotedTypes: p1, assigned: a1, version: v1) = afterTry;
     // Let `beforeFinally = VariableModel(d2, p2, t2, a2, u2, c2)`.
     // (UNSPECIFIED: beforeFinally may be `null` when fields are promoted, so
     // we can't use pattern syntax to deconstruct this. Instead we deconstruct
     // it after null checking `beforeFinally`, below.)
     // Let `afterFinally = VariableModel(d3, p3, t3, a3, u3, c3)`.
-    // (UNSPECIFIED: and we denote the SSA node of the variable in
-    // `afterFinally` as `v3`, since the plan is to rename "SSA node" to
-    // "version").
+    // (UNSPECIFIED: and we denote the value version of the variable in
+    // `afterFinally` as `v3`.)
     var PromotionModel(
       promotedTypes: p3,
       tested: t3,
       assigned: a3,
       unassigned: u3,
-      ssaNode: v3,
+      version: v3,
     ) = afterFinally;
 
     // Let `d4 = d3`.
@@ -8223,29 +8334,29 @@ class _FlowAnalysisImpl<
 
     // Let `p4` be determined as follows:
     List<SharedTypeView> p4;
-    // (UNSPECIFIED: and also let `v4`, the SSA node after the `try-finally`
-    // statement, be determined as follows.)
-    SsaNode? v4;
+    // (UNSPECIFIED: and also let `v4`, the value version after the
+    // `try-finally` statement, be determined as follows.)
+    ValueVersion? v4;
     // - If the variable's value might have been changed by the `finally`
     //   block, then `p4 = p3`.
     // (UNSPECIFIED: a necessary and sufficient check for whether the variable
     // might have been changed by the `finally` block is to see if (a) the
     // variable was write captured at some point before the conclusion of the
-    // `finally` block (this is represented using a `null` SSA node), or (b) the
-    // variable's SSA node after the `finally` block is different from its SSA
-    // node before the `finally` block.)
+    // `finally` block (this is represented using a `null` value version), or
+    // (b) the variable's value version after the `finally` block is different
+    // from its value version before the `finally` block.)
     bool variableWasWriteCaptured = v3 == null;
     bool variableMightHaveChanged =
         variableWasWriteCaptured ||
-        (beforeFinally != null && beforeFinally.ssaNode != v3);
+        (beforeFinally != null && beforeFinally.version != v3);
     if (variableMightHaveChanged) {
       p4 = p3;
-      // (UNSPECIFIED: and the SSA node after the `try-finally` statement is the
-      // SSA node after the `finally` block.)
+      // (UNSPECIFIED: and the value version after the `try-finally` statement
+      // is the value version after the `finally` block.)
       v4 = v3;
     } else {
-      // UNSPECIFIED: the variable must not have been write captured, so its SSA
-      // node can't be `null`.
+      // UNSPECIFIED: the variable must not have been write captured, so its
+      // value version can't be `null`.
       v1!;
       // - Otherwise, `p4 = rebasePromotedTypes(p1, p3)`.
       p4 = typeAnalyzerOptions.soundFlowAnalysisEnabled
@@ -8262,13 +8373,13 @@ class _FlowAnalysisImpl<
               newPromotions: p1,
               helper: this,
             );
-      // (UNSPECIFIED: and the SSA node after the `try-finally` statement is the
-      // SSA node after the `try` block.)
+      // (UNSPECIFIED: and the value version after the `try-finally` statement
+      // is the value version after the `try` block.)
       v4 = v1;
       if (v4 != v3) {
         // (UNSPECIFIED: if the `try` block wrote to the variable, any field
         // promotions that were applied in the `finally` block should be
-        // reapplied to the new SSA node for the variable.)
+        // reapplied to the new value version for the variable.)
         fieldPromotionsToReapply.add((from: v3, to: v4));
       }
     }
@@ -8280,7 +8391,7 @@ class _FlowAnalysisImpl<
     bool u4 = u3;
     // Let `c4 = c3`.
     // (OPTIMIZATION: write-captured variables are represented using a `null`
-    // SSA node. So this is handled implicitly: if the variable was write
+    // value version. So this is handled implicitly: if the variable was write
     // captured at some point before the conclusion of the `finally` block, then
     // `v3` is `null` and `variableMightHaveChanged` is `true`, therefore `v4`
     // was set to `v3` above, and hence `v4` is `null`.)
@@ -8414,21 +8525,21 @@ class _FlowAnalysisImpl<
             reference.propertyName.startsWith('_')
             ? operations.whyPropertyIsNotPromotable(propertyMember)
             : PropertyNonPromotabilityReason.isNotPrivate;
-        _PropertySsaNode? ssaNode =
-            (reference.ssaNode as _PropertySsaNode).previousSsaNode;
+        _PropertyValueVersion? version =
+            (reference.version as _PropertyValueVersion).previousVersion;
         List<List<SharedTypeView>>? allPreviouslyPromotedTypes;
-        while (ssaNode != null) {
+        while (version != null) {
           PromotionModel previousPromotionInfo = _current.infoFor(
             this,
-            ssaNode.promotionKey,
-            ssaNode: ssaNode,
+            version.promotionKey,
+            version: version,
           );
           List<SharedTypeView> promotedTypes =
               previousPromotionInfo.promotedTypes;
           if (promotedTypes.isNotEmpty) {
             (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
           }
-          ssaNode = ssaNode.previousSsaNode;
+          version = version.previousVersion;
         }
         if (allPreviouslyPromotedTypes != null) {
           return () {
@@ -8644,31 +8755,32 @@ class _FlowAnalysisImpl<
     }
   }
 
-  (SharedTypeView?, _PropertySsaNode) _handleProperty(
-    SsaNode targetSsaNode,
+  (SharedTypeView?, _PropertyValueVersion) _handleProperty(
+    ValueVersion targetVersion,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
-    // Find the SSA node for the target of the property access, and figure out
-    // whether the property in question is promotable.
+    // Find the value version for the target of the property access, and figure
+    // out whether the property in question is promotable.
     bool isPromotable =
         propertyMember != null &&
         typeAnalyzerOptions.fieldPromotionEnabled &&
         operations.isPropertyPromotable(propertyMember);
-    _PropertySsaNode propertySsaNode = targetSsaNode.getOrCreatePropertyNode(
-      propertyName,
-      promotionKeyStore,
-      isPromotable: isPromotable,
-    );
+    _PropertyValueVersion propertyVersion = targetVersion
+        .getOrCreatePropertyVersion(
+          propertyName,
+          promotionKeyStore,
+          isPromotable: isPromotable,
+        );
     SharedTypeView? promotedType;
     if (isPromotable) {
       PromotionModel? promotionInfo = _current.promotionInfo?.get(
         this,
-        propertySsaNode.promotionKey,
+        propertyVersion.promotionKey,
       );
       if (promotionInfo != null) {
-        assert(promotionInfo.ssaNode == propertySsaNode);
+        assert(promotionInfo.version == propertyVersion);
       }
       promotedType = promotionInfo?.promotedTypes.lastOrNull;
       if (promotedType != null &&
@@ -8676,7 +8788,7 @@ class _FlowAnalysisImpl<
         promotedType = null;
       }
     }
-    return (promotedType, propertySsaNode);
+    return (promotedType, propertyVersion);
   }
 
   void _initialize(
@@ -8696,16 +8808,16 @@ class _FlowAnalysisImpl<
       expressionInfo = null;
     } else if (isImplicitlyTyped &&
         !typeAnalyzerOptions.respectImplicitlyTypedVarInitializers) {
-      // If the language version is too old, SSA analysis has to ignore
-      // initializer expressions for implicitly typed variables, in order to
-      // preserve the buggy behavior of
+      // If the language version is too old, value version tracking has to
+      // ignore initializer expressions for implicitly typed variables, in order
+      // to preserve the buggy behavior of
       // https://github.com/dart-lang/language/issues/1785.
       expressionInfo = null;
     }
-    SsaNode newSsaNode =
+    ValueVersion newVersion =
         inheritPromotableProperties && expressionInfo is _Reference
-        ? expressionInfo.ssaNode
-        : new SsaNode(
+        ? expressionInfo.version
+        : new ValueVersion(
             conditionVariableState:
                 expressionInfo != null && expressionInfo.isNonTrivial
                 ? expressionInfo
@@ -8716,7 +8828,7 @@ class _FlowAnalysisImpl<
       null,
       promotionKey,
       matchedType,
-      newSsaNode,
+      newVersion,
       promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
       unpromotedType: unpromotedType,
     );
@@ -8799,7 +8911,7 @@ class _FlowAnalysisImpl<
   /// matching to cache the values that the pattern, and its subpatterns, are
   /// being matched against.
   TrivialVariableReference _makeTemporaryReference(
-    SsaNode ssaNode,
+    ValueVersion version,
     SharedTypeView type, {
     required int offset,
   }) {
@@ -8813,7 +8925,7 @@ class _FlowAnalysisImpl<
           tested: const [],
           assigned: true,
           unassigned: false,
-          ssaNode: ssaNode,
+          version: version,
         ),
       ),
       offset: offset,
@@ -8823,7 +8935,7 @@ class _FlowAnalysisImpl<
       model: _current,
       type: type,
       isThisOrSuper: false,
-      ssaNode: ssaNode,
+      version: version,
     );
   }
 
@@ -8856,11 +8968,12 @@ class _FlowAnalysisImpl<
       shortcutControlPath = shortcutControlPath.setUnreachable();
     }
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
-    SsaNode? targetSsaNode;
+    ValueVersion? targetVersion;
     ExpressionInfo? nullAwareExpressionInfo = targetReference;
     if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-      // Pick up the target SSA node so that it can be used for field promotion.
-      targetSsaNode = targetReference?.ssaNode;
+      // Pick up the target value version so that it can be used for field
+      // promotion.
+      targetVersion = targetReference?.version;
     } else {
       // Field promotion was broken for null-aware field accesses prior to the
       // implementation of sound flow analysis. So to replicate the bug, destroy
@@ -8882,7 +8995,7 @@ class _FlowAnalysisImpl<
             tested: const [],
             assigned: true,
             unassigned: false,
-            ssaNode: targetSsaNode ?? new SsaNode(),
+            version: targetVersion ?? new ValueVersion(),
           ),
         ),
         offset: offset,
@@ -9002,12 +9115,12 @@ class _FlowAnalysisImpl<
         ? scrutineeInfo
         : null;
     _correspondingScrutineeReference = correspondingScrutineeReference;
-    SsaNode? scrutineeSsaNode;
+    ValueVersion? scrutineeVersion;
     if (allowScrutineePromotion && correspondingScrutineeReference != null) {
-      scrutineeSsaNode = correspondingScrutineeReference.ssaNode;
+      scrutineeVersion = correspondingScrutineeReference.version;
     }
     return _makeTemporaryReference(
-      scrutineeSsaNode ?? new SsaNode(),
+      scrutineeVersion ?? new ValueVersion(),
       scrutineeType,
       offset: offset,
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
@@ -9029,8 +9142,8 @@ class _FlowAnalysisImpl<
     // If the corresponding scrutinee reference is a property reference, it
     // denotes the matched value. (This is safe even if the underlying variable
     // whose property is being referenced has changed, because the next time the
-    // property is accessed, it will be accessed through a new SSA node, and
-    // thus a new promotion key).
+    // property is accessed, it will be accessed through a new value version,
+    // and thus a new promotion key).
     if (correspondingScrutineeReference is _PropertyReference) return true;
     // If the corresponding scrutinee reference is `this`, it denotes the
     // matched value, since `this` can never be reassigned.
@@ -9043,10 +9156,10 @@ class _FlowAnalysisImpl<
     // since the start of the matching operation.
     return _current.promotionInfo
             ?.get(this, matchedValueReference.promotionKey)!
-            .ssaNode ==
+            .version ==
         _current.promotionInfo
             ?.get(this, correspondingScrutineeReference.promotionKey)
-            ?.ssaNode;
+            ?.version;
   }
 
   void _setCurrent(FlowModel value, {required int offset}) {
@@ -9060,7 +9173,7 @@ class _FlowAnalysisImpl<
             ? _unpromotedThisTypes.lastOrNull
             : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
         operations.errorType;
-    SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
+    ValueVersion version = isSuper ? _superVersion : _thisVersion;
     PromotionKey? promotionKey = _thisPromotionKeys.lastOrNull;
     if (promotionKey == null) return null;
     return new TrivialVariableReference(
@@ -9068,9 +9181,9 @@ class _FlowAnalysisImpl<
       model: _current,
       type: staticType,
       isThisOrSuper: true,
-      ssaNode: ssaNode,
+      version: version,
     ).restoreConditionVariableState(
-      ssaNode.conditionVariableState,
+      version.conditionVariableState,
       this,
       _current,
     );
@@ -9105,7 +9218,7 @@ class _FlowAnalysisImpl<
       model: _current,
       type: info.promotedTypes.lastOrNull ?? unpromotedType,
       isThisOrSuper: false,
-      ssaNode: info.ssaNode ?? new SsaNode(),
+      version: info.version ?? new ValueVersion(),
     );
   }
 
@@ -9124,7 +9237,7 @@ class _FlowAnalysisImpl<
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
-    SsaNode newSsaNode = new SsaNode(
+    ValueVersion newVersion = new ValueVersion(
       conditionVariableState:
           expressionInfo != null && expressionInfo.isNonTrivial
           ? expressionInfo
@@ -9136,7 +9249,7 @@ class _FlowAnalysisImpl<
         new DemoteViaExplicitWrite<Variable, Node>(variable, node),
         variableKey,
         writtenType,
-        newSsaNode,
+        newVersion,
         unpromotedType: unpromotedType,
       ),
       offset: offset,
@@ -9340,7 +9453,7 @@ class _PatternContext extends _FlowContext {
     model: current,
     type: matchedType,
     isThisOrSuper: false,
-    ssaNode: new SsaNode(),
+    version: new ValueVersion(),
   );
 }
 
@@ -9369,7 +9482,7 @@ class _PropertyReference extends _Reference {
     required this.propertyName,
     required this.propertyMember,
     required super.promotionKey,
-    required super.ssaNode,
+    required super.version,
   }) : super.trivial(isThisOrSuper: false);
 
   @override
@@ -9381,19 +9494,19 @@ class _PropertyReference extends _Reference {
 
 /// Data structure representing a unique value returned by the invocation of a
 /// property getter during execution of the code being analyzed.
-class _PropertySsaNode extends SsaNode {
+class _PropertyValueVersion extends ValueVersion {
   /// The promotion key associated with this value. This allows for field
   /// promotion.
   final PromotionKey promotionKey;
 
-  /// If this property is not promotable, then a fresh SSA node is assigned at
-  /// the time of each access; when that occurs, this field points to the
-  /// previous SSA node associated with the same property; otherwise it is
+  /// If this property is not promotable, then a fresh value version is assigned
+  /// at the time of each access; when that occurs, this field points to the
+  /// previous value version associated with the same property; otherwise it is
   /// `null`. This is used by the "why not promoted" logic to figure out what
   /// promotions *would* have occurred if the property had been promotable.
-  final _PropertySsaNode? previousSsaNode;
+  final _PropertyValueVersion? previousVersion;
 
-  _PropertySsaNode(this.promotionKey, {this.previousSsaNode});
+  _PropertyValueVersion(this.promotionKey, {this.previousVersion});
 }
 
 /// Interface used by the classes derived from [PropertyTarget] to access the
@@ -9403,15 +9516,15 @@ abstract class _PropertyTargetHelper<Expression extends Object> {
   /// currently being visited.
   List<_Reference> get _cascadeTargetStack;
 
-  /// SSA node representing the implicit pseudo-variable `super`. Although
+  /// Value version representing the implicit pseudo-variable `super`. Although
   /// `super` and `this` represent the same object, flow analysis considers them
   /// distinct so that if the class being compiled both inherits *and* overrides
   /// a field `_f`, type promotions for `this._f` and `super._f` will be tracked
   /// separately.
-  SsaNode get _superSsaNode;
+  ValueVersion get _superVersion;
 
-  /// SSA node representing the implicit variable `this`.
-  SsaNode get _thisSsaNode;
+  /// Value version representing the implicit variable `this`.
+  ValueVersion get _thisVersion;
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -9425,8 +9538,8 @@ class _Reference extends ExpressionInfo {
   /// pseudo-expression `super`).
   final bool isThisOrSuper;
 
-  /// The SSA node representing the value of this expression.
-  final SsaNode ssaNode;
+  /// The value version representing the value of this expression.
+  final ValueVersion version;
 
   _Reference({
     required super.type,
@@ -9434,7 +9547,7 @@ class _Reference extends ExpressionInfo {
     required super.ifFalse,
     required this.promotionKey,
     required this.isThisOrSuper,
-    required this.ssaNode,
+    required this.version,
   });
 
   _Reference.trivial({
@@ -9442,14 +9555,14 @@ class _Reference extends ExpressionInfo {
     required super.model,
     required this.promotionKey,
     required this.isThisOrSuper,
-    required this.ssaNode,
+    required this.version,
   }) : super.trivial();
 
   @override
   String toString() =>
       '_Reference(type: $_type, '
       'ifTrue: $ifTrue, ifFalse: $ifFalse, promotionKey: $promotionKey, '
-      'isThisOrSuper: $isThisOrSuper, ssaNode: $ssaNode)';
+      'isThisOrSuper: $isThisOrSuper, version: $version)';
 }
 
 /// [_FlowContext] representing a construct that can contain one or more

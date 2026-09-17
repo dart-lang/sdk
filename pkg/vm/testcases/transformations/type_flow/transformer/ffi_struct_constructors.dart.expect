@@ -51,7 +51,7 @@ final class Struct11 extends ffi::Struct {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   @#C19
   get nested() → self::Struct12
-    return new self::Struct12::#fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct11::nested#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+    return new self::Struct12::#fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=!] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct11::nested#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
@@ -64,7 +64,7 @@ final class Struct11 extends ffi::Struct {
 final class Struct12 extends ffi::Struct {
 
   [@vm.unboxing-info.metadata=(b,i)->b]
-  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, [@vm.inferred-arg-type.metadata=int] synthesized core::int #offsetInBytes) → self::Struct12
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=!] synthesized core::Object #typedDataBase, [@vm.inferred-arg-type.metadata=int] synthesized core::int #offsetInBytes) → self::Struct12
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
 }

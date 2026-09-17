@@ -1960,6 +1960,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool? _promotionChainIntersectionJoinEnabled;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -1978,8 +1980,9 @@ class Harness {
   );
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
@@ -1995,6 +1998,9 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get promotionChainIntersectionJoinEnabled =>
+      _promotionChainIntersectionJoinEnabled ?? false;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
@@ -2088,6 +2094,8 @@ class Harness {
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
         thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
+        promotionChainIntersectionJoinEnabled:
+            promotionChainIntersectionJoinEnabled,
       );
 
   void disableFieldPromotion() {
@@ -2110,6 +2118,11 @@ class Harness {
     _patternsEnabled = false;
   }
 
+  void disablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = false;
+  }
+
   void disableRespectImplicitlyTypedVarInitializers() {
     assert(!_started);
     _respectImplicitlyTypedVarInitializers = false;
@@ -2123,6 +2136,11 @@ class Harness {
   void disableThisPromotion() {
     assert(!_started);
     _thisPromotionEnabled = false;
+  }
+
+  void enablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If

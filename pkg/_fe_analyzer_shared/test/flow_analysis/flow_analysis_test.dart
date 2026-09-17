@@ -38,13 +38,13 @@ main() {
   group('API', () {
     test('asExpression_end promotes variables', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -207,11 +207,11 @@ main() {
       ]);
     });
 
-    test('declare() sets Ssa', () {
+    test('declare() sets value version', () {
       var x = Var('x');
       h.run([
         declare(x, type: 'Object'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x], isNotNull);
         }),
       ]);
@@ -219,21 +219,25 @@ main() {
 
     test('equalityOp(x != null) promotes true branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.notEq(nullLiteral),
           [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(true),
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -285,21 +289,25 @@ main() {
 
     test('equalityOp(x == null) promotes false branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.eq(nullLiteral),
           [
             checkReachable(true),
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -345,19 +353,23 @@ main() {
 
     test('equalityOp(null != x) promotes true branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           nullLiteral.notEq(x),
           [
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -377,19 +389,23 @@ main() {
 
     test('equalityOp(null == x) promotes false branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           nullLiteral.eq(x),
           [
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -425,36 +441,36 @@ main() {
       ]);
     });
 
-    test('declare(initialized: false) assigns new SSA ids', () {
+    test('declare(initialized: false) assigns new value versions', () {
       var x = Var('x');
       var y = Var('y');
       h.run([
         declare(x, type: 'int?'),
         declare(y, type: 'int?'),
-        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+        getVersions((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
-    test('declare(initialized: true) assigns new SSA ids', () {
+    test('declare(initialized: true) assigns new value versions', () {
       var x = Var('x');
       var y = Var('y');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+        getVersions((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
     test('doStatement_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         do_([
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+          getVersions((nodes) => expect(nodes[x], isNot(versionBeforeLoop))),
           checkNotPromoted(x),
           x.write(expr('Null')),
         ], expr('bool')),
@@ -617,18 +633,20 @@ main() {
 
     test('for_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         for_(
           null,
           second(
             listLiteral(elementType: 'dynamic', [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+              getVersions(
+                (nodes) => expect(nodes[x], isNot(versionBeforeLoop)),
+              ),
             ]),
             expr('bool'),
           ),
@@ -747,38 +765,38 @@ main() {
       ]);
     });
 
-    test('for_end() with break updates Ssa of modified vars', () {
+    test('for_end() with break updates value versions of modified vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // of the loop.  y's should not, since it retains the value it had
-          // prior to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of of the loop. y's should not, since it retains the value
+          // it had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('for_end() with break updates Ssa of modified vars when types were '
-        'tested', () {
+    test('for_end() with break updates value versions of modified vars when '
+        'types were tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -786,32 +804,32 @@ main() {
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.is_('int'), []),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
     test('forEach_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         forEachWithNonVariable(expr('List<int?>'), [
           checkNotPromoted(x),
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+          getVersions((nodes) => expect(nodes[x], isNot(versionBeforeLoop))),
           x.write(expr('int?')),
         ]),
       ]);
@@ -896,14 +914,14 @@ main() {
           y.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x], isNotNull);
             expect(nodes[y], isNotNull);
           }),
           localFunction([
             // x is unpromoted within the local function
             checkNotPromoted(x), checkPromoted(y, 'int'),
-            getSsaNodes((nodes) {
+            getVersions((nodes) {
               expect(nodes[x], isNull);
               expect(nodes[y], isNotNull);
             }),
@@ -911,7 +929,7 @@ main() {
           ]),
           // x is unpromoted after the local function too
           checkNotPromoted(x), checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x], isNull);
             expect(nodes[y], isNotNull);
           }),
@@ -956,19 +974,21 @@ main() {
     test('functionExpression_begin() cancels promotions of written vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeFunction;
+      late ValueVersion versionBeforeFunction;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         x.as_('int'), y.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
+        getVersions((nodes) => versionBeforeFunction = nodes[x]!),
         checkPromoted(y, 'int'),
         localFunction([
           // x is unpromoted within the local function, because the write
           // might have happened by the time the local function executes.
           checkNotPromoted(x),
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeFunction))),
+          getVersions(
+            (nodes) => expect(nodes[x], isNot(versionBeforeFunction)),
+          ),
           checkPromoted(y, 'int'),
           // But it can be re-promoted because the write isn't captured.
           x.as_('int'),
@@ -977,7 +997,7 @@ main() {
         // x is still promoted after the local function, though, because the
         // write hasn't occurred yet.
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforeFunction))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforeFunction))),
         checkPromoted(y, 'int'),
         x.write(expr('int?')),
         // x is unpromoted now.
@@ -1115,9 +1135,9 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           y.as_('int'),
-          getSsaNodes((nodes) => expect(nodes[x], isNotNull)),
+          getVersions((nodes) => expect(nodes[x], isNotNull)),
           localFunction([
-            getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
+            getVersions((nodes) => expect(nodes[x], isNot(nodes[y]))),
             x.as_('int'),
             // Promotion should not occur, because x might be write-captured by
             // the time this code is reached.
@@ -1355,54 +1375,54 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(w, type: 'Object', initializer: expr('Object')),
         declare(x, type: 'bool', initializer: expr('bool')),
         declare(y, type: 'bool', initializer: expr('bool')),
         declare(z, type: 'bool', initializer: expr('bool')),
         x.write(w.is_('int')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
-          expect(xSsaNodeBeforeIf.conditionVariableState, isNotNull);
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
+          expect(xVersionBeforeIf.conditionVariableState, isNotNull);
         }),
         if_(expr('bool'), [y.write(w.is_('String'))], [z.write(w.is_('bool'))]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
           expect(nodes[y]!.conditionVariableState, isNull);
           expect(nodes[z]!.conditionVariableState, isNull);
         }),
       ]);
     });
 
-    test('ifStatement_end() ignores non-matching SSA info from "then" path if '
-        'unreachable', () {
+    test('ifStatement_end() ignores non-matching value version info from '
+        '"then" path if unreachable', () {
       var x = Var('x');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [x.write(expr('Object')), return_()]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
         }),
       ]);
     });
 
-    test('ifStatement_end() ignores non-matching SSA info from "else" path if '
-        'unreachable', () {
+    test('ifStatement_end() ignores non-matching value version info from '
+        '"else" path if unreachable', () {
       var x = Var('x');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [], [x.write(expr('Object')), return_()]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
         }),
       ]);
     });
@@ -1508,7 +1528,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, type: 'Object', initializer: y.eq(nullLiteral)),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           var info = nodes[x]!.conditionVariableState!;
           var key = h.promotionKeyStore.keyForVariable(y);
           expect(
@@ -1539,7 +1559,7 @@ main() {
           type: 'Object',
           initializer: y.eq(nullLiteral),
         ),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -1553,7 +1573,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, initializer: y.eq(nullLiteral), expectInferredType: 'bool'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -1566,7 +1586,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, initializer: y.eq(nullLiteral), expectInferredType: 'bool'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNotNull);
         }),
       ]);
@@ -1580,7 +1600,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, type: 'Object', initializer: y.eq(nullLiteral)),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNotNull);
         }),
       ]);
@@ -1603,7 +1623,7 @@ main() {
                 .eq(nullLiteral)
                 .getExpressionInfo((info) => expect(info, isNotNull)),
           ),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x]!.conditionVariableState, isNull);
           }),
         ]);
@@ -1620,21 +1640,25 @@ main() {
       bool expectedReachableElse = true,
     }) {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: declaredType, initializer: expr(declaredType)),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.is_(tryPromoteType, isInverted: inverted),
           [
             checkReachable(expectedReachableThen),
             checkPromoted(x, expectedPromotedTypeThen),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(expectedReachableElse),
             checkPromoted(x, expectedPromotedTypeElse),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -1904,13 +1928,13 @@ main() {
 
     test('nonNullAssert_end(x) promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.nonNullAssert,
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -1924,20 +1948,22 @@ main() {
 
     test('nullAwareAccess temporarily promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.invokeMethod('f', [
           listLiteral(elementType: 'dynamic', [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ]),
         ], isNullAware: true),
         checkNotPromoted(x),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -2452,7 +2478,7 @@ main() {
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeSwitch;
+      late ValueVersion versionBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -2460,7 +2486,7 @@ main() {
           expr('int').thenStmt(
             block([
               checkPromoted(x, 'int'),
-              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+              getVersions((nodes) => versionBeforeSwitch = nodes[x]!),
             ]),
           ),
           [
@@ -2468,8 +2494,8 @@ main() {
               [intLiteral(0).pattern],
               [
                 checkNotPromoted(x),
-                getSsaNodes(
-                  (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch)),
+                getVersions(
+                  (nodes) => expect(nodes[x], isNot(versionBeforeSwitch)),
                 ),
                 x.write(expr('int?')),
                 checkNotPromoted(x),
@@ -2615,7 +2641,7 @@ main() {
       'tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
       () {
         var x = Var('x');
-        late SsaNode ssaAfterTry;
+        late ValueVersion versionAfterTry;
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           x.as_('int'),
@@ -2624,12 +2650,12 @@ main() {
             x.write(expr('int?')),
             x.as_('int'),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
+            getVersions((nodes) => versionAfterTry = nodes[x]!),
           ]).catch_(
             type: 'dynamic',
             body: [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
+              getVersions((nodes) => expect(nodes[x], isNot(versionAfterTry))),
             ],
           ),
         ]);
@@ -2785,26 +2811,26 @@ main() {
     test('tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
         'body', () {
       var x = Var('x');
-      late SsaNode ssaAtStartOfTry;
-      late SsaNode ssaAfterTry;
+      late ValueVersion versionAtStartOfTry;
+      late ValueVersion versionAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
         try_([
-          getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
+          getVersions((nodes) => versionAtStartOfTry = nodes[x]!),
           x.write(expr('int?')),
           x.as_('int'),
           checkPromoted(x, 'int'),
-          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
+          getVersions((nodes) => versionAfterTry = nodes[x]!),
         ]).finally_([
           checkNotPromoted(x),
-          // The SSA node for X should be different from what it was at any time
-          // during the try block, because there is no telling at what point an
-          // exception might have occurred.
-          getSsaNodes((nodes) {
-            expect(nodes[x], isNot(ssaAtStartOfTry));
-            expect(nodes[x], isNot(ssaAfterTry));
+          // The value version for X should be different from what it was at any
+          // time during the try block, because there is no telling at what
+          // point an exception might have occurred.
+          getVersions((nodes) {
+            expect(nodes[x], isNot(versionAtStartOfTry));
+            expect(nodes[x], isNot(versionAfterTry));
           }),
         ]),
       ]);
@@ -2848,8 +2874,8 @@ main() {
         'variables assigned in finally', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaAtEndOfFinally;
-      late SsaNode ySsaAtEndOfFinally;
+      late ValueVersion xVersionAtEndOfFinally;
+      late ValueVersion yVersionAtEndOfFinally;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -2859,63 +2885,63 @@ main() {
           y.write(expr('int?')),
           y.as_('int'),
           checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
-            xSsaAtEndOfFinally = nodes[x]!;
-            ySsaAtEndOfFinally = nodes[y]!;
+          getVersions((nodes) {
+            xVersionAtEndOfFinally = nodes[x]!;
+            yVersionAtEndOfFinally = nodes[y]!;
           }),
         ]),
         // x should not be re-promoted, because it might have been assigned a
         // non-promoted value in the "finally" block.  But y's promotion still
         // stands, because y was promoted in the finally block.
         checkNotPromoted(x), checkPromoted(y, 'int'),
-        // Both x and y should have the same SSA nodes they had at the end of
-        // the finally block, since the finally block is guaranteed to have
+        // Both x and y should have the same value versions they had at the end
+        // of the finally block, since the finally block is guaranteed to have
         // executed.
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaAtEndOfFinally));
-          expect(nodes[y], same(ySsaAtEndOfFinally));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionAtEndOfFinally));
+          expect(nodes[y], same(yVersionAtEndOfFinally));
         }),
       ]);
     });
 
     group('allowLocalBooleanVarsToPromote', () {
-      test('tryFinallyStatement_end() restores SSA nodes from try block when it'
-          'is sound to do so', () {
+      test('tryFinallyStatement_end() restores value versions from try block '
+          'when it is sound to do so', () {
         var x = Var('x');
         var y = Var('y');
-        late SsaNode xSsaAtEndOfTry;
-        late SsaNode ySsaAtEndOfTry;
-        late SsaNode xSsaAtEndOfFinally;
-        late SsaNode ySsaAtEndOfFinally;
+        late ValueVersion xVersionAtEndOfTry;
+        late ValueVersion yVersionAtEndOfTry;
+        late ValueVersion xVersionAtEndOfFinally;
+        late ValueVersion yVersionAtEndOfFinally;
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           try_([
             x.write(expr('int?')),
             y.write(expr('int?')),
-            getSsaNodes((nodes) {
-              xSsaAtEndOfTry = nodes[x]!;
-              ySsaAtEndOfTry = nodes[y]!;
+            getVersions((nodes) {
+              xVersionAtEndOfTry = nodes[x]!;
+              yVersionAtEndOfTry = nodes[y]!;
             }),
           ]).finally_([
             if_(expr('bool'), [x.write(expr('int?'))]),
             if_(expr('bool'), [y.write(expr('int?')), return_()]),
-            getSsaNodes((nodes) {
-              xSsaAtEndOfFinally = nodes[x]!;
-              ySsaAtEndOfFinally = nodes[y]!;
-              expect(xSsaAtEndOfFinally, isNot(same(xSsaAtEndOfTry)));
-              expect(ySsaAtEndOfFinally, isNot(same(ySsaAtEndOfTry)));
+            getVersions((nodes) {
+              xVersionAtEndOfFinally = nodes[x]!;
+              yVersionAtEndOfFinally = nodes[y]!;
+              expect(xVersionAtEndOfFinally, isNot(same(xVersionAtEndOfTry)));
+              expect(yVersionAtEndOfFinally, isNot(same(yVersionAtEndOfTry)));
             }),
           ]),
-          // x's SSA node should still match what it was at the end of the
-          // finally block, because it might have been written to.  But y
-          // can't have been written to, because once we reach here, we know
-          // that the finally block completed normally, and the write to y
-          // always leads to the explicit return.  So y's SSA node should be
-          // restored back to match that from the end of the try block.
-          getSsaNodes((nodes) {
-            expect(nodes[x], same(xSsaAtEndOfFinally));
-            expect(nodes[y], same(ySsaAtEndOfTry));
+          // x's value version should still match what it was at the end of the
+          // finally block, because it might have been written to. But y can't
+          // have been written to, because once we reach here, we know that the
+          // finally block completed normally, and the write to y always leads
+          // to the explicit return. So y's value version should be restored
+          // back to match that from the end of the try block.
+          getVersions((nodes) {
+            expect(nodes[x], same(xVersionAtEndOfFinally));
+            expect(nodes[y], same(yVersionAtEndOfTry));
           }),
         ]);
       });
@@ -3295,17 +3321,19 @@ main() {
 
     test('whileStatement_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         while_(
           second(
             listLiteral(elementType: 'dynamic', [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+              getVersions(
+                (nodes) => expect(nodes[x], isNot(versionBeforeLoop)),
+              ),
             ]),
             expr('bool'),
           ),
@@ -3366,38 +3394,39 @@ main() {
       ]);
     });
 
-    test('whileStatement_end() with break updates Ssa of modified vars', () {
+    test('whileStatement_end() with break updates value versions of modified '
+        'vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('whileStatement_end() with break updates Ssa of modified vars when '
-        'types were tested', () {
+    test('whileStatement_end() with break updates value versions of modified '
+        'vars when types were tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3405,32 +3434,33 @@ main() {
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.is_('int'), []),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('write() de-promotes and updates Ssa of a promoted variable', () {
+    test('write() de-promotes and updates value version of a promoted '
+        'variable', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       late ExpressionInfo writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         x.write(
           y.eq(nullLiteral).getExpressionInfo((info) {
             expect(info, isNotNull);
@@ -3438,36 +3468,37 @@ main() {
           }),
         ),
         checkNotPromoted(x),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, same(writtenValueInfo));
         }),
       ]);
     });
 
-    test('write() updates Ssa', () {
+    test('write() updates value version', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       late ExpressionInfo writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         x.write(
           y.eq(nullLiteral).getExpressionInfo((info) {
             expect(info, isNotNull);
             writtenValueInfo = info!;
           }),
         ),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, same(writtenValueInfo));
         }),
       ]);
     });
 
-    test('write() does not copy Ssa from one variable to another', () {
+    test('write() does not copy value versions from one variable to '
+        'another', () {
       // We could do so, and it would enable us to promote in slightly more
       // situations, e.g.:
       //   bool b = x != null;
@@ -3482,19 +3513,19 @@ main() {
 
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaBeforeWrite;
-      late SsaNode ySsa;
+      late ValueVersion xVersionBeforeWrite;
+      late ValueVersion yVersion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) {
-          xSsaBeforeWrite = nodes[x]!;
-          ySsa = nodes[y]!;
+        getVersions((nodes) {
+          xVersionBeforeWrite = nodes[x]!;
+          yVersion = nodes[y]!;
         }),
         x.write(y),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(xSsaBeforeWrite));
-          expect(nodes[x], isNot(ySsa));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(xVersionBeforeWrite));
+          expect(nodes[x], isNot(yVersion));
         }),
       ]);
     });
@@ -3502,12 +3533,12 @@ main() {
     test('write() does not store expressionInfo for trivial expressions', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([y.write(expr('int?'))]),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         // `y == null` is a trivial expression because y has been write
         // captured.
         x.write(
@@ -3515,8 +3546,8 @@ main() {
               .eq(nullLiteral)
               .getExpressionInfo((info) => expect(info, isNotNull)),
         ),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -3546,10 +3577,10 @@ main() {
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         localFunction([x.write(expr('Object'))]),
-        getSsaNodes((nodes) => expect(nodes[x], isNull)),
+        getVersions((nodes) => expect(nodes[x], isNull)),
         x.as_('int'),
         checkNotPromoted(x),
-        getSsaNodes((nodes) => expect(nodes[x], isNull)),
+        getVersions((nodes) => expect(nodes[x], isNull)),
       ]);
     });
 
@@ -3898,7 +3929,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('Object?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(
           s.promotionInfo?.get(
@@ -3916,7 +3947,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('Object?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
@@ -3938,7 +3969,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(
@@ -3966,7 +3997,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -3999,7 +4030,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4034,7 +4065,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4067,7 +4098,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
@@ -4101,7 +4132,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('int')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
@@ -4131,7 +4162,7 @@ main() {
             null,
             x,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4164,7 +4195,7 @@ main() {
             null,
             x,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s3.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4190,7 +4221,7 @@ main() {
             null,
             objectQVar,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4216,7 +4247,7 @@ main() {
             null,
             objectQVar,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4243,7 +4274,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4271,7 +4302,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4316,7 +4347,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('C')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4347,7 +4378,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('C')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4378,7 +4409,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('B')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4409,7 +4440,7 @@ main() {
               null,
               objectQVar,
               SharedTypeView(Type('List<int>')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             // It's ambiguous whether to promote to List<Object?> or
             // List<dynamic>, so we don't promote.
@@ -4441,7 +4472,7 @@ main() {
             _MockNonPromotionReason(),
             objectQVar,
             SharedTypeView(Type('List<Object?>')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           // It's ambiguous whether to promote to List<Object?> or
           // List<dynamic>, but since the written type is exactly List<Object?>,
@@ -4478,7 +4509,7 @@ main() {
           _MockNonPromotionReason(),
           x,
           SharedTypeView(Type('double')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4658,11 +4689,23 @@ main() {
             ._declare(h, c, false)
             ._declare(h, d, false);
         var s1 = s0
-            ._write(h, null, a, SharedTypeView(Type('int')), new SsaNode())
-            ._write(h, null, b, SharedTypeView(Type('int')), new SsaNode());
+            ._write(h, null, a, SharedTypeView(Type('int')), new ValueVersion())
+            ._write(
+              h,
+              null,
+              b,
+              SharedTypeView(Type('int')),
+              new ValueVersion(),
+            );
         var s2 = s0
-            ._write(h, null, a, SharedTypeView(Type('int')), new SsaNode())
-            ._write(h, null, c, SharedTypeView(Type('int')), new SsaNode());
+            ._write(h, null, a, SharedTypeView(Type('int')), new ValueVersion())
+            ._write(
+              h,
+              null,
+              c,
+              SharedTypeView(Type('int')),
+              new ValueVersion(),
+            );
         var result = s1.rebaseForward(h, s2);
         expect(result._infoFor(h, a).assigned, true);
         expect(result._infoFor(h, b).assigned, true);
@@ -4734,7 +4777,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('Object?')),
-              new SsaNode(),
+              new ValueVersion(),
             );
           }
           if (thisType != null) {
@@ -5089,6 +5132,95 @@ main() {
         _matchPromotionChain(['A', 'B']),
       );
     });
+
+    test('divergent types followed by common types', () {
+      // E <: D <: B <: A
+      // E <: D <: C <: A
+      // B and C are unrelated.
+      var A = Type('A');
+      var B = Type('B');
+      var C = Type('C');
+      var D = Type('D');
+      var E = Type('E');
+      h.addSuperInterfaces(
+        'D',
+        (_) => [Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces(
+        'E',
+        (_) => [Type('D'), Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('A', (_) => [Type('Object')]);
+
+      var chain1 = [SharedTypeView(A), SharedTypeView(B), SharedTypeView(D)];
+      var chain2 = [SharedTypeView(A), SharedTypeView(C), SharedTypeView(D)];
+
+      // When promotionChainIntersectionJoin is disabled (legacy behavior):
+      // The join stops at B and C (which are unrelated) and drops D.
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+
+      // When promotionChainIntersectionJoin is enabled:
+      // The join continues and finds common subsequence [A, D].
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+
+      // Multiple common types after divergence:
+      var chain3 = [SharedTypeView(B), SharedTypeView(D), SharedTypeView(E)];
+      var chain4 = [SharedTypeView(C), SharedTypeView(D), SharedTypeView(E)];
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        isEmpty,
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['D', 'E']),
+      );
+    });
   });
 
   group('joinTypesOfInterest', () {
@@ -5163,7 +5295,7 @@ main() {
       tested: typesOfInterest ?? promotionChain,
       assigned: assigned,
       unassigned: !assigned,
-      ssaNode: new SsaNode(),
+      version: new ValueVersion(),
     );
 
     group('without input reuse', () {
@@ -5393,6 +5525,72 @@ main() {
         });
       });
     });
+
+    group('promotion-chain-intersection-join', () {
+      late Type bType;
+      late Type cType;
+      late Type dType;
+
+      setUp(() {
+        bType = Type('B');
+        cType = Type('C');
+        dType = Type('D');
+        h.addSuperInterfaces(
+          'D',
+          (_) => [Type('B'), Type('C'), Type('Object')],
+        );
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+      });
+
+      test('disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: isEmpty, ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('enabled', () {
+        h.enablePromotionChainIntersectionJoin();
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: ['D'], ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('AST disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('AST enabled', () {
+        h.enablePromotionChainIntersectionJoin();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkPromoted(x, 'D'),
+        ]);
+      });
+    });
   });
 
   group('inheritTested', () {
@@ -5412,7 +5610,7 @@ main() {
           tested: typesOfInterest,
           assigned: true,
           unassigned: false,
-          ssaNode: new SsaNode(),
+          version: new ValueVersion(),
         );
 
     test('inherits types of interest from other', () {
@@ -6498,8 +6696,8 @@ main() {
         h.addMember('C', '_field', 'int?', promotable: true);
         var x = Var('x');
         // Even though the two branches of the "if" assign different values to
-        // `x` (and hence the SSA nodes associated with `x._field` in the two
-        // branches are different), the promotion is still preserved by the
+        // `x` (and hence the value versions associated with `x._field` in the
+        // two branches are different), the promotion is still preserved by the
         // join.
         h.run([
           declare(x, type: 'C'),
@@ -6517,8 +6715,8 @@ main() {
         h.addMember('D', '_c', 'C', promotable: true);
         var x = Var('x');
         // Even though the two branches of the "if" assign different values to
-        // `x` (and hence the SSA nodes associated with `x._c._i` in the two
-        // branches are different), the promotion is still preserved by the
+        // `x` (and hence the value versions associated with `x._c._i` in the
+        // two branches are different), the promotion is still preserved by the
         // join.
         h.run([
           declare(x, type: 'D'),
@@ -13691,7 +13889,7 @@ extension on FlowModel {
   PromotionModel _infoFor(FlowAnalysisTestHarness h, Var variable) => infoFor(
     h,
     h.promotionKeyStore.keyForVariable(variable),
-    ssaNode: new SsaNode(),
+    version: new ValueVersion(),
   );
 
   FlowModel _setInfo(
@@ -13736,7 +13934,7 @@ extension on FlowModel {
             .lastOrNull ??
         SharedTypeView(variable.type),
     isThisOrSuper: false,
-    ssaNode: SsaNode(),
+    version: ValueVersion(),
   );
 
   FlowModel _write(
@@ -13744,13 +13942,13 @@ extension on FlowModel {
     NonPromotionReason? nonPromotionReason,
     Var variable,
     SharedTypeView writtenType,
-    SsaNode newSsaNode,
+    ValueVersion newVersion,
   ) => write(
     h,
     nonPromotionReason,
     h.promotionKeyStore.keyForVariable(variable),
     writtenType,
-    newSsaNode,
+    newVersion,
     unpromotedType: SharedTypeView(variable.type),
   );
 }

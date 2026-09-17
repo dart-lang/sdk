@@ -113,7 +113,7 @@ main() {
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
         PromotionKey(0),
-        PromotionModel.fresh(assigned: false, ssaNode: null),
+        PromotionModel.fresh(assigned: false, version: null),
       );
       var logBuilder = FlowAnalysisLogBuilder()
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 10);
@@ -128,12 +128,12 @@ main() {
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
         PromotionKey(0),
-        PromotionModel.fresh(assigned: false, ssaNode: null),
+        PromotionModel.fresh(assigned: false, version: null),
       );
       var flowModel2 = flowModel0.updatePromotionInfo(
         helper,
         PromotionKey(1),
-        PromotionModel.fresh(assigned: false, ssaNode: null),
+        PromotionModel.fresh(assigned: false, version: null),
       );
       var logBuilder = FlowAnalysisLogBuilder()
         ..promotionInfoChanged(flowModel1.promotionInfo, offset: 20)
@@ -150,7 +150,7 @@ main() {
     test('via PromotionInfo', () {
       var helper = _FlowModelHelper();
       var flowModel0 = FlowModel(Reachability.initial);
-      var ssaNode = SsaNode();
+      var version = ValueVersion();
       var flowModel1 = flowModel0.updatePromotionInfo(
         helper,
         PromotionKey(0),
@@ -159,7 +159,7 @@ main() {
           tested: [],
           assigned: true,
           unassigned: false,
-          ssaNode: ssaNode,
+          version: version,
         ),
       );
       var flowModel2 = flowModel1.updatePromotionInfo(
@@ -170,7 +170,7 @@ main() {
           tested: [],
           assigned: true,
           unassigned: false,
-          ssaNode: ssaNode,
+          version: version,
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
@@ -193,7 +193,7 @@ main() {
           tested: [],
           assigned: true,
           unassigned: false,
-          ssaNode: SsaNode(),
+          version: ValueVersion(),
         ),
       );
       var logBuilder = FlowAnalysisLogBuilder()
