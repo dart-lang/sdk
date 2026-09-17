@@ -143,6 +143,16 @@ extension on G? {
   }
 }
 
+extension on List<Object?> {
+  void listPatternElementIfCase() {
+    if (this case [int()]) {
+      // The type test is performed on the list element, not on `this`, so
+      // `this` is not promoted (remains List<Object?>).
+      this.expectStaticType<Exactly<List<Object?>>>;
+    }
+  }
+}
+
 extension type H(C r) {
   void equality() {
     if (this == null) {
@@ -203,6 +213,7 @@ void main() {
   (null as G?).nullCheckPatternSwitch();
   (null as G?).notEqualNullPatternIfCase();
   (null as G?).equalNullPatternIfCase();
+  <Object?>[0].listPatternElementIfCase();
   H(C()).equality();
   H(C()).isSameType();
   H(C()).isSubtype();

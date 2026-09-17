@@ -249,10 +249,7 @@ class StaticTypeAnalyzer {
     } else {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
-        _resolver.flowAnalysis.flow?.thisOrSuper(
-          SharedTypeView(thisType),
-          isSuper: true,
-        ),
+        _resolver.flowAnalysis.flow?.thisOrSuper(isSuper: true),
       );
     }
     node.recordStaticType(thisType, resolver: _resolver);
@@ -270,10 +267,7 @@ class StaticTypeAnalyzer {
         InvalidTypeImpl.instance;
     _resolver.flowAnalysis.storeExpressionInfo(
       node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(staticType),
-        isSuper: false,
-      ),
+      _resolver.flowAnalysis.flow?.thisOrSuper(isSuper: false),
     );
     node.recordStaticType(staticType, resolver: _resolver);
   }

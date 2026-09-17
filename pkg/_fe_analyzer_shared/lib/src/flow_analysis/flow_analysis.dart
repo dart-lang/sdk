@@ -1210,6 +1210,9 @@ abstract class FlowAnalysis<
   /// [offset] is the last source offset that should be considered to be prior
   /// to entry into the pattern. The start offset of the pattern is probably the
   /// best choice.
+  ///
+  /// Returns `true` if the matched value type is non-nullable, and hence the
+  /// null check or null assert is unnecessary.
   bool nullCheckOrAssertPattern_begin({
     required bool isAssert,
     required SharedTypeView matchedValueType,
@@ -1742,8 +1745,6 @@ abstract class FlowAnalysis<
   /// pseudo-expression `super`, in the case of the analyzer, which represents
   /// `super.x` as a property get whose target is `super`).
   ///
-  /// [staticType] should be the static type of `this`.
-  ///
   /// [isSuper] indicates whether the expression that was visited was the
   /// pseudo-expression `super`.
   ///
@@ -1751,10 +1752,7 @@ abstract class FlowAnalysis<
   ///
   /// `null` is returned in the event that there is no binding for `this` (which
   /// should only happen in error recovery scenarios).
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  });
+  ExpressionInfo? thisOrSuper({required bool isSuper});
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1961,8 +1959,6 @@ abstract class FlowAnalysis<
   /// promotion, to retrieve information about why an implicit reference to
   /// `this` was not promoted.
   ///
-  /// [staticType] is the (unpromoted) type of `this`.
-  ///
   /// The returned value is a function yielding a map whose keys are types that
   /// the user might have been expecting `this` to be promoted to, and whose
   /// values are reasons why the corresponding promotion did not occur. The
@@ -1983,9 +1979,8 @@ abstract class FlowAnalysis<
   /// freely call this method after any expression for which an error *might*
   /// need to be generated, and then defer invoking the returned function until
   /// it is determined that an error actually occurred.
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  );
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis();
 
   /// Registers a write of the given [variable] in the current state.
   ///
@@ -3340,13 +3335,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
+  ExpressionInfo? thisOrSuper({required bool isSuper}) {
     return _wrap(
-      'thisOrSuper($staticType, isSuper: $isSuper)',
-      () => _wrapped.thisOrSuper(staticType, isSuper: isSuper),
+      'thisOrSuper(isSuper: $isSuper)',
+      () => _wrapped.thisOrSuper(isSuper: isSuper),
       isQuery: true,
       isPure: false,
     );
@@ -3492,13 +3484,11 @@ class FlowAnalysisDebug<
   }
 
   @override
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  ) {
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis() {
     return _wrap(
-      'whyNotPromotedImplicitThis($staticType)',
-      () =>
-          _trackWhyNotPromoted(_wrapped.whyNotPromotedImplicitThis(staticType)),
+      'whyNotPromotedImplicitThis()',
+      () => _trackWhyNotPromoted(_wrapped.whyNotPromotedImplicitThis()),
       isQuery: true,
     );
   }
@@ -5976,12 +5966,32 @@ class _DemotionResult {
 }
 
 /// Specialization of [_EqualityCheckResult] used as the return value for
+/// [_FlowAnalysisImpl._equalityCheck] when flow analysis is able to statically
+/// determine the outcome of the equality check.
+///
+/// If [areEqual] is `true`, the two operands are guaranteed to be equal to one
+/// another, so the code path that results from a not-equal result should be
+/// marked as unreachable.  (This happens if both operands have type `Null`).
+///
+/// If [areEqual] is `false`, the two operands are guaranteed *not* to be equal
+/// to one another, so the code path that results from an equal result should be
+/// marked as unreachable.  (This happens if one operand has type `Null` and the
+/// other has a non-nullable type, and
+/// [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`).
+class _EqualityCheckHasKnownResult extends _EqualityCheckResult {
+  /// Whether the two operands are guaranteed to be equal to one another.
+  final bool areEqual;
+
+  const _EqualityCheckHasKnownResult({required this.areEqual}) : super._();
+}
+
+/// Specialization of [_EqualityCheckResult] used as the return value for
 /// [_FlowAnalysisImpl._equalityCheck] when exactly one of the two operands is a
 /// `null` literal (and therefore the equality test is testing whether the other
 /// operand is `null`).
 ///
-/// Note that if both operands are `null`, then [_GuaranteedEqual] will be
-/// returned instead.
+/// Note that if both operands are `null`, then [_EqualityCheckHasKnownResult]
+/// will be returned instead.
 class _EqualityCheckIsNullCheck extends _EqualityCheckResult {
   /// If the operand that is being null-tested is something that can undergo
   /// type promotion, the object recording its promotion key, type information,
@@ -6045,8 +6055,9 @@ class _FlowAnalysisImpl<
 
   /// If a pattern is being analyzed, and the scrutinee is something that might
   /// be relevant to type promotion as a consequence of the pattern match,
-  /// [_Reference] object referring to the scrutinee.  Otherwise `null`.
-  _Reference? _scrutineeReference;
+  /// [_Reference] object referring to the portion of the scrutinee that might
+  /// correspond to the current matched value.  Otherwise `null`.
+  _Reference? _correspondingScrutineeReference;
 
   final AssignedVariables<Node, Variable> _assignedVariables;
 
@@ -6517,16 +6528,10 @@ class _FlowAnalysisImpl<
       rightOperandInfo,
       rightOperandType,
     )) {
-      case _GuaranteedEqual():
-        // Both operands are known by flow analysis to compare equal, so the
-        // whole expression behaves equivalently to a boolean (either `true` or
-        // `false` depending whether the check uses the `!=` operator).
-        return booleanLiteral(!notEqual);
-      case _GuaranteedNotEqual():
-        // Both operands are known by flow analysis to compare unequal, so the
-        // whole expression behaves equivalently to a boolean (either `true` or
-        // `false` depending whether the check uses the `!=` operator).
-        return booleanLiteral(notEqual);
+      case _EqualityCheckHasKnownResult(:var areEqual):
+        // Flow analysis knows how the operands compare to one another, so the
+        // whole expression behaves equivalently to a boolean literal.
+        return booleanLiteral(areEqual != notEqual);
 
       // SAFETY: we can assume `reference` is a `_Reference<Type>` because we
       // require clients not to mix data obtained from different
@@ -6579,7 +6584,7 @@ class _FlowAnalysisImpl<
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
-    assert(_scrutineeReference == null);
+    assert(_correspondingScrutineeReference == null);
     assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
@@ -6785,19 +6790,13 @@ class _FlowAnalysisImpl<
     } else {
       shortcutState = _current;
     }
-    switch (operations.classifyType(leftHandSideType)) {
-      case TypeClassification.nullOrEquivalent:
-        // The control path that skips the "if null" code is unreachable.
-        shortcutState = shortcutState.setUnreachable();
-      case TypeClassification.nonNullable:
-        // The control path containing the "if null" code is unreachable,
-        // assuming sound null safety.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          _setCurrent(_current.setUnreachable(), offset: offset);
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNullType(leftHandSideType)) {
+      // The control path that skips the "if null" code is unreachable.
+      shortcutState = shortcutState.setUnreachable();
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(leftHandSideType)) {
+      // The control path containing the "if null" code is unreachable,
+      // assuming sound null safety.
+      _setCurrent(_current.setUnreachable(), offset: offset);
     }
     _stack.add(new _IfNullExpressionContext(shortcutState));
   }
@@ -7160,21 +7159,18 @@ class _FlowAnalysisImpl<
     } else {
       shortcutState = _current;
     }
-    switch (operations.classifyType(keyType)) {
-      case TypeClassification.nonNullable:
-        // The control flow path that skips the value expression is unreachable.
-        shortcutState = shortcutState.setUnreachable();
-      case TypeClassification.nullOrEquivalent:
-        // The control flow path containing the value expression is unreachable.
-        // This functionality was added as part of the `sound-flow-analysis`
-        // language feature, even though it would have been a sound reasoning
-        // step before then.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          _setCurrent(_current.setUnreachable(), offset: offset);
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNonNullableType(keyType)) {
+      // The control flow path that skips the value expression is unreachable.
+      // (Note: unlike the analogous reasoning steps elsewhere in this class,
+      // this one is performed even when sound flow analysis is disabled.)
+      shortcutState = shortcutState.setUnreachable();
+    } else if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+        _isNullType(keyType)) {
+      // The control flow path containing the value expression is unreachable.
+      // This functionality was added as part of the `sound-flow-analysis`
+      // language feature, even though it would have been a sound reasoning
+      // step before then.
+      _setCurrent(_current.setUnreachable(), offset: offset);
     }
     _stack.add(new _NullAwareMapEntryContext(shortcutState));
   }
@@ -7190,30 +7186,30 @@ class _FlowAnalysisImpl<
     // `checkOffset` directly.
     _logBuilder?.checkOffset(offset);
 
-    if (!isAssert) {
-      if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-          operations.classifyType(matchedValueType) ==
-              TypeClassification.nonNullable) {
-        // The pattern is guaranteed to match.
-      } else {
-        // The pattern might not match, either because matchedValueType is
-        // nullable, or because sound flow analysis is disabled (in which case
-        // we presume the user might be running under an older version of Dart
-        // that supported weak null safety mode).
-        _unmatched = _join(_unmatched, _current);
+    if (isAssert) {
+      // A null-assert pattern always matches; if the matched value turns out to
+      // be `null`, it throws rather than failing to match.  So there's no need
+      // to update `_unmatched`; we just need to promote the matched value.
+      FlowModel? ifNotNull = _nullCheckPattern(
+        matchedValueType: matchedValueType,
+      );
+      if (ifNotNull != null) {
+        _setCurrent(ifNotNull, offset: offset);
       }
-    }
-    FlowModel? ifNotNull = _nullCheckPattern(
-      matchedValueType: matchedValueType,
-    );
-    if (ifNotNull != null) {
-      _setCurrent(ifNotNull, offset: offset);
+    } else {
+      // A null-check pattern matches if and only if the matched value is not
+      // `null`, so it behaves the same way as the constant pattern `!= null`.
+      _handleNullTestPattern(
+        matchesIfNull: false,
+        matchedValueType: matchedValueType,
+        offset: offset,
+      );
     }
     // Note: we don't need to push a new pattern context for the subpattern,
     // because (a) the subpattern matches the same value as the outer pattern,
     // and (b) promotion of the synthetic cache variable takes care of
     // establishing the correct matched value type.
-    return ifNotNull == null;
+    return _isNonNullableType(matchedValueType);
   }
 
   @override
@@ -7350,13 +7346,13 @@ class _FlowAnalysisImpl<
   void popPropertySubpattern() {
     _PropertyPatternContext context =
         _stack.removeLast() as _PropertyPatternContext;
-    _scrutineeReference = context._previousScrutinee;
+    _correspondingScrutineeReference = context._previousCorrespondingScrutinee;
   }
 
   @override
   void popSubpattern() {
-    _FlowContext context = _stack.removeLast();
-    assert(context is _PatternContext);
+    _SubpatternContext context = _stack.removeLast() as _SubpatternContext;
+    _correspondingScrutineeReference = context._previousCorrespondingScrutinee;
   }
 
   @override
@@ -7420,33 +7416,18 @@ class _FlowAnalysisImpl<
       return false;
     }
 
-    bool cannotMatch = false;
-    switch (operations.classifyType(matchedType)) {
-      case TypeClassification.nonNullable:
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-            operations.classifyType(knownType) ==
-                TypeClassification.nullOrEquivalent) {
-          // `Null()` cannot match a non-nullable matched value, assuming sound
-          // null safety.
-          cannotMatch = true;
-        }
-        // The matched type is non-nullable, so promote to a non-nullable type.
-        // This allows for code like `case int? x?` to promote `x` to
-        // non-nullable.
-        knownType = operations.promoteToNonNull(knownType);
-      case TypeClassification.nullOrEquivalent:
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
-            operations.classifyType(knownType) ==
-                TypeClassification.nonNullable) {
-          // If `T` is a non-nullable type, `T()` cannot match a matched value
-          // of type `Null`. This reasoning step is sound regardless of whether
-          // sound null safety, but it is a new reasoning step that was added to
-          // flow analysis as part of the `sound-flow-analysis` feature.
-          cannotMatch = true;
-        }
-      case TypeClassification.potentiallyNullable:
-        // No conclusions can be drawn about `cannotMatch` or `knownType`.
-        break;
+    // A pattern whose required type is `Null` (or a type equivalent to it) can
+    // never match a matched value whose type is non-nullable, and vice versa
+    // (assuming sound null safety).
+    bool cannotMatch = _isTypeCheckGuaranteedToFailWithSoundNullSafety(
+      staticType: matchedType,
+      checkedType: knownType,
+    );
+    if (_isNonNullableType(matchedType)) {
+      // The matched type is non-nullable, so promote to a non-nullable type.
+      // This allows for code like `case int? x?` to promote `x` to
+      // non-nullable.
+      knownType = operations.promoteToNonNull(knownType);
     }
     _Reference matchedValueReference = _createMatchedValueReference(
       matchedType,
@@ -7572,10 +7553,10 @@ class _FlowAnalysisImpl<
           promotedType ?? unpromotedType,
           offset: offset,
         ),
-        _scrutineeReference,
+        _correspondingScrutineeReference,
       ),
     );
-    _scrutineeReference = propertyReference;
+    _correspondingScrutineeReference = propertyReference;
     return promotedType;
   }
 
@@ -7584,10 +7565,18 @@ class _FlowAnalysisImpl<
     assert(_stack.last is _PatternContext);
     assert(_unmatched != null);
     _stack.add(
-      new _PatternContext(
+      new _SubpatternContext(
         _makeTemporaryReference(new SsaNode(), matchedType, offset: offset),
+        _correspondingScrutineeReference,
       ),
     );
+    // The subpattern matches some other value derived from the matched value
+    // (e.g. a list element), so while it's being analyzed, there is no
+    // part of the scrutinee that's known to correspond to the matched value.
+    // (Note that [pushPropertySubpattern] behaves differently; since it knows
+    // precisely which property is being matched, it can set
+    // [_correspondingScrutineeReference] to a reference to that property.)
+    _correspondingScrutineeReference = null;
   }
 
   @override
@@ -7831,11 +7820,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? thisOrSuper(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
-    return _thisOrSuperReference(staticType, isSuper: isSuper);
+  ExpressionInfo? thisOrSuper({required bool isSuper}) {
+    return _thisOrSuperReference(isSuper: isSuper);
   }
 
   @override
@@ -8057,13 +8043,12 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  Map<SharedTypeView, NonPromotionReason> Function() whyNotPromotedImplicitThis(
-    SharedTypeView staticType,
-  ) {
+  Map<SharedTypeView, NonPromotionReason> Function()
+  whyNotPromotedImplicitThis() {
     if (typeAnalyzerOptions.thisPromotionEnabled) {
       return () => {};
     }
-    _Reference? reference = _thisOrSuperReference(staticType, isSuper: false);
+    _Reference? reference = _thisOrSuperReference(isSuper: false);
     if (reference == null) return () => {};
     PromotionModel? currentThisInfo = _current.promotionInfo?.get(
       this,
@@ -8332,8 +8317,10 @@ class _FlowAnalysisImpl<
     if (_unmatched != null) {
       print('  unmatched: $_unmatched');
     }
-    if (_scrutineeReference != null) {
-      print('  scrutineeReference: $_scrutineeReference');
+    if (_correspondingScrutineeReference != null) {
+      print(
+        '  correspondingScrutineeReference: $_correspondingScrutineeReference',
+      );
     }
     if (_stack.isNotEmpty) {
       print('  stack:');
@@ -8351,28 +8338,16 @@ class _FlowAnalysisImpl<
     ExpressionInfo? rhsInfo,
     SharedTypeView rhsType,
   ) {
-    TypeClassification leftOperandTypeClassification = operations.classifyType(
-      lhsType,
-    );
-    TypeClassification rightOperandTypeClassification = operations.classifyType(
-      rhsType,
-    );
-    if (leftOperandTypeClassification == TypeClassification.nullOrEquivalent &&
-        rightOperandTypeClassification == TypeClassification.nullOrEquivalent) {
-      return const _GuaranteedEqual();
-    } else if ((leftOperandTypeClassification ==
-                TypeClassification.nullOrEquivalent &&
-            rightOperandTypeClassification == TypeClassification.nonNullable) ||
-        (rightOperandTypeClassification ==
-                TypeClassification.nullOrEquivalent &&
-            leftOperandTypeClassification == TypeClassification.nonNullable)) {
+    if (_isNullType(lhsType) && _isNullType(rhsType)) {
+      return const _EqualityCheckHasKnownResult(areEqual: true);
+    } else if (_typesAreDisjointDueToNullability(lhsType, rhsType)) {
       // In strong mode the test is guaranteed to produce a "not equal" result,
       // but weak mode it might produce an "equal" result. If sound flow
       // analysis is enabled, we assume that the user isn't running in weak mode
       // and so we propagate the known "not equal" result. Otherwise, we
       // conservatively assume that either result is possible.
       if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-        return const _GuaranteedNotEqual();
+        return const _EqualityCheckHasKnownResult(areEqual: false);
       } else {
         return const _NoEqualityInformation();
       }
@@ -8563,28 +8538,7 @@ class _FlowAnalysisImpl<
         // might not match.
         _unmatched = _join(_unmatched!, _current);
       case _EqualityCheckIsNullCheck(:var isReferenceOnRight):
-        FlowModel? ifNotNull;
-        if (!isReferenceOnRight) {
-          // The `null` literal is on the right hand side of the implicit
-          // equality check, meaning it is the constant value.  So the user is
-          // doing something like this:
-          //
-          //     if (v case == null) { ... }
-          //
-          // So we want to promote the type of `v` in the case where the
-          // constant pattern *didn't* match.
-          ifNotNull = _nullCheckPattern(matchedValueType: matchedValueType);
-          if (ifNotNull == null) {
-            // `_nullCheckPattern` returns `null` in the case where the matched
-            // value type is non-nullable.  In fully sound programs, this would
-            // mean that the pattern cannot possibly match.  However, in mixed
-            // mode programs it might match due to unsoundness.  Since we don't
-            // want type inference results to change when a program becomes
-            // fully sound, we have to assume that we're in mixed mode, and thus
-            // the pattern might match.
-            ifNotNull = _current;
-          }
-        } else {
+        if (isReferenceOnRight) {
           // The `null` literal is on the left hand side of the implicit
           // equality check, meaning it is the scrutinee.  So the user is doing
           // something silly like this:
@@ -8596,42 +8550,97 @@ class _FlowAnalysisImpl<
           // Since flow analysis can't make use of the results of constant
           // evaluation, we can't really assume anything; as far as we know, the
           // pattern might or might not match.
-          ifNotNull = _current;
-        }
-        if (notEqual) {
           _unmatched = _join(_unmatched!, _current);
-          _setCurrent(ifNotNull, offset: offset);
         } else {
-          _unmatched = _join(_unmatched!, ifNotNull);
+          // The `null` literal is on the right hand side of the implicit
+          // equality check, meaning it is the constant value.  So the user is
+          // doing something like this:
+          //
+          //     if (v case == null) { ... }
+          //
+          // In other words, the pattern is a test of whether the matched value
+          // is `null`, so it can be handled the same way as a null-check
+          // pattern.
+          //
+          // Note that the matched value type is necessarily nullable here;
+          // otherwise `_equalityCheck` would have found the operand types to be
+          // disjoint, and returned `_EqualityCheckHasKnownResult` or
+          // `_NoEqualityInformation` rather than `_EqualityCheckIsNullCheck`.
+          assert(!_isNonNullableType(matchedValueType));
+          _handleNullTestPattern(
+            matchesIfNull: !notEqual,
+            matchedValueType: matchedValueType,
+            offset: offset,
+          );
         }
-      case _GuaranteedEqual():
-        if (notEqual) {
-          // Both operands are known by flow analysis to compare equal, so the
+      case _EqualityCheckHasKnownResult(:var areEqual):
+        if (areEqual != notEqual) {
+          // Flow analysis knows how the operands compare to one another, and
+          // the result is the one the pattern is looking for, so the pattern is
+          // guaranteed to match.  Since our approach to handling patterns in
+          // flow analysis uses "implicit and" semantics (initially assuming
+          // that the pattern always matches, and then updating the `_current`
+          // and `_unmatched` states to reflect what values the pattern
+          // rejects), we don't have to do any updates.
+        } else {
+          // Flow analysis knows how the operands compare to one another, and
+          // the result is not the one the pattern is looking for, so the
           // pattern is guaranteed *not* to match.
           _unmatched = _join(_unmatched!, _current);
           _setCurrent(_current.setUnreachable(), offset: offset);
-        } else {
-          // Both operands are known by flow analysis to compare equal, so the
-          // pattern is guaranteed to match.  Since our approach to handling
-          // patterns in flow analysis uses "implicit and" semantics (initially
-          // assuming that the pattern always matches, and then updating the
-          // `_current` and `_unmatched` states to reflect what values the
-          // pattern rejects), we don't have to do any updates.
         }
-      case _GuaranteedNotEqual():
-        if (notEqual) {
-          // Both operands are known by flow analysis to compare unequal, so the
-          // pattern is guaranteed to match.  Since our approach to handling
-          // patterns in flow analysis uses "implicit and" semantics (initially
-          // assuming that the pattern always matches, and then updating the
-          // `_current` and `_unmatched` states to reflect what values the
-          // pattern rejects), we don't have to do any updates.
-        } else {
-          // Both operands are known by flow analysis to compare unequal, so the
-          // pattern is guaranteed *not* to match.
-          _unmatched = _join(_unmatched!, _current);
-          _setCurrent(_current.setUnreachable(), offset: offset);
-        }
+    }
+  }
+
+  /// Updates the flow model to account for a pattern that matches if and only
+  /// if the matched value is `null` (if [matchesIfNull] is `true`) or is not
+  /// `null` (if [matchesIfNull] is `false`).
+  ///
+  /// This is used to analyze null-check patterns (`subpattern?`) as well as
+  /// constant patterns that compare the matched value to `null` (`== null` and
+  /// `!= null`); these are all the same operation as far as flow analysis is
+  /// concerned.
+  ///
+  /// [matchedValueType] should be the type returned by [_getMatchedValueType].
+  ///
+  /// May only be called in the context of a pattern.
+  void _handleNullTestPattern({
+    required bool matchesIfNull,
+    required SharedTypeView matchedValueType,
+    required int offset,
+  }) {
+    // Note: `_nullCheckPattern` returns `null` if the matched value is known
+    // not to be `null`; in that circumstance there is nothing to promote.
+    FlowModel? ifNotNull = _nullCheckPattern(
+      matchedValueType: matchedValueType,
+    );
+    if (matchesIfNull) {
+      // The pattern fails to match in the circumstance where the matched value
+      // is not `null`.
+      //
+      // Note that even if the matched value is known not to be `null` (so that
+      // in a fully sound program the pattern could never match), we still have
+      // to assume that the pattern might match, because in mixed mode programs
+      // the matched value might be `null` due to unsoundness, and we don't want
+      // type inference results to change when a program becomes fully sound.
+      _unmatched = _join(_unmatched!, ifNotNull ?? _current);
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(matchedValueType)) {
+      // The matched value is known not to be `null`, so the pattern is
+      // guaranteed to match.  Since our approach to handling patterns in flow
+      // analysis uses "implicit and" semantics (initially assuming that the
+      // pattern always matches, and then updating the `_current` and
+      // `_unmatched` states to reflect what values the pattern rejects), we
+      // don't have to do any updates.
+    } else {
+      // The pattern fails to match in the circumstance where the matched value
+      // is `null`.  (Note that this includes the case where the matched value
+      // type is non-nullable but sound flow analysis is disabled, since in that
+      // case we presume the user might be running under an older version of
+      // Dart that supported weak null safety mode.)
+      _unmatched = _join(_unmatched!, _current);
+      if (ifNotNull != null) {
+        _setCurrent(ifNotNull, offset: offset);
+      }
     }
   }
 
@@ -8723,6 +8732,31 @@ class _FlowAnalysisImpl<
     _setCurrent(current, offset: offset);
   }
 
+  /// Determines whether a value whose static type is [type] is guaranteed not
+  /// to be `null`, due to sound null safety.
+  ///
+  /// If [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `false`, this method
+  /// will return `false` regardless of its input. This reflects the fact that
+  /// in language versions prior to the introduction of sound flow analysis,
+  /// flow analysis assumed that the program might be executing in unsound null
+  /// safety mode (in which a value whose static type is non-nullable might
+  /// nonetheless be `null`).
+  bool _isGuaranteedNonNullWithSoundNullSafety(SharedTypeView type) =>
+      typeAnalyzerOptions.soundFlowAnalysisEnabled && _isNonNullableType(type);
+
+  /// Determines whether [type] is a non-nullable type.
+  ///
+  /// Note that this doesn't necessarily mean that a value of this type can't be
+  /// `null`; see [_isGuaranteedNonNullWithSoundNullSafety].
+  bool _isNonNullableType(SharedTypeView type) =>
+      operations.classifyType(type) == TypeClassification.nonNullable;
+
+  /// Determines whether [type] is `Null`, or a type that behaves equivalently
+  /// to it (such as `Never?`), and hence a value of this type is guaranteed to
+  /// be `null`.
+  bool _isNullType(SharedTypeView type) =>
+      operations.classifyType(type) == TypeClassification.nullOrEquivalent;
+
   /// Determines whether an expression having the given [staticType] is
   /// guaranteed to fail an `is` or `as` check using [checkedType] due to sound
   /// null safety.
@@ -8736,19 +8770,8 @@ class _FlowAnalysisImpl<
     required SharedTypeView staticType,
     required SharedTypeView checkedType,
   }) {
-    if (!typeAnalyzerOptions.soundFlowAnalysisEnabled) return false;
-    switch (typeOperations.classifyType(staticType)) {
-      case TypeClassification.nonNullable
-          when typeOperations.classifyType(checkedType) ==
-              TypeClassification.nullOrEquivalent:
-      case TypeClassification.nullOrEquivalent
-          when typeOperations.classifyType(checkedType) ==
-              TypeClassification.nonNullable:
-        // Guaranteed to fail due to nullability mismatch.
-        return true;
-      default:
-        return false;
-    }
+    return typeAnalyzerOptions.soundFlowAnalysisEnabled &&
+        _typesAreDisjointDueToNullability(staticType, checkedType);
   }
 
   /// Whether an expression having the given [staticType] is guaranteed to fail
@@ -8824,19 +8847,13 @@ class _FlowAnalysisImpl<
         offset: offset,
       );
     }
-    switch (operations.classifyType(targetType)) {
-      case TypeClassification.nullOrEquivalent:
-        // The control flow path containing the null-aware code is unreachable.
-        _setCurrent(_current.setUnreachable(), offset: offset);
-      case TypeClassification.nonNullable:
-        // The control flow path that skips the null-aware code is unreachable,
-        // assuming sound null safety.
-        if (typeAnalyzerOptions.soundFlowAnalysisEnabled) {
-          shortcutControlPath = shortcutControlPath.setUnreachable();
-        }
-      case TypeClassification.potentiallyNullable:
-        // Both control flow paths are reachable.
-        break;
+    if (_isNullType(targetType)) {
+      // The control flow path containing the null-aware code is unreachable.
+      _setCurrent(_current.setUnreachable(), offset: offset);
+    } else if (_isGuaranteedNonNullWithSoundNullSafety(targetType)) {
+      // The control flow path that skips the null-aware code is unreachable,
+      // assuming sound null safety.
+      shortcutControlPath = shortcutControlPath.setUnreachable();
     }
     _stack.add(new _NullAwareAccessContext(shortcutControlPath));
     SsaNode? targetSsaNode;
@@ -8885,17 +8902,14 @@ class _FlowAnalysisImpl<
     _Reference matchedValueReference = _createMatchedValueReference(
       matchedValueType,
     );
-    TypeClassification typeClassification = operations.classifyType(
-      matchedValueType,
-    );
-    if (typeClassification == TypeClassification.nonNullable) {
+    if (_isNonNullableType(matchedValueType)) {
       return null;
     } else {
       FlowModel ifNotNull = _promoteMatchedValueAndScrutinee(
         matchedValueReference,
         (model, reference) => model.tryMarkNonNullable(this, reference),
       ).ifTrue;
-      if (typeClassification == TypeClassification.nullOrEquivalent) {
+      if (_isNullType(matchedValueType)) {
         ifNotNull = ifNotNull.setUnreachable();
       }
       return ifNotNull;
@@ -8914,16 +8928,18 @@ class _FlowAnalysisImpl<
 
   void _popScrutinee() {
     _ScrutineeContext context = _stack.removeLast() as _ScrutineeContext;
-    _scrutineeReference = context.previousScrutineeReference;
+    _correspondingScrutineeReference =
+        context.previousCorrespondingScrutineeReference;
   }
 
   /// Promotes the value currently being matched by the pattern that's being
   /// analyzed, by applying [promote] to [matchedValueReference].
   ///
   /// If the scrutinee of the enclosing pattern match denotes the same value as
-  /// the matched value (see [_scrutineeDenotesMatchedValue]), then [promote] is
-  /// applied to the scrutinee too, so that the promotion is also visible to
-  /// code that refers to the scrutinee directly.
+  /// the matched value (see [_correspondingScrutineeDenotesMatchedValue]), then
+  /// [promote] is applied to the corresponding part of the scrutinee too, so
+  /// that the promotion is also visible to code that refers to the scrutinee
+  /// directly.
   ///
   /// Returns the flow models describing the program state in the circumstances
   /// where the promotion succeeded and failed, respectively.
@@ -8936,14 +8952,15 @@ class _FlowAnalysisImpl<
     ExpressionInfo promotionInfo = promote(_current, matchedValueReference);
     FlowModel ifTrue = promotionInfo.ifTrue;
     FlowModel ifFalse = promotionInfo.ifFalse;
-    _Reference? scrutineeReference = _scrutineeReference;
-    if (scrutineeReference != null &&
-        _scrutineeDenotesMatchedValue(
-          scrutineeReference,
+    _Reference? correspondingScrutineeReference =
+        _correspondingScrutineeReference;
+    if (correspondingScrutineeReference != null &&
+        _correspondingScrutineeDenotesMatchedValue(
+          correspondingScrutineeReference,
           matchedValueReference,
         )) {
-      ifTrue = promote(ifTrue, scrutineeReference).ifTrue;
-      ifFalse = promote(ifFalse, scrutineeReference).ifFalse;
+      ifTrue = promote(ifTrue, correspondingScrutineeReference).ifTrue;
+      ifFalse = promote(ifFalse, correspondingScrutineeReference).ifFalse;
     }
     return (ifTrue: ifTrue, ifFalse: ifFalse);
   }
@@ -8976,15 +8993,18 @@ class _FlowAnalysisImpl<
     required int offset,
   }) {
     _stack.add(
-      new _ScrutineeContext(previousScrutineeReference: _scrutineeReference),
+      new _ScrutineeContext(
+        previousCorrespondingScrutineeReference:
+            _correspondingScrutineeReference,
+      ),
     );
-    _Reference? scrutineeReference = scrutineeInfo is _Reference
+    _Reference? correspondingScrutineeReference = scrutineeInfo is _Reference
         ? scrutineeInfo
         : null;
-    _scrutineeReference = scrutineeReference;
+    _correspondingScrutineeReference = correspondingScrutineeReference;
     SsaNode? scrutineeSsaNode;
-    if (allowScrutineePromotion && scrutineeReference != null) {
-      scrutineeSsaNode = scrutineeReference.ssaNode;
+    if (allowScrutineePromotion && correspondingScrutineeReference != null) {
+      scrutineeSsaNode = correspondingScrutineeReference.ssaNode;
     }
     return _makeTemporaryReference(
       scrutineeSsaNode ?? new SsaNode(),
@@ -8993,38 +9013,39 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  /// Determines whether [scrutineeReference] (the scrutinee of the pattern
-  /// match that's in progress) is known to denote the same value as
-  /// [matchedValueReference] (the value being matched by the pattern that's
-  /// being analyzed).
+  /// Determines whether [correspondingScrutineeReference] (the portion of the
+  /// scrutinee of the pattern match that's hypothesized to correspond to
+  /// [matchedValueReference] *actually* denotes the same value as
+  /// [matchedValueReference].
   ///
   /// If it does, then anything a pattern establishes about the matched value is
-  /// necessarily also true of the scrutinee, so the scrutinee may be promoted
-  /// along with the matched value.
-  bool _scrutineeDenotesMatchedValue(
-    _Reference scrutineeReference,
+  /// necessarily also true of the corresponding scrutinee reference, so the
+  /// corresponding scrutinee reference may be promoted along with the matched
+  /// value.
+  bool _correspondingScrutineeDenotesMatchedValue(
+    _Reference correspondingScrutineeReference,
     _Reference matchedValueReference,
   ) {
-    // If the scrutinee is a property reference, it denotes the matched value.
-    // (This is safe even if the underlying variable whose property is being
-    // referenced has changed, because the next time the property is accessed,
-    // it will be accessed through a new SSA node, and thus a new promotion
-    // key).
-    if (scrutineeReference is _PropertyReference) return true;
-    // If the scrutinee is `this`, it denotes the matched value, since `this`
-    // can never be reassigned.
-    if (scrutineeReference.isThisOrSuper &&
+    // If the corresponding scrutinee reference is a property reference, it
+    // denotes the matched value. (This is safe even if the underlying variable
+    // whose property is being referenced has changed, because the next time the
+    // property is accessed, it will be accessed through a new SSA node, and
+    // thus a new promotion key).
+    if (correspondingScrutineeReference is _PropertyReference) return true;
+    // If the corresponding scrutinee reference is `this`, it denotes the
+    // matched value, since `this` can never be reassigned.
+    if (correspondingScrutineeReference.isThisOrSuper &&
         typeAnalyzerOptions.thisPromotionEnabled) {
       return true;
     }
-    // Otherwise the scrutinee is a variable reference; it denotes the matched
-    // value provided that the variable hasn't changed since the start of the
-    // matching operation.
+    // Otherwise the corresponding scrutinee reference is a variable reference;
+    // it denotes the matched value provided that the variable hasn't changed
+    // since the start of the matching operation.
     return _current.promotionInfo
             ?.get(this, matchedValueReference.promotionKey)!
             .ssaNode ==
         _current.promotionInfo
-            ?.get(this, scrutineeReference.promotionKey)
+            ?.get(this, correspondingScrutineeReference.promotionKey)
             ?.ssaNode;
   }
 
@@ -9033,23 +9054,12 @@ class _FlowAnalysisImpl<
     _logBuilder?.promotionInfoChanged(value.promotionInfo, offset: offset);
   }
 
-  _Reference? _thisOrSuperReference(
-    SharedTypeView staticType, {
-    required bool isSuper,
-  }) {
-    assert(() {
-      SharedTypeView expectedType =
-          (isSuper
-              ? _unpromotedThisTypes.lastOrNull
-              : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
-          operations.errorType;
-      assert(
-        staticType == expectedType,
-        'Incorrect `this` or `super` type. Got $staticType, expected '
-        '$expectedType.',
-      );
-      return true;
-    }());
+  _Reference? _thisOrSuperReference({required bool isSuper}) {
+    SharedTypeView staticType =
+        (isSuper
+            ? _unpromotedThisTypes.lastOrNull
+            : promotedTypeOfThis ?? _unpromotedThisTypes.lastOrNull) ??
+        operations.errorType;
     SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
     PromotionKey? promotionKey = _thisPromotionKeys.lastOrNull;
     if (promotionKey == null) return null;
@@ -9065,6 +9075,25 @@ class _FlowAnalysisImpl<
       _current,
     );
   }
+
+  /// Determines whether no value can belong to both [type1] and [type2], on the
+  /// basis of nullability alone; that is, whether one of the types is `Null`
+  /// (or an equivalent type) and the other is non-nullable.
+  ///
+  /// Callers should usually guard their use of this method with a check of
+  /// [TypeAnalyzerOptions.soundFlowAnalysisEnabled], for two reasons:
+  /// - In unsound null safety mode, a value whose static type is non-nullable
+  ///   might nonetheless be `null`, so the reasoning step isn't sound.
+  /// - Even in the direction that *is* sound regardless of null safety mode (a
+  ///   value whose static type is `Null` is always `null`), flow analysis
+  ///   didn't take advantage of this reasoning step until it was added as part
+  ///   of the `sound-flow-analysis` feature.
+  bool _typesAreDisjointDueToNullability(
+    SharedTypeView type1,
+    SharedTypeView type2,
+  ) =>
+      (_isNullType(type1) && _isNonNullableType(type2)) ||
+      (_isNullType(type2) && _isNonNullableType(type1));
 
   TrivialVariableReference _variableReference(
     PromotionKey variableKey,
@@ -9183,25 +9212,6 @@ class _FunctionExpressionContext extends _SimpleContext {
 
   @override
   String get _debugType => '_FunctionExpressionContext';
-}
-
-/// Specialization of [_EqualityCheckResult] used as the return value for
-/// [_FlowAnalysisImpl._equalityCheck] when it is determined that the two
-/// operands are guaranteed to be equal to one another, so the code path that
-/// results from a not-equal result should be marked as unreachable.  (This
-/// happens if both operands have type `Null`).
-class _GuaranteedEqual extends _EqualityCheckResult {
-  const _GuaranteedEqual() : super._();
-}
-
-/// Specialization of [_EqualityCheckResult] used as the return value for
-/// [_FlowAnalysisImpl._equalityCheck] when it is determined that the two
-/// operands are guaranteed to be not equal to one another, so the code path
-/// that results from an equal result should be marked as unreachable.  (This
-/// happens if one operands has type `Null` and the other has a non-nullable
-/// type, and [TypeAnalyzerOptions.soundFlowAnalysisEnabled] is `true`).
-class _GuaranteedNotEqual extends _EqualityCheckResult {
-  const _GuaranteedNotEqual() : super._();
 }
 
 /// [_FlowContext] representing an `if` statement.
@@ -9336,16 +9346,8 @@ class _PatternContext extends _FlowContext {
 
 /// [_FlowContext] representing a subpattern of an object pattern, which is
 /// being matched against a property of the object pattern's target.
-class _PropertyPatternContext extends _PatternContext {
-  /// The value of [_FlowAnalysisImpl._scrutineeReference] that was in effect
-  /// prior to visiting the subpattern.
-  final _Reference? _previousScrutinee;
-
-  _PropertyPatternContext(super._matchedValueInfo, this._previousScrutinee);
-
-  @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields..['previousScrutinee'] = _previousScrutinee;
+class _PropertyPatternContext extends _SubpatternContext {
+  _PropertyPatternContext(super._matchedValueInfo, super._previousScrutinee);
 
   @override
   String get _debugType => '_PropertyPatternContext';
@@ -9453,14 +9455,14 @@ class _Reference extends ExpressionInfo {
 /// [_FlowContext] representing a construct that can contain one or more
 /// patterns, and thus has a scrutinee (for example a `switch` statement).
 class _ScrutineeContext extends _FlowContext {
-  final _Reference? previousScrutineeReference;
+  final _Reference? previousCorrespondingScrutineeReference;
 
-  _ScrutineeContext({required this.previousScrutineeReference});
+  _ScrutineeContext({required this.previousCorrespondingScrutineeReference});
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields
-        ..['previousScrutineeReference'] = previousScrutineeReference;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousCorrespondingScrutineeReference'] =
+        previousCorrespondingScrutineeReference;
 
   @override
   String get _debugType => '_ScrutineeContext';
@@ -9500,6 +9502,26 @@ class _SimpleStatementContext extends _BranchTargetContext {
 
   @override
   String get _debugType => '_SimpleStatementContext';
+}
+
+/// [_FlowContext] representing a subpattern of some other pattern.
+class _SubpatternContext extends _PatternContext {
+  /// The value of [_FlowAnalysisImpl._correspondingScrutineeReference] that was
+  /// in effect prior to visiting the subpattern.
+  final _Reference? _previousCorrespondingScrutinee;
+
+  _SubpatternContext(
+    super._matchedValueInfo,
+    this._previousCorrespondingScrutinee,
+  );
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields
+        ..['previousCorrespondingScrutinee'] = _previousCorrespondingScrutinee;
+
+  @override
+  String get _debugType => '_SubpatternContext';
 }
 
 class _SwitchAlternativesContext<Variable extends Object> extends _FlowContext {

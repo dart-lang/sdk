@@ -20,13 +20,8 @@ Expression getSsaNodes(void Function(SsaNodeHarness) callback) =>
     new _GetSsaNodes(callback, location: computeLocation());
 
 Expression implicitThis_whyNotPromoted(
-  String staticType,
   void Function(Map<SharedTypeView, NonPromotionReason>) callback,
-) => new _WhyNotPromoted_ImplicitThis(
-  Type(staticType),
-  callback,
-  location: computeLocation(),
-);
+) => new _WhyNotPromoted_ImplicitThis(callback, location: computeLocation());
 
 /// Test harness for creating flow analysis tests.  This class provides all
 /// the [FlowAnalysisOperations] needed by flow analysis, as well as other
@@ -147,15 +142,9 @@ class _WhyNotPromoted extends Expression {
 }
 
 class _WhyNotPromoted_ImplicitThis extends Expression {
-  final Type staticType;
-
   final void Function(Map<SharedTypeView, NonPromotionReason>) callback;
 
-  _WhyNotPromoted_ImplicitThis(
-    this.staticType,
-    this.callback, {
-    required super.location,
-  });
+  _WhyNotPromoted_ImplicitThis(this.callback, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -165,7 +154,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
-    callback(h.flow.whyNotPromotedImplicitThis(SharedTypeView(staticType))());
+    callback(h.flow.whyNotPromotedImplicitThis()());
     h.irBuilder.atom('noop', Kind.expression, location: location);
     return ExpressionTypeAnalysisResult(
       type: SharedTypeView(h.typeAnalyzer.nullType),

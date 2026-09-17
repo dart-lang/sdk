@@ -10508,7 +10508,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     storeExpressionInfo(
       loweredExpression,
-      flowAnalysis.thisOrSuper(new SharedTypeView(thisType), isSuper: false),
+      flowAnalysis.thisOrSuper(isSuper: false),
     );
     return new ExpressionInferenceResult(thisType, loweredExpression);
   }

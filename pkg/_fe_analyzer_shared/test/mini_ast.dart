@@ -7667,10 +7667,7 @@ class _MiniAstTypeAnalyzer
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
     var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
     var thisType = promotedTypeOfThis ?? this.thisType;
-    var flowAnalysisInfo = flow.thisOrSuper(
-      SharedTypeView(thisType),
-      isSuper: false,
-    );
+    var flowAnalysisInfo = flow.thisOrSuper(isSuper: false);
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
