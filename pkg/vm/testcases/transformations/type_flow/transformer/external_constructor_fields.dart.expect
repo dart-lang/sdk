@@ -1,0 +1,57 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+
+  [@vm.inferred-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  final field core::int initializedNonNullableField;
+
+  [@vm.inferred-type.metadata=int?]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  final field core::int? initializedNullableField;
+
+  [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int defaultNonNullableFieldWithValue = 42;
+
+  [@vm.inferred-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
+  final field core::int? implicitDefaultNullableField;
+
+  [@vm.inferred-type.metadata=!]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
+  final field core::int noInitNonNullableField;
+  external constructor •() → self::A;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C6
+static method test([@vm.inferred-arg-type.metadata=#lib::A] self::A a) → void {
+  core::print([@vm.direct-call.metadata=#lib::A.initializedNonNullableField] [@vm.inferred-type.metadata=int] a.{self::A::initializedNonNullableField}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::A.initializedNullableField] [@vm.inferred-type.metadata=int?] a.{self::A::initializedNullableField}{core::int?});
+  core::print([@vm.direct-call.metadata=#lib::A.defaultNonNullableFieldWithValue] [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] a.{self::A::defaultNonNullableFieldWithValue}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::A.implicitDefaultNullableField] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] a.{self::A::implicitDefaultNullableField}{core::int?});
+  block {
+    [@vm.direct-call.metadata=#lib::A.noInitNonNullableField] [@vm.inferred-type.metadata=!] a.{self::A::noInitNonNullableField}{core::int};
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::test(new self::A::•());
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = "init"
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:never-inline"
+  #C5 = null
+  #C6 = core::pragma {name:#C4, options:#C5}
+}

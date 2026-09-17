@@ -77,7 +77,8 @@ class EntryPointShimVisitor extends RecursiveVisitor {
               p.type != PragmaEntryPointType.Extendable &&
               p.type != PragmaEntryPointType.ImplicitlyExtendable &&
               p.type != PragmaEntryPointType.CanBeOverridden &&
-              p.type != PragmaEntryPointType.CanBeUsedAsType,
+              p.type != PragmaEntryPointType.CanBeUsedAsType &&
+              p.type != PragmaEntryPointType.InitializerOnly,
         );
     if (pragmas.isEmpty) return null;
     var pragma = pragmas.first;
