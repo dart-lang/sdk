@@ -2119,6 +2119,24 @@ void main() {
         asm.scvtf(V0, SP);
       });
     });
+    test('fcvt', () {
+      asm.fcvt(V0, V0, .s32, .s64);
+      asm.fcvt(V1, V2, .s64, .s32);
+      // TODO: extend disassembler to handle half precision.
+      expectDisassembly(
+        'fcvtds v0, v0\n'
+        'fcvtsd v1, v2\n',
+      );
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .s64);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s32, .u32);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .simd128);
+      });
+    });
     test('fcvtas', () {
       asm.fcvtas(R0, V0);
       asm.fcvtas(R2, V31, .s64, .s32);
