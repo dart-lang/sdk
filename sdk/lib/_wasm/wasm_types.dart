@@ -618,6 +618,9 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
   external WasmI32x4 shrU(WasmI32 shift);
 
   @pragma("wasm:intrinsic")
+  external bool get allTrue;
+
+  @pragma("wasm:intrinsic")
   external WasmI32 get bitmask;
 }
 
@@ -644,6 +647,26 @@ extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ne(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ltS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 gtS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 leS(WasmI64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 geS(WasmI64x2 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 shrU(WasmI32 shift);
+
   @pragma("wasm:intrinsic")
   external bool get allTrue;
 
@@ -716,6 +739,8 @@ extension type const WasmF32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmF32x4 other);
+  @pragma("wasm:intrinsic")
+  external WasmI32x4 ne(WasmF32x4 other);
 }
 
 extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
@@ -778,6 +803,8 @@ extension type const WasmF64x2(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI64x2 eq(WasmF64x2 other);
+  @pragma("wasm:intrinsic")
+  external WasmI64x2 ne(WasmF64x2 other);
 
   @pragma("wasm:intrinsic")
   external WasmF64x2 shuffle(WasmF64x2 other, List<int> lanes);

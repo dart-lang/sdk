@@ -261,6 +261,7 @@ enum StaticIntrinsic {
   wasmI64x2Sub('dart:_wasm', null, 'WasmI64x2|-'),
   wasmI64x2Mul('dart:_wasm', null, 'WasmI64x2|*'),
   wasmI64x2Neg('dart:_wasm', null, 'WasmI64x2|unary-'),
+  wasmI64x2Abs('dart:_wasm', null, 'WasmI64x2|abs'),
   wasmI8x16Eq('dart:_wasm', null, 'WasmI8x16|eq'),
   wasmI16x8Eq('dart:_wasm', null, 'WasmI16x8|eq'),
   wasmI32x4Eq('dart:_wasm', null, 'WasmI32x4|eq'),
@@ -277,8 +278,18 @@ enum StaticIntrinsic {
   wasmI32x4ShrS('dart:_wasm', null, 'WasmI32x4|shrS'),
   wasmI32x4ShrU('dart:_wasm', null, 'WasmI32x4|shrU'),
   wasmI64x2Eq('dart:_wasm', null, 'WasmI64x2|eq'),
+  wasmI64x2Ne('dart:_wasm', null, 'WasmI64x2|ne'),
+  wasmI64x2LtS('dart:_wasm', null, 'WasmI64x2|ltS'),
+  wasmI64x2GtS('dart:_wasm', null, 'WasmI64x2|gtS'),
+  wasmI64x2LeS('dart:_wasm', null, 'WasmI64x2|leS'),
+  wasmI64x2GeS('dart:_wasm', null, 'WasmI64x2|geS'),
+  wasmI64x2Shl('dart:_wasm', null, 'WasmI64x2|shl'),
+  wasmI64x2ShrS('dart:_wasm', null, 'WasmI64x2|shrS'),
+  wasmI64x2ShrU('dart:_wasm', null, 'WasmI64x2|shrU'),
   wasmF32x4Eq('dart:_wasm', null, 'WasmF32x4|eq'),
   wasmF64x2Eq('dart:_wasm', null, 'WasmF64x2|eq'),
+  wasmF32x4Ne('dart:_wasm', null, 'WasmF32x4|ne'),
+  wasmF64x2Ne('dart:_wasm', null, 'WasmF64x2|ne'),
   wasmV128Not('dart:_wasm', null, 'WasmV128Extension|~'),
   wasmV128And('dart:_wasm', null, 'WasmV128Extension|&'),
   wasmV128Or('dart:_wasm', null, 'WasmV128Extension||'),
@@ -289,6 +300,7 @@ enum StaticIntrinsic {
   wasmI8x16Bitmask('dart:_wasm', null, 'WasmI8x16|get#bitmask'),
   wasmI16x8Bitmask('dart:_wasm', null, 'WasmI16x8|get#bitmask'),
   wasmI32x4Bitmask('dart:_wasm', null, 'WasmI32x4|get#bitmask'),
+  wasmI32x4AllTrue('dart:_wasm', null, 'WasmI32x4|get#allTrue'),
   wasmI64x2AllTrue('dart:_wasm', null, 'WasmI64x2|get#allTrue'),
   wasmI64x2Bitmask('dart:_wasm', null, 'WasmI64x2|get#bitmask'),
   wasmF64x2PMin('dart:_wasm', null, 'WasmF64x2|pmin'),
@@ -1827,6 +1839,13 @@ class Intrinsifier {
         );
         b.v128_any_true();
         return w.NumType.i32;
+      case StaticIntrinsic.wasmI32x4AllTrue:
+        codeGen.translateExpression(
+          node.arguments.positional[0],
+          w.NumType.v128,
+        );
+        b.i32x4_all_true();
+        return w.NumType.i32;
       case StaticIntrinsic.wasmI64x2AllTrue:
         codeGen.translateExpression(
           node.arguments.positional[0],
@@ -2339,6 +2358,62 @@ class Intrinsifier {
         codeGen.translateExpression(right, w.NumType.v128);
         b.i64x2_eq();
         return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2Ne:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i64x2_ne();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2LtS:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i64x2_lt_s();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2GtS:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i64x2_gt_s();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2LeS:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i64x2_le_s();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2GeS:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i64x2_ge_s();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2Shl:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.i32);
+        b.i64x2_shl();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2ShrS:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.i32);
+        b.i64x2_shr_s();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2ShrU:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.i32);
+        b.i64x2_shr_u();
+        return w.NumType.v128;
       case StaticIntrinsic.wasmF32x4Eq:
         Expression left = node.arguments.positional[0];
         Expression right = node.arguments.positional[1];
@@ -2352,6 +2427,20 @@ class Intrinsifier {
         codeGen.translateExpression(left, w.NumType.v128);
         codeGen.translateExpression(right, w.NumType.v128);
         b.f64x2_eq();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF32x4Ne:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.f32x4_ne();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmF64x2Ne:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.f64x2_ne();
         return w.NumType.v128;
       case StaticIntrinsic.wasmI16x8ReplaceLane:
         Expression value = node.arguments.positional[0];
@@ -2603,6 +2692,11 @@ class Intrinsifier {
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.v128);
         b.i64x2_neg();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI64x2Abs:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.v128);
+        b.i64x2_abs();
         return w.NumType.v128;
 
       case StaticIntrinsic.wasmF32x4Add:
