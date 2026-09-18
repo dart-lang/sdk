@@ -1795,8 +1795,13 @@ class UnknownType extends Type implements SharedUnknownType {
   int get hashCode => Object.hash(runtimeType, isQuestionType);
 
   @override
-  bool operator ==(Object other) =>
-      other is UnknownType && isQuestionType == other.isQuestionType;
+  bool operator ==(Object other) {
+    // TODO(cstefantsova): Find a way to avoid testing for the specific
+    // [runtimeType].
+    return other is UnknownType &&
+        other.runtimeType == UnknownType &&
+        isQuestionType == other.isQuestionType;
+  }
 
   @override
   Type asQuestionType(bool isQuestionType) =>
@@ -1817,6 +1822,151 @@ class UnknownType extends Type implements SharedUnknownType {
 
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) => '_';
+}
+
+/// Representation of the invocation structural context type suitable for unit
+/// testing of code in the `_fe_analyzer_shared` package.
+class InvocationStructuralContextType extends UnknownType
+    implements SharedInvocationStructuralContextType {
+  @override
+  final Type returnType;
+
+  InvocationStructuralContextType({
+    required this.returnType,
+    super.isQuestionType = false,
+  });
+
+  @override
+  int get hashCode => Object.hash(runtimeType, isQuestionType, returnType);
+
+  @override
+  bool operator ==(Object other) =>
+      other is InvocationStructuralContextType &&
+      isQuestionType == other.isQuestionType &&
+      returnType == other.returnType;
+
+  @override
+  Type asQuestionType(bool isQuestionType) => InvocationStructuralContextType(
+    returnType: returnType,
+    isQuestionType: isQuestionType,
+  );
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    returnType.gatherUsedIdentifiers(identifiers);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? demotedReturnType = returnType.recursivelyDemote(
+      covariant: covariant,
+    );
+    if (demotedReturnType == null) {
+      return null;
+    } else {
+      return InvocationStructuralContextType(
+        returnType: demotedReturnType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    Type? substitutedReturnType = returnType.substitute(substitution);
+    if (substitutedReturnType == null) {
+      return null;
+    } else {
+      return InvocationStructuralContextType(
+        returnType: substitutedReturnType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
+    return _parenthesizeIf(
+      parenthesizeIfComplex,
+      '(...) -> ${returnType.toString(parenthesizeIfComplex: true)}',
+    );
+  }
+}
+
+/// Representation of the lookup structural context type suitable for unit
+/// testing of code in the `_fe_analyzer_shared` package.
+class LookupStructuralContextType extends UnknownType
+    implements SharedLookupStructuralContextType {
+  @override
+  final String lookupName;
+
+  @override
+  final Type lookupType;
+
+  LookupStructuralContextType({
+    required this.lookupName,
+    required this.lookupType,
+    super.isQuestionType = false,
+  });
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, isQuestionType, lookupName, lookupType);
+
+  @override
+  bool operator ==(Object other) =>
+      other is LookupStructuralContextType &&
+      isQuestionType == other.isQuestionType &&
+      lookupName == other.lookupName &&
+      lookupType == other.lookupType;
+
+  @override
+  Type asQuestionType(bool isQuestionType) => LookupStructuralContextType(
+    lookupName: lookupName,
+    lookupType: lookupType,
+    isQuestionType: isQuestionType,
+  );
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    // Since there's no risk of confusion between generated type names
+    // and lookup names, [lookupName] isn't added to [identifiers].
+    lookupType.gatherUsedIdentifiers(identifiers);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? demotedLookupType = lookupType.recursivelyDemote(
+      covariant: covariant,
+    );
+    if (demotedLookupType == null) {
+      return null;
+    } else {
+      return LookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: demotedLookupType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    Type? substitutedLookupType = lookupType.substitute(substitution);
+    if (substitutedLookupType == null) {
+      return null;
+    } else {
+      return LookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: substitutedLookupType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) =>
+      '{$lookupName: $lookupType}';
 }
 
 /// Representation of the type `void` suitable for unit testing of code in the
