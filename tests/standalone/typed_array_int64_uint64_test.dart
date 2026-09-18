@@ -4,9 +4,6 @@
 
 // Dart test program for testing native typed arrays, int64 and uint64 only.
 
-// Library tag to be able to run in html test framework.
-library TypedArray;
-
 import 'package:expect/async_helper.dart';
 import "package:expect/expect.dart";
 

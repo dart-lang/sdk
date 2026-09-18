@@ -5,8 +5,6 @@
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify
 
-library int32x4_test;
-
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
