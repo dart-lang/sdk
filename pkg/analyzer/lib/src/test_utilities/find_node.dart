@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
@@ -640,11 +639,6 @@ abstract class _FindNodeBase {
 
   AwaitExpression awaitExpression(String search) {
     return _node(search, (n) => n is AwaitExpression);
-  }
-
-  BindPatternVariableElement bindPatternVariableElement(String search) {
-    var node = declaredVariablePattern(search);
-    return node.declaredFragment!.element;
   }
 
   Block block(String search) {

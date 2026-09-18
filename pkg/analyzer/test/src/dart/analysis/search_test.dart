@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -10816,4 +10817,11 @@ class _SearchAnnotation {
     this.order = 0,
     required this.text,
   });
+}
+
+extension on FindNode2 {
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    var node = declaredVariablePattern(search);
+    return node.declaredFragment!.element;
+  }
 }
