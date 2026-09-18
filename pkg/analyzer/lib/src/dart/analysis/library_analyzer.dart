@@ -47,6 +47,7 @@ import 'package:analyzer/src/error/unicode_text_verifier.dart';
 import 'package:analyzer/src/error/unused_local_elements_verifier.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
+import 'package:analyzer/src/generated/js_interop_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
@@ -506,6 +507,10 @@ class LibraryAnalyzer {
       typeSystemOperations: _typeSystemOperations,
     );
     unit.accept2(errorVerifier);
+
+    // Verify constraints on JS interop uses. The CFE enforces these
+    // constraints as compile-time errors and so does the analyzer.
+    JsInteropVerifier(diagnosticReporter).verifyCompilationUnit(unit);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.

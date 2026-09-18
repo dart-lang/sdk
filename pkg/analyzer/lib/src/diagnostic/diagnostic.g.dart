@@ -10149,6 +10149,23 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'js_interop_extension_constructor_js_annotation_has_no_effect',
+      problemMessage:
+          "The '@JS' annotation on an extension type constructor has no effect and "
+          "is disallowed.",
+      correctionMessage:
+          "Try removing the '@JS' annotation from the constructor, and putting "
+          "it on the extension type to rename non-object literal constructors.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'js_interop_extension_constructor_js_annotation_has_no_effect',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String name: the name of the unresolvable label
 const DiagnosticWithArguments<

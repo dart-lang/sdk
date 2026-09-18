@@ -444,9 +444,8 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer2: ParsedExpressionChain
-              head: ParsedNameHead
-                name: B
+            initializer2: ParsedUnqualifiedName
+              name: B
             initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
@@ -2632,9 +2631,8 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer2: ParsedExpressionChain
-              head: ParsedNameHead
-                name: B
+            initializer2: ParsedUnqualifiedName
+              name: B
             initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>

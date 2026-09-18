@@ -74,11 +74,11 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('foo += 1');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
           name: A
@@ -89,7 +89,27 @@ AssignmentExpression
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
-    target(v1): InstanceCreationExpression
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -107,7 +127,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -131,11 +151,11 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
           name: A
@@ -146,7 +166,21 @@ AssignmentExpression
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
-    target(v1): InstanceCreationExpression
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -164,7 +198,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
@@ -238,11 +272,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo += 1');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -254,7 +288,35 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -263,7 +325,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: foo
@@ -271,7 +333,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -297,11 +359,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -313,7 +375,29 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -322,7 +406,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: foo
@@ -330,7 +414,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -2216,11 +2300,11 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('foo += 1');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
           name: A
@@ -2231,7 +2315,27 @@ AssignmentExpression
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
-    target(v1): InstanceCreationExpression
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -2249,7 +2353,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -2275,11 +2379,11 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ConstructorInvocation
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
           name: A
@@ -2290,7 +2394,21 @@ AssignmentExpression
         leftParenthesis: (
         rightParenthesis: )
       staticType: A
-    target(v1): InstanceCreationExpression
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -2308,7 +2426,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -3341,10 +3459,10 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.isEven');
+    var node = result.findNode.receiverPropertyExtraction('.isEven');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SwitchExpression
+ReceiverPropertyExtraction
+  receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
@@ -3353,7 +3471,32 @@ PropertyAccess
         element: <testLibrary>::@function::f::@formalParameter::x
         type: Object?
       staticType: Object?
-    expression(v1): SimpleIdentifier
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: PropertyAccess
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -3366,7 +3509,7 @@ PropertyAccess
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression2: IntegerLiteral
+        expression: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }
@@ -3903,9 +4046,12 @@ void f(int? x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNodeV1.singlePropertyAccess;
     expect(node.realTarget, isA<PostfixExpression>());
-    expect(node.realTarget2, isA<NullAssertionExpression>());
+    expect(
+      result.findNode.singleReceiverPropertyExtraction.receiver,
+      isA<NullAssertionExpression>(),
+    );
   }
 
   test_rewrite_nullShorting() async {

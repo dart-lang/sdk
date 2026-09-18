@@ -5086,7 +5086,11 @@ class PromotionModel {
           if (result != null) return result;
           // Result not allocated yet so the join must equal
           // chain1.sublist(0, i1).
-          if (i1 == chain1.length) return chain1;
+          //
+          // Note that i1 < chain1.length (otherwise the `return chain1;`
+          // statement above would have already executed), so there's no need
+          // check whether we can just return chain1; we can't.
+          assert(i1 < chain1.length);
           return chain1.sublist(0, i1);
         }
         t2 = chain2[i2];
@@ -8204,12 +8208,12 @@ class _FlowAnalysisImpl<
     // See the `attachFinally` function in
     // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#models.
 
-    // Let `afterTry = FlowModel(r1, VI1)`,
-    // `beforeFinally = FlowModel(r2, VI2)`, and
-    // `afterFinally = FlowModel(r3, VI3)`.
-    var FlowModel(reachable: r1, promotionInfo: VI1) = afterTry;
-    var FlowModel(promotionInfo: VI2) = beforeFinally;
-    var FlowModel(reachable: r3, promotionInfo: VI3) = afterFinally;
+    // Let `afterTry = FlowModel(r1, PI1)`,
+    // `beforeFinally = FlowModel(r2, PI2)`, and
+    // `afterFinally = FlowModel(r3, PI3)`.
+    var FlowModel(reachable: r1, promotionInfo: PI1) = afterTry;
+    var FlowModel(promotionInfo: PI2) = beforeFinally;
+    var FlowModel(reachable: r3, promotionInfo: PI3) = afterFinally;
 
     // Let `r4` be defined as follows:
     // - If `top(r3)` is `true`, then let `r4 = r1`.
@@ -8217,10 +8221,10 @@ class _FlowAnalysisImpl<
     assert(identical(r1.parent, r3.parent));
     Reachability r4 = r3.locallyReachable ? r1 : r1.setUnreachable();
 
-    // Let `VI4` be the map which maps each variable `v` in the domain of either
-    // `VI1` or `VI3` as follows (OPTIMIZATION: we implement this by using
+    // Let `PI4` be the map which maps each variable `v` in the domain of either
+    // `PI1` or `PI3` as follows (OPTIMIZATION: we implement this by using
     // `afterTry` as a starting point, and iterating through the promotion keys
-    // that differ between `VI1` and `VI3`):
+    // that differ between `PI1` and `PI3`):
     FlowModel result = afterTry.setReachability(r4);
     List<({ValueVersion from, ValueVersion to})> fieldPromotionsToReapply = [];
     for (var FlowLinkDiffEntry(
@@ -8228,13 +8232,13 @@ class _FlowAnalysisImpl<
           :PromotionInfo? left,
           :PromotionInfo? right,
         )
-        in reader.diff(VI1, VI3).entries) {
+        in reader.diff(PI1, PI3).entries) {
       PromotionKey promotionKey = new PromotionKey(promotionKeyIndex);
       PromotionModel? v1 = left?.model;
       PromotionModel? v3 = right?.model;
 
-      // - If `v` is in the domain of `VI1` but not `VI3`, then
-      //   `VI4(v) = VI1(v)`.
+      // - If `v` is in the domain of `PI1` but not `PI3`, then
+      //   `PI4(v) = PI1(v)`.
       if (v3 == null) {
         if (v1 == null) {
           // This should never happen, because we are iterating through
@@ -8247,28 +8251,28 @@ class _FlowAnalysisImpl<
         continue;
       }
 
-      // - If `v` is in the domain of `VI3` but not `VI1`, then
-      //   `VI4(v) = VI3(v)`.
+      // - If `v` is in the domain of `PI3` but not `PI1`, then
+      //   `PI4(v) = PI3(v)`.
       if (v1 == null) {
-        // Spec: If `v` is in the domain of `VI3` but not `VI1`, then `VI4(v) =
-        // VI3(v)`.
+        // Spec: If `v` is in the domain of `PI3` but not `PI1`, then `PI4(v) =
+        // PI3(v)`.
         result = result.updatePromotionInfo(this, promotionKey, v3);
         continue;
       }
 
-      // - If `v` is in the domain of both `VI1` and `VI3`, then
-      //   `VI4(v) = attachFinallyV(VI1(v), VI2(v), VI3(v))`. Note that if `v`
-      //   is in the domain of both `VI1` and `VI3`, it must have been declared
+      // - If `v` is in the domain of both `PI1` and `PI3`, then
+      //   `PI4(v) = attachFinallyPM(PI1(v), PI2(v), PI3(v))`. Note that if `v`
+      //   is in the domain of both `PI1` and `PI3`, it must have been declared
       //   before the `try-finally` statement, therefore it must also be in the
-      //   domain of `VI2`.
+      //   domain of `PI2`.
       //   (UNSPECIFIED: however, field promotion breaks this, because there
       //   could be a field that's accessed, and promoted, in both the `try` and
       //   `finally` blocks, but not accessed before the `try-finally`
-      //   statement, and in that case its promotion key would appear in `VI1`
-      //   and `VI3` but not `VI2`.)
-      PromotionModel? v2 = VI2?.get(this, promotionKey);
+      //   statement, and in that case its promotion key would appear in `PI1`
+      //   and `PI3` but not `PI2`.)
+      PromotionModel? v2 = PI2?.get(this, promotionKey);
 
-      PromotionModel newModel = _attachFinallyV(
+      PromotionModel newModel = _attachFinallyPM(
         afterTry: v1,
         beforeFinally: v2,
         afterFinally: v3,
@@ -8296,7 +8300,7 @@ class _FlowAnalysisImpl<
     return result;
   }
 
-  PromotionModel _attachFinallyV({
+  PromotionModel _attachFinallyPM({
     required PromotionModel afterTry,
     required PromotionModel? beforeFinally,
     required PromotionModel afterFinally,
@@ -8310,14 +8314,15 @@ class _FlowAnalysisImpl<
     // "tested" booleans. Sometimes it uses `s1`, `s2`, and `s3`, and other
     // times `t1`, `t2`, and `t3`. `t1`, `t2`, and `t3` is better.)
 
-    // Let `afterTry = VariableModel(d1, p1, t1, a1, u1, c1)`. (UNSPECIFIED: and
-    // we denote the value version of the variable in `afterTry` as `v1`.)
+    // Let `afterTry = PromotionModel(d1, p1, t1, a1, u1, c1)`.
+    // (UNSPECIFIED: and we denote the value version of the variable in
+    // `afterTry` as `v1`.)
     var PromotionModel(promotedTypes: p1, assigned: a1, version: v1) = afterTry;
-    // Let `beforeFinally = VariableModel(d2, p2, t2, a2, u2, c2)`.
+    // Let `beforeFinally = PromotionModel(d2, p2, t2, a2, u2, c2)`.
     // (UNSPECIFIED: beforeFinally may be `null` when fields are promoted, so
     // we can't use pattern syntax to deconstruct this. Instead we deconstruct
     // it after null checking `beforeFinally`, below.)
-    // Let `afterFinally = VariableModel(d3, p3, t3, a3, u3, c3)`.
+    // Let `afterFinally = PromotionModel(d3, p3, t3, a3, u3, c3)`.
     // (UNSPECIFIED: and we denote the value version of the variable in
     // `afterFinally` as `v3`.)
     var PromotionModel(

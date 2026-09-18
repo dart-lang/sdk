@@ -38,9 +38,8 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: list
+        iterable2: ParsedUnqualifiedName
+          name: list
         iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
@@ -76,18 +75,16 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: list
+        iterable2: ParsedUnqualifiedName
+          name: list
         iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: c
+        expression2: ParsedUnqualifiedName
+          name: c
         expression(v1): SimpleIdentifier
           token: c
         rightParenthesis: )
@@ -128,9 +125,8 @@ ListLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: ParsedExpressionChain
-            head: ParsedNameHead
-              name: x
+          leftOperand: ParsedUnqualifiedName
+            name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
@@ -145,9 +141,8 @@ ListLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedAssignmentTargetChain
-              head: ParsedNameHead
-                name: x
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: x
             operation: increment
             position: prefix
         updaters(v1)
@@ -251,9 +246,8 @@ ListLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: b
+          iterable2: ParsedUnqualifiedName
+            name: b
           iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -337,9 +331,8 @@ ListLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: b
+          iterable2: ParsedUnqualifiedName
+            name: b
           iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -465,9 +458,8 @@ SetOrMapLiteral
         identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: list
+        iterable2: ParsedUnqualifiedName
+          name: list
         iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
@@ -512,18 +504,16 @@ SetOrMapLiteral
         identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: list
+        iterable2: ParsedUnqualifiedName
+          name: list
         iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
       body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression2: ParsedExpressionChain
-          head: ParsedNameHead
-            name: c
+        expression2: ParsedUnqualifiedName
+          name: c
         expression(v1): SimpleIdentifier
           token: c
         rightParenthesis: )
@@ -563,9 +553,8 @@ SetOrMapLiteral
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: DirectAssignment
-          target: ParsedAssignmentTargetChain
-            head: ParsedNameHead
-              name: x
+          target: ParsedUnqualifiedNameAssignmentTarget
+            name: x
           operator: =
           value: IntegerLiteral
             literal: 0
@@ -577,9 +566,8 @@ SetOrMapLiteral
             literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: ParsedExpressionChain
-            head: ParsedNameHead
-              name: x
+          leftOperand: ParsedUnqualifiedName
+            name: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
@@ -594,9 +582,8 @@ SetOrMapLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedAssignmentTargetChain
-              head: ParsedNameHead
-                name: x
+            target: ParsedUnqualifiedNameAssignmentTarget
+              name: x
             operation: increment
             position: prefix
         updaters(v1)
@@ -736,9 +723,8 @@ SetOrMapLiteral
           identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
-          iterable2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: d
+          iterable2: ParsedUnqualifiedName
+            name: d
           iterable(v1): SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -846,9 +832,8 @@ SetOrMapLiteral
           identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: b
+          iterable2: ParsedUnqualifiedName
+            name: b
           iterable(v1): SimpleIdentifier
             token: b
         rightParenthesis: )

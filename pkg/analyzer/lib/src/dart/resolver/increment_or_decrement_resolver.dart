@@ -111,7 +111,7 @@ class IncrementOrDecrementResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');

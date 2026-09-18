@@ -418,17 +418,15 @@ var x = C.new();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: C
-  components
-    ParsedNameAccess
-      operator: .
-      name: new
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: C
+    operator: .
+    name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: SimpleIdentifier
     token: C
@@ -447,24 +445,22 @@ var x = C<int>.new();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: C
-  components
-    ParsedTypeArguments
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedTypeArguments
+      operand: ParsedUnqualifiedName
+        name: C
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
         rightBracket: >
-    ParsedNameAccess
-      operator: .
-      name: new
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -490,20 +486,18 @@ var x = prefix.C.new();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: prefix
       operator: .
       name: C
-    ParsedNameAccess
-      operator: .
-      name: new
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -526,27 +520,25 @@ var x = prefix.C<int>.new();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
-      operator: .
-      name: C
-    ParsedTypeArguments
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedTypeArguments
+      operand: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: prefix
+        operator: .
+        name: C
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
         rightBracket: >
-    ParsedNameAccess
-      operator: .
-      name: new
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -612,17 +604,15 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: C
-      components
-        ParsedNameAccess
-          operator: .
-          name: _
-        ParsedArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
+    expression2: ParsedValueArguments
+      operand: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: C
+        operator: .
+        name: _
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
     expression(v1): MethodInvocation
       target: SimpleIdentifier
         token: C
@@ -657,20 +647,18 @@ var x = C<int>.new;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: C
-  components
-    ParsedTypeArguments
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-        rightBracket: >
-    ParsedNameAccess
-      operator: .
-      name: new
+ParsedNameAccess
+  operand: ParsedTypeArguments
+    operand: ParsedUnqualifiedName
+      name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  name: new
 V1: PropertyAccess
   target: FunctionReference
     function: SimpleIdentifier
@@ -693,27 +681,25 @@ var x = C<int>.new.toString();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: C
-  components
-    ParsedTypeArguments
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-        rightBracket: >
-    ParsedNameAccess
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedTypeArguments
+        operand: ParsedUnqualifiedName
+          name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
       operator: .
       name: new
-    ParsedNameAccess
-      operator: .
-      name: toString
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: PropertyAccess
     target: FunctionReference
@@ -760,20 +746,18 @@ var x = C.new.toString();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: C
-  components
-    ParsedNameAccess
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: C
       operator: .
       name: new
-    ParsedNameAccess
-      operator: .
-      name: toString
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -796,16 +780,14 @@ var x = prefix.C.new;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
-      operator: .
-      name: C
-    ParsedNameAccess
-      operator: .
-      name: new
+ParsedNameAccess
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: prefix
+    operator: .
+    name: C
+  operator: .
+  name: new
 V1: PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -825,23 +807,21 @@ var x = prefix.C<int>.new;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
+ParsedNameAccess
+  operand: ParsedTypeArguments
+    operand: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: prefix
       operator: .
       name: C
-    ParsedTypeArguments
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-        rightBracket: >
-    ParsedNameAccess
-      operator: .
-      name: new
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  operator: .
+  name: new
 V1: PropertyAccess
   target: FunctionReference
     function: PrefixedIdentifier
@@ -868,30 +848,28 @@ var x = prefix.C<int>.new.toString();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
-      operator: .
-      name: C
-    ParsedTypeArguments
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-        rightBracket: >
-    ParsedNameAccess
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedTypeArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: prefix
+          operator: .
+          name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
       operator: .
       name: new
-    ParsedNameAccess
-      operator: .
-      name: toString
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: PropertyAccess
     target: FunctionReference
@@ -925,23 +903,21 @@ var x = prefix.C.new.toString();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedExpressionChain
-  head: ParsedNameHead
-    name: prefix
-  components
-    ParsedNameAccess
-      operator: .
-      name: C
-    ParsedNameAccess
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: prefix
+        operator: .
+        name: C
       operator: .
       name: new
-    ParsedNameAccess
-      operator: .
-      name: toString
-    ParsedArguments
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
+    operator: .
+    name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 V1: MethodInvocation
   target: PropertyAccess
     target: PrefixedIdentifier

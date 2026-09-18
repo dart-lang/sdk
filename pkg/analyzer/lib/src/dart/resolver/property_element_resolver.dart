@@ -888,6 +888,20 @@ class PropertyElementResolver with ScopeHelpers {
           );
     }
     receiver as ExpressionImpl;
+    if (receiver is ExtensionOverrideImpl) {
+      var result = _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: SimpleIdentifierImpl(token: node.name),
+        hasRead: false,
+        hasWrite: true,
+      );
+      return _createNamedWriteResolutionWithElement(
+            result.writeElementRequested2,
+          ) ??
+          InvalidNamedWriteResolutionImpl(
+            recoveryElement: result.writeElementRecovery2,
+          );
+    }
     var receiverType = receiver.typeOrThrow;
 
     if (receiverType is NeverType &&

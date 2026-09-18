@@ -48,6 +48,7 @@ class ForResolver {
           _resolver.dispatchCollectionElement(node.body2, context);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
+        endOffset: node.end,
       );
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(
@@ -73,7 +74,7 @@ class ForResolver {
         forLoopParts,
         visitBody,
         rightParenOffset: node.rightParenthesis.offset,
-        endOffset: node.end,
+        endOffset: node.endToken.offset,
       );
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
       _analyzePatternForIn(
@@ -84,6 +85,7 @@ class ForResolver {
           _resolver.dispatchStatement(node.body);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
+        endOffset: node.endToken.offset,
       );
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(
@@ -92,7 +94,7 @@ class ForResolver {
         forLoopParts,
         visitBody,
         rightParenthesisOffset: node.rightParenthesis.offset,
-        bodyEndOffset: node.body.end,
+        bodyEndOffset: node.endToken.offset,
       );
     }
   }
@@ -103,6 +105,7 @@ class ForResolver {
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
     required int rightParenthesisOffset,
+    required int endOffset,
   }) {
     forLoopParts.metadata.accept2(_resolver);
     _resolver.analyzePatternForIn(
@@ -114,7 +117,7 @@ class ForResolver {
       beforePatternOffset: node.offset,
       beforeExpressionOffset: forLoopParts.inKeyword.offset,
       bodyBeginOffset: rightParenthesisOffset,
-      endOffset: node.end,
+      endOffset: endOffset,
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(

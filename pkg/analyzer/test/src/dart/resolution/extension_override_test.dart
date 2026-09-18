@@ -1592,11 +1592,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1608,7 +1608,29 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1617,7 +1639,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1625,7 +1647,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1649,11 +1671,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1673,7 +1695,39 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1682,7 +1736,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1692,7 +1746,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1719,11 +1773,11 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1739,7 +1793,33 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1748,7 +1828,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1756,7 +1836,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1783,11 +1863,11 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -1811,7 +1891,43 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      staticType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1820,7 +1936,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1830,7 +1946,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
@@ -1855,11 +1971,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1871,7 +1987,35 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1880,7 +2024,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -1888,7 +2032,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1913,11 +2057,11 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1937,7 +2081,45 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1946,7 +2128,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -1956,7 +2138,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -1984,11 +2166,11 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2004,7 +2186,39 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -2013,7 +2227,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: s
@@ -2021,7 +2235,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -2049,11 +2263,11 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('(a)');
+    var node = result.findNode.singleCompoundAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2077,7 +2291,49 @@ AssignmentExpression
               type: A
             correspondingParameter: <null>
             staticType: A
-        arguments(v1)
+        rightParenthesis: )
+      element: package:test/lib.dart::@extension::E
+      extendedType: A
+      staticType: A
+      typeArgumentTypes
+        int
+    operator: .
+    name: s
+    read: GetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@getter::s
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/lib.dart::@extension::E::@setter::s
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -2086,7 +2342,7 @@ AssignmentExpression
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: null
+      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -2096,7 +2352,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int

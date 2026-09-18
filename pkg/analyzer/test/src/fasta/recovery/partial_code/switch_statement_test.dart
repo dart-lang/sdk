@@ -41,9 +41,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -83,9 +82,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -121,9 +119,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -162,9 +159,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -202,9 +198,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -249,9 +244,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -286,9 +280,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -302,9 +295,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -340,9 +332,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -385,9 +376,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -430,9 +420,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -480,9 +469,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -530,9 +518,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -574,9 +561,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -614,9 +600,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -625,9 +610,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -662,9 +646,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -708,9 +691,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
@@ -754,9 +736,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -797,9 +778,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -835,9 +815,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -876,9 +855,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -916,9 +894,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -964,9 +941,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1001,9 +977,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1017,9 +992,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -1055,9 +1029,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1101,9 +1074,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1146,9 +1118,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1196,9 +1167,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1246,9 +1216,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1290,9 +1259,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1330,9 +1298,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1341,9 +1308,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -1378,9 +1344,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1424,9 +1389,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1469,9 +1433,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1505,9 +1468,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1541,9 +1503,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1577,9 +1538,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1613,9 +1573,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1647,9 +1606,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1683,9 +1641,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1719,9 +1676,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1755,9 +1711,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1791,9 +1746,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1827,9 +1781,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1863,9 +1816,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1899,9 +1851,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1935,9 +1886,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -1971,9 +1921,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2007,9 +1956,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2132,9 +2080,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2174,9 +2121,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2215,9 +2161,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2263,9 +2208,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2301,9 +2245,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2317,9 +2260,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -2356,9 +2298,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2405,18 +2346,16 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: l
+                expression2: ParsedUnqualifiedName
+                  name: l
                 expression(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -2535,9 +2474,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2581,9 +2519,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2622,9 +2559,8 @@ CompilationUnit
                 expression2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  expression2: ParsedUnqualifiedName
+                    name: x
                   expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
@@ -2663,9 +2599,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2710,9 +2645,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2754,9 +2688,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2794,9 +2727,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2831,9 +2763,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2871,9 +2802,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2909,9 +2839,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2955,9 +2884,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -2990,9 +2918,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3006,9 +2933,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -3042,9 +2968,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3086,9 +3011,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3129,9 +3053,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3177,9 +3100,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3225,9 +3147,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3267,9 +3188,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3305,9 +3225,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3316,9 +3235,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -3351,9 +3269,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )
@@ -3395,9 +3312,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: a
+                expression2: ParsedUnqualifiedName
+                  name: a
                 expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: )

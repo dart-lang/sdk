@@ -2191,27 +2191,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
-  void visitParsedArguments(ParsedArguments node) {
-    _runSubscriptions(node, _registry._forParsedArguments);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
-    _runSubscriptions(node, _registry._forParsedAssignmentTargetChain);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitParsedExpressionChain(ParsedExpressionChain node) {
-    _runSubscriptions(node, _registry._forParsedExpressionChain);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _runSubscriptions(node, _registry._forParsedNameAccess);
     node.visitChildren2(this);
@@ -2219,8 +2198,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
-  void visitParsedNameHead(ParsedNameHead node) {
-    _runSubscriptions(node, _registry._forParsedNameHead);
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forParsedNameAccessAssignmentTarget);
     node.visitChildren2(this);
   }
 
@@ -2228,6 +2209,32 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitParsedTypeArguments(ParsedTypeArguments node) {
     _runSubscriptions(node, _registry._forParsedTypeArguments);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _runSubscriptions(node, _registry._forParsedUnqualifiedName);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _runSubscriptions(
+      node,
+      _registry._forParsedUnqualifiedNameAssignmentTarget,
+    );
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    _runSubscriptions(node, _registry._forParsedValueArguments);
     node.visitChildren2(this);
   }
 
@@ -4844,19 +4851,21 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParenthesizedPattern>> _forParenthesizedPattern =
       [];
 
-  final List<_Subscription2<ParsedArguments>> _forParsedArguments = [];
-
-  final List<_Subscription2<ParsedAssignmentTargetChain>>
-  _forParsedAssignmentTargetChain = [];
-
-  final List<_Subscription2<ParsedExpressionChain>> _forParsedExpressionChain =
-      [];
+  final List<_Subscription2<ParsedNameAccessAssignmentTarget>>
+  _forParsedNameAccessAssignmentTarget = [];
 
   final List<_Subscription2<ParsedNameAccess>> _forParsedNameAccess = [];
 
-  final List<_Subscription2<ParsedNameHead>> _forParsedNameHead = [];
-
   final List<_Subscription2<ParsedTypeArguments>> _forParsedTypeArguments = [];
+
+  final List<_Subscription2<ParsedUnqualifiedNameAssignmentTarget>>
+  _forParsedUnqualifiedNameAssignmentTarget = [];
+
+  final List<_Subscription2<ParsedUnqualifiedName>> _forParsedUnqualifiedName =
+      [];
+
+  final List<_Subscription2<ParsedValueArguments>> _forParsedValueArguments =
+      [];
 
   final List<_Subscription2<PartDirective>> _forPartDirective = [];
 
@@ -6206,49 +6215,56 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addParsedArguments(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forParsedArguments.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addParsedAssignmentTargetChain(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forParsedAssignmentTargetChain.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  void addParsedExpressionChain(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forParsedExpressionChain.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
   void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forParsedNameAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
-  void addParsedNameHead(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addParsedNameAccessAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forParsedNameHead.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forParsedNameAccessAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
   void addParsedTypeArguments(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forParsedTypeArguments.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addParsedUnqualifiedName(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forParsedUnqualifiedName.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addParsedUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forParsedUnqualifiedNameAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addParsedValueArguments(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forParsedValueArguments.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

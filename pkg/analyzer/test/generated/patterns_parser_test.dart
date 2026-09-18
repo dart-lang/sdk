@@ -94,9 +94,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -126,9 +125,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -161,9 +159,8 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -194,9 +191,8 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -260,9 +256,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -288,9 +283,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -319,9 +313,8 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -373,9 +366,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -409,9 +401,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -448,9 +439,8 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -518,9 +508,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -550,9 +539,8 @@ void f(x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -585,9 +573,8 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -3095,9 +3082,8 @@ PatternAssignment
         name: d
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -3126,9 +3112,8 @@ PatternAssignment
         name: d
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -3156,9 +3141,8 @@ PatternAssignment
         name: d
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -3185,9 +3169,8 @@ PatternAssignment
         name: d
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -3216,9 +3199,8 @@ PatternAssignment
         name: d
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -3266,9 +3248,8 @@ FunctionDeclaration
         leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
-          expression2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: x
+          expression2: ParsedUnqualifiedName
+            name: x
           expression(v1): SimpleIdentifier
             token: x
           rightParenthesis: )
@@ -3315,9 +3296,8 @@ f(x, y) => [if (x case _ when y + () => 0) 0];
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -3328,9 +3308,8 @@ IfElement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: ParsedExpressionChain
-            head: ParsedNameHead
-              name: y
+          leftOperand: ParsedUnqualifiedName
+            name: y
           operator: +
           rightOperand: FunctionExpression
             parameters: FormalParameterList
@@ -3370,9 +3349,8 @@ f(x, y) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   caseClause: CaseClause
@@ -3383,9 +3361,8 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: ParsedExpressionChain
-            head: ParsedNameHead
-              name: y
+          leftOperand: ParsedUnqualifiedName
+            name: y
           operator: +
           rightOperand: FunctionExpression
             parameters: FormalParameterList
@@ -3643,9 +3620,8 @@ SwitchPatternCase
     whenClause: WhenClause
       whenKeyword: when
       expression2: BinaryOperatorInvocation
-        leftOperand: ParsedExpressionChain
-          head: ParsedNameHead
-            name: y
+        leftOperand: ParsedUnqualifiedName
+          name: y
         operator: +
         rightOperand: FunctionExpression
           parameters: FormalParameterList
@@ -3801,9 +3777,8 @@ SwitchExpressionCase
         leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
-          expression2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: x
+          expression2: ParsedUnqualifiedName
+            name: x
           expression(v1): SimpleIdentifier
             token: x
           rightParenthesis: )
@@ -3846,9 +3821,8 @@ SwitchExpressionCase
     whenClause: WhenClause
       whenKeyword: when
       expression2: BinaryOperatorInvocation
-        leftOperand: ParsedExpressionChain
-          head: ParsedNameHead
-            name: y
+        leftOperand: ParsedUnqualifiedName
+          name: y
         operator: +
         rightOperand: RecordLiteral
           leftParenthesis: (
@@ -3911,9 +3885,8 @@ SwitchPatternCase
         token: foo
     whenClause: WhenClause
       whenKeyword: when
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: as
+      expression2: ParsedUnqualifiedName
+        name: as
       expression(v1): SimpleIdentifier
         token: as
   colon: :
@@ -3941,9 +3914,8 @@ SwitchPatternCase
       whenKeyword: when
       expression2: LogicalNot
         operator: !
-        operand: ParsedExpressionChain
-          head: ParsedNameHead
-            name: flag
+        operand: ParsedUnqualifiedName
+          name: flag
       expression(v1): PrefixExpression
         operator: !
         operand: SimpleIdentifier
@@ -3971,9 +3943,8 @@ SwitchPatternCase
         token: foo
     whenClause: WhenClause
       whenKeyword: when
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: when
+      expression2: ParsedUnqualifiedName
+        name: when
       expression(v1): SimpleIdentifier
         token: when
   colon: :
@@ -3991,9 +3962,8 @@ f(x, bool Function() a) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -4005,14 +3975,12 @@ SwitchExpression
           name: _
         whenClause: WhenClause
           whenKeyword: when
-          expression2: ParsedExpressionChain
-            head: ParsedNameHead
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
               name: a
-            components
-              ParsedArguments
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  rightParenthesis: )
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
           expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: a
@@ -4039,9 +4007,8 @@ void f(Object? x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -5545,9 +5512,8 @@ SwitchPatternCase
       leftBracket: {
       elements
         MapPatternEntry
-          key2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: c
+          key2: ParsedUnqualifiedName
+            name: c
           key(v1): SimpleIdentifier
             token: c
           separator: : <synthetic>
@@ -7474,9 +7440,8 @@ ForElement
             name: b
       rightParenthesis: )
     inKeyword: in
-    iterable2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    iterable2: ParsedUnqualifiedName
+      name: x
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
@@ -7512,9 +7477,8 @@ ForElement
             name: b
       rightParenthesis: )
     inKeyword: in
-    iterable2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    iterable2: ParsedUnqualifiedName
+      name: x
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
@@ -7547,9 +7511,8 @@ ForStatement
             name: b
       rightParenthesis: )
     inKeyword: in
-    iterable2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    iterable2: ParsedUnqualifiedName
+      name: x
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
@@ -7588,9 +7551,8 @@ ForStatement
             name: b
       rightParenthesis: )
     inKeyword: in
-    iterable2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    iterable2: ParsedUnqualifiedName
+      name: x
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
@@ -7623,9 +7585,8 @@ ForElement
               name: b
         rightParenthesis: )
       equals: =
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
     leftSeparator: ;
@@ -7661,9 +7622,8 @@ ForStatement
               name: b
         rightParenthesis: )
       equals: =
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
     leftSeparator: ;
@@ -7697,9 +7657,8 @@ ForElement
               name: b
         rightParenthesis: )
       equals: =
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
     leftSeparator: ;
@@ -7734,9 +7693,8 @@ ForStatement
               name: b
         rightParenthesis: )
       equals: =
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
     leftSeparator: ;
@@ -7797,9 +7755,8 @@ void f() {
     var node = parseResult.findNode.singleCascadeExpression;
     assertParsedNodeText(node, r'''
 CascadeExpression
-  target2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: a
+  target2: ParsedUnqualifiedName
+    name: a
   target(v1): SimpleIdentifier
     token: a
   sections
@@ -7816,9 +7773,8 @@ CascadeExpression
               name: v1
             rightParenthesis: )
           equals: =
-          expression2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: c
+          expression2: ParsedUnqualifiedName
+            name: c
           expression(v1): SimpleIdentifier
             token: c
     CascadeSection
@@ -7864,9 +7820,8 @@ void f() {
     var node = parseResult.findNode.singleConditionalExpression;
     assertParsedNodeText(node, r'''
 ConditionalExpression
-  condition2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: v2
+  condition2: ParsedUnqualifiedName
+    name: v2
   condition(v1): SimpleIdentifier
     token: v2
   question: ?
@@ -7901,9 +7856,8 @@ PatternAssignment
     rightParenthesis: )
   equals: =
   expression2: CascadeExpression
-    target2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: a
+    target2: ParsedUnqualifiedName
+      name: a
     target(v1): SimpleIdentifier
       token: a
     sections
@@ -8061,9 +8015,8 @@ PatternVariableDeclarationStatement
         name: _
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8094,9 +8047,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8121,9 +8073,8 @@ PatternVariableDeclarationStatement
           name: a
       rightBracket: ]
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8152,9 +8103,8 @@ PatternVariableDeclarationStatement
             name: a
       rightBracket: }
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8178,9 +8128,8 @@ PatternVariableDeclarationStatement
         name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8206,9 +8155,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8239,9 +8187,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8266,9 +8213,8 @@ PatternVariableDeclarationStatement
           name: a
       rightBracket: ]
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8297,9 +8243,8 @@ PatternVariableDeclarationStatement
             name: a
       rightBracket: }
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8323,9 +8268,8 @@ PatternVariableDeclarationStatement
         name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8351,9 +8295,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8390,9 +8333,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8423,9 +8365,8 @@ PatternVariableDeclarationStatement
           name: a
       rightBracket: ]
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8460,9 +8401,8 @@ PatternVariableDeclarationStatement
             name: a
       rightBracket: }
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8492,9 +8432,8 @@ PatternVariableDeclarationStatement
         name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8526,9 +8465,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8565,9 +8503,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8598,9 +8535,8 @@ PatternVariableDeclarationStatement
           name: a
       rightBracket: ]
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8635,9 +8571,8 @@ PatternVariableDeclarationStatement
             name: a
       rightBracket: }
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8667,9 +8602,8 @@ PatternVariableDeclarationStatement
         name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8701,9 +8635,8 @@ PatternVariableDeclarationStatement
             name: a
       rightParenthesis: )
     equals: =
-    expression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: x
+    expression2: ParsedUnqualifiedName
+      name: x
     expression(v1): SimpleIdentifier
       token: x
   semicolon: ;
@@ -8735,9 +8668,8 @@ SwitchPatternCase
       whenKeyword: when
       expression2: LogicalNot
         operator: !
-        operand: ParsedExpressionChain
-          head: ParsedNameHead
-            name: flag
+        operand: ParsedUnqualifiedName
+          name: flag
       expression(v1): PrefixExpression
         operator: !
         operand: SimpleIdentifier
@@ -11164,9 +11096,8 @@ f(x) => switch(x) {};
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11186,9 +11117,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11220,9 +11150,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11250,9 +11179,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11285,9 +11213,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11326,9 +11253,8 @@ ListLiteral
     SwitchExpression
       switchKeyword: switch
       leftParenthesis: (
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      expression2: ParsedUnqualifiedName
+        name: x
       expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
@@ -11367,9 +11293,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11405,9 +11330,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11449,9 +11373,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11491,9 +11414,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11534,9 +11456,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11583,9 +11504,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11630,9 +11550,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11676,9 +11595,8 @@ f(x) => switch (x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11731,9 +11649,8 @@ f(x) => switch(x) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11813,9 +11730,8 @@ SwitchPatternCase
             expression2: SimpleIdentifier
               token: <empty> <synthetic>
         MapPatternEntry
-          key2: ParsedExpressionChain
-            head: ParsedNameHead
-              name: <empty> <synthetic>
+          key2: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           key(v1): SimpleIdentifier
             token: <empty> <synthetic>
           separator: : <synthetic>
@@ -11897,9 +11813,8 @@ void f(Object? x) => switch (x) {if};
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  expression2: ParsedUnqualifiedName
+    name: x
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
@@ -11911,9 +11826,8 @@ SwitchExpression
           expression2: SimpleIdentifier
             token: <empty> <synthetic>
       arrow: => <synthetic>
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: <empty> <synthetic>
+      expression2: ParsedUnqualifiedName
+        name: <empty> <synthetic>
       expression(v1): SimpleIdentifier
         token: <empty> <synthetic>
   rightBracket: }
@@ -11938,24 +11852,21 @@ ExpressionFunctionBody
   functionDefinition: =>
   expression2: ConditionalExpression
     condition2: AsExpression
-      expression2: ParsedExpressionChain
-        head: ParsedNameHead
-          name: condition
+      expression2: ParsedUnqualifiedName
+        name: condition
       expression(v1): SimpleIdentifier
         token: condition
       asOperator: as
       type: NamedType
         name: bool
     question: ?
-    thenExpression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: when
+    thenExpression2: ParsedUnqualifiedName
+      name: when
     thenExpression(v1): SimpleIdentifier
       token: when
     colon: :
-    elseExpression2: ParsedExpressionChain
-      head: ParsedNameHead
-        name: otherwise
+    elseExpression2: ParsedUnqualifiedName
+      name: otherwise
     elseExpression(v1): SimpleIdentifier
       token: otherwise
   semicolon: ;
@@ -11989,9 +11900,8 @@ GuardedPattern
   whenClause: WhenClause
     whenKeyword: when
     expression2: BinaryOperatorInvocation
-      leftOperand: ParsedExpressionChain
-        head: ParsedNameHead
-          name: x
+      leftOperand: ParsedUnqualifiedName
+        name: x
       operator: ==
       rightOperand: NullLiteral
         literal: null
@@ -12863,9 +12773,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -12892,9 +12801,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -12923,9 +12831,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -12953,9 +12860,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -12982,9 +12888,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');
@@ -13013,9 +12918,8 @@ PatternAssignment
         name: _
     rightBracket: ]
   equals: =
-  expression2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  expression2: ParsedUnqualifiedName
+    name: y
   expression(v1): SimpleIdentifier
     token: y
 ''');

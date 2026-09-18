@@ -3393,67 +3393,67 @@ void f(x) {
     _assertSource('(3)', node);
   }
 
-  void test_visitParsedExpressionChain_invocation_conditional() {
+  void test_visitParsedExpression_invocation_conditional() {
     var code = 'a?.foo()';
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 
-  void test_visitParsedExpressionChain_invocation_noTarget() {
+  void test_visitParsedExpression_invocation_noTarget() {
     var code = 'foo()';
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 
-  void test_visitParsedExpressionChain_invocation_target() {
+  void test_visitParsedExpression_invocation_target() {
     var code = 'a.foo()';
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 
-  void test_visitParsedExpressionChain_invocation_typeArguments() {
+  void test_visitParsedExpression_invocation_typeArguments() {
     var code = 'foo<int>()';
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 
-  void test_visitParsedExpressionChain_nullAwareProperty() {
+  void test_visitParsedExpression_nullAwareProperty() {
     var code = 'foo?.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 
-  void test_visitParsedExpressionChain_property() {
+  void test_visitParsedExpression_property() {
     var code = 'foo.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.parsedExpressionChain(code);
+    var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
   }
 

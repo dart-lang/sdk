@@ -42,9 +42,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -90,9 +89,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -126,9 +124,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -225,9 +222,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -269,9 +265,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -403,9 +398,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -1507,9 +1501,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -1555,9 +1548,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -1591,9 +1583,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -1690,9 +1681,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -1734,9 +1724,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -1868,9 +1857,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -2973,9 +2961,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -3022,9 +3009,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -3059,9 +3045,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -3160,9 +3145,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -3205,9 +3189,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -3342,9 +3325,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -4474,9 +4456,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -4523,9 +4504,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -4560,9 +4540,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -4661,9 +4640,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -4706,9 +4684,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -4843,9 +4820,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -5976,9 +5952,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -6026,9 +6001,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -6064,9 +6038,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -6167,9 +6140,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -6213,9 +6185,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -6353,9 +6324,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -7544,9 +7514,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -7593,9 +7562,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -7630,9 +7598,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -7731,9 +7698,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -7776,9 +7742,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -7913,9 +7878,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -9049,9 +9013,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -9098,9 +9061,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -9135,9 +9097,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -9236,9 +9197,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -9281,9 +9241,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -9418,9 +9377,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
@@ -10973,9 +10931,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -11021,9 +10978,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -11057,9 +11013,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -11156,9 +11111,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
@@ -11200,9 +11154,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: int
+                  initializer2: ParsedUnqualifiedName
+                    name: int
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
@@ -11334,9 +11287,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: set
+                  initializer2: ParsedUnqualifiedName
+                    name: set
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>

@@ -702,7 +702,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():

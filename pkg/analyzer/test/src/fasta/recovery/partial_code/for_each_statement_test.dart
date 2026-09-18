@@ -112,9 +112,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -155,9 +154,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -201,9 +199,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -247,9 +244,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -302,16 +298,14 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -352,9 +346,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -366,9 +359,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -412,9 +404,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -466,23 +457,20 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: l
+                  iterable2: ParsedUnqualifiedName
+                    name: l
                   iterable(v1): SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -539,9 +527,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -595,9 +582,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -638,9 +624,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -689,9 +674,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -738,9 +722,8 @@ CompilationUnit
                   iterable2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    expression2: ParsedUnqualifiedName
+                      name: x
                     expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
@@ -748,9 +731,8 @@ CompilationUnit
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -791,9 +773,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -843,9 +824,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -892,16 +872,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -946,16 +924,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -997,16 +973,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1048,16 +1022,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1098,16 +1070,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1156,16 +1126,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1203,16 +1171,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1224,9 +1190,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -1267,16 +1232,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1323,16 +1286,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1378,16 +1339,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1438,16 +1397,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1498,16 +1455,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1552,16 +1507,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1602,25 +1555,22 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -1660,16 +1610,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1716,16 +1664,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1791,17 +1737,15 @@ CompilationUnit
                           literal: true
                       rightParenthesis: )
                   leftSeparator: ;
-                  condition2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  condition2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   condition(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1845,16 +1789,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -1895,9 +1837,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1941,9 +1882,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -1987,9 +1927,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2042,16 +1981,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2092,9 +2029,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2106,9 +2042,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -2152,9 +2087,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2212,9 +2146,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2268,9 +2201,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2324,9 +2256,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2370,17 +2301,15 @@ CompilationUnit
                       VariableDeclaration
                         name: x
                   leftSeparator: ;
-                  condition2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  condition2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   condition(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2421,23 +2350,20 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  initialization2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   initialization(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ;
-                  condition2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  condition2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   condition(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2481,16 +2407,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2531,9 +2455,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2583,9 +2506,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -2633,9 +2555,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2681,9 +2602,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2725,9 +2645,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2769,9 +2688,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2813,9 +2731,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2868,16 +2785,14 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -2916,9 +2831,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -2930,9 +2844,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -2974,9 +2887,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3024,9 +2936,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3073,9 +2984,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3127,9 +3037,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3181,9 +3090,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3229,9 +3137,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3273,18 +3180,16 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  expression2: ParsedUnqualifiedName
+                    name: x
                   expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
@@ -3325,9 +3230,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3375,9 +3279,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -3494,9 +3397,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -3538,9 +3440,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -3585,9 +3486,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -3632,9 +3532,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -3688,16 +3587,14 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -3739,9 +3636,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -3753,9 +3649,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -3800,9 +3695,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -3855,23 +3749,20 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: l
+                  iterable2: ParsedUnqualifiedName
+                    name: l
                   iterable(v1): SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -3930,9 +3821,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -3988,9 +3878,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4032,9 +3921,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4084,9 +3972,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4135,9 +4022,8 @@ CompilationUnit
                   iterable2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    expression2: ParsedUnqualifiedName
+                      name: x
                     expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
@@ -4145,9 +4031,8 @@ CompilationUnit
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4189,9 +4074,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4242,9 +4126,8 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4359,9 +4242,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4402,9 +4284,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4448,9 +4329,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4494,9 +4374,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4549,16 +4428,14 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4599,9 +4476,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4613,9 +4489,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -4659,9 +4534,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4720,9 +4594,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4777,9 +4650,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4834,9 +4706,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -4877,9 +4748,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4928,9 +4798,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -4978,9 +4847,8 @@ CompilationUnit
                   iterable2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    expression2: ParsedUnqualifiedName
+                      name: x
                     expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
@@ -4988,9 +4856,8 @@ CompilationUnit
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5031,9 +4898,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5083,9 +4949,8 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5192,9 +5057,8 @@ CompilationUnit
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5232,9 +5096,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5275,9 +5138,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5318,9 +5180,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5370,16 +5231,14 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5417,9 +5276,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5431,9 +5289,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -5474,9 +5331,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5525,23 +5381,20 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: l
+                  iterable2: ParsedUnqualifiedName
+                    name: l
                   iterable(v1): SimpleIdentifier
                     token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
@@ -5595,9 +5448,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5648,9 +5500,8 @@ CompilationUnit
                         rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5688,9 +5539,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5736,9 +5586,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5782,9 +5631,8 @@ CompilationUnit
                   iterable2: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: x
+                    expression2: ParsedUnqualifiedName
+                      name: x
                     expression(v1): SimpleIdentifier
                       token: x
                     rightParenthesis: )
@@ -5792,9 +5640,8 @@ CompilationUnit
                     rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -5832,9 +5679,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5881,9 +5727,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  iterable2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
@@ -5928,9 +5773,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -5973,9 +5817,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6014,9 +5857,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6055,9 +5897,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6096,9 +5937,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6148,16 +5988,14 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: <empty> <synthetic>
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
                   expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
@@ -6193,9 +6031,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6207,9 +6044,8 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: y
+                    iterable2: ParsedUnqualifiedName
+                      name: y
                     iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
@@ -6248,9 +6084,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6295,9 +6130,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6341,9 +6175,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6392,9 +6225,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6443,9 +6275,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6488,9 +6319,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6529,18 +6359,16 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: x
+                  expression2: ParsedUnqualifiedName
+                    name: x
                   expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
@@ -6578,9 +6406,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>
@@ -6625,9 +6452,8 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: b
+                  iterable2: ParsedUnqualifiedName
+                    name: b
                   iterable(v1): SimpleIdentifier
                     token: b
                 rightParenthesis: ) <synthetic>

@@ -1303,36 +1303,39 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitParsedArguments(ParsedArguments node) {
-    _visitNode(node.argumentList);
-  }
-
-  @override
-  void visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
-    _visitNode(node.head);
-    _visitNodeList(node.components);
-  }
-
-  @override
-  void visitParsedExpressionChain(ParsedExpressionChain node) {
-    _visitNode(node.head);
-    _visitNodeList(node.components);
-  }
-
-  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
+    _visitParsedExpression(node);
+  }
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    _visitNode(node.operand);
     _visitToken(node.operator);
     _visitToken(node.name);
   }
 
   @override
-  void visitParsedNameHead(ParsedNameHead node) {
+  void visitParsedTypeArguments(ParsedTypeArguments node) {
+    _visitParsedExpression(node);
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
     _visitToken(node.name);
   }
 
   @override
-  void visitParsedTypeArguments(ParsedTypeArguments node) {
-    _visitNode(node.typeArguments);
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _visitToken(node.name);
+  }
+
+  @override
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    _visitParsedExpression(node);
   }
 
   @override
@@ -1946,6 +1949,35 @@ class ToSourceVisitor implements AstVisitor2<void> {
         nodes[i].accept2(this);
       }
       sink.write(suffix);
+    }
+  }
+
+  void _visitParsedExpression(ParsedExpression root) {
+    Expression node = root;
+    while (node is ParsedExpression && node is! ParsedUnqualifiedName) {
+      node = switch (node) {
+        ParsedNameAccess(:var operand) => operand,
+        ParsedTypeArguments(:var operand) => operand,
+        ParsedValueArguments(:var operand) => operand,
+        _ => throw StateError(
+          'Unexpected parsed expression: ${node.runtimeType}',
+        ),
+      };
+    }
+    _visitNode(node);
+    while (!identical(node, root)) {
+      node = node.parent2 as ParsedExpression;
+      switch (node) {
+        case ParsedNameAccess(:var operator, :var name):
+          _visitToken(operator);
+          _visitToken(name);
+        case ParsedTypeArguments(:var typeArguments):
+          _visitNode(typeArguments);
+        case ParsedValueArguments(:var argumentList):
+          _visitNode(argumentList);
+        case ParsedUnqualifiedName():
+          throw StateError('A parsed name cannot contain an operand.');
+      }
     }
   }
 

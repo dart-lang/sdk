@@ -2326,6 +2326,30 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void fcvt(
+    FPRegister rd,
+    FPRegister rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    assert(srcSize.is16or32or64);
+    assert(dstSize.is16or32or64);
+    assert(srcSize.sizeInBytes != dstSize.sizeInBytes);
+    emit(
+      B14 |
+          B17 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          rd.encodingRd |
+          rn.encodingRn |
+          (dstSize.is64 ? B15 : (dstSize.is32 ? 0 : (B15 | B16))) |
+          (srcSize.is64 ? B22 : (srcSize.is32 ? 0 : (B22 | B23))),
+    );
+  }
+
   void fcvtas(
     Register rd,
     FPRegister rn, [

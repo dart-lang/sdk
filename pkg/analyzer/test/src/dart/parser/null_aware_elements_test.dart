@@ -25,9 +25,8 @@ f(int? x) => [?x];
     assertParsedNodeText(node, r'''
 NullAwareElement
   question: ?
-  value2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  value2: ParsedUnqualifiedName
+    name: x
   value(v1): SimpleIdentifier
     token: x
 ''');
@@ -42,16 +41,14 @@ f(int? x, String? y) => {?x: ?y};
     assertParsedNodeText(node, r'''
 MapLiteralEntry
   keyQuestion: ?
-  key2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  key2: ParsedUnqualifiedName
+    name: x
   key(v1): SimpleIdentifier
     token: x
   separator: :
   valueQuestion: ?
-  value2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  value2: ParsedUnqualifiedName
+    name: y
   value(v1): SimpleIdentifier
     token: y
 ''');
@@ -66,15 +63,13 @@ f(num? x, bool y) => {?x: y};
     assertParsedNodeText(node, r'''
 MapLiteralEntry
   keyQuestion: ?
-  key2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  key2: ParsedUnqualifiedName
+    name: x
   key(v1): SimpleIdentifier
     token: x
   separator: :
-  value2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  value2: ParsedUnqualifiedName
+    name: y
   value(v1): SimpleIdentifier
     token: y
 ''');
@@ -88,16 +83,14 @@ f(String x, double? y) => {x: ?y};
     var node = parserResult.findNode.mapLiteralEntry("x: ?y");
     assertParsedNodeText(node, r'''
 MapLiteralEntry
-  key2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  key2: ParsedUnqualifiedName
+    name: x
   key(v1): SimpleIdentifier
     token: x
   separator: :
   valueQuestion: ?
-  value2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: y
+  value2: ParsedUnqualifiedName
+    name: y
   value(v1): SimpleIdentifier
     token: y
 ''');
@@ -112,9 +105,8 @@ f(String? x) => {?x};
     assertParsedNodeText(node, r'''
 NullAwareElement
   question: ?
-  value2: ParsedExpressionChain
-    head: ParsedNameHead
-      name: x
+  value2: ParsedUnqualifiedName
+    name: x
   value(v1): SimpleIdentifier
     token: x
 ''');

@@ -181,6 +181,181 @@ class LookupThisTypeTest extends PubPackageResolutionTest {
     }
   }
 
+  test_thisPromotion_immediatelyAfterDoStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f(bool Function() getBool) {
+    do {
+      if (getBool()) break;
+      this as D;
+      /*this: D*/
+    } while (getBool() /*this: D*/);/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterForStatement_conventional() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    for (; this is D;) {
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterForStatement_forIn() async {
+    await assertThisTypes(r'''
+class C {
+  f(Iterable<Object> values, void Function(Object) use) {
+    for (var x in values) {
+      use(x);
+      this as D;
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterForStatement_patternForIn() async {
+    await assertThisTypes(r'''
+class C {
+  f(Iterable<(Object, Object)> values, void Function(Object) use) {
+    for (var (x, y) in values) {
+      use(x);
+      use(y);
+      this as D;
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterIfElseStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    if (this is D) {
+      /*this: D*/
+    } else {
+      this as E;
+      /*this: E*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+class E extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterIfStatement_block() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    if (this is D) {
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterIfStatement_noBraces() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    if (this is D) (this).g();/*this: C*/
+  }
+}
+class D extends C {
+  void g() {}
+}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterLabeledStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    label: {
+      if (this is! D) break label;
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterSwitchStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f(int x) {
+    switch (x) {
+      case 1 when this is D:
+        /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterTryCatchStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    try {
+      /*this: C*/
+    } catch (_) {
+      this as D;
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterTryFinallyStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    try {
+    } finally {
+      if (this is D) {
+        /*this: D*/
+      }/*this: C*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
+  test_thisPromotion_immediatelyAfterWhileStatement() async {
+    await assertThisTypes(r'''
+class C {
+  f() {
+    while (this is D) {
+      /*this: D*/
+    }/*this: C*/
+  }
+}
+class D extends C {}
+''');
+  }
+
   test_thisPromotion_inAnnotation() async {
     // Annotations are flow analysis roots in their own right, nested inside the
     // flow analysis root for the declaration they annotate. `this` isn't

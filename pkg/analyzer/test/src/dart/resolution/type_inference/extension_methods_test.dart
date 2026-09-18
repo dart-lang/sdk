@@ -728,11 +728,11 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -752,7 +752,43 @@ AssignmentExpression
               type: A<int>
             correspondingParameter: <null>
             staticType: A<int>
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A<num>
+      staticType: A<num>
+      typeArgumentTypes
+        num
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: num}
+      acceptedType: num
+  operator: =
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: num}
+    staticType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -761,7 +797,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<num>
-      staticType: null
+      staticType: A<num>
       typeArgumentTypes
         num
     operator: .
@@ -771,7 +807,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
@@ -984,11 +1020,11 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ExtensionOverride
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1000,7 +1036,35 @@ AssignmentExpression
               type: A<int>
             correspondingParameter: <null>
             staticType: A<int>
-        arguments(v1)
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A<int>
+      staticType: A<int>
+      typeArgumentTypes
+        int
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@extension::E::@setter::foo
+        substitution: {T: int}
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1009,7 +1073,7 @@ AssignmentExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<int>
-      staticType: null
+      staticType: A<int>
       typeArgumentTypes
         int
     operator: .
@@ -1019,7 +1083,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
@@ -1033,6 +1097,86 @@ AssignmentExpression
   writeType: int
   element: <null>
   staticType: int
+''');
+  }
+
+  test_override_setter_shadowsInstanceAndExtensionSetters() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  set foo(num value) {}
+}
+extension E on A {
+  set foo(value) {}
+}
+extension F on A {
+  set foo(bool value) {}
+}
+void f(A a) {
+  E(a).foo = 'value';
+}
+''');
+
+    var node = result.findNode.directAssignment('foo =');
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: dynamic
+  operator: =
+  value: SimpleStringLiteral
+    literal: 'value'
+  staticType: String
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            correspondingParameter: <null>
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleStringLiteral
+    literal: 'value'
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: dynamic
+  element: <null>
+  staticType: String
 ''');
   }
 }

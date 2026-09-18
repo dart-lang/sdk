@@ -851,7 +851,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -984,7 +984,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         }
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -1212,7 +1212,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -1288,7 +1288,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordNamedPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
-      case ParsedAssignmentTargetChainImpl():
+      case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():

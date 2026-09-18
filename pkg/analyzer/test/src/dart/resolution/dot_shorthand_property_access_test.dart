@@ -17,6 +17,82 @@ main() {
 @reflectiveTest
 class DotShorthandPropertyAccessResolutionTest
     extends PubPackageResolutionTest {
+  test_chain_index_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static List<C> instances = [C()];
+  C method() => this;
+}
+
+void f() {
+  C c = .instances[0].method();
+  print(c);
+}
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: instances
+  isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::instances
+    invokeType: List<C> Function()
+    type: List<C>
+  staticType: List<C>
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: instances
+    element: <testLibrary>::@class::C::@getter::instances
+    staticType: List<C>
+  isDotShorthand: false
+  staticType: List<C>
+''');
+  }
+
+  test_chain_index_property() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static List<C> instances = [C()];
+  C get self => this;
+}
+
+void f() {
+  C c = .instances[0].self;
+  print(c);
+}
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: instances
+  isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::instances
+    invokeType: List<C> Function()
+    type: List<C>
+  staticType: List<C>
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: instances
+    element: <testLibrary>::@class::C::@getter::instances
+    staticType: List<C>
+  isDotShorthand: false
+  staticType: List<C>
+''');
+  }
+
   test_chain_method() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {

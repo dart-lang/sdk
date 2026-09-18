@@ -43,13 +43,11 @@ CompilationUnit
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: BinaryOperatorInvocation
-                leftOperand: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: cont
+                leftOperand: ParsedUnqualifiedName
+                  name: cont
                 operator: <
-                rightOperand: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: String
+                rightOperand: ParsedUnqualifiedName
+                  name: String
                 binaryOperator: lessThan
               operator: >
               rightOperand: ListLiteral
@@ -291,20 +289,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
                     name: f
-                  components
-                    ParsedArguments
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          NamedArgument
-                            name: with
-                            colon: :
-                            argumentExpression2: IntegerLiteral
-                              literal: 3
-                        rightParenthesis: )
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      NamedArgument
+                        name: with
+                        colon: :
+                        argumentExpression2: IntegerLiteral
+                          literal: 3
+                    rightParenthesis: )
                 expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: f

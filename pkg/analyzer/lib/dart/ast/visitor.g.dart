@@ -2900,27 +2900,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedArguments(ParsedArguments node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
-  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
-  R? visitParsedExpressionChain(ParsedExpressionChain node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
   R? visitParsedNameAccess(ParsedNameAccess node) {
     node.visitChildren2(this);
     return null;
@@ -2928,7 +2907,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedNameHead(ParsedNameHead node) {
+  R? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
     node.visitChildren2(this);
     return null;
   }
@@ -2936,6 +2917,29 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedTypeArguments(ParsedTypeArguments node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedValueArguments(ParsedValueArguments node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4501,27 +4505,31 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedArguments(ParsedArguments node) => null;
-
-  @experimental
-  @override
-  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) => null;
-
-  @experimental
-  @override
-  R? visitParsedExpressionChain(ParsedExpressionChain node) => null;
-
-  @experimental
-  @override
   R? visitParsedNameAccess(ParsedNameAccess node) => null;
 
   @experimental
   @override
-  R? visitParsedNameHead(ParsedNameHead node) => null;
+  R? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) => null;
 
   @experimental
   @override
   R? visitParsedTypeArguments(ParsedTypeArguments node) => null;
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => null;
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) => null;
+
+  @experimental
+  @override
+  R? visitParsedValueArguments(ParsedValueArguments node) => null;
 
   @override
   R? visitPartDirective(PartDirective node) => null;
@@ -5912,28 +5920,31 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedArguments(ParsedArguments node) => _throw(node);
-
-  @experimental
-  @override
-  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
-      _throw(node);
-
-  @experimental
-  @override
-  R? visitParsedExpressionChain(ParsedExpressionChain node) => _throw(node);
-
-  @experimental
-  @override
   R? visitParsedNameAccess(ParsedNameAccess node) => _throw(node);
 
   @experimental
   @override
-  R? visitParsedNameHead(ParsedNameHead node) => _throw(node);
+  R? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) => _throw(node);
 
   @experimental
   @override
   R? visitParsedTypeArguments(ParsedTypeArguments node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedValueArguments(ParsedValueArguments node) => _throw(node);
 
   @override
   R? visitPartDirective(PartDirective node) => _throw(node);
@@ -8987,33 +8998,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
-  T? visitParsedArguments(ParsedArguments node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitParsedArguments(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
-  T? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitParsedAssignmentTargetChain(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
-  T? visitParsedExpressionChain(ParsedExpressionChain node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitParsedExpressionChain(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
   T? visitParsedNameAccess(ParsedNameAccess node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedNameAccess(node);
@@ -9023,9 +9007,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
-  T? visitParsedNameHead(ParsedNameHead node) {
+  T? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
     stopwatch.start();
-    T? result = _baseVisitor.visitParsedNameHead(node);
+    T? result = _baseVisitor.visitParsedNameAccessAssignmentTarget(node);
     stopwatch.stop();
     return result;
   }
@@ -9035,6 +9021,35 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitParsedTypeArguments(ParsedTypeArguments node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedTypeArguments(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedUnqualifiedName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedUnqualifiedNameAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedValueArguments(ParsedValueArguments node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedValueArguments(node);
     stopwatch.stop();
     return result;
   }
@@ -10815,28 +10830,31 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedArguments(ParsedArguments node) => visitNode(node);
-
-  @experimental
-  @override
-  R? visitParsedAssignmentTargetChain(ParsedAssignmentTargetChain node) =>
-      visitNode(node);
-
-  @experimental
-  @override
-  R? visitParsedExpressionChain(ParsedExpressionChain node) => visitNode(node);
-
-  @experimental
-  @override
   R? visitParsedNameAccess(ParsedNameAccess node) => visitNode(node);
 
   @experimental
   @override
-  R? visitParsedNameHead(ParsedNameHead node) => visitNode(node);
+  R? visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) => visitNode(node);
 
   @experimental
   @override
   R? visitParsedTypeArguments(ParsedTypeArguments node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedValueArguments(ParsedValueArguments node) => visitNode(node);
 
   @override
   R? visitPartDirective(PartDirective node) => visitNode(node);

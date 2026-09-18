@@ -775,18 +775,34 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedAssignmentTargetChain(
-    covariant ParsedAssignmentTargetChainImpl node,
+  void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    covariant ParsedNameAccessAssignmentTargetImpl node,
   ) {
-    var target = _astRewriter.parsedAssignmentTargetChain(nameScope, node);
-    target.accept2(this);
+    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
   }
 
   @override
-  void visitParsedExpressionChain(covariant ParsedExpressionChainImpl node) {
-    var expression = _astRewriter.parsedExpressionChain(nameScope, node);
-    expression.accept2(this);
+  void visitParsedTypeArguments(covariant ParsedTypeArgumentsImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedUnqualifiedName(covariant ParsedUnqualifiedNameImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    covariant ParsedUnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
   }
+
+  @override
+  void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) =>
+      _visitParsedExpression(node);
 
   @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
@@ -1529,6 +1545,10 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
         node.condition2?.accept2(this);
         node.updaters2.accept2(this);
     }
+  }
+
+  void _visitParsedExpression(ParsedExpressionImpl node) {
+    _astRewriter.parsedExpression(nameScope, node).accept2(this);
   }
 
   /// Visits [statement], ensuring that if it is a block it is visited as such,

@@ -1281,12 +1281,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
     );
 
     switch (instr.kind) {
-      case .float32List ||
-          .float64List ||
-          .float32ListView ||
-          .float64ListView ||
-          .float32ByteData ||
-          .float64ByteData:
+      case .float32List || .float32ListView || .float32ByteData:
+        final resultReg = outputFPReg(instr);
+        _asm.fldr(resultReg, elementAddr, sz);
+        _asm.fcvt(resultReg, resultReg, .s32, .s64);
+      case .float64List || .float64ListView || .float64ByteData:
         _asm.fldr(outputFPReg(instr), elementAddr, sz);
       default:
         _asm.ldr(outputReg(instr), elementAddr, sz);
@@ -1321,12 +1320,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.csel(scratchReg, valueReg, scratchReg, .unsignedLessOrEqual);
         _asm.str(scratchReg, elementAddr, sz);
 
-      case .float32List ||
-          .float64List ||
-          .float32ListView ||
-          .float64ListView ||
-          .float32ByteData ||
-          .float64ByteData:
+      case .float32List || .float32ListView || .float32ByteData:
+        _asm.fcvt(fpTempReg, inputFPReg(instr, 2), .s64, .s32);
+        _asm.fstr(fpTempReg, elementAddr, sz);
+
+      case .float64List || .float64ListView || .float64ByteData:
         _asm.fstr(inputFPReg(instr, 2), elementAddr, sz);
 
       default:

@@ -704,6 +704,64 @@ V1: InstanceCreationExpression
 ''');
   }
 
+  test_error_named_missingName_typeArguments_implicitNew() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+//        ^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::C
+    type: C<int>
+  selector: ConstructorSelector
+    period: .
+    name2: (
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: (
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 final foo = Map<int>();

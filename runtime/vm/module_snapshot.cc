@@ -35,6 +35,32 @@
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
+
+static void ModularAOTModeHandler(bool value) {
+#if !defined(TARGET_ARCH_ARM64)
+  FATAL("Modular AOT is supported only on ARM64");
+#endif
+
+  FLAG_background_compilation = false;
+  FLAG_enable_mirrors = false;
+  FLAG_link_natives_lazily = true;
+  FLAG_optimization_counter_threshold = -1;
+  FLAG_use_field_guards = false;
+  FLAG_use_cha_deopt = false;
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  FLAG_deoptimize_alot = false;
+  FLAG_deoptimize_every = 0;
+  FLAG_use_osr = false;
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  FLAG_modular_aot_mode = true;
+}
+
+DEFINE_FLAG_HANDLER(ModularAOTModeHandler,
+                    modular_aot,
+                    "Modular AOT compiler mode");
+
 namespace module_snapshot {
 
 class ModuleSnapshot : public AllStatic {
@@ -2070,27 +2096,13 @@ void Deserializer::Deserialize() {
   }
 }
 
-static void EnableModularAOTMode() {
-  FLAG_background_compilation = false;
-  FLAG_enable_mirrors = false;
-  FLAG_link_natives_lazily = true;
-  FLAG_optimization_counter_threshold = -1;
-  FLAG_use_field_guards = false;
-  FLAG_use_cha_deopt = false;
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  FLAG_deoptimize_alot = false;
-  FLAG_deoptimize_every = 0;
-  FLAG_use_osr = false;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  FLAG_modular_aot_mode = true;
-}
-
 char* ReadModuleSnapshot(Thread* thread,
                          const Snapshot* snapshot,
                          const uint8_t* instructions_buffer) {
   ASSERT(snapshot->kind() == Snapshot::kModule);
+  if (!FLAG_modular_aot_mode) {
+    FATAL("Module snapshots can be loaded only if using --modular_aot");
+  }
 
   Deserializer deserializer(thread, snapshot->Addr(), snapshot->length(),
                             instructions_buffer);
@@ -2102,8 +2114,6 @@ char* ReadModuleSnapshot(Thread* thread,
 
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   deserializer.Deserialize();
-
-  EnableModularAOTMode();
 
   return nullptr;
 }

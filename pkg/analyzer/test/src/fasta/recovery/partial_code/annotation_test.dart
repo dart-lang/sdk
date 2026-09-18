@@ -366,9 +366,8 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: <empty> <synthetic>
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
                   arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
@@ -436,9 +435,8 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: <empty> <synthetic>
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
                   arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
@@ -506,9 +504,8 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: <empty> <synthetic>
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
                   arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
@@ -559,15 +556,12 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: int
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: get
-                    ParsedExpressionChain
-                      head: ParsedNameHead
-                        name: a
+                    ParsedUnqualifiedName
+                      name: int
+                    ParsedUnqualifiedName
+                      name: get
+                    ParsedUnqualifiedName
+                      name: a
                   arguments(v1)
                     SimpleIdentifier
                       token: int
@@ -951,9 +945,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -1241,9 +1234,8 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: x
+                expression2: ParsedUnqualifiedName
+                  name: x
                 expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
@@ -1485,9 +1477,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -1538,9 +1529,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -1590,9 +1580,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -1691,9 +1680,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -1710,9 +1698,8 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedExpressionChain
-                    head: ParsedNameHead
-                      name: y
+                  iterable2: ParsedUnqualifiedName
+                    name: y
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
@@ -1757,9 +1744,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -1966,9 +1952,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -2015,9 +2000,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -2066,9 +2050,8 @@ CompilationUnit
                           SwitchExpression
                             switchKeyword: switch
                             leftParenthesis: (
-                            expression2: ParsedExpressionChain
-                              head: ParsedNameHead
-                                name: x
+                            expression2: ParsedUnqualifiedName
+                              name: x
                             expression(v1): SimpleIdentifier
                               token: x
                             rightParenthesis: )
@@ -2117,9 +2100,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -2175,9 +2157,8 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          ParsedExpressionChain
-                            head: ParsedNameHead
-                              name: <empty> <synthetic>
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
                         arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
@@ -2500,9 +2481,8 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer2: ParsedExpressionChain
-              head: ParsedNameHead
-                name: B
+            initializer2: ParsedUnqualifiedName
+              name: B
             initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
@@ -2643,9 +2623,8 @@ CompilationUnit
           arguments: ArgumentList
             leftParenthesis: (
             arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: <empty> <synthetic>
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
             arguments(v1)
               SimpleIdentifier
                 token: <empty> <synthetic>
@@ -2785,9 +2764,8 @@ CompilationUnit
           arguments: ArgumentList
             leftParenthesis: (
             arguments2
-              ParsedExpressionChain
-                head: ParsedNameHead
-                  name: <empty> <synthetic>
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
             arguments(v1)
               SimpleIdentifier
                 token: <empty> <synthetic>

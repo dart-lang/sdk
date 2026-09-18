@@ -260,75 +260,111 @@ class AstRewriter {
     return node;
   }
 
-  AssignmentTargetImpl parsedAssignmentTargetChain(
+  AssignmentTargetImpl parsedAssignmentTarget(
     Scope nameScope,
-    ParsedAssignmentTargetChainImpl node,
+    ParsedAssignmentTargetImpl node,
   ) {
     AssignmentTargetImpl target;
-    var components = node.components;
-    if (components.isEmpty) {
-      target = UnqualifiedNameAssignmentTargetImpl(name: node.head.name);
-    } else {
-      var prefixElement = nameScope.lookup(node.head.name.lexeme).getter;
-      if (components.length == 1 &&
-          components.single.operator.type == TokenType.PERIOD &&
-          prefixElement is PrefixElement) {
-        target = ImportPrefixedAssignmentTargetImpl(
-          importPrefix: ImportPrefixReferenceImpl(
-            name: node.head.name,
-            period: components.single.operator,
-          )..element = prefixElement,
-          name: components.single.name,
-        );
-      } else {
-        // Only preceding selectors are reads. The final selector belongs to
-        // the assignment operation, which may require a write without a read.
-        var receiver = _parsedChainReceiver(
-          nameScope,
-          node.head,
-          components,
-          readComponentCount: components.length - 1,
-        );
+    switch (node) {
+      case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
+        target = UnqualifiedNameAssignmentTargetImpl(name: name);
+      case ParsedNameAccessAssignmentTargetImpl(
+        :var operand,
+        :var operator,
+        :var name,
+      ):
+        NamedReceiverImpl receiver;
+        if (operand is ParsedUnqualifiedNameImpl) {
+          var lookup = nameScope.lookup(operand.name.lexeme);
+          if (lookup.getter case PrefixElement prefix) {
+            if (operator.type == TokenType.PERIOD) {
+              target = ImportPrefixedAssignmentTargetImpl(
+                importPrefix: ImportPrefixReferenceImpl(
+                  name: operand.name,
+                  period: operator,
+                )..element = prefix,
+                name: name,
+              );
+              break;
+            }
+            // As for reads, invalid prefix syntax still records import usage.
+            prefix.scope.lookup(name.lexeme);
+          }
+          receiver = _parsedNameReceiver(
+            null,
+            operand.name,
+            lookup,
+            hasSelector: true,
+          );
+        } else {
+          receiver = _parsedNestedReceiver(
+            nameScope,
+            operand,
+            hasSelector: true,
+          );
+        }
         target = ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
-          operator: components.last.operator,
-          name: components.last.name,
+          operator: operator,
+          name: name,
         );
-      }
     }
     node.replaceWith(target);
     return target;
   }
 
-  ExpressionImpl parsedExpressionChain(
-    Scope nameScope,
-    ParsedExpressionChainImpl node,
-  ) {
-    var invocationParts = switch (node.components) {
-      [ParsedArgumentsImpl(:var argumentList)] => (
-        access: null,
-        typeArguments: null,
-        argumentList: argumentList,
-      ),
-      [
-        ParsedTypeArgumentsImpl(:var typeArguments),
-        ParsedArgumentsImpl(:var argumentList),
-      ] =>
+  ExpressionImpl parsedExpression(Scope nameScope, ParsedExpressionImpl node) {
+    var invocationParts = switch (node) {
+      ParsedValueArgumentsImpl(
+        operand: ParsedUnqualifiedNameImpl(:var name),
+        :var argumentList,
+      ) =>
         (
+          name: name,
+          access: null,
+          typeArguments: null,
+          argumentList: argumentList,
+        ),
+      ParsedValueArgumentsImpl(
+        operand: ParsedTypeArgumentsImpl(
+          operand: ParsedUnqualifiedNameImpl(:var name),
+          :var typeArguments,
+        ),
+        :var argumentList,
+      ) =>
+        (
+          name: name,
           access: null,
           typeArguments: typeArguments,
           argumentList: argumentList,
         ),
-      [ParsedNameAccessImpl access, ParsedArgumentsImpl(:var argumentList)]
-          when access.operator.type == TokenType.PERIOD =>
-        (access: access, typeArguments: null, argumentList: argumentList),
-      [
-        ParsedNameAccessImpl access,
-        ParsedTypeArgumentsImpl(:var typeArguments),
-        ParsedArgumentsImpl(:var argumentList),
-      ]
+      ParsedValueArgumentsImpl(
+        operand: ParsedNameAccessImpl(
+              operand: ParsedUnqualifiedNameImpl(:var name),
+            ) &&
+            var access,
+        :var argumentList,
+      )
           when access.operator.type == TokenType.PERIOD =>
         (
+          name: name,
+          access: access,
+          typeArguments: null,
+          argumentList: argumentList,
+        ),
+      ParsedValueArgumentsImpl(
+        operand: ParsedTypeArgumentsImpl(
+          operand: ParsedNameAccessImpl(
+                operand: ParsedUnqualifiedNameImpl(:var name),
+              ) &&
+              var access,
+          :var typeArguments,
+        ),
+        :var argumentList,
+      )
+          when access.operator.type == TokenType.PERIOD =>
+        (
+          name: name,
           access: access,
           typeArguments: typeArguments,
           argumentList: argumentList,
@@ -336,11 +372,11 @@ class AstRewriter {
       _ => null,
     };
     if (invocationParts case (
+      :var name,
       :var access,
       :var typeArguments,
       :var argumentList,
     )) {
-      var name = node.head.name;
       var lookup = nameScope.lookup(name.lexeme);
       ImportPrefixReferenceImpl? importPrefix;
       if (access != null) {
@@ -399,23 +435,16 @@ class AstRewriter {
       node.replaceWith(expression);
       return expression;
     }
-    if (node.components.any(
-      (component) => component is! ParsedNameAccessImpl,
-    )) {
-      var expression = node.buildUnresolvedExpression();
-      node.replaceWith(expression);
-      return expression;
+    ExpressionImpl head = node;
+    while (head is ParsedNameAccessImpl) {
+      head = head.operand;
     }
-    // Processing every selector produces a value expression, even when the
-    // chain starts with a static qualifier.
     var expression =
-        _parsedChainReceiver(
-              nameScope,
-              node.head,
-              node.components.cast<ParsedNameAccessImpl>(),
-              readComponentCount: node.components.length,
-            )
-            as ExpressionImpl;
+        head is ParsedUnqualifiedNameImpl ||
+            head is! ParsedExpressionImpl && head is! SuperExpressionImpl
+        ? _parsedNestedReceiver(nameScope, node, hasSelector: false)
+              as ExpressionImpl
+        : node.buildUnresolvedExpression();
     node.replaceWith(expression);
     return expression;
   }
@@ -535,6 +564,17 @@ class AstRewriter {
       return node;
     }
     var receiver = node.target2!;
+
+    // Recovery syntax can retain a legacy selector around a parsed receiver.
+    // Normalize it before classifying the enclosing constructor tear-off.
+    // TODO(scheglov): Remove this bridge when recovery selectors use parsed
+    // representations too. For example, `class C<T> { const C.named(); }
+    // const x = C<int>.();` leaves a PropertyAccessImpl around a
+    // ParsedTypeArgumentsImpl. The parent rewrite runs before visiting that
+    // receiver and is not retried after the receiver is rewritten.
+    if (receiver is ParsedExpressionImpl) {
+      receiver = parsedExpression(nameScope, receiver);
+    }
 
     IdentifierImpl receiverIdentifier;
     TypeArgumentListImpl? typeArguments;
@@ -719,86 +759,6 @@ class AstRewriter {
     return false;
   }
 
-  NamedReceiverImpl _parsedChainReceiver(
-    Scope nameScope,
-    ParsedNameHeadImpl head,
-    List<ParsedNameAccessImpl> components, {
-    required int readComponentCount,
-  }) {
-    var name = head.name;
-    var lookupResult = nameScope.lookup(name.lexeme);
-    var element = lookupResult.getter;
-    ImportPrefixReferenceImpl? importPrefix;
-    var componentIndex = 0;
-    if (element is PrefixElement && components.isNotEmpty) {
-      var component = components.first;
-      // Look up the member even for an invalid prefix access, so that the
-      // import is still recorded as used.
-      var prefixedLookupResult = element.scope.lookup(component.name.lexeme);
-      if (component.operator.type == TokenType.PERIOD) {
-        componentIndex++;
-        importPrefix = ImportPrefixReferenceImpl(
-          name: name,
-          period: component.operator,
-        )..element = element;
-        name = component.name;
-        lookupResult = prefixedLookupResult;
-        element = lookupResult.getter;
-      }
-    }
-
-    NamedReceiverImpl receiver;
-    if (componentIndex < components.length &&
-        (element is InterfaceElement ||
-            element is TypeAliasElement &&
-                (element.aliasedType is InterfaceType ||
-                    // Function-type aliases have no static members, but must
-                    // remain qualifiers so reads and writes report invalid
-                    // static access instead of selecting members of Type.
-                    element.aliasedType is FunctionType) ||
-            element is ExtensionElement)) {
-      receiver = StaticQualifierImpl(importPrefix: importPrefix, name: name)
-        ..element = element
-        ..scopeLookupResult = lookupResult;
-    } else {
-      receiver = _parsedNameExpression(importPrefix, name, element);
-    }
-
-    for (; componentIndex < readComponentCount; componentIndex++) {
-      var component = components[componentIndex];
-      if (receiver is StaticQualifierImpl) {
-        var interfaceElement = switch (receiver.element) {
-          InterfaceElement element => element,
-          TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
-          _ => null,
-        };
-        var constructor = component.name.lexeme == 'new'
-            ? interfaceElement?.unnamedConstructor
-            : interfaceElement?.getNamedConstructor(component.name.lexeme);
-        if (constructor != null) {
-          receiver = ConstructorTearOffImpl(
-            typeReference: ConstructorTypeReferenceImpl(
-              importPrefix: receiver.importPrefix,
-              name: receiver.name,
-              typeArguments: null,
-            ),
-            selector: ConstructorSelectorImpl.v2(
-              period: component.operator,
-              name2: component.name,
-            ),
-          );
-          continue;
-        }
-      }
-      receiver = ReceiverPropertyExtractionImpl(
-        receiver: receiver,
-        operator: component.operator,
-        name: component.name,
-      );
-    }
-    return receiver;
-  }
-
   ExpressionImpl _parsedNameExpression(
     ImportPrefixReferenceImpl? importPrefix,
     Token name,
@@ -827,6 +787,112 @@ class AstRewriter {
         }
         return UnqualifiedNameExpressionImpl(name: name);
     }
+  }
+
+  NamedReceiverImpl _parsedNameReceiver(
+    ImportPrefixReferenceImpl? importPrefix,
+    Token name,
+    ScopeLookupResult lookup, {
+    required bool hasSelector,
+  }) {
+    var element = lookup.getter;
+    if (hasSelector &&
+        (element is InterfaceElement ||
+            element is TypeAliasElement &&
+                (element.aliasedType is InterfaceType ||
+                    // Preserve invalid static access on function-type aliases,
+                    // rather than selecting a member of Type.
+                    element.aliasedType is FunctionType) ||
+            element is ExtensionElement)) {
+      return StaticQualifierImpl(importPrefix: importPrefix, name: name)
+        ..element = element
+        ..scopeLookupResult = lookup;
+    }
+    return _parsedNameExpression(importPrefix, name, element);
+  }
+
+  NamedReceiverImpl _parsedNestedReceiver(
+    Scope nameScope,
+    ExpressionImpl root, {
+    required bool hasSelector,
+  }) {
+    var node = root;
+    while (node is ParsedNameAccessImpl) {
+      node = node.operand;
+    }
+    NamedReceiverImpl receiver;
+    if (node is ParsedUnqualifiedNameImpl) {
+      var name = node.name;
+      var lookup = nameScope.lookup(name.lexeme);
+      ImportPrefixReferenceImpl? importPrefix;
+      if (lookup.getter case PrefixElement prefix when !identical(node, root)) {
+        var selector = node.parent2 as ParsedNameAccessImpl;
+        var prefixedLookup = prefix.scope.lookup(selector.name.lexeme);
+        if (selector.operator.type == TokenType.PERIOD) {
+          importPrefix = ImportPrefixReferenceImpl(
+            name: name,
+            period: selector.operator,
+          )..element = prefix;
+          name = selector.name;
+          lookup = prefixedLookup;
+          node = selector;
+        }
+      }
+      receiver = _parsedNameReceiver(
+        importPrefix,
+        name,
+        lookup,
+        hasSelector: hasSelector || !identical(node, root),
+      );
+    } else {
+      // Parentheses and other ordinary expressions already establish a value
+      // role. Their contents are resolved by the receiver's normal visitor.
+      receiver = node;
+    }
+    var parent = node.parent2;
+    while (!identical(node, root)) {
+      var selector = parent as ParsedNameAccessImpl;
+      parent = selector.parent2;
+      receiver = _parsedReceiverAccess(
+        receiver,
+        selector.operator,
+        selector.name,
+      );
+      node = selector;
+    }
+    return receiver;
+  }
+
+  NamedReceiverImpl _parsedReceiverAccess(
+    NamedReceiverImpl receiver,
+    Token operator,
+    Token name,
+  ) {
+    if (receiver is StaticQualifierImpl) {
+      var interfaceElement = switch (receiver.element) {
+        InterfaceElement element => element,
+        TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+        _ => null,
+      };
+      var constructor = name.lexeme == 'new'
+          ? interfaceElement?.unnamedConstructor
+          : interfaceElement?.getNamedConstructor(name.lexeme);
+      if (constructor != null) {
+        return ConstructorTearOffImpl(
+          typeReference: ConstructorTypeReferenceImpl(
+            importPrefix: receiver.importPrefix,
+            name: receiver.name,
+            typeArguments: null,
+          ),
+          selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
+        );
+      }
+    }
+    return ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: operator,
+      name: name,
+    );
   }
 
   ConstructorInvocation _toConstructorInvocation_prefix_type({

@@ -638,6 +638,37 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
+    if (initializerObject is ParsedValueArgumentsImpl) {
+      ExpressionImpl operand = initializerObject.operand;
+      if (operand is ParsedTypeArgumentsImpl) {
+        operand = operand.operand;
+      }
+      if (operand is ParsedNameAccessImpl) {
+        var receiver = operand.operand;
+        if (receiver is ThisExpressionImpl) {
+          return RedirectingConstructorInvocationImpl(
+            thisKeyword: receiver.thisKeyword,
+            constructorSelector: ConstructorSelectorImpl.v2(
+              period: operand.operator,
+              name2: operand.name,
+            ),
+            argumentList: initializerObject.argumentList,
+          );
+        }
+        return buildInitializerTargetExpressionRecovery(
+          receiver,
+          initializerObject,
+        );
+      }
+    }
+
+    if (initializerObject is ParsedNameAccessImpl) {
+      return buildInitializerTargetExpressionRecovery(
+        initializerObject.operand,
+        initializerObject,
+      );
+    }
+
     if (initializerObject is CallInvocationImpl) {
       var function = initializerObject.receiver;
       if (function is SuperExpressionImpl) {
@@ -713,15 +744,9 @@ class AstBuilder extends StackListener {
           thisKeyword = writtenThisKeyword;
           period = operator;
           fieldName = name;
-        // Synthetic names from parser recovery aren't converted to parsed chains.
-        // TODO(scheglov): Check whether parsed chains can preserve recovery for
-        // synthetic names, allowing this case to be removed.
         case UnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
-        case ParsedAssignmentTargetChainImpl(
-          head: ParsedNameHeadImpl(:var name),
-          components: [],
-        ):
+        case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
         default:
           return null;
@@ -799,7 +824,17 @@ class AstBuilder extends StackListener {
   ) {
     ArgumentListImpl? argumentList;
     while (true) {
-      if (target is CallInvocationImpl) {
+      if (target is ParsedValueArgumentsImpl) {
+        argumentList = target.argumentList;
+        ExpressionImpl operand = target.operand;
+        if (operand is ParsedTypeArgumentsImpl) {
+          operand = operand.operand;
+        }
+        target = operand is ParsedNameAccessImpl ? operand.operand : operand;
+      } else if (target is ParsedNameAccessImpl) {
+        argumentList = null;
+        target = target.operand;
+      } else if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
         target = target.receiver as ExpressionImpl;
       } else if (target is MethodInvocationImpl) {
@@ -887,23 +922,39 @@ class AstBuilder extends StackListener {
           (dot.type == TokenType.PERIOD_PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
         push(CascadePropertyExtractionImpl(name: identifierOrInvoke.token));
-      } else if (receiver is SimpleIdentifierImpl &&
-          identical('.', dot.stringValue)) {
+      } else if ((receiver is SimpleIdentifierImpl ||
+              receiver is ParsedUnqualifiedNameImpl ||
+              receiver is ParsedNameAccessImpl) &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD)) {
         push(
-          PrefixedIdentifierImpl(
-            prefix: receiver,
-            period: dot,
-            identifier: identifierOrInvoke,
+          ParsedNameAccessImpl(
+            operand: _toParsedExpression(receiver!),
+            operator: dot,
+            name: identifierOrInvoke.token,
           ),
         );
       } else if (receiver != null &&
           _featureSet.isEnabled(Feature.constructor_tearoffs) &&
           (dot.type == TokenType.PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD) &&
-          _isSupportedPropertyReceiver(receiver)) {
+          _isSupportedPropertyReceiver(receiver) &&
+          _canBuildParsedSelector(receiver)) {
         push(
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
+            operator: dot,
+            name: identifierOrInvoke.token,
+          ),
+        );
+      } else if (receiver != null &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD) &&
+          identifierOrInvoke.token.isKeywordOrIdentifier &&
+          _canBuildParsedSelector(receiver)) {
+        push(
+          ParsedNameAccessImpl(
+            operand: _toParsedExpression(receiver),
             operator: dot,
             name: identifierOrInvoke.token,
           ),
@@ -917,12 +968,42 @@ class AstBuilder extends StackListener {
           ),
         );
       }
-    } else if (identifierOrInvoke is MethodInvocationImpl) {
-      assert(identifierOrInvoke.target2 == null);
-      identifierOrInvoke
-        ..target2 = receiver
-        ..operator = dot;
-      push(identifierOrInvoke);
+    } else if (identifierOrInvoke is ParsedValueArgumentsImpl) {
+      var operand = identifierOrInvoke.operand;
+      var types = operand is ParsedTypeArgumentsImpl ? operand : null;
+      // For `a.b<T>()`, [doInvocation] builds `b<T>()` from an identifier,
+      // optionally wrapped in type arguments. Below we attach `a`.
+      var name = (types?.operand ?? operand) as ParsedUnqualifiedNameImpl;
+      if (receiver != null &&
+          _canBuildParsedSelector(receiver) &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD)) {
+        var access = ParsedNameAccessImpl(
+          operand: _toParsedExpression(receiver),
+          operator: dot,
+          name: name.name,
+        );
+        // The parser completes the selector before attaching its receiver.
+        // Reuse its argument wrappers and replace only the unqualified name.
+        if (types != null) {
+          types.operand = access;
+        } else {
+          identifierOrInvoke.operand = access;
+        }
+        push(identifierOrInvoke);
+      } else {
+        // Specialized receivers and cascades still use their existing parser
+        // representation, including dot-shorthand context and initializer roles.
+        push(
+          MethodInvocationImpl(
+            target2: receiver,
+            operator: dot,
+            methodName: SimpleIdentifierImpl(token: name.name),
+            typeArguments: types?.typeArguments,
+            argumentList: identifierOrInvoke.argumentList,
+          ),
+        );
+      }
     } else {
       // This same error is reported in BodyBuilder.doDotOrCascadeExpression
       Token token = identifierOrInvoke.beginToken;
@@ -951,12 +1032,18 @@ class AstBuilder extends StackListener {
     var receiver = pop() as ExpressionImpl;
     switch (receiver) {
       case SimpleIdentifierImpl():
-        push(
-          MethodInvocationImpl(
-            target2: null,
-            operator: null,
-            methodName: receiver,
+        ParsedExpressionImpl operand = ParsedUnqualifiedNameImpl(
+          name: receiver.token,
+        );
+        if (typeArguments != null) {
+          operand = ParsedTypeArgumentsImpl(
+            operand: operand,
             typeArguments: typeArguments,
+          );
+        }
+        push(
+          ParsedValueArgumentsImpl(
+            operand: operand,
             argumentList: argumentList,
           ),
         );
@@ -1456,11 +1543,13 @@ class AstBuilder extends StackListener {
 
   @override
   void endConstantPattern(Token? constKeyword) {
+    var expression = pop() as ExpressionImpl;
+    // Constant-pattern classification still consumes the legacy name shapes.
+    if (expression is ParsedExpressionImpl) {
+      expression = expression.buildUnresolvedExpression();
+    }
     push(
-      ConstantPatternImpl(
-        constKeyword: constKeyword,
-        expression2: pop() as ExpressionImpl,
-      ),
+      ConstantPatternImpl(constKeyword: constKeyword, expression2: expression),
     );
   }
 
@@ -3965,7 +4054,9 @@ class AstBuilder extends StackListener {
     } else {
       push(
         AssignmentExpressionImpl(
-          leftHandSide2: lhs,
+          leftHandSide2: lhs is ParsedNameAccessImpl
+              ? lhs.buildUnresolvedExpression()
+              : lhs,
           operator: token,
           rightHandSide2: rhs,
         ),
@@ -4278,12 +4369,15 @@ class AstBuilder extends StackListener {
           propertyName: operand,
         ),
       );
-    } else if (operand is MethodInvocationImpl) {
+    } else if (operand is ParsedValueArgumentsImpl) {
+      var function = operand.operand;
+      var types = function is ParsedTypeArgumentsImpl ? function : null;
+      var name = (types?.operand ?? function) as ParsedUnqualifiedNameImpl;
       push(
         DotShorthandInvocationImpl(
           period: periodToken,
-          memberName: operand.methodName,
-          typeArguments: operand.typeArguments,
+          memberName: SimpleIdentifierImpl(token: name.name),
+          typeArguments: types?.typeArguments,
           argumentList: operand.argumentList,
         ),
       );
@@ -5957,6 +6051,15 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(receiver);
+    if (_canBuildParsedSelector(receiver)) {
+      push(
+        ParsedTypeArgumentsImpl(
+          operand: _toParsedExpression(receiver),
+          typeArguments: typeArguments,
+        ),
+      );
+      return;
+    }
     push(
       FunctionReferenceImpl(function2: receiver, typeArguments: typeArguments),
     );
@@ -6400,6 +6503,40 @@ class AstBuilder extends StackListener {
     return constructor;
   }
 
+  /// Whether another selector can use the neutral parsed representation.
+  ///
+  /// Dot-shorthand heads need the context boundary on their enclosing selector.
+  /// Legacy selectors propagate that choice, as well as super and recovery
+  /// syntax, until an ordinary expression boundary such as parentheses.
+  // TODO(scheglov): Remove this migration gate once super, cascade, dot-shorthand,
+  // and recovery selector paths use V2 representations without legacy fallbacks.
+  // This includes representing the dot-shorthand context boundary explicitly,
+  // instead of relying on isDotShorthand on the enclosing selector expression.
+  bool _canBuildParsedSelector(ExpressionImpl receiver) {
+    switch (receiver) {
+      case CascadePropertyExtractionImpl():
+      case CascadeIndexExpressionImpl():
+      case DotShorthandConstructorInvocationImpl():
+      case DotShorthandInvocationImpl():
+      case DotShorthandPropertyAccessImpl():
+      case SuperExpressionImpl():
+      case MethodInvocationImpl():
+      case PropertyAccessImpl():
+      case FunctionReferenceImpl():
+        return false;
+      case DotShorthandMixin():
+        // Indexing and other postfix syntax can sit between the shorthand head
+        // and this selector. Its context marker is set only after the entire
+        // selector chain has been parsed, so recognize the written head here.
+        var token = receiver.beginToken;
+        return token.type != TokenType.PERIOD &&
+            !(token.keyword == Keyword.CONST &&
+                token.next!.type == TokenType.PERIOD);
+      default:
+        return true;
+    }
+  }
+
   void _endClassConstructor(
     Token beginToken,
     Token beginParam,
@@ -6672,6 +6809,44 @@ class AstBuilder extends StackListener {
     } else {
       constructorReference = object as ConstructorReference2Impl;
     }
+    if (token == null) {
+      var type = constructorReference.typeReference;
+      ParsedExpressionImpl operand;
+      if (type.importPrefix case var prefix?) {
+        operand = ParsedNameAccessImpl(
+          operand: ParsedUnqualifiedNameImpl(name: prefix.name),
+          operator: prefix.period,
+          name: type.name,
+        );
+      } else {
+        operand = ParsedUnqualifiedNameImpl(name: type.name);
+      }
+      if (constructorReference.selector case var selector?) {
+        if (type.typeArguments case var arguments?) {
+          operand = ParsedTypeArgumentsImpl(
+            operand: operand,
+            typeArguments: arguments,
+          );
+        }
+        operand = ParsedNameAccessImpl(
+          operand: operand,
+          operator: selector.period,
+          name: selector.name2,
+        );
+      } else {
+        typeArguments ??= type.typeArguments;
+      }
+      if (typeArguments != null) {
+        operand = ParsedTypeArgumentsImpl(
+          operand: operand,
+          typeArguments: typeArguments,
+        );
+      }
+      push(
+        ParsedValueArgumentsImpl(operand: operand, argumentList: argumentList),
+      );
+      return;
+    }
     push(
       ConstructorInvocationImpl(
         keyword: token,
@@ -6704,147 +6879,6 @@ class AstBuilder extends StackListener {
         return _isSupportedPropertyReceiver(_parsedPropertyReceiver(receiver));
       default:
         return false;
-    }
-  }
-
-  /// Flattens name-led syntax into a head and components in source order,
-  /// leaving resolution to determine what the names denote.
-  ///
-  /// By default, accepts only name accesses for assignment-target chains.
-  /// With [allowInvocations], also accepts calls and explicit type arguments
-  /// for value-expression chains.
-  ///
-  /// Returns `null` when the expression should keep its existing representation.
-  /// For example, `(a).b` already has an expression receiver, and `new C()` is
-  /// explicit constructor syntax. This also includes parser paths that have not
-  /// yet been migrated to chains.
-  ///
-  /// Punctuation used as a property name during recovery (such as `(` in
-  /// `C.()`) stays in its existing node instead of becoming a chain name.
-  ///
-  /// Returning `null` preserves child ownership. On success, argument and
-  /// type-argument lists become children of the returned components.
-  ({
-    ParsedNameHeadImpl head,
-    List<ParsedExpressionChainComponentImpl> components,
-  })?
-  _parsedNameChain(ExpressionImpl expression, {bool allowInvocations = false}) {
-    List<AstNodeImpl>? reversedComponents;
-    var receiver = expression;
-    while (true) {
-      switch (receiver) {
-        case SimpleIdentifierImpl():
-          return (
-            head: ParsedNameHeadImpl(name: receiver.token),
-            components: reversedComponents == null
-                ? const []
-                : [
-                    for (var i = reversedComponents.length - 1; i >= 0; i--)
-                      switch (reversedComponents[i]) {
-                        TypeArgumentListImpl list => ParsedTypeArgumentsImpl(
-                          typeArguments: list,
-                        ),
-                        ArgumentListImpl list => ParsedArgumentsImpl(
-                          argumentList: list,
-                        ),
-                        var component => component as ParsedNameAccessImpl,
-                      },
-                  ],
-          );
-        case PrefixedIdentifierImpl():
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.period,
-              name: receiver.identifier.token,
-            ),
-          );
-          receiver = receiver.prefix;
-        case MethodInvocationImpl(
-              :var methodName,
-              :var typeArguments,
-              :var argumentList,
-              target2: var target,
-              :var operator,
-            )
-            when allowInvocations &&
-                !receiver.isCascaded &&
-                methodName.token.isKeywordOrIdentifier:
-          (reversedComponents ??= []).add(argumentList);
-          if (typeArguments != null) {
-            reversedComponents.add(typeArguments);
-          }
-          if (target == null) {
-            receiver = methodName;
-          } else if (operator != null) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(operator: operator, name: methodName.token),
-            );
-            receiver = target;
-          } else {
-            return null;
-          }
-        case FunctionReferenceImpl(function2: var target, :var typeArguments)
-            when allowInvocations && typeArguments != null:
-          (reversedComponents ??= []).add(typeArguments);
-          receiver = target;
-        case ConstructorInvocationImpl(
-              keyword: null,
-              :var constructorReference,
-              :var typeArguments,
-              :var argumentList,
-            )
-            when allowInvocations:
-          var type = constructorReference.typeReference;
-          var selector = constructorReference.selector;
-          (reversedComponents ??= []).add(argumentList);
-          if (typeArguments != null) {
-            reversedComponents.add(typeArguments);
-          }
-          if (selector != null) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(
-                operator: selector.period,
-                name: selector.name2,
-              ),
-            );
-          }
-          if (type.typeArguments case var typeArguments?) {
-            reversedComponents.add(typeArguments);
-          }
-          if (type.importPrefix case var prefix?) {
-            reversedComponents.add(
-              ParsedNameAccessImpl(operator: prefix.period, name: type.name),
-            );
-            receiver = SimpleIdentifierImpl(token: prefix.name);
-          } else {
-            receiver = SimpleIdentifierImpl(token: type.name);
-          }
-        case ReceiverPropertyExtractionImpl(
-              receiver: ExpressionImpl target,
-              :var operator,
-              :var name,
-            )
-            when allowInvocations:
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(operator: operator, name: name),
-          );
-          receiver = target;
-        // Only convert identifier or keyword property names. Recovery may use
-        // punctuation, such as '(' in C.(), even though the token is not synthetic.
-        // TODO(scheglov): Avoid using punctuation tokens as property names during
-        // parser recovery.
-        case PropertyAccessImpl(target2: var target?)
-            when receiver.propertyName.token.isKeywordOrIdentifier:
-          (reversedComponents ??= []).add(
-            ParsedNameAccessImpl(
-              operator: receiver.operator,
-              name: receiver.propertyName.token,
-            ),
-          );
-          receiver = target;
-        default:
-          return null;
-      }
     }
   }
 
@@ -6940,6 +6974,9 @@ class AstBuilder extends StackListener {
     if (_toParsedAssignmentTarget(expression) case var target?) {
       return target;
     }
+    if (expression is ParsedNameAccessImpl) {
+      expression = expression.buildUnresolvedExpression();
+    }
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
     if (expression is ReceiverIndexExpressionImpl &&
@@ -7009,29 +7046,60 @@ class AstBuilder extends StackListener {
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
-  ParsedAssignmentTargetChainImpl? _toParsedAssignmentTarget(
-    ExpressionImpl expression,
-  ) {
-    if (_parsedNameChain(expression) case (:var head, :var components)) {
-      return ParsedAssignmentTargetChainImpl(
-        head: head,
-        components: components.cast<ParsedNameAccessImpl>(),
-      );
+  AssignmentTargetImpl? _toParsedAssignmentTarget(ExpressionImpl expression) {
+    switch (expression) {
+      case ParsedNameAccessImpl(:var operand, :var operator, :var name):
+        // Preserve namespace interpretation for name-only destinations.
+        var head = operand;
+        while (head is ParsedNameAccessImpl) {
+          head = head.operand;
+        }
+        if (head is ParsedUnqualifiedNameImpl) {
+          return ParsedNameAccessAssignmentTargetImpl(
+            operand: operand as ParsedExpressionImpl,
+            operator: operator,
+            name: name,
+          );
+        }
+        // A type application can still denote a static qualifier, e.g.
+        // `Fn<int>.x`. Keep the existing assignment resolver's interpretation
+        // until parsed targets support these qualifiers directly.
+        if (head is ParsedTypeArgumentsImpl) return null;
+        return ReceiverPropertyAssignmentTargetImpl(
+          receiver: operand,
+          operator: operator,
+          name: name,
+        );
+      case SimpleIdentifierImpl(:var token):
+        return ParsedUnqualifiedNameAssignmentTargetImpl(name: token);
+      case PrefixedIdentifierImpl(:var prefix, :var period, :var identifier):
+        return ParsedNameAccessAssignmentTargetImpl(
+          operand: ParsedUnqualifiedNameImpl(name: prefix.token),
+          operator: period,
+          name: identifier.token,
+        );
+      default:
+        break;
     }
     return null;
   }
 
-  /// Commits a completed name chain to a value slot without selecting its
-  /// interpretation. Selectors consume temporary identifier nodes until the
-  /// completed value or assignment-target boundary.
+  /// Commits a completed expression to a value slot without selecting its
+  /// interpretation. Identifier callbacks also serve declarations and types,
+  /// so their names acquire an expression role only at this boundary.
   ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
-    if (_parsedNameChain(expression, allowInvocations: true) case (
-      :var head,
-      :var components,
-    )) {
-      return ParsedExpressionChainImpl(head: head, components: components);
-    }
-    return expression;
+    return switch (expression) {
+      SimpleIdentifierImpl(:var token) => ParsedUnqualifiedNameImpl(
+        name: token,
+      ),
+      PrefixedIdentifierImpl(:var prefix, :var period, :var identifier) =>
+        ParsedNameAccessImpl(
+          operand: ParsedUnqualifiedNameImpl(name: prefix.token),
+          operator: period,
+          name: identifier.token,
+        ),
+      _ => expression,
+    };
   }
 
   static String _versionAsString(Version version) {

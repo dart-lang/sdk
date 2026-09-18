@@ -49,9 +49,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -105,9 +104,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -161,9 +159,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -205,9 +202,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -256,9 +252,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -310,9 +305,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -364,9 +358,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -418,9 +411,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -482,9 +474,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -545,9 +536,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -609,9 +599,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -655,9 +644,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -708,9 +696,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -773,9 +760,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -838,9 +824,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -891,9 +876,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -951,9 +935,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1014,9 +997,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1077,9 +1059,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1138,9 +1119,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1209,9 +1189,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1281,9 +1260,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: set
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1344,9 +1322,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1390,9 +1367,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1443,9 +1419,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1499,9 +1474,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1555,9 +1529,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -1612,9 +1585,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1676,9 +1648,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1728,9 +1699,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1787,9 +1757,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1849,9 +1818,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1911,9 +1879,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -1973,9 +1940,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -2045,9 +2011,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -2116,9 +2081,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedAssignmentTargetChain
-                    head: ParsedNameHead
-                      name: f
+                  target: ParsedUnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                   operation: increment
                   position: postfix
@@ -2185,9 +2149,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2251,9 +2214,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2316,9 +2278,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: f
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2380,9 +2341,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2436,9 +2396,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2492,9 +2451,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2546,9 +2504,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: int
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2610,9 +2567,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
@@ -2673,9 +2629,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2727,9 +2682,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2769,9 +2723,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2818,9 +2771,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2870,9 +2822,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2922,9 +2873,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -2974,9 +2924,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -3036,9 +2985,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -3097,9 +3045,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
@@ -3159,9 +3106,8 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: set
                 equals: = <synthetic>
-                expression2: ParsedExpressionChain
-                  head: ParsedNameHead
-                    name: <empty> <synthetic>
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
             body: BlockFunctionBody
