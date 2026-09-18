@@ -8137,9 +8137,7 @@ class LibraryFragmentImpl extends FragmentImpl
           var importedLibrary = importElement.importedLibrary;
           if (importedLibrary == null ||
               importedLibrary.isOriginNotExistingFile) {
-            var showCombinators = importElement.combinators
-                .whereType<ShowElementCombinator>()
-                .toList();
+            var showCombinators = importElement.showCombinators.toList();
             if (prefix != null && showCombinators.isEmpty) {
               return true;
             }

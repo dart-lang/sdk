@@ -18,6 +18,8 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/services/top_level_declarations.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -3881,10 +3883,6 @@ extension on AstNode {
   Token get precedingCommentOrbeginToken => beginToken.precedingCommentOrThis;
 }
 
-extension on Token {
-  Token get precedingCommentOrThis => precedingComments ?? this;
-}
-
 extension on Set<DartType> {
   bool containsElementAndArguments(DartType argument) {
     for (var type in this) {
@@ -4000,16 +3998,6 @@ extension on CompilationUnitMember {
     }
     return null;
   }
-}
-
-extension on LibraryImport {
-  bool get hasCombinator => combinators.isNotEmpty;
-
-  Iterable<HideElementCombinator> get hideCombinators =>
-      combinators.whereType<HideElementCombinator>();
-
-  Iterable<ShowElementCombinator> get showCombinators =>
-      combinators.whereType<ShowElementCombinator>();
 }
 
 extension on DartType {
