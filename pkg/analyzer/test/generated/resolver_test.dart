@@ -317,10 +317,27 @@ A f(A p) {
   return p;
 }''');
 
-    var node = result.findNode.methodInvocation('p.m()');
+    var node = result.findNode.receiverMethodInvocation('p.m()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: p
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::p
+      type: B
+    staticType: B
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::B::@method::m
+    invokeType: B Function()
+    type: B
+  staticType: B
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: p
     element: <testLibrary>::@function::f::@formalParameter::p
     staticType: B

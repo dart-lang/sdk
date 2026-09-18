@@ -1543,8 +1543,10 @@ test(Object? x, Object? y) => identical(x, y); // invocation
 test(String s1, String s2) => s1.contains(s2);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.methodInvocation('s1.contains(s2)')]
-      ..containsSubrange(astNodes[result.findNode.simple('s1.contains')]!)
+    check(astNodes)[result.findNode.receiverMethodInvocation('s1.contains(s2)')]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('s1.contains')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('s2);')]!,
       );
@@ -1580,8 +1582,12 @@ external String f();
 test(String? s) => s?.contains(f());
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    check(astNodes)[result.findNode.methodInvocation('s?.contains(f())')]
-      ..containsSubrange(astNodes[result.findNode.simple('s?.contains')]!)
+    check(astNodes)[result.findNode.receiverMethodInvocation(
+        's?.contains(f())',
+      )]
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedNameExpression('s?.contains')]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedFunctionInvocation('f())')]!,
       );
@@ -1636,12 +1642,14 @@ test(String? s) => (s)?.contains(f());
 test(String s) => int.parse(s);
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(
-      astNodes,
-    )[result.findNode.methodInvocation('int.parse(s)')].containsSubrange(
-      astNodes[result.findNode.unqualifiedNameExpression('s);')]!,
+    check(astNodes)[result.findNode.receiverMethodInvocation('int.parse(s)')]
+        .containsSubrange(
+          astNodes[result.findNode.unqualifiedNameExpression('s);')]!,
+        );
+    check(astNodes).not(
+      .it()
+        ..containsNode(result.findNode.singleReceiverMethodInvocation.receiver),
     );
-    check(astNodes).not(.it()..containsNode(result.findNode.simple('int')));
     check(runInterpreter(result, ['123'])).equals(123);
   }
 

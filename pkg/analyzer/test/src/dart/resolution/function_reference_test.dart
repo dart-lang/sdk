@@ -7720,20 +7720,22 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitFunctionInstantiation('c.m();');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: MethodInvocation
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverMethodInvocation
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    methodName: SimpleIdentifier
-      token: m
-      element: <testLibrary>::@class::C::@method::m
-      staticType: void Function<T>(T) Function()
+    name: m
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: void Function<T>(T) Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@class::C::@method::m
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes

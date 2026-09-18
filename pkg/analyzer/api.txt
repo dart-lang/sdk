@@ -2440,7 +2440,7 @@ package:analyzer/dart/ast/ast.dart:
     receiver (getter: Expression)
   ReceiverMethodInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental):
     operator (getter: Token)
-    receiver (getter: Expression)
+    receiver (getter: NamedReceiver)
   ReceiverPropertyAssignmentTarget (class extends Object implements PropertyAssignmentTarget, abstract, final, experimental):
     operator (getter: Token)
     receiver (getter: NamedReceiver)

@@ -1570,8 +1570,8 @@ void f(A? a) {
   a?.foo.abs();
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.methodInvocation('.abs()'), 'int?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverMethodInvocation('.abs()'), 'int?');
   }
 
   test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {

@@ -39,6 +39,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/constructor_invocation_resolver.dart';
@@ -4516,6 +4517,63 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedValueArguments(
+    covariant ParsedValueArgumentsImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    var (:selector, :typeArguments) = node.namedInvocationParts!;
+    var receiver = AstRewriter.receiverInvocationReceiver(node);
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    if (receiver is ExpressionImpl) {
+      analyzeExpression(
+        receiver,
+        operations.unknownType,
+        continueNullShorting: true,
+      );
+      receiver = popRewrite()!;
+      if (selector.operator.type == TokenType.QUESTION_PERIOD) {
+        _startNullAwareAccess(receiver, offset: selector.operator.offset);
+        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, selector.name);
+      }
+    }
+    typeArguments?.accept2(this);
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    elementResolver.resolveParsedReceiverInvocation(
+      node,
+      receiver,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      contextType: contextType,
+    );
+    // A null-shortened receiver selects no operation, even when member lookup
+    // supplies an invoke type for recovery and argument checking.
+    var invocation = peekRewrite()!;
+    if (receiver is ExpressionImpl &&
+        invocation is ReceiverMethodInvocationImpl &&
+        selector.operator.type == TokenType.QUESTION_PERIOD &&
+        typeSystem.isNull(typeSystem.resolveToBound(receiver.typeOrThrow))) {
+      invocation.resolution = null;
+    }
+    var replacement = insertGenericFunctionInstantiation(
+      invocation,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+    if (receiver is ExpressionImpl) {
+      nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        invocation,
+        receiver,
+        selector.operator,
+      );
+    }
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
@@ -5502,12 +5560,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       return;
     }
     var invocation = parent.parent2;
-    if (invocation is! MethodInvocation) {
-      return;
-    }
-    var targetType = invocation.realTarget2?.staticType;
-    if (invocation.methodName.name == 'catchError' &&
-        targetType is InterfaceTypeImpl) {
+    var targetType = switch (invocation) {
+      MethodInvocation(methodName: SimpleIdentifier(name: 'catchError')) =>
+        invocation.realTarget2?.staticType,
+      ReceiverMethodInvocation(
+        name: Token(lexeme: 'catchError'),
+        :Expression receiver,
+      ) =>
+        receiver.staticType,
+      _ => null,
+    };
+    if (targetType is InterfaceTypeImpl) {
       var instanceOfFuture = targetType.asInstanceOf(
         typeProvider.futureElement,
       );
@@ -6260,7 +6323,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     ReceiverMethodInvocationImpl destination,
   ) {
     var receiverType = typeSystem.resolveToBound(
-      destination.receiver.typeOrThrow,
+      (destination.receiver as ExpressionImpl).typeOrThrow,
     );
     var hasNoInvocation =
         (receiverType is NeverType &&

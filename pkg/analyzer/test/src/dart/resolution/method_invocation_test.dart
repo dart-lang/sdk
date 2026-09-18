@@ -511,16 +511,15 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        target2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::g::@formalParameter::a
+      ReceiverMethodInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::g::@formalParameter::a
+            type: double
           staticType: double
         operator: .
-        methodName: SimpleIdentifier
-          token: clamp
-          element: dart:core::@class::num::@method::clamp
-          staticType: num Function(num, num)
+        name: clamp
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -551,8 +550,11 @@ UnqualifiedFunctionInvocation
               typeArgumentTypes
                 double
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::num::@method::clamp
+          invokeType: num Function(num, num)
+          type: double
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
-        staticInvokeType: num Function(num, num)
         staticType: double
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -635,16 +637,15 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        target2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::g::@formalParameter::a
+      ReceiverMethodInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::g::@formalParameter::a
+            type: double
           staticType: double
         operator: .
-        methodName: SimpleIdentifier
-          token: clamp
-          element: dart:core::@class::num::@method::clamp
-          staticType: num Function(num, num)
+        name: clamp
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -675,8 +676,11 @@ UnqualifiedFunctionInvocation
               typeArgumentTypes
                 num
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::num::@method::clamp
+          invokeType: num Function(num, num)
+          type: num
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
-        staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -749,18 +753,17 @@ g(double a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.clamp');
+    var node = result.findNode.receiverMethodInvocation('a.clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::g::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: double
     staticType: double
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -790,7 +793,25 @@ MethodInvocation
         staticType: num
         typeArgumentTypes
           num
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::g::@formalParameter::a
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
@@ -830,18 +851,17 @@ f(double a, double b, double c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: double
     staticType: double
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -859,7 +879,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: double
+  staticType: double
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -883,18 +921,17 @@ f(double a, double b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: double
     staticType: double
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -912,7 +949,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -936,18 +991,17 @@ f(double a, int b, double c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: double
     staticType: double
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -965,7 +1019,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -989,18 +1061,17 @@ f(double a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: double
     staticType: double
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1018,7 +1089,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: double
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1053,16 +1142,15 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        target2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::g::@formalParameter::a
+      ReceiverMethodInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::g::@formalParameter::a
+            type: int
           staticType: int
         operator: .
-        methodName: SimpleIdentifier
-          token: clamp
-          element: dart:core::@class::num::@method::clamp
-          staticType: num Function(num, num)
+        name: clamp
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -1093,8 +1181,11 @@ UnqualifiedFunctionInvocation
               typeArgumentTypes
                 num
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::num::@method::clamp
+          invokeType: num Function(num, num)
+          type: num
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
-        staticInvokeType: num Function(num, num)
         staticType: num
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -1175,16 +1266,15 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        target2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::g::@formalParameter::a
+      ReceiverMethodInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::g::@formalParameter::a
+            type: int
           staticType: int
         operator: .
-        methodName: SimpleIdentifier
-          token: clamp
-          element: dart:core::@class::num::@method::clamp
-          staticType: num Function(num, num)
+        name: clamp
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -1215,8 +1305,11 @@ UnqualifiedFunctionInvocation
               typeArgumentTypes
                 int
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::num::@method::clamp
+          invokeType: num Function(num, num)
+          type: int
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
-        staticInvokeType: num Function(num, num)
         staticType: int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -1289,18 +1382,17 @@ g(int a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::g::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1330,7 +1422,25 @@ MethodInvocation
         staticType: num
         typeArgumentTypes
           num
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::g::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       MethodInvocation
         methodName: SimpleIdentifier
           token: f
@@ -1370,18 +1480,17 @@ f(int a, double b, double c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1399,7 +1508,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1423,18 +1550,17 @@ f(int a, double b, dynamic c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1452,7 +1578,25 @@ MethodInvocation
           type: dynamic
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: dynamic
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1476,18 +1620,17 @@ f(int a, double b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1505,7 +1648,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1529,18 +1690,17 @@ f(int a, dynamic b, double c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1558,7 +1718,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1582,18 +1760,17 @@ f(int a, dynamic b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1611,7 +1788,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1635,18 +1830,17 @@ f(int a, int b, double c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1664,7 +1858,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1688,18 +1900,17 @@ f(int a, int b, dynamic c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1717,7 +1928,25 @@ MethodInvocation
           type: dynamic
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: dynamic
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1741,18 +1970,17 @@ f(int a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1770,7 +1998,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1927,18 +2173,17 @@ f(int a, int b, Never c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1956,7 +2201,25 @@ MethodInvocation
           type: Never
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: Never
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -1982,18 +2245,17 @@ f(int a, Never b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: dart:core::@class::num::@method::clamp
-    staticType: num Function(num, num)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -2011,7 +2273,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: num
+  staticType: num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: dart:core::@class::num::@method::clamp
+    staticType: num Function(num, num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -2039,18 +2319,17 @@ f(Never a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.receiverMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Never
     staticType: Never
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: <null>
-    staticType: dynamic
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -2068,7 +2347,22 @@ MethodInvocation
           type: int
         correspondingParameter: <null>
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
@@ -2106,16 +2400,15 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        target2: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::g::@formalParameter::a
+      ReceiverMethodInvocation
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::g::@formalParameter::a
+            type: A
           staticType: A
         operator: .
-        methodName: SimpleIdentifier
-          token: clamp
-          element: <testLibrary>::@class::A::@method::clamp
-          staticType: num Function(String, String)
+        name: clamp
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
@@ -2146,8 +2439,11 @@ UnqualifiedFunctionInvocation
               typeArgumentTypes
                 String
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::clamp
+          invokeType: num Function(String, String)
+          type: num
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
-        staticInvokeType: num Function(String, String)
         staticType: num
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -2222,18 +2518,17 @@ f(A a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp(b');
+    var node = result.findNode.receiverMethodInvocation('clamp(b');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: <testLibrary>::@class::A::@method::clamp
-    staticType: String Function(int, int)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -2251,7 +2546,25 @@ MethodInvocation
           type: int
         correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::clamp
+    invokeType: String Function(int, int)
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: <testLibrary>::@class::A::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
@@ -2354,18 +2667,17 @@ f(A a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp(b');
+    var node = result.findNode.receiverMethodInvocation('clamp(b');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   operator: .
-  methodName: SimpleIdentifier
-    token: clamp
-    element: <testLibrary>::@extension::E::@method::clamp
-    staticType: String Function(int, int)
+  name: clamp
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -2383,7 +2695,25 @@ MethodInvocation
           type: int
         correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::y
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::clamp
+    invokeType: String Function(int, int)
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: clamp
+    element: <testLibrary>::@extension::E::@method::clamp
+    staticType: String Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: <testLibrary>::@extension::E::@method::clamp::@formalParameter::x
@@ -2736,10 +3066,32 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('a.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -2750,7 +3102,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -2865,16 +3217,19 @@ void f(C c) {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: dynamic
+      invokeType: dynamic Function()
+      type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2883,16 +3238,17 @@ CallInvocation
     type: dynamic
   staticType: dynamic
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@getter::foo
       staticType: dynamic
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3193,16 +3549,16 @@ main() {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: C
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: C
       element: <testLibrary>::@class::C
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: int
+      invokeType: int Function()
+      type: int
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3212,16 +3568,17 @@ CallInvocation
     recovery: <null>
   staticType: InvalidType
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
       staticType: null
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@getter::foo
       staticType: int
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3447,8 +3804,26 @@ var x = A.foo();
 
     var node = result.findNode.variableDeclaration('x =').initializer2!;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@class::A::@getter::foo
+    recovery: ExecutableInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: T Function() Function()
+      type: T Function()
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
@@ -3480,8 +3855,34 @@ var x = A.foo(a: 0);
 
     var node = result.findNode.variableDeclaration('x =').initializer2!;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NamedArgument
+        name: a
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 0
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@class::A::@method::foo
+    recovery: ExecutableInvocationResolution
+      element: <testLibrary>::@class::A::@method::foo
+      invokeType: T Function()
+      type: T
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
@@ -3492,11 +3893,11 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NamedArgument
         name: a
         colon: :
-        argumentExpression2: IntegerLiteral
+        argumentExpression: IntegerLiteral
           literal: 0
           staticType: int
         correspondingParameter: <null>
@@ -3519,8 +3920,26 @@ var x = E.foo();
 
     var node = result.findNode.variableDeclaration('x =').initializer2!;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: E
+    element: <testLibrary>::@extension::E
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@extension::E::@method::foo
+    recovery: ExecutableInvocationResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      invokeType: T Function()
+      type: T
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: E
     element: <testLibrary>::@extension::E
     staticType: null
@@ -3643,10 +4062,30 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: bar
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: bar
     element: <null>
     staticType: InvalidType
@@ -3657,7 +4096,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -3678,10 +4117,28 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -3692,7 +4149,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -3715,18 +4172,14 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(x);');
+    var node = result.findNode.receiverMethodInvocation('foo(x);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: C
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
     element: <testLibrary>::@class::C
-    staticType: null
   operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: InvalidType
+  name: foo
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -3738,7 +4191,24 @@ MethodInvocation
           type: int
         correspondingParameter: <null>
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: x
         correspondingParameter: <null>
@@ -3765,10 +4235,28 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -3779,7 +4267,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -3801,10 +4289,33 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo<int>();');
+    var node = result.findNode.receiverMethodInvocation('foo<int>();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -3840,10 +4351,23 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('C.T();');
+    var node = result.findNode.receiverMethodInvocation('C.T();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -3921,10 +4445,31 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: v
+    resolution: VariableReadResolution
+      element: v@15
+      type: Null Function()
+    staticType: Null Function()
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: v
     element: v@15
     staticType: Null Function()
@@ -3935,7 +4480,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -4342,18 +4887,21 @@ void f(C<void> c) {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C<void>
       staticType: C<void>
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: void}
-      staticType: void
+      invokeType: void Function()
+      type: void
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4362,18 +4910,21 @@ CallInvocation
     type: dynamic
   staticType: dynamic
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C<void>
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: void}
       staticType: void
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@class::C::@getter::foo
+      substitution: {T: void}
     staticType: void
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4510,10 +5061,26 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.receiverMethodInvocation('toString()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: foo@16
+      type: void
+    staticType: void
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: foo@16
     staticType: void
@@ -4575,10 +5142,26 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.receiverMethodInvocation('toString()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: foo@16
+      type: void
+    staticType: void
+  operator: ?.
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: foo@16
     staticType: void
@@ -4712,10 +5295,31 @@ void f(double Function(int p) g) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: g
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::g
+      type: double Function(int)
+    staticType: double Function(int)
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: p@27
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::f::@formalParameter::g
     staticType: double Function(int)
@@ -4723,10 +5327,10 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: p@27
@@ -4748,10 +5352,32 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::p
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -4762,7 +5388,7 @@ MethodInvocation
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::p
@@ -4867,16 +5493,16 @@ main() {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: C
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: C
       element: <testLibrary>::@class::C
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4891,16 +5517,17 @@ CallInvocation
     type: double
   staticType: double
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
       staticType: null
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@getter::foo
       staticType: double Function(int)
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4927,10 +5554,29 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: C
     element: <testLibrary>::@class::C
     staticType: null
@@ -4941,7 +5587,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
@@ -5083,10 +5729,34 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('hash(');
+    var node = result.findNode.receiverMethodInvocation('hash(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: hash
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
@@ -5097,7 +5767,7 @@ MethodInvocation
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5126,16 +5796,16 @@ void f() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: A
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
       element: <testLibrary>::@extension::A
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::A::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5150,16 +5820,17 @@ CallInvocation
     type: double
   staticType: double
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@extension::A
       staticType: null
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@extension::A::@getter::foo
       staticType: double Function(int)
+    element: <testLibrary>::@extension::A::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5186,10 +5857,29 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extension::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extension::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: A
     element: <testLibrary>::@extension::A
     staticType: null
@@ -5200,7 +5890,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extension::A::@method::foo::@formalParameter::_
@@ -5222,10 +5912,24 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@extensionType::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -5251,10 +5955,31 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function(int)
+    staticType: void Function(int)
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function(int)
@@ -5262,10 +5987,10 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::_
@@ -5285,10 +6010,35 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::_
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
     staticType: void Function<T>(T)
@@ -5296,10 +6046,10 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5565,10 +6315,30 @@ void f(Function getFunction()) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: foo@44
+      type: Function
+    staticType: Function
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: foo@44
     staticType: Function
@@ -5579,7 +6349,7 @@ MethodInvocation
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5599,10 +6369,31 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('call(0)');
+    var node = result.findNode.receiverMethodInvocation('call(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: Function Function()
+      type: Function
+    staticType: Function
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: Function
@@ -5613,7 +6404,7 @@ MethodInvocation
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5638,16 +6429,19 @@ void f(C c) {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5662,16 +6456,17 @@ CallInvocation
     type: double
   staticType: double
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@getter::foo
       staticType: double Function(int)
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5770,16 +6565,19 @@ void f(C c) {
     var node = result.findNode.callInvocation('foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: int Function()
+      invokeType: int Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5789,16 +6587,17 @@ CallInvocation
     type: int
   staticType: int
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::C::@getter::foo
       staticType: int Function()
+    element: <testLibrary>::@class::C::@getter::foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5820,10 +6619,32 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -5834,7 +6655,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::foo::@formalParameter::_
@@ -5858,10 +6679,36 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::foo::@formalParameter::a
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::foo
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -5872,7 +6719,7 @@ MethodInvocation
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5908,10 +6755,30 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation("foo('hi')");
+    var node = result.findNode.receiverMethodInvocation("foo('hi')");
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: 'hi'
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::I2::@method::foo
+    invokeType: void Function(Object)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -5922,7 +6789,7 @@ MethodInvocation
     staticType: void Function(Object)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: 'hi'
     rightParenthesis: )
@@ -5947,10 +6814,35 @@ class C<T extends A> {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: SubstitutedGetterElementImpl
+        baseElement: <testLibrary>::@class::C::@getter::a
+        substitution: {T: T}
+      invokeType: T Function()
+      type: T
+    staticType: T
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::C::@getter::a
@@ -5963,7 +6855,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -5981,10 +6873,25 @@ void f(Function? foo) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo?.call()');
+    var node = result.findNode.receiverMethodInvocation('foo?.call()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: Function?
+    staticType: Function?
+  operator: ?.
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function?
@@ -6010,10 +6917,25 @@ void f(Function? foo) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo.call()');
+    var node = result.findNode.receiverMethodInvocation('foo.call()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::foo
+      type: Function?
+    staticType: Function?
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function?
@@ -6087,16 +7009,19 @@ void f(C? c) {
     var node = result.findNode.callInvocation('foo(c);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C?
       staticType: C?
     operator: ?.
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: void Function(C)
+      invokeType: void Function(C) Function()
+      type: void Function(C)
     staticType: void Function(C)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6152,10 +7077,27 @@ void f(E e) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('e.foo()');
+    var node = result.findNode.receiverMethodInvocation('e.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: e
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::e
+      type: E
+    staticType: E
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@enum::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: e
     element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
@@ -6187,10 +7129,27 @@ void f(E e) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('e.foo()');
+    var node = result.findNode.receiverMethodInvocation('e.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: e
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::e
+      type: E
+    staticType: E
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: e
     element: <testLibrary>::@function::f::@formalParameter::e
     staticType: E
@@ -6218,10 +7177,27 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -6249,10 +7225,27 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -6282,10 +7275,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6313,10 +7323,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6348,10 +7375,27 @@ void f(X x) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: X
+    staticType: X
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
@@ -6385,10 +7429,26 @@ void f(X x) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: X
+    staticType: X
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
@@ -6420,10 +7480,27 @@ void f(X x) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: X
+    staticType: X
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::X::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
@@ -6453,10 +7530,29 @@ void f(B b) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: B
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::foo
+      substitution: {T: int}
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
@@ -6488,10 +7584,27 @@ void f(B b) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: B
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: double Function()
+    type: double
+  staticType: double
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: B
@@ -6561,10 +7674,10 @@ Object f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.receiverMethodInvocation('toString()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SwitchExpression
+ReceiverMethodInvocation
+  receiver: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
@@ -6573,7 +7686,35 @@ MethodInvocation
         element: <testLibrary>::@function::f::@formalParameter::x
         type: Object?
       staticType: Object?
-    expression(v1): SimpleIdentifier
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+            matchedValueType: Object?
+        arrow: =>
+        expression2: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::int::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -6586,7 +7727,7 @@ MethodInvocation
             name: _
             matchedValueType: Object?
         arrow: =>
-        expression2: IntegerLiteral
+        expression: IntegerLiteral
           literal: 0
           staticType: int
     rightBracket: }
@@ -6617,10 +7758,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6654,10 +7812,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6689,10 +7864,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6720,10 +7912,29 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int?
+    staticType: int?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int}
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
@@ -6753,10 +7964,26 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6788,10 +8015,26 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6821,10 +8064,27 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -6850,10 +8110,24 @@ void f(Never? a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo');
+    var node = result.findNode.receiverMethodInvocation('foo');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Never?
+    staticType: Never?
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never?
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Never?
@@ -6888,24 +8162,20 @@ main() {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: C
-        element: package:test/a.dart::@class::C
-        staticType: null
+      name: C
       element: package:test/a.dart::@class::C
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::C::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -6953,6 +8223,95 @@ V1: FunctionExpressionInvocation
 ''');
   }
 
+  test_hasReceiver_prefixed_class_staticGetter_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {
+  static void Function<T>() get m => <T>() {};
+}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.C.m<int>();
+}
+''');
+
+    var node = result.findNode.callInvocation('m<int>()');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      element: package:test/a.dart::@class::C
+    operator: .
+    name: m
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@class::C::@getter::m
+      invokeType: void Function<T>() Function()
+      type: void Function<T>()
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        element: <testLibraryFragment>::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        element: package:test/a.dart::@class::C
+        staticType: null
+      element: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: m
+      element: package:test/a.dart::@class::C::@getter::m
+      staticType: void Function<T>()
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: void Function()
+  staticType: void
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_hasReceiver_prefixed_class_staticMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class C {
@@ -6968,10 +8327,33 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNode.receiverMethodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: C
+    element: package:test/a.dart::@class::C
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: package:test/a.dart::@class::C::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::C::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -6990,10 +8372,86 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: package:test/a.dart::@class::C::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: void Function(int)
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_prefixed_topGetter_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+A get foo => A();
+
+class A {
+  void bar(int a) {}
+}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as prefix;
+
+f() {
+  prefix.foo.bar(0);
+}
+''');
+    var node = result.findNode.receiverMethodInvocation('bar(0);');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@getter::foo
+      invokeType: A Function()
+      type: A
+    staticType: A
+  operator: .
+  name: bar
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: package:test/a.dart::@class::A::@method::bar::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::A::@method::bar
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@getter::foo
+      staticType: A
+    element: package:test/a.dart::@getter::foo
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: bar
+    element: package:test/a.dart::@class::A::@method::bar
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: package:test/a.dart::@class::A::@method::bar::@formalParameter::a
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -7012,10 +8470,32 @@ void f((int, String) r) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('r.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: r
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r
+      type: (int, String)
+    staticType: (int, String)
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: r
     element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)
@@ -7026,7 +8506,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
@@ -7048,10 +8528,32 @@ void f((int, String)? r) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('r.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: r
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r
+      type: (int, String)?
+    staticType: (int, String)?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: r
     element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)?
@@ -7062,7 +8564,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
@@ -7086,10 +8588,31 @@ void f((int, String)? r) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('r.foo(0)');
+    var node = result.findNode.receiverMethodInvocation('r.foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: r
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r
+      type: (int, String)?
+    staticType: (int, String)?
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: r
     element: <testLibrary>::@function::f::@formalParameter::r
     staticType: (int, String)?
@@ -7100,7 +8623,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -7431,6 +8954,117 @@ MethodInvocation
 ''');
   }
 
+  test_hasReceiver_topGetter_getter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void Function() get m => () {};
+}
+
+C get c => C();
+
+void f() {
+  c.m();
+}
+''');
+
+    var node = result.findNode.callInvocation('m()');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::c
+        invokeType: C Function()
+        type: C
+      staticType: C
+    operator: .
+    name: m
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::m
+      invokeType: void Function() Function()
+      type: void Function()
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@getter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: m
+      element: <testLibrary>::@class::C::@getter::m
+      staticType: void Function()
+    element: <testLibrary>::@class::C::@getter::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_topGetter_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void m() {}
+}
+
+C get c => C();
+
+void f() {
+  c.m();
+}
+''');
+
+    var node = result.findNode.receiverMethodInvocation('m();');
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::c
+      invokeType: C Function()
+      type: C
+    staticType: C
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@getter::c
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    element: <testLibrary>::@class::C::@method::m
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_hasReceiver_typeAlias_staticMethod() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -7444,10 +9078,29 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNode.receiverMethodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: B
+    element: <testLibrary>::@typeAlias::B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
     staticType: null
@@ -7458,7 +9111,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -7482,10 +9135,29 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNode.receiverMethodInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: B
+    element: <testLibrary>::@typeAlias::B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
     staticType: null
@@ -7496,7 +9168,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -7516,10 +9188,27 @@ void f<T>(T? t) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('t.abs()');
+    var node = result.findNode.receiverMethodInvocation('t.abs()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: t
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::t
+      type: T & int
+    staticType: T & int
+  operator: .
+  name: abs
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::int::@method::abs
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: t
     element: <testLibrary>::@function::f::@formalParameter::t
     staticType: T & int
@@ -7551,10 +9240,27 @@ void f<T extends A, U extends B>(T a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a.foo()');
+    var node = result.findNode.receiverMethodInvocation('a.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: T & U
+    staticType: T & U
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::B::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: T & U
@@ -8303,10 +10009,25 @@ void f({a = b?.foo()}) {}
 // [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = result.findNode.methodInvocation('?.foo()');
+    var node = result.findNode.receiverMethodInvocation('?.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
@@ -8332,10 +10053,25 @@ typedef void F({a = b?.foo()});
 // [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = result.findNode.methodInvocation('?.foo()');
+    var node = result.findNode.receiverMethodInvocation('?.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
@@ -8364,18 +10100,14 @@ const b = A.foo(a);
 // [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: A
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
     element: <testLibrary>::@class::A
-    staticType: null
   operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@method::foo
-    staticType: int Function(int)
+  name: foo
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -8387,7 +10119,25 @@ MethodInvocation
           type: int
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -9396,10 +11146,32 @@ main() {
 }
     ''');
 
-    var node = result.findNode.methodInvocation('call(1)');
+    var node = result.findNode.receiverMethodInvocation('call(1)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: double Function(int)? Function()
+      type: double Function(int)?
+    staticType: double Function(int)?
+  operator: ?.
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double?
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: double Function(int)?
@@ -9407,10 +11179,10 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: <null-name>@null
@@ -9892,18 +11664,17 @@ void f(a, int b) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString(b)');
+    var node = result.findNode.receiverMethodInvocation('toString(b)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
     staticType: dynamic
   operator: .
-  methodName: SimpleIdentifier
-    token: toString
-    element: <null>
-    staticType: dynamic
+  name: toString
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -9914,7 +11685,23 @@ MethodInvocation
           type: int
         correspondingParameter: <null>
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: dynamic
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: <null>
@@ -9933,10 +11720,27 @@ void f(a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.receiverMethodInvocation('toString()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
@@ -9962,10 +11766,27 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString();');
+    var node = result.findNode.receiverMethodInvocation('toString();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::f
+      type: void Function()
+    staticType: void Function()
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: void Function()
@@ -10073,6 +11894,115 @@ V1: ImplicitCallReference
 ''');
   }
 
+  test_receiverMethod_name_nullAware_null() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Null a) {
+  a?.foo();
+//   ^^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Null
+    staticType: Null
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_receiverMethod_name_topLevelInitializer_secondResolution() async {
+    var result = await resolveTestCode(r'''
+class C {
+  T id<T>(T value) => value;
+}
+
+var receiver = C();
+var x = receiver.id(0);
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: receiver
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::receiver
+      invokeType: C Function()
+      type: C
+    staticType: C
+  operator: .
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: receiver
+    element: <testLibrary>::@getter::receiver
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::C::@method::id
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_receiverMethod_parenthesizedExpression_neverAlias() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef N = Never;
@@ -10112,6 +12042,7 @@ ReceiverMethodInvocation
     rightParenthesis: )
   resolution: <null>
   staticType: Never
+    alias: <testLibrary>::@typeAlias::N
 V1: MethodInvocation
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -10133,6 +12064,7 @@ V1: MethodInvocation
     rightParenthesis: )
   staticInvokeType: dynamic
   staticType: Never
+    alias: <testLibrary>::@typeAlias::N
 ''');
   }
 
@@ -10182,6 +12114,99 @@ V1: MethodInvocation
     rightParenthesis: )
   staticInvokeType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_receiverMethod_static_importPrefix_topLevelInitializer_secondResolution() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {
+  static T id<T>(T value) => value;
+}
+''');
+
+    var result = await resolveTestCode(r'''
+import 'a.dart' as p;
+
+var x = p.C.id<int>(0);
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: C
+    element: package:test/a.dart::@class::C
+  operator: .
+  name: id
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::C::@method::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+      element: package:test/a.dart::@class::C
+      staticType: null
+    element: package:test/a.dart::@class::C
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: id
+    element: package:test/a.dart::@class::C::@method::id
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -10472,18 +12497,17 @@ f(int a, double b) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('remainder');
+    var node = result.findNode.receiverMethodInvocation('remainder');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: remainder
-    element: dart:core::@class::num::@method::remainder
-    staticType: num Function(num)
+  name: remainder
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -10494,7 +12518,25 @@ MethodInvocation
           type: double
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
         staticType: double
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::remainder
+    invokeType: num Function(num)
+    type: double
+  staticType: double
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    element: dart:core::@class::num::@method::remainder
+    staticType: num Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
@@ -10513,18 +12555,17 @@ f(int a, int b) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('remainder');
+    var node = result.findNode.receiverMethodInvocation('remainder');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
     staticType: int
   operator: .
-  methodName: SimpleIdentifier
-    token: remainder
-    element: dart:core::@class::num::@method::remainder
-    staticType: num Function(num)
+  name: remainder
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -10535,7 +12576,25 @@ MethodInvocation
           type: int
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::remainder
+    invokeType: num Function(num)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: remainder
+    element: dart:core::@class::num::@method::remainder
+    staticType: num Function(num)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
@@ -10731,8 +12790,8 @@ void main() {
     var node = result.findNode.callInvocation('content()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: ReceiverPropertyExtraction
+  receiver: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
       receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: AsExpression
@@ -10756,10 +12815,11 @@ CallInvocation
         type: A
       staticType: A
     operator: .
-    propertyName: SimpleIdentifier
-      token: content
+    name: content
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::content
-      staticType: String Function()
+      invokeType: String Function() Function()
+      type: String Function()
     staticType: String Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -10817,18 +12877,21 @@ test<T extends Function>(List<T> x) {
     var node = result.findNode.callInvocation('x.first()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::test::@formalParameter::x
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::x
+        type: List<T>
       staticType: List<T>
     operator: .
-    propertyName: SimpleIdentifier
-      token: first
+    name: first
+    resolution: GetterInvocationResolution
       element: SubstitutedGetterElementImpl
         baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
-      staticType: T
+      invokeType: T Function()
+      type: T
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
@@ -10837,18 +12900,21 @@ CallInvocation
     type: dynamic
   staticType: dynamic
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::test::@formalParameter::x
       staticType: List<T>
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: first
       element: SubstitutedGetterElementImpl
         baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
       staticType: T
+    element: SubstitutedGetterElementImpl
+      baseElement: dart:core::@class::Iterable::@getter::first
+      substitution: {E: T}
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (

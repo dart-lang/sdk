@@ -37605,6 +37605,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       };
       var methodNameType = switch (origin) {
         CascadeMethodInvocationImpl() => origin.staticInvokeType,
+        ReceiverMethodInvocationImpl(staticInvokeType: InvalidTypeImpl()) =>
+          origin.staticInvokeType,
         _ => switch (origin.resolution) {
           ExecutableInvocationResolutionImpl(:var element) => element.type,
           InvalidInvocationResolutionImpl(
@@ -38037,7 +38039,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
         SimpleIdentifierImpl.v1Projection(token: importPrefix.name)
           ..element = importPrefix.element,
       ReceiverMethodInvocationImpl(:var receiver) =>
-        V1Projection.toV1Expression(receiver),
+        V1Projection.toV1NamedReceiver(receiver),
       DotShorthandMethodInvocationImpl() => throw StateError(
         'DotShorthandMethodInvocation projects to DotShorthandInvocation.',
       ),
@@ -41899,7 +41901,7 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
   WriteResolutionImpl? get write => null;
 }
 
-/// A parser-only expression whose names have not yet been assigned receiver roles.
+/// A syntactic expression whose final semantic role has not yet been selected.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ParsedExpression implements Expression {}
@@ -42620,6 +42622,10 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   @override
   final Token name;
 
+  /// Lexical binding retained when a call's qualifier stays in parsed form
+  /// until type-based member lookup.
+  ScopeLookupResult? scopeLookupResult;
+
   @generated
   ParsedUnqualifiedNameImpl({required this.name});
 
@@ -42763,6 +42769,19 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
     return argumentList.endToken;
   }
 
+  /// The final selector and optional invocation type arguments of a named call.
+  @DoNotGenerate(reason: 'Groups nested invocation syntax without lowering it')
+  ({ParsedNameAccessImpl selector, TypeArgumentListImpl? typeArguments})?
+  get namedInvocationParts => switch (operand) {
+    ParsedNameAccessImpl selector => (selector: selector, typeArguments: null),
+    ParsedTypeArgumentsImpl(
+      operand: ParsedNameAccessImpl selector,
+      :var typeArguments,
+    ) =>
+      (selector: selector, typeArguments: typeArguments),
+    _ => null,
+  };
+
   @generated
   @override
   ParsedExpressionImpl get operand => _operand;
@@ -42834,10 +42853,10 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('Parsed expressions must be lowered before resolution.');
+    resolver.visitParsedValueArguments(this, contextType: contextType);
   }
 
   @generated
@@ -46698,11 +46717,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   }
 }
 
-/// A direct method invocation on an explicitly written expression receiver.
-///
-/// This migration slice supports receivers whose value-producing role is
-/// structurally unambiguous. Other receiver forms remain on their existing AST
-/// shapes until named receivers and parser-only chains are implemented.
+/// A direct method invocation on an explicitly written receiver or qualifier.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ReceiverMethodInvocation
@@ -46710,8 +46725,8 @@ abstract final class ReceiverMethodInvocation
   /// The operator separating the receiver from the method name.
   Token get operator;
 
-  /// The expression whose value receives the method invocation.
-  Expression get receiver;
+  /// The value receiver or static namespace selecting the method.
+  NamedReceiver get receiver;
 }
 
 @GenerateNodeImpl(
@@ -46727,7 +46742,7 @@ abstract final class ReceiverMethodInvocation
 final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
     implements ReceiverMethodInvocation {
   @generated
-  ExpressionImpl _receiver;
+  NamedReceiverImpl _receiver;
 
   @generated
   @override
@@ -46737,7 +46752,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   @generated
   ReceiverMethodInvocationImpl({
-    required ExpressionImpl receiver,
+    required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
     required super.typeArguments,
@@ -46764,10 +46779,10 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   @generated
   @override
-  ExpressionImpl get receiver => _receiver;
+  NamedReceiverImpl get receiver => _receiver;
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
+  set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
     _methodInvocation?._attachV1Children();
   }
@@ -46831,7 +46846,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
+      receiver = newNode as NamedReceiverImpl;
       return;
     }
     if (identical(typeArguments, oldNode)) {
@@ -46876,7 +46891,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
+    void Function(NamedReceiverImpl)? visitReceiver,
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {

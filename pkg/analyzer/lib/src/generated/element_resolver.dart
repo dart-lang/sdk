@@ -99,6 +99,20 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void resolveParsedReceiverInvocation(
+    ParsedValueArgumentsImpl node,
+    NamedReceiverImpl receiver, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveReceiver(
+      node,
+      receiver,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void visitClassDeclaration(ClassDeclaration node) {}
 
   void visitClassTypeAlias(ClassTypeAlias node) {}

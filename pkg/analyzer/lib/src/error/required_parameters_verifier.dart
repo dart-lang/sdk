@@ -134,7 +134,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
         _check(
           parameters: targetType.formalParameters,
           arguments: node.argumentList.arguments2,
-          errorEntity: node.argumentList,
+          errorEntity: node.methodName,
         );
         return;
       }

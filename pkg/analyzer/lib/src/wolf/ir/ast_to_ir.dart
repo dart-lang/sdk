@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         UnqualifiedNameExpressionImpl,
         VariableReadResolutionImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
@@ -1097,7 +1098,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       _visitDirectNamedFunctionInvocation(
         node as ReceiverMethodInvocationImpl,
-        receiver: node.receiver,
+        receiver: node.receiver.tryCast<Expression>(),
         isNullAware: node.operator.type == TokenType.QUESTION_PERIOD,
       );
 

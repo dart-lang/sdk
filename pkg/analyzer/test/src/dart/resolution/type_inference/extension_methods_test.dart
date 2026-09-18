@@ -79,10 +79,38 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A<int>
+    staticType: A<int>
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    invokeType: Map<int, double> Function(double)
+    type: Map<int, double>
+  staticType: Map<int, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A<int>
@@ -95,7 +123,7 @@ MethodInvocation
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -118,10 +146,29 @@ extension E<T> on List<T> {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('other.foo()');
+    var node = result.findNode.receiverMethodInvocation('other.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: other
+    resolution: VariableReadResolution
+      element: <testLibrary>::@extension::E::@method::bar::@formalParameter::other
+      type: List<T>
+    staticType: List<T>
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: T}
+    invokeType: List<T> Function()
+    type: List<T>
+  staticType: List<T>
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: other
     element: <testLibrary>::@extension::E::@method::bar::@formalParameter::other
     staticType: List<T>
@@ -151,10 +198,38 @@ void f(String a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: String
+    staticType: String
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: value@null
+          substitution: {U: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: String, U: U}
+    invokeType: Map<String, int> Function(int)
+    type: Map<String, int>
+  staticType: Map<String, int>
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: String
@@ -167,7 +242,7 @@ MethodInvocation
     staticType: Map<String, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -311,10 +386,29 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('test();');
+    var node = result.findNode.receiverMethodInvocation('test();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: S
+    staticType: S
+  operator: .
+  name: test
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::Test::@method::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: S

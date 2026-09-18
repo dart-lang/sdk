@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -322,12 +323,14 @@ extension on ElementAnnotation {
 }
 
 extension on AstNode {
-  AstNode get nodeToAnnotate => switch (this) {
+  SyntacticEntity get nodeToAnnotate => switch (this) {
     DotShorthandConstructorInvocation node => node.constructorName,
     DotShorthandInvocation node => node.memberName,
     DotShorthandPropertyAccess node => node.propertyName,
     MethodInvocation node => node.methodName,
+    ReceiverMethodInvocation node => node.name,
     PropertyAccess node => node.propertyName,
+    CallInvocation(receiver: ReceiverPropertyExtraction(:var name)) => name,
     CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,
   };

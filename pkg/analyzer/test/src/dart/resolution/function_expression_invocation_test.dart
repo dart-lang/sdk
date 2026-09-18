@@ -1146,16 +1146,19 @@ class B {
     var node = result.findNode.callInvocation('a?.foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: int Function()
+      invokeType: int Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1196,20 +1199,22 @@ test(A? a) => a?.f()();
     var node = result.findNode.callInvocation('a?.f()()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: MethodInvocation
-    target2: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::test::@formalParameter::a
+  receiver: ReceiverMethodInvocation
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::test::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@class::A::@method::f
-      staticType: int Function() Function()
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: int Function() Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@class::A::@method::f
+      invokeType: int Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1394,16 +1399,17 @@ void f(({void Function(int) foo}) r) {
     var node = result.findNode.callInvocation('(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: r
-      element: <testLibrary>::@function::f::@formalParameter::r
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: r
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::r
+        type: ({void Function(int) foo})
       staticType: ({void Function(int) foo})
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: void Function(int)
+    name: foo
+    resolution: RecordFieldReadResolution
+      type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1453,16 +1459,17 @@ void f((void Function(int),) r) {
     var node = result.findNode.callInvocation('(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: r
-      element: <testLibrary>::@function::f::@formalParameter::r
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: r
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::r
+        type: (void Function(int),)
       staticType: (void Function(int),)
     operator: .
-    propertyName: SimpleIdentifier
-      token: $1
-      element: <null>
-      staticType: void Function(int)
+    name: $1
+    resolution: RecordFieldReadResolution
+      type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (

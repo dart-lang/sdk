@@ -2197,11 +2197,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        node.operator,
-        kind: _NullAwareKind.access,
-      );
+      switch (node.receiver) {
+        case StaticQualifier():
+          diagnosticReporter.report(
+            diag.invalidNullAwareOperator
+                .withArguments(operator: '?.', replacement: '.')
+                .at(node.operator),
+          );
+        case Expression receiver:
+          _checkForUnnecessaryNullAware(
+            receiver,
+            node.operator,
+            kind: _NullAwareKind.access,
+          );
+      }
     }
     _verifyNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
@@ -7033,7 +7042,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
       typeReference.name.lexeme,
     ].join('.');
-    if (selector != null) {
+    if (selector?.name2.lexeme == 'new' &&
+        _featureSet.isEnabled(Feature.constructor_tearoffs)) {
+      diagnosticReporter.report(
+        diag.newWithUndefinedConstructorDefault
+            .withArguments(className: className)
+            .at(selector!.name2),
+      );
+    } else if (selector != null) {
       diagnosticReporter.report(
         diag.newWithUndefinedConstructor
             .withArguments(
@@ -8028,8 +8044,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       } else if (target is ReceiverMethodInvocation) {
         var operator = target.operator;
-        if (operator.type == TokenType.QUESTION_PERIOD) {
-          return previousShortCircuitingOperator(target.receiver) ?? operator;
+        if (target.receiver case Expression receiver
+            when operator.type == TokenType.QUESTION_PERIOD) {
+          return previousShortCircuitingOperator(receiver) ?? operator;
         }
       }
       return null;

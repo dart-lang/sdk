@@ -266,6 +266,12 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
     for (var parent = node.parent2; ; parent = parent.parent2) {
       switch (parent) {
         case null:
+          return null;
+        // These nodes group the selector of a call that is still awaiting
+        // member lookup; they are not independently inferred expressions.
+        case ParsedNameAccess():
+        case ParsedTypeArguments():
+          break;
         case Annotation():
         case CollectionElement():
         case DartPattern():

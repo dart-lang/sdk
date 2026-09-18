@@ -586,6 +586,10 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.receiver case NameExpression receiver
+        when node.resolution is FunctionCallInvocationResolution) {
+      return receiver.resolution?.elementOrRecovery;
+    }
     return _visitNamedFunctionInvocation(node);
   }
 

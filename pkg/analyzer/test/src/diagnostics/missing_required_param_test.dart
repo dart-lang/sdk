@@ -194,7 +194,7 @@ void f({required int a}) {}
 
 main() {
   f.call();
-//      ^^
+//  ^^^^
 // [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
 ''');
@@ -206,6 +206,17 @@ void Function({required int a}) f() => throw '';
 g() {
   f()();
 //^^^^^
+// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
+}
+''');
+  }
+
+  test_functionInvocation_call() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void Function({required int a}) f() => throw '';
+g() {
+  f().call();
+//    ^^^^
 // [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
 }
 ''');

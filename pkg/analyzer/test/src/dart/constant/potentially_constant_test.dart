@@ -914,7 +914,7 @@ var x = foo(a, b);
 var x = a.foo();
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('a.foo()')],
+      (result) => [result.findNode.receiverMethodInvocation('a.foo()')],
     );
   }
 

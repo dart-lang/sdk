@@ -887,8 +887,10 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   ) {
     _elementUsageFrontierDetector.namedFunctionInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
-    _errorHandlerVerifier.verifyNamedFunctionInvocation(node, node.receiver);
-    _nullSafeApiVerifier.namedFunctionInvocation(node, node.receiver);
+    if (node.receiver case ExpressionImpl receiver) {
+      _errorHandlerVerifier.verifyNamedFunctionInvocation(node, receiver);
+      _nullSafeApiVerifier.namedFunctionInvocation(node, receiver);
+    }
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
   }

@@ -402,7 +402,7 @@ void f(int a) {
   f.call(a);
 }
 ''');
-    var node = result.findNode.methodInvocation('call');
+    var node = result.findNodeV1.methodInvocation('call');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -576,7 +576,7 @@ void f(A a) {
   a.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNodeV1.methodInvocation('call(1)').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -605,7 +605,7 @@ void f(int i) {
   f.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call').methodName;
+    var node = result.findNodeV1.methodInvocation('call').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1441,7 +1441,7 @@ void f(int a) {
   f.call(a);
 }
 ''');
-    var node = result.findNode.methodInvocation('call');
+    var node = result.findNode.receiverMethodInvocation('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1601,7 +1601,7 @@ void f(A a) {
   a.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNode.receiverMethodInvocation('call(1)');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -1630,7 +1630,7 @@ void f(int i) {
   f.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call').methodName;
+    var node = result.findNode.receiverMethodInvocation('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
