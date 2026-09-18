@@ -58,18 +58,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
   late CompilationUnit testUnit;
 
-  /// A helper for finding [AstNode]s within [testUnit].
-  ///
-  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
-  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
-  late FindNode findNode;
-
-  /// A helper for finding declared elements within [testUnit].
-  ///
-  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
-  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
-  late FindElement findElement;
-
   /// The [TestCode] representation of the test source code.
   ///
   /// Contains the raw [testCode] stripped of test markers, as well as parsed
@@ -141,8 +129,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
       testLibraryResult = libraryResult;
       testAnalysisResult = unitResult;
       testUnit = unitResult.unit;
-      findNode = FindNode(unitResult.content, testUnit);
-      findElement = FindElement(testUnit);
     }
 
     if (verifyNoTestUnitErrors) {
@@ -183,8 +169,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     addTestSource(code);
     testParsedResult = await getParsedUnit(testFile);
     testUnit = testParsedResult.unit;
-    findNode = FindNode(testCode, testUnit);
-    findElement = FindElement(testUnit);
   }
 
   /// Adds the given [code] as the test source and resolves [testFile].
@@ -206,5 +190,57 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// codes to be ignored.
   Future<void> resolveTestFile({List<DiagnosticCode>? ignore}) async {
     await getResolvedUnit(testFile, ignore: ignore);
+  }
+}
+
+mixin FindElementMixin on AbstractSingleUnitTest {
+  /// A helper for finding declared elements within [testUnit].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
+  late FindElement findElement;
+
+  @override
+  Future<ResolvedUnitResult> getResolvedUnit(
+    File file, {
+    List<DiagnosticCode>? ignore,
+  }) async {
+    var unitResult = await super.getResolvedUnit(file, ignore: ignore);
+    if (file.path == convertPath(testFilePath)) {
+      findElement = FindElement(testUnit);
+    }
+    return unitResult;
+  }
+
+  @override
+  Future<void> parseTestCode(String code) async {
+    await super.parseTestCode(code);
+    findElement = FindElement(testUnit);
+  }
+}
+
+mixin FindNodeMixin on AbstractSingleUnitTest {
+  /// A helper for finding [AstNode]s within [testUnit].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
+  late FindNode findNode;
+
+  @override
+  Future<ResolvedUnitResult> getResolvedUnit(
+    File file, {
+    List<DiagnosticCode>? ignore,
+  }) async {
+    var unitResult = await super.getResolvedUnit(file, ignore: ignore);
+    if (file.path == convertPath(testFilePath)) {
+      findNode = FindNode(unitResult.content, testUnit);
+    }
+    return unitResult;
+  }
+
+  @override
+  Future<void> parseTestCode(String code) async {
+    await super.parseTestCode(code);
+    findNode = FindNode(testCode, testUnit);
   }
 }

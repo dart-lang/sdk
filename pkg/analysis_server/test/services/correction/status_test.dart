@@ -21,7 +21,8 @@ void main() {
 }
 
 @reflectiveTest
-class RefactoringLocationTest extends AbstractSingleUnitTest {
+class RefactoringLocationTest extends AbstractSingleUnitTest
+    with FindElementMixin, FindNodeMixin {
   Future<void> test_createLocation_forElement() async {
     await resolveTestCode('class MyClass {}');
     var element = findElement.class_('MyClass');
