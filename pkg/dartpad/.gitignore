@@ -1,0 +1,6 @@
+# Populated by tool/publish.sh with ~250 MB of built worker and SDK assets.
+# These are shipped to pub.dev, but must never be checked in.
+#
+# The .pubignore next to this file shadows this one for `dart pub publish`,
+# so web/ is still included in the published archive.
+/web/
