@@ -494,6 +494,10 @@ class PluginSession {
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );
+          _isolate.sessionLogger.logInfo(
+            "Plugin cannot handle request '${request.method}' with parameters: "
+            '$parameters.',
+          );
           return;
         }
         var stackTrace = StackTrace.fromString(error.stackTrace!);

@@ -18,6 +18,14 @@ enum EntryKind {
   /// - attachments
   exception('exception'),
 
+  /// An entry representing arbitrary information.
+  ///
+  /// This is often used for debugging purposes.
+  ///
+  /// Entries of this kind will have the following keys:
+  /// - message
+  info('info'),
+
   /// An entry representing the passing of a message from one process to
   /// another.
   ///

@@ -327,6 +327,7 @@ abstract class AnalysisServer {
   }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
        pubApi = PubApi(
          instrumentationService,
+         sessionLogger,
          httpClient,
          platform.environment['PUB_HOSTED_URL'],
        ),
@@ -352,6 +353,7 @@ abstract class AnalysisServer {
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
             instrumentationService,
+            sessionLogger,
             resourceProvider.pathContext,
             processRunner,
           )
@@ -425,7 +427,11 @@ abstract class AnalysisServer {
         dartFixPromptManager ??
         DartFixPromptManager(
           this,
-          UserPromptPreferences(resourceProvider, instrumentationService),
+          UserPromptPreferences(
+            resourceProvider,
+            instrumentationService,
+            sessionLogger,
+          ),
         );
   }
 

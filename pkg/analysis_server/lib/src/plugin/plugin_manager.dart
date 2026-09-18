@@ -217,6 +217,7 @@ class PluginManager {
     );
     try {
       instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+      sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
       var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
       unawaited(
         session?.onDone.then((_) {
@@ -579,6 +580,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
     );
+    sessionLogger.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
     var depfile = entrypoint.parent.getFile('depfile.txt');
@@ -594,6 +596,10 @@ class PluginManager {
           'Could not delete existing AOT plugin entrypoint at '
           '"$aotSnapshotFile": $e.',
         );
+        sessionLogger.logInfo(
+          'Could not delete existing AOT plugin entrypoint at '
+          '"$aotSnapshotFile": $e.',
+        );
       }
     }
     var result = _processRunner.runSync(
@@ -605,6 +611,9 @@ class PluginManager {
     stopwatch.stop();
 
     instrumentationService.logInfo(
+      'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
+    );
+    sessionLogger.logInfo(
       'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
     );
 
@@ -623,6 +632,10 @@ class PluginManager {
       );
       if (aotSnapshotFile != null) {
         instrumentationService.logInfo(
+          'Using existing plugin AOT snapshot at '
+          "'${aotSnapshotFile.path}'",
+        );
+        sessionLogger.logInfo(
           'Using existing plugin AOT snapshot at '
           "'${aotSnapshotFile.path}'",
         );
@@ -895,6 +908,9 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
+    sessionLogger.logInfo(
+      'Running "pub $pubCommand" in "${workingDirectory.path}".',
+    );
 
     var stopwatch = Stopwatch()..start();
     var result = _processRunner.runSync(
@@ -908,6 +924,9 @@ class PluginManager {
     stopwatch.stop();
 
     instrumentationService.logInfo(
+      'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
+    );
+    sessionLogger.logInfo(
       'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );
 

@@ -173,6 +173,7 @@ class LogPlayer {
                 );
               }
             case EntryKind.exception:
+            case EntryKind.info:
           }
         } finally {
           nextIndex++;

@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
@@ -17,10 +18,15 @@ abstract class UserPromptPreferences {
   factory(
     ResourceProvider resourceProvider,
     InstrumentationService instrumentationService,
+    SessionLogger sessionLogger,
   ) {
     var stateFolder = resourceProvider.getStateLocation('.prompts');
     if (stateFolder == null) {
       instrumentationService.logInfo(
+        'No state location is available for saving user prompt preferences. '
+        'Preferences will assumed opt-outs.',
+      );
+      sessionLogger.logInfo(
         'No state location is available for saving user prompt preferences. '
         'Preferences will assumed opt-outs.',
       );

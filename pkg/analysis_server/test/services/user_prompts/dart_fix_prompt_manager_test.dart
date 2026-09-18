@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -78,10 +79,12 @@ class DartFixPromptTest
 
   void setUp() {
     var instrumentationService = NoopInstrumentationService();
-    server = TestServer(instrumentationService);
+    var sessionLogger = SessionLogger();
+    server = TestServer(instrumentationService, sessionLogger);
     preferences = UserPromptPreferences(
       resourceProvider,
       instrumentationService,
+      sessionLogger,
     );
     promptManager = TestDartFixPromptManager(server, preferences);
   }
@@ -362,6 +365,9 @@ class TestServer implements LspAnalysisServer {
   final InstrumentationService instrumentationService;
 
   @override
+  final SessionLogger sessionLogger;
+
+  @override
   bool supportsShowMessageRequest = true;
 
   @override
@@ -388,7 +394,7 @@ class TestServer implements LspAnalysisServer {
 
   String? respondToPromptWithAction;
 
-  new(this.instrumentationService);
+  new(this.instrumentationService, this.sessionLogger);
 
   ExecuteCommandParams get lastCommandParams =>
       (executeCommandHandler as TestExecuteCommandHandler).lastParams!;
