@@ -16,7 +16,7 @@ Once you have located the repo, you can contribute feedback in several ways:
 
 - **File a new issue**: If you've found a problem or bug in existing code, start by searching the current issues to see if it's already reported. If not, you can file a new issue.
 
-- **Upvote existing issue**: If you're experiencing an issue that has already been reported, or want to indicate interest in an issue tracking a new feature, consider upvoting it to help the Flutter team understand its importance. You can upvote an issue by locating it in the GitHub issue tracker, and pressing the "thumbs up" reaction on the issue's top-most comment. Avoid otherwise empty +1, emoji, or similar comments.
+- **Upvote existing issue**: If you're experiencing an issue that has already been reported, or want to indicate interest in an issue tracking a new feature, consider upvoting it to help the Dart team understand its importance. You can upvote an issue by locating it in the GitHub issue tracker, and pressing the "thumbs up" reaction on the issue's top-most comment. Avoid otherwise empty +1, emoji, or similar comments. The Dart team reviews the highest voted issues on a regular basis for consideration into our roadmap.
 
 **Note**: Dart currently does _not_ have a formal *RFC* (request for comments) process to propose larger changes. We hope to add this soon. 
 
