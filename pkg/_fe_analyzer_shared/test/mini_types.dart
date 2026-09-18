@@ -2220,6 +2220,41 @@ class _PreUnknownType extends _PreType {
       const UnknownType();
 }
 
+/// Representation of a [LookupStructuralContextType] that has been parsed but
+/// hasn't had meaning assigned to its identifiers yet.
+class _PreLookupStructuralContextType extends _PreType {
+  final String lookupName;
+  final _PreType lookupType;
+
+  _PreLookupStructuralContextType({
+    required this.lookupName,
+    required this.lookupType,
+  });
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    return LookupStructuralContextType(
+      lookupName: lookupName,
+      lookupType: lookupType.materialize(typeFormalScope: typeFormalScope),
+    );
+  }
+}
+
+/// Representation of an [InvocationStructuralContextType] that has been parsed
+/// but hasn't had meaning assigned to its identifiers yet.
+class _PreInvocationStructuralContextType extends _PreType {
+  final _PreType returnType;
+
+  _PreInvocationStructuralContextType({required this.returnType});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    return InvocationStructuralContextType(
+      returnType: returnType.materialize(typeFormalScope: typeFormalScope),
+    );
+  }
+}
+
 /// Shared implementation of the types `void`, `dynamic`, `null`, `Never`, and
 /// the invalid type.
 ///
@@ -2255,7 +2290,7 @@ abstract class _Substitutable<T extends _Substitutable<T>> {
 
 class _TypeParser {
   static final _typeTokenizationRegexp = RegExp(
-    _identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]',
+    _identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]|:|\.\.\.|->',
   );
 
   static const _identifierPattern = '[_a-zA-Z][_a-zA-Z0-9]*';
@@ -2464,6 +2499,8 @@ class _TypeParser {
     //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
     //                   | `(` recordTypeFields `,`? `)`
     //                   | `(` recordTypeNamedFields? `)`
+    //                   | `{` identifier `:` type `}`
+    //                   | `(` `...` `)` `->` type
     //   recordTypeFields := type (`,` type)*
     //   recordTypeNamedFields := `{` recordTypeNamedField
     //                            (`,` recordTypeNamedField)* `,`? `}`
@@ -2532,6 +2569,19 @@ class _TypeParser {
       if (_currentToken == ')' || _currentToken == '{') {
         return _parseRecordTypeRest([]);
       }
+      if (_currentToken == '...') {
+        _next();
+        if (_currentToken != ')') {
+          _parseFailure('Expected `)`');
+        }
+        _next();
+        if (_currentToken != '->') {
+          _parseFailure('Expected `->`');
+        }
+        _next();
+        var returnType = _parseType();
+        return _PreInvocationStructuralContextType(returnType: returnType);
+      }
       var type = _parseType();
       if (_currentToken == ',') {
         _next();
@@ -2542,6 +2592,27 @@ class _TypeParser {
       }
       _next();
       return type;
+    }
+    if (_currentToken == '{') {
+      _next();
+      var lookupName = _currentToken;
+      if (_identifierRegexp.matchAsPrefix(lookupName) == null) {
+        _parseFailure('Expected an identifier');
+      }
+      _next();
+      if (_currentToken != ':') {
+        _parseFailure('Expected `:`');
+      }
+      _next();
+      var lookupType = _parseType();
+      if (_currentToken != '}') {
+        _parseFailure('Expected `}`');
+      }
+      _next();
+      return _PreLookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: lookupType,
+      );
     }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {

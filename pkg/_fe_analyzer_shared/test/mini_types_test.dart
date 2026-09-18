@@ -676,6 +676,73 @@ main() {
     test('extra token after type', () {
       expect(() => Type('int)'), throwsParseError);
     });
+
+    group('lookup structural context type:', () {
+      test('simple', () {
+        var type = Type('{foo: int}') as LookupStructuralContextType;
+        expect(type.lookupName, 'foo');
+        expect(type.lookupType, Type('int'));
+      });
+
+      test('with complex lookup type', () {
+        var type = Type('{foo: int Function()}') as LookupStructuralContextType;
+        expect(type.lookupName, 'foo');
+        expect(type.lookupType, Type('int Function()'));
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('simple without spaces', () {
+        var type = Type('(...)->int') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int'));
+      });
+
+      test('simple with spaces', () {
+        var type = Type('( ... ) -> int') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int'));
+      });
+
+      test('with complex return type', () {
+        var type =
+            Type('(...) -> int Function()') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int Function()'));
+      });
+
+      test('nullability suffix gravity', () {
+        var type =
+            Type('(...) -> int Function()?') as InvocationStructuralContextType;
+        expect(type.isQuestionType, false);
+        expect(type.returnType.isQuestionType, true);
+        expect(type.returnType, Type('int Function()?'));
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('missing closing `)` after `...`', () {
+        expect(() => Type('(...'), throwsParseError);
+        expect(() => Type('(... foo)'), throwsParseError);
+      });
+      test('missing `->` in invocation', () {
+        expect(() => Type('(...)'), throwsParseError);
+      });
+      test('missing return type', () {
+        expect(() => Type('(...) ->'), throwsParseError);
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('non-identifier lookup name', () {
+        expect(() => Type('{123: int}'), throwsParseError);
+        expect(() => Type('{}'), throwsParseError);
+      });
+      test('missing colon in lookup', () {
+        expect(() => Type('{foo int}'), throwsParseError);
+      });
+      test('missing closing `}` in lookup', () {
+        expect(() => Type('{foo: int'), throwsParseError);
+        expect(() => Type('{foo: int, bar: String}'), throwsParseError);
+      });
+    });
   });
 
   group('hashCode and equality:', () {
