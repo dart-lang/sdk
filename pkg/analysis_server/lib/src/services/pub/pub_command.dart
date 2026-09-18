@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -27,6 +28,7 @@ class PubCommand {
       'DART_SERVER_DISABLE_PUB_COMMAND';
 
   final InstrumentationService _instrumentationService;
+  final SessionLogger _sessionLogger;
   final path.Context _pathContext;
   late final ProcessRunner _processRunner;
   late final String _pubEnvironmentValue;
@@ -43,7 +45,12 @@ class PubCommand {
   /// tools (such as the IDE).
   var _lastQueuedCommand = Future<void>.value();
 
-  new(this._instrumentationService, this._pathContext, this._processRunner) {
+  new(
+    this._instrumentationService,
+    this._sessionLogger,
+    this._pathContext,
+    this._processRunner,
+  ) {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
     const pubEnvString = 'analysis_server.pub_api';
@@ -94,6 +101,7 @@ class PubCommand {
   void shutdown() {
     for (var process in _activeProcesses) {
       _instrumentationService.logInfo('Terminating process ${process.pid}');
+      _sessionLogger.logInfo('Terminating process ${process.pid}');
       process.kill();
     }
   }
@@ -117,6 +125,7 @@ class PubCommand {
 
     try {
       _instrumentationService.logInfo('Starting pub command $args');
+      _sessionLogger.logInfo('Starting pub command $args');
       var process = await _processRunner.start(
         sdk.dart,
         ['pub', ...args],
@@ -143,6 +152,7 @@ class PubCommand {
       try {
         var results = jsonDecode(stdout);
         _instrumentationService.logInfo('pub command completed successfully');
+        _sessionLogger.logInfo('pub command completed successfully');
         return results as Map<String, Object?>?;
       } catch (e) {
         _instrumentationService.logError(

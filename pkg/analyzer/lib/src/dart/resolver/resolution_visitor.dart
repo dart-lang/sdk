@@ -1548,7 +1548,21 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _visitParsedExpression(ParsedExpressionImpl node) {
-    _astRewriter.parsedExpression(nameScope, node).accept2(this);
+    switch (_astRewriter.parsedExpression(nameScope, node)) {
+      case PreparedReceiverInvocation(
+        :var selector,
+        :var typeArguments,
+        :var valueArguments,
+      ):
+        // A parsed operand here is a bound static qualifier, not a value read.
+        if (selector.operand is! ParsedExpressionImpl) {
+          selector.operand.accept2(this);
+        }
+        typeArguments?.accept2(this);
+        valueArguments.argumentList.accept2(this);
+      case RewrittenParsedExpression(:var expression):
+        expression.accept2(this);
+    }
   }
 
   /// Visits [statement], ensuring that if it is a block it is visited as such,

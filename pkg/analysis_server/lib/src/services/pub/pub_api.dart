@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:http/http.dart' as http;
@@ -33,6 +34,7 @@ class PubApi {
   }
 
   final InstrumentationService instrumentationService;
+  final SessionLogger sessionLogger;
   final http.Client httpClient;
 
   /// The Base URL for hosted Pub packages, excluding the trailing slash.
@@ -51,6 +53,7 @@ class PubApi {
 
   new(
     this.instrumentationService,
+    this.sessionLogger,
     http.Client? httpClient,
     String? envPubHostedUrl,
   ) : httpClient = httpClient != null
@@ -114,6 +117,7 @@ class PubApi {
         var response = await httpClient.get(Uri.parse(url), headers: _headers);
         if (response.statusCode == 200) {
           instrumentationService.logInfo('Pub API request successful for $url');
+          sessionLogger.logInfo('Pub API request successful for $url');
           return jsonDecode(response.body) as Map<String, Object?>?;
         } else if (response.statusCode >= 400 && response.statusCode < 500) {
           // Do not retry 4xx responses.
@@ -138,6 +142,9 @@ class PubApi {
       }
       if (requestCount >= maxFailedRequests) {
         instrumentationService.logInfo(
+          'Pub API request failed after $requestCount requests',
+        );
+        sessionLogger.logInfo(
           'Pub API request failed after $requestCount requests',
         );
       } else {

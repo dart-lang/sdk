@@ -2856,20 +2856,17 @@ num test(Iterable values) => values.fold(values.first as num, max);
 // [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(num, dynamic)'.
     ''');
 
-    var node = result.findNode.methodInvocation('values.fold');
+    var node = result.findNode.receiverMethodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: values
-    element: <testLibrary>::@function::test::@formalParameter::values
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: values
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::test::@formalParameter::values
+      type: Iterable<dynamic>
     staticType: Iterable<dynamic>
   operator: .
-  methodName: SimpleIdentifier
-    token: fold
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@class::Iterable::@method::fold
-      substitution: {T: dynamic, S: S}
-    staticType: S Function<S>(S, S Function(S, dynamic))
+  name: fold
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -2889,22 +2886,6 @@ MethodInvocation
               substitution: {T: dynamic}
             invokeType: dynamic Function()
             type: dynamic
-          staticType: dynamic
-        expression(v1): PrefixedIdentifier
-          prefix: SimpleIdentifier
-            token: values
-            element: <testLibrary>::@function::test::@formalParameter::values
-            staticType: Iterable<dynamic>
-          period: .
-          identifier: SimpleIdentifier
-            token: first
-            element: SubstitutedGetterElementImpl
-              baseElement: <testLibrary>::@class::Iterable::@getter::first
-              substitution: {T: dynamic}
-            staticType: dynamic
-          element: SubstitutedGetterElementImpl
-            baseElement: <testLibrary>::@class::Iterable::@getter::first
-            substitution: {T: dynamic}
           staticType: dynamic
         asOperator: as
         type: NamedType
@@ -2928,7 +2909,31 @@ MethodInvocation
         staticType: num Function(num, num)
         typeArgumentTypes
           num
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::Iterable::@method::fold
+      substitution: {T: dynamic, S: S}
+    invokeType: num Function(num, num Function(num, dynamic))
+    type: num
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: values
+    element: <testLibrary>::@function::test::@formalParameter::values
+    staticType: Iterable<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: fold
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::Iterable::@method::fold
+      substitution: {T: dynamic, S: S}
+    staticType: S Function<S>(S, S Function(S, dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       AsExpression
         expression: PrefixedIdentifier
           prefix: SimpleIdentifier
@@ -4845,8 +4850,8 @@ main() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
 ''');
-    var f = result.findNode.simple('f<int>').parent2 as MethodInvocation;
-    var ft = f.staticInvokeType as FunctionType;
+    var f = result.findNode.receiverMethodInvocation('f<int>');
+    var ft = (f.resolution as ExecutableInvocationResolution).invokeType;
     assertType(ft, 'List<int> Function(String)');
 
     var x = result.findElement.localVar('x');
@@ -5185,20 +5190,17 @@ void foo() {
   list.map((e) => 3);
 }''');
 
-    var node1 = result.findNode.methodInvocation('map((e) => e);');
+    var node1 = result.findNode.receiverMethodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: list
-    element: list@68
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: list
+    resolution: VariableReadResolution
+      element: list@68
+      type: List<dynamic>
     staticType: List<dynamic>
   operator: .
-  methodName: SimpleIdentifier
-    token: map
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@class::List::@method::map
-      substitution: {E: dynamic, T: T}
-    staticType: T Function<T>(T Function(dynamic))
+  name: map
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -5212,7 +5214,48 @@ MethodInvocation
                 element: hasImplicitType isPublic
                   type: dynamic
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: UnqualifiedNameExpression
+            name: e
+            resolution: VariableReadResolution
+              element: e@93
+              type: dynamic
+            staticType: dynamic
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: dynamic Function(dynamic)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    invokeType: dynamic Function(dynamic Function(dynamic))
+    type: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    element: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -5222,13 +5265,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: UnqualifiedNameExpression
-            name: e
-            resolution: VariableReadResolution
-              element: e@93
-              type: dynamic
-            staticType: dynamic
-          expression(v1): SimpleIdentifier
+          expression: SimpleIdentifier
             token: e
             element: e@93
             staticType: dynamic
@@ -5246,20 +5283,17 @@ MethodInvocation
     dynamic
 ''');
 
-    var node2 = result.findNode.methodInvocation('map((e) => 3);');
+    var node2 = result.findNode.receiverMethodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: list
-    element: list@68
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: list
+    resolution: VariableReadResolution
+      element: list@68
+      type: List<dynamic>
     staticType: List<dynamic>
   operator: .
-  methodName: SimpleIdentifier
-    token: map
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@class::List::@method::map
-      substitution: {E: dynamic, T: T}
-    staticType: T Function<T>(T Function(dynamic))
+  name: map
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -5273,7 +5307,45 @@ MethodInvocation
                 element: hasImplicitType isPublic
                   type: dynamic
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 3
+            staticType: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function(dynamic)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {T: int}
+        staticType: int Function(dynamic)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    invokeType: int Function(int Function(dynamic))
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    element: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -5283,7 +5355,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 3
             staticType: int
         declaredFragment: <testLibraryFragment> null@null

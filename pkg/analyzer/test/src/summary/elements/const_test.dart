@@ -11004,20 +11004,23 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            MethodInvocation
-              target2: SimpleIdentifier
-                token: a @28
-                element: <testLibrary>::@getter::a
+            ReceiverMethodInvocation
+              receiver: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
                 staticType: int?
               operator: ?. @29
-              methodName: SimpleIdentifier
-                token: toString @31
-                element: dart:core::@class::int::@method::toString
-                staticType: String Function()
+              name: toString @31
               argumentList: ArgumentList
                 leftParenthesis: ( @39
                 rightParenthesis: ) @40
-              staticInvokeType: String Function()
+              resolution: ExecutableInvocationResolution
+                element: dart:core::@class::int::@method::toString
+                invokeType: String Function()
+                type: String
               staticType: String?
           inducedGetter: #F4
       getters

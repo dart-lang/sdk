@@ -84,6 +84,15 @@ class SessionLogger {
     });
   }
 
+  /// Log unstructured text information for debugging purposes.
+  void logInfo(String message) {
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.info.name,
+      key.message: message,
+    });
+  }
+
   /// Logs that the given [message] was sent [from] one process [to] another.
   void logMessage({
     required ProcessId from,

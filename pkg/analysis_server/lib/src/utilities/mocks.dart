@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -274,6 +275,9 @@ class TestPluginManager(final ResourceProvider resourceProvider)
 
   @override
   final contextRootsWithNoPlugins = <String>{};
+
+  @override
+  final SessionLogger sessionLogger = SessionLogger();
 
   @override
   InstrumentationService get instrumentationService =>

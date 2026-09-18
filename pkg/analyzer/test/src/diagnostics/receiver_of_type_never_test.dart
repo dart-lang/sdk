@@ -1086,18 +1086,17 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('.foo(1 + 2)');
+    var node = result.findNode.receiverMethodInvocation('.foo(1 + 2)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: dynamic
+  name: foo
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1114,7 +1113,22 @@ MethodInvocation
         binaryOperator: add
         element: dart:core::@class::num::@method::+
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       BinaryExpression
         leftOperand: IntegerLiteral
           literal: 1
@@ -1145,18 +1159,17 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.receiverMethodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: .
-  methodName: SimpleIdentifier
-    token: toString
-    element: <null>
-    staticType: dynamic
+  name: toString
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1173,7 +1186,22 @@ MethodInvocation
         binaryOperator: add
         element: dart:core::@class::num::@method::+
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       BinaryExpression
         leftOperand: IntegerLiteral
           literal: 1
@@ -1202,18 +1230,17 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('.toString(1 + 2)');
+    var node = result.findNode.receiverMethodInvocation('.toString(1 + 2)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   operator: .
-  methodName: SimpleIdentifier
-    token: toString
-    element: dart:core::@class::Object::@method::toString
-    staticType: String Function()
+  name: toString
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1230,7 +1257,25 @@ MethodInvocation
         binaryOperator: add
         element: dart:core::@class::num::@method::+
         staticType: int
-    arguments(v1)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never?
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       BinaryExpression
         leftOperand: IntegerLiteral
           literal: 1

@@ -136,6 +136,7 @@ class TypePropertyResolver {
           locatableDiagnostic = diag.uncheckedOperatorInvocationOfNullableValue
               .withArguments(operator: name);
         } else if (parentNode is MethodInvocation ||
+            parentNode is ParsedValueArguments ||
             parentNode is NamedFunctionInvocation ||
             parentNode is MethodReferenceExpression ||
             parentNode is CompoundAssignment ||

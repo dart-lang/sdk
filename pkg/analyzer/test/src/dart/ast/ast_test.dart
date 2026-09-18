@@ -1720,7 +1720,7 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndArgumentList_synthetic() async {
@@ -1778,7 +1778,7 @@ void f^() {}
     var node = await coveringNode('''
 var x = o^.m();
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void>
@@ -1791,7 +1791,7 @@ class C {
   void m<T>() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndTypeParameterList() async {
@@ -1828,7 +1828,7 @@ class C {
     var node = await coveringNode('''
 var x = o.^m();
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_statements() async {
@@ -1910,7 +1910,7 @@ void f(int x) {
     var node = await coveringNode('''
 var x = o?^.m();
 ''');
-    node as MethodInvocation;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_inOperator_postfix() async {

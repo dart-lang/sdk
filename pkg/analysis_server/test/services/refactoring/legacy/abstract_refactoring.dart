@@ -35,7 +35,7 @@ int findIdentifierLength(String search) {
 
 /// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest
-    with SelectionMixin {
+    with FindElementMixin, FindNodeMixin, SelectionMixin {
   late SourceChange refactoringChange;
 
   Refactoring get refactoring;

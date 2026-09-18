@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.d
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:http/http.dart';
@@ -41,9 +42,15 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     pubPackageService = PubPackageService(
       InstrumentationService.NULL_SERVICE,
       resourceProvider,
-      PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
+      PubApi(
+        InstrumentationService.NULL_SERVICE,
+        SessionLogger(),
+        httpClient,
+        null,
+      ),
       PubCommand(
         InstrumentationService.NULL_SERVICE,
+        SessionLogger(),
         resourceProvider.pathContext,
         processRunner,
       ),
@@ -413,7 +420,7 @@ screenshots:
 screenshots:
   - description: 'One'
     path: /path/to/ss.png
-  - description: 'Two' 
+  - description: 'Two'
     ^
 ''');
     assertSuggestion('path: ');

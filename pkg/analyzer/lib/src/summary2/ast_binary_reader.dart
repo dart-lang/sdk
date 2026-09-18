@@ -1675,7 +1675,7 @@ class AstBinaryReader {
   }
 
   ReceiverMethodInvocation _readReceiverMethodInvocation() {
-    var receiver = _readNode() as ExpressionImpl;
+    var receiver = _readNode() as NamedReceiverImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
     var name = _readStringReference();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;

@@ -909,6 +909,15 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
     required super.target,
   }) : super._();
 
+  Element? get _invokedElement => switch (node.resolution) {
+    ExecutableInvocationResolutionImpl(:var element) => element,
+    InvalidInvocationResolutionImpl(
+      recovery: ExecutableInvocationResolutionImpl(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
   @override
   bool get _isIdentical {
     var invokedFunction = switch (node.resolution) {
@@ -926,6 +935,31 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  TypeImpl _computeContextForArgument(TypeImpl parameterType) {
+    if (node case ReceiverMethodInvocationImpl(:ExpressionImpl receiver)) {
+      return resolver.typeSystem.refineNumericInvocationContext(
+        receiver.typeOrThrow,
+        _invokedElement,
+        contextType,
+        parameterType,
+      );
+    }
+    return super._computeContextForArgument(parameterType);
+  }
+
+  @override
+  TypeImpl _refineReturnType(TypeImpl returnType) {
+    if (node case ReceiverMethodInvocationImpl(:ExpressionImpl receiver)) {
+      return resolver.typeSystem
+          .refineNumericInvocationType(receiver.typeOrThrow, _invokedElement, [
+            for (var argument in node.argumentList.arguments2)
+              argument.argumentExpression2.typeOrThrow,
+          ], returnType);
+    }
+    return returnType;
+  }
 
   @override
   List<FormalParameterElement>? _storeResult(

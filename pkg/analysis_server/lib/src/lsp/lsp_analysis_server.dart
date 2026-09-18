@@ -424,6 +424,10 @@ class LspAnalysisServer extends AnalysisServer {
         'MessageScheduler.allowOverlappingHandlers set to '
         '$allowOverlappingHandlers by LSP client initializationOptions',
       );
+      sessionLogger.logInfo(
+        'MessageScheduler.allowOverlappingHandlers set to '
+        '$allowOverlappingHandlers by LSP client initializationOptions',
+      );
     }
 
     performanceAfterStartup = ServerPerformance();

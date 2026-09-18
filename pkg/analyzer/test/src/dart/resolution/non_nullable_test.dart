@@ -137,7 +137,7 @@ f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
@@ -718,7 +718,7 @@ void f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {

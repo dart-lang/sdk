@@ -1570,55 +1570,6 @@ V1: InstanceCreationExpression
 ''');
   }
 
-  test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-A get foo => A();
-
-class A {
-  void bar(int a) {}
-}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as prefix;
-
-f() {
-  prefix.foo.bar(0);
-}
-''');
-    var node = result.findNode.methodInvocation('bar(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: package:test/a.dart::@getter::foo
-      staticType: A
-    element: package:test/a.dart::@getter::foo
-    staticType: A
-  operator: .
-  methodName: SimpleIdentifier
-    token: bar
-    element: package:test/a.dart::@class::A::@method::bar
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: package:test/a.dart::@class::A::@method::bar::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
-''');
-  }
-
   test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -1947,41 +1898,6 @@ V1: InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-''');
-  }
-
-  test_targetSimpleIdentifier_class_staticMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  static void foo(int a) {}
-}
-
-f() {
-  A.foo(0);
-}
-''');
-    var node = result.findNode.methodInvocation('foo(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A
-    staticType: null
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@method::foo
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
 ''');
   }
 

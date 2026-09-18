@@ -394,16 +394,25 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: NullAssertionExpression
+ReceiverMethodInvocation
+  receiver: NullAssertionExpression
     operand: SuperExpression
       superKeyword: super
       staticType: dynamic
     operator: !
     staticType: dynamic
-  target(v1): PostfixExpression
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  target: PostfixExpression
     operand: SuperExpression
       superKeyword: super
       staticType: dynamic

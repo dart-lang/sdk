@@ -120,6 +120,9 @@ class DtdServices {
       _server.instrumentationService.logInfo(
         'Error closing DTD connection:\n$error\n$stack',
       );
+      _server.sessionLogger.logInfo(
+        'Error closing DTD connection:\n$error\n$stack',
+      );
     }
   }
 

@@ -288,16 +288,19 @@ void f(C c) {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: void Function()
+      invokeType: void Function()? Function()
+      type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -307,16 +310,17 @@ CallInvocation
     type: void
   staticType: void
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: _foo
       element: <testLibrary>::@class::C::@getter::_foo
       staticType: void Function()
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -343,16 +347,19 @@ void f(C c) {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  receiver: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: int Function()
+      invokeType: int? Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -362,16 +369,17 @@ CallInvocation
     type: int
   staticType: int
 V1: FunctionExpressionInvocation
-  function: PropertyAccess
-    target: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
-    operator: .
-    propertyName: SimpleIdentifier
+    period: .
+    identifier: SimpleIdentifier
       token: _foo
       element: <testLibrary>::@class::C::@getter::_foo
       staticType: int Function()
+    element: <testLibrary>::@class::C::@getter::_foo
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -398,8 +406,8 @@ void f(C c) {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: ParenthesizedExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: UnqualifiedNameExpression
         name: c
@@ -410,10 +418,11 @@ CallInvocation
       rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: void Function()
+      invokeType: void Function()? Function()
+      type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -463,8 +472,8 @@ void f(C c) {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: ParenthesizedExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: UnqualifiedNameExpression
         name: c
@@ -475,10 +484,11 @@ CallInvocation
       rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: int Function()
+      invokeType: int? Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
