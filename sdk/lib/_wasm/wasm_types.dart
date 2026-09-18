@@ -503,13 +503,63 @@ extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
   @pragma("wasm:intrinsic")
   external WasmI8x16 operator +(WasmI8x16 other);
   @pragma("wasm:intrinsic")
+  external WasmI8x16 addSatS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 addSatU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
   external WasmI8x16 operator -(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 subSatS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 subSatU(WasmI8x16 other);
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 operator -();
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 eq(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ne(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ltS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 ltU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 gtS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 gtU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 leS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 leU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 geS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 geU(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 abs();
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 popcnt();
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 minS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 minU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 maxS(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 maxU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 avgrU(WasmI8x16 other);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shl(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shrS(WasmI32 shift);
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 shrU(WasmI32 shift);
+
+  @pragma("wasm:intrinsic")
+  external WasmI8x16 swizzle(WasmI8x16 indices);
 
   @pragma("wasm:intrinsic")
   external WasmI32 get bitmask;
