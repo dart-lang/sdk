@@ -4,9 +4,6 @@
 
 // Test optimization of byte array views on external data.
 
-// Library tag to be able to run in html test framework.
-library ByteArrayViewOptimizedTest;
-
 import "package:expect/expect.dart";
 
 import "dart:typed_data";

@@ -14,17 +14,66 @@ import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 
+/// A base test class for tests operating on a single test unit ([testFile]).
+///
+/// Builds on [AbstractContextTest] by providing convenience properties and
+/// methods for parsing or resolving [testFile], tracking test code markers,
+/// verifying diagnostics, and accessing AST nodes and resolved elements.
 class AbstractSingleUnitTest extends AbstractContextTest {
+  /// Whether to verify that the resolved unit has no unexpected diagnostics.
+  ///
+  /// Defaults to `true`. When `true`, [getResolvedUnit] asserts that the unit
+  /// has no diagnostics other than a short list of innocuous ignored diagnostic
+  /// codes (such as unused elements and unused imports).
   bool verifyNoTestUnitErrors = true;
 
   TestCode? _parsedTestCode;
+
+  /// The [ParsedUnitResult] obtained from parsing [testFile].
+  ///
+  /// Populated by [parseTestCode]. Note that this is _not_ populated by
+  /// [resolveTestCode].
   late ParsedUnitResult testParsedResult;
+
+  /// The [ResolvedLibraryResult] for the library containing [testFile].
+  ///
+  /// Populated when resolving [testFile] via [getResolvedUnit],
+  /// [resolveTestFile], or [resolveTestCode]. May be `null` if the library
+  /// could not be resolved.
+  ///
+  /// Typically used by intermediate test classes (such as `FixProcessorTest`
+  /// and `AssistProcessorTest`) rather than individual test cases to access
+  /// the containing library context when computing fixes or assists.
   late ResolvedLibraryResult? testLibraryResult;
+
+  /// The [ResolvedUnitResult] for [testFile].
+  ///
+  /// Populated when resolving [testFile] via [getResolvedUnit],
+  /// [resolveTestFile], or [resolveTestCode].
   late ResolvedUnitResult testAnalysisResult;
+
+  /// The [CompilationUnit] of [testFile].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
   late CompilationUnit testUnit;
+
+  /// A helper for finding [AstNode]s within [testUnit].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
   late FindNode findNode;
+
+  /// A helper for finding declared elements within [testUnit].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
   late FindElement findElement;
 
+  /// The [TestCode] representation of the test source code.
+  ///
+  /// Contains the raw [testCode] stripped of test markers, as well as parsed
+  /// positions and ranges embedded in the test source.
   TestCode get parsedTestCode => _parsedTestCode!;
   set parsedTestCode(TestCode value) {
     if (_parsedTestCode != null) {
@@ -35,16 +84,33 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     _parsedTestCode = value;
   }
 
+  /// The source code of [testFile] without test markers.
+  ///
+  /// Setting this property parses the code into [parsedTestCode] using
+  /// [TestCode.parseNormalized].
   String get testCode => parsedTestCode.code;
   set testCode(String value) {
     parsedTestCode = TestCode.parseNormalized(value);
   }
 
+  /// Sets the test source [code] for [testFile] and creates the file on disk.
+  ///
+  /// Normalizes and parses [code] with test markers (such as positions or
+  /// ranges), updates [testCode] and [parsedTestCode], and writes the source to
+  /// [testFile].
+  ///
+  /// Does not resolve [testFile]. Use [resolveTestCode] to add source and
+  /// resolve in a single step, or call [resolveTestFile] after configuring
+  /// additional files or test options.
   void addTestSource(String code) {
     testCode = code;
     newFile(testFile.path, testCode);
   }
 
+  /// Parses the given [file] and returns its [ParsedUnitResult].
+  ///
+  /// Pending file changes in the file's analysis context are applied before
+  /// parsing.
   Future<ParsedUnitResult> getParsedUnit(File file) async {
     var path = file.path;
     var analysisContext = contextFor2(file);
@@ -53,6 +119,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return result as ParsedUnitResult;
   }
 
+  /// Resolves the given [file] and returns its [ResolvedUnitResult].
+  ///
+  /// If [file] matches [testFile], this also populates [testLibraryResult],
+  /// [testAnalysisResult], [testUnit], [findNode], and [findElement].
+  ///
+  /// If [verifyNoTestUnitErrors] is `true`, verifies that [file] has no
+  /// diagnostics other than standard ignored diagnostics and any additional
+  /// diagnostic codes specified in [ignore].
   @override
   Future<ResolvedUnitResult> getResolvedUnit(
     File file, {
@@ -96,6 +170,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return unitResult;
   }
 
+  /// Sets [code] as the test source and parses [testFile] without resolving it.
+  ///
+  /// Writes [code] to [testFile] via [addTestSource], parses it using
+  /// [getParsedUnit], and initializes [testParsedResult], [testUnit],
+  /// [findNode], and [findElement].
+  ///
+  /// Typically used by tests that only require syntactic information (such as
+  /// directive ordering or member sorting tests) where full semantic resolution
+  /// is not needed.
   Future<void> parseTestCode(String code) async {
     addTestSource(code);
     testParsedResult = await getParsedUnit(testFile);
@@ -104,6 +187,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     findElement = FindElement(testUnit);
   }
 
+  /// Adds the given [code] as the test source and resolves [testFile].
+  ///
+  /// Convenience method that combines [addTestSource] and [resolveTestFile].
+  /// Optionally pass [ignore], a list of diagnostic codes to be ignored.
   Future<void> resolveTestCode(
     String code, {
     List<DiagnosticCode>? ignore,
@@ -112,6 +199,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     await resolveTestFile(ignore: ignore);
   }
 
+  /// Resolves [testFile] using [getResolvedUnit].
+  ///
+  /// Assumes the test source has already been added via [addTestSource] or
+  /// written to [testFile]. Optionally pass [ignore], a list of diagnostic
+  /// codes to be ignored.
   Future<void> resolveTestFile({List<DiagnosticCode>? ignore}) async {
     await getResolvedUnit(testFile, ignore: ignore);
   }
