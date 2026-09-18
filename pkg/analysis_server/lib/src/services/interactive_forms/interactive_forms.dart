@@ -62,12 +62,12 @@ class InteractiveForm {
     for (var field in fields) {
       if (_fieldMap.containsKey(field.id)) {
         throw ArgumentError(
-          'Multiple fields were given with the ID "${field.id}"',
+          'Multiple fields were given with the ID "${field.id}"'
           'fields',
         );
       } else if (!_isSupported(field) && field.defaultValue == null) {
         throw ArgumentError(
-          'Field "${field.id}" is not supported by the client and does not ',
+          'Field "${field.id}" is not supported by the client and does not '
           'have a default value',
         );
       }
@@ -114,12 +114,12 @@ class InteractiveForm {
     for (var answer in answers) {
       if (!_fieldMap.containsKey(answer.id)) {
         throw ArgumentError(
-          'Answer references non-existent field "${answer.id}"',
+          'Answer references non-existent field "${answer.id}"'
           'answers',
         );
       } else if (answerById.containsKey(answer.id)) {
         throw ArgumentError(
-          'Multiple answers were given for field "${answer.id}"',
+          'Multiple answers were given for field "${answer.id}"'
           'answers',
         );
       }
