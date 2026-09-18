@@ -34,6 +34,7 @@ import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:package_config/package_config.dart';
+import 'package:path/path.dart' as p;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/target_os.dart'; // For possible --target-os values.
@@ -126,10 +127,13 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
         'Flutter engine (which does not)',
     defaultsTo: true,
   )
-  ..addOption(
+  ..addMultiOption(
     'import-dill',
-    help: 'Import libraries from existing dill file',
-    defaultsTo: null,
+    valueHelp: '<file.dill>',
+    splitCommas: false,
+    help:
+        'Import libraries from existing dill file(s), optionally with an '
+        'explicit module name: --import-dill=path.dill:module-name=name.',
   )
   ..addOption(
     'from-dill',
@@ -572,6 +576,8 @@ class BinaryPrinterFactory {
   }
 }
 
+typedef _ImportedDill = ({Uri uri, String moduleName});
+
 class FrontendCompiler implements CompilerInterface {
   new(
     StringSink? outputStream, {
@@ -627,6 +633,32 @@ class FrontendCompiler implements CompilerInterface {
 
   /// Initialized in [writeJavaScriptBundle].
   IncrementalJavaScriptBundler? _bundler;
+
+  /// Map libraries to the component loaded from `--import-dill`.
+  late Map<Library, Component> _libraryToImportedComponent;
+
+  /// Map components loaded from `--import-dill` to _module name_.
+  late Map<Component, String> _importedComponentToModuleName;
+
+  /// Parses `<dill>` or `<dill>:module-name=<module>` from `--import-dill`.
+  ///
+  /// Without an explicit module name it is the file name of the dill without
+  /// its extension.
+  static List<_ImportedDill> _parseImportDills(List<String> values) {
+    const String separator = ':module-name=';
+    final List<_ImportedDill> importedDills = <_ImportedDill>[];
+    for (final String value in values) {
+      final int index = value.indexOf(separator);
+      final String path = index == -1 ? value : value.substring(0, index);
+      importedDills.add((
+        uri: Uri.base.resolveUri(new Uri.file(path)),
+        moduleName: index == -1
+            ? p.basenameWithoutExtension(path)
+            : value.substring(index + separator.length),
+      ));
+    }
+    return importedDills;
+  }
 
   /// Nullable fields
   final ProgramTransformer? transformer;
@@ -767,7 +799,7 @@ class FrontendCompiler implements CompilerInterface {
         print('Error: --incremental option cannot be used with --aot');
         return false;
       }
-      if (options['import-dill'] != null) {
+      if (options.multiOption('import-dill').isNotEmpty) {
         print('Error: --import-dill option cannot be used with --aot');
         return false;
       }
@@ -818,10 +850,52 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    final String? importDill = options['import-dill'];
-    if (importDill != null) {
+    // Libraries that are already compiled and must be resolved from these
+    // dill files instead of from source. They are not included in the output,
+    // and with `--target=dartdevc` they are imported from the JavaScript
+    // module they are already compiled into.
+    final List<_ImportedDill> importedDills = _parseImportDills(
+      options.multiOption('import-dill'),
+    );
+    _libraryToImportedComponent = new Map<Library, Component>.identity();
+    _importedComponentToModuleName = new Map<Component, String>.identity();
+    if (importedDills.isNotEmpty) {
+      if (options['initialize-from-dill'] != null) {
+        print(
+          'Error: --import-dill option cannot be used with '
+          '--initialize-from-dill',
+        );
+        return false;
+      }
+      final Set<String> seenModuleNames = <String>{};
+      for (final _ImportedDill imported in importedDills) {
+        if (imported.moduleName.isEmpty) {
+          print(
+            'Error: --import-dill ${imported.uri} has an empty module name',
+          );
+          return false;
+        }
+        if (!seenModuleNames.add(imported.moduleName)) {
+          print(
+            'Error: --import-dill module name ${imported.moduleName} is '
+            'given twice',
+          );
+          return false;
+        }
+        if (imported.uri == compilerOptions.sdkSummary) {
+          print(
+            'Error: --import-dill and --platform cannot both be '
+            'given ${imported.uri}',
+          );
+          return false;
+        }
+        if (!await _fileSystem.entityForUri(imported.uri).exists()) {
+          print('Error: --import-dill file not found: ${imported.uri}');
+          return false;
+        }
+      }
       compilerOptions.additionalDillModules = <Uri>[
-        Uri.base.resolveUri(new Uri.file(importDill)),
+        for (final _ImportedDill imported in importedDills) imported.uri,
       ];
     }
 
@@ -841,9 +915,16 @@ class FrontendCompiler implements CompilerInterface {
           .updateEnvironmentDefines(environmentDefines);
 
       _compilerOptions.omitPlatform = false;
-      _generator =
-          generator ?? _createGenerator(new Uri.file(_initializeFromDill));
-      await invalidateIfInitializingFromDill();
+      if (importedDills.isNotEmpty) {
+        // With a non-null uri the CFE uses `_InitializationFromUri`, which
+        // never calls `loadAdditionalDillModules`, silently ignoring the
+        // imported dills.
+        _generator = generator ?? _createGenerator(null);
+      } else {
+        _generator =
+            generator ?? _createGenerator(new Uri.file(_initializeFromDill));
+        await invalidateIfInitializingFromDill();
+      }
       IncrementalCompilerResult compilerResult = await _runWithPrintRedirection(
         () => _generator.compile(),
       );
@@ -855,9 +936,30 @@ class FrontendCompiler implements CompilerInterface {
         record_use.transformComponent(component, _recordedUses!);
       }
 
+      final List<Component> loadedComponents = compilerResult.loadedComponents;
+      if (importedDills.isNotEmpty &&
+          loadedComponents.length != importedDills.length) {
+        print(
+          'Error: could not load all --import-dill files, got '
+          '${loadedComponents.length} of ${importedDills.length}',
+        );
+        return false;
+      }
+      for (int i = 0; i < importedDills.length; i++) {
+        final Component imported = loadedComponents[i];
+        _importedComponentToModuleName[imported] = importedDills[i].moduleName;
+        for (Library library in imported.libraries) {
+          if (library.importUri.isScheme('dart')) continue;
+          _libraryToImportedComponent[library] = imported;
+        }
+      }
+
       results = new KernelCompilationResults.named(
         component: component,
         nativeAssetsLibrary: _nativeAssetsLibrary,
+        loadedLibraries: importedDills.isEmpty
+            ? const {}
+            : createLoadedLibrariesSet(loadedComponents, null),
         classHierarchy: compilerResult.classHierarchy,
         coreTypes: compilerResult.coreTypes,
         compiledSources: component.uriToSource.keys,
@@ -916,7 +1018,7 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(
         results,
         _kernelBinaryFilename,
-        filterExternal: importDill != null || options['minimal-kernel'],
+        filterExternal: importedDills.isNotEmpty || options['minimal-kernel'],
         incrementalSerializer: incrementalSerializer,
       );
 
@@ -1085,6 +1187,8 @@ class FrontendCompiler implements CompilerInterface {
           _compilerOptions.fileSystem,
           results.loadedLibraries,
           fileSystemScheme,
+          loadedLibraryToSummary: _libraryToImportedComponent,
+          loadedSummaryToLibraryBundleName: _importedComponentToModuleName,
           useDebuggerModuleNames: useDebuggerModuleNames,
           emitDebugMetadata: emitDebugMetadata,
           useStronglyConnectedComponents: useStronglyConnectedComponents,

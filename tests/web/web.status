@@ -72,6 +72,11 @@ wasm/source_map_simple_optimized_deferred_test: SkipByDesign # Reads source map 
 wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
 wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
 
+[ $compiler == dart2wasm && $runtime == safari ]
+wasm/deferred_multi_memory_test: SkipByDesign # Safari does not support multi-memory
+wasm/multi_memory_corruption_test: SkipByDesign # Safari does not support multi-memory
+wasm/multi_memory_test: SkipByDesign # Safari does not support multi-memory
+
 [ $compiler == dart2wasm && ($runtime == d8 || $runtime == jsc || $runtime == jsshell) ]
 wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.
 
