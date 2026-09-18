@@ -11,6 +11,7 @@ import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:frontend_server/compute_kernel.dart';
 import 'package:frontend_server/frontend_server.dart';
 import 'package:frontend_server/starter.dart';
 import 'package:kernel/ast.dart' show Component, Library;
@@ -2086,6 +2087,310 @@ extension type Foo(int value) {
       test('DDC module format and canary', () async {
         await runTests(moduleFormat: 'ddc', canary: true);
       });
+    });
+
+    group('--import-dill', () {
+      /// Compiles `package:app` against `package:dep1` and `package:dep2`,
+      /// which are available only as outline dills because their sources are
+      /// deleted before the frontend server starts. Compiling at all
+      /// therefore proves that the dills were used in their place.
+      ///
+      /// The first compile is followed by [recompiles] deltas, and is
+      /// accepted first if [accept] is set.
+      Future<void> runTests({
+        bool dep1DillHoldsPlatform = false,
+        List<String> extraArgs = const <String>[],
+        bool accept = false,
+        int recompiles = 0,
+      }) async {
+        String mainWith(String revision) =>
+            '''
+import 'package:app/greet.dart';
+import 'package:dep1/dep1.dart';
+import 'package:dep2/dep2.dart';
+
+void main() {
+  print(greet(dep1Greet('$revision')));
+  print(dep2Answer());
+}
+''';
+
+        new File('${tempDir.path}/dep1/lib/dep1.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(
+            "String dep1Greet(String who) => 'hello ' + who;",
+          );
+        new File('${tempDir.path}/dep2/lib/dep2.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('int dep2Answer() => 42;');
+        new File('${tempDir.path}/app/lib/greet.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync("String greet(String s) => '<' + s + '>';");
+        File mainFile = new File('${tempDir.path}/app/lib/main.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(mainWith('revision-0'));
+        File packageConfig =
+            new File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync(
+                jsonEncode({
+                  'configVersion': 2,
+                  'packages': [
+                    {'name': 'app', 'rootUri': '../app', 'packageUri': 'lib/'},
+                    {
+                      'name': 'dep1',
+                      'rootUri': '../dep1',
+                      'packageUri': 'lib/',
+                    },
+                    {
+                      'name': 'dep2',
+                      'rootUri': '../dep2',
+                      'packageUri': 'lib/',
+                    },
+                  ],
+                }),
+              );
+        File dillFile = new File('${tempDir.path}/app.dill');
+        Uri dep1Dill = tempDir.uri.resolve('dep1.dill');
+        Uri dep2Dill = tempDir.uri.resolve('dep2.dill');
+
+        /// Compiles a DDC outline of [libraryUri] into [output], the way the
+        /// bazel kernel worker does.
+        ///
+        /// With [excludeNonSources], which is how build systems invoke it,
+        /// the outline holds [libraryUri] and nothing else. Without it the
+        /// outline also holds the platform.
+        Future<void> buildOutline(
+          Uri output,
+          String libraryUri, {
+          bool excludeNonSources = true,
+        }) async {
+          StringBuffer messages = new StringBuffer();
+          ComputeKernelResult result = await computeKernel(
+            <String>[
+              '--output=${output.toFilePath()}',
+              '--packages-file=${packageConfig.path}',
+              '--dart-sdk-summary=${ddcPlatformKernel.toFilePath()}',
+              if (excludeNonSources) '--exclude-non-sources',
+              '--summary-only',
+              '--source=$libraryUri',
+            ],
+            isWorker: true,
+            outputBuffer: messages,
+          );
+          expect(result.succeeded, isTrue, reason: '$messages');
+        }
+
+        await buildOutline(
+          dep1Dill,
+          'package:dep1/dep1.dart',
+          excludeNonSources: !dep1DillHoldsPlatform,
+        );
+        await buildOutline(dep2Dill, 'package:dep2/dep2.dart');
+        expect(
+          loadComponentFromBinary(dep1Dill.toFilePath()).libraries
+              .map((Library library) => '${library.importUri}'),
+          dep1DillHoldsPlatform
+              ? contains('dart:core')
+              : equals(<String>['package:dep1/dep1.dart']),
+        );
+
+        new Directory('${tempDir.path}/dep1').deleteSync(recursive: true);
+        new Directory('${tempDir.path}/dep2').deleteSync(recursive: true);
+
+        FrontendServer frontendServer = new FrontendServer();
+        Future<int> exitCode = frontendServer.open(<String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${ddcPlatformKernel.toFilePath()}',
+          '--output-dill=${dillFile.path}',
+          '--packages=${packageConfig.path}',
+          '--target=dartdevc',
+          '--dartdevc-module-format=ddc',
+          '--dartdevc-canary',
+          '--import-dill=${dep1Dill.toFilePath()}',
+          '--import-dill=${dep2Dill.toFilePath()}',
+          ...extraArgs,
+        ]);
+        frontendServer.compile(mainFile.path);
+
+        int compiles = 0;
+        frontendServer.listen((Result compiledResult) {
+          CompilationResult result = new CompilationResult.parse(
+            compiledResult.status,
+          );
+          expect(result.errorsCount, 0, reason: 'compile $compiles');
+
+          Map<String, dynamic> manifest = jsonDecode(
+            new File('${result.filename}.json').readAsStringSync(),
+          ) as Map<String, dynamic>;
+          String sources = new File('${result.filename}.sources')
+              .readAsStringSync();
+
+          expect(sources, contains('revision-$compiles'));
+          expect(manifest.keys, contains('/packages/app/main.dart.lib.js'));
+          if (accept && compiles > 0) {
+            // Only the changed library is in a delta that follows an
+            // `accept`: not the prebuilt modules, and not the unchanged
+            // `package:app/greet.dart` either.
+            expect(
+              manifest.keys,
+              unorderedEquals(<String>['/packages/app/main.dart.lib.js']),
+            );
+          }
+
+          // Neither prebuilt package is emitted; the app imports both from
+          // the JavaScript modules they are already compiled into.
+          expect(
+            manifest.keys.where(
+              (String key) => key.startsWith('/packages/dep'),
+            ),
+            isEmpty,
+            reason: 'compile $compiles',
+          );
+          for (String library in const <String>[
+            'package:dep1/dep1.dart',
+            'package:dep2/dep2.dart',
+          ]) {
+            expect(
+              sources,
+              contains('dartDevEmbedder.importLibrary("$library"'),
+              reason: 'compile $compiles',
+            );
+            expect(
+              sources,
+              isNot(contains('dartDevEmbedder.defineLibrary("$library"')),
+              reason: 'compile $compiles',
+            );
+          }
+
+          if (compiles == recompiles) {
+            frontendServer.quit();
+            return;
+          }
+          if (accept && compiles == 0) {
+            frontendServer.accept();
+          }
+          compiles += 1;
+          mainFile.writeAsStringSync(mainWith('revision-$compiles'));
+          frontendServer.recompile(mainFile.uri);
+        });
+
+        expect(await exitCode, 0);
+        frontendServer.close();
+        expect(compiles, recompiles);
+      }
+
+      test('compile to JavaScript against prebuilt modules', () async {
+        await runTests();
+      }, timeout: new Timeout.factor(8));
+
+      test('an accepted compile is followed by a delta', () async {
+        await runTests(accept: true, recompiles: 1);
+      }, timeout: new Timeout.factor(8));
+
+      test('several deltas without accept', () async {
+        await runTests(recompiles: 2);
+      }, timeout: new Timeout.factor(8));
+
+      test('a dill that also holds the platform is accepted', () async {
+        await runTests(dep1DillHoldsPlatform: true);
+      }, timeout: new Timeout.factor(8));
+
+      test(
+        'imported dills work without strongly connected components',
+        () async {
+          await runTests(
+            extraArgs: <String>['--no-js-strongly-connected-components'],
+          );
+        },
+        timeout: new Timeout.factor(8),
+      );
+
+      /// Compiles `package:app` for the VM against `package:dep1`, which is
+      /// available only as a dill because its sources are deleted before the
+      /// frontend server runs.
+      test('compile for the VM against a prebuilt dill', () async {
+        new File('${tempDir.path}/dep1/lib/dep1.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync(
+            "String dep1Greet(String who) => 'hello ' + who;",
+          );
+        File mainFile = new File('${tempDir.path}/app/lib/main.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('''
+import 'package:dep1/dep1.dart';
+
+void main() {
+  print(dep1Greet('world'));
+}
+''');
+        File packageConfig =
+            new File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync(
+                jsonEncode({
+                  'configVersion': 2,
+                  'packages': [
+                    {'name': 'app', 'rootUri': '../app', 'packageUri': 'lib/'},
+                    {
+                      'name': 'dep1',
+                      'rootUri': '../dep1',
+                      'packageUri': 'lib/',
+                    },
+                  ],
+                }),
+              );
+        File dillFile = new File('${tempDir.path}/app.dill');
+        Uri dep1Dill = tempDir.uri.resolve('dep1.dill');
+
+        StringBuffer messages = new StringBuffer();
+        ComputeKernelResult result = await computeKernel(
+          <String>[
+            '--output=${dep1Dill.toFilePath()}',
+            '--packages-file=${packageConfig.path}',
+            '--dart-sdk-summary=${platformKernel.toFilePath()}',
+            '--target=vm',
+            '--no-summary-only',
+            '--exclude-non-sources',
+            '--source=package:dep1/dep1.dart',
+          ],
+          isWorker: true,
+          outputBuffer: messages,
+        );
+        expect(result.succeeded, isTrue, reason: '$messages');
+        expect(
+          loadComponentFromBinary(dep1Dill.toFilePath()).libraries
+              .map((Library library) => '${library.importUri}'),
+          equals(<String>['package:dep1/dep1.dart']),
+        );
+
+        new Directory('${tempDir.path}/dep1').deleteSync(recursive: true);
+
+        expect(
+          await starter(<String>[
+            '--sdk-root=${sdkRoot.toFilePath()}',
+            '--incremental',
+            // Otherwise the serializer copies `package:dep1` into the output.
+            '--no-incremental-serialization',
+            '--platform=${platformKernel.toFilePath()}',
+            '--output-dill=${dillFile.path}',
+            '--packages=${packageConfig.path}',
+            '--target=vm',
+            '--import-dill=${dep1Dill.toFilePath()}',
+            mainFile.path,
+          ]),
+          0,
+        );
+
+        // `package:dep1` was resolved from the dill, so it is not compiled
+        // from source, and it is not in the output either.
+        expect(
+          loadComponentFromBinary(dillFile.path).libraries
+              .map((Library library) => '${library.importUri}'),
+          equals(<String>['package:app/main.dart']),
+        );
+      }, timeout: new Timeout.factor(8));
     });
 
     group('compile to JavaScript with canary features enabled', () {
