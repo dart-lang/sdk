@@ -1,20 +1,44 @@
-Want to contribute? Great! First, read this page (including [the small print](#the-small-print) and [AI contribution guidelines](#ai-contribution-guidelines)  at the end).
+Want to contribute? Great! 
 
-## Ways you can contribute
+You can help the Dart project in many ways, by [giving feedback](#contributing-feedback), [improving documentation](#contributing-to-documentation), [contributing code](#contributing-code), or asking and answering [Dart questions on StackOverflow](https://stackoverflow.com/questions/tagged/dart).
 
-You can help the Dart project in many ways, in addition to contributing code. For example, you can [report bugs](https://dartbug.com), ask and answer [Dart questions on StackOverflow](https://stackoverflow.com/questions/tagged/dart), and improve the documentation.
+# Contributing feedback
 
-If you'd like to improve the documentation, you have three options:
+The Dart projects tracks everything from features to bugs using GitHub issues. These are stored across a number of GitHub repos. Start by locating the relevant repo:
 
-  * Give us feedback:
-    * If you're looking at a page with a **bug icon** at the **upper right**,
-      click that icon to report a bug on the page.
-    * To report an API doc bug,
-      [create an SDK issue](https://github.com/dart-lang/sdk/issues/new?title=API%20doc%20issue:).
-  * Contribute to the Dart developer websites such as [dart.dev](https://dart.dev) (repo: [dart-lang/site-www](https://github.com/dart-lang/site-www)). For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/blob/master/doc/writing-for-dart-and-flutter-websites.md).
-  * Improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/main/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
+- [SDK](https://github.com/dart-lang/sdk): Everything related to the VM, JS and Wasm compilers, analysis, core libraries, and the `dart` CLI.
+- [Language](https://github.com/dart-lang/language): Design and evolution of the Dart programming language.
+- [Native](https://github.com/dart-lang/native) and [Web](https://github.com/dart-lang/web): Platform specific issues.
+- [Pub.dev](https://github.com/dart-lang/pub-dev): The Dart package manager.
+- For additional more specialized repos, see the full list at https://github.com/orgs/dart-lang/repositories
 
-## Before you contribute
+Once you have located the repo, you can contribute feedback in several ways:
+
+- **File a new issue**: If you've found a problem or bug in existing code, start by searching the current issues to see if it's already reported. If not, you can file a new issue.
+
+- **Upvote existing issue**: If you're experiencing an issue that has already been reported, or want to indicate interest in an issue tracking a new feature, consider upvoting it to help the Flutter team understand its importance. You can upvote an issue by locating it in the GitHub issue tracker, and pressing the "thumbs up" reaction on the issue's top-most comment. Avoid otherwise empty +1, emoji, or similar comments.
+
+**Note**: Dart currently does _not_ have a formal *RFC* (request for comments) process to propose larger changes. We hope to add this soon. 
+
+# Contributing to documentation
+
+## Dart website (dart.dev)
+
+For documentation on the [dart.dev](https://dart.dev) website, use the links located in the footer of each page:
+  * To view the source code, for example to start a PR, click `view source`.
+  * To file an issue for the page, click `report an issue`.
+
+For more information, see [Writing for Dart and Flutter websites](https://github.com/dart-lang/site-shared/blob/master/doc/writing-for-dart-and-flutter-websites.md).
+
+## API docs (api.dart.dev)
+
+You can improve the API reference docs at [api.dart.dev](https://api.dart.dev) by editing doc comments in the [Dart SDK repo](https://github.com/dart-lang/sdk/tree/main/sdk/lib). For more information on how to write API docs, see [Effective Dart: Documentation](https://dart.dev/guides/language/effective-dart/documentation).
+
+# Contributing code
+
+Please read the instructions below carefully (including [the small print](#the-small-print) and [AI contribution guidelines](#ai-contribution-guidelines) before proceeding.
+
+## Before you contribute code
 
 Before we can use your code, you must sign the [Google Individual Contributor License Agreement](https://developers.google.com/open-source/cla/individual) (CLA), which you can do online.  The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code.  We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents.  You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase.
 
