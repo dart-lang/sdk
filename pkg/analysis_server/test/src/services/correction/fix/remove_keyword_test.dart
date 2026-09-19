@@ -12,6 +12,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AwaitOnlyFuturesBulkTest);
     defineReflectiveTests(AwaitOnlyFuturesLintTest);
+    defineReflectiveTests(AwaitOnlyFuturesPriorityTest);
     defineReflectiveTests(InvalidCovariantModifierInPrimaryConstructorBulkTest);
     defineReflectiveTests(InvalidCovariantModifierInPrimaryConstructorTest);
     defineReflectiveTests(RepresentationFieldModifierTest);
@@ -47,7 +48,10 @@ f2() async {
 }
 
 @reflectiveTest
-class AwaitOnlyFuturesLintTest extends RemoveKeywordLintTest {
+class AwaitOnlyFuturesLintTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.removeKeywordAwait;
+
   @override
   String get lintCode => LintNames.await_only_futures;
 
@@ -75,6 +79,22 @@ bad() async {
   print('hola');
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class AwaitOnlyFuturesPriorityTest extends FixPriorityTest {
+  Future<void> test_awaitInWrongContext() async {
+    createAnalysisOptionsFile(lints: [LintNames.await_only_futures]);
+    await resolveTestCode('''
+void main() {
+  await DateTime.now();
+}
+''');
+    await assertFixPriorityOrderForAllDiagnostics([
+      DartFixKind.removeKeywordAwait,
+      DartFixKind.addAsync,
+    ]);
   }
 }
 
