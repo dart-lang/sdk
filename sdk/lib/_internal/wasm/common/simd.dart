@@ -708,6 +708,20 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
     );
   }
 
+  Int32x4 min(Int32x4 other) => I32x4._truncated(
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+    z < other.z ? z : other.z,
+    w < other.w ? w : other.w,
+  );
+
+  Int32x4 max(Int32x4 other) => I32x4._truncated(
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+    z > other.z ? z : other.z,
+    w > other.w ? w : other.w,
+  );
+
   bool get anyTrue => _bits.anyTrue;
 
   bool get allTrue => flagX && flagY && flagZ && flagW;

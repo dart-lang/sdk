@@ -4087,6 +4087,20 @@ final class _Int32x4 implements Int32x4 {
     w >= other.w ? -1 : 0,
   );
 
+  Int32x4 min(Int32x4 other) => Int32x4(
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+    z < other.z ? z : other.z,
+    w < other.w ? w : other.w,
+  );
+
+  Int32x4 max(Int32x4 other) => Int32x4(
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+    z > other.z ? z : other.z,
+    w > other.w ? w : other.w,
+  );
+
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;
