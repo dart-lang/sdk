@@ -270,6 +270,21 @@ extension type JSExportedDartFunction<T extends Function>._(
   JSExportedDartFunctionType _jsExportedDartFunction,
 ) implements JSFunction<T>, JSExportedDartFunctionType {}
 
+/// The synchronous [JS disposable protocol].
+///
+/// [JS disposable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Resource_management
+///
+/// This interface is the minimal protocol necessary to interact with JS
+/// features like `using`.
+@Since('3.14')
+extension type JSDisposableProtocol._(JSObject _) implements JSObject {
+  /// Notify this object that the caller no longer intends to use it.
+  ///
+  /// The specific behavior depends on the implementation, but this generally
+  /// cleans up any resources associated with this object.
+  void dispose() => callMethod(JSSymbol.dispose);
+}
+
 /// The synchronous [JS iterable protocol].
 ///
 /// [JS iterable protocol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#the_iterable_protocol
@@ -383,7 +398,7 @@ extension type JSIteratorProtocol<T extends JSAny?>._(JSAny _)
 @JS('Iterator')
 @Since('3.12')
 extension type JSIterator<T extends JSAny?>._(JSObject _)
-    implements JSIteratorProtocol<T>, JSIterable<T> {
+    implements JSIteratorProtocol<T>, JSIterable<T>, JSDisposableProtocol {
   /// Converts an object that just implements the [Iterator protocol] into a
   /// proper iterator.
   ///
@@ -865,6 +880,12 @@ extension type JSSymbol._(JSSymbolType _jsSymbol)
   /// [`Symbol.asyncIterator`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/asyncIterator
   @Since('3.11')
   external static JSSymbol get asyncIterator;
+
+  /// See [`Symbol.dispose`].
+  ///
+  /// [`Symbol.dispose`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/dispose
+  @Since('3.14')
+  external static JSSymbol get dispose;
 
   /// See [`Symbol.hasInstance`].
   ///
