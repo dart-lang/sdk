@@ -58,6 +58,9 @@ abstract class Memory with Indexable, Exportable {
     if (maxSize case final max?) {
       p.write(' $max');
     }
+    if (shared) {
+      p.write(' shared');
+    }
   }
 }
 
