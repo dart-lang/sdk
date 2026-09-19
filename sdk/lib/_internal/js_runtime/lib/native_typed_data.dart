@@ -1969,6 +1969,18 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  /// The bit-wise and-not operator (`this & ~other`).
+  Int32x4 andNot(Int32x4 other) {
+    // Dart2js uses unsigned results for bit-operations.
+    // We use "JS" to fall back to the signed versions.
+    return NativeInt32x4._truncated(
+      JS('int', '# & ~#', x, other.x),
+      JS('int', '# & ~#', y, other.y),
+      JS('int', '# & ~#', z, other.z),
+      JS('int', '# & ~#', w, other.w),
+    );
+  }
+
   Int32x4 operator ~() {
     // Dart2js uses unsigned results for bit-operations.
     // We use "JS" to fall back to the signed versions.

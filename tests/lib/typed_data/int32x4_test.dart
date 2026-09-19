@@ -234,6 +234,31 @@ void testNot() {
   Expect.equals(v.w, nn.w);
 }
 
+void testAndNot() {
+  var a = Int32x4(0x12345678, -1, 0, 0x0f0f0f0f);
+  var b = Int32x4(0x0000ffff, -1, 0, 0xffff0000);
+  // andNot(a, b) is a & ~b, lane-wise.
+  var r = a.andNot(b);
+  Expect.equals(0x12340000, r.x); // 0x12345678 & ~0x0000ffff
+  Expect.equals(0, r.y); // -1 & ~-1
+  Expect.equals(0, r.z); // 0 & ~0
+  Expect.equals(0x00000f0f, r.w); // 0x0f0f0f0f & ~0xffff0000
+
+  // Clearing no bits (an all-zero mask) is the identity.
+  var id = a.andNot(Int32x4(0, 0, 0, 0));
+  Expect.equals(a.x, id.x);
+  Expect.equals(a.y, id.y);
+  Expect.equals(a.z, id.z);
+  Expect.equals(a.w, id.w);
+
+  // Clearing a value against itself zeroes every lane.
+  var self = a.andNot(a);
+  Expect.equals(0, self.x);
+  Expect.equals(0, self.y);
+  Expect.equals(0, self.z);
+  Expect.equals(0, self.w);
+}
+
 void testSplat() {
   var tests = [
     [0, 0],
@@ -265,6 +290,7 @@ main() {
     testWithLane();
     testGetters();
     testNot();
+    testAndNot();
     testSplat();
   }
 }

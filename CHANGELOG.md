@@ -38,6 +38,7 @@
   itself.
 - Added the lane-wise shift operators `<<` (left) and `>>` (arithmetic right) to
   `Int32x4`.
+- Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
 
 #### `dart:js_interop`
 

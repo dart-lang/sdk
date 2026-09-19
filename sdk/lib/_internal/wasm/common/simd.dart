@@ -642,6 +642,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 operator ^(Int32x4 other) =>
       I32x4.fromV128(_bits ^ (other as I32x4)._bits);
   Int32x4 operator ~() => I32x4.fromV128(~_bits);
+  Int32x4 andNot(Int32x4 other) =>
+      I32x4.fromV128(_bits.andNot((other as I32x4)._bits));
   Int32x4 operator +(Int32x4 other) => I32x4.fromV128(
     (WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value,
   );
