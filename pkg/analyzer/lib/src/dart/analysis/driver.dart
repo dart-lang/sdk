@@ -3032,6 +3032,10 @@ class OwnedFiles {
   /// This map does not contain any files that are in [addedFiles].
   final Map<File, AnalysisDriver> knownFiles = {};
 
+  /// Key: the folder from the collection's resource provider.
+  /// Value: the driver discovering this package folder.
+  final Map<Folder, AnalysisDriver> knownFolders = {};
+
   void addAdded(File file, AnalysisDriver analysisDriver) {
     addedFiles[file] ??= analysisDriver;
     knownFiles.remove(file);
@@ -3203,6 +3207,11 @@ class _DiscoverAvailableFilesJob {
             );
           }
         } else {
+          var owner = driver.ownedFiles?.knownFolders[folder];
+          if (owner != null && !identical(owner, driver)) {
+            continue;
+          }
+          driver.ownedFiles?.knownFolders[folder] ??= driver;
           _addFolder(folder, excludeSrc: false);
         }
       }

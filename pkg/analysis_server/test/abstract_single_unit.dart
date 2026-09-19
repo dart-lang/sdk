@@ -62,14 +62,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   ///
   /// Contains the raw [testCode] stripped of test markers, as well as parsed
   /// positions and ranges embedded in the test source.
-  TestCode get parsedTestCode => _parsedTestCode!;
-  set parsedTestCode(TestCode value) {
-    if (_parsedTestCode != null) {
-      throw ArgumentError(
-        'parsedTestCode is already set to ${_parsedTestCode!.code}',
-      );
+  TestCode get parsedTestCode {
+    if (_parsedTestCode case var parsedTestCode?) {
+      return parsedTestCode;
     }
-    _parsedTestCode = value;
+    throw StateError(
+      "'parsedTestCode' has not yet been set; this is set by 'addTestSource'.",
+    );
   }
 
   /// The source code of [testFile] without test markers.
@@ -77,9 +76,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// Setting this property parses the code into [parsedTestCode] using
   /// [TestCode.parseNormalized].
   String get testCode => parsedTestCode.code;
-  set testCode(String value) {
-    parsedTestCode = TestCode.parseNormalized(value);
-  }
 
   /// Sets the test source [code] for [testFile] and creates the file on disk.
   ///
@@ -91,7 +87,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// resolve in a single step, or call [resolveTestFile] after configuring
   /// additional files or test options.
   void addTestSource(String code) {
-    testCode = code;
+    _setParsedTestCode(TestCode.parseNormalized(code));
     newFile(testFile.path, testCode);
   }
 
@@ -190,6 +186,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// codes to be ignored.
   Future<void> resolveTestFile({List<DiagnosticCode>? ignore}) async {
     await getResolvedUnit(testFile, ignore: ignore);
+  }
+
+  void _setParsedTestCode(TestCode value) {
+    if (_parsedTestCode case var parsedTestCode?) {
+      throw ArgumentError(
+        "'parsedTestCode' is already set to '${parsedTestCode.code}'",
+      );
+    }
+    _parsedTestCode = value;
   }
 }
 
