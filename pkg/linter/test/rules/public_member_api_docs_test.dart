@@ -332,16 +332,26 @@ class [!A!] { }
   }
 
   test_primaryConstructor_abstractFinalClass() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-abstract final class Primary(final int value);
+abstract final class Primary(final int [!value!]);
 ''');
   }
 
   test_primaryConstructor_abstractInterfaceClass() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-abstract interface class Primary(final int value);
+abstract interface class Primary(final int [!value!]);
+''');
+  }
+
+  test_primaryConstructor_bodyDeclaringParameterNoDoc() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+class C(var int [!x!]) {
+  /// Doc.
+  this;
+}
 ''');
   }
 
@@ -382,9 +392,9 @@ class C(int x) {
   }
 
   test_primaryConstructor_bodySealedClass() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-sealed class Primary(final int value) {
+sealed class Primary(final int [!value!]) {
   this : assert(value >= 0);
 }
 ''');
@@ -392,14 +402,72 @@ sealed class Primary(final int value) {
 
   test_primaryConstructor_classNoDoc() async {
     await assertDiagnosticsFromMarkup(r'''
-class [!C!](var int x);
+class /*[0*/C/*0]*/(var int /*[1*/x/*1]*/);
 ''');
+  }
+
+  test_primaryConstructor_declaringParameterInternalClass() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+@internal
+class C(var int x);
+''',
+      [
+        // Technically not in the private API but we can ignore that for testing.
+        error(diag.invalidInternalAnnotation, 35, 8),
+      ],
+    );
   }
 
   test_primaryConstructor_declaringParameterNoDoc() async {
     await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-class [!C!](var int x);
+class /*[0*/C/*0]*/(var int /*[1*/x/*1]*/);
+''');
+  }
+
+  test_primaryConstructor_declaringParameterNoDocSealedAndAbstractFinalClass() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+sealed class A(var int /*[0*/x/*0]*/);
+
+/// Doc.
+abstract final class B(var int /*[1*/y/*1]*/);
+''');
+  }
+
+  test_primaryConstructor_declaringParameterOverride() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+abstract class A {
+  /// Doc.
+  int get x;
+}
+
+/// Doc.
+class [!B!](final int x) implements A;
+''');
+  }
+
+  test_primaryConstructor_declaringParameterPrivate() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+class [!C!](var int _x) {
+  /// Doc.
+  int get x => _x;
+}
+''');
+  }
+
+  test_primaryConstructor_declaringParameterWithDoc() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+class [!C!](
+  /// Doc.
+  var int x,
+);
 ''');
   }
 
@@ -438,23 +506,30 @@ class Primary.named(final int value);
   }
 
   test_primaryConstructor_namedSealedClass() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-sealed class Primary.named(final int value);
+sealed class Primary.named(final int [!value!]);
+''');
+  }
+
+  test_primaryConstructor_nonDeclaringParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+class [!C!](int x);
 ''');
   }
 
   test_primaryConstructor_notEffectivelyPrivateClass() async {
     await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-class [!Primary!](final int value);
+class /*[0*/Primary/*0]*/(final int /*[1*/value/*1]*/);
 ''');
   }
 
   test_primaryConstructor_sealedClass() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnosticsFromMarkup(r'''
 /// Doc.
-sealed class Primary(final int value);
+sealed class Primary(final int [!value!]);
 ''');
   }
 
