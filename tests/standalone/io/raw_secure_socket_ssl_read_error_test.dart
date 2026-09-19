@@ -41,10 +41,11 @@ testSslReadError() async {
       serverContext,
       subscription: socket.listen((event) {}),
     );
-    secureSocket.write([1, 2, 3]);
     // Send content using the original unencrypted connection to provoke a
-    // TtsException in the client.
+    // TlsException in the client. This must precede the secure write now that
+    // SecureSocket processing writes synchronously through the socket BIO.
     socket.write([1, 2, 3]);
+    secureSocket.write([1, 2, 3]);
     secureSocket.close();
     serverSocket.close();
   });

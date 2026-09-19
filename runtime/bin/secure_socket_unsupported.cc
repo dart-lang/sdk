@@ -53,6 +53,11 @@ void FUNCTION_NAME(SecureSocket_GetSelectedProtocol)(
       "Secure Sockets unsupported on this platform"));
 }
 
+void FUNCTION_NAME(SecureSocket_GrowBuffer)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
 void FUNCTION_NAME(SecureSocket_RegisterHandshakeCompleteCallback)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
@@ -85,7 +90,13 @@ void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_Process)(Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecureSocket_QueuePrefetchedData)(
+    Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }
@@ -187,15 +198,6 @@ void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
 void FUNCTION_NAME(X509_Pem)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
-}
-
-class SSLFilter {
- public:
-  static CObject* ProcessFilterRequest(const CObjectArray& request);
-};
-
-CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
-  return CObject::IllegalArgumentError();
 }
 
 }  // namespace bin
