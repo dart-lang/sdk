@@ -165,14 +165,26 @@ class ExitCodeHandler {
     running_ = false;
 
     // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY(fork()) == 0) {
+    pid_t wakeup_pid = TEMP_FAILURE_RETRY(fork());
+    if (wakeup_pid == 0) {
       _Exit(0);
+    }
+    if (wakeup_pid < 0) {
+      FATAL("Failed to create exit-handler wakeup process: %d", errno);
     }
 
     monitor_->Notify();
 
     while (!terminate_done_) {
       monitor_->Wait(Monitor::kNoTimeout);
+    }
+
+    // The exit-handler thread normally reaps the wakeup process. If the thread
+    // observed running_ == false before entering wait(), reap it here instead.
+    int status = 0;
+    pid_t result = TEMP_FAILURE_RETRY(waitpid(wakeup_pid, &status, 0));
+    if (result < 0 && errno != ECHILD) {
+      FATAL("Failed to reap exit-handler wakeup process: %d", errno);
     }
   }
 
