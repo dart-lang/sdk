@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -45,6 +46,25 @@ extension MyExtension on MyClass {
   }
 }
 ''');
+  }
+
+  test_method_classWithModifiers() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+abstract base class MyClass {
+  static void sm() {}
+}
+extension MyExtension on MyClass {
+  void m() {
+    sm();
+//  ^^
+// [diag.unqualifiedReferenceToStaticMemberOfExtendedType] Static members from the extended type or one of its superclasses must be qualified by the name of the defining type.
+  }
+}
+''');
+    expect(
+      result.diagnostics.single.correctionMessage,
+      "Try adding 'MyClass.' before the name.",
+    );
   }
 
   test_methodTearoff() async {
