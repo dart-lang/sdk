@@ -642,6 +642,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 operator ^(Int32x4 other) =>
       I32x4.fromV128(_bits ^ (other as I32x4)._bits);
   Int32x4 operator ~() => I32x4.fromV128(~_bits);
+  Int32x4 andNot(Int32x4 other) =>
+      I32x4.fromV128(_bits.andNot((other as I32x4)._bits));
   Int32x4 operator +(Int32x4 other) => I32x4.fromV128(
     (WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value,
   );
@@ -705,6 +707,20 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
       w >= other.w ? -1 : 0,
     );
   }
+
+  Int32x4 min(Int32x4 other) => I32x4._truncated(
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+    z < other.z ? z : other.z,
+    w < other.w ? w : other.w,
+  );
+
+  Int32x4 max(Int32x4 other) => I32x4._truncated(
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+    z > other.z ? z : other.z,
+    w > other.w ? w : other.w,
+  );
 
   bool get anyTrue => _bits.anyTrue;
 

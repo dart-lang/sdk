@@ -4385,6 +4385,14 @@ abstract final class Int32x4 {
   @Since("3.14")
   Int32x4 operator ~();
 
+  /// The bit-wise and-not operator.
+  ///
+  /// Returns a new [Int32x4] where each lane is the bit-wise and of the
+  /// corresponding lane of this value and the inverted corresponding lane
+  /// of [other], as if by `this & ~other`.
+  @Since("3.14")
+  Int32x4 andNot(Int32x4 other);
+
   /// Addition operator.
   Int32x4 operator +(Int32x4 other);
 
@@ -4494,6 +4502,22 @@ abstract final class Int32x4 {
   /// Returns four values that are always either 0 or -1.
   @Since("3.14")
   Int32x4 greaterThanOrEqual(Int32x4 other);
+
+  /// Lane-wise signed integer minimum.
+  ///
+  /// Returns a new [Int32x4] where each lane is the smaller of the
+  /// corresponding lanes of this object and [other], compared as signed
+  /// 32-bit integers.
+  @Since("3.14")
+  Int32x4 min(Int32x4 other);
+
+  /// Lane-wise signed integer maximum.
+  ///
+  /// Returns a new [Int32x4] where each lane is the larger of the
+  /// corresponding lanes of this object and [other], compared as signed
+  /// 32-bit integers.
+  @Since("3.14")
+  Int32x4 max(Int32x4 other);
 
   /// Extract 32-bit mask from x lane.
   int get x;

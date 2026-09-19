@@ -179,6 +179,19 @@ extension LibraryFragmentExtension on LibraryFragment {
   }
 }
 
+extension LibraryImportExtension on LibraryImport {
+  /// Whether this import has any combinators.
+  bool get hasCombinator => combinators.isNotEmpty;
+
+  /// The hide combinators declared on this import.
+  Iterable<HideElementCombinator> get hideCombinators =>
+      combinators.whereType<HideElementCombinator>();
+
+  /// The show combinators declared on this import.
+  Iterable<ShowElementCombinator> get showCombinators =>
+      combinators.whereType<ShowElementCombinator>();
+}
+
 extension ListOfTypeParameterElement2Extension on List<TypeParameterElement> {
   List<TypeParameterType> instantiateNone() {
     return map((e) {

@@ -38,6 +38,11 @@
   itself.
 - Added the lane-wise shift operators `<<` (left) and `>>` (arithmetic right) to
   `Int32x4`.
+- Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
+- Added `Int32x4.min`, which selects the smaller of each pair of lanes,
+  compared as signed 32-bit integers.
+- Added `Int32x4.max`, which selects the larger of each pair of lanes,
+  compared as signed 32-bit integers.
 
 #### `dart:js_interop`
 

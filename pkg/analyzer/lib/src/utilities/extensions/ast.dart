@@ -225,6 +225,12 @@ extension FieldDeclarationExtension on FieldDeclaration {
       fields.variables.first.declaredFragment!.element;
 }
 
+extension TokenExtension on Token {
+  /// The first preceding comment before this token, or this token if there are
+  /// no preceding comments.
+  Token get precedingCommentOrThis => precedingComments ?? this;
+}
+
 extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {
   Element get firstVariableElement =>
       variables.variables.first.declaredFragment!.element;
