@@ -72,7 +72,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_inheritedNonFinal() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -166,7 +165,6 @@ class Test extends Base {
   }
 
   Future<void> test_class_flutter_nonFinal() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
