@@ -79,36 +79,6 @@ main() {
       // before the region began.
       check(() => logBuilder.checkOffset(25)).throws<AssertionError>();
       logBuilder.checkOffset(35);
-      // allowOutOfOrderOffsets relaxes the order check for the next offset
-      // only.
-      logBuilder.allowOutOfOrderOffsets();
-      logBuilder.thisBindingChanged((PromotionKey(4), _t('Null')), offset: 25);
-      check(
-        () => logBuilder.thisBindingChanged((
-          PromotionKey(4),
-          _t('Null'),
-        ), offset: 23),
-      ).throws<AssertionError>();
-      logBuilder.allowOutOfOrderOffsets();
-      logBuilder.checkOffset(23);
-      check(() => logBuilder.checkOffset(22)).throws<AssertionError>();
-    });
-
-    test('Queries handle out-of-order offsets', () {
-      var logBuilder = FlowAnalysisLogBuilder()
-        ..thisBindingChanged((PromotionKey(4), _t('Null')), offset: 40)
-        ..allowOutOfOrderOffsets()
-        ..thisBindingChanged((PromotionKey(3), _t('Object')), offset: 30)
-        ..allowOutOfOrderOffsets()
-        ..thisBindingChanged((PromotionKey(2), _t('double')), offset: 20);
-      var log = logBuilder.finish();
-      check(log.getThisBinding(0)).isNull;
-      check(log.getThisBinding(20)).isNull;
-      check(log.getThisBinding(21)).equals((PromotionKey(2), _t('double')));
-      check(log.getThisBinding(30)).equals((PromotionKey(2), _t('double')));
-      check(log.getThisBinding(31)).equals((PromotionKey(3), _t('Object')));
-      check(log.getThisBinding(40)).equals((PromotionKey(3), _t('Object')));
-      check(log.getThisBinding(41)).equals((PromotionKey(4), _t('Null')));
     });
 
     test('Out of order region is spliced into place', () {
@@ -295,29 +265,6 @@ main() {
       check(
         logBuilder.finish().getPromotionInfo(15),
       ).identicalTo(flowModel1.promotionInfo);
-    });
-
-    test('Nontrivial sorting', () {
-      var helper = _FlowModelHelper();
-      var flowModel0 = FlowModel(Reachability.initial);
-      var flowModel1 = flowModel0.updatePromotionInfo(
-        helper,
-        PromotionKey(0),
-        PromotionModel.fresh(assigned: false, version: null),
-      );
-      var flowModel2 = flowModel0.updatePromotionInfo(
-        helper,
-        PromotionKey(1),
-        PromotionModel.fresh(assigned: false, version: null),
-      );
-      var logBuilder = FlowAnalysisLogBuilder()
-        ..promotionInfoChanged(flowModel1.promotionInfo, offset: 20)
-        ..allowOutOfOrderOffsets()
-        ..promotionInfoChanged(flowModel2.promotionInfo, offset: 10);
-      var log = logBuilder.finish();
-      check(log.getPromotionInfo(5)).isNull;
-      check(log.getPromotionInfo(15)).identicalTo(flowModel2.promotionInfo);
-      check(log.getPromotionInfo(25)).identicalTo(flowModel1.promotionInfo);
     });
 
     test('Out of order region', () {

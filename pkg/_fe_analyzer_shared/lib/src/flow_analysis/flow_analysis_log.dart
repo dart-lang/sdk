@@ -18,12 +18,12 @@ class FlowAnalysisLog {
   /// analysis effects, and so the [PromotionInfo] tracked by flow analysis was
   /// `null` throughout analysis.
   ///
-  /// This list and [_promotionInfoValues] are gathered in the order in which
-  /// the user's program is visited by type analysis, which is not necessarily
-  /// the same as source order, due to the "updater" part of a "for" loop being
-  /// visited after the body. The lists are sorted by offset before executing
-  /// the first query. [_areListsSorted] indicates whether the sort has occurred
-  /// yet.
+  /// This list is in non-decreasing order. Type analysis doesn't always visit
+  /// the user's program in source order (for example, the "updater" part of a
+  /// "for" loop is visited after the body), but each such construct is recorded
+  /// as an *out of order region* (see
+  /// [FlowAnalysisLogBuilder.beginOutOfOrderRegion]), and the region's entries
+  /// are moved into their proper place as soon as the region is complete.
   final List<int> _promotionInfoOffsets = [];
 
   /// List of [PromotionInfo] pointers, corresponding to the offsets in
@@ -37,22 +37,12 @@ class FlowAnalysisLog {
   /// see fit to track the binding of `this`; in this case, `this` was
   /// unpromoted throughout the code that was analyzed.
   ///
-  /// This list and [_thisBindingValues] are gathered in the order in which the
-  /// user's program is visited by type analysis, which is not necessarily the
-  /// same as source order, due to the "updater" part of a "for" loop being
-  /// visited after the body. The lists are sorted by offset before executing
-  /// the first query. [_areListsSorted] indicates whether the sort has occurred
-  /// yet.
+  /// As with [_promotionInfoOffsets], this list is in non-decreasing order.
   final List<int> _thisBindingOffsets = [];
 
   /// List of promotion keys bound to `this`, and the corresponding unpromoted
   /// types, corresponding to the offsets in [_thisBindingOffsets].
   final List<(PromotionKey, SharedTypeView)?> _thisBindingValues = [];
-
-  /// Whether the lists [_promotionInfoOffsets], [_promotionInfoValues],
-  /// [_thisBindingOffsets], and [_thisBindingValues] have been sorted by offset
-  /// yet.
-  bool _areListsSorted = false;
 
   /// [FlowLinkReader] object for efficiently looking up [PromotionModel]
   /// objects in [FlowModel.promotionInfo] structures.
@@ -69,11 +59,6 @@ class FlowAnalysisLog {
   /// just to the left of [offset].
   @visibleForTesting
   PromotionInfo? getPromotionInfo(int offset) {
-    if (!_areListsSorted) {
-      _sortList(values: _promotionInfoValues, offsets: _promotionInfoOffsets);
-      _sortList(values: _thisBindingValues, offsets: _thisBindingOffsets);
-      _areListsSorted = true;
-    }
     return _lookupInList<PromotionInfo?>(
       values: _promotionInfoValues,
       offsets: _promotionInfoOffsets,
@@ -89,11 +74,6 @@ class FlowAnalysisLog {
   /// `this` that was in effect just to the left of [offset].
   @visibleForTesting
   (PromotionKey, SharedTypeView)? getThisBinding(int offset) {
-    if (!_areListsSorted) {
-      _sortList(values: _promotionInfoValues, offsets: _promotionInfoOffsets);
-      _sortList(values: _thisBindingValues, offsets: _thisBindingOffsets);
-      _areListsSorted = true;
-    }
     return _lookupInList<(PromotionKey, SharedTypeView)?>(
       values: _thisBindingValues,
       offsets: _thisBindingOffsets,
@@ -185,38 +165,6 @@ class FlowAnalysisLog {
     );
     return index == 0 ? null : values[index - 1];
   }
-
-  /// Stably sorts the lists [offsets] and [values] in parallel, using the
-  /// integers in [offsets] as a sort key.
-  void _sortList<T>({required List<T> values, required List<int> offsets}) {
-    // There's no built-in method that stably sorts two lists in parallel, so
-    // the most straightforward way to do the sort is to combine the lists into
-    // a list of tuples, sort the list of tuples, and then copy the values from
-    // the sorted list of tuples back to the original lists.
-    //
-    // Note that it would be possible to improve performance by writing a custom
-    // sort algorithm that sorts the lists in place, but it's not worth it,
-    // since this code is only exercised in response to direct user action (code
-    // completion in the analysis server, expression evaluation in the
-    // debugger).
-    assert(values.length == offsets.length);
-    List<(int, int, T)> triples = [
-      // Ensure stability by including `i` in the tuple (`List.sort` does not
-      // natively guarantee a stable sort).
-      for (int i = 0; i < values.length; i++) (offsets[i], i, values[i]),
-    ];
-    // Sort first by offset, then by original array position (to ensure a
-    // stable sort)
-    triples.sort((x, y) {
-      if (x.$1.compareTo(y.$1) case var result when result != 0) return result;
-      return x.$2.compareTo(y.$2);
-    });
-    // Rebuild the input arrays.
-    for (int i = 0; i < values.length; i++) {
-      values[i] = triples[i].$3;
-      offsets[i] = triples[i].$1;
-    }
-  }
 }
 
 /// Interface used by [FlowAnalysis] to build a [FlowAnalysisLog].
@@ -237,25 +185,6 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   int _minValidOffset = 0;
 
   FlowAnalysisLogBuilder() : super._();
-
-  /// Resets [_minValidOffset], allowing the next call to [checkOffset] to
-  /// violate the usual requirement that offsets must be nondecreasing.
-  ///
-  /// This method has no effect when asserts are disabled.
-  ///
-  /// This method should be called whenever type analysis visits the parts of a
-  /// construct in a different order from the order in which it's written. For
-  /// example, type analysis visits the body of a classic `for` loop before the
-  /// updaters (even though the updaters appear before the body in the source
-  /// code). Therefore, this method should be called after visiting the body and
-  /// before visiting the updaters, to avoid a spurious assertion from
-  /// [checkOffset] during analysis of the updaters.
-  void allowOutOfOrderOffsets() {
-    assert(() {
-      _minValidOffset = 0;
-      return true;
-    }());
-  }
 
   /// Records that type analysis is about to visit a construct whose source
   /// range begins at [offset], even though that's not the range that would be
@@ -384,11 +313,6 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
     PromotionInfo? promotionInfo, {
     required int offset,
   }) {
-    assert(
-      !_areListsSorted,
-      'For efficiency, all flow analysis should be completed before sorting '
-      'the flow analysis logs.',
-    );
     checkOffset(offset);
     _record<PromotionInfo>(
       offsets: _promotionInfoOffsets,
@@ -407,11 +331,6 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
     (PromotionKey, SharedTypeView)? binding, {
     required int offset,
   }) {
-    assert(
-      !_areListsSorted,
-      'For efficiency, all flow analysis should be completed before sorting '
-      'the flow analysis logs.',
-    );
     checkOffset(offset);
     _record<(PromotionKey, SharedTypeView)>(
       offsets: _thisBindingOffsets,
