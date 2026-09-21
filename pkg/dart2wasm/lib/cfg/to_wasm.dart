@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:kernel/ast.dart' as ast;
@@ -78,6 +79,7 @@ class CfgToWasm {
         final paramLocal = paramLocals[paramIndex++];
         final expectedType = _wasmTypeOf(instr);
         if (translator.needsConversion(paramLocal.type, expectedType)) {
+          setDebugPosition(instr);
           final convertedLocal = b.addLocal(expectedType);
           b.local_get(paramLocal);
           translator.convertType(b, paramLocal.type, expectedType);
@@ -92,6 +94,7 @@ class CfgToWasm {
   }
 
   void _generateSubtree(Block u, _WasmInstructionLowerer lowerer) {
+    setDebugPosition(u);
     final isLoopHeader = graph.loops[u]?.header == u;
 
     if (isLoopHeader) {
@@ -101,6 +104,7 @@ class CfgToWasm {
 
     for (final instr in u) {
       if (instr is! ControlFlowInstruction) {
+        setDebugPosition(instr);
         instr.accept(lowerer);
       }
     }
@@ -115,6 +119,7 @@ class CfgToWasm {
 
     final terminal = u.lastInstruction;
     assert(terminal is ControlFlowInstruction);
+    setDebugPosition(terminal);
     terminal.accept(lowerer);
 
     for (final v in children.reversed) {
@@ -137,6 +142,7 @@ class CfgToWasm {
 
       Phi? lastPhi;
       for (final phi in to.phis) {
+        setDebugPosition(phi, inputIndex: predIndex);
         final inputDef = phi.inputDefAt(predIndex);
         final inputLocal = getLocal(inputDef);
         final phiLocal = getLocal(phi);
@@ -146,10 +152,47 @@ class CfgToWasm {
       }
 
       for (Instruction? instr = lastPhi; instr is Phi; instr = instr.previous) {
+        setDebugPosition(instr, inputIndex: predIndex);
         final phiLocal = getLocal(instr);
         b.local_set(phiLocal);
       }
+      setDebugPosition(from.lastInstruction);
     }
+  }
+
+  /// Updates the current debug position in the emitted wasm bytecode stream.
+  ///
+  /// While we generate code for a given IR instruction we use it's associated
+  /// source position as debug position in the wasm bytecode we emit. If we emit
+  /// code specific to an input of the [instr], we may (if [inputIndex] is
+  /// given and it has associated source position) use the instruction input
+  /// source position instead.
+  void setDebugPosition(Instruction instr, {int? inputIndex}) {
+    if (!b.recordDebugInfo) return;
+    var sourcePos = instr.sourcePosition;
+    if (inputIndex != null) {
+      final inputPos = instr.inputDefAt(inputIndex).sourcePosition;
+      if (inputPos != noPosition) {
+        sourcePos = inputPos;
+      }
+    }
+    if (sourcePos != noPosition) {
+      final fileOffset = sourcePos.fileOffset;
+      if (fileOffset != ast.TreeNode.noOffset) {
+        final source = member.enclosingComponent?.uriToSource[member.fileUri];
+        if (source != null && source.fileUri != null) {
+          final location = source.getLocation(source.fileUri!, fileOffset);
+          b.setSourcePosition(
+            source.fileUri!,
+            location.line - 1,
+            location.column - 1,
+            member.name.text,
+          );
+          return;
+        }
+      }
+    }
+    b.clearSourcePosition();
   }
 
   w.Label targetLabel(Block to) {
