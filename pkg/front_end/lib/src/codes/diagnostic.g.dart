@@ -12971,6 +12971,14 @@ const MessageCode wasmIntrinsicTearOff = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmSharedMemoryMissingMaximum = const MessageCode(
+  "WasmSharedMemoryMissingMaximum",
+  problemMessage:
+      """A shared WebAssembly memory must specify a maximum size.""",
+  correctionMessage: """Try specifying a maximum size.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode weakReferenceMismatchReturnAndArgumentTypes =
     const MessageCode(
       "WeakReferenceMismatchReturnAndArgumentTypes",
