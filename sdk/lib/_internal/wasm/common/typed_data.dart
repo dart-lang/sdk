@@ -109,6 +109,17 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
     );
   }
 
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(int start, ByteDataBase other, int otherStart, int count) {
+    for (int i = 0; i < count; i++) {
+      if (_getUint8Unchecked(start + i) !=
+          other._getUint8Unchecked(otherStart + i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   int get elementSizeInBytes => 1;
 
@@ -520,6 +531,25 @@ class I8ByteData extends ByteDataBase {
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     _data.write(offsetInBytes + byteOffset, value.toUnsigned(8));
+  }
+
+  @override
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(int start, ByteDataBase other, int otherStart, int count) {
+    if (other is I8ByteData) {
+      final thisData = _data;
+      final otherData = other._data;
+      final thisOffset = offsetInBytes + start;
+      final otherStartOffset = other.offsetInBytes + otherStart;
+      for (int i = 0; i < count; i++) {
+        if (thisData.readUnsigned(thisOffset + i) !=
+            otherData.readUnsigned(otherStartOffset + i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return super._rangeEquals(start, other, otherStart, count);
   }
 }
 
@@ -2562,6 +2592,25 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
     }
     return false;
   }
+
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(
+    int start,
+    WasmI8ArrayBase other,
+    int otherStart,
+    int count,
+  ) {
+    final thisData = _data;
+    final otherData = other._data;
+    final thisOffset = _offsetInElements + start;
+    final otherStartOffset = other._offsetInElements + otherStart;
+    for (int i = 0; i < count; i++) {
+      if (thisData[thisOffset + i] != otherData[otherStartOffset + i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 abstract class WasmI16ArrayBase extends WasmTypedDataBase {
@@ -2606,6 +2655,25 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
       return true;
     }
     return false;
+  }
+
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(
+    int start,
+    WasmI16ArrayBase other,
+    int otherStart,
+    int count,
+  ) {
+    final thisData = _data;
+    final otherData = other._data;
+    final thisOffset = _offsetInElements + start;
+    final otherStartOffset = other._offsetInElements + otherStart;
+    for (int i = 0; i < count; i++) {
+      if (thisData[thisOffset + i] != otherData[otherStartOffset + i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
@@ -2652,6 +2720,25 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
     }
     return false;
   }
+
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(
+    int start,
+    _WasmI32ArrayBase other,
+    int otherStart,
+    int count,
+  ) {
+    final thisData = _data;
+    final otherData = other._data;
+    final thisOffset = _offsetInElements + start;
+    final otherStartOffset = other._offsetInElements + otherStart;
+    for (int i = 0; i < count; i++) {
+      if (thisData[thisOffset + i] != otherData[otherStartOffset + i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
@@ -2696,6 +2783,25 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
       return true;
     }
     return false;
+  }
+
+  @pragma('wasm:prefer-inline')
+  bool _rangeEquals(
+    int start,
+    _WasmI64ArrayBase other,
+    int otherStart,
+    int count,
+  ) {
+    final thisData = _data;
+    final otherData = other._data;
+    final thisOffset = _offsetInElements + start;
+    final otherStartOffset = other._offsetInElements + otherStart;
+    for (int i = 0; i < count; i++) {
+      if (thisData[thisOffset + i] != otherData[otherStartOffset + i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
@@ -4371,4 +4477,108 @@ class _UnmodifiableSlowF64List extends _SlowF64List
 
   _UnmodifiableSlowF64List._(ByteBuffer buffer, int offsetInBytes, int length)
     : super._(buffer, offsetInBytes, length);
+}
+
+// Specialized Wasm range comparison helpers: when both operands are standard
+// Wasm array types, comparison uses direct Wasm array load instructions
+// without bounds checks. If either operand is a slow/unaligned view (e.g.
+// _SlowU8List), it falls back to the standard element index loop.
+@pragma('wasm:prefer-inline')
+bool wasmI8ListRangeEquals(
+  TypedDataList<int> a,
+  int aStart,
+  TypedDataList<int> b,
+  int bStart,
+  int count,
+) {
+  if (a is WasmI8ArrayBase && b is WasmI8ArrayBase) {
+    return unsafeCast<WasmI8ArrayBase>(a)
+        ._rangeEquals(aStart, unsafeCast<WasmI8ArrayBase>(b), bStart, count);
+  }
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+@pragma('wasm:prefer-inline')
+bool wasmI16ListRangeEquals(
+  TypedDataList<int> a,
+  int aStart,
+  TypedDataList<int> b,
+  int bStart,
+  int count,
+) {
+  if (a is WasmI16ArrayBase && b is WasmI16ArrayBase) {
+    return unsafeCast<WasmI16ArrayBase>(a)
+        ._rangeEquals(aStart, unsafeCast<WasmI16ArrayBase>(b), bStart, count);
+  }
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+@pragma('wasm:prefer-inline')
+bool wasmI32ListRangeEquals(
+  TypedDataList<int> a,
+  int aStart,
+  TypedDataList<int> b,
+  int bStart,
+  int count,
+) {
+  if (a is _WasmI32ArrayBase && b is _WasmI32ArrayBase) {
+    return unsafeCast<_WasmI32ArrayBase>(a)
+        ._rangeEquals(aStart, unsafeCast<_WasmI32ArrayBase>(b), bStart, count);
+  }
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+@pragma('wasm:prefer-inline')
+bool wasmI64ListRangeEquals(
+  TypedDataList<int> a,
+  int aStart,
+  TypedDataList<int> b,
+  int bStart,
+  int count,
+) {
+  if (a is _WasmI64ArrayBase && b is _WasmI64ArrayBase) {
+    return unsafeCast<_WasmI64ArrayBase>(a)
+        ._rangeEquals(aStart, unsafeCast<_WasmI64ArrayBase>(b), bStart, count);
+  }
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+@pragma('wasm:prefer-inline')
+bool wasmByteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  if (a is I8ByteData && b is I8ByteData) {
+    return a._rangeEquals(aStart, b, bStart, count);
+  }
+  if (a is ByteDataBase && b is ByteDataBase) {
+    return a._rangeEquals(aStart, b, bStart, count);
+  }
+  int i = 0;
+  final limit32 = count - 4;
+  for (; i <= limit32; i += 4) {
+    if (a.getUint32(aStart + i, Endian.little) !=
+        b.getUint32(bStart + i, Endian.little)) {
+      return false;
+    }
+  }
+  for (; i < count; i++) {
+    if (a.getUint8(aStart + i) != b.getUint8(bStart + i)) return false;
+  }
+  return true;
 }

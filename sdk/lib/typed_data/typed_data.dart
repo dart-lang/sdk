@@ -4938,3 +4938,485 @@ abstract final class Float64x2 {
   /// The lane-wise square root of this [Float64x2].
   Float64x2 sqrt();
 }
+
+// Note: Range equality comparison is supported on integer typed data lists
+// and ByteData where element equality corresponds directly to bitwise equality.
+// Floating-point types (Float32List, Float64List, etc.) are intentionally
+// omitted to avoid discrepancies between IEEE-754 equality (where NaN != NaN
+// and -0.0 == +0.0) and bitwise memory equality.
+
+/// Range comparison operation on [Uint8List].
+@Since("3.14")
+extension Uint8ListComparison on Uint8List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint8List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint8ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int8List].
+@Since("3.14")
+extension Int8ListComparison on Int8List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int8List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int8ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint8ClampedList].
+@Since("3.14")
+extension Uint8ClampedListComparison on Uint8ClampedList {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(
+    int start,
+    int end,
+    Uint8ClampedList other, [
+    int otherStart = 0,
+  ]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint8ClampedListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint16List].
+@Since("3.14")
+extension Uint16ListComparison on Uint16List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint16List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint16ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int16List].
+@Since("3.14")
+extension Int16ListComparison on Int16List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int16List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int16ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint32List].
+@Since("3.14")
+extension Uint32ListComparison on Uint32List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint32List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint32ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int32List].
+@Since("3.14")
+extension Int32ListComparison on Int32List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int32List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int32ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint64List].
+@Since("3.14")
+extension Uint64ListComparison on Uint64List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint64List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint64ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int64List].
+@Since("3.14")
+extension Int64ListComparison on Int64List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int64List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int64ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [ByteData].
+@Since("3.14")
+extension ByteDataComparison on ByteData {
+  /// Whether bytes in a range of this byte data equal corresponding bytes in
+  /// [other].
+  ///
+  /// Compares bytes of this byte data from byte offset [start] (inclusive) to
+  /// [end] (exclusive) with bytes of [other] starting at byte offset
+  /// [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of bytes are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ lengthInBytes` and
+  /// `0 ≤ otherStart` with `otherStart + (end - start) ≤ other.lengthInBytes`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, ByteData other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      lengthInBytes,
+      start,
+      end,
+      other.lengthInBytes,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _byteDataRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+@pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
+@pragma('dart2js:prefer-inline')
+int _rangeEqualsBoundsCheck(
+  int length,
+  int start,
+  int end,
+  int otherLength,
+  int otherStart,
+) {
+  final count = end - start;
+  if (start >= 0 &&
+      count >= 0 &&
+      end <= length &&
+      otherStart >= 0 &&
+      count <= otherLength - otherStart) {
+    return count;
+  }
+  return _rangeEqualsError(start, end, length, otherStart, otherLength);
+}
+
+Never _rangeEqualsError(
+  int start,
+  int end,
+  int length,
+  int otherStart,
+  int otherLength,
+) {
+  RangeError.checkValidRange(start, end, length);
+  RangeError.checkNotNegative(otherStart, "otherStart");
+  final count = end - start;
+  if (otherStart > otherLength) {
+    throw RangeError.range(otherStart, 0, otherLength, "otherStart");
+  }
+  if (otherLength - otherStart < count) {
+    throw RangeError.range(
+      otherStart + count,
+      0,
+      otherLength,
+      "otherStart",
+      "Range in other exceeds its length",
+    );
+  }
+  throw StateError("Unreachable");
+}
+
+bool _defaultListRangeEquals<T extends TypedDataList<int>>(
+  T a,
+  int aStart,
+  T b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+bool _defaultByteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  int i = 0;
+  final limit32 = count - 4;
+  for (; i <= limit32; i += 4) {
+    if (a.getUint32(aStart + i, Endian.little) !=
+        b.getUint32(bStart + i, Endian.little)) {
+      return false;
+    }
+  }
+  for (; i < count; i++) {
+    if (a.getUint8(aStart + i) != b.getUint8(bStart + i)) return false;
+  }
+  return true;
+}
+
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint64ListRangeEquals(
+  Uint64List a,
+  int aStart,
+  Uint64List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int64ListRangeEquals(
+  Int64List a,
+  int aStart,
+  Int64List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) => _defaultByteDataRangeEquals(a, aStart, b, bStart, count);
