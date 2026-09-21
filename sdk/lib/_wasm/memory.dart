@@ -13,12 +13,14 @@ part of 'dart:_wasm';
 @pragma("wasm:entry-point")
 final class MemoryType {
   /// Minimum and optional maximum size for the memory.
+  @pragma("wasm:entry-point")
   final Limits limits;
 
   /// Whether this memory can be shared between WebAssembly threads.
   ///
   /// Shared memories must specify [Limits.maximum]. When importing a memory,
   /// this must match whether the supplied memory instance is shared.
+  @pragma("wasm:entry-point")
   final bool shared;
 
   const MemoryType({required this.limits, this.shared = false});

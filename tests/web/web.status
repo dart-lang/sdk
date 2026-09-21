@@ -80,6 +80,10 @@ wasm/multi_memory_test: SkipByDesign # Safari does not support multi-memory
 [ $compiler == dart2wasm && ($runtime == d8 || $runtime == jsc || $runtime == jsshell) ]
 wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.
 
+[ $compiler == dart2wasm && ($runtime == jsc || $runtime == safari) ]
+wasm/deferred_shared_memory_test: SkipByDesign # Safari doesn't support multi memory proposal yet.
+wasm/shared_memory_test: SkipByDesign # Safari doesn't support multi memory proposal yet.
+
 [ $compiler == dartk && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test

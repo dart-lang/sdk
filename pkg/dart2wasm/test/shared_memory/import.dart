@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: import_internal_library
 import 'dart:_wasm';
 
 import 'package:expect/expect.dart';
@@ -18,7 +19,7 @@ external Memory get unsharedMemory;
 external WasmI32 read(WasmI32 address);
 
 @pragma('wasm:import', 'ffi.write')
-external void write(WasmI32 address, WasmI32 value);
+external WasmVoid write(WasmI32 address, WasmI32 value);
 
 void main() {
   memory.storeInt32(16, WasmI32.fromInt(42));
