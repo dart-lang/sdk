@@ -10480,8 +10480,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalThisExpression node,
     DartType typeContext,
   ) {
+    var (SharedTypeView? promotedType, ExpressionInfo? expressionInfo) =
+        flowAnalysis.thisExpression();
     DartType? promotedTypeOfThis =
-        flowAnalysis.promotedTypeOfThis
+        promotedType
                 // Coverage-ignore(suite): Not run.
                 ?.unwrapTypeView()
             as DartType?;
@@ -10506,10 +10508,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         fileOffset: node.fileOffset,
       );
     }
-    storeExpressionInfo(
-      loweredExpression,
-      flowAnalysis.thisOrSuper(isSuper: false),
-    );
+    storeExpressionInfo(loweredExpression, expressionInfo);
     return new ExpressionInferenceResult(thisType, loweredExpression);
   }
 

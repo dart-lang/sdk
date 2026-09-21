@@ -249,7 +249,7 @@ class StaticTypeAnalyzer {
     } else {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
-        _resolver.flowAnalysis.flow?.thisOrSuper(isSuper: true),
+        _resolver.flowAnalysis.flow?.superExpression(),
       );
     }
     node.recordStaticType(thisType, resolver: _resolver);
@@ -262,13 +262,15 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
+    var (promotedType, expressionInfo) =
+        _resolver.flowAnalysis.flow?.thisExpression() ?? (null, null);
+    _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
     var staticType =
-        (_resolver.isThisAccessible ? _resolver.thisType : null) ??
+        (_resolver.isThisAccessible
+            ? promotedType?.unwrapTypeView<TypeImpl>() ??
+                  _resolver.unpromotedThisType
+            : null) ??
         InvalidTypeImpl.instance;
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(isSuper: false),
-    );
     node.recordStaticType(staticType, resolver: _resolver);
   }
 

@@ -1552,6 +1552,18 @@ abstract class FlowAnalysis<
   @visibleForTesting
   ValueVersion? versionForTesting(Variable variable);
 
+  /// Call this method just after visiting the pseudo-expression `super` (which
+  /// the analyzer uses to represent `super.x` as a property get whose target is
+  /// `super`).
+  ///
+  /// Returns the expression info for the `super` expression. Note that unlike
+  /// [thisExpression], no promoted type is returned, because `super` is never
+  /// promoted.
+  ///
+  /// `null` is returned in the event that there is no binding for `this` (which
+  /// should only happen in error recovery scenarios).
+  ExpressionInfo? superExpression();
+
   /// Call this method after visiting an `await` expression or `yield`
   /// statement.
   ///
@@ -1743,18 +1755,18 @@ abstract class FlowAnalysis<
   /// the anonymous method invocation is probably the best choice.
   void thisBinding_end({int offset = 0});
 
-  /// Call this method just after visiting the expression `this` (or the
-  /// pseudo-expression `super`, in the case of the analyzer, which represents
-  /// `super.x` as a property get whose target is `super`).
+  /// Call this method just after visiting the expression `this`.
   ///
-  /// [isSuper] indicates whether the expression that was visited was the
-  /// pseudo-expression `super`.
+  /// Returns a pair:
+  /// - If `this` is currently promoted, the first element of the pair is the
+  ///   promoted type. Otherwise it is `null`.
+  /// - The second element of the pair is the expression info for the `this`
+  ///   expression.
   ///
-  /// Returns the expression info for the `this` or `super` expression.
-  ///
-  /// `null` is returned in the event that there is no binding for `this` (which
-  /// should only happen in error recovery scenarios).
-  ExpressionInfo? thisOrSuper({required bool isSuper});
+  /// The second element of the pair is `null` in the event that there is no
+  /// binding for `this` (which should only happen in error recovery
+  /// scenarios).
+  (SharedTypeView?, ExpressionInfo?) thisExpression();
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -3218,6 +3230,16 @@ class FlowAnalysisDebug<
   }
 
   @override
+  ExpressionInfo? superExpression() {
+    return _wrap(
+      'superExpression()',
+      () => _wrapped.superExpression(),
+      isQuery: true,
+      isPure: false,
+    );
+  }
+
+  @override
   void suspension(Node node, {int offset = 0}) {
     _wrap(
       'suspension($node, offset: $offset)',
@@ -3337,10 +3359,10 @@ class FlowAnalysisDebug<
   }
 
   @override
-  ExpressionInfo? thisOrSuper({required bool isSuper}) {
+  (SharedTypeView?, ExpressionInfo?) thisExpression() {
     return _wrap(
-      'thisOrSuper(isSuper: $isSuper)',
-      () => _wrapped.thisOrSuper(isSuper: isSuper),
+      'thisExpression()',
+      () => _wrapped.thisExpression(),
       isQuery: true,
       isPure: false,
     );
@@ -7707,6 +7729,11 @@ class _FlowAnalysisImpl<
       ?.version;
 
   @override
+  ExpressionInfo? superExpression() {
+    return _thisOrSuperReference(isSuper: true);
+  }
+
+  @override
   void suspension(Node node, {int offset = 0}) {
     // Not all control flow paths make use of `offset`, so to make sure testing
     // is thorough, don't rely on the code below to validate it; call
@@ -7936,8 +7963,8 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  ExpressionInfo? thisOrSuper({required bool isSuper}) {
-    return _thisOrSuperReference(isSuper: isSuper);
+  (SharedTypeView?, ExpressionInfo?) thisExpression() {
+    return (promotedTypeOfThis, _thisOrSuperReference(isSuper: false));
   }
 
   @override
