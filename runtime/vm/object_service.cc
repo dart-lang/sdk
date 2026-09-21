@@ -967,13 +967,6 @@ void CompressedStackMaps::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void CompressedStackMaps::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
-void LocalVarDescriptor::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
-}
-
-void LocalVarDescriptor::PrintImplementationFieldsImpl(
-    const JSONArray& jsarr_fields) const {}
-
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

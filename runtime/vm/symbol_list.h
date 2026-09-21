@@ -211,7 +211,6 @@ namespace dart {
   V(LoadLibrary, "_loadLibrary")                                               \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
-  V(LocalVarDescriptor, "LocalVarDescriptor")                                  \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MapKeyValuesFactory, "Map._fromKeyValues")                                 \

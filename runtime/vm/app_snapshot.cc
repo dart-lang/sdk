@@ -3784,67 +3784,6 @@ class RODataDeserializationCluster
 #endif  // !DART_COMPRESSED_POINTERS
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-class LocalVarDescriptorSerializationCluster : public SerializationCluster {
- public:
-  LocalVarDescriptorSerializationCluster()
-      : SerializationCluster(
-            "LocalVarDescriptor",
-            kLocalVarDescriptorCid,
-            compiler::target::LocalVarDescriptor::InstanceSize()) {}
-  ~LocalVarDescriptorSerializationCluster() {}
-
-  void Trace(Serializer* s, ObjectPtr object) {
-    LocalVarDescriptorPtr desc = LocalVarDescriptor::RawCast(object);
-    objects_.Add(desc);
-    PushFromTo(desc);
-  }
-
-  void WriteAlloc(Serializer* s) {
-    const intptr_t count = objects_.length();
-    s->WriteUnsigned(count);
-    for (intptr_t i = 0; i < count; i++) {
-      s->AssignRef(objects_[i]);
-    }
-  }
-
-  void WriteFill(Serializer* s) {
-    const intptr_t count = objects_.length();
-    for (intptr_t i = 0; i < count; i++) {
-      LocalVarDescriptorPtr desc = objects_[i];
-      AutoTraceObject(desc);
-      WriteFromTo(desc);
-    }
-  }
-
- private:
-  GrowableArray<LocalVarDescriptorPtr> objects_;
-};
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-class LocalVarDescriptorDeserializationCluster : public DeserializationCluster {
- public:
-  LocalVarDescriptorDeserializationCluster()
-      : DeserializationCluster("LocalVarDescriptor") {}
-  ~LocalVarDescriptorDeserializationCluster() {}
-
-  void ReadAlloc(Deserializer* d) override {
-    ReadAllocFixedSize(d, LocalVarDescriptor::InstanceSize());
-  }
-
-  void ReadFill(Deserializer* d_) override {
-    Deserializer::Local d(d_);
-    ASSERT(!is_canonical());
-    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
-      LocalVarDescriptorPtr desc =
-          static_cast<LocalVarDescriptorPtr>(d.Ref(id));
-      Deserializer::InitializeHeader(desc, kLocalVarDescriptorCid,
-                                     LocalVarDescriptor::InstanceSize());
-      d.ReadFromTo(desc);
-    }
-  }
-};
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class LocalVarDescriptorsSerializationCluster : public SerializationCluster {
  public:
   LocalVarDescriptorsSerializationCluster()
@@ -3857,7 +3796,7 @@ class LocalVarDescriptorsSerializationCluster : public SerializationCluster {
 
     const intptr_t length = desc->untag()->num_entries_;
     for (intptr_t i = 0; i < length; i++) {
-      s->Push(desc->untag()->descriptor(i));
+      s->Push(desc->untag()->name(i));
     }
   }
 
@@ -8297,8 +8236,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       return new (Z) CompressedStackMapsSerializationCluster();
     case kLocalVarDescriptorsCid:
       return new (Z) LocalVarDescriptorsSerializationCluster();
-    case kLocalVarDescriptorCid:
-      return new (Z) LocalVarDescriptorSerializationCluster();
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -9552,10 +9489,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
       return new (Z) LocalVarDescriptorsDeserializationCluster();
-    case kLocalVarDescriptorCid:
-      ASSERT(!is_canonical);
-      ASSERT(!is_deeply_immutable);
-      return new (Z) LocalVarDescriptorDeserializationCluster();
     case kExceptionHandlersCid:
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);

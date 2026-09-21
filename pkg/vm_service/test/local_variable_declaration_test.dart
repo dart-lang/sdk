@@ -118,17 +118,11 @@ Future<void> verifyVariables(VmService service, IsolateRef isolateRef) async {
   for (final variable in variables) {
     final declarationTokenPos = variable.declarationTokenPos!;
     final name = variable.name!;
-    final staticType = variable.staticType;
     final token = getToken(script, declarationTokenPos);
     // When running from an appjit snapshot, sources aren't available so the returned token will
     // be null.
     if (token != null) {
       expect(name, token);
-    }
-
-    expect(staticType, isNotNull);
-    if (staticType!.kind == InstanceKind.kType) {
-      expect(staticType.name, isNotNull);
     }
   }
 }

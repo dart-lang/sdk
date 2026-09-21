@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.23
+# Dart VM Service Protocol 4.22
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -2069,9 +2069,6 @@ _NotInitialized_ [Sentinel](#sentinel).
 class BoundVariable extends Response {
   string name;
   @Instance|@TypeArguments|Sentinel value;
-
- // The static type of this variable, as declared in source.
-  @Instance staticType;
 
   // The token position where this variable was declared.
   int declarationTokenPos;
@@ -5137,6 +5134,5 @@ version | comments
 4.20 | Deprecated `streamCpuSamplesWithUserTag` RPC.
 4.21 | Added `InstanceKind.Pointer`.
 4.22 | Deprecated `messages` property on `Stack`. Deprecated `Message` type.
-4.23 | Add non-optional `staticType` property to `BoundVariable`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

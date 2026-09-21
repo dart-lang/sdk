@@ -384,8 +384,7 @@ class ActivationFrame : public ZoneObject {
                   TokenPosition* declaration_token_pos,
                   TokenPosition* visible_start_token_pos,
                   TokenPosition* visible_end_token_pos,
-                  Object* value,
-                  AbstractType* static_type = nullptr);
+                  Object* value);
 
   ObjectPtr GetParameter(intptr_t index);
   ClosurePtr GetClosure();

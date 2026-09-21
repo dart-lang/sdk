@@ -288,7 +288,6 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         // own context before calling a closure function.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
-        desc.static_type = nullptr;
         desc.info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
         desc.info.declaration_pos = TokenPosition::kMinSource;
@@ -301,7 +300,6 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         // This is a regular Dart variable, either stack-based or captured.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
-        desc.static_type = &var->static_type();
         if (var->is_captured()) {
           desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
           ASSERT(var->owner() != nullptr);
@@ -755,10 +753,7 @@ LocalVarDescriptorsPtr LocalVarDescriptorsBuilder::Done() {
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars_.length()));
   for (int i = 0; i < vars_.length(); i++) {
-    var_desc.SetVar(i, *(vars_[i].name),
-                    vars_[i].static_type != nullptr ? *vars_[i].static_type
-                                                    : Object::dynamic_type(),
-                    &vars_[i].info);
+    var_desc.SetVar(i, *(vars_[i].name), &vars_[i].info);
   }
   return var_desc.ptr();
 }

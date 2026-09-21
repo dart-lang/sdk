@@ -1047,10 +1047,6 @@ word Number::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
-word LocalVarDescriptor::InstanceSize() {
-  return dart::LocalVarDescriptor::InstanceSize();
-}
-
 void UnboxFieldIfSupported(const dart::Field& field,
                            const dart::AbstractType& type) {
   if (field.is_static() || field.is_late()) {

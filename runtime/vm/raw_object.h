@@ -2525,18 +2525,6 @@ class UntaggedInstructionsTable : public UntaggedObject {
   friend class Deserializer;
 };
 
-class UntaggedLocalVarDescriptor : public UntaggedObject {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor);
-
-  COMPRESSED_POINTER_FIELD(StringPtr, name)
-  VISIT_FROM(name)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, static_type)
-  VISIT_TO(static_type)
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-  friend class Object;
-};
-
 class UntaggedLocalVarDescriptors : public UntaggedObject {
  public:
   enum VarInfoKind {
@@ -2586,16 +2574,14 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  VISIT_FROM_PAYLOAD_START(CompressedLocalVarDescriptorPtr)
-  COMPRESSED_VARIABLE_POINTER_FIELDS(LocalVarDescriptorPtr,
-                                     descriptor,
-                                     descriptors,
-                                     num_entries)
-  CompressedLocalVarDescriptorPtr* descriptorAddrAt(intptr_t i) {
-    return &(descriptors()[i]);
-  }
+  VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names, num_entries)
+
+  CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
+
+  // Variable info with [num_entries_] entries.
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(descriptorAddrAt(num_entries_));
+    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
   }
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_entries) {

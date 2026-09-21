@@ -1059,8 +1059,7 @@ void ActivationFrame::VariableAt(intptr_t i,
                                  TokenPosition* declaration_token_pos,
                                  TokenPosition* visible_start_token_pos,
                                  TokenPosition* visible_end_token_pos,
-                                 Object* value,
-                                 AbstractType* static_type) {
+                                 Object* value) {
   GetDescIndices();
   ASSERT(i < desc_indices_.length());
   intptr_t desc_index = desc_indices_[i];
@@ -1084,9 +1083,6 @@ void ActivationFrame::VariableAt(intptr_t i,
   } else {
     ASSERT(kind == UntaggedLocalVarDescriptors::kContextVar);
     *value = GetContextVar(var_info.scope_id, variable_index.value());
-  }
-  if (static_type != nullptr) {
-    *static_type = var_descriptors_.GetStaticType(desc_index);
   }
 }
 
@@ -1142,7 +1138,7 @@ ObjectPtr ActivationFrame::GetReceiver() {
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore = TokenPosition::kNoSource;
-    VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value, nullptr);
+    VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
     if (var_name.Equals(Symbols::This())) {
       return value.ptr();
     }
@@ -1201,7 +1197,7 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore = TokenPosition::kNoSource;
-    VariableAt(i, &name, &ignore, &ignore, &ignore, &value, nullptr);
+    VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
     if (name.Equals(Symbols::FunctionTypeArgumentsVar())) {
       type_arguments_available = true;
       type_arguments ^= value.ptr();
@@ -1346,12 +1342,11 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
     for (intptr_t v = 0; v < num_vars; v++) {
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
-      AbstractType& static_type = AbstractType::Handle();
       TokenPosition declaration_token_pos = TokenPosition::kNoSource;
       TokenPosition visible_start_token_pos = TokenPosition::kNoSource;
       TokenPosition visible_end_token_pos = TokenPosition::kNoSource;
       VariableAt(v, &var_name, &declaration_token_pos, &visible_start_token_pos,
-                 &visible_end_token_pos, &var_value, &static_type);
+                 &visible_end_token_pos, &var_value);
       if (!IsSyntheticVariableName(var_name)) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
@@ -1364,7 +1359,6 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
         jsvar.AddProperty("scopeStartTokenPos", visible_start_token_pos);
         // When the variable stops being visible to the scope.
         jsvar.AddProperty("scopeEndTokenPos", visible_end_token_pos);
-        jsvar.AddProperty("staticType", static_type);
       }
     }
   }

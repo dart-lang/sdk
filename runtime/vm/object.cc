@@ -823,7 +823,6 @@ void Object::Init(IsolateGroup* isolate_group) {
       Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
   cls =
       Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
-  cls = Class::New<LocalVarDescriptor, RTN::LocalVarDescriptor>(isolate_group);
   cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
   cls = Class::New<Context, RTN::Context>(isolate_group);
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
@@ -1364,7 +1363,6 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(kPcDescriptorsCid, PcDescriptors);
   SET_CLASS_NAME(kCompressedStackMapsCid, CompressedStackMaps);
   SET_CLASS_NAME(kLocalVarDescriptorsCid, LocalVarDescriptors);
-  SET_CLASS_NAME(kLocalVarDescriptorCid, LocalVarDescriptor);
   SET_CLASS_NAME(kExceptionHandlersCid, ExceptionHandlers);
   SET_CLASS_NAME(kContextCid, Context);
   SET_CLASS_NAME(kContextScopeCid, ContextScope);
@@ -16565,55 +16563,18 @@ const char* CompressedStackMaps::ToCString() const {
 
 StringPtr LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
-  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
-      .name();
-}
-
-const char* LocalVarDescriptor::ToCString() const {
-  return "LocalVarDescriptor";
-}
-
-void LocalVarDescriptor::set_name(const String& value) const {
-  untag()->set_name(value.ptr());
-}
-
-void LocalVarDescriptor::set_static_type(const AbstractType& value) const {
-  untag()->set_static_type(value.ptr());
-}
-
-LocalVarDescriptorPtr LocalVarDescriptor::New(const String& name,
-                                              const AbstractType& static_type,
-                                              Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->class_table()->At(kLocalVarDescriptorCid) !=
-         Class::null());
-  LocalVarDescriptor& result = LocalVarDescriptor::Handle();
-  {
-    ObjectPtr raw = Object::Allocate<LocalVarDescriptor>(space);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-  result.set_name(name);
-  result.set_static_type(static_type);
-  return result.ptr();
+  ASSERT(Object::Handle(ptr()->untag()->name(var_index)).IsString());
+  return ptr()->untag()->name(var_index);
 }
 
 void LocalVarDescriptors::SetVar(
     intptr_t var_index,
     const String& name,
-    const AbstractType& static_type,
     UntaggedLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  const LocalVarDescriptor& desc = LocalVarDescriptor::Handle(
-      LocalVarDescriptor::New(name, static_type, Heap::kOld));
-
-  ptr()->untag()->set_descriptor(var_index, desc.ptr());
+  ASSERT(!name.IsNull());
+  ptr()->untag()->set_name(var_index, name.ptr());
   ptr()->untag()->data()[var_index] = *info;
-}
-
-AbstractTypePtr LocalVarDescriptors::GetStaticType(intptr_t var_index) const {
-  ASSERT(var_index < Length());
-  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
-      .static_type();
 }
 
 void LocalVarDescriptors::GetInfo(

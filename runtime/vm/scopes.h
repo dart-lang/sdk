@@ -289,7 +289,6 @@ class LocalVarDescriptorsBuilder : public ValueObject {
  public:
   struct VarDesc {
     const String* name;
-    const AbstractType* static_type = nullptr;
     UntaggedLocalVarDescriptors::VarInfo info;
   };
 

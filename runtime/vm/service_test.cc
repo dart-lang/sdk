@@ -470,11 +470,6 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
     descriptors = code_c.GetLocalVarDescriptors();
   }
   EXPECT(!descriptors.IsNull());
-  AbstractType& static_type = AbstractType::Handle();
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    static_type = descriptors.GetStaticType(i);
-    EXPECT(!static_type.IsNull());
-  }
   // Generate an ID for this object.
   ServiceIdZone& default_id_zone = isolate->EnsureDefaultServiceIdZone();
   const char* id = default_id_zone.GetServiceId(descriptors);
