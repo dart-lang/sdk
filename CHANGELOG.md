@@ -119,25 +119,6 @@
 
 [#54366]: https://github.com/dart-lang/sdk/issues/54366
 
-#### Dart CLI
-
-- `dart run <package>:<command>` and `dart test` now cache the precompiled
-  executable in `.dart_tool/dartdev/bin/` instead of `.dart_tool/pub/bin/`, and
-  recompile it when any of its source files change. Previously the snapshot was
-  rebuilt on every run for packages depended on by path, and could be stale for
-  hosted packages with a path `dependency_override`.
-
-- When `dart run <package>:<command>` and `dart test` run a precompiled
-  executable, `Platform.script` now points at the Dart source file instead of
-  the kernel snapshot. Resolving paths relative to `Platform.script` now works
-  as it does when running from source.
-
-- `dart run --enable-experiment=<experiment>` and
-  `dart test --enable-experiment=<experiment>` now run from a snapshot compiled
-  with those experiments, instead of falling back to running from source. The
-  requested experiments still take effect, but startup is no longer slower than
-  without them.
-
 #### Formatter
 
 The following bug fixes are *not* language versioned and apply also when

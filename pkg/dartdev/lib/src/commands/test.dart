@@ -11,7 +11,6 @@ import 'package:dartdev/src/progress.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
-import '../executable_compiler.dart';
 import '../native_assets.dart';
 import '../resident_frontend_utils.dart';
 import '../vm_interop_handler.dart';
@@ -118,15 +117,7 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      var testExecutable = await getExecutableForCommand(
-        'test:test',
-        allowSnapshot: false,
-      );
-      final sourceExecutable = testExecutable.executable;
-      testExecutable = await ExecutableCompiler.compile(
-        resolvedExecutable: testExecutable,
-        enabledExperiments: enabledExperiments,
-      );
+      final testExecutable = await getExecutableForCommand('test:test');
       var executablePath = testExecutable.executable;
       if (nativeAssets != null &&
           await isFileKernelFile(File(executablePath))) {
@@ -161,15 +152,12 @@ Run "${runner!.executableName} help" to see global options.''');
         //
         // See https://github.com/dart-lang/sdk/issues/53576
         markMainIsolateAsSystemIsolate: true,
-        scriptUriOverride: executablePath != sourceExecutable
-            ? sourceExecutable
+        scriptUriOverride: executablePath != testExecutable.executable
+            ? testExecutable.executable
             : null,
         deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
       );
       return 0;
-    } on CompilationException catch (e) {
-      log.stderr(e.message);
-      return DartdevCommand.errorExitCode;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {
         print(e.message);

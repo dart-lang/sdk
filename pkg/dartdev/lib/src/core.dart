@@ -46,13 +46,6 @@ abstract class DartdevCommand extends Command<int> {
     flagContributor?.call(argParser, _name);
   }
 
-  /// Experiments enabled for this command (both from command-specific flags
-  /// and global/VM flags passed before the subcommand).
-  List<String> get enabledExperiments => {
-    ...?argResults?.enabledExperiments,
-    ...parseVmEnabledExperiments(Platform.executableArguments),
-  }.toList();
-
   @override
   String get name => _name;
 

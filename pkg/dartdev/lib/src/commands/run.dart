@@ -23,7 +23,6 @@ import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../eval_packages.dart';
-import '../executable_compiler.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
@@ -619,27 +618,17 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     DartExecutableWithPackageConfig executable;
-    final String sourceExecutable;
+    final hasExperiments = args.enabledExperiments.isNotEmpty;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: false,
+        allowSnapshot: !(useResidentCompiler || hasExperiments),
       );
-      sourceExecutable = executable.executable;
-      if (!useResidentCompiler) {
-        executable = await ExecutableCompiler.compile(
-          resolvedExecutable: executable,
-          enabledExperiments: enabledExperiments,
-          quiet: args.option('verbosity') == Verbosity.error.name,
-        );
-      }
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
-    } on CompilationException catch (e) {
-      log.stderr(e.message);
-      return errorExitCode;
     }
+    DartExecutableWithPackageConfig executableOriginal = executable;
 
     if (useResidentCompiler) {
       // We need to merge the vm given arguments and the `dart run` given
@@ -744,9 +733,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       packageConfigOverride:
           args.option('packages') ?? executable.packageConfig,
       useExecProcess: true,
-      scriptUriOverride: executable.executable != sourceExecutable
-          ? sourceExecutable
-          : null,
+      scriptUriOverride: identical(executable, executableOriginal)
+          ? null
+          : executableOriginal.executable,
       deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
     );
     return 0;

@@ -68,6 +68,12 @@ abstract class VmInteropHandler {
         // Escape paths that may contain spaces
         script = '"$script"';
       }
+      if (scriptUriOverride != null &&
+          scriptUriOverride.contains(' ') &&
+          !scriptUriOverride.contains('"')) {
+        // Escape paths that may contain spaces
+        scriptUriOverride = '"$scriptUriOverride"';
+      }
       argsList = [
         for (int i = 0; i < args.length; i++) _windowsArgumentEscape(args[i]),
       ];
