@@ -869,6 +869,13 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Emit a `throw_ref` instruction.
   void throw_ref() {
+    assert(
+      _verifyTypes(
+        const [ir.RefType.exn(nullable: true)],
+        const [],
+        trace: const ['throw_ref'],
+      ),
+    );
     _add(ir.ThrowRef());
     _reachable = false;
   }

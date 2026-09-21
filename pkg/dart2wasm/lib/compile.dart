@@ -884,6 +884,10 @@ class _RecordClassesRepository extends MetadataRepository<RecordShape> {
   }
 }
 
+// Note: Flutter's `flutter.js` bootstrap script copies the output of this
+// function (`<app>.support.js`) in `supportsDart2Wasm()` in:
+// `engine/src/flutter/lib/web_ui/flutter_js/src/browser_environment.js`
+// Keep that file in sync when updating the unconditionally required features.
 String _generateSupportJs({required bool requiresMultiMemory}) {
   // Copied from
   // https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/main/src/detectors/gc/index.js
@@ -941,10 +945,23 @@ String _generateSupportJs({required bool requiresMultiMemory}) {
   const String supportsJsStringBuiltins =
       '!WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,2,23,1,14,119,97,115,109,58,106,115,45,115,116,114,105,110,103,4,99,97,115,116,0,0]),{"builtins":["js-string"]})';
 
+  // Validates a tiny module using `try_table` with `catch_all`:
+  // ```
+  //   (module
+  //     (func
+  //       block $0
+  //         try_table (catch_all $0)
+  //         end
+  //       end))
+  // ```
+  const String supportsTryTable =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,3,2,1,0,10,13,1,11,0,2,64,31,64,1,2,0,11,11,11]))';
+
   final requiredFeatures = [
     supportsWasmGC,
     supportsWasmSimd,
     supportsJsStringBuiltins,
+    supportsTryTable,
     if (requiresMultiMemory) supportsWasmMultiMemory,
   ];
   return '(${requiredFeatures.join('&&')})';
