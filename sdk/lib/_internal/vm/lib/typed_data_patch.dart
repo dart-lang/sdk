@@ -6071,3 +6071,143 @@ final class _UnmodifiableByteBufferView extends _ByteBuffer {
   ByteData asByteData([int offsetInBytes = 0, int? length]) =>
       _UnmodifiableByteDataView(super.asByteData(offsetInBytes, length));
 }
+
+@pragma('vm:prefer-inline')
+bool _listRangeEquals<T extends List<int>>(
+  T a,
+  int aStart,
+  T b,
+  int bStart,
+  int count,
+) {
+  if (count <= 32) {
+    for (int i = 0; i < count; i++) {
+      if (a[aStart + i] != b[bStart + i]) return false;
+    }
+    return true;
+  }
+  return _typedDataMemEquals(
+    unsafeCast<TypedData>(a),
+    aStart,
+    unsafeCast<TypedData>(b),
+    bStart,
+    count,
+  );
+}
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint64ListRangeEquals(
+  Uint64List a,
+  int aStart,
+  Uint64List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int64ListRangeEquals(
+  Int64List a,
+  int aStart,
+  Int64List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  if (count <= 32) {
+    for (int i = 0; i < count; i++) {
+      if (a.getUint8(aStart + i) != b.getUint8(bStart + i)) return false;
+    }
+    return true;
+  }
+  return _typedDataMemEquals(a, aStart, b, bStart, count);
+}
+
+@pragma("vm:external-name", "TypedDataBase_memEquals")
+external bool _typedDataMemEquals(
+  TypedData a,
+  int aStart,
+  TypedData b,
+  int bStart,
+  int count,
+);

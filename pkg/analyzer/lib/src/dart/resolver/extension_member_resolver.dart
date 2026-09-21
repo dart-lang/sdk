@@ -531,6 +531,9 @@ class ExtensionMemberResolver {
         parent is IndexExpression && parent.target2 == node ||
         parent is IncrementOrDecrementExpression ||
         parent is MethodInvocation && parent.target2 == node ||
+        parent is ParsedNameAccess && parent.operand == node ||
+        parent is ReceiverMethodInvocation && parent.receiver == node ||
+        parent is ReceiverPropertyExtraction && parent.receiver == node ||
         parent is ReceiverPropertyAssignmentTarget && parent.receiver == node ||
         parent is UnaryOperatorInvocation && parent.operand == node ||
         parent is PropertyAccess && parent.target2 == node;

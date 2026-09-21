@@ -80,11 +80,18 @@ sealed class Available extends Availability {
     for (var parameter in _formalParameters) {
       if (parameter.isNamed) continue;
 
+      var name = parameter.name;
+      if (name == null) {
+        // Invalid positional parameter without a name. Don't attempt to handle
+        // this.
+        return false;
+      }
+
       hasPositional = true;
 
       // If the parameter has a private name, we must be able to convert it to
       // a private named parameter.
-      if (Identifier.isPrivateName(parameter.name!)) {
+      if (Identifier.isPrivateName(name)) {
         if (!supportsPrivateNamedParameters) {
           return false;
         }

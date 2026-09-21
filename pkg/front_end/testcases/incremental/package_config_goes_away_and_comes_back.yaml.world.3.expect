@@ -1,0 +1,15 @@
+main = main::main;
+library from "package:foo/a.dart" as a {
+
+  static method hello() → void {
+    dart.core::print("hello v1");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:foo/a.dart";
+
+  static method main() → void {
+    a::hello();
+  }
+}

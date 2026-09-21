@@ -543,6 +543,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {
+    _constArgumentsVerifier.checkNameExpression(node);
     _checkCascadeSectionNullAware(node);
     _checkUseVerifier.checkPropertyExtraction(node);
     super.visitCascadePropertyExtraction(node);

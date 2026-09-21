@@ -93,15 +93,7 @@ class UseResultVerifier {
 
   void checkPropertyExtraction(PropertyExtraction node) {
     if (node.resolution?.element case var element?) {
-      // Accesses such as x.foo and C.foo historically report on the selected
-      // identifier. Preserve that diagnostic span now that the name is a token.
-      var reportOnName =
-          node is ReceiverPropertyExtraction &&
-          node.operator.type == TokenType.PERIOD &&
-          (node.receiver is UnqualifiedNameExpression ||
-              node.receiver is StaticQualifier &&
-                  (node.receiver as StaticQualifier).importPrefix == null);
-      _check(node, element, nameToken: reportOnName ? node.name : null);
+      _check(node, element, nameToken: node.name);
     }
   }
 

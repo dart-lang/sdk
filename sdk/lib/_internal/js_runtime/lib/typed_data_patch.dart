@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_foreign_helper' show JS;
 import 'dart:_internal' show patch;
 import 'dart:_native_typed_data';
-import "dart:_internal" show UnmodifiableListBase;
 
 @patch
 class ByteData {
@@ -192,4 +192,169 @@ class Float64x2 {
   factory Float64x2.zero() = NativeFloat64x2.zero;
   @patch
   factory Float64x2.fromFloat32x4(Float32x4 v) = NativeFloat64x2.fromFloat32x4;
+}
+
+// Each integer typed array type has a dedicated, strictly monomorphic comparison
+// loop. This keeps V8's Inline Cache at `#[#] !== #[#]` strictly monomorphic
+// (IC size = 1), avoiding polymorphic/megamorphic transitions, deoptimizations,
+// and runtime type checks. Unused types can also be tree-shaken by dart2js.
+@patch
+@pragma('dart2js:prefer-inline')
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (JS<bool>('bool', '#[#] !== #[#]', a, aStart + i, b, bStart + i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+@patch
+@pragma('dart2js:prefer-inline')
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  int i = 0;
+  // Compare 32 bits at a time in little-endian byte order. Equality is byte-order
+  // invariant, and all supported modern JS runtimes run on little-endian hardware.
+  // Passing a constant `true` enables the JS engine to emit a single direct load
+  // instruction without endian branching or BigInt overhead.
+  final limit32 = count - 4;
+  for (; i <= limit32; i += 4) {
+    if (JS<bool>(
+      'bool',
+      '#.getUint32(#, true) !== #.getUint32(#, true)',
+      a,
+      aStart + i,
+      b,
+      bStart + i,
+    )) {
+      return false;
+    }
+  }
+  for (; i < count; i++) {
+    if (JS<bool>(
+      'bool',
+      '#.getUint8(#) !== #.getUint8(#)',
+      a,
+      aStart + i,
+      b,
+      bStart + i,
+    )) {
+      return false;
+    }
+  }
+  return true;
 }

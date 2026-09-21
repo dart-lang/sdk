@@ -501,6 +501,8 @@ class NullSafetyDeadCodeVerifier {
       if (flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent2;
         while (parent is MethodInvocation ||
+            parent is FunctionInvocation ||
+            parent is ParsedExpression ||
             parent is PropertyAccess ||
             parent is PropertyExtraction ||
             parent is IndexExpression2 ||

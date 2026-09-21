@@ -71,6 +71,17 @@ class C {
 ''');
   }
 
+  test_class_method_invocation_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+var g = C()..m(1);
+class C {
+  // ignore: experimental_member_use
+  void m(@mustBeConst int x) {}
+}
+''');
+  }
+
   test_class_method_tearoff() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
@@ -80,6 +91,40 @@ var g = C().m;
 class C {
   // ignore: experimental_member_use
   void m(@mustBeConst int x) {}
+}
+''');
+  }
+
+  test_class_method_tearoff_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+var g = C()..m;
+//           ^
+// [diag.tearoffWithMustBeConstParameter] The function 'm' has a parameter marked as '@mustBeConst' and can't be torn off.
+class C {
+  // ignore: experimental_member_use
+  void m(@mustBeConst int x) {}
+}
+''');
+  }
+
+  test_class_method_tearoff_cascade_extensionInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  // ignore: experimental_member_use
+  void m(@mustBeConst int x) {}
+}
+
+extension on void Function(int) {
+  void invoke(int value) => this(value);
+}
+
+void f(C c, int value) {
+  c..m.invoke(value);
+//   ^
+// [diag.tearoffWithMustBeConstParameter] The function 'm' has a parameter marked as '@mustBeConst' and can't be torn off.
 }
 ''');
   }

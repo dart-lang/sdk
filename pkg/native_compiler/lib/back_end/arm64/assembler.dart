@@ -852,6 +852,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadConstant(R0, ConstantValue.fromString(message));
     push(R0);
     callRuntime(RuntimeEntry.FatalError, 1);
+    breakpoint();
   }
 
   @override

@@ -956,9 +956,11 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
 
   @override
   TypeImpl _computeContextForArgument(TypeImpl parameterType) {
-    if (node case ReceiverMethodInvocationImpl(:ExpressionImpl receiver)) {
+    if (node case ReceiverMethodInvocationImpl(
+      receiver: ExpressionImpl(staticType: var receiverType?),
+    )) {
       return resolver.typeSystem.refineNumericInvocationContext(
-        receiver.typeOrThrow,
+        receiverType,
         _invokedElement,
         contextType,
         parameterType,
@@ -969,9 +971,11 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
 
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
-    if (node case ReceiverMethodInvocationImpl(:ExpressionImpl receiver)) {
+    if (node case ReceiverMethodInvocationImpl(
+      receiver: ExpressionImpl(staticType: var receiverType?),
+    )) {
       return resolver.typeSystem
-          .refineNumericInvocationType(receiver.typeOrThrow, _invokedElement, [
+          .refineNumericInvocationType(receiverType, _invokedElement, [
             for (var argument in node.argumentList.arguments2)
               argument.argumentExpression2.typeOrThrow,
           ], returnType);

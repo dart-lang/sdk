@@ -1258,7 +1258,7 @@ class A {
 var x = A().a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('A().a')],
+      (result) => [result.findNode.receiverPropertyExtraction('A().a')],
     );
   }
 

@@ -155,6 +155,7 @@ namespace dart {
   V(MicrotaskMirrorQueue_onAsyncCallbackComplete, 2)                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
+  V(TypedDataBase_memEquals, 5)                                                \
   V(TypedData_GetFloat32, 2)                                                   \
   V(TypedData_SetFloat32, 3)                                                   \
   V(TypedData_GetFloat64, 2)                                                   \

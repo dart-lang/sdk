@@ -984,13 +984,22 @@ class PropertyElementResolver with ScopeHelpers {
   })
   resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
-    if (receiver is StaticQualifierImpl) {
-      var result = _resolveStaticQualifier(
+    var qualifierResult = switch (receiver) {
+      StaticQualifierImpl() => _resolveStaticQualifier(
         receiver,
         name: node.name,
         hasRead: true,
         hasWrite: false,
-      );
+      ),
+      ExtensionOverrideImpl() => _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: SimpleIdentifierImpl(token: node.name),
+        hasRead: true,
+        hasWrite: false,
+      ),
+      _ => null,
+    };
+    if (qualifierResult case var result?) {
       var readElement = result.readElementRequested2;
       var resolution =
           _createNamedReadResolutionWithElement(
@@ -1011,12 +1020,13 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      // Bare-name reads retain the legacy dead-code diagnostic at the selected
-      // name. Other receiver forms report receiverOfTypeNever instead.
+      // Bare-name and call-result reads retain the legacy dead-code diagnostic
+      // at the selected name. Other receivers report receiverOfTypeNever.
       // TODO(scheglov): Unify diagnostics for Never receivers across receiver
-      // forms. Preserve the legacy bare-name diagnostic during this migration.
-      if (receiver is! UnqualifiedNameExpressionImpl ||
-          node.operator.type != TokenType.PERIOD) {
+      // forms. Preserve the legacy diagnostics during this migration.
+      if (receiver is! FunctionInvocationImpl &&
+          (receiver is! UnqualifiedNameExpressionImpl ||
+              node.operator.type != TokenType.PERIOD)) {
         diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
         return (expressionInfo: null, resolution: null, type: receiverType);
       }

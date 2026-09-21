@@ -14,6 +14,13 @@
 
 #### `dart:typed_data`
 
+- Added `rangeEquals` extension methods on all integer typed data lists
+  (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
+  `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
+  efficient range equality comparisons.
+  For more details, see SDK issue [#64095][]
+
+[#64095]: https://github.com/dart-lang/sdk/issues/64095
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
 - Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
