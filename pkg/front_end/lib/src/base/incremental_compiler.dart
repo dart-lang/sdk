@@ -1522,7 +1522,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Coverage-ignore-block(suite): Not run.
       _previousPackagesUri = c.options.packagesUriRaw;
       bypassCache = true;
-    } else if (this._invalidatedUris.contains(c.options.packagesUri)) {
+    } else if (this._invalidatedUris.contains(c.options.packagesUri) ||
+        this._invalidatedUris.contains(c.options.packagesUriRaw)) {
       bypassCache = true;
     }
     UriTranslator uriTranslator = await c.options.getUriTranslator(

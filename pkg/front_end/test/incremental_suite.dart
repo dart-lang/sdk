@@ -2810,17 +2810,22 @@ class NewWorldTest {
       worldTestData.expectInitializeFromDill = world.expectInitializeFromDill!;
     }
     if (!world.updateWorldType) {
-      newWorldTestData.sourceFiles = new Map<String, String?>.from(
+      newWorldTestData.sourceFiles = new Map<String, String>.from(
         world.sources,
       );
     } else {
       newWorldTestData.sourceFiles.addAll(
-        new Map<String, String?>.from(world.sources),
+        new Map<String, String>.from(world.sources),
       );
+    }
+    if (world.deletedSources != null) {
+      for (String filename in world.deletedSources!) {
+        newWorldTestData.sourceFiles.remove(filename);
+      }
     }
 
     for (String filename in newWorldTestData.sourceFiles.keys) {
-      String data = newWorldTestData.sourceFiles[filename] ?? "";
+      String data = newWorldTestData.sourceFiles[filename]!;
       Uri uri = newWorldTestData.base.resolve(filename);
       if (filename == ".dart_tool/package_config.json") {
         worldTestData.packagesUri = uri;
@@ -2830,6 +2835,14 @@ class NewWorldTest {
       }
       newWorldTestData.fs.entityForUri(uri).writeAsStringSync(data);
     }
+
+    if (world.deletedSources != null) {
+      for (String filename in world.deletedSources!) {
+        Uri uri = newWorldTestData.base.resolve(filename);
+        newWorldTestData.fs.removeFile(uri);
+      }
+    }
+
     if (world.packageConfigFile != null) {
       worldTestData.packagesUri = newWorldTestData.base.resolve(
         world.packageConfigFile!,
@@ -2885,7 +2898,7 @@ class NewWorldTestData {
   final bool isDdc;
 
   TestMemoryFileSystem? _fs;
-  Map<String, String?>? _sourceFiles;
+  Map<String, String>? _sourceFiles;
   CompilerOptions? _options;
 
   TestIncrementalCompiler? _compiler;
@@ -2919,9 +2932,9 @@ class NewWorldTestData {
   CompilerOptions get options => _options!;
 
   set options(CompilerOptions newOptions) => _options = newOptions;
-  Map<String, String?> get sourceFiles => _sourceFiles!;
+  Map<String, String> get sourceFiles => _sourceFiles!;
 
-  set sourceFiles(Map<String, String?> newSourceFiles) =>
+  set sourceFiles(Map<String, String> newSourceFiles) =>
       _sourceFiles = newSourceFiles;
 }
 
@@ -3356,7 +3369,8 @@ class World {
   final bool noFullComponent;
   final bool noErrorWarningCheckOnExtraCompiles;
   final bool? expectInitializeFromDill;
-  final Map<String, String?> sources;
+  final Map<String, String> sources;
+  final List<String>? deletedSources;
   final bool useBadSdk;
   final bool enableStringReplacement;
   final String? packageConfigFile;
@@ -3415,6 +3429,7 @@ class World {
     required this.noErrorWarningCheckOnExtraCompiles,
     required this.expectInitializeFromDill,
     required this.sources,
+    required this.deletedSources,
     required this.useBadSdk,
     required this.enableStringReplacement,
     required this.packageConfigFile,
@@ -3473,7 +3488,12 @@ class World {
     bool? expectInitializeFromDill = WorldProperties.expectInitializeFromDill
         .read(world, keys);
 
-    Map<String, String?> sources = WorldProperties.sources.read(world, keys);
+    Map<String, String> sources = WorldProperties.sources.read(world, keys);
+
+    List<String>? deletedSources = WorldProperties.deletedSources.read(
+      world,
+      keys,
+    );
 
     bool useBadSdk = WorldProperties.badSdk.read(world, keys);
 
@@ -3636,6 +3656,7 @@ class World {
       noErrorWarningCheckOnExtraCompiles: noErrorWarningCheckOnExtraCompiles,
       expectInitializeFromDill: expectInitializeFromDill,
       sources: sources,
+      deletedSources: deletedSources,
       useBadSdk: useBadSdk,
       enableStringReplacement: enableStringReplacement,
       packageConfigFile: packageConfigFile,
@@ -3718,6 +3739,11 @@ class WorldProperties {
     'sources',
     MapValue(StringValue()),
     defaultValue: const {},
+  );
+
+  static const Property<List<String>?> deletedSources = Property.optional(
+    "deletedSources",
+    ListValue(StringValue()),
   );
 
   static const Property<bool> badSdk = Property.optional(
