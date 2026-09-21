@@ -74,15 +74,14 @@ class Instructions implements Serializable {
     if (recordDebugInfo && debugInfo != null && debugInfo.isNotEmpty) {
       final reader = DebugInfoReader(debugInfo);
       final writer = DebugInfoWriter();
-      bool hasMapping = reader.moveNext();
       final bodyStart = s.offset;
 
       for (int i = 0; i < instructions.length; i++) {
         final instr = instructions[i];
         if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
 
-        final relOffset = s.offset - bodyStart;
-        while (hasMapping && reader.offset <= i) {
+        if (reader.moveUntil(i)) {
+          final relOffset = s.offset - bodyStart;
           if (reader.hasSourcePosition) {
             writer.setSourcePositionWithIndices(
               relOffset,
@@ -94,7 +93,6 @@ class Instructions implements Serializable {
           } else {
             writer.clearSourcePosition(relOffset);
           }
-          hasMapping = reader.moveNext();
         }
 
         instr.serialize(s);
@@ -136,58 +134,15 @@ class Instructions implements Serializable {
         (p.printSourcePositions && debugInfo != null && debugInfo.isNotEmpty)
         ? DebugInfoReader(debugInfo, p.module.debugInfoTables)
         : null;
-    bool hasMapping = reader?.moveNext() ?? false;
-
-    Uri? currentFileUri;
-    int? currentLine;
-    int? currentCol;
-    bool currentHasPosition = false;
-
-    Uri? lastPrintedFileUri;
-    int? lastPrintedLine;
-    int? lastPrintedCol;
 
     for (int k = 0; k < instructions.length; ++k) {
       final i = instructions[k];
 
-      if (reader != null) {
-        while (hasMapping && reader.offset <= k) {
-          currentHasPosition = reader.hasSourcePosition;
-          if (currentHasPosition) {
-            currentFileUri = reader.fileUri;
-            currentLine = reader.line;
-            currentCol = reader.col;
-          } else {
-            currentFileUri = null;
-            currentLine = null;
-            currentCol = null;
-          }
-          hasMapping = reader.moveNext();
-        }
-
-        if (currentHasPosition && currentFileUri != null) {
-          final lineChanged =
-              currentFileUri != lastPrintedFileUri ||
-              currentLine != lastPrintedLine;
-          final colChanged = currentCol != lastPrintedCol;
-          if (lineChanged || colChanged) {
-            lastPrintedFileUri = currentFileUri;
-            lastPrintedLine = currentLine;
-            lastPrintedCol = currentCol;
-            p.printSourcePosition(
-              currentFileUri,
-              currentLine!,
-              currentCol!,
-              printUrl: lineChanged,
-            );
-          }
+      if (reader != null && reader.moveUntil(k)) {
+        if (reader.hasSourcePosition) {
+          p.printSourcePosition(reader.fileUri, reader.line, reader.col);
         } else {
-          if (lastPrintedFileUri != null) {
-            p.printUnmapped();
-          }
-          lastPrintedFileUri = null;
-          lastPrintedLine = null;
-          lastPrintedCol = null;
+          p.printUnmapped();
         }
       }
 

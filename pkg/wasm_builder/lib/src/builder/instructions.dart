@@ -343,7 +343,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
           if (debugInfoReader.hasSourcePosition) {
             newDebugInfoWriter!.setSourcePosition(
               debugInfoReader.offset + shift,
-              debugInfoReader.fileUri!,
+              debugInfoReader.fileUri,
               debugInfoReader.line,
               debugInfoReader.col,
               debugInfoReader.name,
@@ -371,7 +371,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         if (debugInfoReader.hasSourcePosition) {
           newDebugInfoWriter!.setSourcePosition(
             debugInfoReader.offset + shift,
-            debugInfoReader.fileUri!,
+            debugInfoReader.fileUri,
             debugInfoReader.line,
             debugInfoReader.col,
             debugInfoReader.name,

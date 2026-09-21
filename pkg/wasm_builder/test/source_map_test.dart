@@ -232,7 +232,6 @@ void testUnmappedRegions() {
   Expect.isTrue(reader.moveNext());
   Expect.equals(5, reader.offset);
   Expect.isFalse(reader.hasSourcePosition);
-  Expect.isNull(reader.fileUri);
 
   Expect.isTrue(reader.moveNext());
   Expect.equals(10, reader.offset);

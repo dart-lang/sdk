@@ -113,32 +113,70 @@ class DebugInfoReader {
   /// Whether the code at [offset] has a source position.
   bool get hasSourcePosition => _hasSourcePosition;
 
-  /// File URI of the mapped source, or `null` if unmapped or `debugInfoTables` was not provided.
-  Uri? get fileUri {
-    if (!_hasSourcePosition || _debugInfoTables == null) return null;
-    final files = _debugInfoTables.files;
-    return _fileIndex < files.length ? files[_fileIndex] : null;
+  /// File URI of the mapped source.
+  Uri get fileUri {
+    assert(_hasSourcePosition);
+    return _debugInfoTables!.files[_fileIndex];
   }
 
   /// 0-based line number in the source file.
-  int get line => _line;
+  int get line {
+    assert(_hasSourcePosition);
+    return _line;
+  }
 
   /// 0-based column number in the source file.
-  int get col => _col;
+  int get col {
+    assert(_hasSourcePosition);
+    return _col;
+  }
 
   /// Index of the source file in `DebugInfoTables.files`.
-  int get fileIndex => _fileIndex;
+  int get fileIndex {
+    assert(_hasSourcePosition);
+    return _fileIndex;
+  }
 
   /// Index of the name in `DebugInfoTables.names`, or `-1` if unnamed.
-  int get nameIndex => _nameIndex;
+  int get nameIndex {
+    assert(_hasSourcePosition);
+    return _nameIndex;
+  }
 
-  /// Name of the mapped code (e.g. member name), or `null` if unnamed or `debugInfoTables` was not provided.
+  /// Name of the mapped code (if available).
   String? get name {
-    if (!_hasSourcePosition || _nameIndex < 0 || _debugInfoTables == null) {
-      return null;
+    assert(_hasSourcePosition);
+    if (_nameIndex < 0) return null;
+    return _debugInfoTables!.names[_nameIndex];
+  }
+
+  /// Advances to the last source mapping with an offset `<= [targetOffset]`.
+  ///
+  /// Returns `true` if the reader advanced to a new source mapping.
+  bool moveUntil(int targetOffset) {
+    bool moved = false;
+    while (true) {
+      final byteOffset = _byteOffset;
+      final offset = _offset;
+      final fileIndex = _fileIndex;
+      final line = _line;
+      final col = _col;
+      final nameIndex = _nameIndex;
+      final hasSourcePosition = _hasSourcePosition;
+
+      if (!moveNext()) return moved;
+      if (_offset > targetOffset) {
+        _byteOffset = byteOffset;
+        _offset = offset;
+        _fileIndex = fileIndex;
+        _line = line;
+        _col = col;
+        _nameIndex = nameIndex;
+        _hasSourcePosition = hasSourcePosition;
+        return moved;
+      }
+      moved = true;
     }
-    final names = _debugInfoTables.names;
-    return _nameIndex < names.length ? names[_nameIndex] : null;
   }
 
   /// Advances to the next source mapping. Returns `false` if there are no more
