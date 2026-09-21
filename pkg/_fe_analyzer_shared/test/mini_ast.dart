@@ -1824,7 +1824,10 @@ class For extends Statement {
       offset: _syntheticBodyBeginOffset!,
     );
     h.typeAnalyzer._visitLoopBody(this, body);
-    h.flow.for_updaterBegin(offset: _syntheticUpdaterBeginOffset!);
+    h.flow.for_updaterBegin(
+      offset: _syntheticUpdaterBeginOffset!,
+      updaterEndOffset: _syntheticBodyBeginOffset!,
+    );
     if (updater != null) {
       h.typeAnalyzer.analyzeExpression(updater!, h.operations.unknownType);
     } else {
@@ -7544,6 +7547,8 @@ class _MiniAstTypeAnalyzer
   /// `arguments.length + 1`, whose `i`th element is the offset just before the
   /// `i`th argument, and whose last element is the offset just after the last
   /// argument. This determines the offsets that will be passed to
+  /// [FlowAnalysis.argumentVisitOrderException_begin],
+  /// [FlowAnalysis.argumentVisitOrderException_end], and
   /// [FlowAnalysis.recordArgumentVisitOrderException] when [argumentVisitOrder]
   /// indicates that arguments should be visited out of order.
   ///
@@ -7582,10 +7587,23 @@ class _MiniAstTypeAnalyzer
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     var lastVisitedArgument = -1;
+    var maxVisitedArgument = -1;
     for (var i = 0; i < arguments.length; i++) {
       var j = argumentVisitOrder[i];
       inputKinds.add(Kind.expression);
-      if (lastVisitedArgument != j - 1) {
+      // If any argument that follows this one has already been visited, then
+      // this argument is being visited out of order.
+      var isOutOfOrder = maxVisitedArgument > j;
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_begin(
+          offset: betweenArgumentOffsets[j],
+        );
+      } else if (lastVisitedArgument != j - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
         flow.recordArgumentVisitOrderException(
           offset: betweenArgumentOffsets[j],
         );
@@ -7598,7 +7616,13 @@ class _MiniAstTypeAnalyzer
               )
             : operations.unknownType,
       );
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_end(
+          offset: betweenArgumentOffsets[j + 1],
+        );
+      }
       lastVisitedArgument = j;
+      if (j > maxVisitedArgument) maxVisitedArgument = j;
     }
     if (lastVisitedArgument != arguments.length - 1) {
       flow.recordArgumentVisitOrderException(

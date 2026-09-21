@@ -300,6 +300,44 @@ abstract class FlowAnalysis<
   /// block body is probably the best choice.
   void anonymousBlockBody_end({int offset = 0});
 
+  /// Call this method just before visiting an invocation argument that is being
+  /// visited out of order (e.g., due to horizontal inference).
+  ///
+  /// If the arguments in an invocation are numbered consecutively from 0 to
+  /// n-1 (where n is the number of arguments), then an argument is being
+  /// visited out of order if some argument that follows it in the source code
+  /// has already been visited.
+  ///
+  /// [offset] is the last source offset that should be considered to be prior
+  /// to the argument that's about to be visited. The start offset of the
+  /// argument is probably the best choice.
+  ///
+  /// A matching call to [argumentVisitOrderException_end] must be made after
+  /// the argument has been visited. Such regions may be nested (since an
+  /// out of order argument may itself contain an invocation whose arguments are
+  /// visited out of order), but they may not partially overlap.
+  ///
+  /// Note that it's only necessary to call this method when the argument really
+  /// is being visited out of order; an argument that happens to be visited in
+  /// its natural source position needs no special treatment.
+  void argumentVisitOrderException_begin({required int offset});
+
+  /// Call this method just after visiting an invocation argument that was
+  /// announced using [argumentVisitOrderException_begin].
+  ///
+  /// [offset] is the first source offset that should be considered to follow
+  /// the argument that was just visited. The end offset of the argument is
+  /// probably the best choice.
+  ///
+  /// Note that any changes the argument made to the flow analysis state
+  /// continue to be in effect after this call (flow analysis state doesn't
+  /// "rewind"); what the call does is delimit the range of source offsets that
+  /// the argument's log entries describe. So
+  /// [recordArgumentVisitOrderException] should be called to account for those
+  /// state changes at the source offsets that follow the argument but are
+  /// visited after it.
+  void argumentVisitOrderException_end({required int offset});
+
   /// Call this method after visiting an "as" expression.
   ///
   /// [subExpressionInfo] should be the expression info for the expression to
@@ -754,7 +792,14 @@ abstract class FlowAnalysis<
   /// [offset] is the last source offset that should be considered to be part of
   /// the loop condition. The offset of the `;` separating the condition from
   /// any updaters is probably the best choice.
-  void for_updaterBegin({int offset = 0});
+  ///
+  /// [updaterEndOffset] is the source offset at which the updaters end. The
+  /// offset of the `)` is probably the best choice. Since the updaters are
+  /// visited after the loop body, even though they precede it in the source
+  /// code, flow analysis needs to know both ends of the source range they
+  /// occupy, so that it can record the states it computes at the source offsets
+  /// they belong to.
+  void for_updaterBegin({int offset = 0, int updaterEndOffset = 0});
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.
@@ -762,7 +807,8 @@ abstract class FlowAnalysis<
   /// The order of visiting a "for-in" statement or collection element should
   /// be:
   /// - Visit the iterable expression.
-  /// - Call [forEach_bodyBegin].
+  /// - Call [forEach_bodyBegin] or [patternForIn_bodyBegin] (depending whether
+  ///   the loop is a pattern for-in or an ordinary for-in).
   /// - Visit the body.
   /// - Call [forEach_end].
   ///
@@ -1287,6 +1333,21 @@ abstract class FlowAnalysis<
   /// choice.
   void patternForIn_beforePattern(SharedTypeView elementType, {int offset = 0});
 
+  /// Call this method just after visiting the pattern of a "pattern-for-in"
+  /// statement or collection element, and before visiting the body. This plays
+  /// the same role that [forEach_bodyBegin] plays for "for-in" statements and
+  /// collection elements that don't use patterns.
+  ///
+  /// See [forEach_bodyBegin] for details.
+  ///
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the for statement.
+  ///
+  /// [offset] is the last source offset that should be considered prior to
+  /// entry into the loop body. The offset of the `)` is probably the best
+  /// choice.
+  void patternForIn_bodyBegin(Node node, {int offset = 0});
+
   /// Call this method after visiting the body.
   ///
   /// [offset] is the last source offset that should be considered to be inside
@@ -1520,27 +1581,32 @@ abstract class FlowAnalysis<
   /// probably the best choice.
   void pushSubpattern(SharedTypeView matchedType, {int offset = 0});
 
-  /// Call this method to inform flow analysis that invocation arguments may be
-  /// visited out of order (e.g., due to horizontal inference).
+  /// Call this method to inform flow analysis that the state changes made by
+  /// an argument that was visited out of order (see
+  /// [argumentVisitOrderException_begin]) should be considered to be in effect
+  /// from [offset] onwards.
   ///
-  /// If the arguments in an invocation are numbered consecutively from 0 to
-  /// n-1 (where n is the number of arguments), this method should be called:
+  /// The log entries that were recorded while visiting an out of order argument
+  /// only describe that argument's own source range, whereas the changes it
+  /// made to the flow analysis state (for example, a write capture performed by
+  /// a function literal) continue to be in effect afterwards. So this method
+  /// should be called:
   ///
-  /// - Just prior to visiting argument 0, if argument 0 is not the first
-  ///   argument to be visited.
-  /// - Just prior to visiting argument i+1, if the most recently visited
-  ///   argument was not argument i.
-  /// - After visiting all arguments, if the most recently visited argument was
-  ///   not argument n-1.
+  /// - Just prior to visiting an argument in its natural source position, if
+  ///   the most recently visited argument was not the argument that precedes it
+  ///   in the source code (which means that some argument was visited out of
+  ///   order in the meantime). In this case, [offset] is the last source offset
+  ///   that should be considered to be prior to the argument that's about to be
+  ///   visited. The start offset of the argument is probably the best choice.
+  /// - After visiting all the arguments, if the most recently visited argument
+  ///   was not the last argument (which means that the state changes made by
+  ///   the argument visited last haven't been accounted for yet). In this case,
+  ///   [offset] is the last source offset that should be considered to be prior
+  ///   to the invocation taking place. The offset of the `)` is probably the
+  ///   best choice.
   ///
-  /// In the first two cases, [offset] is the last source offset that should be
-  /// considered to be prior to the argument that's about to be visited. The
-  /// offset of the `(` or `,` token that precedes the argument is probably the
-  /// best choice.
-  ///
-  /// In the third case, [offset] is the last source offset that should be
-  /// considered to be prior to the invocation taking place. The offset of the
-  /// `)` is probably the best choice.
+  /// It's harmless to call this method when the state hasn't changed; in that
+  /// case nothing is recorded.
   void recordArgumentVisitOrderException({required int offset});
 
   /// Retrieves the value version associated with [variable].
@@ -2095,6 +2161,22 @@ class FlowAnalysisDebug<
   }
 
   @override
+  void argumentVisitOrderException_begin({required int offset}) {
+    _wrap(
+      'argumentVisitOrderException_begin(offset: $offset)',
+      () => _wrapped.argumentVisitOrderException_begin(offset: offset),
+    );
+  }
+
+  @override
+  void argumentVisitOrderException_end({required int offset}) {
+    _wrap(
+      'argumentVisitOrderException_end(offset: $offset)',
+      () => _wrapped.argumentVisitOrderException_end(offset: offset),
+    );
+  }
+
+  @override
   void asExpression_end(
     ExpressionInfo? subExpressionInfo, {
     required SharedTypeView subExpressionType,
@@ -2472,10 +2554,14 @@ class FlowAnalysisDebug<
   }
 
   @override
-  void for_updaterBegin({int offset = 0}) {
+  void for_updaterBegin({int offset = 0, int updaterEndOffset = 0}) {
     _wrap(
-      'for_updaterBegin(offset: $offset)',
-      () => _wrapped.for_updaterBegin(offset: offset),
+      'for_updaterBegin(offset: $offset, '
+      'updaterEndOffset: $updaterEndOffset)',
+      () => _wrapped.for_updaterBegin(
+        offset: offset,
+        updaterEndOffset: updaterEndOffset,
+      ),
     );
   }
 
@@ -3021,6 +3107,14 @@ class FlowAnalysisDebug<
     _wrap(
       'patternForIn_beforePattern($elementType, offset: $offset)',
       () => _wrapped.patternForIn_beforePattern(elementType, offset: offset),
+    );
+  }
+
+  @override
+  void patternForIn_bodyBegin(Node node, {int offset = 0}) {
+    _wrap(
+      'patternForIn_bodyBegin($node, offset: $offset)',
+      () => _wrapped.patternForIn_bodyBegin(node, offset: offset),
     );
   }
 
@@ -6225,6 +6319,23 @@ class _FlowAnalysisImpl<
   final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
       [];
 
+  /// Stack of source offsets at which the out of order regions covering
+  /// patterns should end.
+  ///
+  /// The three constructs that combine a pattern with an expression that
+  /// follows it in the source code (pattern assignments, pattern variable
+  /// declarations, and pattern for-in statements and elements) all visit the
+  /// expression before the pattern, so the pattern is recorded as an out of
+  /// order region (see [_outOfOrderVisit_begin]). Flow analysis learns where
+  /// that region ends (at the `=` or `in` token) before the expression is
+  /// visited, but it can't begin the region until the pattern is visited, so
+  /// the offset is stored here in the meantime.
+  ///
+  /// This is a stack because such constructs may nest (for example, a pattern
+  /// assignment may appear in the right hand side of another pattern
+  /// assignment).
+  final List<int> _outOfOrderPatternEndOffsets = [];
+
   final FlowAnalysisLogBuilder? _logBuilder;
 
   _FlowAnalysisImpl(
@@ -6285,6 +6396,16 @@ class _FlowAnalysisImpl<
       offset: offset,
     );
     _anonymousBlockContext = context._previousAnonymousBlockContext;
+  }
+
+  @override
+  void argumentVisitOrderException_begin({required int offset}) {
+    _outOfOrderVisit_begin(offset: offset);
+  }
+
+  @override
+  void argumentVisitOrderException_end({required int offset}) {
+    _outOfOrderVisit_end(offset: offset);
   }
 
   @override
@@ -6719,6 +6840,7 @@ class _FlowAnalysisImpl<
     assert(_unmatched == null);
     assert(_correspondingScrutineeReference == null);
     assert(_enclosingFunctionExpressionInfoStack.isEmpty);
+    assert(_outOfOrderPatternEndOffsets.isEmpty);
   }
 
   @override
@@ -6751,6 +6873,9 @@ class _FlowAnalysisImpl<
   @override
   void for_end({int offset = 0}) {
     _WhileContext context = _stack.removeLast() as _WhileContext;
+    // The updaters were visited out of order (see [for_updaterBegin]), so the
+    // region covering them needs to be closed before anything else is recorded.
+    _outOfOrderVisit_end(offset: context._updaterEndOffset!);
     // Tail of the stack: falseCondition, break
     FlowModel? breakState = context._breakModel;
     FlowModel falseCondition = context._conditionFalse;
@@ -6762,13 +6887,14 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  void for_updaterBegin({int offset = 0}) {
+  void for_updaterBegin({int offset = 0, int updaterEndOffset = 0}) {
     // Considering source code order, the updater part of a for loop comes
-    // before the loop body, but it's visited by flow analysis after. So we need
-    // to make an exception to the usual requirement that offsets are strictly
-    // increasing.
-    _logBuilder?.allowOutOfOrderOffsets();
+    // before the loop body, but it's visited by flow analysis after. So the
+    // updaters are recorded as an out of order region, which is closed by
+    // [for_end].
     _WhileContext context = _stack.last as _WhileContext;
+    context._updaterEndOffset = updaterEndOffset;
+    _outOfOrderVisit_begin(offset: offset);
     _setCurrent(_join(_current, context._continueModel), offset: offset);
   }
 
@@ -7365,9 +7491,9 @@ class _FlowAnalysisImpl<
   }) {
     // Considering source code order, the pattern part of a pattern assignment
     // comes before the expression being assigned, but it's visited by flow
-    // analysis after. So we need to make an exception to the usual requirement
-    // that offsets are strictly increasing.
-    _logBuilder?.allowOutOfOrderOffsets();
+    // analysis after. So the pattern is recorded as an out of order region,
+    // which is closed by [patternAssignment_end].
+    _outOfOrderVisit_begin(offset: offset);
     _pushPattern(
       _pushScrutinee(
         rhsInfo,
@@ -7382,16 +7508,16 @@ class _FlowAnalysisImpl<
   @override
   void patternAssignment_beforeRhs({int offset = 0}) {
     // Since a pattern assignment is analyzed out of order (RHS first, then
-    // LHS), it's necessary to record the current promotion info state to the
-    // log before analyzing the RHS. That way, if the pattern changes the flow
-    // analysis state, then once the log is sorted by offset, the node that gets
-    // recorded now will ensure that the promotion info stored in the log after
-    // `offset` correctly matches the current promotion info state.
-    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    // LHS), the pattern is recorded as an out of order region (see
+    // [patternAssignment_beforePattern]). That region ends here, at the `=`,
+    // but it can't be begun until the pattern is visited, so remember the
+    // offset until then.
+    _outOfOrderPatternEndOffsets.add(offset);
   }
 
   @override
   void patternAssignment_end({int offset = 0}) {
+    _outOfOrderVisit_end(offset: _outOfOrderPatternEndOffsets.removeLast());
     _popPattern(null, offset: offset);
     _popScrutinee();
   }
@@ -7399,13 +7525,11 @@ class _FlowAnalysisImpl<
   @override
   void patternForIn_beforeExpression({int offset = 0}) {
     // Since a pattern for-in is analyzed out of order (iterable expression
-    // before pattern), it's necessary to record the current promotion info
-    // state to the log before analyzing the iterable expression. That way, if
-    // the pattern changes the flow analysis state, then once the log is sorted
-    // by offset, the node that gets recorded now will ensure that the promotion
-    // info stored in the log after `offset` correctly matches the current
-    // promotion info state.
-    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    // first, then pattern), the pattern is recorded as an out of order region
+    // (see [patternForIn_beforePattern]). That region ends here, at the `in`,
+    // but it can't be begun until the pattern is visited, so remember the
+    // offset until then.
+    _outOfOrderPatternEndOffsets.add(offset);
   }
 
   @override
@@ -7415,9 +7539,9 @@ class _FlowAnalysisImpl<
   }) {
     // Considering source code order, the pattern part of a pattern for-in
     // statement (or element) comes before the iterable expression, but it's
-    // visited by flow analysis after. So we need to make an exception to the
-    // usual requirement that offsets are strictly increasing.
-    _logBuilder?.allowOutOfOrderOffsets();
+    // visited by flow analysis after. So the pattern is recorded as an out of
+    // order region, which is closed by [patternForIn_bodyBegin].
+    _outOfOrderVisit_begin(offset: offset);
     _pushPattern(
       _pushScrutinee(
         null,
@@ -7430,6 +7554,15 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  void patternForIn_bodyBegin(Node node, {int offset = 0}) {
+    // The pattern was visited out of order (see [patternForIn_beforePattern]),
+    // so the region covering it needs to be closed before anything else is
+    // recorded.
+    _outOfOrderVisit_end(offset: _outOfOrderPatternEndOffsets.removeLast());
+    forEach_bodyBegin(node, offset: offset);
+  }
+
+  @override
   void patternForIn_end({int offset = 0}) {
     _popPattern(null, offset: offset);
     _popScrutinee();
@@ -7438,13 +7571,11 @@ class _FlowAnalysisImpl<
   @override
   void patternVariableDeclaration_beforeInitializer({int offset = 0}) {
     // Since a pattern variable declaration is analyzed out of order
-    // (initializer first, then pattern), it's necessary to record the current
-    // promotion info state to the log before analyzing the RHS. That way, if
-    // the pattern changes the flow analysis state, then once the log is sorted
-    // by offset, the node that gets recorded now will ensure that the promotion
-    // info stored in the log after `offset` correctly matches the current
-    // promotion info state.
-    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    // (initializer first, then pattern), the pattern is recorded as an out of
+    // order region (see [patternVariableDeclaration_beforePattern]). That
+    // region ends here, at the `=`, but it can't be begun until the pattern is
+    // visited, so remember the offset until then.
+    _outOfOrderPatternEndOffsets.add(offset);
   }
 
   @override
@@ -7455,9 +7586,9 @@ class _FlowAnalysisImpl<
   }) {
     // Considering source code order, the pattern part of a pattern variable
     // declaration comes before the initializer expression, but it's visited by
-    // flow analysis after. So we need to make an exception to the usual
-    // requirement that offsets are strictly increasing.
-    _logBuilder?.allowOutOfOrderOffsets();
+    // flow analysis after. So the pattern is recorded as an out of order
+    // region, which is closed by [patternVariableDeclaration_end].
+    _outOfOrderVisit_begin(offset: offset);
     _pushPattern(
       _pushScrutinee(
         initializerInfo,
@@ -7471,6 +7602,7 @@ class _FlowAnalysisImpl<
 
   @override
   void patternVariableDeclaration_end({int offset = 0}) {
+    _outOfOrderVisit_end(offset: _outOfOrderPatternEndOffsets.removeLast());
     _popPattern(null, offset: offset);
     _popScrutinee();
   }
@@ -7719,8 +7851,8 @@ class _FlowAnalysisImpl<
 
   @override
   void recordArgumentVisitOrderException({required int offset}) {
-    _logBuilder?.allowOutOfOrderOffsets();
     _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
+    _logBuilder?.thisBindingChanged(getCurrentThisBinding(), offset: offset);
   }
 
   @override
@@ -9061,6 +9193,46 @@ class _FlowAnalysisImpl<
     }
   }
 
+  /// Called just before visiting a construct that appears in the source code
+  /// before the construct that was most recently visited.
+  ///
+  /// Type analysis mostly visits the user's program in source order, but there
+  /// are exceptions (for example, the "updater" part of a classic `for` loop is
+  /// visited after the loop body, and function literals passed as invocation
+  /// arguments may be visited after the other arguments, due to horizontal
+  /// inference). Since the flow analysis log ([FlowAnalysisLog]) needs to be
+  /// queryable by source offset, flow analysis needs to account for these
+  /// exceptions, so that it records the states it computes at the source
+  /// offsets they belong to.
+  ///
+  /// [offset] is the source offset at which the construct begins.
+  ///
+  /// A matching call to [_outOfOrderVisit_end] must be made after the construct
+  /// has been visited. Such regions may be nested, but they may not partially
+  /// overlap.
+  void _outOfOrderVisit_begin({required int offset}) {
+    _logBuilder?.beginOutOfOrderRegion(
+      offset: offset,
+      promotionInfo: _current.promotionInfo,
+      thisBinding: getCurrentThisBinding(),
+    );
+  }
+
+  /// Called just after visiting a construct that was announced using
+  /// [_outOfOrderVisit_begin].
+  ///
+  /// [offset] is the source offset at which the construct ends.
+  ///
+  /// Note that any changes the construct made to the flow analysis state
+  /// continue to be in effect after this call (flow analysis state doesn't
+  /// "rewind"); what the call does is delimit the range of source offsets that
+  /// the construct's log entries describe. If those state changes need to be
+  /// visible at some later source offset, the current state should be recorded
+  /// at that offset (as [recordArgumentVisitOrderException] does).
+  void _outOfOrderVisit_end({required int offset}) {
+    _logBuilder?.endOutOfOrderRegion(offset: offset);
+  }
+
   FlowModel _popPattern(ExpressionInfo? guardInfo, {required int offset}) {
     _TopPatternContext context = _stack.removeLast() as _TopPatternContext;
     FlowModel unmatched = _unmatched!;
@@ -9779,6 +9951,11 @@ class _TryFinallyContext extends _FlowContext {
 class _WhileContext extends _BranchTargetContext {
   /// Flow model if the condition evaluates to `false`.
   final FlowModel _conditionFalse;
+
+  /// If [FlowAnalysis.for_updaterBegin] has been called for this loop (meaning
+  /// an out of order region covering the loop updaters has been begun), the
+  /// offset at which that region should end. Otherwise `null`.
+  int? _updaterEndOffset;
 
   _WhileContext(super.checkpoint, this._conditionFalse);
 

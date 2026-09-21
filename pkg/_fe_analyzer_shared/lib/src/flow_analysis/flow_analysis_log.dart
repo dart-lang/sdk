@@ -390,8 +390,12 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
       'the flow analysis logs.',
     );
     checkOffset(offset);
-    _promotionInfoOffsets.add(offset);
-    _promotionInfoValues.add(promotionInfo);
+    _record<PromotionInfo>(
+      offsets: _promotionInfoOffsets,
+      values: _promotionInfoValues,
+      offset: offset,
+      value: promotionInfo,
+    );
   }
 
   /// Records that at [offset], the binding for `this` changed to [binding].
@@ -409,8 +413,29 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
       'the flow analysis logs.',
     );
     checkOffset(offset);
-    _thisBindingOffsets.add(offset);
-    _thisBindingValues.add(binding);
+    _record<(PromotionKey, SharedTypeView)>(
+      offsets: _thisBindingOffsets,
+      values: _thisBindingValues,
+      offset: offset,
+      value: binding,
+    );
+  }
+
+  /// Appends the entry ([offset], [value]) to the parallel lists [offsets] and
+  /// [values], unless it would be redundant.
+  ///
+  /// An entry is redundant if it doesn't change the value that's in effect;
+  /// dropping such entries keeps the log small (and is what makes it cheap for
+  /// callers to record the current state unconditionally).
+  static void _record<T extends Object>({
+    required List<int> offsets,
+    required List<T?> values,
+    required int offset,
+    required T? value,
+  }) {
+    if (values.isEmpty ? value == null : values.last == value) return;
+    offsets.add(offset);
+    values.add(value);
   }
 
   /// Moves the entries of a completed out of order region into their proper

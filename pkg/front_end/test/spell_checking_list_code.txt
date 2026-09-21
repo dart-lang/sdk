@@ -68,6 +68,7 @@ analyzes
 android
 annagrin
 annotate
+announced
 ansi
 answering
 answers
@@ -88,6 +89,7 @@ architectures
 area
 arg
 args
+argument's
 arise
 arising
 arity
@@ -265,6 +267,7 @@ channel
 char
 charcode
 chars
+cheap
 checkout
 checkpoint
 checksum
@@ -829,6 +832,7 @@ hang
 happening
 happy
 hardcode
+harmless
 harmonize
 harness
 hashes
@@ -1057,6 +1061,7 @@ layout
 lc
 ld
 leafp
+learns
 leeway
 left's
 legitimately
@@ -1149,6 +1154,7 @@ mc
 md
 me
 meanings
+meantime
 meeting
 merely
 mess
@@ -1206,6 +1212,7 @@ nanosecond
 native\$
 natively
 nativewrappers
+natural
 nbsp
 nc
 ncs
@@ -1368,6 +1375,7 @@ pkgs
 placement
 play
 player
+plays
 plugin
 plugins
 plural
@@ -1478,6 +1486,7 @@ quad
 qualify
 quantified
 queries
+queryable
 questions
 quick
 quit
