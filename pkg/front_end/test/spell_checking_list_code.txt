@@ -370,6 +370,7 @@ constant's
 constitute
 constness
 constraining
+construct's
 consult
 consulted
 consumers
@@ -510,6 +511,7 @@ destroy
 destructive
 destructure
 destructuring
+detach
 deterministic
 dev
 developed
@@ -1273,6 +1275,7 @@ ogham
 okay
 oked
 omitting
+onwards
 op
 opens
 operate
@@ -1571,6 +1574,7 @@ refutable
 reg
 regard
 regenerations
+region's
 regis
 registering
 rehash
@@ -1811,6 +1815,8 @@ spend
 spent
 spin
 spite
+splice
+spliced
 splitting
 spots
 spurious
