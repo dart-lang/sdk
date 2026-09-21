@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:args/command_runner.dart';
+import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/commands/run.dart';
 import 'package:dartdev/src/eval_packages.dart';
 import 'package:dartdev/src/utils.dart';
@@ -14,17 +16,17 @@ import 'package:dartdev/src/vm_interop_handler.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../utils.dart';
+
 void main() {
   group('eval option parsing', () {
     test(
-      'globalDartdevOptionsParser includes -e, -P / --package-constraint, --offline',
+      'globalDartdevOptionsParser does not include -e, -P / --package-constraint, or --offline',
       () {
         final parser = globalDartdevOptionsParser();
-        expect(parser.options.containsKey(evalOption), isTrue);
-        expect(parser.options[evalOption]?.abbr, equals('e'));
-        expect(parser.options.containsKey(packageConstraintOption), isTrue);
-        expect(parser.options[packageConstraintOption]?.abbr, equals('P'));
-        expect(parser.options.containsKey(offlineOption), isTrue);
+        expect(parser.options.containsKey(evalOption), isFalse);
+        expect(parser.options.containsKey(packageConstraintOption), isFalse);
+        expect(parser.options.containsKey(offlineOption), isFalse);
         expect(parser.options.containsKey('package'), isFalse);
         expect(parser.options.containsKey('with'), isFalse);
       },
@@ -50,34 +52,28 @@ void main() {
       },
     );
 
-    test('globalDartdevOptionsParser parses -e and --eval flags', () {
-      final parser = globalDartdevOptionsParser();
-      final results1 = parser.parse(const ['-e', 'void main() {}']);
-      expect(results1.wasParsed(evalOption), isTrue);
-      expect(results1.option(evalOption), equals('void main() {}'));
-
-      final results2 = parser.parse(const ['--eval=void main() {}']);
-      expect(results2.wasParsed(evalOption), isTrue);
-      expect(results2.option(evalOption), equals('void main() {}'));
-    });
-
     test(
-      'globalDartdevOptionsParser parses -P and --package-constraint flags',
+      'RunCommand argParser accepts VM options after -P and -e while preserving script args',
       () {
-        final parser = globalDartdevOptionsParser();
-        final results = parser.parse(const [
+        final runCmd = RunCommand();
+        final parsed = runCmd.argParser.parse(const [
           '-P',
-          'http',
-          '-P',
-          'path:^1.8.0',
+          'path',
+          '--enable-asserts',
           '-e',
-          'void main() {}',
+          'void main(List<String> args) { assert(args.isNotEmpty); }',
+          '--define=foo=bar',
+          'script_arg',
+          '--script-flag',
         ]);
-        expect(results.wasParsed(packageConstraintOption), isTrue);
+        expect(parsed.multiOption(packageConstraintOption), equals(['path']));
+        expect(parsed.flag('enable-asserts'), isTrue);
+        expect(parsed.multiOption('define'), equals(['foo=bar']));
         expect(
-          results.multiOption(packageConstraintOption),
-          equals(const ['http', 'path:^1.8.0']),
+          parsed.option(evalOption),
+          equals('void main(List<String> args) { assert(args.isNotEmpty); }'),
         );
+        expect(parsed.rest, equals(['script_arg', '--script-flag']));
       },
     );
 
@@ -226,14 +222,47 @@ void main() {
         expect(result, equals(configFile.path));
       },
     );
+
+    test(
+      'resolves ephemeral pub get on pre-release SDKs using -0 version suffix',
+      () async {
+        final mockPkgDir = Directory(path.join(tempDir.path, 'mock_pkg'))
+          ..createSync(recursive: true);
+        File(path.join(mockPkgDir.path, 'pubspec.yaml')).writeAsStringSync('''
+name: mock_pkg
+version: 1.0.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+''');
+        Directory(path.join(mockPkgDir.path, 'lib')).createSync();
+        File(
+          path.join(mockPkgDir.path, 'lib', 'mock_pkg.dart'),
+        ).writeAsStringSync('final int meaning = 42;\n');
+
+        final result = await EvalPackageResolver.resolvePackageConfig(
+          'import "package:mock_pkg/mock_pkg.dart"; void main() {}',
+          packageConstraints: [
+            'mock_pkg: {path: "${mockPkgDir.path.replaceAll(r'\', '/')}"}',
+          ],
+          offline: true,
+        );
+
+        expect(result, isNotNull);
+        expect(File(result!).existsSync(), isTrue);
+        final generatedPubspec = File(
+          path.join(File(result).parent.parent.path, 'pubspec.yaml'),
+        ).readAsStringSync();
+        expect(generatedPubspec, contains(RegExp(r'sdk: "\^\d+\.\d+\.\d+-0"')));
+      },
+    );
   });
 
   group('RunCommand.runEval execution', () {
     late ReceivePort receivePort;
-    late StreamController<List<dynamic>> vmInteropEvents;
+    late StreamController<List<Object?>> vmInteropEvents;
 
     setUp(() {
-      vmInteropEvents = StreamController<List<dynamic>>();
+      vmInteropEvents = StreamController<List<Object?>>();
       receivePort = ReceivePort()
         ..listen((msg) {
           if (msg is List) {
@@ -328,4 +357,95 @@ void main(List<String> args) {
       expect(exitCode, equals(RunCommand.errorExitCode));
     });
   });
+
+  group('DartdevRunner top-level eval option rejection', () {
+    test('raw dart -e throws UsageException', () async {
+      const args = ['--suppress-analytics', '-e', 'void main() { print(1); }'];
+      final runner = DartdevRunner(args);
+      await expectLater(
+        runner.run(args),
+        throwsA(isA<UsageException>()),
+      );
+    });
+
+    test('raw dart -P <pkg> throws UsageException', () async {
+      const args = ['--suppress-analytics', '-P', 'path'];
+      final runner = DartdevRunner(args);
+      await expectLater(
+        runner.run(args),
+        throwsA(isA<UsageException>()),
+      );
+    });
+
+    test('raw dart --eval throws UsageException', () async {
+      const args = [
+        '--suppress-analytics',
+        '--eval',
+        'void main() { print(1); }',
+      ];
+      final runner = DartdevRunner(args);
+      await expectLater(
+        runner.run(args),
+        throwsA(isA<UsageException>()),
+      );
+    });
+  });
+
+  group('end-to-end process execution', () {
+    test('dart -e exits with usage exit code 64', () async {
+      final p = project();
+      final result = await p.run(['-e', 'void main() {}']);
+      expect(result.exitCode, equals(DartdevRunner.usageExitCode));
+    });
+
+    test(
+      'dart run -e succeeds from a directory with no pubspec.yaml or package_config.json',
+      () async {
+        final emptyDir = Directory.systemTemp.createTempSync('eval_no_pkg_');
+        addTearDown(() {
+          if (emptyDir.existsSync()) {
+            emptyDir.deleteSync(recursive: true);
+          }
+        });
+        final p = project();
+        final result = await p.run(
+          ['run', '-e', 'void main() { print("hello_outside_package"); }'],
+          workingDir: emptyDir.path,
+        );
+        expect(result.exitCode, equals(0), reason: 'stderr: ${result.stderr}');
+        expect(result.stdout, contains('hello_outside_package'));
+      },
+    );
+
+    test(
+      'dart run enables assertions when --enable-asserts follows -e',
+      () async {
+        final p = project();
+        final resultAfterE = await p.run([
+          'run',
+          '-e',
+          'void main() { assert(false, "boom_after_e"); }',
+          '--enable-asserts',
+        ]);
+        expect(resultAfterE.exitCode, isNot(equals(0)));
+        expect(resultAfterE.stderr, contains('boom_after_e'));
+      },
+    );
+
+    test(
+      'dart run -e passes flags after -- separator to script args instead of VM',
+      () async {
+        final p = project();
+        final result = await p.run([
+          'run',
+          '-e',
+          r'void main(List<String> args) { assert(false); print("args=$args"); }',
+          '--',
+          '--enable-asserts',
+        ]);
+        expect(result.exitCode, equals(0), reason: 'stderr: ${result.stderr}');
+        expect(result.stdout, contains('args=[--enable-asserts]'));
+      },
+    );
+  }, timeout: longTimeout);
 }
