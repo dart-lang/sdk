@@ -319,6 +319,11 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
+    if (node is ParsedTypeArgumentsImpl) {
+      var expression = _parsedTypeArguments(nameScope, node);
+      node.replaceWith(expression);
+      return RewrittenParsedExpression._(expression);
+    }
     if (_prepareReceiverInvocation(nameScope, node) case var result?) {
       if (result case RewrittenParsedExpression(:var expression)) {
         node.replaceWith(expression);
@@ -781,6 +786,82 @@ class AstRewriter {
       head.scopeLookupResult = nameScope.lookup(head.name.lexeme);
     }
     return _boundParsedReceiver(root, head: head, hasSelector: hasSelector);
+  }
+
+  /// Classifies a standalone type application before resolving its operand as
+  /// a value. Constructor qualifiers are lowered with their enclosing selector
+  /// and do not pass through this standalone path.
+  ExpressionImpl _parsedTypeArguments(
+    Scope nameScope,
+    ParsedTypeArgumentsImpl node,
+  ) {
+    // Recovery selectors can still be legacy nodes around a parsed qualifier.
+    // Their parent rewrite must classify the whole constructor-shaped syntax.
+    if (node.parent2 is PropertyAccessImpl ||
+        node.parent2 is MethodInvocationImpl) {
+      return node.buildUnresolvedExpression();
+    }
+    var operand = node.operand;
+    Token? name;
+    ImportPrefixReferenceImpl? importPrefix;
+    Element? element;
+    if (operand is ParsedUnqualifiedNameImpl) {
+      name = operand.name;
+      element = nameScope.lookup(name.lexeme).getter;
+    } else if (operand case ParsedNameAccessImpl(
+      operand: ParsedUnqualifiedNameImpl(name: var prefixName),
+      :var operator,
+      name: var selectorName,
+    ) when operator.type == TokenType.PERIOD) {
+      if (nameScope.lookup(prefixName.lexeme).getter
+          case PrefixElement prefix) {
+        name = selectorName;
+        element = prefix.scope.lookup(name.lexeme).getter;
+        importPrefix = ImportPrefixReferenceImpl(
+          name: prefixName,
+          period: operator,
+        )..element = prefix;
+      }
+    }
+    if (element is InterfaceElement || element is TypeAliasElement) {
+      return TypeLiteralImpl(
+        type: NamedTypeImpl(
+          importPrefix: importPrefix,
+          name: name!,
+          typeArguments: node.typeArguments,
+          question: null,
+        ),
+      );
+    }
+    // Invalid applications to special types retain their existing recovery.
+    // They do not denote either an instantiable type or a function value.
+    if (element is DynamicElementImpl ||
+        element is NeverElementImpl ||
+        element is TypeParameterElementImpl) {
+      return node.buildUnresolvedExpression();
+    }
+    if (operand is ParsedNameAccessImpl) {
+      var result = parsedExpression(nameScope, operand);
+      operand = (result as RewrittenParsedExpression).expression;
+      // As with calls, an uninstantiated function alias receives members of
+      // Type, rather than static members of its aliased function type.
+      if (operand case ReceiverPropertyExtractionImpl(
+        receiver: StaticQualifierImpl(
+              element: TypeAliasElement(aliasedType: FunctionType()),
+            ) &&
+            var receiver,
+      )) {
+        operand.receiver = _parsedNameExpression(
+          receiver.importPrefix,
+          receiver.name,
+          receiver.element,
+        );
+      }
+    }
+    return FunctionInstantiationImpl(
+      operand: operand,
+      typeArguments: node.typeArguments,
+    );
   }
 
   /// Binds the receiver of a named call and lowers constructor calls.

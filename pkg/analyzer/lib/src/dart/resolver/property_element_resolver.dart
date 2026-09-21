@@ -1465,9 +1465,11 @@ class PropertyElementResolver with ScopeHelpers {
       }
     } else if (element is ExtensionElement) {
       diagnosticReporter.report(
-        diag.extensionAsExpression
-            .withArguments(name: node.name.lexeme)
-            .at(node),
+        node.parent2 is FunctionInstantiationImpl
+            ? diag.disallowedTypeInstantiationExpression.at(node)
+            : diag.extensionAsExpression
+                  .withArguments(name: node.name.lexeme)
+                  .at(node),
       );
     }
     return _resolveUnqualifiedNameRead(
@@ -2504,7 +2506,17 @@ class PropertyElementResolver with ScopeHelpers {
         name: name.lexeme,
       )) {
         diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: name.lexeme).at(node),
+          node.parent2 is FunctionInstantiationImpl &&
+                  _resolver.thisType != null
+              ? diag.undefinedMethod
+                    .withArguments(
+                      methodName: name.lexeme,
+                      type: _resolver.thisType!,
+                    )
+                    .at(node)
+              : diag.undefinedIdentifier
+                    .withArguments(name: name.lexeme)
+                    .at(node),
         );
       }
     }

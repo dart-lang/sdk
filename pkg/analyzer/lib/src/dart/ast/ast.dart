@@ -41938,8 +41938,10 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
 
   /// Builds the unresolved invocation forms consumed by the existing resolver.
   ///
-  /// This is a migration bridge for invocations and standalone type arguments
-  /// that are not resolved directly from their parsed syntax.
+  /// This is a migration bridge for invocations, constructor qualifiers, and
+  /// invalid type applications that are not resolved directly from their parsed
+  /// syntax. Standalone applications to function values and instantiable types
+  /// lower directly to [FunctionInstantiationImpl] and [TypeLiteralImpl].
   /// It must not consume the cached V1 projection, whose children have different
   /// parents.
   ExpressionImpl buildUnresolvedExpression() =>

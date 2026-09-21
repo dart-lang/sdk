@@ -16,11 +16,11 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// A resolver for [FunctionReference] nodes.
+/// Resolves explicit type applications to function values.
 ///
-/// This resolver is responsible for writing a given [FunctionReference] as a
-/// [ConstructorTearOff] or as a [TypeLiteral], depending on how a function
-/// reference's `function` resolves.
+/// [resolveInstantiation] operates on canonical V2 operands. The legacy
+/// [resolve] entry point also classifies type literals and constructor syntax
+/// for the remaining unresolved-expression bridges.
 class FunctionReferenceResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -54,6 +54,115 @@ class FunctionReferenceResolver {
         _resolver.flowAnalysis.transferTestData(node, instantiation);
         _resolver.inferenceHelper.transferTestData(node, instantiation);
       }
+    }
+  }
+
+  /// Resolves a type application whose operand has already been classified as
+  /// a value. Name and member lookup belong to the canonical operand; this
+  /// method only selects an implicit `call` tear-off and instantiates its type.
+  void resolveInstantiation(FunctionInstantiationImpl node) {
+    node.typeArguments.accept2(_resolver);
+    _resolver.analyzeExpression(node.operand, _resolver.operations.unknownType);
+    var operand = _resolver.popRewrite()!;
+    var rawType = operand.typeOrThrow;
+
+    if (operand is ConstructorTearOffImpl) {
+      var typeReference = operand.typeReference;
+      var className = switch (typeReference.importPrefix) {
+        var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+        _ => typeReference.name.lexeme,
+      };
+      _diagnosticReporter.report(
+        diag.wrongNumberOfTypeArgumentsConstructor
+            .withArguments(
+              className: className,
+              constructorName: operand.selector.name2.lexeme,
+            )
+            .at(node.typeArguments),
+      );
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+    if (rawType is InvalidType) {
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    InvocationTarget? target;
+    if (_getCallMethod(node, rawType) case MethodElement callMethod) {
+      var tearOff = ImplicitCallTearOffImpl(
+        operand: operand,
+        element: callMethod,
+      );
+      tearOff.setPseudoExpressionStaticType(callMethod.type);
+      node.operand = tearOff;
+      rawType = callMethod.type as TypeImpl;
+      target = InvocationTargetExecutableElement(callMethod);
+    } else {
+      var resolution = switch (operand) {
+        NameExpressionImpl(:var resolution) => resolution,
+        _ => null,
+      };
+      target = switch (resolution) {
+        ExecutableTearOffResolutionImpl(:var element) =>
+          InvocationTargetExecutableElement(element),
+        GetterInvocationResolutionImpl(:var element)
+            when operand is UnqualifiedNameExpressionImpl =>
+          InvocationTargetExecutableElement(element),
+        _ => null,
+      };
+    }
+
+    if (rawType is TypeParameterTypeImpl) {
+      rawType =
+          rawType.element.bound ?? _resolver.typeProvider.objectQuestionType;
+    }
+    if (rawType is FunctionTypeImpl) {
+      var typeArgumentTypes = _checkTypeArguments(
+        node.typeArguments,
+        null,
+        rawType.typeParameters,
+        target: target ?? InvocationTargetFunctionTypedExpression(rawType),
+      );
+      node.typeArgumentTypes = typeArgumentTypes;
+      node.recordStaticType(
+        rawType.instantiate(typeArgumentTypes),
+        resolver: _resolver,
+      );
+      return;
+    }
+
+    if (_resolver.isConstructorTearoffsEnabled) {
+      if (rawType is DynamicType &&
+          (operand is ReceiverPropertyExtractionImpl ||
+              operand is ImportPrefixedNameExpressionImpl)) {
+        _diagnosticReporter.report(
+          diag.genericMethodTypeInstantiationOnDynamic.at(
+            operand is ImportPrefixedNameExpressionImpl ||
+                    operand is ReceiverPropertyExtractionImpl &&
+                        operand.receiver is UnqualifiedNameExpressionImpl
+                ? operand
+                : node,
+          ),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(
+            operand is ReceiverPropertyExtractionImpl &&
+                    operand.receiver is! ExtensionOverrideImpl
+                ? operand.name
+                : operand,
+          ),
+        );
+      }
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+    } else {
+      node.recordStaticType(
+        rawType is DynamicType
+            ? DynamicTypeImpl.instance
+            : InvalidTypeImpl.instance,
+        resolver: _resolver,
+      );
     }
   }
 
@@ -117,10 +226,7 @@ class FunctionReferenceResolver {
     return expression;
   }
 
-  ExecutableElement? _getCallMethod(
-    FunctionReferenceImpl node,
-    DartType? type,
-  ) {
+  ExecutableElement? _getCallMethod(ExpressionImpl node, DartType? type) {
     if (type is! InterfaceTypeImpl) {
       return null;
     }

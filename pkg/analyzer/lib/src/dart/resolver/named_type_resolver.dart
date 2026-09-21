@@ -327,15 +327,22 @@ class NamedTypeResolver with ScopeHelpers {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
+      // Expression type applications historically highlight the arguments and
+      // recover with dynamic, unlike type annotations.
+      // TODO(scheglov): Update this.
+      var isTypeLiteral = node.parent2 is TypeLiteral;
       diagnosticReporter.report(
         target
             .wrongNumberOfTypeArgumentsError(
               typeParameterCount: parameterCount,
               typeArgumentCount: argumentCount,
             )
-            .at(node),
+            .at(isTypeLiteral ? argumentList : node),
       );
-      return List.filled(parameterCount, InvalidTypeImpl.instance);
+      return List.filled(
+        parameterCount,
+        isTypeLiteral ? DynamicTypeImpl.instance : InvalidTypeImpl.instance,
+      );
     }
 
     if (parameterCount == 0) {
