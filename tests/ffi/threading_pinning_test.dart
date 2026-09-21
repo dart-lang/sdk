@@ -7,7 +7,7 @@
 // VMOptions=--experimental-shared-data
 
 // ignore: import_internal_library
-import 'dart:_internal' show IsolateExperimental;
+import 'dart:_vm' show IsolateExperimental;
 import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';

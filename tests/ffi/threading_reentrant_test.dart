@@ -8,8 +8,8 @@
 //
 // SharedObjects=ffi_test_functions
 
-// ignore: import_internal_library
-import 'dart:_internal' show IsolateExperimental, IsolateGroup;
+import 'dart:_internal' show IsolateGroup; // ignore: import_internal_library
+import 'dart:_vm' show IsolateExperimental; // ignore: import_internal_library
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
