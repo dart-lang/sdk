@@ -9,7 +9,7 @@
     (field $#classId i32)
     (field $classId i32)
     (field $typeArguments (ref $Array<_Type>)))))
-  (table $dtable0 741 funcref)
+  (table $dtable0 773 funcref)
   (elem $dtable0 <...>)
   (func $_getMasqueradedRuntimeType (param $var0 (ref $#Top)) (result (ref $#Top)) <...>)
   (func $sink (param $var0 i32) <...>)

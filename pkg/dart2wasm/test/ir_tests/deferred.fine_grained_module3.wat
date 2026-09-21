@@ -21,7 +21,7 @@
   (global $FooConst0 (import "M" "global5") (ref $Object))
   (global $fooGlobal0 (import "M" "global12") (ref null $#Top))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 45 funcref)
-  (table $M.dispatch0 (import "M" "dispatch0") 697 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 701 funcref)
   (global $"\"1\"" (ref $JSExternWrapper) <...>)
   (global $"\"2\"" (ref $JSExternWrapper) <...>)
   (global $"\"3\"" (ref $JSExternWrapper) <...>)
