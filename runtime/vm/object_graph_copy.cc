@@ -1793,6 +1793,11 @@ class ObjectCopy : public Base {
     FATAL("Unexpected object: %s\n", obj.ToCString());
   }
 
+  void CopyLocalVarDescriptor(typename Types::LocalVarDescriptor from,
+                              typename Types::LocalVarDescriptor to) {
+    CopyUserdefinedInstanceWithoutUnboxedFields(from, to);
+  }
+
   void CopyUserdefinedInstance(typename Types::Object from,
                                typename Types::Object to,
                                UnboxedFieldBitmap bitmap) {

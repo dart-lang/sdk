@@ -949,6 +949,12 @@ class CompressedStackMaps : public AllStatic {
   static word PayloadHeaderSize();
 };
 
+class LocalVarDescriptor : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class LocalVarDescriptors : public AllStatic {
  public:
   static word element_offset(intptr_t index);
