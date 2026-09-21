@@ -1982,7 +1982,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (Expression, Pattern)
 
-    flow.forEach_bodyBegin(node, offset: bodyBeginOffset);
+    flow.patternForIn_bodyBegin(node, offset: bodyBeginOffset);
     dispatchBody();
     flow.forEach_end(offset: endOffset);
     flow.patternForIn_end(offset: endOffset);

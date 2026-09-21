@@ -310,6 +310,7 @@ class ForResolver {
 
     _resolver.flowAnalysis.flow?.for_updaterBegin(
       offset: forParts.rightSeparator.offset,
+      updaterEndOffset: rightParenOffset,
     );
     _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
       forParts.updaters2,

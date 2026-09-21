@@ -610,9 +610,17 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// The zero-based index of the last argument visited, or -1 if no argument
   /// has been visited yet.
   ///
-  /// This is used to detect when
-  /// [FlowAnalysis.recordArgumentVisitOrderException] needs to be called.
+  /// This is used to detect whether the flow analysis state changes made by an
+  /// argument that was visited out of order still need to be accounted for (see
+  /// [FlowAnalysis.recordArgumentVisitOrderException]).
   int lastArgumentVisited = -1;
+
+  /// The greatest zero-based index of any argument visited so far, or -1 if no
+  /// argument has been visited yet.
+  ///
+  /// This is used to detect when an argument is being visited out of order, so
+  /// that [FlowAnalysis.argumentVisitOrderException_begin] needs to be called.
+  int maxArgumentVisited = -1;
 
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
@@ -658,7 +666,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   void _finishDeferredFunctionLiterals() {
     if (lastArgumentVisited != argumentList.arguments2.length - 1) {
       resolver.flowAnalysis.flow?.recordArgumentVisitOrderException(
-        offset: argumentList.rightParenthesis.end,
+        offset: argumentList.rightParenthesis.offset,
       );
     }
   }
@@ -695,10 +703,18 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var arguments = argumentList.arguments2;
     for (var deferredArgument in deferredFunctionLiterals) {
       var argument = arguments[deferredArgument.index];
-      if (lastArgumentVisited != deferredArgument.index - 1) {
-        flow?.recordArgumentVisitOrderException(
-          offset: argument.flowChangeOffset,
-        );
+      // If any argument that follows this one in the source code has already
+      // been visited, then this argument is being visited out of order.
+      bool isOutOfOrder = maxArgumentVisited > deferredArgument.index;
+      if (isOutOfOrder) {
+        flow?.argumentVisitOrderException_begin(offset: argument.offset);
+      } else if (lastArgumentVisited != deferredArgument.index - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
+        flow?.recordArgumentVisitOrderException(offset: argument.offset);
       }
       var parameter = deferredArgument.parameter;
       TypeImpl parameterContextType;
@@ -717,7 +733,13 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         SharedTypeSchemaView(parameterContextType),
       );
       expression = resolver.popRewrite()!;
+      if (isOutOfOrder) {
+        flow?.argumentVisitOrderException_end(offset: argument.end);
+      }
       lastArgumentVisited = deferredArgument.index;
+      if (deferredArgument.index > maxArgumentVisited) {
+        maxArgumentVisited = deferredArgument.index;
+      }
       if (argument is NamedArgumentImpl) {
         argument.argumentExpression2 = expression;
       } else {
@@ -780,11 +802,6 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         // make sense.  So we store an innocuous value in the list.
         whyNotPromotedArguments.add(() => const {});
       } else {
-        if (lastArgumentVisited != i - 1) {
-          flow?.recordArgumentVisitOrderException(
-            offset: argument.flowChangeOffset,
-          );
-        }
         TypeImpl parameterContextType;
         if (parameter != null) {
           var parameterType = parameter.type;
@@ -801,6 +818,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         );
         var rewritten = resolver.popRewrite()!;
         lastArgumentVisited = i;
+        maxArgumentVisited = i;
         if (argument is NamedArgumentImpl) {
           argument.argumentExpression2 = rewritten;
         } else {
@@ -1082,14 +1100,4 @@ class _ParamInfo {
   final InternalFormalParameterElement? parameter;
 
   _ParamInfo(this.parameter);
-}
-
-extension on ArgumentImpl {
-  /// Computes the offset that should be passed to
-  /// [FlowAnalysis.recordArgumentVisitOrderException] just before visiting the
-  /// argument represented by `this`.
-  int get flowChangeOffset => switch (beginToken.previous) {
-    var token? => token.end,
-    null => 0,
-  };
 }

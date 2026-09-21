@@ -13774,6 +13774,99 @@ main() {
         ),
       ]);
     });
+
+    test('Three arguments, last argument analyzed first', () {
+      h.addMember(
+        'C',
+        'm',
+        'void Function(void Function(), void Function(), int)',
+      );
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([checkPromoted(x, 'int')]),
+            localFunction([checkPromoted(x, 'int')]),
+            x.as_('int'),
+          ],
+          // Note that argument 1 is analyzed immediately after argument 0, but
+          // it is still out of order, because argument 2 was analyzed first.
+          argumentVisitOrder: [2, 0, 1],
+        ),
+        checkPromoted(x, 'int'),
+      ]);
+    });
+
+    test('Out of order argument followed by in order arguments', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int, int, int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        // Promote y so that there will be an observable state change when the
+        // write capture becomes live.
+        y.as_('int'),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([y.write(expr('num'))]),
+            x.as_('int'),
+            // These arguments are visited in order, and they have no flow
+            // analysis effects of their own, so they don't record anything in
+            // the log. Therefore the write capture performed by argument 0
+            // (which escapes argument 0's out of order region) has to be
+            // accounted for before argument 2 is visited.
+            expr('int'),
+            expr('int'),
+          ],
+          // Note that even though the last argument in source order is also the
+          // last argument to be visited, argument 0 was visited out of order,
+          // so its write capture needs to be accounted for at argument 2. No
+          // further bookkeeping is needed at argument 3, since argument 2 was
+          // visited immediately before it.
+          argumentVisitOrder: [1, 0, 2, 3],
+        ),
+        checkNotPromoted(y),
+      ]);
+    });
+
+    test('Nested out of order arguments', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([
+              checkPromoted(x, 'int'),
+              checkNotPromoted(y),
+              expr('C').invokeMethod(
+                'm',
+                [
+                  localFunction([
+                    checkPromoted(x, 'int'),
+                    checkPromoted(y, 'int'),
+                  ]),
+                  y.as_('int'),
+                ],
+                argumentVisitOrder: [1, 0],
+              ),
+              checkPromoted(y, 'int'),
+            ]),
+            x.as_('int'),
+          ],
+          argumentVisitOrder: [1, 0],
+        ),
+        checkPromoted(x, 'int'),
+        checkNotPromoted(y),
+      ]);
+    });
   });
 }
 

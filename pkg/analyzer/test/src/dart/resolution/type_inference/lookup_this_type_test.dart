@@ -613,6 +613,25 @@ class C {
 ''');
   }
 
+  test_thisPromotion_withHorizontalInference_allGaps() async {
+    // Horizontal inference of invocation arguments causes function literals to
+    // be visited after all other arguments. The flow analysis state recorded
+    // while visiting a function literal applies to the function literal's own
+    // source range, and nowhere else; in particular it must not leak into the
+    // gaps just before and just after the function literal. This test probes
+    // the type of `this` in every gap.
+    await assertThisTypes(r'''
+class C {
+  f() {
+    g(0 /*this: C*/, /*this: C*/ () { /*this: D*/ } /*this: C*/,
+      /*this: C*/ this as D /*this: D*/) /*this: D*/;
+  }
+}
+class D extends C {}
+g(Object? x, Object? y, Object? z) {}
+''');
+  }
+
   test_thisPromotion_withHorizontalInference_firstArgument() async {
     // Horizontal inference of invocation arguments causes function literals to
     // be visited after all other arguments, so a promotion in a
@@ -631,6 +650,35 @@ g(Object? x, Object? y) {}
 ''');
   }
 
+  test_thisPromotion_withHorizontalInference_inOrderAfterOutOfOrder() async {
+    // Horizontal inference visits `this as D` first, then the function literal
+    // in argument position 0 (out of order), and then the function literal in
+    // argument position 2, which is back in source order. Closing the
+    // out-of-order region rewinds the log to the state that preceded argument
+    // 0 in the source, so the state that flow analysis resumes with has to be
+    // recorded again at argument 2.
+    //
+    // Note that this test can't observe whether that happens: argument 2 is a
+    // function literal, and `FunctionExpressionResolver.resolve` enters it at
+    // the offset of its parameter list, which is the very offset the resumed
+    // state is recorded at. So the type of `this` here is the same either way.
+    // The test that does distinguish the two is
+    // `Horizontal inference: Out of order argument followed by in order
+    // arguments` in
+    // `pkg/_fe_analyzer_shared/test/flow_analysis/flow_analysis_test.dart`.
+    await assertThisTypes(r'''
+class C {
+  f() {
+    g(/*this: C*/ () { /*this: D*/ } /*this: C*/,
+      /*this: C*/ this as D /*this: D*/,
+      /*this: D*/ () { /*this: D*/ } /*this: D*/) /*this: D*/;
+  }
+}
+class D extends C {}
+g(Object? x, Object? y, Object? z) {}
+''');
+  }
+
   test_thisPromotion_withHorizontalInference_notFirstArgument() async {
     // Horizontal inference of invocation arguments causes function literals to
     // be visited after all other arguments, so a promotion in a
@@ -642,6 +690,23 @@ class C {
     g(0 /*this: C*/,
       () { /*this: D*/ }, /*this: C*/ this as D /*this: D*/)
       /*this: D*/ ;
+  }
+}
+class D extends C {}
+g(Object? x, Object? y, Object? z) {}
+''');
+  }
+
+  test_thisPromotion_withHorizontalInference_twoFunctionLiterals() async {
+    // When several function literal arguments are visited out of order, each
+    // one gets its own source range in the flow analysis log, and the gaps in
+    // between them are unaffected.
+    await assertThisTypes(r'''
+class C {
+  f() {
+    g(/*this: C*/ () { /*this: D*/ } /*this: C*/,
+      /*this: C*/ () { /*this: D*/ } /*this: C*/,
+      this as D /*this: D*/) /*this: D*/;
   }
 }
 class D extends C {}
