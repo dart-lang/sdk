@@ -1210,26 +1210,6 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
-  RequestMessage makeRenameRequest(
-    int? version,
-    Uri uri,
-    Position pos,
-    String newName,
-  ) {
-    var docIdentifier = version != null
-        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
-        : TextDocumentIdentifier(uri: uri);
-    var request = makeRequest(
-      Method.textDocument_rename,
-      RenameParams(
-        newName: newName,
-        textDocument: docIdentifier,
-        position: pos,
-      ),
-    );
-    return request;
-  }
-
   /// Watches for `client/registerCapability` requests and updates
   /// `registrations`.
   Future<T> monitorDynamicRegistrations<T>(
@@ -1381,26 +1361,6 @@ mixin LspAnalysisServerTestMixin
       start: positionFromOffset(offset, content),
       end: positionFromOffset(end, content),
     );
-  }
-
-  Future<WorkspaceEdit?> rename(
-    Uri uri,
-    int? version,
-    Position pos,
-    String newName,
-  ) {
-    var request = makeRenameRequest(version, uri, pos, newName);
-    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
-  }
-
-  Future<ResponseMessage> renameRaw(
-    Uri uri,
-    int version,
-    Position pos,
-    String newName,
-  ) {
-    var request = makeRenameRequest(version, uri, pos, newName);
-    return sendRequestToServer(request);
   }
 
   Future<void> replaceFile(int newVersion, Uri uri, String content) {

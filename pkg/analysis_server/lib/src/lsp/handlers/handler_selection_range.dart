@@ -16,7 +16,7 @@ typedef StaticOptions =
     Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>;
 
 class SelectionRangeHandler
-    extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
+    extends SharedMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
   new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_selectionRange;
@@ -24,6 +24,9 @@ class SelectionRangeHandler
   @override
   LspJsonHandler<SelectionRangeParams> get jsonHandler =>
       SelectionRangeParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<SelectionRange>?>> handle(

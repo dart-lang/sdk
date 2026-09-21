@@ -933,6 +933,26 @@ mixin LspRequestHelpersMixin {
     );
   }
 
+  RequestMessage makeRenameRequest(
+    int? version,
+    Uri uri,
+    Position pos,
+    String newName,
+  ) {
+    var docIdentifier = version != null
+        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
+        : TextDocumentIdentifier(uri: uri);
+    var request = makeRequest(
+      Method.textDocument_rename,
+      RenameParams(
+        newName: newName,
+        textDocument: docIdentifier,
+        position: pos,
+      ),
+    );
+    return request;
+  }
+
   RequestMessage makeRequest(Method method, Object? params) {
     var id = _getNextId();
     return RequestMessage(
@@ -999,6 +1019,26 @@ mixin LspRequestHelpersMixin {
       request,
       _fromJsonList(TypeHierarchyItem.fromJson),
     );
+  }
+
+  Future<WorkspaceEdit?> rename(
+    Uri uri,
+    int? version,
+    Position pos,
+    String newName,
+  ) {
+    var request = makeRenameRequest(version, uri, pos, newName);
+    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
+  }
+
+  Future<ResponseMessage> renameRaw(
+    Uri uri,
+    int version,
+    Position pos,
+    String newName,
+  ) {
+    var request = makeRenameRequest(version, uri, pos, newName);
+    return sendRequestToServer(request);
   }
 
   Future<InteractiveExecuteCommandParams> resolveCommand(
