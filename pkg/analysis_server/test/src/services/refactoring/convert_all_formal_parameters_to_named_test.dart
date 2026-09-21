@@ -410,6 +410,17 @@ void f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/64314
+  Future<void> test_regression_issue64314() async {
+    addTestSource(r'''
+class X {
+  new(super.x, [^]);
+}
+''');
+
+    await _assertNoRefactoring();
+  }
+
   Future<void> test_target_methodInvocation_name() async {
     addTestSource(r'''
 void test(int a) {}
