@@ -1750,7 +1750,7 @@ enum UnaryIntOpcode(final String token) {
   abs('abs'),
   sign('sign'),
   hash('hash'),
-  bitLength('bitLength')
+  bitLength('bitLength'),
 }
 
 /// Unary operation on the int operand.
@@ -1837,7 +1837,7 @@ enum UnaryDoubleOpcode(final String token) {
   ceilToDouble('ceilToDouble'),
   truncateToDouble('truncateToDouble'),
   isNegative('isNegative'),
-  isInfinite('isInfinite')
+  isInfinite('isInfinite'),
 }
 
 /// Unary operation on the double operand.
@@ -1872,7 +1872,7 @@ final class UnaryDoubleOp extends Definition with Pure, Idempotent {
 }
 
 enum UnaryBoolOpcode(final String token) {
-  not('!')
+  not('!'),
 }
 
 /// Unary operation on the bool operand.
