@@ -29,10 +29,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ConstructorInvocation
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
         name: A
@@ -43,7 +43,15 @@ PropertyAccess
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -224,10 +232,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ExtensionOverride
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -239,7 +247,23 @@ PropertyAccess
             type: A
           correspondingParameter: <null>
           staticType: A
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -618,11 +642,44 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a; // ref');
+    var node = result.findNode.receiverPropertyExtraction('a; // ref');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: a
-  element: <testLibrary>::@class::B::@getter::a
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B
+      element: <testLibrary>::@class::B::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: B
+  operator: .
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::B::@getter::a
+    invokeType: A? Function()
+    type: A?
+  staticType: A?
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: B
+        element: <testLibrary>::@class::B
+        type: B
+      element: <testLibrary>::@class::B::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: B
+  operator: .
+  propertyName: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@class::B::@getter::a
+    staticType: A?
   staticType: A?
 ''');
   }
@@ -2252,10 +2309,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ConstructorInvocation
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
         name: A
@@ -2266,7 +2323,15 @@ PropertyAccess
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: InstanceCreationExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
@@ -4328,11 +4393,43 @@ bar() {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: foo
-  element: <testLibrary>::@class::A::@method::foo
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: void Function(int)
   staticType: void Function(int)
 ''');
   }

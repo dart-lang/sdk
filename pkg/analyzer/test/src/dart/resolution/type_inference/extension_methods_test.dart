@@ -632,10 +632,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ExtensionOverride
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -655,7 +655,35 @@ PropertyAccess
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    staticType: null
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: num}
+    invokeType: List<num> Function()
+    type: List<num>
+  staticType: List<num>
+V1: PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -691,10 +719,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ExtensionOverride
+ReceiverMethodInvocation
+  receiver: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -714,7 +742,47 @@ MethodInvocation
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    staticType: null
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: num, U: U}
+    invokeType: Map<num, double> Function(double)
+    type: Map<num, double>
+  staticType: Map<num, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -735,7 +803,7 @@ MethodInvocation
     staticType: Map<num, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -763,10 +831,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ExtensionOverride
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -786,7 +854,34 @@ PropertyAccess
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<num>
+    staticType: null
+    typeArgumentTypes
+      num
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: num, U: U}
+    type: Map<num, U> Function<U>(U)
+  staticType: Map<num, U> Function<U>(U)
+V1: PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -948,10 +1043,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ExtensionOverride
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -963,7 +1058,27 @@ PropertyAccess
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::E::@getter::foo
+      substitution: {T: int}
+    invokeType: List<int> Function()
+    type: List<int>
+  staticType: List<int>
+V1: PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -999,10 +1114,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ExtensionOverride
+ReceiverMethodInvocation
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1014,7 +1129,39 @@ MethodInvocation
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      DoubleLiteral
+        literal: 1.0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: u@null
+          substitution: {U: double}
+        staticType: double
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    invokeType: Map<int, double> Function(double)
+    type: Map<int, double>
+  staticType: Map<int, double>
+  typeArgumentTypes
+    double
+V1: MethodInvocation
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1035,7 +1182,7 @@ MethodInvocation
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1063,10 +1210,10 @@ void f(A<int> a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ExtensionOverride
+ReceiverPropertyExtraction
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1078,7 +1225,26 @@ PropertyAccess
             type: A<int>
           correspondingParameter: <null>
           staticType: A<int>
-      arguments(v1)
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A<int>
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    type: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+V1: PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: a
           correspondingParameter: <null>

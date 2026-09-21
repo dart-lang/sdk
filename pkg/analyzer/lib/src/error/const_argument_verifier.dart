@@ -221,7 +221,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         _diagnosticReporter.report(
           diag.tearoffWithMustBeConstParameter
               .withArguments(name: name)
-              .at(node),
+              .at(node is PropertyExtraction ? node.name : node),
         );
       }
     }

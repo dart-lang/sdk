@@ -401,6 +401,44 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
     receiver as ExpressionImpl;
+    if (receiver is ExtensionOverrideImpl) {
+      var member = _extensionResolver
+          .getOverrideMember(receiver, name.lexeme)
+          .getter2;
+      if (member == null) {
+        diagnosticReporter.report(
+          diag.undefinedExtensionMethod
+              .withArguments(
+                methodName: name.lexeme,
+                extensionName: receiver.element.name!,
+              )
+              .at(name),
+        );
+      } else if (member.isStatic) {
+        diagnosticReporter.report(
+          diag.extensionOverrideAccessToStaticMember.at(name),
+        );
+      }
+      if (member is InternalPropertyAccessorElement) {
+        _resolveCallableProperty(
+          node,
+          receiver,
+          whyNotPromotedArguments,
+          contextType: contextType,
+          element: member,
+          type: member.returnType,
+        );
+      } else {
+        _resolveNamedInvocation(
+          _createReceiverMethodInvocation(node, receiver),
+          whyNotPromotedArguments,
+          contextType: contextType,
+          candidate: member,
+          element: member,
+        );
+      }
+      return;
+    }
     var receiverType = receiver.typeOrThrow;
     var isNullAware = selector.operator.type == TokenType.QUESTION_PERIOD;
     if (_typeSystem.isDynamicBounded(receiverType)) {

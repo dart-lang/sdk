@@ -449,6 +449,7 @@ class AstRewriter {
     var head = _parsedReceiverHead(node);
     var expression =
         head is ParsedUnqualifiedNameImpl ||
+            head is ParsedValueArgumentsImpl && node is ParsedNameAccessImpl ||
             head is! ParsedExpressionImpl && head is! SuperExpressionImpl
         ? _parsedNestedReceiver(nameScope, node, head: head, hasSelector: false)
               as ExpressionImpl
@@ -800,9 +801,12 @@ class AstRewriter {
 
     var head = _parsedReceiverHead(selector.operand);
 
-    // Parsed type and value applications in the receiver are not lowered
-    // directly yet. Leave them, and super, to unresolved-expression lowering.
-    if (head is ParsedExpressionImpl && head is! ParsedUnqualifiedNameImpl ||
+    // Nested call syntax resolves its own invocation or extension-override role.
+    // Type applications can still be constructor qualifiers, so leave them,
+    // and super, to unresolved-expression lowering.
+    if (head is ParsedExpressionImpl &&
+            head is! ParsedUnqualifiedNameImpl &&
+            head is! ParsedValueArgumentsImpl ||
         head is SuperExpressionImpl) {
       return null;
     }
@@ -878,7 +882,7 @@ class AstRewriter {
       selector.operand = receiver;
     }
     return PreparedReceiverInvocation._(
-      selector: selector,
+      receiver: receiver,
       typeArguments: typeArguments,
       valueArguments: node,
     );
@@ -1150,8 +1154,8 @@ class AstRewriter {
         hasSelector: hasSelector || !identical(node, root),
       );
     } else {
-      // Parentheses and other ordinary expressions already establish a value
-      // role. Their contents are resolved by the receiver's normal visitor.
+      // Nested call syntax and ordinary expressions use their own visitors,
+      // including constructor and extension-override selection.
       receiver = node;
     }
     var parent = node.parent2;
@@ -1264,14 +1268,14 @@ class AstRewriter {
 /// The outcome of interpreting a parsed expression during lexical binding.
 sealed class ParsedExpressionResult {}
 
-/// A call whose receiver is bound, but whose final member still needs lookup.
+/// A call ready for receiver traversal and subsequent member lookup.
 final class PreparedReceiverInvocation extends ParsedExpressionResult {
-  final ParsedNameAccessImpl selector;
+  final NamedReceiverImpl receiver;
   final TypeArgumentListImpl? typeArguments;
   final ParsedValueArgumentsImpl valueArguments;
 
   PreparedReceiverInvocation._({
-    required this.selector,
+    required this.receiver,
     required this.typeArguments,
     required this.valueArguments,
   });

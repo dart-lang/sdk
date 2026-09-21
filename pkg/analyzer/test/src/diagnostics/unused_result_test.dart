@@ -1003,6 +1003,111 @@ void main() {
 ''');
   }
 
+  test_getter_result_unassigned_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_chain() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  A get b => this;
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.b.foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_chain_constructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  A get b => this;
+  @useResult
+  int get foo => 0;
+}
+
+void f() {
+  A().b.foo;
+//      ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_nullAware() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a?.foo;
+//   ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_parenthesizedReceiver() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  (a).foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_static_importPrefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+import '' as self;
+
+class A {
+  @useResult
+  static int get foo => 0;
+}
+
+void f() {
+  self.A.foo;
+//       ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
   test_getter_result_usedAsArgument_positional() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

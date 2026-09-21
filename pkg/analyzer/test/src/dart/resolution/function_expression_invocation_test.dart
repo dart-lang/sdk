@@ -1261,20 +1261,23 @@ class B {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('isEven');
+    var node = result.findNode.receiverPropertyExtraction('isEven');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: CallInvocation
-    receiver: PropertyAccess
-      target2: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+ReceiverPropertyExtraction
+  receiver: CallInvocation
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+          type: A?
         staticType: A?
       operator: ?.
-      propertyName: SimpleIdentifier
-        token: foo
+      name: foo
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::foo
-        staticType: int Function()
+        invokeType: int Function() Function()
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1283,7 +1286,15 @@ PropertyAccess
       invokeType: int Function()
       type: int
     staticType: int
-  target(v1): FunctionExpressionInvocation
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    invokeType: bool Function()
+    type: bool
+  staticType: bool?
+V1: PropertyAccess
+  target: FunctionExpressionInvocation
     function: PropertyAccess
       target: SimpleIdentifier
         token: a

@@ -4549,6 +4549,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // supplies an invoke type for recovery and argument checking.
     var invocation = peekRewrite()!;
     if (receiver is ExpressionImpl &&
+        receiver is! ExtensionOverrideImpl &&
         invocation is ReceiverMethodInvocationImpl &&
         selector.operator.type == TokenType.QUESTION_PERIOD &&
         typeSystem.isNull(typeSystem.resolveToBound(receiver.typeOrThrow))) {
@@ -4885,7 +4886,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       var resolvedReceiver = popRewrite()!;
       node.receiver = resolvedReceiver;
 
-      if (isBareNameRead) {
+      if (isBareNameRead || resolvedReceiver is FunctionInvocationImpl) {
         nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
       }
 
