@@ -21,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class SnippetManagerTest extends AbstractSingleUnitTest {
+class SnippetManagerTest extends SingleUnitTest {
   Future<void> test_filter_match() async {
     await resolveTestCode('');
     var request = DartSnippetRequest(unit: testAnalysisResult, offset: 0);

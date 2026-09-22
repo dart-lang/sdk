@@ -20,7 +20,7 @@ void main() {
   });
 }
 
-abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
+abstract class AbstractTypeHierarchyTest extends SingleUnitTest {
   /// Matches a [TypeHierarchyItem] for [Enum].
   Matcher get _isEnum => TypeMatcher<TypeHierarchyItem>()
       .having((e) => e.displayName, 'displayName', 'Enum')

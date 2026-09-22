@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
+class FindElementByNameOffsetTest extends SingleUnitTest {
   late TestCode code;
 
   late List<int> offsets = code.positions.map((p) => p.offset).toList();

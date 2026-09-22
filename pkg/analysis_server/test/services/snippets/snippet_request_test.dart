@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class SnippetRequestTest extends AbstractSingleUnitTest {
+class SnippetRequestTest extends SingleUnitTest {
   @override
   void setUp() {
     super.setUp();

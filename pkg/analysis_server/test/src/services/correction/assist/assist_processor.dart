@@ -22,8 +22,7 @@ import '../../../../selection_mixin.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing assist processor tests.
-abstract class AssistProcessorTest extends AbstractSingleUnitTest
-    with SelectionMixin {
+abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
   late SourceChange _change;
   late String _resultCode;
 

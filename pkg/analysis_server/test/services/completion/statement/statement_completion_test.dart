@@ -26,7 +26,7 @@ void main() {
   });
 }
 
-class StatementCompletionTest extends AbstractSingleUnitTest {
+class StatementCompletionTest extends SingleUnitTest {
   late SourceChange change;
 
   void _assertHasChange(String message, String expected) {

@@ -26,7 +26,7 @@ abstract class DataDrivenBulkFixProcessorTest extends BulkFixProcessorTest
 abstract class DataDrivenFixProcessorTest extends FixProcessorTest
     with DataDrivenFixProcessorTestMixin {}
 
-mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
+mixin DataDrivenFixProcessorTestMixin on SingleUnitTest {
   /// Returns the URI used to import the library created by [setPackageContent].
   String get importUri => 'package:p/lib.dart';
 

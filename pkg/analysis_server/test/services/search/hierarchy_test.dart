@@ -20,8 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class GetHierarchyMembersTest extends AbstractSingleUnitTest
-    with FindElementMixin {
+class GetHierarchyMembersTest extends SingleUnitTest with FindElementMixin {
   late SearchEngineImpl searchEngine;
 
   @override
@@ -342,7 +341,7 @@ class E {
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest with FindElementMixin {
+class HierarchyTest extends SingleUnitTest with FindElementMixin {
   late SearchEngineImpl searchEngine;
 
   @override

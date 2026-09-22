@@ -4,7 +4,7 @@
 
 import 'abstract_single_unit.dart';
 
-mixin SelectionMixin on AbstractSingleUnitTest {
+mixin SelectionMixin on SingleUnitTest {
   late int offset;
   late int length;
 

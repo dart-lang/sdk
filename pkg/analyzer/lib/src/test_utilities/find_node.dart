@@ -54,18 +54,15 @@ class FindNode extends _FindNodeBase {
   }
 }
 
+/// Finds nodes in the canonical V2 AST, including nodes shared with V1.
+///
+/// Searches match the requested node type without falling back to a V1
+/// projection. For example, a [CompoundAssignment] must be found with
+/// [compoundAssignment], not [assignment]. Use [FindNode] to search the V1 view.
 class FindNode2 extends _FindNodeBase {
   FindNode2(super.content, super.unit);
 
   BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
-
-  @override
-  AssignmentExpression get singleAssignmentExpression {
-    var nodes = _nodes<AstNode>().where(
-      (node) => node is AssignmentExpression || node is DirectAssignment,
-    );
-    return _toAssignmentExpression(nodes.single);
-  }
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
@@ -112,15 +109,6 @@ class FindNode2 extends _FindNodeBase {
       _single();
 
   UnqualifiedNameExpression get singleUnqualifiedNameExpression => _single();
-
-  @override
-  AssignmentExpression assignment(String search) {
-    var node = _node<AstNode>(
-      search,
-      (node) => node is AssignmentExpression || node is AssignmentExpression2,
-    );
-    return _toAssignmentExpression(node);
-  }
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
@@ -222,6 +210,19 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is UnqualifiedNameExpression);
   }
 
+  /// Rejects V1 projections so tests cannot silently keep asserting the legacy
+  /// AST after a V2 migration. Nodes shared between both views are allowed.
+  /// Use [FindNode] explicitly when testing V1 compatibility.
+  @override
+  void _checkNode(AstNode node) {
+    if ((node as AstNodeImpl).astNodeApi == AstNodeApi.v1) {
+      throw StateError(
+        'FindNode2 cannot return the V1 projection ${node.runtimeType}. '
+        'Use a V2 node finder, or findNodeV1 for a compatibility assertion.',
+      );
+    }
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator2(offset).searchWithin(unit);
@@ -231,6 +232,7 @@ class FindNode2 extends _FindNodeBase {
   List<T> _nodes<T extends AstNode>() {
     var visitor = _TypedNodeVisitor2<T>();
     unit.accept2(visitor);
+    visitor.nodes.forEach(_checkNode);
     return visitor.nodes;
   }
 
@@ -240,16 +242,6 @@ class FindNode2 extends _FindNodeBase {
     bool Function(AstNode) predicate,
   ) {
     return node.thisOrAncestorMatching2(predicate);
-  }
-
-  AssignmentExpression _toAssignmentExpression(AstNode node) {
-    return switch (node) {
-      AssignmentExpression node => node,
-      CompoundAssignmentImpl node => node.assignmentExpression,
-      DirectAssignmentImpl node => node.assignmentExpression,
-      IfNullAssignmentImpl node => node.assignmentExpression,
-      _ => throw StateError('Not an assignment expression: $node'),
-    };
   }
 }
 
@@ -1367,6 +1359,12 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is YieldStatement);
   }
 
+  /// Validates that a search result belongs to this finder's AST view.
+  ///
+  /// The default accepts all nodes; [FindNode2] overrides this to reject V1
+  /// projections. Called for both individual search results and collected nodes.
+  void _checkNode(AstNode node) {}
+
   /// If [unit] has at least one node of type [T], returns the first one.
   /// Otherwise, throws.
   T _first<T extends AstNode>() {
@@ -1394,12 +1392,18 @@ abstract class _FindNodeBase {
       );
     }
 
-    var result = _thisOrAncestorMatching(node, predicate);
+    var ancestors = <Type>[];
+    var result = _thisOrAncestorMatching(node, (node) {
+      ancestors.add(node.runtimeType);
+      return predicate(node);
+    });
     if (result == null) {
       throw StateError(
-        'The node for |$search| had no matching ancestor in:\n$content\n$unit',
+        'The node for |$search| had no matching $T ancestor in $runtimeType.\n'
+        'Found: ${ancestors.join(', ')}\n$content',
       );
     }
+    _checkNode(result);
     return result as T;
   }
 

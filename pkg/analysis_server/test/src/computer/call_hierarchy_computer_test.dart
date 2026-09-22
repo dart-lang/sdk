@@ -67,7 +67,7 @@ Matcher _isResult(
   return matcher;
 }
 
-abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
+abstract class AbstractCallHierarchyTest extends SingleUnitTest {
   final startOfFile = SourceRange(0, 0);
 
   /// Gets the entire range for [code].

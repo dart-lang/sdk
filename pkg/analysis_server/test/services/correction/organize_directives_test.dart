@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class OrganizeDirectivesTest extends AbstractSingleUnitTest {
+class OrganizeDirectivesTest extends SingleUnitTest {
   late List<Diagnostic> testDiagnostics;
 
   @override

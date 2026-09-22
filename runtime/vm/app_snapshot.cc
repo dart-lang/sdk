@@ -7672,19 +7672,6 @@ class UnitDeserializationRoots : public DeserializationRoots {
         uword unchecked_entry_point = code->untag()->unchecked_entry_point_;
         ASSERT(unchecked_entry_point != 0);
         func->untag()->unchecked_entry_point_ = unchecked_entry_point;
-#if defined(DART_PRECOMPILED_RUNTIME)
-        if (func->untag()->data()->IsHeapObject() &&
-            func->untag()->data()->IsClosureData()) {
-          // For closure functions in bare instructions mode, also update the
-          // cache inside the static implicit closure object, if any.
-          auto data = static_cast<ClosureDataPtr>(func->untag()->data());
-          if (data->untag()->closure() != Closure::null()) {
-            // Closure functions only have one entry point.
-            ASSERT_EQUAL(entry_point, unchecked_entry_point);
-            data->untag()->closure()->untag()->entry_point_ = entry_point;
-          }
-        }
-#endif
       }
       code->untag()->code_source_map_ =
           static_cast<CodeSourceMapPtr>(d->ReadRef());
@@ -7701,6 +7688,30 @@ class UnitDeserializationRoots : public DeserializationRoots {
       // equivalent object that was duplicated in another loading unit.
       pool->untag()->data()[i].raw_obj_ = d->ReadRef();
     }
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+    // Refresh cached entry points in const closures. Note visiting
+    // function->closure_data->implicit_static_closure is not sufficient because
+    // it misses instantiated closures (and the constants and functions might
+    // also float into different loading units), and (shallowly) visiting the
+    // object pool is not sufficient because the tears might only appear in
+    // other constants.
+    ArrayPtr const_closures = d->isolate_group()
+                                  ->class_table()
+                                  ->At(kClosureCid)
+                                  ->untag()
+                                  ->constants();
+    for (intptr_t i = 0, n = Smi::Value(const_closures->untag()->length());
+         i < n; i++) {
+      ObjectPtr obj = const_closures->untag()->element(i);
+      if (!obj->IsClosure()) {
+        continue;  // Hash table gap or bookkeeping.
+      }
+      ClosurePtr closure = static_cast<ClosurePtr>(obj);
+      closure->untag()->entry_point_ =
+          closure->untag()->function()->untag()->entry_point_;
+    }
+#endif
 
     // Reinitialize the dispatch table by rereading the table's serialization
     // in the root snapshot.

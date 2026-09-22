@@ -16,8 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterTest extends AbstractSingleUnitTest
-    with FindElementMixin, FindNodeMixin {
+class FlutterTest extends SingleUnitTest with FindElementMixin, FindNodeMixin {
   @override
   bool get addFlutterPackageDep => true;
 

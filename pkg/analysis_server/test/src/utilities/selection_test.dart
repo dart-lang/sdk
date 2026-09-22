@@ -22,7 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class SelectionTest extends AbstractSingleUnitTest {
+final class SelectionTest extends SingleUnitTest {
   Future<void> assertMetadata({
     String prefix = '',
     required String postfix,

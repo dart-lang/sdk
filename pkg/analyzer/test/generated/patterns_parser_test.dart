@@ -7728,9 +7728,22 @@ void f() {
   v2 = (v1) = 2;
 }
 ''');
-    var node = parseResult.findNode.assignment('v2 =');
+    var node = parseResult.findNode.directAssignment('v2 =');
     assertParsedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ParsedUnqualifiedNameAssignmentTarget
+    name: v2
+  operator: =
+  value: PatternAssignment
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: AssignedVariablePattern
+        name: v1
+      rightParenthesis: )
+    equals: =
+    expression2: IntegerLiteral
+      literal: 2
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v2
   operator: =

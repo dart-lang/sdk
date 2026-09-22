@@ -45,6 +45,7 @@ TestProject project({
   String? analysisOptions,
   String name = TestProject._defaultProjectName,
   VersionConstraint? sdkConstraint,
+  String? languageVersion,
   Map<String, dynamic>? pubspecExtras,
 }) {
   var testProject = TestProject(
@@ -52,6 +53,7 @@ TestProject project({
     name: name,
     analysisOptions: analysisOptions,
     sdkConstraint: sdkConstraint,
+    languageVersion: languageVersion,
     pubspecExtras: pubspecExtras,
   );
   addTearDown(() => testProject.dispose());
@@ -91,6 +93,7 @@ class TestProject {
     String? analysisOptions,
     this.name = _defaultProjectName,
     VersionConstraint? sdkConstraint,
+    String? languageVersion,
     Map<String, dynamic>? pubspecExtras,
   }) {
     initGlobalState();
@@ -115,7 +118,7 @@ class TestProject {
             'name': name,
             'rootUri': '../',
             'packageUri': 'lib/',
-            'languageVersion': '3.2',
+            'languageVersion': languageVersion ?? '3.2',
           },
         ],
       }),

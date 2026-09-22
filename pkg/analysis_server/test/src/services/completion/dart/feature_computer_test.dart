@@ -1326,7 +1326,7 @@ void f(int i) {
   }
 }
 
-abstract class FeatureComputerTest extends AbstractSingleUnitTest {
+abstract class FeatureComputerTest extends SingleUnitTest {
   int cursorIndex = 0;
 
   late CompletionTarget completionTarget;

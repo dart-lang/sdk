@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -709,6 +710,36 @@ class C {
   int e;
   int f;
   C(this.a, this.b, this.c, this.d, this.e, this.f);
+}
+''');
+    });
+
+    test('--apply (a single pass can produce overlapping edits)', () async {
+      // Converting a private field emits edits that overlap each other, an
+      // insertion of `this.` at the parameter name and a replacement of that
+      // same name with the field name.
+      p = project(
+        sdkConstraint: VersionConstraint.parse('^3.12.0'),
+        languageVersion: '3.12',
+        mainSrc: '''
+class C {
+  final bool _a;
+  C({bool a = true}) : _a = a;
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_initializing_formals
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(p!.findFile('lib/main.dart')!.readAsStringSync(), '''
+class C {
+  final bool _a;
+  C({this._a = true});
 }
 ''');
     });
