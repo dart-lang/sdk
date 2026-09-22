@@ -7,7 +7,7 @@
 // VMOptions=--experimental-shared-data
 //
 
-import 'dart:_internal' show IsolateGroup;
+import 'dart:_vm' show IsolateGroup;
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';

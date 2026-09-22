@@ -5,7 +5,8 @@
 library dart._vm;
 
 import "dart:_internal" show unsafeCast;
-import "dart:isolate" show Isolate, IsolateExperimental, SendPort;
+import "dart:ffi" show Handle, Native;
+import "dart:isolate" show Isolate, SendPort;
 
 @pragma("vm:deeply-immutable")
 @pragma('vm:entry-point')
@@ -143,6 +144,16 @@ final class FinalThreadLocal<T> {
   final T Function() _initializer;
 
   final variable = ThreadLocal<T>();
+}
+
+/// Should be moved to dart:isolate when --experimental-shared-data
+/// flag is removed.
+abstract interface class IsolateGroup {
+  @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
+  external static Object? _runSync(Object computation);
+
+  /// Runs [computation] in isolate-group bound context.
+  static R runSync<R>(R computation()) => _runSync(computation) as R;
 }
 
 extension IsolateExperimental on Isolate {

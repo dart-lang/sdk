@@ -111,14 +111,6 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
   return completer.future;
 }
 
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
-
 final List<Object> _toStringVisiting = [];
 @patch
 List<Object> get toStringVisiting => _toStringVisiting;
