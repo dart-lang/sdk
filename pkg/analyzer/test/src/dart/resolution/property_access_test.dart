@@ -1373,26 +1373,20 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: PropertyAccess
-        target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: CascadePropertyExtraction
           name: foo
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::foo
             invokeType: int? Function()
             type: int?
           staticType: int?
-        target(v1): PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@class::A::@getter::foo
-            staticType: int?
-          staticType: int?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: isEven
+        name: isEven
+        resolution: GetterInvocationResolution
           element: dart:core::@class::int::@getter::isEven
-          staticType: bool
+          invokeType: bool Function()
+          type: bool
         staticType: bool?
   cascadeSections
     PropertyAccess
@@ -1455,33 +1449,28 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: PropertyAccess
-        target2: PropertyAccess
-          target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: ReceiverPropertyExtraction
+          receiver: CascadePropertyExtraction
             name: foo
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::foo
               invokeType: A? Function()
               type: A?
             staticType: A?
-          target(v1): PropertyAccess
-            operator: ..
-            propertyName: SimpleIdentifier
-              token: foo
-              element: <testLibrary>::@class::A::@getter::foo
-              staticType: A?
-            staticType: A?
           operator: ?.
-          propertyName: SimpleIdentifier
-            token: bar
+          name: bar
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::bar
-            staticType: A?
+            invokeType: A? Function()
+            type: A?
           staticType: A?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: baz
+        name: baz
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::baz
-          staticType: A?
+          invokeType: A? Function()
+          type: A?
         staticType: A?
   cascadeSections
     PropertyAccess
@@ -1556,26 +1545,20 @@ CascadeExpression
   sections
     CascadeSection
       operator: ?..
-      body: PropertyAccess
-        target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: CascadePropertyExtraction
           name: baz
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::baz
             invokeType: A? Function()
             type: A?
           staticType: A?
-        target(v1): PropertyAccess
-          operator: ?..
-          propertyName: SimpleIdentifier
-            token: baz
-            element: <testLibrary>::@class::A::@getter::baz
-            staticType: A?
-          staticType: A?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: baq
+        name: baq
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::baq
-          staticType: A
+          invokeType: A Function()
+          type: A
         staticType: A?
   cascadeSections
     PropertyAccess

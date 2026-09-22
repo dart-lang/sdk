@@ -2576,6 +2576,142 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_notLValue_cascadeSection_indexInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void Function() operator [](int index) => () {};
+}
+
+void f(A a) {
+  a..[0]() = 0;
+//   ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: CallInvocation
+      receiver: CascadeIndexExpression
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+          staticType: int
+        rightBracket: ]
+        resolution: MethodIndexReadResolution
+          element: <testLibrary>::@class::A::@method::[]
+          invokeType: void Function() Function(int)
+          type: void Function()
+        staticType: void Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: FunctionTypeInvocationResolution
+        invokeType: void Function()
+        type: void
+      staticType: void
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: FunctionExpressionInvocation
+    function: IndexExpression
+      period: ..
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+        staticType: int
+      rightBracket: ]
+      element: <testLibrary>::@class::A::@method::[]
+      staticType: void Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    element: <null>
+    staticInvokeType: void Function()
+    staticType: void
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_notLValue_cascadeSection_invocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  a..foo() = 0;
+//   ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: CascadeMethodInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@class::A::@method::foo
+        invokeType: void Function()
+        type: void
+      staticType: void
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: MethodInvocation
+    operator: ..
+    methodName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: void Function()
+    staticType: void
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_notLValue_parenthesized_compound() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int a, int b, double c) {

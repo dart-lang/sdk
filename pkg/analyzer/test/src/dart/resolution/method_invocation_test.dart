@@ -203,10 +203,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation("call('')");
+    var node = result.findNode.receiverMethodInvocation("call('')");
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: CascadePropertyExtraction
+ReceiverMethodInvocation
+  receiver: CascadePropertyExtraction
     name: call
     resolution: FunctionCallTearOffResolution
       type: void Function<X extends int?>() Function()
@@ -215,7 +215,21 @@ MethodInvocation
         alias: <testLibrary>::@typeAlias::F
     staticType: void Function<X extends int?>() Function()
       alias: <testLibrary>::@typeAlias::F
-  target(v1): PropertyAccess
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: void Function<X extends int?>() Function()
+      alias: <testLibrary>::@typeAlias::F
+    type: void Function<X extends int?>()
+  staticType: void Function<X extends int?>()
+V1: MethodInvocation
+  target: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: call
@@ -228,10 +242,11 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: void Function<X extends int?>() Function()
+      alias: <testLibrary>::@typeAlias::F
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -6539,7 +6554,7 @@ class C {
 }
 
 var v = C()..foo(0) = 0;
-//         ^^^^^^^^
+//           ^^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 

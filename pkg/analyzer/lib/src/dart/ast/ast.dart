@@ -37665,7 +37665,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   ExpressionImpl? get realTarget2 {
     if (isCascaded) {
       var target = _ancestorCascade.target2;
-      return _v1ProjectionOrigin == null
+      return _v1ProjectionOrigin == null && _parsedExpressionOrigin == null
           ? target
           : V1Projection.toV1Expression(target);
     }
@@ -37743,20 +37743,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     super.typeArgumentTypes = typeArgumentTypes;
   }
 
-  /// The cascade that contains this [IndexExpression].
+  /// The cascade that contains this [MethodInvocation].
   ///
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (
-      var ancestor = (_v1ProjectionOrigin ?? this).parent2!;
-      ;
-      ancestor = ancestor.parent2!
-    ) {
-      if (ancestor is CascadeExpressionImpl) {
-        return ancestor;
-      }
-    }
+    var origin = _v1ProjectionOrigin ?? _parsedExpressionOrigin ?? this;
+    return origin.thisOrAncestorOfType2<CascadeExpressionImpl>()!;
   }
 
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
@@ -41884,6 +41877,115 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
   WriteResolutionImpl? get write => null;
 }
 
+/// A named selector on the enclosing cascade's receiver whose semantic role
+/// has not yet been selected. Type and value arguments are separate wrappers.
+/// The enclosing [CascadeSection] owns the `..` or `?..` token.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedCascadeName implements ParsedExpression {
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class ParsedCascadeNameImpl extends ParsedExpressionImpl
+    implements ParsedCascadeName {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedCascadeNameImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedCascadeName(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// The complete grammar boundary of a dot-shorthand expression.
 ///
 /// Its context selects the leading shorthand namespace independently of the
@@ -42178,6 +42280,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
     ExpressionImpl node = this;
     while (true) {
       switch (node) {
+        case ParsedCascadeNameImpl(:var name):
         case ParsedUnqualifiedNameImpl(:var name):
           return name;
         case ParsedDotShorthandNameImpl(:var period):
@@ -43033,6 +43136,18 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   @DoNotGenerate(reason: 'Finds the head iteratively for deeply nested syntax')
   @override
   Token get beginToken => super.beginToken;
+
+  /// The cascade head and optional type arguments of this invocation.
+  ({ParsedCascadeNameImpl head, TypeArgumentListImpl? typeArguments})?
+  get cascadeInvocationParts => switch (operand) {
+    ParsedCascadeNameImpl head => (head: head, typeArguments: null),
+    ParsedTypeArgumentsImpl(
+      operand: ParsedCascadeNameImpl head,
+      :var typeArguments,
+    ) =>
+      (head: head, typeArguments: typeArguments),
+    _ => null,
+  };
 
   /// The shorthand head and optional type arguments of this invocation.
   ({ParsedDotShorthandNameImpl head, TypeArgumentListImpl? typeArguments})?
@@ -46140,7 +46255,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   PropertyAccessImpl.v1ProjectionFromParsedExpression(
     AstNodeImpl origin,
-    ExpressionImpl target,
+    ExpressionImpl? target,
     Token operator,
     SimpleIdentifierImpl propertyName,
   ) : _target2 = target,
@@ -59942,12 +60057,14 @@ class _ParsedExpressionBuilder {
   ExpressionImpl build() {
     ExpressionImpl node = chain;
     while (node is ParsedExpressionImpl &&
+        node is! ParsedCascadeNameImpl &&
         node is! ParsedUnqualifiedNameImpl &&
         node is! ParsedDotShorthandNameImpl) {
       node = switch (node) {
         ParsedNameAccessImpl(:var operand) => operand,
         ParsedTypeArgumentsImpl(:var operand) => operand,
         ParsedValueArgumentsImpl(:var operand) => operand,
+        ParsedCascadeNameImpl() ||
         ParsedUnqualifiedNameImpl() => throw StateError('Already at the head.'),
         ParsedDotShorthandNameImpl() => throw StateError(
           'Already at the head.',
@@ -59956,7 +60073,16 @@ class _ParsedExpressionBuilder {
     }
     var parent = node.parent2;
     ExpressionImpl result;
-    if (node is ParsedDotShorthandNameImpl) {
+    if (node is ParsedCascadeNameImpl) {
+      result = forV1
+          ? PropertyAccessImpl.v1ProjectionFromParsedExpression(
+              node,
+              null,
+              node.thisOrAncestorOfType2<CascadeSectionImpl>()!.operator,
+              _identifier(node.name),
+            )
+          : CascadePropertyExtractionImpl(name: node.name);
+    } else if (node is ParsedDotShorthandNameImpl) {
       result = forV1
           ? DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
               node,
@@ -60037,6 +60163,7 @@ class _ParsedExpressionBuilder {
                 );
         case ParsedValueArgumentsImpl(:var argumentList):
           result = _invoke(result, null, argumentList);
+        case ParsedCascadeNameImpl():
         case ParsedUnqualifiedNameImpl():
         case ParsedDotShorthandNameImpl():
           throw StateError('A parsed name cannot contain an operand.');

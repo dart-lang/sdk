@@ -2191,6 +2191,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _runSubscriptions(node, _registry._forParsedCascadeName);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
     _runSubscriptions(node, _registry._forParsedDotShorthandExpression);
     node.visitChildren2(this);
@@ -4865,6 +4872,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParenthesizedPattern>> _forParenthesizedPattern =
       [];
 
+  final List<_Subscription2<ParsedCascadeName>> _forParsedCascadeName = [];
+
   final List<_Subscription2<ParsedDotShorthandExpression>>
   _forParsedDotShorthandExpression = [];
 
@@ -6232,6 +6241,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forParenthesizedPattern.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addParsedCascadeName(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forParsedCascadeName.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

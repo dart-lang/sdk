@@ -3252,15 +3252,31 @@ var x = a..();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation =
+        result.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedCascadeName
+          name: <empty> <synthetic>
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 
@@ -3270,21 +3286,44 @@ var x = a..<E>();
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation =
+        result.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: E
-    rightBracket: >
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedTypeArguments
+          operand: ParsedCascadeName
+            name: <empty> <synthetic>
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 

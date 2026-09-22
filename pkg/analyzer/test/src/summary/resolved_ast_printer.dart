@@ -1630,6 +1630,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _sink.writeln('ParsedCascadeName');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
   void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
     _sink.writeln('ParsedDotShorthandExpression');
     _sink.withIndent(() => _writeNamedChildEntities(node));

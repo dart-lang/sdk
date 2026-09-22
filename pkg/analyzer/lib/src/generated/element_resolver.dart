@@ -99,6 +99,20 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void resolveCascadeInvocation(
+    ParsedValueArgumentsImpl node,
+    CascadeExpressionImpl cascade, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveCascade(
+      node,
+      cascade,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void resolveParsedReceiverInvocation(
     ParsedValueArgumentsImpl node,
     NamedReceiverImpl receiver, {

@@ -431,6 +431,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
   void visitParsedDotShorthandName(ParsedDotShorthandName node) {
     names.add(node.name.lexeme);
   }

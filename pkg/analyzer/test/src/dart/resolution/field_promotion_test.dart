@@ -124,17 +124,28 @@ void f(C c) {
   c.._field.toString();
 }
 ''');
-    var node = result.findNode.methodInvocation('_field.toString');
+    var node = result.findNode.receiverMethodInvocation('_field.toString');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: CascadePropertyExtraction
+ReceiverMethodInvocation
+  receiver: CascadePropertyExtraction
     name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
       invokeType: Object? Function()
       type: int
     staticType: int
-  target(v1): PropertyAccess
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::int::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field

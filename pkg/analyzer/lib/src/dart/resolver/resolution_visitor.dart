@@ -751,6 +751,10 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedCascadeName(covariant ParsedCascadeNameImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
   void visitParsedDotShorthandName(covariant ParsedDotShorthandNameImpl node) =>
       _visitParsedExpression(node);
 
@@ -1529,6 +1533,9 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   void _visitParsedExpression(ParsedExpressionImpl node) {
     switch (_astRewriter.parsedExpression(nameScope, node)) {
+      case PreparedCascadeInvocation(:var valueArguments):
+        valueArguments.cascadeInvocationParts!.typeArguments?.accept2(this);
+        valueArguments.argumentList.accept2(this);
       case PreparedDotShorthandInvocation(:var valueArguments):
         valueArguments.dotShorthandInvocationParts!.typeArguments?.accept2(
           this,

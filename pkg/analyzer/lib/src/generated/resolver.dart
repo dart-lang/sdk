@@ -2559,77 +2559,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant CascadeMethodInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    node.typeArguments?.accept2(this);
-
-    var previousResolution = node.resolution;
-    var previousInvokeType = node.staticInvokeType;
-    var cascadeTargetType = typeSystem.resolveToBound(
-      _activeCascadeExpression!.target2.typeOrThrow,
-    );
-    InvocationTarget? target = switch (previousResolution) {
-      ExecutableInvocationResolutionImpl(:var element) =>
-        InvocationTargetExecutableElement(element),
-      FunctionCallInvocationResolutionImpl()
-          when cascadeTargetType is FunctionTypeImpl =>
-        InvocationTargetFunctionTypedExpression(cascadeTargetType),
-      InvalidInvocationResolutionImpl(
-        recovery: ExecutableInvocationResolutionImpl(:var element),
-      ) =>
-        InvocationTargetExecutableElement(element),
-      InvalidInvocationResolutionImpl(
-        recovery: FunctionCallInvocationResolutionImpl(:var invokeType),
-      ) =>
-        InvocationTargetFunctionTypedExpression(invokeType),
-      _ => null,
-    };
-
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    var inferredType =
-        CascadeMethodInvocationInferrer(
-              resolver: this,
-              node: node,
-              argumentList: node.argumentList,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              contextType: contextType,
-              target: target,
-            ).resolveInvocation()
-            as TypeImpl;
-
-    node.resolution = switch (previousResolution) {
-      ExecutableInvocationResolutionImpl(:var element) =>
-        ExecutableInvocationResolutionImpl(
-          element: element,
-          invokeType: node.staticInvokeType as FunctionTypeImpl,
-          type: inferredType,
-        ),
-      FunctionCallInvocationResolutionImpl() =>
-        FunctionCallInvocationResolutionImpl(
-          invokeType: node.staticInvokeType as FunctionTypeImpl,
-          type: inferredType,
-        ),
-      _ => previousResolution,
-    };
-    if (target == null) {
-      node.staticInvokeType = previousInvokeType;
-    }
-    node.recordStaticType(
-      node.resolution?.type ?? node.typeOrThrow,
-      resolver: this,
-    );
-
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-    inferenceLogWriter?.exitExpression(node);
+    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -4107,9 +4037,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
 
     ExpressionImpl resolvedNode = peekRewrite()!;
-    if (identical(resolvedNode, node) && node.isCascaded) {
-      resolvedNode = _rewriteCascadeMethodInvocation(node);
-    } else if (identical(resolvedNode, node)) {
+    if (identical(resolvedNode, node)) {
       var target = node.target2;
       if (target is SimpleIdentifierImpl) {
         var prefixElement = target.element;
@@ -4324,6 +4252,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant ParsedValueArgumentsImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
+    if (node.cascadeInvocationParts != null) {
+      _resolveParsedCascadeInvocation(node, contextType);
+      return;
+    }
     if (node.dotShorthandInvocationParts != null) {
       _resolveParsedDotShorthandInvocation(node, contextType);
       return;
@@ -5651,11 +5583,22 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var previousResolution = node.resolution;
     var previousInvokeType = node.staticInvokeType;
+    // Re-inference of `..call()` needs the receiver's generic signature,
+    // rather than the invocation type instantiated by the previous pass.
+    var cascadeReceiverType = node is CascadeMethodInvocationImpl
+        ? typeSystem.resolveToBound(
+            _activeCascadeExpression!.target2.typeOrThrow,
+          )
+        : null;
     InvocationTarget? target = switch (previousResolution) {
       ExecutableInvocationResolutionImpl(:var element) =>
         InvocationTargetExecutableElement(element),
       FunctionCallInvocationResolutionImpl(:var invokeType) =>
-        InvocationTargetFunctionTypedExpression(invokeType),
+        InvocationTargetFunctionTypedExpression(
+          cascadeReceiverType is FunctionTypeImpl
+              ? cascadeReceiverType
+              : invokeType,
+        ),
       InvalidInvocationResolutionImpl(
         recovery: ExecutableInvocationResolutionImpl(:var element),
       ) =>
@@ -5711,6 +5654,35 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       whyNotPromotedArguments,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
+  void _resolveParsedCascadeInvocation(
+    ParsedValueArgumentsImpl node,
+    TypeImpl contextType,
+  ) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.cascadeInvocationParts!.typeArguments?.accept2(this);
+
+    var whyNotPromotedArguments =
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
+    elementResolver.resolveCascadeInvocation(
+      node,
+      _activeCascadeExpression!,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+      contextType: contextType,
+    );
+
+    var replacement = insertGenericFunctionInstantiation(
+      peekRewrite()!,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
   }
 
   /// Selects the operation before resolving arguments, so contextual inference
@@ -5955,64 +5927,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  CascadeMethodInvocationImpl _rewriteCascadeMethodInvocation(
-    MethodInvocationImpl node,
-  ) {
-    var resultType = node.typeOrThrow;
-    var invokeType = node.staticInvokeType;
-    var element = node.methodName.element;
-
-    ValidInvocationResolutionImpl? validResolution;
-    if (invokeType is FunctionTypeImpl) {
-      validResolution = switch (element) {
-        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
-          element: element,
-          invokeType: invokeType,
-          type: resultType,
-        ),
-        _ => FunctionCallInvocationResolutionImpl(
-          invokeType: invokeType,
-          type: resultType,
-        ),
-      };
-    }
-
-    InvocationResolutionImpl? resolution;
-    if (resultType is NeverTypeImpl &&
-        resultType.nullabilitySuffix == NullabilitySuffix.none) {
-      resolution = null;
-    } else if (resultType is InvalidTypeImpl || invokeType is InvalidTypeImpl) {
-      resolution = InvalidInvocationResolutionImpl(
-        candidates: [?element],
-        recovery: validResolution,
-        type: resultType,
-      );
-    } else if (validResolution != null) {
-      resolution = validResolution;
-    } else if (node.methodName.name == MethodElement.CALL_METHOD_NAME &&
-        typeSystem
-            .resolveToBound(_activeCascadeExpression!.target2.typeOrThrow)
-            .isDartCoreFunction) {
-      resolution = FunctionInterfaceInvocationResolutionImpl(type: resultType);
-    } else {
-      resolution = DynamicInvocationResolutionImpl(type: resultType);
-    }
-
-    var invocation = CascadeMethodInvocationImpl(
-      name: node.methodName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    );
-    invocation
-      ..resolution = resolution
-      ..staticInvokeType = invokeType
-      ..typeArgumentTypes = node.typeArgumentTypes
-      ..setPseudoExpressionStaticType(resultType);
-    replaceExpression(node, invocation);
-    flowAnalysis.transferTestData(node, invocation);
-    return invocation;
   }
 
   ImportPrefixedFunctionInvocationImpl _rewriteImportPrefixedFunctionInvocation(

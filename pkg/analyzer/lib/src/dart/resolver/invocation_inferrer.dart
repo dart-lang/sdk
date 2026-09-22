@@ -140,68 +140,6 @@ class CallInvocationInferrer
   }
 }
 
-/// Performs invocation inference when a canonical cascade method invocation
-/// is encountered again, as happens during the second resolution pass for a
-/// top-level initializer.
-class CascadeMethodInvocationInferrer
-    extends FullInvocationInferrer<CascadeMethodInvocationImpl> {
-  CascadeMethodInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-
-  CascadeExpressionImpl get _cascadeExpression {
-    for (
-      AstNodeImpl? ancestor = node.parent2;
-      ancestor != null;
-      ancestor = ancestor.parent2
-    ) {
-      if (ancestor is CascadeExpressionImpl) {
-        return ancestor;
-      }
-    }
-    throw StateError('CascadeMethodInvocation has no CascadeExpression.');
-  }
-
-  @override
-  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
-
-  @override
-  TypeImpl _refineReturnType(TypeImpl returnType) {
-    var targetType = _cascadeExpression.target2.staticType;
-    var element = switch (node.resolution) {
-      ExecutableInvocationResolutionImpl(:var element) => element,
-      InvalidInvocationResolutionImpl(
-        recovery: ExecutableInvocationResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    if (targetType != null) {
-      returnType = resolver.typeSystem
-          .refineNumericInvocationType(targetType, element, [
-            for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression2.typeOrThrow,
-          ], returnType);
-    }
-    return returnType;
-  }
-
-  @override
-  List<FormalParameterElement>? _storeResult(
-    List<TypeImpl>? typeArgumentTypes,
-    FunctionTypeImpl? invokeType,
-  ) {
-    node.typeArgumentTypes = typeArgumentTypes;
-    node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
-    return super._storeResult(typeArgumentTypes, invokeType);
-  }
-}
-
 /// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [ConstructorInvocation].
 class ConstructorInvocationInferrer
@@ -937,14 +875,27 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
         node.argumentList.arguments2.length == 2;
   }
 
+  TypeImpl? get _receiverType {
+    if (node case ReceiverMethodInvocationImpl(
+      receiver: ExpressionImpl(:var staticType),
+    )) {
+      return staticType;
+    }
+    if (node is CascadeMethodInvocationImpl) {
+      return node
+          .thisOrAncestorOfType2<CascadeExpressionImpl>()!
+          .target2
+          .staticType;
+    }
+    return null;
+  }
+
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
   TypeImpl _computeContextForArgument(TypeImpl parameterType) {
-    if (node case ReceiverMethodInvocationImpl(
-      receiver: ExpressionImpl(staticType: var receiverType?),
-    )) {
+    if (_receiverType case var receiverType?) {
       return resolver.typeSystem.refineNumericInvocationContext(
         receiverType,
         _invokedElement,
@@ -957,9 +908,7 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
 
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
-    if (node case ReceiverMethodInvocationImpl(
-      receiver: ExpressionImpl(staticType: var receiverType?),
-    )) {
+    if (_receiverType case var receiverType?) {
       return resolver.typeSystem
           .refineNumericInvocationType(receiverType, _invokedElement, [
             for (var argument in node.argumentList.arguments2)

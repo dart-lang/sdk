@@ -317,6 +317,11 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
+    if (node is ParsedCascadeNameImpl) {
+      var expression = CascadePropertyExtractionImpl(name: node.name);
+      node.replaceWith(expression);
+      return RewrittenParsedExpression._(expression);
+    }
     if (node is ParsedDotShorthandNameImpl) {
       var expression = DotShorthandNameExpressionImpl(
         period: node.period,
@@ -324,6 +329,10 @@ class AstRewriter {
       );
       node.replaceWith(expression);
       return RewrittenParsedExpression._(expression);
+    }
+    if (node is ParsedValueArgumentsImpl &&
+        node.cascadeInvocationParts != null) {
+      return PreparedCascadeInvocation(node);
     }
     if (node is ParsedValueArgumentsImpl &&
         node.dotShorthandInvocationParts != null) {
@@ -495,6 +504,7 @@ class AstRewriter {
     var head = _parsedReceiverHead(node);
     var expression =
         head is ParsedUnqualifiedNameImpl ||
+            head is ParsedCascadeNameImpl ||
             head is ParsedDotShorthandNameImpl ||
             head is ParsedValueArgumentsImpl && node is ParsedNameAccessImpl ||
             head is ParsedTypeArgumentsImpl &&
@@ -1005,6 +1015,7 @@ class AstRewriter {
     // constructor recovery path.
     if (head is ParsedExpressionImpl &&
         head is! ParsedUnqualifiedNameImpl &&
+        head is! ParsedCascadeNameImpl &&
         head is! ParsedDotShorthandNameImpl &&
         head is! ParsedValueArgumentsImpl &&
         !(head is ParsedTypeArgumentsImpl &&
@@ -1354,6 +1365,8 @@ class AstRewriter {
         lookup,
         hasSelector: hasSelector || !identical(node, root),
       );
+    } else if (node is ParsedCascadeNameImpl) {
+      receiver = CascadePropertyExtractionImpl(name: node.name);
     } else {
       // Nested call syntax and ordinary expressions use their own visitors,
       // including constructor and extension-override selection.
@@ -1468,6 +1481,13 @@ class AstRewriter {
 
 /// The outcome of interpreting a parsed expression during lexical binding.
 sealed class ParsedExpressionResult {}
+
+/// A cascade call awaits member lookup on the once-evaluated cascade receiver.
+final class PreparedCascadeInvocation extends ParsedExpressionResult {
+  final ParsedValueArgumentsImpl valueArguments;
+
+  PreparedCascadeInvocation(this.valueArguments);
+}
 
 /// A shorthand call needs the context established by its enclosing expression
 /// before lookup can distinguish a constructor, method, or callable property.

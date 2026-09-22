@@ -1282,28 +1282,6 @@ class A {
     );
   }
 
-  void test_methodInvocation() {
-    // TODO(scheglov): Remove this test once the parser no longer constructs
-    // MethodInvocationImpl. Selectors after cascade starts still use it.
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  void f() {
-    a..b.foo<int>(0);
-    c..d.bar<double>(1);
-  }
-}
-''');
-    _assertReplacementForChildren<MethodInvocation>(
-      destination: parseResult.findNode.methodInvocation('foo'),
-      source: parseResult.findNode.methodInvocation('bar'),
-      childAccessors: [
-        (node) => node.target2!,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
-    );
-  }
-
   void test_mixinDeclaration() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1440,6 +1418,26 @@ void f() {
               as ParsedValueArguments,
       source:
           parseResult.findNode.expressionStatement('(b)').expression2
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
+  void test_parsedValueArguments_cascade() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    a..foo<int>(0);
+    c..bar<double>(1);
+  }
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.cascade('a..').sections.single.body
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.cascade('c..').sections.single.body
               as ParsedValueArguments,
       childAccessors: [(node) => node.operand, (node) => node.argumentList],
     );
