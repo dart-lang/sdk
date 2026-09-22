@@ -21,7 +21,7 @@ typedef StaticOptions = Either2<bool, RenameOptions>;
 
 class PrepareRenameHandler
     extends
-        LspMessageHandler<
+        SharedMessageHandler<
           TextDocumentPositionParams,
           TextDocumentPrepareRenameResult
         > {
@@ -32,6 +32,9 @@ class PrepareRenameHandler
   @override
   LspJsonHandler<TextDocumentPositionParams> get jsonHandler =>
       TextDocumentPositionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<TextDocumentPrepareRenameResult>> handle(
@@ -99,7 +102,7 @@ class PrepareRenameHandler
   }
 }
 
-class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
+class RenameHandler extends SharedMessageHandler<RenameParams, WorkspaceEdit?> {
   new(super.server);
 
   LspGlobalClientConfiguration get config =>
@@ -110,6 +113,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
 
   @override
   LspJsonHandler<RenameParams> get jsonHandler => RenameParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<WorkspaceEdit?>> handle(

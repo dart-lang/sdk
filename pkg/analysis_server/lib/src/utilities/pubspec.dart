@@ -155,17 +155,43 @@ class PubspecEdit {
       originalConstraint.replaceRange(0, length, replacement);
 }
 
-/// A target package's `pubspec.yaml` file and its derived display name.
+/// A target package's `pubspec.yaml` file and the parts of it a migration
+/// needs.
 ///
 /// Used to avoid reading and parsing the `pubspec.yaml` file multiple times.
 class PubspecTarget {
   /// The `pubspec.yaml` file for the package.
   final File file;
 
-  /// The display name of the package, which defaults to the defined package
-  /// name in `pubspec.yaml`, or the parent directory name as a fallback.
-  final String displayName;
+  /// The name the package declares, or `null` if it doesn't declare one.
+  ///
+  /// This is the name a dependent writes in [dependencyNames] to refer to this
+  /// package, so it is what identifies the package to anything reasoning about
+  /// dependencies. Use [displayName] to name the package in output instead: a
+  /// package without a declared name still has to be reported somehow.
+  final String? name;
+
+  /// The names of the packages this one declares a dependency on.
+  ///
+  /// Dev dependencies are included: they take part in the version solve for
+  /// the package that declares them, so they're subject to the same SDK
+  /// constraint ordering as regular dependencies.
+  final Set<String> dependencyNames;
 
   new({required this.file, required YamlMap pubspec})
-    : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
+    : name = switch (pubspec['name']) {
+        String name => name,
+        _ => null,
+      },
+      dependencyNames = _dependencyNamesIn(pubspec);
+
+  /// The name to show for the package, falling back to the directory it sits
+  /// in when it doesn't declare one.
+  String get displayName => name ?? file.parent.shortName;
+
+  static Set<String> _dependencyNamesIn(YamlMap pubspec) => {
+    for (var section in const ['dependencies', 'dev_dependencies'])
+      if (pubspec[section] case YamlMap dependencies)
+        ...dependencies.keys.whereType<String>(),
+  };
 }

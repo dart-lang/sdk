@@ -3682,10 +3682,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant FunctionInstantiationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    analyzeExpression(node.operand, operations.unknownType);
-    popRewrite();
-    node.typeArguments.accept2(this);
+    _functionReferenceResolver.resolveInstantiation(node);
+    inferenceLogWriter?.exitExpression(node);
   }
 
   @override

@@ -62,11 +62,26 @@ class MigrationRound._({
   required final List<MigratingPackage> packages,
 });
 
-/// The order in which packages are migrated.
+/// Computes the order in which packages are migrated.
 ///
-/// Packages migrate in *rounds*: one SDK version step, taken by the packages
-/// in that round. The schedule chooses which packages those are and tracks how
-/// far each has got; running a round is the caller's job.
+/// Packages migrate in *rounds*, where each round advances a subset of packages
+/// by one SDK version.
+///
+/// To keep dependencies solvable, the schedule preserves floor ordering:
+///
+/// > **Floor ordering.** For every dependency edge `A -> B` among migrated
+/// > packages, the minimum SDK version declared by `A` must be at least the
+/// > minimum SDK version declared by `B`.
+///
+/// Packages that already violate this are migrated anyway; the schedule only
+/// avoids introducing a violation of its own.
+///
+/// Migrating packages one by one would leave dependencies ahead of their
+/// dependents at intermediate versions, breaking `pub get`. Instead, each round
+/// advances all active packages at the lowest current SDK version.
+///
+/// If a package stops, its dependencies must not advance past its current
+/// version; see [stop].
 class MigrationSchedule._(
   /// The packages with migration work to do, in the order they were requested.
   ///
@@ -89,6 +104,14 @@ class MigrationSchedule._(
   /// version each package is already on.
   final bool _advancesSdkVersion,
 ) {
+  /// The migrating packages, indexed by declared package name.
+  ///
+  /// Excludes packages outside [_packages] and packages without a declared
+  /// name.
+  final Map<String, MigratingPackage> _packagesByName = {
+    for (var package in _packages) ?package.pubspec.name: package,
+  };
+
   /// Plans the migration of [pubspecs] toward [targetSdkVersion], running
   /// [steps].
   ///
@@ -159,7 +182,7 @@ class MigrationSchedule._(
         continue;
       }
 
-      packages.add(MigratingPackage._(pubspec, summary, declaredVersion));
+      packages.add(MigratingPackage._(pubspec, summary, supportedVersion));
     }
 
     return MigrationSchedule._(
@@ -172,8 +195,8 @@ class MigrationSchedule._(
 
   /// Records the end of [round].
   ///
-  /// Its packages move on to the round's SDK version, and are done once that
-  /// is as far as the migration was headed.
+  /// Updates each package in [round] to [MigrationRound.toSdkVersion], marking
+  /// it finished if it has reached its target version.
   void completeRound(MigrationRound round) {
     for (var package in round.packages) {
       package._currentSdkVersion = round.toSdkVersion;
@@ -186,41 +209,103 @@ class MigrationSchedule._(
     }
   }
 
-  /// The next SDK version step to run, or `null` once every package has
-  /// finished or stopped.
+  /// Returns the next round to execute, or `null` if all packages are finished
+  /// or stopped.
   ///
-  /// Each round holds one package, so a package is migrated the whole way
-  /// before the next one starts.
+  /// Each round selects all active packages at the lowest current SDK version.
   MigrationRound? nextRound() {
-    for (var package in _packages) {
-      if (!package._isActive) continue;
+    var active = [
+      for (var package in _packages)
+        if (package._isActive) package,
+    ];
+    if (active.isEmpty) return null;
 
-      var fromSdkVersion = package._currentSdkVersion;
-      var toSdkVersion = _advancesSdkVersion
-          ? nextSdkVersion(fromSdkVersion)
-          : fromSdkVersion;
-      if (toSdkVersion == null) {
-        // Unreachable: `plan` leaves out packages with nowhere to advance to,
-        // and an active package is always below a target that is itself a
-        // known SDK version.
-        assert(false, 'No SDK version after $fromSdkVersion.');
+    var fromSdkVersion = active
+        .map((package) => package._currentSdkVersion)
+        .reduce((a, b) => a < b ? a : b);
+    var toSdkVersion = _advancesSdkVersion
+        ? nextSdkVersion(fromSdkVersion)
+        : fromSdkVersion;
+    if (toSdkVersion == null) {
+      // Unreachable: `plan` leaves out packages with nowhere to advance to,
+      // and an active package is always below a target that is itself a known
+      // SDK version. Finishing them rather than returning leaves the schedule
+      // in a state the caller can keep asking about.
+      assert(false, 'No SDK version after $fromSdkVersion.');
+      for (var package in active) {
         package._isFinished = true;
-        continue;
       }
-
-      return MigrationRound._(
-        fromSdkVersion: fromSdkVersion,
-        toSdkVersion: toSdkVersion,
-        packages: [package],
-      );
+      return null;
     }
-    return null;
+
+    return MigrationRound._(
+      fromSdkVersion: fromSdkVersion,
+      toSdkVersion: toSdkVersion,
+      packages: [
+        for (var package in active)
+          if (package._currentSdkVersion == fromSdkVersion) package,
+      ],
+    );
   }
 
-  /// Stops [package] for the rest of the migration.
+  /// Stops [package], along with every migrating package it transitively
+  /// depends on.
   ///
-  /// The caller records why, since only the caller knows.
+  /// Those dependencies stop because [package] keeps the SDK floor it stopped
+  /// at, and a dependency may not be left above its dependent. Dependents of
+  /// [package] keep running.
+  ///
+  /// The caller records why [package] stopped. Each dependency stopped here is
+  /// recorded as held back by [package].
   void stop(MigratingPackage package) {
     package._isStopped = true;
+
+    // Dependencies outside the migration are left out: they aren't moving, so
+    // they can't overtake anything.
+    Iterable<MigratingPackage> dependenciesOf(MigratingPackage dependent) => [
+      for (var name in dependent.pubspec.dependencyNames)
+        ?_packagesByName[name],
+    ];
+
+    // Walks the dependency edges outward from [package]. A package that has
+    // already stopped stays in the walk so its own dependencies are reached,
+    // but only a package with rounds left to lose has a reason recorded.
+    // Visiting each package once keeps a dependency cycle from looping
+    // forever.
+    var visited = {package};
+    var queue = [package];
+    while (queue.isNotEmpty) {
+      for (var blocked in dependenciesOf(queue.removeLast())) {
+        if (!visited.add(blocked)) continue;
+        if (blocked._isActive) _holdBack(blocked, stoppedBy: package);
+        queue.add(blocked);
+      }
+    }
+  }
+
+  /// Stops [package] because [stoppedBy] stopped, and records why.
+  ///
+  /// The reason is recorded against the round [package] was about to run, so
+  /// it sits next to the work that didn't happen rather than at the end of
+  /// the package's summary.
+  void _holdBack(
+    MigratingPackage package, {
+    required MigratingPackage stoppedBy,
+  }) {
+    package._isStopped = true;
+
+    // A package that isn't advancing, or that has nowhere left to advance to,
+    // is recorded against the version it is sitting on.
+    var fromSdkVersion = package._currentSdkVersion;
+    var toSdkVersion = _advancesSdkVersion
+        ? nextSdkVersion(fromSdkVersion)
+        : null;
+    toSdkVersion ??= fromSdkVersion;
+    package.summary
+        .forVersion(fromVersion: fromSdkVersion, toVersion: toSdkVersion)
+        .recordSkipped(
+          'Held back by "${stoppedBy.displayName}", which stopped at '
+          '${stoppedBy._currentSdkVersion}.',
+        );
   }
 }

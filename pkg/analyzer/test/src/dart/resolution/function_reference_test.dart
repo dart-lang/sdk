@@ -23,6 +23,130 @@ main() {
 
 @reflectiveTest
 class FunctionReferenceResolutionTest extends PubPackageResolutionTest {
+  test_callResult() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+T Function<T>(T) makeFunction() => identity;
+
+var f = makeFunction()<int>;
+''');
+
+    assertResolvedNodeText(
+      result.findNode.functionInstantiation('makeFunction()<int>'),
+      r'''
+FunctionInstantiation
+  operand: UnqualifiedFunctionInvocation
+    name: makeFunction
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::makeFunction
+      invokeType: T Function<T>(T) Function()
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: MethodInvocation
+    methodName: SimpleIdentifier
+      token: makeFunction
+      element: <testLibrary>::@function::makeFunction
+      staticType: T Function<T>(T) Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: T Function<T>(T) Function()
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''',
+    );
+  }
+
+  test_callResult_callable() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+C makeCallable() => C();
+
+var f = makeCallable()<int>;
+''');
+
+    assertResolvedNodeText(
+      result.findNode.functionInstantiation('makeCallable()<int>'),
+      r'''
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: UnqualifiedFunctionInvocation
+      name: makeCallable
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::makeCallable
+        invokeType: C Function()
+        type: C
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: makeCallable
+      element: <testLibrary>::@function::makeCallable
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: C Function()
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: <testLibrary>::@class::C::@method::call
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''',
+    );
+  }
+
   test_constructorFunction_named() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A<T> {
@@ -417,8 +541,8 @@ foo() {
     );
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: UnqualifiedFunctionInvocation
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedFunctionInvocation
       name: f
       argumentList: ArgumentList
         leftParenthesis: (
@@ -429,10 +553,9 @@ FunctionInstantiation
         type: dynamic
       staticType: dynamic
     operator: .
-    propertyName: SimpleIdentifier
-      token: instanceMethod
-      element: <null>
-      staticType: dynamic
+    name: instanceMethod
+    resolution: DynamicPropertyReadResolution
+      type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -485,17 +608,16 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <null>
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
       staticType: InvalidType
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -543,24 +665,22 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
-        element: <null>
+  operand: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
         staticType: InvalidType
-      period: .
-      identifier: SimpleIdentifier
-        token: b
-        element: <null>
-        staticType: InvalidType
-      element: <null>
+      operator: .
+      name: b
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
       staticType: InvalidType
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -665,18 +785,15 @@ void foo() {
     var node = result.findNode.functionInstantiation('E<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
       element: <testLibraryFragment>::@prefix::a
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: E
-      element: package:test/a.dart::@extension::E
-      staticType: dynamic
-    element: package:test/a.dart::@extension::E
-    staticType: dynamic
+    name: E
+    resolution: InvalidNamedReadResolution
+      recoveryElement: package:test/a.dart::@extension::E
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -696,9 +813,9 @@ V1: FunctionReference
     identifier: SimpleIdentifier
       token: E
       element: package:test/a.dart::@extension::E
-      staticType: dynamic
+      staticType: InvalidType
     element: package:test/a.dart::@extension::E
-    staticType: dynamic
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -729,8 +846,8 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: ExtensionOverride
+  operand: ReceiverPropertyExtraction
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -747,10 +864,11 @@ FunctionInstantiation
       extendedType: A
       staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      staticType: int
+      invokeType: int Function()
+      type: int
     staticType: int
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1003,8 +1121,8 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: ExtensionOverride
+  operand: ReceiverPropertyExtraction
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1021,10 +1139,10 @@ FunctionInstantiation
       extendedType: A
       staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1150,8 +1268,8 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: ExtensionOverride
+  operand: ReceiverPropertyExtraction
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1168,10 +1286,10 @@ FunctionInstantiation
       extendedType: A
       staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1236,8 +1354,8 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: ExtensionOverride
+  operand: ReceiverPropertyExtraction
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1254,10 +1372,9 @@ FunctionInstantiation
       extendedType: A
       staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1413,17 +1530,18 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T>(T)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1477,17 +1595,18 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T, U>(T, U)
       staticType: void Function<T, U>(T, U)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T, U>(T, U)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T, U>(T, U)
+      associatedFunctionType: void Function<T, U>(T, U)
     staticType: void Function<T, U>(T, U)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1543,17 +1662,18 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function(String)
       staticType: void Function(String)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function(String)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function(String)
+      associatedFunctionType: void Function(String)
     staticType: void Function(String)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1603,17 +1723,18 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo.call<String>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T extends num>(T)
       staticType: void Function<T extends num>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T extends num>(T)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T extends num>(T)
+      associatedFunctionType: void Function<T extends num>(T)
     staticType: void Function<T extends num>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1671,17 +1792,18 @@ extension on Function {
     var node = result.findNode.functionInstantiation('foo.m<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: m
+    operator: .
+    name: m
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::#0::@method::m
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@extension::#0::@method::m
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1739,17 +1861,17 @@ extension E on Function {
     var node = result.findNode.functionInstantiation('foo.m<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: m
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: m
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1922,17 +2044,16 @@ void f() {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ImplicitCallTearOff
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: C
+    operand: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        name: C
         element: <testLibrary>::@class::C
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: v
+      operator: .
+      name: v
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::v
-        staticType: C
-      element: <testLibrary>::@class::C::@getter::v
+        invokeType: C Function()
+        type: C
       staticType: C
     element: <testLibrary>::@class::C::@method::call
     staticType: T Function<T>(T)
@@ -2098,24 +2219,20 @@ void f() {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ImplicitCallTearOff
-    operand: PropertyAccess
-      target2: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: prefix
+    operand: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
           element: <testLibraryFragment>::@prefix::prefix
-          staticType: null
-        period: .
-        identifier: SimpleIdentifier
-          token: C
-          element: package:test/a.dart::@class::C
-          staticType: null
+        name: C
         element: package:test/a.dart::@class::C
-        staticType: null
       operator: .
-      propertyName: SimpleIdentifier
-        token: v
+      name: v
+      resolution: GetterInvocationResolution
         element: package:test/a.dart::@class::C::@getter::v
-        staticType: C
+        invokeType: C Function()
+        type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
     staticType: T Function<T>(T)
@@ -2184,17 +2301,16 @@ bar() {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ImplicitCallTearOff
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+    operand: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: c
+      name: c
+      resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::c
-        staticType: C
-      element: package:test/a.dart::@getter::c
+        invokeType: C Function()
+        type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
     staticType: T Function<T>(T)
@@ -2385,17 +2501,19 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::bar::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::bar::@formalParameter::a
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@getter::foo
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2611,17 +2729,19 @@ void foo(A a) {
     var node = result.findNode.functionInstantiation('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::foo::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::a
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: f
+    operator: .
+    name: f
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
-      staticType: List<int>
-    element: <testLibrary>::@class::A::@getter::f
+      invokeType: List<int> Function()
+      type: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2795,17 +2915,18 @@ class C {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@class::C::@method::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::C::@method::foo
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T>(T)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2862,24 +2983,25 @@ void bar(C c) {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::bar::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::bar::@formalParameter::c
+          type: C
         staticType: C
-      period: .
-      identifier: SimpleIdentifier
-        token: foo
+      operator: .
+      name: foo
+      resolution: ExecutableTearOffResolution
         element: <testLibrary>::@class::C::@method::foo
-        staticType: void Function<T>(T)
-      element: <testLibrary>::@class::C::@method::foo
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
-    propertyName: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T>(T)
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2944,17 +3066,19 @@ class B {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@class::B::@getter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3195,21 +3319,20 @@ typedef Exactly<T> = T Function(T);
     );
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: int
       staticType: int
-    period: .
-    identifier: SimpleIdentifier
-      token: expectStaticType
+    operator: .
+    name: expectStaticType
+    resolution: ExecutableTearOffResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
-      staticType: void Function<X extends int Function(int)>()
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
-      substitution: {T: int, X: X}
+      type: void Function<X extends int Function(int)>()
     staticType: void Function<X extends int Function(int)>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3668,17 +3791,19 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@getter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::a
+        invokeType: A Function()
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3736,24 +3861,23 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  operand: ReceiverPropertyExtraction
+    receiver: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: a
+      name: a
+      resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        staticType: A
-      element: package:test/a.dart::@getter::a
+        invokeType: A Function()
+        type: A
       staticType: A
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@class::A::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3818,24 +3942,22 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  operand: ReceiverPropertyExtraction
+    receiver: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: a
+      name: a
+      resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        staticType: A
-      element: package:test/a.dart::@getter::a
+        invokeType: A Function()
+        type: A
       staticType: A
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3890,17 +4012,17 @@ bar<T>() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: T
-      element: #E0 T
+  operand: ReceiverPropertyExtraction
+    receiver: TypeLiteral
+      type: NamedType
+        name: T
+        element: #E0 T
+        type: T
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3912,17 +4034,18 @@ FunctionInstantiation
     rightBracket: >
   staticType: InvalidType
 V1: FunctionReference
-  function: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: T
-      element: #E0 T
+  function: PropertyAccess
+    target: TypeLiteral
+      type: NamedType
+        name: T
+        element: #E0 T
+        type: T
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType
-    element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3950,17 +4073,18 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::bar::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::bar::@formalParameter::a
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4075,21 +4199,20 @@ typedef Exactly<T> = T Function(T);
     );
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: x
-      element: x@22
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: x@22
+        type: int
       staticType: int
-    period: .
-    identifier: SimpleIdentifier
-      token: expectStaticType
+    operator: .
+    name: expectStaticType
+    resolution: ExecutableTearOffResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
-      staticType: void Function<X extends int Function(int)>()
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
-      substitution: {T: int, X: X}
+      type: void Function<X extends int Function(int)>()
     staticType: void Function<X extends int Function(int)>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4213,6 +4336,72 @@ V1: FunctionReference
 ''');
   }
 
+  test_instanceMethod_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T foo<T>(T value) => value;
+}
+
+void f(C? c) {
+  c?.foo<int>;
+}
+''');
+
+    assertResolvedNodeText(
+      result.findNode.functionInstantiation('c?.foo<int>'),
+      r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C?
+      staticType: C?
+    operator: ?.
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::foo
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@method::foo
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''',
+    );
+  }
+
   test_instanceMethod_prefixedIdentifier_fromExtension() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -4233,17 +4422,19 @@ abstract class B {
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@extension::#0::@getter::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@extension::#0::@getter::foo
+        invokeType: A Function()
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: bar
+    operator: .
+    name: bar
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::bar
-      staticType: void Function<T>()
-    element: <testLibrary>::@class::A::@method::bar
+      type: void Function<T>()
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4303,17 +4494,19 @@ abstract class C extends B {
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@class::B::@getter::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::foo
+        invokeType: A Function()
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: bar
+    operator: .
+    name: bar
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::bar
-      staticType: void Function<T>()
-    element: <testLibrary>::@class::A::@method::bar
+      type: void Function<T>()
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4370,17 +4563,19 @@ abstract class B {
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@class::B::@getter::foo
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: foo
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::foo
+        invokeType: A Function()
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: bar
+    operator: .
+    name: bar
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::bar
-      staticType: void Function<T>()
-    element: <testLibrary>::@class::A::@method::bar
+      type: void Function<T>()
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5053,17 +5248,18 @@ void bar() {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: fn
-      element: fn@40
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: fn
+      resolution: VariableReadResolution
+        element: fn@40
+        type: void Function<T>(T)
       staticType: void Function<T>(T)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function<T>(T)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5121,17 +5317,18 @@ void bar() {
     // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: fn
-      element: fn@55
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: fn
+      resolution: VariableReadResolution
+        element: fn@55
+        type: void Function(int)
       staticType: void Function(int)
-    period: .
-    identifier: SimpleIdentifier
-      token: call
-      element: <null>
-      staticType: void Function(int)
-    element: <null>
+    operator: .
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function(int)
+      associatedFunctionType: void Function(int)
     staticType: void Function(int)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5165,6 +5362,56 @@ V1: FunctionReference
     rightBracket: >
   staticType: void Function(int)
 ''');
+  }
+
+  test_localVariable_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f(Object value) {
+  if (value is T Function<T>(T)) {
+    value<int>;
+  }
+}
+''');
+
+    assertResolvedNodeText(
+      result.findNode.functionInstantiation('value<int>'),
+      r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: value
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::value
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: value
+    element: <testLibrary>::@function::f::@formalParameter::value
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''',
+    );
   }
 
   test_localVariable_typeVariable_boundToFunction() async {
@@ -5438,17 +5685,17 @@ bar(dynamic a) {
     var node = result.findNode.functionInstantiation('a.foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::bar::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::bar::@formalParameter::a
+        type: dynamic
       staticType: dynamic
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: dynamic
-    element: <null>
+    operator: .
+    name: foo
+    resolution: DynamicPropertyReadResolution
+      type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5638,17 +5885,15 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: A
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
       element: <testLibrary>::@class::A
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5705,24 +5950,19 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: a
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
         element: <testLibraryFragment>::@prefix::a
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: A
-        element: package:test/a.dart::@class::A
-        staticType: null
+      name: A
       element: package:test/a.dart::@class::A
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@class::A::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5786,24 +6026,19 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: A
-        element: package:test/a.dart::@class::A
-        staticType: null
+      name: A
       element: package:test/a.dart::@class::A
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@class::A::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5868,24 +6103,19 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: TA
-        element: package:test/a.dart::@typeAlias::TA
-        staticType: Type
+      name: TA
       element: package:test/a.dart::@typeAlias::TA
-      staticType: Type
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@class::A::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -5909,9 +6139,9 @@ V1: FunctionReference
       identifier: SimpleIdentifier
         token: TA
         element: package:test/a.dart::@typeAlias::TA
-        staticType: Type
+        staticType: null
       element: package:test/a.dart::@typeAlias::TA
-      staticType: Type
+      staticType: null
     operator: .
     propertyName: SimpleIdentifier
       token: foo
@@ -5947,17 +6177,15 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: TA
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: TA
       element: <testLibrary>::@typeAlias::TA
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6228,17 +6456,15 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
       element: <testLibraryFragment>::@prefix::a
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@function::foo
-      staticType: void Function<T>(T)
-    element: package:test/a.dart::@function::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6358,17 +6584,16 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      element: <null>
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: prefix
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
       staticType: InvalidType
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6525,17 +6750,16 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
       element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      staticType: void Function<T>(T)
-    element: package:test/a.dart::@getter::foo
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6590,24 +6814,20 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: prefix
+  operand: ReceiverPropertyExtraction
+    receiver: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
         element: <testLibraryFragment>::@prefix::prefix
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: a
-        element: <null>
-        staticType: InvalidType
-      element: <null>
+      name: a
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
       staticType: InvalidType
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6662,17 +6882,18 @@ var a = Cb.foo<int>;
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: Cb
-      element: <testLibrary>::@typeAlias::Cb
+  operand: ReceiverPropertyExtraction
+    receiver: TypeLiteral
+      type: NamedType
+        name: Cb
+        element: <testLibrary>::@typeAlias::Cb
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::Cb
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6684,17 +6905,19 @@ FunctionInstantiation
     rightBracket: >
   staticType: InvalidType
 V1: FunctionReference
-  function: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: Cb
-      element: <testLibrary>::@typeAlias::Cb
+  function: PropertyAccess
+    target: TypeLiteral
+      type: NamedType
+        name: Cb
+        element: <testLibrary>::@typeAlias::Cb
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::Cb
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType
-    element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6720,17 +6943,20 @@ var a = T.foo<int>;
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: T
-      element: <testLibrary>::@typeAlias::T
+  operand: ReceiverPropertyExtraction
+    receiver: TypeLiteral
+      type: NamedType
+        name: T
+        element: <testLibrary>::@typeAlias::T
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::T
+            typeArguments
+              dynamic
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6742,17 +6968,21 @@ FunctionInstantiation
     rightBracket: >
   staticType: InvalidType
 V1: FunctionReference
-  function: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: T
-      element: <testLibrary>::@typeAlias::T
+  function: PropertyAccess
+    target: TypeLiteral
+      type: NamedType
+        name: T
+        element: <testLibrary>::@typeAlias::T
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::T
+            typeArguments
+              dynamic
       staticType: Type
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType
-    element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6825,17 +7055,17 @@ class B {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@class::B::@method::bar::@formalParameter::a
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6886,17 +7116,14 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
       element: <testLibraryFragment>::@prefix::a
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
-    element: <null>
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <

@@ -817,7 +817,11 @@ class ProcessedOptions {
   /// Note: this is a fork from `package:package_config`s discovery to make sure
   /// we use the expected error reporting etc.
   Future<_PackageConfigAndUri?> _findPackages(Uri scriptUri) async {
-    Uri dir = scriptUri.resolve('.');
+    // Inline code evaluation (`dart run -e`) uses a `data:` URI as the entry
+    // point; resolve `.dart_tool/package_config.json` starting from the
+    // current working directory (`Uri.base`).
+    Uri searchUri = scriptUri.isScheme('data') ? Uri.base : scriptUri;
+    Uri dir = searchUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
         diag.internalProblemUnsupported.withArguments(

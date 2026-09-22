@@ -323,17 +323,15 @@ void f() {
 ''');
     assertResolvedNodeText(result.findNode.functionInstantiation('p.id'), r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
       element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: id
+    name: id
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@function::id
-      staticType: T Function<T>(T)
-    element: package:test/a.dart::@function::id
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <

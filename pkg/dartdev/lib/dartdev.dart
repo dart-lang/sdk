@@ -57,7 +57,7 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
     // when it is in DartdevRunner.runCommand.
     io.stderr.writeln('$e');
-    exitCode = 64;
+    exitCode = DartdevRunner.usageExitCode;
   } catch (e, st) {
     // Unexpected error encountered.
     io.stderr.writeln('An unexpected error was encountered by the Dart CLI.');
@@ -193,6 +193,9 @@ class DartdevRunner extends CommandRunner<int> {
   String get usageFooter =>
       'See https://dart.dev/tools/dart-tool for detailed documentation.';
 
+  /// The exit code returned for command-line usage errors (`EX_USAGE`).
+  static const int usageExitCode = 64;
+
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
@@ -312,12 +315,6 @@ class DartdevRunner extends CommandRunner<int> {
     }
 
     if (topLevelResults.command == null &&
-        topLevelResults.wasParsed(evalOption)) {
-      final runCmd = commands[RunCommand.cmdName] as RunCommand;
-      return await runCmd.runEval(topLevelResults);
-    }
-
-    if (topLevelResults.command == null &&
         topLevelResults.arguments.isNotEmpty) {
       final firstArg = topLevelResults.arguments.first;
       // If we make it this far, it means the VM couldn't find the file on disk.
@@ -370,7 +367,7 @@ class DartdevRunner extends CommandRunner<int> {
       }
     } on UsageException catch (e) {
       io.stderr.writeln('$e');
-      exitCode = 64;
+      exitCode = usageExitCode;
     } catch (e, st) {
       // Set the exception and stack trace only for non-UsageException cases:
       io.stderr.writeln('$e');
