@@ -472,15 +472,39 @@ class VmTarget extends Target {
   // In addition to the default implementation, we allow VM tests to import
   // private platform libraries - such as `dart:_internal` - for testing
   // purposes.
-  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
-      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
-      importer.path.contains('runtime/observatory/tests') ||
-      importer.path.contains('runtime/tests/vm/dart') ||
-      importer.path.contains('tests/standalone/io') ||
-      importer.path.contains('test-lib') ||
-      importer.path.contains('tests/ffi') ||
-      (importer.path == 'dart_runtime_service_vm/src/native_bindings.dart' &&
-          imported.path == '_vmservice');
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) {
+    if (super.allowPlatformPrivateLibraryAccess(importer, imported)) {
+      return true;
+    }
+
+    final importerString = importer.toString();
+
+    // Allow dart-lang/sdk tests to import `dart:_*` libraries.
+    if (importerString.contains('runtime/observatory/tests') ||
+        importerString.contains('runtime/tests/vm/dart') ||
+        importerString.contains('tests/standalone/io') ||
+        importerString.contains('test-lib') ||
+        importerString.contains('tests/ffi')) {
+      return true;
+    }
+
+    // The `package:dart_runtime_service_vm` is a non-published package that
+    // talks to VM internals.
+    if (importerString.startsWith(
+          'package:dart_runtime_service_vm/src/native_bindings.dart',
+        ) &&
+        imported.toString() == 'dart:_vmservice') {
+      return true;
+    }
+
+    // Allow CFE to access VM internals for testing & verification purposes.
+    if (importerString.startsWith('package:front_end') ||
+        importerString.startsWith('package:kernel')) {
+      return true;
+    }
+
+    return false;
+  }
 
   @override
   Component configureComponent(Component component) {
