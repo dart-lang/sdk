@@ -3140,6 +3140,14 @@ class _DiscoverAvailableFilesJob {
   }
 
   void _addFile(File file) {
+    if (filter == null) {
+      if (driver.ownedFiles case var ownedFiles?) {
+        var owner = ownedFiles.ownerOf(file);
+        if (owner != null && !identical(owner, driver)) {
+          return;
+        }
+      }
+    }
     if (_seenFiles.add(file)) {
       _files.addLast(file);
     }
