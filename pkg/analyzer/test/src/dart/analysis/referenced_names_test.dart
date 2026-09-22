@@ -35,6 +35,15 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadeName_lexicalShadowing() {
+    var names = _computeReferencedNames('''
+f(A a, m, p) {
+  a..m(m)..p;
+}
+''');
+    expect(names, unorderedEquals(['A', 'm', 'p']));
+  }
+
   test_cascadePropertyAssignmentTarget() {
     var names = _computeReferencedNames('''
 f(A a) {

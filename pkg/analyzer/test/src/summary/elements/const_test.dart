@@ -1284,7 +1284,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
-              isDotShorthand: true
               shorthandContext: ValidDotShorthandContextResolution
                 contextType: A
                 lookupType: A
@@ -1353,7 +1352,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
-              isDotShorthand: true
               shorthandContext: ValidDotShorthandContextResolution
                 contextType: A
                 lookupType: A
@@ -1424,7 +1422,6 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
-              isDotShorthand: true
               shorthandContext: ValidDotShorthandContextResolution
                 contextType: A
                 lookupType: A
@@ -1519,7 +1516,6 @@ library
             DotShorthandNameExpression
               period: . @64
               name: a @65
-              isDotShorthand: true
               shorthandContext: ValidDotShorthandContextResolution
                 contextType: A
                 lookupType: A

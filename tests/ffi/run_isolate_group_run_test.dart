@@ -13,7 +13,7 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 // ignore: import_internal_library
-import 'dart:_internal' show IsolateGroup;
+import 'dart:_vm' show IsolateGroup;
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';

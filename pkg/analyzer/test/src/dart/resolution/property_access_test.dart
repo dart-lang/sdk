@@ -1232,6 +1232,44 @@ RegularFormalParameter
 ''');
   }
 
+  test_invalidSelector_this() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(dynamic x) {
+  x.this;
+//  ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+    assertResolvedNodeText(
+      result.findNode.singleReceiverPropertyExtraction,
+      r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: this
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: this
+    element: <null>
+    staticType: dynamic
+  staticType: dynamic
+''',
+    );
+  }
+
   test_nullShorting_cascade() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1335,26 +1373,20 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: PropertyAccess
-        target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: CascadePropertyExtraction
           name: foo
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::foo
             invokeType: int? Function()
             type: int?
           staticType: int?
-        target(v1): PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@class::A::@getter::foo
-            staticType: int?
-          staticType: int?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: isEven
+        name: isEven
+        resolution: GetterInvocationResolution
           element: dart:core::@class::int::@getter::isEven
-          staticType: bool
+          invokeType: bool Function()
+          type: bool
         staticType: bool?
   cascadeSections
     PropertyAccess
@@ -1417,33 +1449,28 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: PropertyAccess
-        target2: PropertyAccess
-          target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: ReceiverPropertyExtraction
+          receiver: CascadePropertyExtraction
             name: foo
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::foo
               invokeType: A? Function()
               type: A?
             staticType: A?
-          target(v1): PropertyAccess
-            operator: ..
-            propertyName: SimpleIdentifier
-              token: foo
-              element: <testLibrary>::@class::A::@getter::foo
-              staticType: A?
-            staticType: A?
           operator: ?.
-          propertyName: SimpleIdentifier
-            token: bar
+          name: bar
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::bar
-            staticType: A?
+            invokeType: A? Function()
+            type: A?
           staticType: A?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: baz
+        name: baz
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::baz
-          staticType: A?
+          invokeType: A? Function()
+          type: A?
         staticType: A?
   cascadeSections
     PropertyAccess
@@ -1518,26 +1545,20 @@ CascadeExpression
   sections
     CascadeSection
       operator: ?..
-      body: PropertyAccess
-        target2: CascadePropertyExtraction
+      body: ReceiverPropertyExtraction
+        receiver: CascadePropertyExtraction
           name: baz
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::baz
             invokeType: A? Function()
             type: A?
           staticType: A?
-        target(v1): PropertyAccess
-          operator: ?..
-          propertyName: SimpleIdentifier
-            token: baz
-            element: <testLibrary>::@class::A::@getter::baz
-            staticType: A?
-          staticType: A?
         operator: ?.
-        propertyName: SimpleIdentifier
-          token: baq
+        name: baq
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::baq
-          staticType: A
+          invokeType: A Function()
+          type: A
         staticType: A?
   cascadeSections
     PropertyAccess

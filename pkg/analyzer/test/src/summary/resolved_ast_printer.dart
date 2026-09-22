@@ -648,7 +648,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandConstructorInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -661,7 +660,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandConstructorInvocation2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -679,7 +677,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
@@ -694,7 +691,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandMethodInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -715,7 +711,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandNameExpression');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -735,7 +730,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandPropertyAccess');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -1632,6 +1626,27 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _sink.writeln('ParsedCascadeName');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    _sink.writeln('ParsedDotShorthandExpression');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _sink.writeln('ParsedDotShorthandName');
+    _sink.withIndent(() {
+      _writeToken('period', node.period);
+      _writeToken('name', node.name);
     });
   }
 

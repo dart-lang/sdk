@@ -1119,7 +1119,6 @@ abstract final class AnonymousMethodInvocation
 )
 @experimental
 final class AnonymousMethodInvocationImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements AnonymousMethodInvocation {
   @generated
   ExpressionImpl? _target2;
@@ -5518,7 +5517,6 @@ abstract final class CallInvocation implements FunctionInvocation {
   ],
 )
 final class CallInvocationImpl extends FunctionInvocationImpl
-    with DotShorthandMixin
     implements CallInvocation {
   @generated
   InstanceReceiverImpl _receiver;
@@ -14678,7 +14676,6 @@ abstract final class DotShorthandConstructorInvocation2
   ],
 )
 final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandConstructorInvocation2 {
   @generated
   @override
@@ -14938,7 +14935,6 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
 )
 final class DotShorthandConstructorInvocationImpl
     extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandConstructorInvocation {
   @generated
   @override
@@ -14976,7 +14972,6 @@ final class DotShorthandConstructorInvocationImpl
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
       ) {
-    isDotShorthand = origin.isDotShorthand;
     _attachV1Children();
   }
 
@@ -15211,13 +15206,7 @@ final class DotShorthandConstructorInvocationImpl
   @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('DotShorthandConstructorInvocation is a V1 projection.');
-    }
-    resolver.visitDotShorthandConstructorInvocation(
-      this,
-      contextType: contextType,
-    );
+    throw StateError('DotShorthandConstructorInvocation is a V1 projection.');
   }
 
   @override
@@ -15384,7 +15373,6 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
   ],
 )
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandInvocation {
   @generated
   @override
@@ -15394,6 +15382,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   SimpleIdentifierImpl _memberName;
 
   DotShorthandMethodInvocationImpl? _v1ProjectionOrigin;
+
+  ParsedExpressionImpl? _parsedExpressionOrigin;
 
   @generated
   DotShorthandInvocationImpl({
@@ -15414,7 +15404,18 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
       ) {
-    isDotShorthand = origin.isDotShorthand;
+    _attachV1Children();
+  }
+
+  DotShorthandInvocationImpl.v1ProjectionFromParsedExpression({
+    required ParsedExpressionImpl origin,
+    required this.period,
+    required Token name,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _parsedExpressionOrigin = origin,
+       _memberName = SimpleIdentifierImpl.v1Projection(token: name),
+       super.v1Projection() {
     _attachV1Children();
   }
 
@@ -15426,7 +15427,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   set argumentList(ArgumentListImpl argumentList) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     super.argumentList = argumentList;
@@ -15482,7 +15483,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set memberName(SimpleIdentifierImpl memberName) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     _memberName = _becomeParentOf12(memberName);
@@ -15497,7 +15498,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   set staticInvokeType(TypeImpl? staticInvokeType) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     super.staticInvokeType = staticInvokeType;
@@ -15515,7 +15516,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     super.typeArguments = typeArguments;
@@ -15527,7 +15528,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     super.typeArgumentTypes = typeArgumentTypes;
@@ -15536,7 +15537,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   @override
   AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+      _isV1Projection ? AstNodeApi.v1 : AstNodeApi.shared;
 
   @generated
   @override
@@ -15549,7 +15550,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   ChildEntities get _childEntities2 {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandInvocation is not in the V2 AST view.');
     }
     return ChildEntities()
@@ -15558,6 +15559,9 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
       ..addNode('typeArguments', typeArguments)
       ..addNode('argumentList', argumentList);
   }
+
+  bool get _isV1Projection =>
+      _v1ProjectionOrigin != null || _parsedExpressionOrigin != null;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -15569,7 +15573,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandInvocation is not in the V2 AST view.');
     }
     return visitor.visitDotShorthandInvocation(this);
@@ -15585,7 +15589,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection children use V1 parent pointers')
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       return true;
     }
     assert(identical(child.parent2, this));
@@ -15595,7 +15599,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     if (identical(memberName, oldNode)) {
@@ -15614,7 +15618,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     if (identical(memberName, oldNode)) {
@@ -15635,14 +15639,14 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('DotShorthandInvocation is a V1 projection.');
-    }
-    resolver.visitDotShorthandInvocation(this, contextType: contextType);
+    throw StateError('DotShorthandInvocation is a V1 projection.');
   }
 
   @override
-  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
+  String toSource() =>
+      _v1ProjectionOrigin?.toSource() ??
+      _parsedExpressionOrigin?._toSourceThrough(endToken) ??
+      super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -15657,7 +15661,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandInvocation is not in the V2 AST view.');
     }
     memberName.accept2(visitor);
@@ -15678,7 +15682,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandInvocation is not in the V2 AST view.');
     }
     if (visitMemberName != null) {
@@ -15726,7 +15730,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandInvocation is not in the V2 AST view.');
     }
     if (memberName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15764,7 +15768,6 @@ abstract final class DotShorthandMethodInvocation
   ],
 )
 final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
-    with DotShorthandMixin
     implements DotShorthandMethodInvocation {
   @generated
   @override
@@ -15933,22 +15936,6 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 }
 
-base mixin DotShorthandMixin on ExpressionImpl {
-  /// Whether the AST node is a dot shorthand and has a dot shorthand head
-  /// ([DotShorthandInvocation], [DotShorthandMethodInvocation],
-  /// [DotShorthandNameExpression], [DotShorthandConstructorInvocation] or
-  /// [DotShorthandPropertyAccess]) as its inner-most target.
-  ///
-  /// This is `false` and remains `false` when there is no dot shorthand head as
-  /// its inner-most target. When we are parsing and notice that we have a dot
-  /// shorthand head, we flip this flag to `true` and it remains `true` for that
-  /// expression.
-  ///
-  /// We use this flag to determine the correct context type to cache. This
-  /// cached context type is then used to resolve the dot shorthand head.
-  bool isDotShorthand = false;
-}
-
 /// The value-producing dot-shorthand form `.name`.
 ///
 /// Depending on resolution, the name can invoke a static getter, including a
@@ -15968,7 +15955,6 @@ abstract final class DotShorthandNameExpression
   ],
 )
 final class DotShorthandNameExpressionImpl extends NameExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandNameExpression {
   @generated
   @override
@@ -16106,7 +16092,6 @@ abstract final class DotShorthandPropertyAccess extends Expression {
   ],
 )
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandPropertyAccess {
   @generated
   @override
@@ -16116,6 +16101,8 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   SimpleIdentifierImpl _propertyName;
 
   DotShorthandNameExpressionImpl? _v1ProjectionOrigin;
+
+  ParsedDotShorthandNameImpl? _parsedExpressionOrigin;
 
   @generated
   DotShorthandPropertyAccessImpl({
@@ -16130,7 +16117,14 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   ) : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
-    isDotShorthand = origin.isDotShorthand;
+    _attachV1Children();
+  }
+
+  DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
+    ParsedDotShorthandNameImpl origin,
+  ) : period = origin.period,
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
+      _parsedExpressionOrigin = origin {
     _attachV1Children();
   }
 
@@ -16176,7 +16170,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set propertyName(SimpleIdentifierImpl propertyName) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     _propertyName = _becomeParentOf12(propertyName);
@@ -16189,7 +16183,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   @override
   AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+      _isV1Projection ? AstNodeApi.v1 : AstNodeApi.shared;
 
   @generated
   @override
@@ -16200,13 +16194,16 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   ChildEntities get _childEntities2 {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
     }
     return ChildEntities()
       ..addToken('period', period)
       ..addNode('propertyName', propertyName);
   }
+
+  bool get _isV1Projection =>
+      _v1ProjectionOrigin != null || _parsedExpressionOrigin != null;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -16218,7 +16215,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
     }
     return visitor.visitDotShorthandPropertyAccess(this);
@@ -16234,7 +16231,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection children are not value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       return false;
     }
     assert(identical(child.parent2, this));
@@ -16244,7 +16241,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     if (identical(propertyName, oldNode)) {
@@ -16256,7 +16253,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw UnsupportedError('A V1 projection cannot be mutated.');
     }
     if (identical(propertyName, oldNode)) {
@@ -16269,14 +16266,14 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('DotShorthandPropertyAccess is a V1 projection.');
-    }
-    resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
+    throw StateError('DotShorthandPropertyAccess is a V1 projection.');
   }
 
   @override
-  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
+  String toSource() =>
+      _v1ProjectionOrigin?.toSource() ??
+      _parsedExpressionOrigin?.toSource() ??
+      super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -16289,7 +16286,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
     }
     propertyName.accept2(visitor);
@@ -16306,7 +16303,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitPropertyName,
   }) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
     }
     if (visitPropertyName != null) {
@@ -16332,7 +16329,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v1ProjectionOrigin != null) {
+    if (_isV1Projection) {
       throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
     }
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
@@ -24895,7 +24892,6 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements FunctionExpressionInvocation {
   final CallInvocationImpl _origin;
 
@@ -24946,14 +24942,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  bool get isDotShorthand => _origin.isDotShorthand;
-
-  @override
-  set isDotShorthand(bool isDotShorthand) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -25525,7 +25513,6 @@ abstract final class FunctionReference
   ],
 )
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
-    with DotShorthandMixin
     implements FunctionReference {
   @generated
   ExpressionImpl _function2;
@@ -30936,7 +30923,6 @@ abstract final class IncrementOrDecrementExpression implements Expression {
   ],
 )
 final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements IncrementOrDecrementExpression {
   @generated
   @override
@@ -31510,7 +31496,6 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   ],
 )
 final class IndexExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements IndexExpression {
   @generated
   @override
@@ -37460,7 +37445,6 @@ abstract final class MethodInvocation implements InvocationExpression {
   ],
 )
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements MethodInvocation {
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   ExpressionImpl? _target2;
@@ -37681,7 +37665,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   ExpressionImpl? get realTarget2 {
     if (isCascaded) {
       var target = _ancestorCascade.target2;
-      return _v1ProjectionOrigin == null
+      return _v1ProjectionOrigin == null && _parsedExpressionOrigin == null
           ? target
           : V1Projection.toV1Expression(target);
     }
@@ -37759,20 +37743,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     super.typeArgumentTypes = typeArgumentTypes;
   }
 
-  /// The cascade that contains this [IndexExpression].
+  /// The cascade that contains this [MethodInvocation].
   ///
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (
-      var ancestor = (_v1ProjectionOrigin ?? this).parent2!;
-      ;
-      ancestor = ancestor.parent2!
-    ) {
-      if (ancestor is CascadeExpressionImpl) {
-        return ancestor;
-      }
-    }
+    var origin = _v1ProjectionOrigin ?? _parsedExpressionOrigin ?? this;
+    return origin.thisOrAncestorOfType2<CascadeExpressionImpl>()!;
   }
 
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
@@ -40110,7 +40087,6 @@ abstract final class NullAssertionExpression implements Expression {
   ],
 )
 final class NullAssertionExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements NullAssertionExpression {
   @generated
   ExpressionImpl _operand;
@@ -41901,6 +41877,394 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
   WriteResolutionImpl? get write => null;
 }
 
+/// A named selector on the enclosing cascade's receiver whose semantic role
+/// has not yet been selected. Type and value arguments are separate wrappers.
+/// The enclosing [CascadeSection] owns the `..` or `?..` token.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedCascadeName implements ParsedExpression {
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class ParsedCascadeNameImpl extends ParsedExpressionImpl
+    implements ParsedCascadeName {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedCascadeNameImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedCascadeName(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedCascadeName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// The complete grammar boundary of a dot-shorthand expression.
+///
+/// Its context selects the leading shorthand namespace independently of the
+/// downward contexts of subsequent selectors. Resolution removes this wrapper.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedDotShorthandExpression implements Expression {
+  Expression get expression;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+  ],
+)
+final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
+    implements ParsedDotShorthandExpression {
+  @generated
+  ExpressionImpl _expression;
+
+  @generated
+  ParsedDotShorthandExpressionImpl({required ExpressionImpl expression})
+    : _expression = expression {
+    _becomeParentOf2(expression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return expression.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return expression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get expression => _expression;
+
+  @generated
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf2(expression);
+  }
+
+  @override
+  bool get isAssignable => expression.isAssignable;
+
+  @override
+  Precedence get precedence => expression.precedence;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('expression', expression);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedDotShorthandExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    assert(identical(expression, child));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(expression, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(expression, oldNode)) {
+      expression = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitParsedDotShorthandExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
+}
+
+/// A dot-shorthand head whose declaration is selected using contextual type
+/// information. Type and value arguments are separate parsed wrappers.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedDotShorthandName implements ParsedExpression {
+  Token get name;
+  Token get period;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
+    implements ParsedDotShorthandName {
+  @generated
+  @override
+  final Token period;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  ParsedDotShorthandNameImpl({required this.period, required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return period;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedDotShorthandName(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('Parsed expressions must be lowered before resolution.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// A syntactic expression whose final semantic role has not yet been selected.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -41916,8 +42280,11 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
     ExpressionImpl node = this;
     while (true) {
       switch (node) {
+        case ParsedCascadeNameImpl(:var name):
         case ParsedUnqualifiedNameImpl(:var name):
           return name;
+        case ParsedDotShorthandNameImpl(:var period):
+          return period;
         case ParsedNameAccessImpl(:var operand):
           node = operand;
         case ParsedTypeArgumentsImpl(:var operand):
@@ -42769,6 +43136,30 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   @DoNotGenerate(reason: 'Finds the head iteratively for deeply nested syntax')
   @override
   Token get beginToken => super.beginToken;
+
+  /// The cascade head and optional type arguments of this invocation.
+  ({ParsedCascadeNameImpl head, TypeArgumentListImpl? typeArguments})?
+  get cascadeInvocationParts => switch (operand) {
+    ParsedCascadeNameImpl head => (head: head, typeArguments: null),
+    ParsedTypeArgumentsImpl(
+      operand: ParsedCascadeNameImpl head,
+      :var typeArguments,
+    ) =>
+      (head: head, typeArguments: typeArguments),
+    _ => null,
+  };
+
+  /// The shorthand head and optional type arguments of this invocation.
+  ({ParsedDotShorthandNameImpl head, TypeArgumentListImpl? typeArguments})?
+  get dotShorthandInvocationParts => switch (operand) {
+    ParsedDotShorthandNameImpl head => (head: head, typeArguments: null),
+    ParsedTypeArgumentsImpl(
+      operand: ParsedDotShorthandNameImpl head,
+      :var typeArguments,
+    ) =>
+      (head: head, typeArguments: typeArguments),
+    _ => null,
+  };
 
   @generated
   @override
@@ -45811,7 +46202,6 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   ],
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with DotShorthandMixin
     implements PropertyAccess {
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   late final Token _operator;
@@ -45865,7 +46255,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   PropertyAccessImpl.v1ProjectionFromParsedExpression(
     AstNodeImpl origin,
-    ExpressionImpl target,
+    ExpressionImpl? target,
     Token operator,
     SimpleIdentifierImpl propertyName,
   ) : _target2 = target,
@@ -46545,7 +46935,6 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
   ],
 )
 final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
-    with DotShorthandMixin
     implements ReceiverIndexExpression {
   @generated
   ExpressionImpl _receiver;
@@ -47018,7 +47407,12 @@ final class ReceiverPropertyAssignmentTargetImpl
     // Increment targets already used PropertyAccess before parsed chains.
     // Assignments retain the identifier shape for a bare, non-record receiver.
     if (parent2 is AssignmentExpression2Impl &&
-        V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
+        V1Projection._usesPrefixedIdentifier(
+          receiver,
+          operator,
+          name,
+          target,
+        )) {
       if (previous is PrefixedIdentifierImpl) return previous;
       result = PrefixedIdentifierImpl.v1Projection(
         prefix: target as SimpleIdentifierImpl,
@@ -47227,7 +47621,12 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     ExpressionImpl result;
     // V1 uses PropertyAccess for record receivers, including record-bounded
     // type parameters, even when the syntax would allow PrefixedIdentifier.
-    if (V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
+    if (V1Projection._usesPrefixedIdentifier(
+      receiver,
+      operator,
+      name,
+      target,
+    )) {
       if (previous is PrefixedIdentifierImpl) {
         return previous;
       }
@@ -57254,6 +57653,23 @@ enum V1Projection {
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
   };
 
+  /// V1 recovery represented expression tokens in selector position as
+  /// property accesses. Other recovered keywords can still be identifiers.
+  static bool _isPrefixedIdentifierName(Token name) {
+    if (!name.isKeywordOrIdentifier) return false;
+    return switch (name.keyword) {
+      Keyword.ASSERT ||
+      Keyword.CONST ||
+      Keyword.FALSE ||
+      Keyword.NULL ||
+      Keyword.SUPER ||
+      Keyword.SWITCH ||
+      Keyword.THIS ||
+      Keyword.TRUE => false,
+      _ => true,
+    };
+  }
+
   /// Materializes the V2-only region containing [node]. Shared nodes delimit
   /// these regions; projection constructors establish the internal V1 links,
   /// including links that skip or expand canonical nodes.
@@ -57284,7 +57700,9 @@ enum V1Projection {
     Token name,
   ) {
     var identifier = SimpleIdentifierImpl.v1Projection(token: name);
-    if (operand is SimpleIdentifierImpl && operator.type == TokenType.PERIOD) {
+    if (operand is SimpleIdentifierImpl &&
+        operator.type == TokenType.PERIOD &&
+        _isPrefixedIdentifierName(name)) {
       return PrefixedIdentifierImpl.v1Projection(
         prefix: operand,
         period: operator,
@@ -57308,8 +57726,10 @@ enum V1Projection {
     ConstructorReferenceImpl() => node._origin,
     ConstructorNameImpl() => node._origin as AstNodeImpl?,
     DotShorthandConstructorInvocationImpl() => node._v1ProjectionOrigin,
-    DotShorthandInvocationImpl() => node._v1ProjectionOrigin,
-    DotShorthandPropertyAccessImpl() => node._v1ProjectionOrigin,
+    DotShorthandInvocationImpl() =>
+      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
+    DotShorthandPropertyAccessImpl() =>
+      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,
     FunctionExpressionImpl() => node._v1ProjectionOrigin,
     FunctionExpressionInvocationImpl() => node._origin,
@@ -57332,6 +57752,9 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
+    if (node is ParsedDotShorthandExpressionImpl) {
+      return _toV1Expression(node.expression, createIfAbsent: createIfAbsent);
+    }
     if (node is ParsedExpressionImpl) {
       return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
@@ -57466,9 +57889,13 @@ enum V1Projection {
   static bool _usesPrefixedIdentifier(
     NamedReceiverImpl receiver,
     Token operator,
+    Token name,
     ExpressionImpl target,
   ) {
     if (operator.type != TokenType.PERIOD || target is! SimpleIdentifierImpl) {
+      return false;
+    }
+    if (!_isPrefixedIdentifierName(name)) {
       return false;
     }
     var receiverType = switch (receiver) {
@@ -59629,17 +60056,42 @@ class _ParsedExpressionBuilder {
 
   ExpressionImpl build() {
     ExpressionImpl node = chain;
-    while (node is ParsedExpressionImpl && node is! ParsedUnqualifiedNameImpl) {
+    while (node is ParsedExpressionImpl &&
+        node is! ParsedCascadeNameImpl &&
+        node is! ParsedUnqualifiedNameImpl &&
+        node is! ParsedDotShorthandNameImpl) {
       node = switch (node) {
         ParsedNameAccessImpl(:var operand) => operand,
         ParsedTypeArgumentsImpl(:var operand) => operand,
         ParsedValueArgumentsImpl(:var operand) => operand,
+        ParsedCascadeNameImpl() ||
         ParsedUnqualifiedNameImpl() => throw StateError('Already at the head.'),
+        ParsedDotShorthandNameImpl() => throw StateError(
+          'Already at the head.',
+        ),
       };
     }
     var parent = node.parent2;
     ExpressionImpl result;
-    if (node is ParsedUnqualifiedNameImpl) {
+    if (node is ParsedCascadeNameImpl) {
+      result = forV1
+          ? PropertyAccessImpl.v1ProjectionFromParsedExpression(
+              node,
+              null,
+              node.thisOrAncestorOfType2<CascadeSectionImpl>()!.operator,
+              _identifier(node.name),
+            )
+          : CascadePropertyExtractionImpl(name: node.name);
+    } else if (node is ParsedDotShorthandNameImpl) {
+      result = forV1
+          ? DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
+              node,
+            )
+          : DotShorthandNameExpressionImpl(
+              period: node.period,
+              name: node.name,
+            );
+    } else if (node is ParsedUnqualifiedNameImpl) {
       result = forV1
           ? SimpleIdentifierImpl.v1Projection(token: node.name, origin: node)
           : _identifier(node.name);
@@ -59711,7 +60163,9 @@ class _ParsedExpressionBuilder {
                 );
         case ParsedValueArgumentsImpl(:var argumentList):
           result = _invoke(result, null, argumentList);
+        case ParsedCascadeNameImpl():
         case ParsedUnqualifiedNameImpl():
+        case ParsedDotShorthandNameImpl():
           throw StateError('A parsed name cannot contain an operand.');
       }
     }
@@ -59779,6 +60233,16 @@ class _ParsedExpressionBuilder {
     TypeArgumentListImpl? typeArguments,
     ArgumentListImpl argumentList,
   ) {
+    if (function is DotShorthandPropertyAccessImpl) {
+      assert(forV1);
+      return DotShorthandInvocationImpl.v1ProjectionFromParsedExpression(
+        origin: chain,
+        period: function.period,
+        name: function.propertyName.token,
+        typeArguments: typeArguments,
+        argumentList: argumentList,
+      );
+    }
     ExpressionImpl? target;
     Token? operator;
     Token name;

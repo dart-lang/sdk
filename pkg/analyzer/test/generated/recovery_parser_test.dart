@@ -1249,11 +1249,14 @@ var v = .;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-DotShorthandPropertyAccess
+ParsedDotShorthandExpression
+  expression: ParsedDotShorthandName
+    period: .
+    name: <empty> <synthetic>
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: <empty> <synthetic>
-  isDotShorthand: true
 ''');
   }
 

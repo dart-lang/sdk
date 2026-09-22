@@ -123,17 +123,16 @@ Block
           token: a
         sections
           CascadeSection
-            body: PropertyAccess
-              target2: MethodInvocation
-                operator: ?..
-                methodName: SimpleIdentifier
-                  token: foo
+            operator: ?..
+            body: ParsedNameAccess
+              operand: ParsedValueArguments
+                operand: ParsedCascadeName
+                  name: foo
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
               operator: .
-              propertyName: SimpleIdentifier
-                token: length
+              name: length
           CascadeSection
             operator: ..
             body: DirectAssignment
@@ -145,17 +144,16 @@ Block
                   name: s
                 operator: !
           CascadeSection
-            body: PropertyAccess
-              target2: MethodInvocation
-                operator: ..
-                methodName: SimpleIdentifier
-                  token: toString
+            operator: ..
+            body: ParsedNameAccess
+              operand: ParsedValueArguments
+                operand: ParsedCascadeName
+                  name: toString
                 argumentList: ArgumentList
                   leftParenthesis: (
                   rightParenthesis: )
               operator: .
-              propertyName: SimpleIdentifier
-                token: length
+              name: length
         cascadeSections
           PropertyAccess
             target: MethodInvocation
@@ -472,7 +470,7 @@ Block
               rightBracket: ]
           CascadeSection
             operator: ?..
-            body: CascadePropertyExtraction
+            body: ParsedCascadeName
               name: x
         cascadeSections
           IndexExpression
@@ -509,10 +507,10 @@ Block
           token: a
         sections
           CascadeSection
-            body: MethodInvocation
-              operator: ?..
-              methodName: SimpleIdentifier
-                token: foo
+            operator: ?..
+            body: ParsedValueArguments
+              operand: ParsedCascadeName
+                name: foo
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -549,7 +547,7 @@ Block
         sections
           CascadeSection
             operator: ?..
-            body: CascadePropertyExtraction
+            body: ParsedCascadeName
               name: x27
         cascadeSections
           PropertyAccess

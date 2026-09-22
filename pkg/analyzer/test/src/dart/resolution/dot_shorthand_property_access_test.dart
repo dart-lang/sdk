@@ -30,28 +30,77 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandNameExpression;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandNameExpression
-  period: .
-  name: instances
-  isDotShorthand: false
-  shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
-  resolution: GetterInvocationResolution
-    element: <testLibrary>::@class::C::@getter::instances
-    invokeType: List<C> Function()
-    type: List<C>
-  staticType: List<C>
-V1: DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: instances
-    element: <testLibrary>::@class::C::@getter::instances
-    staticType: List<C>
-  isDotShorthand: false
-  staticType: List<C>
+ReceiverMethodInvocation
+  receiver: ReceiverIndexExpression
+    receiver: DotShorthandNameExpression
+      period: .
+      name: instances
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: C
+        lookupType: C
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::C::@getter::instances
+        invokeType: List<C> Function()
+        type: List<C>
+      staticType: List<C>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: C}
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::List::@method::[]
+        substitution: {E: C}
+      invokeType: C Function(int)
+      type: C
+    staticType: C
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: MethodInvocation
+  target: IndexExpression
+    target: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: instances
+        element: <testLibrary>::@class::C::@getter::instances
+        staticType: List<C>
+      staticType: List<C>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: C}
+      staticType: int
+    rightBracket: ]
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::List::@method::[]
+      substitution: {E: C}
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: method
+    element: <testLibrary>::@class::C::@method::method
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
 ''');
   }
 
@@ -68,28 +117,70 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandNameExpression;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-DotShorthandNameExpression
-  period: .
-  name: instances
-  isDotShorthand: false
-  shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+ReceiverPropertyExtraction
+  receiver: ReceiverIndexExpression
+    receiver: DotShorthandNameExpression
+      period: .
+      name: instances
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: C
+        lookupType: C
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::C::@getter::instances
+        invokeType: List<C> Function()
+        type: List<C>
+      staticType: List<C>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: C}
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::List::@method::[]
+        substitution: {E: C}
+      invokeType: C Function(int)
+      type: C
+    staticType: C
+  operator: .
+  name: self
   resolution: GetterInvocationResolution
-    element: <testLibrary>::@class::C::@getter::instances
-    invokeType: List<C> Function()
-    type: List<C>
-  staticType: List<C>
-V1: DotShorthandPropertyAccess
-  period: .
+    element: <testLibrary>::@class::C::@getter::self
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
+  target: IndexExpression
+    target: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: instances
+        element: <testLibrary>::@class::C::@getter::instances
+        staticType: List<C>
+      staticType: List<C>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: C}
+      staticType: int
+    rightBracket: ]
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::List::@method::[]
+      substitution: {E: C}
+    staticType: C
+  operator: .
   propertyName: SimpleIdentifier
-    token: instances
-    element: <testLibrary>::@class::C::@getter::instances
-    staticType: List<C>
-  isDotShorthand: false
-  staticType: List<C>
+    token: self
+    element: <testLibrary>::@class::C::@getter::self
+    staticType: C
+  staticType: C
 ''');
   }
 
@@ -108,28 +199,118 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandNameExpression;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-DotShorthandNameExpression
-  period: .
-  name: member
-  isDotShorthand: false
-  shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
-  resolution: GetterInvocationResolution
-    element: <testLibrary>::@class::C::@getter::member
+ReceiverMethodInvocation
+  receiver: DotShorthandNameExpression
+    period: .
+    name: member
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::member
+      invokeType: C Function()
+      type: C
+    staticType: C
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
     invokeType: C Function()
     type: C
   staticType: C
-V1: DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: member
-    element: <testLibrary>::@class::C::@getter::member
+V1: MethodInvocation
+  target: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@getter::member
+      staticType: C
     staticType: C
-  isDotShorthand: false
+  operator: .
+  methodName: SimpleIdentifier
+    token: method
+    element: <testLibrary>::@class::C::@method::method
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
   staticType: C
+''');
+  }
+
+  test_chain_nullAware_method_property() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static C? get nullable => null;
+  C method() => this;
+  C get self => this;
+}
+
+C? f() => .nullable?.method().self;
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ReceiverMethodInvocation
+    receiver: DotShorthandNameExpression
+      period: .
+      name: nullable
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: C?
+        lookupType: C?
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::C::@getter::nullable
+        invokeType: C? Function()
+        type: C?
+      staticType: C?
+    operator: ?.
+    name: method
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@class::C::@method::method
+      invokeType: C Function()
+      type: C
+    staticType: C
+  operator: .
+  name: self
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::self
+    invokeType: C Function()
+    type: C
+  staticType: C?
+V1: PropertyAccess
+  target: MethodInvocation
+    target: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: nullable
+        element: <testLibrary>::@class::C::@getter::nullable
+        staticType: C?
+      staticType: C?
+    operator: ?.
+    methodName: SimpleIdentifier
+      token: method
+      element: <testLibrary>::@class::C::@method::method
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: C Function()
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: self
+    element: <testLibrary>::@class::C::@getter::self
+    staticType: C
+  staticType: C?
 ''');
   }
 
@@ -148,27 +329,133 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandNameExpression;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-DotShorthandNameExpression
-  period: .
-  name: member
-  isDotShorthand: false
-  shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+ReceiverPropertyExtraction
+  receiver: DotShorthandNameExpression
+    period: .
+    name: member
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::member
+      invokeType: C Function()
+      type: C
+    staticType: C
+  operator: .
+  name: property
   resolution: GetterInvocationResolution
-    element: <testLibrary>::@class::C::@getter::member
+    element: <testLibrary>::@class::C::@getter::property
     invokeType: C Function()
     type: C
   staticType: C
-V1: DotShorthandPropertyAccess
-  period: .
-  propertyName: SimpleIdentifier
-    token: member
-    element: <testLibrary>::@class::C::@getter::member
+V1: PropertyAccess
+  target: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: member
+      element: <testLibrary>::@class::C::@getter::member
+      staticType: C
     staticType: C
-  isDotShorthand: false
+  operator: .
+  propertyName: SimpleIdentifier
+    token: property
+    element: <testLibrary>::@class::C::@getter::property
+    staticType: C
+  staticType: C
+''');
+  }
+
+  test_chain_typeArguments_call() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static T identity<T>(T value) => value;
+}
+
+C f(C value) => .identity<C>.call(value);
+''');
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: DotShorthandNameExpression
+      period: .
+      name: identity
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: C
+        lookupType: C
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::C::@method::identity
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+      rightBracket: >
+    staticType: C Function(C)
+    typeArgumentTypes
+      C
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      UnqualifiedNameExpression
+        name: value
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::value
+          type: C
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::identity::@formalParameter::value
+          substitution: {T: C}
+        staticType: C
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: C Function(C)
+    type: C
+  staticType: C
+V1: MethodInvocation
+  target: FunctionReference
+    function: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: identity
+        element: <testLibrary>::@class::C::@method::identity
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+      rightBracket: >
+    staticType: C Function(C)
+    typeArgumentTypes
+      C
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: C Function(C)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: value
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::identity::@formalParameter::value
+          substitution: {T: C}
+        element: <testLibrary>::@function::f::@formalParameter::value
+        staticType: C
+    rightParenthesis: )
+  staticInvokeType: C Function(C)
   staticType: C
 ''');
   }
@@ -192,7 +479,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -207,7 +493,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -231,7 +516,6 @@ class CAssert {
 DotShorthandNameExpression
   period: .
   name: one
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Integer
     lookupType: Integer
@@ -247,7 +531,6 @@ V1: DotShorthandPropertyAccess
     token: one
     element: <testLibrary>::@class::Integer::@getter::one
     staticType: Integer
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Integer
 ''');
@@ -267,7 +550,6 @@ class CAssert {
 DotShorthandNameExpression
   period: .
   name: blue
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Color
     lookupType: Color
@@ -283,7 +565,6 @@ V1: DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Color
 ''');
@@ -309,7 +590,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -324,7 +604,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -344,7 +623,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: blue
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Color
     lookupType: Color
@@ -359,7 +637,6 @@ V1: DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
-  isDotShorthand: true
   staticType: Color
 ''');
   }
@@ -382,7 +659,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -397,7 +673,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@extensionType::C::@getter::member
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -417,7 +692,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: red
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -432,7 +706,6 @@ V1: DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -457,7 +730,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -473,7 +745,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <testLibrary>::@class::C::@getter::member
     staticType: C
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -497,7 +768,6 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -510,7 +780,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -534,7 +803,6 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -547,7 +815,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -571,7 +838,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: instances
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -586,7 +852,6 @@ V1: DotShorthandPropertyAccess
     token: instances
     element: <testLibrary>::@class::C::@getter::instances
     staticType: List<C>
-  isDotShorthand: false
   staticType: List<C>
 ''');
   }
@@ -609,7 +874,6 @@ main() {
 DotShorthandNameExpression
   period: .
   name: nullable
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -624,7 +888,6 @@ V1: DotShorthandPropertyAccess
     token: nullable
     element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
-  isDotShorthand: false
   staticType: C?
 ''');
   }
@@ -648,7 +911,6 @@ main() {
 DotShorthandNameExpression
   period: .
   name: nullable
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -663,7 +925,6 @@ V1: DotShorthandPropertyAccess
     token: nullable
     element: <testLibrary>::@class::C::@getter::nullable
     staticType: C?
-  isDotShorthand: false
   staticType: C?
 ''');
   }
@@ -683,7 +944,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: blue
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Color
     lookupType: Color
@@ -698,7 +958,6 @@ V1: DotShorthandPropertyAccess
     token: blue
     element: <testLibrary>::@enum::Color::@getter::blue
     staticType: Color
-  isDotShorthand: true
   staticType: Color
 ''');
   }
@@ -723,7 +982,6 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -736,7 +994,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: InvalidType
 ''');
@@ -762,7 +1019,6 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -775,7 +1031,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: InvalidType
 ''');
@@ -798,7 +1053,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
   resolution: InvalidNamedReadResolution
@@ -810,7 +1064,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -830,7 +1083,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -842,7 +1094,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -864,7 +1115,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -877,7 +1127,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -901,7 +1150,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: new
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -914,7 +1162,6 @@ V1: DotShorthandPropertyAccess
     token: new
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -938,7 +1185,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: value
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -951,7 +1197,6 @@ V1: DotShorthandPropertyAccess
     token: value
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -973,7 +1218,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: one
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -988,7 +1232,6 @@ V1: DotShorthandPropertyAccess
     token: one
     element: <testLibrary>::@extensionType::C::@getter::one
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1011,7 +1254,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: field
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1040,7 +1282,6 @@ V1: FunctionExpressionInvocation
       token: field
       element: <testLibrary>::@class::C::@getter::field
       staticType: C
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1077,7 +1318,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: field
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1101,7 +1341,6 @@ V1: FunctionExpressionInvocation
       token: field
       element: <testLibrary>::@class::C::@getter::field
       staticType: C
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1133,7 +1372,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: getter
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1157,7 +1395,6 @@ V1: FunctionExpressionInvocation
       token: getter
       element: <testLibrary>::@class::C::@getter::getter
       staticType: C
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1186,7 +1423,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: field
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1210,7 +1446,6 @@ V1: FunctionExpressionInvocation
       token: field
       element: <testLibrary>::@class::C::@getter::field
       staticType: C
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1239,7 +1474,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: field
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1280,7 +1514,6 @@ V1: FunctionExpressionInvocation
       token: field
       element: <testLibrary>::@class::C::@getter::field
       staticType: C
-    isDotShorthand: false
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1326,7 +1559,6 @@ CallInvocation
   receiver: DotShorthandNameExpression
     period: .
     name: getter
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -1350,7 +1582,6 @@ V1: FunctionExpressionInvocation
       token: getter
       element: <testLibrary>::@class::C::@getter::getter
       staticType: C
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1379,7 +1610,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: field
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1394,7 +1624,6 @@ V1: DotShorthandPropertyAccess
     token: field
     element: <testLibrary>::@class::C::@getter::field
     staticType: C
-  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -1417,7 +1646,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1432,7 +1660,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <testLibrary>::@class::C::@getter::getter
     staticType: C
-  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -1462,7 +1689,6 @@ main() {
 DotShorthandNameExpression
   period: .
   name: foo
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C<dynamic>
     lookupType: C<dynamic>
@@ -1476,7 +1702,6 @@ V1: DotShorthandPropertyAccess
     token: foo
     element: <testLibrary>::@class::C::@method::foo
     staticType: String Function<X>()
-  isDotShorthand: false
   staticType: String Function<X>()
 ''');
   }
@@ -1498,7 +1723,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: red
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: FutureOr<C>
     lookupType: C
@@ -1513,7 +1737,6 @@ V1: DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1535,7 +1758,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: red
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: FutureOr<FutureOr<C>>
     lookupType: C
@@ -1550,7 +1772,6 @@ V1: DotShorthandPropertyAccess
     token: red
     element: <testLibrary>::@enum::C::@getter::red
     staticType: C
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1582,7 +1803,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: mixinOne
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: CMixin
     lookupType: CMixin
@@ -1597,7 +1817,6 @@ V1: DotShorthandPropertyAccess
     token: mixinOne
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
     staticType: CMixin
-  isDotShorthand: true
   staticType: CMixin
 ''');
   }
@@ -1625,7 +1844,6 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        isDotShorthand: false
         shorthandContext: InvalidDotShorthandContextResolution
           contextType: null
         resolution: InvalidNamedReadResolution
@@ -1657,7 +1875,6 @@ V1: PostfixExpression
         token: values
         element: <null>
         staticType: InvalidType
-      isDotShorthand: false
       staticType: InvalidType
     leftBracket: [
     index: IntegerLiteral
@@ -1701,7 +1918,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -1713,7 +1929,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -1742,7 +1957,6 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        isDotShorthand: false
         shorthandContext: InvalidDotShorthandContextResolution
           contextType: null
         resolution: InvalidNamedReadResolution
@@ -1774,7 +1988,6 @@ V1: PrefixExpression
         token: values
         element: <null>
         staticType: InvalidType
-      isDotShorthand: false
       staticType: InvalidType
     leftBracket: [
     index: IntegerLiteral
@@ -1817,7 +2030,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidNamedReadResolution
@@ -1829,7 +2041,6 @@ V1: DotShorthandPropertyAccess
     token: member
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -1860,7 +2071,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -1874,7 +2084,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -1901,7 +2110,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: _Private
       alias: <testLibrary>::@typeAlias::Public
@@ -1919,7 +2127,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <testLibrary>::@class::_Private::@getter::getter
     staticType: _Private
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
@@ -1949,7 +2156,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: two
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -1963,7 +2169,6 @@ V1: DotShorthandPropertyAccess
     token: two
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -1988,7 +2193,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: two
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: _Private
       alias: <testLibrary>::@typeAlias::Public
@@ -2006,7 +2210,6 @@ V1: DotShorthandPropertyAccess
     token: two
     element: <testLibrary>::@enum::_Private::@getter::two
     staticType: _Private
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
@@ -2038,7 +2241,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -2052,7 +2254,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -2079,7 +2280,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: _Private
       alias: <testLibrary>::@typeAlias::Public
@@ -2097,7 +2297,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <testLibrary>::@extensionType::_Private::@getter::getter
     staticType: _Private
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
@@ -2130,7 +2329,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -2144,7 +2342,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: InvalidType
 ''');
@@ -2172,7 +2369,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: getter
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: _Private
       alias: <testLibrary>::@typeAlias::Public
@@ -2190,7 +2386,6 @@ V1: DotShorthandPropertyAccess
     token: getter
     element: <testLibrary>::@mixin::_Private::@getter::getter
     staticType: _Private
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
@@ -2216,7 +2411,6 @@ main() {
 DotShorthandNameExpression
   period: .
   name: id
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C1
     lookupType: C1
@@ -2231,7 +2425,6 @@ V1: DotShorthandPropertyAccess
     token: id
     element: <testLibrary>::@class::C1::@constructor::id
     staticType: C1 Function()
-  isDotShorthand: true
   correspondingParameter: <testLibrary>::@class::C1::@method::==::@formalParameter::other
   staticType: C1 Function()
 ''');
@@ -2251,7 +2444,6 @@ Function fn() {
 DotShorthandNameExpression
   period: .
   name: new
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Function
     lookupType: Function
@@ -2265,7 +2457,6 @@ V1: DotShorthandPropertyAccess
     token: new
     element: dart:core::@class::Function::@constructor::new
     staticType: Function Function()
-  isDotShorthand: true
   staticType: Function Function()
 ''');
   }
@@ -2294,7 +2485,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: new
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C<int>
     lookupType: C<int>
@@ -2311,7 +2501,6 @@ V1: DotShorthandPropertyAccess
     token: new
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C<T> Function(T)
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: C<T> Function(T)
 ''');
@@ -2330,7 +2519,6 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: new
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Object
     lookupType: Object
@@ -2344,8 +2532,174 @@ V1: DotShorthandPropertyAccess
     token: new
     element: dart:core::@class::Object::@constructor::new
     staticType: Object Function()
-  isDotShorthand: true
   staticType: Object Function()
+''');
+  }
+
+  test_tearOff_constructor_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+C c = .new<int>;
+//    ^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C Function()' can't be assigned to a variable of type 'C'.
+//        ^^^^^
+// [diag.wrongNumberOfTypeArgumentsFunction] The type of this function is 'C Function()', which has 0 type parameters, but 1 type arguments were given.
+''');
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: DotShorthandNameExpression
+    period: .
+    name: new
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@constructor::new
+      type: C Function()
+    staticType: C Function()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: C Function()
+V1: FunctionReference
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: C Function()
+    staticType: C Function()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: C Function()
+''');
+  }
+
+  test_tearOff_constructor_typeArguments_missingContext() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+C Function() f() => .new<int>;
+//                  ^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+''');
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: DotShorthandNameExpression
+    period: .
+    name: new
+    shorthandContext: InvalidDotShorthandContextResolution
+      contextType: C Function()
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: new
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_tearOff_staticMethod_typeArguments_wrongNumber() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static C foo<T>() => throw 0;
+}
+
+C c = .foo<int, int>;
+//    ^^^^^^^^^^^^^^
+// [diag.invalidAssignment] A value of type 'C Function()' can't be assigned to a variable of type 'C'.
+//        ^^^^^^^^^^
+// [diag.wrongNumberOfTypeArgumentsElement] The method 'foo' is declared with 1 type parameters, but 2 type arguments are given.
+''');
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: DotShorthandNameExpression
+    period: .
+    name: foo
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::foo
+      type: C Function<T>()
+    staticType: C Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: C Function()
+  typeArgumentTypes
+    dynamic
+V1: FunctionReference
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@method::foo
+      staticType: C Function<T>()
+    staticType: C Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: C Function()
+  typeArgumentTypes
+    dynamic
 ''');
   }
 
@@ -2361,7 +2715,6 @@ int f() => .foo;
 DotShorthandNameExpression
   period: .
   name: foo
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: int
     lookupType: int
@@ -2374,7 +2727,6 @@ V1: DotShorthandPropertyAccess
     token: foo
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   staticType: InvalidType
 ''');
   }
@@ -2391,7 +2743,6 @@ bool f(int x) => x == .foo;
 DotShorthandNameExpression
   period: .
   name: foo
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: int
     lookupType: int
@@ -2405,7 +2756,6 @@ V1: DotShorthandPropertyAccess
     token: foo
     element: <null>
     staticType: InvalidType
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
   staticType: InvalidType
 ''');

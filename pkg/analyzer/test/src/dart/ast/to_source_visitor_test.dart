@@ -198,6 +198,38 @@ final x = new $code();
     expect(node.toSource(), code);
   }
 
+  void test_toSource_dotShorthandInvocation_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo<int>(0, 1);
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
+    expect(node.toSource(), '.foo<int>(0, 1)');
+  }
+
+  void test_toSource_dotShorthandInvocation_v1Projection_withSelector() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo<int>(0, 1).bar;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
+    expect(node.toSource(), '.foo<int>(0, 1)');
+  }
+
+  void test_toSource_dotShorthandPropertyAccess_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
+    expect(node.toSource(), '.foo');
+  }
+
+  void test_toSource_dotShorthandPropertyAccess_v1Projection_withSelector() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo.bar;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
+    expect(node.toSource(), '.foo');
+  }
+
   void test_toSource_InstanceCreationExpression_v1Projection() {
     var code = 'new prefix.A.foo()';
     var parseResult = parseTestCodeWithDiagnostics('''

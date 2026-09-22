@@ -317,6 +317,27 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
+    if (node is ParsedCascadeNameImpl) {
+      var expression = CascadePropertyExtractionImpl(name: node.name);
+      node.replaceWith(expression);
+      return RewrittenParsedExpression._(expression);
+    }
+    if (node is ParsedDotShorthandNameImpl) {
+      var expression = DotShorthandNameExpressionImpl(
+        period: node.period,
+        name: node.name,
+      );
+      node.replaceWith(expression);
+      return RewrittenParsedExpression._(expression);
+    }
+    if (node is ParsedValueArgumentsImpl &&
+        node.cascadeInvocationParts != null) {
+      return PreparedCascadeInvocation(node);
+    }
+    if (node is ParsedValueArgumentsImpl &&
+        node.dotShorthandInvocationParts != null) {
+      return PreparedDotShorthandInvocation(node);
+    }
     var constructorSelector = switch (node) {
       ParsedNameAccessImpl selector => selector,
       ParsedValueArgumentsImpl(operand: ParsedNameAccessImpl selector) =>
@@ -483,6 +504,8 @@ class AstRewriter {
     var head = _parsedReceiverHead(node);
     var expression =
         head is ParsedUnqualifiedNameImpl ||
+            head is ParsedCascadeNameImpl ||
+            head is ParsedDotShorthandNameImpl ||
             head is ParsedValueArgumentsImpl && node is ParsedNameAccessImpl ||
             head is ParsedTypeArgumentsImpl &&
                 node is ParsedNameAccessImpl &&
@@ -610,32 +633,6 @@ class AstRewriter {
       return node;
     }
     var receiver = node.target2!;
-
-    // Recovery can leave a legacy selector around a parsed qualifier, as in
-    // `C<int>.()`. Classify it before lowering the qualifier independently.
-    if (receiver is ParsedTypeArgumentsImpl) {
-      if (_parsedConstructorType(nameScope, receiver) case var typeReference?) {
-        var tearOff = ConstructorTearOffImpl(
-          typeReference: typeReference,
-          selector: ConstructorSelectorImpl.v2(
-            period: node.operator,
-            name2: node.propertyName.token,
-          ),
-        );
-        node.replaceWith(tearOff);
-        return tearOff;
-      }
-    }
-
-    // Other recovery selectors still need unresolved-expression lowering.
-    // TODO(scheglov): Remove this bridge when recovery selectors use parsed
-    // representations too.
-    if (receiver is ParsedExpressionImpl) {
-      receiver = switch (parsedExpression(nameScope, receiver)) {
-        RewrittenParsedExpression(:var expression) => expression,
-        PreparedReceiverInvocation(:var valueArguments) => valueArguments,
-      };
-    }
 
     IdentifierImpl receiverIdentifier;
     TypeArgumentListImpl? typeArguments;
@@ -931,12 +928,6 @@ class AstRewriter {
     Scope nameScope,
     ParsedTypeArgumentsImpl node,
   ) {
-    // Recovery selectors can still be legacy nodes around a parsed qualifier.
-    // Their parent rewrite must classify the whole constructor-shaped syntax.
-    if (node.parent2 is PropertyAccessImpl ||
-        node.parent2 is MethodInvocationImpl) {
-      return node.buildUnresolvedExpression();
-    }
     var operand = node.operand;
     Token? name;
     ImportPrefixReferenceImpl? importPrefix;
@@ -1024,6 +1015,8 @@ class AstRewriter {
     // constructor recovery path.
     if (head is ParsedExpressionImpl &&
         head is! ParsedUnqualifiedNameImpl &&
+        head is! ParsedCascadeNameImpl &&
+        head is! ParsedDotShorthandNameImpl &&
         head is! ParsedValueArgumentsImpl &&
         !(head is ParsedTypeArgumentsImpl &&
             _isFunctionInstantiationReceiver(nameScope, head))) {
@@ -1372,6 +1365,8 @@ class AstRewriter {
         lookup,
         hasSelector: hasSelector || !identical(node, root),
       );
+    } else if (node is ParsedCascadeNameImpl) {
+      receiver = CascadePropertyExtractionImpl(name: node.name);
     } else {
       // Nested call syntax and ordinary expressions use their own visitors,
       // including constructor and extension-override selection.
@@ -1486,6 +1481,21 @@ class AstRewriter {
 
 /// The outcome of interpreting a parsed expression during lexical binding.
 sealed class ParsedExpressionResult {}
+
+/// A cascade call awaits member lookup on the once-evaluated cascade receiver.
+final class PreparedCascadeInvocation extends ParsedExpressionResult {
+  final ParsedValueArgumentsImpl valueArguments;
+
+  PreparedCascadeInvocation(this.valueArguments);
+}
+
+/// A shorthand call needs the context established by its enclosing expression
+/// before lookup can distinguish a constructor, method, or callable property.
+final class PreparedDotShorthandInvocation extends ParsedExpressionResult {
+  final ParsedValueArgumentsImpl valueArguments;
+
+  PreparedDotShorthandInvocation(this.valueArguments);
+}
 
 /// A call ready for receiver traversal and subsequent member lookup.
 final class PreparedReceiverInvocation extends ParsedExpressionResult {

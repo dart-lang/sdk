@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +12,7 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HasDependentDotShorthandTest);
+    defineReflectiveTests(IsDotShorthandTest);
   });
 }
 
@@ -119,6 +121,30 @@ T f<T>(T t) => t;
 E e = f(.a);
 ''');
     assertHasDependentDotShorthand(result);
+  }
+
+  test_methodInvocation_chain_dependent() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+  A method() => this;
+}
+T identity<T>(T value) => value;
+A result = identity(.named().method());
+''');
+    assertHasDependentDotShorthand(result);
+  }
+
+  test_methodInvocation_chain_independent() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+  A method() => this;
+}
+A accept(A value) => value;
+A result = accept(.named().method());
+''');
+    assertHasNoDependentDotShorthand(result);
   }
 
   test_methodInvocation_filterTypeArguments() async {
@@ -347,5 +373,155 @@ enum E { a, b, c }
 Set<E> e = {.b};
 ''');
     assertHasDependentDotShorthand(result);
+  }
+}
+
+@reflectiveTest
+class IsDotShorthandTest extends PubPackageResolutionTest {
+  test_callInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A get value => A();
+  A call() => this;
+}
+A result = .value();
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_dotShorthandConstructorInvocation2() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+A result = .named();
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_nullAssertionExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A? get value => null;
+}
+A result = .value!;
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_parenthesizedExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+A result = (.named());
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, false);
+  }
+
+  test_receiverIndexExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static List<A> get values => [];
+}
+A result = .values[0];
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_receiverMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+  A method() => this;
+}
+A result = .named().method();
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_receiverMethodInvocation_functionInstantiation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static T identity<T>(T value) => value;
+}
+A result = .identity<A>.call(A());
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_receiverMethodInvocation_index_nullAssert() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static List<A?> get values => [];
+  A method() => this;
+}
+A result = .values[0]!.method();
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_receiverMethodInvocation_innerHead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+  A method() => this;
+}
+A result = .named().method();
+''');
+    var node = result.findNode.singleReceiverMethodInvocation;
+    _assertIsDotShorthand(node, true);
+    _assertIsDotShorthand(node.receiver as Expression, false);
+  }
+
+  test_receiverMethodInvocation_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A? get value => null;
+  A method() => this;
+}
+A? result = .value?.method();
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_receiverPropertyExtraction() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+A result = .value.self;
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, true);
+  }
+
+  test_unqualifiedFunctionInvocation_dotShorthandArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+A accept(A value) => value;
+A result = accept(.named());
+''');
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    _assertIsDotShorthand(node, false);
+  }
+
+  void _assertIsDotShorthand(Expression node, bool expected) {
+    expect(isDotShorthand(node), expected, reason: 'V2');
+
+    var projection = V1Projection.toV1Expression(node as ExpressionImpl);
+    expect(isDotShorthand(projection), expected, reason: 'V1');
   }
 }

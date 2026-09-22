@@ -927,16 +927,18 @@ class AstBuilder extends StackListener {
   void doDotExpression(Token dot) {
     var identifierOrInvoke = pop() as ExpressionImpl;
     var receiver = pop() as ExpressionImpl?;
+    assert(
+      (receiver == null &&
+              (dot.type == TokenType.PERIOD_PERIOD ||
+                  dot.type == TokenType.QUESTION_PERIOD_PERIOD)) ||
+          (receiver != null &&
+              (dot.type == TokenType.PERIOD ||
+                  dot.type == TokenType.QUESTION_PERIOD)),
+    );
     if (identifierOrInvoke is SimpleIdentifierImpl) {
-      if (receiver == null &&
-          (dot.type == TokenType.PERIOD_PERIOD ||
-              dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
-        push(CascadePropertyExtractionImpl(name: identifierOrInvoke.token));
-      } else if ((receiver is SimpleIdentifierImpl ||
-              receiver is ParsedUnqualifiedNameImpl ||
-              receiver is ParsedNameAccessImpl) &&
-          (dot.type == TokenType.PERIOD ||
-              dot.type == TokenType.QUESTION_PERIOD)) {
+      if (receiver is SimpleIdentifierImpl ||
+          receiver is ParsedUnqualifiedNameImpl ||
+          receiver is ParsedNameAccessImpl) {
         push(
           ParsedNameAccessImpl(
             operand: _toParsedExpression(receiver!),
@@ -946,10 +948,7 @@ class AstBuilder extends StackListener {
         );
       } else if (receiver != null &&
           _featureSet.isEnabled(Feature.constructor_tearoffs) &&
-          (dot.type == TokenType.PERIOD ||
-              dot.type == TokenType.QUESTION_PERIOD) &&
-          _isSupportedPropertyReceiver(receiver) &&
-          _canBuildParsedSelector(receiver)) {
+          _isSupportedPropertyReceiver(receiver)) {
         push(
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
@@ -957,11 +956,7 @@ class AstBuilder extends StackListener {
             name: identifierOrInvoke.token,
           ),
         );
-      } else if (receiver != null &&
-          (dot.type == TokenType.PERIOD ||
-              dot.type == TokenType.QUESTION_PERIOD) &&
-          identifierOrInvoke.token.isKeywordOrIdentifier &&
-          _canBuildParsedSelector(receiver)) {
+      } else if (receiver != null) {
         push(
           ParsedNameAccessImpl(
             operand: _toParsedExpression(receiver),
@@ -970,13 +965,7 @@ class AstBuilder extends StackListener {
           ),
         );
       } else {
-        push(
-          PropertyAccessImpl(
-            target2: receiver,
-            operator: dot,
-            propertyName: identifierOrInvoke,
-          ),
-        );
+        push(ParsedCascadeNameImpl(name: identifierOrInvoke.token));
       }
     } else if (identifierOrInvoke is ParsedValueArgumentsImpl) {
       var operand = identifierOrInvoke.operand;
@@ -984,36 +973,21 @@ class AstBuilder extends StackListener {
       // For `a.b<T>()`, [doInvocation] builds `b<T>()` from an identifier,
       // optionally wrapped in type arguments. Below we attach `a`.
       var name = (types?.operand ?? operand) as ParsedUnqualifiedNameImpl;
-      if (receiver != null &&
-          _canBuildParsedSelector(receiver) &&
-          (dot.type == TokenType.PERIOD ||
-              dot.type == TokenType.QUESTION_PERIOD)) {
-        var access = ParsedNameAccessImpl(
-          operand: _toParsedExpression(receiver),
-          operator: dot,
-          name: name.name,
-        );
-        // The parser completes the selector before attaching its receiver.
-        // Reuse its argument wrappers and replace only the unqualified name.
-        if (types != null) {
-          types.operand = access;
-        } else {
-          identifierOrInvoke.operand = access;
-        }
-        push(identifierOrInvoke);
+      var access = receiver == null
+          ? ParsedCascadeNameImpl(name: name.name)
+          : ParsedNameAccessImpl(
+              operand: _toParsedExpression(receiver),
+              operator: dot,
+              name: name.name,
+            );
+      // The parser completes the selector before attaching its receiver.
+      // Reuse its argument wrappers and replace only the unqualified name.
+      if (types != null) {
+        types.operand = access;
       } else {
-        // Specialized receivers and cascades still use their existing parser
-        // representation, including dot-shorthand context and initializer roles.
-        push(
-          MethodInvocationImpl(
-            target2: receiver,
-            operator: dot,
-            methodName: SimpleIdentifierImpl(token: name.name),
-            typeArguments: types?.typeArguments,
-            argumentList: identifierOrInvoke.argumentList,
-          ),
-        );
+        identifierOrInvoke.operand = access;
       }
+      push(identifierOrInvoke);
     } else {
       // This same error is reported in BodyBuilder.doDotOrCascadeExpression
       Token token = identifierOrInvoke.beginToken;
@@ -1024,14 +998,17 @@ class AstBuilder extends StackListener {
         token,
         token,
       );
-      SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token: token);
-      push(
-        PropertyAccessImpl(
-          target2: receiver,
-          operator: dot,
-          propertyName: identifier,
-        ),
-      );
+      if (receiver != null) {
+        push(
+          ParsedNameAccessImpl(
+            operand: _toParsedExpression(receiver),
+            operator: dot,
+            name: token,
+          ),
+        );
+      } else {
+        push(ParsedCascadeNameImpl(name: token));
+      }
     }
   }
 
@@ -1574,24 +1551,25 @@ class AstBuilder extends StackListener {
     }
 
     var dotShorthand = pop() as Expression;
-    if (dotShorthand is DotShorthandInvocationImpl) {
+    if (dotShorthand is ParsedValueArgumentsImpl) {
+      var (:head, :typeArguments) = dotShorthand.dotShorthandInvocationParts!;
       push(
-        DotShorthandConstructorInvocationImpl(
+        DotShorthandConstructorInvocation2Impl(
           constKeyword: token,
-          period: dotShorthand.period,
-          constructorName: dotShorthand.memberName,
-          typeArguments: dotShorthand.typeArguments,
+          period: head.period,
+          name: head.name,
+          typeArguments: typeArguments,
           argumentList: dotShorthand.argumentList,
         ),
       );
-    } else if (dotShorthand is DotShorthandPropertyAccessImpl) {
+    } else if (dotShorthand is ParsedDotShorthandNameImpl) {
       push(
-        DotShorthandConstructorInvocationImpl(
+        DotShorthandConstructorInvocation2Impl(
           constKeyword: token,
           period: dotShorthand.period,
-          constructorName: dotShorthand.propertyName,
+          name: dotShorthand.name,
           typeArguments: null,
-          argumentList: _syntheticArgumentList(dotShorthand.propertyName.token),
+          argumentList: _syntheticArgumentList(dotShorthand.name),
         ),
       );
     }
@@ -3940,8 +3918,7 @@ class AstBuilder extends StackListener {
         :var leftBracket,
         :var index,
         :var rightBracket,
-      )
-          when !lhs.isDotShorthand =>
+      ) =>
         ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: question,
@@ -3956,8 +3933,7 @@ class AstBuilder extends StackListener {
         :var leftBracket,
         index2: var index,
         :var rightBracket,
-      )
-          when !lhs.isDotShorthand =>
+      ) =>
         ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: null,
@@ -4347,18 +4323,8 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var dotShorthand = pop() as ExpressionImpl;
-    if (dotShorthand is DotShorthandMixin) {
-      dotShorthand.isDotShorthand = true;
-    } else {
-      assert(
-        false,
-        "'$dotShorthand' must be a 'DotShorthandMixin' because we "
-        "should only call 'handleDotShorthandContext' after parsing "
-        "expressions that have a context type we can cache.",
-      );
-    }
-    push(dotShorthand);
+    var expression = pop() as ExpressionImpl;
+    push(ParsedDotShorthandExpressionImpl(expression: expression));
   }
 
   @override
@@ -4374,23 +4340,22 @@ class AstBuilder extends StackListener {
     var operand = pop() as ExpressionImpl;
     if (operand is SimpleIdentifierImpl) {
       push(
-        DotShorthandPropertyAccessImpl(
-          period: periodToken,
-          propertyName: operand,
-        ),
+        ParsedDotShorthandNameImpl(period: periodToken, name: operand.token),
       );
     } else if (operand is ParsedValueArgumentsImpl) {
       var function = operand.operand;
       var types = function is ParsedTypeArgumentsImpl ? function : null;
       var name = (types?.operand ?? function) as ParsedUnqualifiedNameImpl;
-      push(
-        DotShorthandInvocationImpl(
-          period: periodToken,
-          memberName: SimpleIdentifierImpl(token: name.name),
-          typeArguments: types?.typeArguments,
-          argumentList: operand.argumentList,
-        ),
+      var head = ParsedDotShorthandNameImpl(
+        period: periodToken,
+        name: name.name,
       );
+      if (types != null) {
+        types.operand = head;
+      } else {
+        operand.operand = head;
+      }
+      push(operand);
     } else {
       push(operand);
     }
@@ -6061,17 +6026,11 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(receiver);
-    if (_canBuildParsedSelector(receiver)) {
-      push(
-        ParsedTypeArgumentsImpl(
-          operand: _toParsedExpression(receiver),
-          typeArguments: typeArguments,
-        ),
-      );
-      return;
-    }
     push(
-      FunctionReferenceImpl(function2: receiver, typeArguments: typeArguments),
+      ParsedTypeArgumentsImpl(
+        operand: _toParsedExpression(receiver),
+        typeArguments: typeArguments,
+      ),
     );
   }
 
@@ -6511,39 +6470,6 @@ class AstBuilder extends StackListener {
       body: body,
     );
     return constructor;
-  }
-
-  /// Whether another selector can use the neutral parsed representation.
-  ///
-  /// Dot-shorthand heads need the context boundary on their enclosing selector.
-  /// Legacy selectors propagate that choice, as well as recovery
-  /// syntax, until an ordinary expression boundary such as parentheses.
-  // TODO(scheglov): Remove this migration gate once cascade, dot-shorthand,
-  // and recovery selector paths use V2 representations without legacy fallbacks.
-  // This includes representing the dot-shorthand context boundary explicitly,
-  // instead of relying on isDotShorthand on the enclosing selector expression.
-  bool _canBuildParsedSelector(ExpressionImpl receiver) {
-    switch (receiver) {
-      case CascadePropertyExtractionImpl():
-      case CascadeIndexExpressionImpl():
-      case DotShorthandConstructorInvocationImpl():
-      case DotShorthandInvocationImpl():
-      case DotShorthandPropertyAccessImpl():
-      case MethodInvocationImpl():
-      case PropertyAccessImpl():
-      case FunctionReferenceImpl():
-        return false;
-      case DotShorthandMixin():
-        // Indexing and other postfix syntax can sit between the shorthand head
-        // and this selector. Its context marker is set only after the entire
-        // selector chain has been parsed, so recognize the written head here.
-        var token = receiver.beginToken;
-        return token.type != TokenType.PERIOD &&
-            !(token.keyword == Keyword.CONST &&
-                token.next!.type == TokenType.PERIOD);
-      default:
-        return true;
-    }
   }
 
   void _endClassConstructor(
@@ -6988,8 +6914,7 @@ class AstBuilder extends StackListener {
     }
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
-    if (expression is ReceiverIndexExpressionImpl &&
-        !expression.isDotShorthand) {
+    if (expression is ReceiverIndexExpressionImpl) {
       return ReceiverIndexAssignmentTargetImpl(
         receiver: expression.receiver,
         question: expression.question,
@@ -7003,9 +6928,7 @@ class AstBuilder extends StackListener {
     // Keep accepting it until all parser paths produce ReceiverIndexExpression.
     if (expression is IndexExpressionImpl) {
       var receiver = expression.target2;
-      if (receiver != null &&
-          expression.period == null &&
-          !expression.isDotShorthand) {
+      if (receiver != null && expression.period == null) {
         return ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: expression.question,
@@ -7057,6 +6980,8 @@ class AstBuilder extends StackListener {
 
   AssignmentTargetImpl? _toParsedAssignmentTarget(ExpressionImpl expression) {
     switch (expression) {
+      case ParsedCascadeNameImpl(:var name):
+        return CascadePropertyAssignmentTargetImpl(name: name);
       case ParsedNameAccessImpl(:var operand, :var operator, :var name):
         // Preserve namespace interpretation for name-only destinations.
         var head = operand;

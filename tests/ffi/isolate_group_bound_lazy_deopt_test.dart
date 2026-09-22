@@ -10,7 +10,7 @@
 // that is scheduled for lazy deoptimization via an exception.
 
 // ignore: import_internal_library
-import 'dart:_internal' show IsolateGroup;
+import 'dart:_vm' show IsolateGroup;
 
 import 'package:expect/expect.dart';
 

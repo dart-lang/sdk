@@ -1334,10 +1334,10 @@ ParsedValueArguments
           binaryOperator: greaterThan
         sections
           CascadeSection
-            body: MethodInvocation
-              operator: ..
-              methodName: SimpleIdentifier
-                token: toString
+            operator: ..
+            body: ParsedValueArguments
+              operand: ParsedCascadeName
+                name: toString
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -2173,10 +2173,19 @@ var x = f()..m<a, b>;
 ''');
     var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
-FunctionReference
-  function2: CascadePropertyExtraction
+ParsedTypeArguments
+  operand: ParsedCascadeName
     name: m
-  function(v1): PropertyAccess
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: a
+      NamedType
+        name: b
+    rightBracket: >
+V1: FunctionReference
+  function: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: m

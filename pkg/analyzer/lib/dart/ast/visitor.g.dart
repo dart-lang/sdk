@@ -2900,6 +2900,27 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedCascadeName(ParsedCascadeName node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitParsedNameAccess(ParsedNameAccess node) {
     node.visitChildren2(this);
     return null;
@@ -4505,6 +4526,19 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedCascadeName(ParsedCascadeName node) => null;
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) =>
+      null;
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) => null;
+
+  @experimental
+  @override
   R? visitParsedNameAccess(ParsedNameAccess node) => null;
 
   @experimental
@@ -5917,6 +5951,19 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedCascadeName(ParsedCascadeName node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) => _throw(node);
 
   @experimental
   @override
@@ -8998,6 +9045,33 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitParsedCascadeName(ParsedCascadeName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedCascadeName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedDotShorthandExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedDotShorthandName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitParsedNameAccess(ParsedNameAccess node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedNameAccess(node);
@@ -10827,6 +10901,20 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitParenthesizedPattern(ParenthesizedPattern node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedCascadeName(ParsedCascadeName node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) =>
+      visitNode(node);
 
   @experimental
   @override

@@ -576,6 +576,20 @@ void f() {
 ''', 'E');
   }
 
+  Future<void> test_dotShorthand_equality_chain() async {
+    await assertContextType('''
+class A {
+  static B get value => B();
+}
+class B {
+  A get self => A();
+}
+void f(A a) {
+  if (a == .val^.self) {}
+}
+''', 'A');
+  }
+
   Future<void> test_dotShorthand_guardedPattern_switchExpression() async {
     await assertContextType('''
 enum E { a }

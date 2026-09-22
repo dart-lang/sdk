@@ -94,14 +94,6 @@ T unsafeCast<T>(dynamic v) => v;
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
     throw 'Unsupported operation';
 
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
-
 final List<Object> _toStringVisiting = [];
 @patch
 List<Object> get toStringVisiting => _toStringVisiting;

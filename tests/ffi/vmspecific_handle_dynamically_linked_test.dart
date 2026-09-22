@@ -47,7 +47,45 @@ void testNativeAPIs() {
   testLibrary.lookupFunction<Handle Function(), Object Function()>(
     "Dart_Null_DL",
   );
+  Expect.isTrue(NativeApi.minorVersion >= 7);
+  Expect.isTrue(testLibrary.providesSymbol("Dart_NewConcurrentNativePort_DL"));
+  final newConcurrentNativePortDL = testLibrary
+      .lookup<
+        Pointer<
+          NativeFunction<
+            Int64 Function(
+              Pointer<Char>,
+              Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+              IntPtr,
+            )
+          >
+        >
+      >("Dart_NewConcurrentNativePort_DL");
+  Expect.notEquals(nullptr, newConcurrentNativePortDL.value);
+  final newConcurrentNativePort = newConcurrentNativePortDL.value
+      .asFunction<
+        int Function(
+          Pointer<Char>,
+          Pointer<NativeFunction<Dart_NativeMessageHandler>>,
+          int,
+        )
+      >();
+  final port = newConcurrentNativePort(
+    nullptr,
+    Pointer.fromFunction(_noopMessageHandler),
+    4,
+  );
+  Expect.notEquals(0, port);
+  final closeNativePortDL = testLibrary
+      .lookup<Pointer<NativeFunction<Bool Function(Int64)>>>(
+        "Dart_CloseNativePort_DL",
+      );
+  final closeNativePort = closeNativePortDL.value
+      .asFunction<bool Function(int)>();
+  Expect.isTrue(closeNativePort(port));
 }
+
+void _noopMessageHandler(int destPortId, Pointer<Dart_CObject> message) {}
 
 class SomeClass {
   // We use this getter in the native api, don't tree shake it.

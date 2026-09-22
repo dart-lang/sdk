@@ -962,6 +962,21 @@ abstract class RuleVisitorRegistry2 {
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addParsedCascadeName(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedDotShorthandExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedDotShorthandName(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

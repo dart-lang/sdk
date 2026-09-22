@@ -1732,7 +1732,8 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverPropertyExtraction;
+    expect(node.name.lexeme, '(');
   }
 
   Future<void> test_between_identifierAndComma_arguments() async {

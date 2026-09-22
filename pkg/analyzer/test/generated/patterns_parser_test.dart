@@ -7778,10 +7778,10 @@ CascadeExpression
           expression(v1): SimpleIdentifier
             token: c
     CascadeSection
-      body: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: m
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedCascadeName
+          name: m
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
@@ -7862,10 +7862,10 @@ PatternAssignment
       token: a
     sections
       CascadeSection
-        body: MethodInvocation
-          operator: ..
-          methodName: SimpleIdentifier
-            token: m
+        operator: ..
+        body: ParsedValueArguments
+          operand: ParsedCascadeName
+            name: m
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )

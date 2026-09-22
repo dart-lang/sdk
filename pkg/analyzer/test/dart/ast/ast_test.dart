@@ -1020,8 +1020,9 @@ void f() {
   a..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a..')));
   }
 
   void test_isNullAware_cascade_true() {
@@ -1030,8 +1031,9 @@ void f() {
   a?..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a?..')));
   }
 
   void test_isNullAware_regularInvocation() {
@@ -1428,7 +1430,7 @@ void f() {
   g(const .foo());
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1438,7 +1440,7 @@ void f() {
   g(.foo());
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1448,7 +1450,7 @@ void f() {
   g(.foo);
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 

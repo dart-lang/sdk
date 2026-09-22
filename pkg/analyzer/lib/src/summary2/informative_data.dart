@@ -1949,14 +1949,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeSection(CascadeSection node) {
-    // TODO(scheglov): Remove this compatibility branch when cascade bodies no
-    // longer use parser-produced nodes that own the section operator.
-    // A transitional parser-produced cascade body can still own the section
-    // operator. Avoid recording it twice so that its offset stream has the
-    // same shape as the canonical V2 body read back from a summary.
-    if (!identical(node.body.beginToken, node.operator)) {
-      _tokenOrNull(node.operator);
-    }
+    _tokenOrNull(node.operator);
     super.visitCascadeSection(node);
   }
 
@@ -2258,6 +2251,17 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);
     super.visitParenthesizedExpression(node);
+  }
+
+  @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
   }
 
   @override

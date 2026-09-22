@@ -99,6 +99,20 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void resolveCascadeInvocation(
+    ParsedValueArgumentsImpl node,
+    CascadeExpressionImpl cascade, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveCascade(
+      node,
+      cascade,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void resolveParsedReceiverInvocation(
     ParsedValueArgumentsImpl node,
     NamedReceiverImpl receiver, {
@@ -163,20 +177,6 @@ class ElementResolver {
 
   void visitDeclaredIdentifier(DeclaredIdentifier node) {}
 
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    var invokedConstructor = node.element;
-    var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(
-      argumentList,
-      invokedConstructor,
-    );
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -187,26 +187,6 @@ class ElementResolver {
     if (parameters != null) {
       node.argumentList.correspondingStaticParameters = parameters;
     }
-  }
-
-  /// Resolves the dot shorthand invocation, [node].
-  ///
-  /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation2] in the process, then returns that new
-  /// node. Otherwise, returns `null`.
-  ExpressionImpl? visitDotShorthandInvocation(
-    covariant DotShorthandInvocationImpl node, {
-    List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-    required TypeImpl contextType,
-    required DotShorthandContextResolutionImpl shorthandContext,
-  }) {
-    whyNotPromotedArguments ??= [];
-    return _methodInvocationResolver.resolveDotShorthand(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
   }
 
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
