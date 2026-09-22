@@ -144,7 +144,7 @@ class ResidentCompiler {
     if (!newOptions.arguments.toSet().containsAll(_compileOptions.arguments)) {
       return true;
     }
-    return _currentPackage != null && _fileIsTooNew(_currentPackage);
+    return false;
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to, abiding
@@ -320,6 +320,11 @@ class ResidentCompiler {
         sourcesToRecompile.add(uri);
       }
     }
+
+    if (_currentPackage != null && _fileIsTooNew(_currentPackage)) {
+      sourcesToRecompile.add(_currentPackage.uri);
+    }
+
     return sourcesToRecompile;
   }
 

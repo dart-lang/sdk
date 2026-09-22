@@ -528,6 +528,13 @@ void main() async {
 
           // Update package config and recompile.
           writePackageHelper([("pkga", "../pkga_v2")]);
+
+          // Make sure the timestamp saved in the resident compiler is after the
+          // change timestamp.
+          await new Future.delayed(
+            const Duration(milliseconds: statGranularity),
+          );
+
           if (!inMemory) ResidentFrontendServer.compilers.clear();
           compileResult = jsonDecode(
             await ResidentFrontendServer.handleRequest(
@@ -543,10 +550,30 @@ void main() async {
           );
           expect(compileResult['success'], true);
           expect(compileResult['errorCount'], 0);
-          // There's no reason to not compile incrementally when the compiler is
-          // in memory, but we currently don't.
-          // if (inMemory) expect(compileResult['incremental'], isTrue);
+          if (inMemory) expect(compileResult['incremental'], isTrue);
           executeDillExpectStdout(compileResult, "hello v2");
+
+          if (inMemory) {
+            // When in memory when recompiling with no change we should just get
+            // the cached dill. Also if the package config was changed
+            // previously (but before a previous compile).
+            compileResult = jsonDecode(
+              await ResidentFrontendServer.handleRequest(
+                createCompileJSON(
+                  executable: executable.path,
+                  packages: package.path,
+                  outputDill: outputDill.path,
+                  supportMirrors: true,
+                  enableAsserts: true,
+                  soundNullSafety: true,
+                ),
+              ),
+            );
+            expect(compileResult['success'], true);
+            expect(compileResult['errorCount'], 0);
+            expect(compileResult['returnedStoredKernel'], isTrue);
+            executeDillExpectStdout(compileResult, "hello v2");
+          }
         },
       );
     }
@@ -919,7 +946,7 @@ void main() async {
         ),
       );
       expect(compileResult2['success'], true);
-      expect(compileResult2['incremental'], null);
+      expect(compileResult2['incremental'], true);
       expect(compileResult2['returnedStoredKernel'], null);
       expect(
         ResidentFrontendServer
