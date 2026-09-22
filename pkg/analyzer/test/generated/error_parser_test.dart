@@ -2089,12 +2089,52 @@ void f() {
 ''');
   }
 
+  void test_invalidPropertyAccess_class() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = x.class;
+//        ^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'class' can't be used as an identifier because it's a keyword.
+''');
+    assertParsedNodeText(
+      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: class
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+  period: .
+  identifier: SimpleIdentifier
+    token: class
+''',
+    );
+  }
+
   void test_invalidPropertyAccess_this() {
-    parseTestCodeWithDiagnostics(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x.this;
 //        ^^^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
+    assertParsedNodeText(
+      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: this
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: x
+  operator: .
+  propertyName: SimpleIdentifier
+    token: this
+''',
+    );
   }
 
   void test_invalidStarAfterAsync() {

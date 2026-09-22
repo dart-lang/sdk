@@ -1232,6 +1232,44 @@ RegularFormalParameter
 ''');
   }
 
+  test_invalidSelector_this() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(dynamic x) {
+  x.this;
+//  ^^^^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+    assertResolvedNodeText(
+      result.findNode.singleReceiverPropertyExtraction,
+      r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: this
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  operator: .
+  propertyName: SimpleIdentifier
+    token: this
+    element: <null>
+    staticType: dynamic
+  staticType: dynamic
+''',
+    );
+  }
+
   test_nullShorting_cascade() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {

@@ -624,33 +624,6 @@ class AstRewriter {
     }
     var receiver = node.target2!;
 
-    // Recovery can leave a legacy selector around a parsed qualifier, as in
-    // `C<int>.()`. Classify it before lowering the qualifier independently.
-    if (receiver is ParsedTypeArgumentsImpl) {
-      if (_parsedConstructorType(nameScope, receiver) case var typeReference?) {
-        var tearOff = ConstructorTearOffImpl(
-          typeReference: typeReference,
-          selector: ConstructorSelectorImpl.v2(
-            period: node.operator,
-            name2: node.propertyName.token,
-          ),
-        );
-        node.replaceWith(tearOff);
-        return tearOff;
-      }
-    }
-
-    // Other recovery selectors still need unresolved-expression lowering.
-    // TODO(scheglov): Remove this bridge when recovery selectors use parsed
-    // representations too.
-    if (receiver is ParsedExpressionImpl) {
-      receiver = switch (parsedExpression(nameScope, receiver)) {
-        RewrittenParsedExpression(:var expression) => expression,
-        PreparedReceiverInvocation(:var valueArguments) => valueArguments,
-        PreparedDotShorthandInvocation(:var valueArguments) => valueArguments,
-      };
-    }
-
     IdentifierImpl receiverIdentifier;
     TypeArgumentListImpl? typeArguments;
     if (receiver is PrefixedIdentifierImpl) {
@@ -945,12 +918,6 @@ class AstRewriter {
     Scope nameScope,
     ParsedTypeArgumentsImpl node,
   ) {
-    // Recovery selectors can still be legacy nodes around a parsed qualifier.
-    // Their parent rewrite must classify the whole constructor-shaped syntax.
-    if (node.parent2 is PropertyAccessImpl ||
-        node.parent2 is MethodInvocationImpl) {
-      return node.buildUnresolvedExpression();
-    }
     var operand = node.operand;
     Token? name;
     ImportPrefixReferenceImpl? importPrefix;

@@ -3591,8 +3591,8 @@ const x = C<int>.();
 
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: ParsedTypeArguments
+ParsedNameAccess
+  operand: ParsedTypeArguments
     operand: ParsedUnqualifiedName
       name: C
     typeArguments: TypeArgumentList
@@ -3601,7 +3601,10 @@ PropertyAccess
         NamedType
           name: int
       rightBracket: >
-  target(v1): FunctionReference
+  operator: .
+  name: (
+V1: PropertyAccess
+  target: FunctionReference
     function: SimpleIdentifier
       token: C
     typeArguments: TypeArgumentList

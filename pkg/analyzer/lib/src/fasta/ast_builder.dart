@@ -960,7 +960,6 @@ class AstBuilder extends StackListener {
       } else if (receiver != null &&
           (dot.type == TokenType.PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD) &&
-          identifierOrInvoke.token.isKeywordOrIdentifier &&
           _canBuildParsedSelector(receiver)) {
         push(
           ParsedNameAccessImpl(
@@ -1024,14 +1023,26 @@ class AstBuilder extends StackListener {
         token,
         token,
       );
-      SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token: token);
-      push(
-        PropertyAccessImpl(
-          target2: receiver,
-          operator: dot,
-          propertyName: identifier,
-        ),
-      );
+      if (receiver != null &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD) &&
+          _canBuildParsedSelector(receiver)) {
+        push(
+          ParsedNameAccessImpl(
+            operand: _toParsedExpression(receiver),
+            operator: dot,
+            name: token,
+          ),
+        );
+      } else {
+        push(
+          PropertyAccessImpl(
+            target2: receiver,
+            operator: dot,
+            propertyName: SimpleIdentifierImpl(token: token),
+          ),
+        );
+      }
     }
   }
 
@@ -6503,8 +6514,8 @@ class AstBuilder extends StackListener {
 
   /// Whether another selector can use the neutral parsed representation.
   ///
-  /// Cascade starts and recovery syntax retain their existing parser forms.
-  // TODO(scheglov): Remove this migration gate once cascade and recovery
+  /// Cascade starts and selectors on legacy nodes retain their existing forms.
+  // TODO(scheglov): Remove this migration gate once the remaining cascade
   // selector paths use V2 representations without legacy fallbacks.
   bool _canBuildParsedSelector(ExpressionImpl receiver) {
     switch (receiver) {

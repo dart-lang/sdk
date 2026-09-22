@@ -47292,7 +47292,12 @@ final class ReceiverPropertyAssignmentTargetImpl
     // Increment targets already used PropertyAccess before parsed chains.
     // Assignments retain the identifier shape for a bare, non-record receiver.
     if (parent2 is AssignmentExpression2Impl &&
-        V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
+        V1Projection._usesPrefixedIdentifier(
+          receiver,
+          operator,
+          name,
+          target,
+        )) {
       if (previous is PrefixedIdentifierImpl) return previous;
       result = PrefixedIdentifierImpl.v1Projection(
         prefix: target as SimpleIdentifierImpl,
@@ -47501,7 +47506,12 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     ExpressionImpl result;
     // V1 uses PropertyAccess for record receivers, including record-bounded
     // type parameters, even when the syntax would allow PrefixedIdentifier.
-    if (V1Projection._usesPrefixedIdentifier(receiver, operator, target)) {
+    if (V1Projection._usesPrefixedIdentifier(
+      receiver,
+      operator,
+      name,
+      target,
+    )) {
       if (previous is PrefixedIdentifierImpl) {
         return previous;
       }
@@ -57528,6 +57538,23 @@ enum V1Projection {
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
   };
 
+  /// V1 recovery represented expression tokens in selector position as
+  /// property accesses. Other recovered keywords can still be identifiers.
+  static bool _isPrefixedIdentifierName(Token name) {
+    if (!name.isKeywordOrIdentifier) return false;
+    return switch (name.keyword) {
+      Keyword.ASSERT ||
+      Keyword.CONST ||
+      Keyword.FALSE ||
+      Keyword.NULL ||
+      Keyword.SUPER ||
+      Keyword.SWITCH ||
+      Keyword.THIS ||
+      Keyword.TRUE => false,
+      _ => true,
+    };
+  }
+
   /// Materializes the V2-only region containing [node]. Shared nodes delimit
   /// these regions; projection constructors establish the internal V1 links,
   /// including links that skip or expand canonical nodes.
@@ -57558,7 +57585,9 @@ enum V1Projection {
     Token name,
   ) {
     var identifier = SimpleIdentifierImpl.v1Projection(token: name);
-    if (operand is SimpleIdentifierImpl && operator.type == TokenType.PERIOD) {
+    if (operand is SimpleIdentifierImpl &&
+        operator.type == TokenType.PERIOD &&
+        _isPrefixedIdentifierName(name)) {
       return PrefixedIdentifierImpl.v1Projection(
         prefix: operand,
         period: operator,
@@ -57745,9 +57774,13 @@ enum V1Projection {
   static bool _usesPrefixedIdentifier(
     NamedReceiverImpl receiver,
     Token operator,
+    Token name,
     ExpressionImpl target,
   ) {
     if (operator.type != TokenType.PERIOD || target is! SimpleIdentifierImpl) {
+      return false;
+    }
+    if (!_isPrefixedIdentifierName(name)) {
       return false;
     }
     var receiverType = switch (receiver) {
