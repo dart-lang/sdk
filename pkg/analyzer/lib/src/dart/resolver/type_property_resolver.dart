@@ -27,7 +27,7 @@ class TypePropertyResolver {
   final TypeProviderImpl _typeProvider;
   final ExtensionMemberResolver _extensionResolver;
 
-  late Expression? _receiver;
+  late InstanceReceiver? _receiver;
   late SyntacticEntity _nameErrorEntity;
   late String _name;
   late bool _hasRead;
@@ -62,7 +62,7 @@ class TypePropertyResolver {
   ///
   /// The [nameErrorEntity] is used to report an ambiguous extension issue.
   ResolutionResult resolve({
-    required ExpressionImpl? receiver,
+    required InstanceReceiverImpl? receiver,
     required TypeImpl receiverType,
     required String name,
     required bool hasRead,
@@ -157,7 +157,7 @@ class TypePropertyResolver {
       List<DiagnosticMessage> messages = [];
       var flow = _resolver.flowAnalysis.flow;
       if (flow != null) {
-        if (receiver != null) {
+        if (receiver is ExpressionImpl) {
           messages = _resolver.computeWhyNotPromotedMessages(
             nameErrorEntity,
             flow.whyNotPromoted(
@@ -308,7 +308,7 @@ class TypePropertyResolver {
     InterfaceTypeImpl type, {
     bool recoverWithStatic = true,
   }) {
-    var isSuper = _receiver is SuperExpression;
+    var isSuper = _receiver is SuperReference;
 
     if (_hasRead) {
       var getterName = Name(_definingLibrary.uri, _name);

@@ -41,135 +41,167 @@ class CallInvocationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var function = node.receiver as ExpressionImpl;
-
-    if (function is ExtensionOverrideImpl) {
-      _resolveReceiverExtensionOverride(
-        node,
-        function,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    var receiverType = function.typeOrThrow;
-    if (_checkForUseOfVoidResult(function, receiverType)) {
-      _unresolved(
-        node,
-        DynamicTypeImpl.instance,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    receiverType = _typeSystem.resolveToBound(receiverType);
-    if (receiverType is FunctionTypeImpl) {
-      _nullableDereferenceVerifier.expression(
-        diag.uncheckedInvocationOfNullableValue,
-        function,
-      );
-      _resolve(
-        node,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        target: InvocationTargetFunctionTypedExpression(receiverType),
-      );
-      return;
-    }
-
-    if (receiverType.isDartCoreFunction) {
-      _nullableDereferenceVerifier.expression(
-        diag.uncheckedInvocationOfNullableValue,
-        function,
-      );
-      _unresolved(
-        node,
-        DynamicTypeImpl.instance,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        resolution: FunctionInterfaceInvocationResolutionImpl(
-          type: DynamicTypeImpl.instance,
-        ),
-      );
-      return;
-    }
-
-    if (identical(receiverType, NeverTypeImpl.instance)) {
-      _diagnosticReporter.report(diag.receiverOfTypeNever.at(function));
-      _unresolved(
-        node,
-        NeverTypeImpl.instance,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    var result = _typePropertyResolver.resolve(
-      receiver: function,
-      receiverType: receiverType,
-      name: MethodElement.CALL_METHOD_NAME,
-      hasRead: true,
-      hasWrite: false,
-      propertyErrorEntity: function,
-      nameErrorEntity: function,
-    );
-    var callElement = result.getter2;
-
-    if (result.recordField != null) {
-      _diagnosticReporter.report(
-        diag.invocationOfNonFunctionExpression.at(function),
-      );
-      _unresolved(
-        node,
-        InvalidTypeImpl.instance,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    if (callElement == null) {
-      if (result.needsGetterError) {
-        _diagnosticReporter.report(
-          diag.invocationOfNonFunctionExpression.at(function),
+    switch (node.receiver) {
+      case SuperReferenceImpl receiver:
+        var result = _typePropertyResolver.resolve(
+          receiver: receiver,
+          receiverType: _resolver.superLookupType(receiver),
+          name: MethodElement.CALL_METHOD_NAME,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: receiver,
+          nameErrorEntity: receiver,
         );
-      }
-      var type = result.isGetterInvalid
-          ? InvalidTypeImpl.instance
-          : DynamicTypeImpl.instance;
-      _unresolved(
-        node,
-        type,
-        whyNotPromotedArguments,
-        candidates: [?result.setter2],
-        contextType: contextType,
-      );
-      return;
-    }
+        if (result.getter2 case InternalMethodElement element) {
+          _resolve(
+            node,
+            whyNotPromotedArguments,
+            contextType: contextType,
+            target: InvocationTargetExecutableElement(element),
+          );
+        } else {
+          if (result.needsGetterError || result.getter2 != null) {
+            _diagnosticReporter.report(
+              diag.invocationOfNonFunctionExpression.at(receiver),
+            );
+          }
+          _unresolved(
+            node,
+            InvalidTypeImpl.instance,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+        }
+        return;
+      case ExpressionImpl function:
+        if (function is ExtensionOverrideImpl) {
+          _resolveReceiverExtensionOverride(
+            node,
+            function,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+          return;
+        }
 
-    if (callElement.kind != ElementKind.METHOD) {
-      _diagnosticReporter.report(
-        diag.invocationOfNonFunctionExpression.at(function),
-      );
-      _unresolved(
-        node,
-        InvalidTypeImpl.instance,
-        whyNotPromotedArguments,
-        candidates: [callElement],
-        contextType: contextType,
-      );
-      return;
-    }
+        var receiverType = function.typeOrThrow;
+        if (_checkForUseOfVoidResult(function, receiverType)) {
+          _unresolved(
+            node,
+            DynamicTypeImpl.instance,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+          return;
+        }
 
-    _resolve(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-      target: InvocationTargetExecutableElement(callElement),
-    );
+        receiverType = _typeSystem.resolveToBound(receiverType);
+        if (receiverType is FunctionTypeImpl) {
+          _nullableDereferenceVerifier.expression(
+            diag.uncheckedInvocationOfNullableValue,
+            function,
+          );
+          _resolve(
+            node,
+            whyNotPromotedArguments,
+            contextType: contextType,
+            target: InvocationTargetFunctionTypedExpression(receiverType),
+          );
+          return;
+        }
+
+        if (receiverType.isDartCoreFunction) {
+          _nullableDereferenceVerifier.expression(
+            diag.uncheckedInvocationOfNullableValue,
+            function,
+          );
+          _unresolved(
+            node,
+            DynamicTypeImpl.instance,
+            whyNotPromotedArguments,
+            contextType: contextType,
+            resolution: FunctionInterfaceInvocationResolutionImpl(
+              type: DynamicTypeImpl.instance,
+            ),
+          );
+          return;
+        }
+
+        if (identical(receiverType, NeverTypeImpl.instance)) {
+          _diagnosticReporter.report(diag.receiverOfTypeNever.at(function));
+          _unresolved(
+            node,
+            NeverTypeImpl.instance,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+          return;
+        }
+
+        var result = _typePropertyResolver.resolve(
+          receiver: function,
+          receiverType: receiverType,
+          name: MethodElement.CALL_METHOD_NAME,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: function,
+          nameErrorEntity: function,
+        );
+        var callElement = result.getter2;
+
+        if (result.recordField != null) {
+          _diagnosticReporter.report(
+            diag.invocationOfNonFunctionExpression.at(function),
+          );
+          _unresolved(
+            node,
+            InvalidTypeImpl.instance,
+            whyNotPromotedArguments,
+            contextType: contextType,
+          );
+          return;
+        }
+
+        if (callElement == null) {
+          if (result.needsGetterError) {
+            _diagnosticReporter.report(
+              diag.invocationOfNonFunctionExpression.at(function),
+            );
+          }
+          var type = result.isGetterInvalid
+              ? InvalidTypeImpl.instance
+              : DynamicTypeImpl.instance;
+          _unresolved(
+            node,
+            type,
+            whyNotPromotedArguments,
+            candidates: [?result.setter2],
+            contextType: contextType,
+          );
+          return;
+        }
+
+        if (callElement.kind != ElementKind.METHOD) {
+          _diagnosticReporter.report(
+            diag.invocationOfNonFunctionExpression.at(function),
+          );
+          _unresolved(
+            node,
+            InvalidTypeImpl.instance,
+            whyNotPromotedArguments,
+            candidates: [callElement],
+            contextType: contextType,
+          );
+          return;
+        }
+
+        _resolve(
+          node,
+          whyNotPromotedArguments,
+          contextType: contextType,
+          target: InvocationTargetExecutableElement(callElement),
+        );
+    }
   }
 
   /// Check for situations where the result of a method or function is used,

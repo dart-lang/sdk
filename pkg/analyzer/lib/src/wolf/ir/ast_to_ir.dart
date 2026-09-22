@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ImportPrefixedFunctionInvocationImpl,
         ImportPrefixedNameExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
+        InvalidSuperAssignmentTargetImpl,
         NamedFunctionInvocationImpl,
         NamedReadResolutionImpl,
         ParsedAssignmentTargetImpl,
@@ -499,6 +500,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         lValueTemplates = _receiverIndexAssignmentTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -573,6 +575,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         lValueTemplates = _receiverIndexAssignmentTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -772,6 +775,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         lValueTemplates = _receiverIndexAssignmentTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():

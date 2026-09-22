@@ -3737,9 +3737,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: foo
     resolution: ExecutableTearOffResolution
@@ -3797,9 +3796,8 @@ class A {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: A
     operator: .
     name: foo
     resolution: InvalidNamedReadResolution
@@ -3850,9 +3848,8 @@ bar() {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: InvalidType
     operator: .
     name: foo
     resolution: InvalidNamedReadResolution
@@ -6872,12 +6869,10 @@ class B extends A {
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: ImplicitCallTearOff
-    operand: SuperExpression
+  operand: InvalidSuperExpression
+    superReference: SuperReference
       superKeyword: super
-      staticType: B
-    element: <testLibrary>::@class::A::@method::call
-    staticType: void Function<T>()
+    staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -6886,11 +6881,9 @@ FunctionInstantiation
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  staticType: void Function()
-  typeArgumentTypes
-    int
-V1: ImplicitCallReference
-  expression: SuperExpression
+  staticType: InvalidType
+V1: FunctionReference
+  function: SuperExpression
     superKeyword: super
     staticType: B
   typeArguments: TypeArgumentList
@@ -6901,10 +6894,7 @@ V1: ImplicitCallReference
         element: dart:core::@class::int
         type: int
     rightBracket: >
-  element: <testLibrary>::@class::A::@method::call
-  staticType: void Function()
-  typeArgumentTypes
-    int
+  staticType: InvalidType
 ''');
   }
 

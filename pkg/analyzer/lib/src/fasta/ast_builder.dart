@@ -645,7 +645,7 @@ class AstBuilder extends StackListener {
       }
       if (operand is ParsedNameAccessImpl) {
         var receiver = operand.operand;
-        if (receiver is SuperExpressionImpl) {
+        if (receiver is SuperReferenceImpl) {
           return SuperConstructorInvocationImpl(
             superKeyword: receiver.superKeyword,
             constructorSelector: ConstructorSelectorImpl.v2(
@@ -681,7 +681,7 @@ class AstBuilder extends StackListener {
 
     if (initializerObject is CallInvocationImpl) {
       var function = initializerObject.receiver;
-      if (function is SuperExpressionImpl) {
+      if (function is SuperReferenceImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
           constructorSelector: null,
@@ -756,6 +756,12 @@ class AstBuilder extends StackListener {
           fieldName = name;
         case UnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
+        case ReceiverPropertyAssignmentTargetImpl(
+          receiver: SuperReferenceImpl(),
+          :var name,
+        ):
+          // The parser already reported a field outside its declaring class.
+          fieldName = name;
         case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
           fieldName = name;
         default:
@@ -829,7 +835,7 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializerImpl? buildInitializerTargetExpressionRecovery(
-    ExpressionImpl? target,
+    AstNodeImpl? target,
     Object initializerObject,
   ) {
     ArgumentListImpl? argumentList;
@@ -846,7 +852,7 @@ class AstBuilder extends StackListener {
         target = target.operand;
       } else if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.receiver as ExpressionImpl;
+        target = target.receiver;
       } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
         target = target.target2;
@@ -860,19 +866,24 @@ class AstBuilder extends StackListener {
         break;
       }
     }
-    if (target is SuperExpressionImpl) {
+    var superReference = switch (target) {
+      SuperReferenceImpl reference => reference,
+      InvalidSuperExpressionImpl(:var superReference) => superReference,
+      _ => null,
+    };
+    if (superReference != null) {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(
         fe_diag.invalidSuperInInitializer,
-        target.superKeyword,
-        target.superKeyword,
+        superReference.superKeyword,
+        superReference.superKeyword,
       );
       return SuperConstructorInvocationImpl(
-        superKeyword: target.superKeyword,
+        superKeyword: superReference.superKeyword,
         constructorSelector: null,
         argumentList:
-            argumentList ?? _syntheticArgumentList(target.superKeyword),
+            argumentList ?? _syntheticArgumentList(superReference.superKeyword),
       );
     } else if (target is ThisExpressionImpl) {
       // TODO(danrubel): Consider generating this error in the parser
@@ -941,7 +952,7 @@ class AstBuilder extends StackListener {
           receiver is ParsedNameAccessImpl) {
         push(
           ParsedNameAccessImpl(
-            operand: _toParsedExpression(receiver!),
+            operand: _toInstanceReceiver(receiver!),
             operator: dot,
             name: identifierOrInvoke.token,
           ),
@@ -959,7 +970,7 @@ class AstBuilder extends StackListener {
       } else if (receiver != null) {
         push(
           ParsedNameAccessImpl(
-            operand: _toParsedExpression(receiver),
+            operand: _toInstanceReceiver(receiver),
             operator: dot,
             name: identifierOrInvoke.token,
           ),
@@ -976,7 +987,7 @@ class AstBuilder extends StackListener {
       var access = receiver == null
           ? ParsedCascadeNameImpl(name: name.name)
           : ParsedNameAccessImpl(
-              operand: _toParsedExpression(receiver),
+              operand: _toInstanceReceiver(receiver),
               operator: dot,
               name: name.name,
             );
@@ -1001,7 +1012,7 @@ class AstBuilder extends StackListener {
       if (receiver != null) {
         push(
           ParsedNameAccessImpl(
-            operand: _toParsedExpression(receiver),
+            operand: _toInstanceReceiver(receiver),
             operator: dot,
             name: token,
           ),
@@ -1037,7 +1048,7 @@ class AstBuilder extends StackListener {
       default:
         push(
           CallInvocationImpl(
-            receiver: _toParsedExpression(receiver),
+            receiver: _toInstanceReceiver(receiver),
             typeArguments: typeArguments,
             argumentList: argumentList,
           ),
@@ -1236,6 +1247,11 @@ class AstBuilder extends StackListener {
     var right = _popParsedExpression();
     var left = _popParsedExpression();
     reportErrorIfSuper(right);
+    if (operatorToken.type == TokenType.QUESTION_QUESTION ||
+        operatorToken.type == TokenType.AMPERSAND_AMPERSAND ||
+        operatorToken.type == TokenType.BAR_BAR) {
+      reportErrorIfSuper(left);
+    }
     var expression = switch (operatorToken.type) {
       TokenType.QUESTION_QUESTION => IfNullImpl(
         leftOperand: left,
@@ -1253,7 +1269,7 @@ class AstBuilder extends StackListener {
         rightOperand: right,
       ),
       _ => BinaryOperatorInvocationImpl(
-        leftOperand: left,
+        leftOperand: _toInstanceReceiver(left),
         operator: operatorToken,
         rightOperand: right,
       ),
@@ -1474,6 +1490,7 @@ class AstBuilder extends StackListener {
     var condition = _popParsedExpression();
     reportErrorIfSuper(elseExpression);
     reportErrorIfSuper(thenExpression);
+    reportErrorIfSuper(condition);
     push(
       ConditionalExpressionImpl(
         condition2: condition,
@@ -3943,7 +3960,9 @@ class AstBuilder extends StackListener {
         ),
       _ => null,
     };
-    if (!isAssignable && token.type == TokenType.EQ) {
+    if (!isAssignable &&
+        namedTarget is! InvalidSuperAssignmentTargetImpl &&
+        token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
           target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
@@ -3951,7 +3970,9 @@ class AstBuilder extends StackListener {
           value: rhs,
         ),
       );
-    } else if (!isAssignable && token.type == TokenType.QUESTION_QUESTION_EQ) {
+    } else if (!isAssignable &&
+        namedTarget is! InvalidSuperAssignmentTargetImpl &&
+        token.type == TokenType.QUESTION_QUESTION_EQ) {
       push(
         IfNullAssignmentImpl(
           target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
@@ -4593,6 +4614,12 @@ class AstBuilder extends StackListener {
       );
     }
     var invalidAssignmentLeft = switch (expression) {
+      DirectAssignmentImpl(
+        target: InvalidSuperAssignmentTargetImpl(:var superReference),
+      ) ||
+      IfNullAssignmentImpl(
+        target: InvalidSuperAssignmentTargetImpl(:var superReference),
+      ) => superReference,
       AssignmentExpressionImpl(:var leftHandSide2)
           when !leftHandSide2.isAssignable =>
         leftHandSide2,
@@ -4922,7 +4949,7 @@ class AstBuilder extends StackListener {
     } else {
       push(
         ReceiverIndexExpressionImpl(
-          receiver: target,
+          receiver: _toInstanceReceiver(target),
           question: question,
           leftBracket: leftBracket,
           index: index,
@@ -5962,7 +5989,11 @@ class AstBuilder extends StackListener {
   void handleSuperExpression(Token superKeyword, IdentifierContext context) {
     assert(optional('super', superKeyword));
     debugEvent("SuperExpression");
-    push(SuperExpressionImpl(superKeyword: superKeyword));
+    push(
+      InvalidSuperExpressionImpl(
+        superReference: SuperReferenceImpl(superKeyword: superKeyword),
+      ),
+    );
   }
 
   @override
@@ -6101,7 +6132,12 @@ class AstBuilder extends StackListener {
     if (operator.type == TokenType.BANG) {
       push(LogicalNotImpl(operator: operator, operand: operand));
     } else {
-      push(UnaryOperatorInvocationImpl(operator: operator, operand: operand));
+      push(
+        UnaryOperatorInvocationImpl(
+          operator: operator,
+          operand: _toInstanceReceiver(operand),
+        ),
+      );
     }
   }
 
@@ -6219,7 +6255,7 @@ class AstBuilder extends StackListener {
   }
 
   void reportErrorIfSuper(ExpressionImpl expression) {
-    if (expression is SuperExpressionImpl) {
+    if (expression is InvalidSuperExpressionImpl) {
       // This error is also reported by the body builder.
       handleRecoverableError(
         fe_diag.missingAssignableSelector,
@@ -6978,8 +7014,19 @@ class AstBuilder extends StackListener {
     return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
+  InstanceReceiverImpl _toInstanceReceiver(InstanceReceiverImpl expression) {
+    if (expression is InvalidSuperExpressionImpl) {
+      return expression.superReference;
+    }
+    return expression is ExpressionImpl
+        ? _toParsedExpression(expression)
+        : expression;
+  }
+
   AssignmentTargetImpl? _toParsedAssignmentTarget(ExpressionImpl expression) {
     switch (expression) {
+      case InvalidSuperExpressionImpl(:var superReference):
+        return InvalidSuperAssignmentTargetImpl(superReference: superReference);
       case ParsedCascadeNameImpl(:var name):
         return CascadePropertyAssignmentTargetImpl(name: name);
       case ParsedNameAccessImpl(:var operand, :var operator, :var name):
@@ -6988,9 +7035,6 @@ class AstBuilder extends StackListener {
         while (head is ParsedNameAccessImpl) {
           head = head.operand;
         }
-        // Super assignment targets retain their existing lowering while reads
-        // and named calls migrate through parsed selectors.
-        if (head is SuperExpressionImpl) return null;
         if (head is ParsedUnqualifiedNameImpl) {
           return ParsedNameAccessAssignmentTargetImpl(
             operand: operand as ParsedExpressionImpl,
@@ -7003,7 +7047,7 @@ class AstBuilder extends StackListener {
         // until parsed targets support these qualifiers directly.
         if (head is ParsedTypeArgumentsImpl) return null;
         return ReceiverPropertyAssignmentTargetImpl(
-          receiver: operand,
+          receiver: _toInstanceReceiver(operand),
           operator: operator,
           name: name,
         );

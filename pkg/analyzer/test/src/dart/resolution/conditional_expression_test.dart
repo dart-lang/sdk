@@ -23,7 +23,7 @@ class A {
   void f() {
     super ? 0 : 1;
 //  ^^^^^
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   }
 }
 ''');
@@ -31,7 +31,11 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SuperExpression
+  condition2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  condition(v1): SuperExpression
     superKeyword: super
     staticType: A
   question: ?
@@ -113,10 +117,14 @@ ConditionalExpression
     literal: 0
     staticType: int
   colon: :
-  elseExpression2: SuperExpression
+  elseExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  elseExpression(v1): SuperExpression
     superKeyword: super
     staticType: A
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -338,14 +346,18 @@ ConditionalExpression
     element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
   question: ?
-  thenExpression2: SuperExpression
+  thenExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  thenExpression(v1): SuperExpression
     superKeyword: super
     staticType: A
   colon: :
   elseExpression2: IntegerLiteral
     literal: 0
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 

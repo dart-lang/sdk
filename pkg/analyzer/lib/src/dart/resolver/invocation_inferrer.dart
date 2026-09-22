@@ -124,7 +124,7 @@ class CallInvocationInferrer
   }) : super._();
 
   @override
-  ExpressionImpl get _errorEntity => node.receiver as ExpressionImpl;
+  SyntacticEntity get _errorEntity => node.receiver;
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;

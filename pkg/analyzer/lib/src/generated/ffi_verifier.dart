@@ -569,7 +569,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           enclosingElement.isNativeUnionPointerExtension ||
           enclosingElement.isNativeUnionArrayExtension) {
         if (element.name == '[]') {
-          _validateRefIndexed(node, node.receiver);
+          if (node.receiver case ExpressionImpl receiver) {
+            _validateRefIndexed(node, receiver);
+          }
         }
       }
     }
@@ -1428,7 +1430,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     switch (receiver) {
-      case ReceiverIndexExpression(receiver: var indexedReceiver):
+      case ReceiverIndexExpression(receiver: Expression indexedReceiver):
         // Array or TypedData element.
         var type = indexedReceiver.staticType;
         if (type?.isArray ?? false) {

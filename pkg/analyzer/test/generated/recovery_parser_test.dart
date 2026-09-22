@@ -102,7 +102,7 @@ var v = super +;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: +
   rightOperand: ParsedUnqualifiedName
@@ -203,7 +203,7 @@ var v = super + +;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: +
     rightOperand: ParsedUnqualifiedName
@@ -480,7 +480,7 @@ var v = super &;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: &
   rightOperand: ParsedUnqualifiedName
@@ -579,7 +579,7 @@ var v = super &  &;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: &
     rightOperand: ParsedUnqualifiedName
@@ -685,7 +685,7 @@ var v = super |;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: |
   rightOperand: ParsedUnqualifiedName
@@ -786,7 +786,7 @@ var v = super |  |;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: |
     rightOperand: ParsedUnqualifiedName
@@ -892,7 +892,7 @@ var v = super ^;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ^
   rightOperand: ParsedUnqualifiedName
@@ -993,7 +993,7 @@ var v = super ^  ^;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ^
     rightOperand: ParsedUnqualifiedName
@@ -1181,7 +1181,10 @@ ConditionalExpression
   condition(v1): SimpleIdentifier
     token: x
   question: ?
-  thenExpression2: SuperExpression
+  thenExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+  thenExpression(v1): SuperExpression
     superKeyword: super
   colon: :
   elseExpression2: ParsedUnqualifiedName
@@ -1210,7 +1213,10 @@ ConditionalExpression
   thenExpression(v1): SimpleIdentifier
     token: z
   colon: :
-  elseExpression2: SuperExpression
+  elseExpression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+  elseExpression(v1): SuperExpression
     superKeyword: super
 ''');
   }
@@ -1343,7 +1349,7 @@ var v = super ==;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ==
   rightOperand: ParsedUnqualifiedName
@@ -1407,7 +1413,7 @@ var v = super ==  ==;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ==
     rightOperand: ParsedUnqualifiedName
@@ -1442,8 +1448,9 @@ BinaryOperatorInvocation
   leftOperand: IntegerLiteral
     literal: 1
   operator: ==
-  rightOperand: SuperExpression
-    superKeyword: super
+  rightOperand: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
   binaryOperator: equal
 V1: BinaryExpression
   leftOperand: IntegerLiteral
@@ -3928,7 +3935,7 @@ var v = super *;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: *
   rightOperand: ParsedUnqualifiedName
@@ -4014,7 +4021,7 @@ var v = super ==  ==;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ==
     rightOperand: ParsedUnqualifiedName
@@ -4373,7 +4380,7 @@ var v = super <<;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: <<
   rightOperand: ParsedUnqualifiedName
@@ -4474,7 +4481,7 @@ var v = super << <<;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: <<
     rightOperand: ParsedUnqualifiedName

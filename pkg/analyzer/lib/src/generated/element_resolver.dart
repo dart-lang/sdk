@@ -376,7 +376,7 @@ class ElementResolver {
     }
   }
 
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperReference(SuperReference node) {
     var context = SuperContext.of(node);
     switch (context) {
       case SuperContext.annotation:

@@ -2239,7 +2239,7 @@ Block
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
                   receiver: ParsedNameAccess
-                    operand: SuperExpression
+                    operand: SuperReference
                       superKeyword: super
                     operator: .
                     name: y
@@ -2444,7 +2444,7 @@ Block
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
-                    operand: SuperExpression
+                    operand: SuperReference
                       superKeyword: super
                     operator: .
                     name: m
@@ -3461,7 +3461,7 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
-                  operand: SuperExpression
+                  operand: SuperReference
                     superKeyword: super
                   operator: .
                   name: p

@@ -3149,6 +3149,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
       switch (target) {
         ParsedAssignmentTargetImpl target => target.v1Projection,
+        InvalidSuperAssignmentTargetImpl target =>
+          target.superReference.v1Projection,
         CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
         ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
         IndexAssignmentTargetImpl target => target.indexExpression,
@@ -3169,6 +3171,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
 
@@ -3192,6 +3195,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
 }
@@ -4084,7 +4088,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get leftOperand2 => switch (_origin) {
     BinaryOperatorInvocationImpl(:var leftOperand) =>
-      leftOperand as ExpressionImpl,
+      V1Projection.toV1NamedReceiver(leftOperand),
     IfNullImpl(:var leftOperand) => leftOperand,
     LogicalAndImpl(:var leftOperand) => leftOperand,
     LogicalOrImpl(:var leftOperand) => leftOperand,
@@ -24938,7 +24942,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   ExpressionImpl get function2 =>
-      V1Projection.toV1Expression(_origin.receiver as ExpressionImpl);
+      V1Projection.toV1NamedReceiver(_origin.receiver);
 
   @override
   bool get inConstantContext => _origin.inConstantContext;
@@ -31025,6 +31029,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
   ExpressionImpl get _legacyOperand => switch (target) {
     ParsedAssignmentTargetImpl target => target.v1Projection,
+    InvalidSuperAssignmentTargetImpl target =>
+      target.superReference.v1Projection,
     CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
     ReceiverPropertyAssignmentTargetImpl target => target.v1Projection,
     IndexAssignmentTargetImpl target => target.indexExpression,
@@ -31044,6 +31050,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
 
@@ -31061,6 +31068,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
 
@@ -31294,7 +31302,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
     if (read case IndexReadResolutionImpl(:var type)) {
       return type;
     }
-    if (this case ReceiverIndexAssignmentTargetImpl(:var receiver)) {
+    if (this case ReceiverIndexAssignmentTargetImpl(:ExpressionImpl receiver)) {
       var receiverType = receiver.typeOrThrow;
       if (receiverType is NeverTypeImpl &&
           receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -31724,10 +31732,10 @@ final class IndexExpressionImpl extends ExpressionImpl
   @experimental
   @override
   ExpressionImpl? get target2 => switch (_v1ProjectionOrigin) {
-    ReceiverIndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
+    ReceiverIndexAssignmentTargetImpl origin => V1Projection.toV1NamedReceiver(
       origin.receiver,
     ),
-    ReceiverIndexExpressionImpl origin => V1Projection.toV1Expression(
+    ReceiverIndexExpressionImpl origin => V1Projection.toV1NamedReceiver(
       origin.receiver,
     ),
     _ => _target2,
@@ -33241,6 +33249,312 @@ final class InvalidReadResolutionImpl extends ReadResolutionImpl
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
+}
+
+/// Bare `super` used where an assignment destination is required.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidSuperAssignmentTarget
+    implements InvalidAssignmentTarget {
+  SuperReference get superReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('superReference')],
+)
+final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
+    implements InvalidSuperAssignmentTarget {
+  @generated
+  SuperReferenceImpl _superReference;
+
+  @override
+  InvalidReadResolutionImpl? read;
+
+  @override
+  InvalidWriteResolutionImpl? write;
+
+  @generated
+  InvalidSuperAssignmentTargetImpl({required SuperReferenceImpl superReference})
+    : _superReference = superReference {
+    _becomeParentOf2(superReference);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return superReference.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return superReference.endToken;
+  }
+
+  @generated
+  @override
+  SuperReferenceImpl get superReference => _superReference;
+
+  @generated
+  set superReference(SuperReferenceImpl superReference) {
+    _superReference = _becomeParentOf2(superReference);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('superReference', superReference);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInvalidSuperAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(superReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'superReference'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(superReference, oldNode)) {
+      superReference = newNode as SuperReferenceImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    superReference.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(SuperReferenceImpl)? visitSuperReference,
+  }) {
+    if (visitSuperReference != null) {
+      visitSuperReference(superReference);
+    } else {
+      superReference.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (superReference._containsOffset(rangeOffset, rangeEnd)) {
+      return superReference;
+    }
+    return null;
+  }
+}
+
+/// Bare `super` used in a slot that requires a value.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidSuperExpression implements Expression {
+  SuperReference get superReference;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('superReference')],
+)
+final class InvalidSuperExpressionImpl extends ExpressionImpl
+    implements InvalidSuperExpression {
+  @generated
+  SuperReferenceImpl _superReference;
+
+  @generated
+  InvalidSuperExpressionImpl({required SuperReferenceImpl superReference})
+    : _superReference = superReference {
+    _becomeParentOf2(superReference);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return superReference.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return superReference.endToken;
+  }
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @generated
+  @override
+  SuperReferenceImpl get superReference => _superReference;
+
+  @generated
+  set superReference(SuperReferenceImpl superReference) {
+    _superReference = _becomeParentOf2(superReference);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('InvalidSuperExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('superReference', superReference);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('InvalidSuperExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInvalidSuperExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(superReference, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'superReference'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(superReference, oldNode)) {
+      superReference = newNode as SuperReferenceImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitInvalidSuperExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('InvalidSuperExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    superReference.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(SuperReferenceImpl)? visitSuperReference,
+  }) {
+    if (visitSuperReference != null) {
+      visitSuperReference(superReference);
+    } else {
+      superReference.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('InvalidSuperExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (superReference._containsOffset(rangeOffset, rangeEnd)) {
+      return superReference;
+    }
+    return null;
+  }
 }
 
 /// An unsuccessful write resolution.
@@ -42277,7 +42591,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    ExpressionImpl node = this;
+    InstanceReceiverImpl node = this;
     while (true) {
       switch (node) {
         case ParsedCascadeNameImpl(:var name):
@@ -42306,13 +42620,11 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   /// Builds the unresolved invocation forms consumed by the existing resolver.
   ///
   /// This is a migration bridge for invocations and invalid type applications
-  /// that are not resolved directly from their parsed syntax. Standalone
-  /// applications to function values and instantiable types lower directly to
-  /// [FunctionInstantiationImpl] and [TypeLiteralImpl]; type-qualified
-  /// constructor calls and tear-offs lower directly to
-  /// [ConstructorInvocationImpl] and [ConstructorTearOffImpl]. Selectors on
-  /// known function-value type applications also resolve directly, preserving
-  /// constructor recovery for ambiguous type-shaped names.
+  /// that are not resolved directly from their parsed syntax. Standalone type
+  /// applications and type-qualified constructor calls and tear-offs lower
+  /// directly to their canonical V2 nodes. Selectors on known function-value
+  /// type applications also resolve directly, preserving constructor recovery
+  /// for ambiguous type-shaped names.
   /// Super property reads and named calls use the direct receiver paths too.
   /// It must not consume the cached V1 projection, whose children have different
   /// parents.
@@ -42320,7 +42632,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
       _ParsedExpressionBuilder(this, forV1: false).build();
 
   String _toSourceThrough(Token endToken) {
-    ExpressionImpl node = this;
+    InstanceReceiverImpl node = this;
     while (node.end > endToken.end) {
       node = switch (node) {
         ParsedNameAccessImpl(:var operand) => operand,
@@ -42344,7 +42656,7 @@ abstract final class ParsedNameAccess implements ParsedExpression {
 
   /// A parsed operand can denote an import prefix or static qualifier. An
   /// ordinary expression establishes a value-expression boundary instead.
-  Expression get operand;
+  InstanceReceiver get operand;
   Token get operator;
 }
 
@@ -42535,7 +42847,7 @@ final class ParsedNameAccessAssignmentTargetImpl
 final class ParsedNameAccessImpl extends ParsedExpressionImpl
     implements ParsedNameAccess {
   @generated
-  ExpressionImpl _operand;
+  InstanceReceiverImpl _operand;
 
   @generated
   @override
@@ -42547,7 +42859,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
 
   @generated
   ParsedNameAccessImpl({
-    required ExpressionImpl operand,
+    required InstanceReceiverImpl operand,
     required this.operator,
     required this.name,
   }) : _operand = operand {
@@ -42569,10 +42881,10 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
 
   @generated
   @override
-  ExpressionImpl get operand => _operand;
+  InstanceReceiverImpl get operand => _operand;
 
   @generated
-  set operand(ExpressionImpl operand) {
+  set operand(InstanceReceiverImpl operand) {
     _operand = _becomeParentOf2(operand);
   }
 
@@ -42625,7 +42937,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+      operand = newNode as InstanceReceiverImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -42660,7 +42972,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    void Function(InstanceReceiverImpl)? visitOperand,
   }) {
     if (visitOperand != null) {
       visitOperand(operand);
@@ -45300,8 +45612,8 @@ final class PrefixExpressionImpl extends ExpressionImpl
   ExpressionImpl get operand => switch (_origin) {
     IncrementOrDecrementExpressionImpl origin => origin._legacyOperand,
     LogicalNotImpl origin => V1Projection.toV1Expression(origin.operand),
-    UnaryOperatorInvocationImpl origin => V1Projection.toV1Expression(
-      origin.operand as ExpressionImpl,
+    UnaryOperatorInvocationImpl origin => V1Projection.toV1NamedReceiver(
+      origin.operand,
     ),
     _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
   };
@@ -46725,7 +47037,7 @@ abstract final class ReceiverIndexAssignmentTarget
   Token? get question;
 
   /// The expression whose value is indexed.
-  Expression get receiver;
+  InstanceReceiver get receiver;
 }
 
 @GenerateNodeImpl(
@@ -46741,7 +47053,7 @@ abstract final class ReceiverIndexAssignmentTarget
 final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     implements ReceiverIndexAssignmentTarget {
   @generated
-  ExpressionImpl _receiver;
+  InstanceReceiverImpl _receiver;
 
   @generated
   @override
@@ -46749,7 +47061,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
 
   @generated
   ReceiverIndexAssignmentTargetImpl({
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
     required super.index,
@@ -46772,10 +47084,10 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
 
   @generated
   @override
-  ExpressionImpl get receiver => _receiver;
+  InstanceReceiverImpl get receiver => _receiver;
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
+  set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
     _indexExpression?._attachV1Children();
   }
@@ -46839,7 +47151,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
+      receiver = newNode as InstanceReceiverImpl;
       return;
     }
     if (identical(index, oldNode)) {
@@ -46875,7 +47187,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
+    void Function(InstanceReceiverImpl)? visitReceiver,
     void Function(ExpressionImpl)? visitIndex,
   }) {
     if (visitReceiver != null) {
@@ -46921,7 +47233,7 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
   Token? get question;
 
   /// The expression whose value is indexed.
-  Expression get receiver;
+  InstanceReceiver get receiver;
 }
 
 @GenerateNodeImpl(
@@ -46937,7 +47249,7 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
 final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
     implements ReceiverIndexExpression {
   @generated
-  ExpressionImpl _receiver;
+  InstanceReceiverImpl _receiver;
 
   @generated
   @override
@@ -46945,7 +47257,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
 
   @generated
   ReceiverIndexExpressionImpl({
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
     required super.index,
@@ -46968,10 +47280,10 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
 
   @generated
   @override
-  ExpressionImpl get receiver => _receiver;
+  InstanceReceiverImpl get receiver => _receiver;
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
+  set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
     _indexExpression?._attachV1Children();
   }
@@ -47039,7 +47351,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
+      receiver = newNode as InstanceReceiverImpl;
       return;
     }
     if (identical(index, oldNode)) {
@@ -47079,7 +47391,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
+    void Function(InstanceReceiverImpl)? visitReceiver,
     void Function(ExpressionImpl)? visitIndex,
   }) {
     if (visitReceiver != null) {
@@ -52820,15 +53132,22 @@ abstract final class SuperExpression implements Expression {
   Token get superKeyword;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('superKeyword')])
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [GenerateNodeProperty('superKeyword')],
+)
 final class SuperExpressionImpl extends ExpressionImpl
     implements SuperExpression {
   @generated
   @override
   final Token superKeyword;
 
-  @generated
-  SuperExpressionImpl({required this.superKeyword});
+  final SuperReferenceImpl _origin;
+
+  SuperExpressionImpl.v1Projection(SuperReferenceImpl origin)
+    : _origin = origin,
+      superKeyword = origin.superKeyword;
 
   @generated
   @override
@@ -52847,13 +53166,18 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @generated
   @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('superKeyword', superKeyword);
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('superKeyword', superKeyword);
+  ChildEntities get _childEntities2 {
+    throw StateError('SuperExpression is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -52863,20 +53187,38 @@ final class SuperExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperExpression(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('SuperExpression is not in the V2 AST view.');
+  }
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
   @generated
   @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitSuperExpression(this, contextType: contextType);
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('SuperExpression is a V1 projection.');
+  }
+
+  @DoNotGenerate(reason: 'The V1 projection owns the same keyword')
+  @override
+  String toSource() => 'super';
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -52886,12 +53228,9 @@ final class SuperExpressionImpl extends ExpressionImpl
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('SuperExpression is not in the V2 AST view.');
+  }
 
   @generated
   @override
@@ -52902,7 +53241,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
+    throw StateError('SuperExpression is not in the V2 AST view.');
   }
 }
 
@@ -53195,6 +53534,125 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
         return defaultClause;
       }
     }
+    return null;
+  }
+}
+
+/// The current instance used with superclass lookup and dispatch.
+///
+/// This reference does not produce a value. The enclosing operation owns its
+/// result type and member resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class SuperReference implements InstanceReceiver {
+  Token get superKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('superKeyword')],
+)
+final class SuperReferenceImpl extends InstanceReceiverImpl
+    implements SuperReference {
+  @generated
+  @override
+  final Token superKeyword;
+
+  SuperExpressionImpl? _v1Projection;
+
+  /// Retained solely for the historical V1 expression view.
+  TypeImpl? _legacyStaticType;
+
+  @generated
+  SuperReferenceImpl({required this.superKeyword});
+
+  @generated
+  @override
+  Token get beginToken {
+    return superKeyword;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return superKeyword;
+  }
+
+  TypeImpl? get legacyStaticType => _legacyStaticType;
+
+  set legacyStaticType(TypeImpl? type) {
+    _legacyStaticType = type;
+    if (type != null) _v1Projection?.setPseudoExpressionStaticType(type);
+  }
+
+  SuperExpressionImpl get v1Projection {
+    var result = _v1Projection ??= SuperExpressionImpl.v1Projection(this);
+    if (legacyStaticType case var type?) {
+      result.setPseudoExpressionStaticType(type);
+    }
+    return result;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('SuperReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('superKeyword', superKeyword);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('SuperReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperReference(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('SuperReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('SuperReference is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -57630,6 +58088,7 @@ enum V1Projection {
   }
 
   static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
+    if (node is SuperReferenceImpl) return node.v1Projection;
     if (node is StaticQualifierImpl) {
       return node.v1Projection;
     }
@@ -57647,6 +58106,7 @@ enum V1Projection {
 
   static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
     ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
+    SuperReferenceImpl() => node._v1Projection,
     CascadeSectionImpl() => _existingNode(node.body),
     CombinatorNameImpl() => node._v1Projection,
     TopLevelGetterDeclarationImpl() => node._v1Projection,
@@ -57686,6 +58146,7 @@ enum V1Projection {
       TopLevelGetterDeclarationImpl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
       StaticQualifierImpl() => root.v1Projection,
+      SuperReferenceImpl() => root.v1Projection,
       _ => null,
     };
     if (projection != null && !identical(projection, root)) {
@@ -57745,6 +58206,7 @@ enum V1Projection {
     PrefixExpressionImpl() => node._origin,
     PropertyAccessImpl() => node._v1ProjectionOrigin,
     SimpleIdentifierImpl() => node._v1ProjectionOrigin,
+    SuperExpressionImpl() => node._origin,
     _ => null,
   };
 
@@ -57752,6 +58214,11 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
+    if (node is InvalidSuperExpressionImpl) {
+      return createIfAbsent
+          ? node.superReference.v1Projection
+          : node.superReference._v1Projection;
+    }
     if (node is ParsedDotShorthandExpressionImpl) {
       return _toV1Expression(node.expression, createIfAbsent: createIfAbsent);
     }
@@ -60055,7 +60522,7 @@ class _ParsedExpressionBuilder {
   _ParsedExpressionBuilder(this.chain, {required this.forV1});
 
   ExpressionImpl build() {
-    ExpressionImpl node = chain;
+    InstanceReceiverImpl node = chain;
     while (node is ParsedExpressionImpl &&
         node is! ParsedCascadeNameImpl &&
         node is! ParsedUnqualifiedNameImpl &&
@@ -60096,7 +60563,11 @@ class _ParsedExpressionBuilder {
           ? SimpleIdentifierImpl.v1Projection(token: node.name, origin: node)
           : _identifier(node.name);
     } else {
-      result = forV1 ? V1Projection.toV1Expression(node) : node;
+      result = forV1
+          ? V1Projection.toV1NamedReceiver(node)
+          : node is SuperReferenceImpl
+          ? InvalidSuperExpressionImpl(superReference: node)
+          : node as ExpressionImpl;
     }
     // An ordinary expression operand is reused. Save its original parent
     // before construction transfers it into the replacement tree.

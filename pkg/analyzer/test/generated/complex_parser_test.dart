@@ -131,7 +131,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: *
     rightOperand: ParsedUnqualifiedName
@@ -201,7 +201,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: +
     rightOperand: ParsedUnqualifiedName
@@ -512,15 +512,24 @@ class A {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: y
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
     operator: .
     propertyName: SimpleIdentifier
       token: y
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
 ''');
   }
@@ -721,7 +730,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: &
     rightOperand: ParsedUnqualifiedName
@@ -859,7 +868,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: |
     rightOperand: ParsedUnqualifiedName
@@ -997,7 +1006,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: ^
     rightOperand: ParsedUnqualifiedName
@@ -1973,7 +1982,7 @@ Block
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
-          leftOperand: SuperExpression
+          leftOperand: SuperReference
             superKeyword: super
           operator: ==
           rightOperand: ParsedUnqualifiedName
@@ -2638,7 +2647,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: *
     rightOperand: ParsedUnqualifiedName
@@ -2805,7 +2814,7 @@ class A {
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
-    leftOperand: SuperExpression
+    leftOperand: SuperReference
       superKeyword: super
     operator: >>
     rightOperand: IntegerLiteral

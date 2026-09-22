@@ -2448,7 +2448,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperReference(SuperReference node) {
     _tokenOrNull(node.superKeyword);
   }
 

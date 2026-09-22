@@ -115,7 +115,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
-    _writeOperand(node, node.leftOperand as Expression);
+    _writeOperand(node, node.leftOperand);
     sink.write(' ');
     sink.write(node.operator.lexeme);
     sink.write(' ');
@@ -1029,6 +1029,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    node.superReference.accept2(this);
+  }
+
+  @override
+  void visitInvalidSuperExpression(InvalidSuperExpression node) {
+    node.superReference.accept2(this);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     _visitNode(node.expression2);
     if (node.notOperator == null) {
@@ -1683,11 +1693,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
-    sink.write('super');
-  }
-
-  @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     _visitFormalParameterHeader(node);
     sink.write('super.');
@@ -1695,6 +1700,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.functionTypedSuffix);
     _visitNode(node.defaultClause);
   }
+
+  @override
+  void visitSuperReference(SuperReference node) => sink.write('super');
 
   @override
   void visitSwitchCase(SwitchCase node) {
@@ -1832,7 +1840,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
-    _writeOperand(node, node.operand as Expression);
+    _writeOperand(node, node.operand);
   }
 
   @override
@@ -1969,7 +1977,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   void _visitParsedExpression(ParsedExpression root) {
-    Expression node = root;
+    InstanceReceiver node = root;
     while (node is ParsedExpression &&
         node is! ParsedCascadeName &&
         node is! ParsedUnqualifiedName &&
@@ -2011,8 +2019,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
     }
   }
 
-  void _writeOperand(Expression node, Expression operand) {
-    bool needsParenthesis = operand.precedence < node.precedence;
+  void _writeOperand(Expression node, InstanceReceiver operand) {
+    bool needsParenthesis =
+        operand is Expression && operand.precedence < node.precedence;
     if (needsParenthesis) {
       sink.write('(');
     }

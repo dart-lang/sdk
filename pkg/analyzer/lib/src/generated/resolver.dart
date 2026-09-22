@@ -84,6 +84,7 @@ import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -479,6 +480,27 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       isVoidAllowed: isVoidAllowed,
       needsCoercion: needsCoercion,
     );
+  }
+
+  /// Resolves an instance receiver without treating superclass dispatch as a
+  /// value-producing expression.
+  InstanceReceiverImpl analyzeInstanceReceiver(
+    InstanceReceiverImpl receiver, {
+    TypeImpl contextType = UnknownInferredType.instance,
+    bool continueNullShorting = false,
+  }) {
+    switch (receiver) {
+      case SuperReferenceImpl():
+        visitSuperReference(receiver);
+        return receiver;
+      case ExpressionImpl():
+        analyzeExpression(
+          receiver,
+          SharedTypeSchemaView(contextType),
+          continueNullShorting: continueNullShorting,
+        );
+        return popRewrite()!;
+    }
   }
 
   List<SharedPatternField> buildSharedPatternFields(
@@ -1300,6 +1322,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return wrapFunctionInstantiation(expression, typeArgumentTypes);
   }
 
+  /// The type used for member lookup, which is not a value type on `super`.
+  TypeImpl instanceReceiverType(InstanceReceiverImpl receiver) {
+    return switch (receiver) {
+      ExpressionImpl() => receiver.typeOrThrow,
+      SuperReferenceImpl() => superLookupType(receiver),
+    };
+  }
+
   @override
   bool isDotShorthand(ExpressionImpl node) =>
       node is ParsedDotShorthandExpressionImpl;
@@ -1942,7 +1972,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   /// Starts null shorting for a null-aware assignment target.
   void startNullAwareAssignmentTarget(
-    ExpressionImpl target, {
+    InstanceReceiverImpl target, {
     required int offset,
   }) {
     _startNullAwareAccess(target, offset: offset);
@@ -1950,6 +1980,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   int statementEndOffset(StatementImpl statement) => statement.endToken.offset;
+
+  /// The enclosing type for superclass dispatch, or [InvalidTypeImpl] when
+  /// `super` is unavailable. Access to `this` alone does not permit `super`.
+  TypeImpl superLookupType(SuperReference receiver) {
+    if (!isThisAccessible || SuperContext.of(receiver) != SuperContext.valid) {
+      return InvalidTypeImpl.instance;
+    }
+    return unpromotedThisType ?? InvalidTypeImpl.instance;
+  }
 
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
   /// in a getter context, or `null` if no match was found.
@@ -2442,12 +2481,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    analyzeExpression(
-      node.receiver as ExpressionImpl,
-      SharedTypeSchemaView(UnknownInferredType.instance),
+    node.receiver = analyzeInstanceReceiver(
+      node.receiver,
       continueNullShorting: true,
     );
-    node.receiver = popRewrite()!;
 
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
@@ -3786,6 +3823,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitInvalidSuperExpression(
+    covariant InvalidSuperExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.superReference.accept2(this);
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIsExpression(
     covariant IsExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4264,6 +4313,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var receiver = AstRewriter.receiverInvocationReceiver(node);
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
+    if (receiver is SuperReferenceImpl) {
+      visitSuperReference(receiver);
+      if (selector.operator.type == TokenType.QUESTION_PERIOD) {
+        _startNullAwareAccess(receiver, offset: selector.operator.offset);
+      }
+    }
     if (receiver is ExpressionImpl) {
       analyzeExpression(
         receiver,
@@ -4523,17 +4578,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
 
     checkUnreachableNode(node);
-    analyzeExpression(
+    node.receiver = analyzeInstanceReceiver(
       node.receiver,
-      SharedTypeSchemaView(UnknownInferredType.instance),
       continueNullShorting: true,
     );
-    node.receiver = popRewrite()!;
 
     var receiverDoesNotComplete =
         node.receiver is! ExtensionOverrideImpl &&
         identical(
-          typeSystem.resolveToBound(node.receiver.typeOrThrow),
+          typeSystem.resolveToBound(instanceReceiverType(node.receiver)),
           NeverTypeImpl.instance,
         );
     if (node.question case var question? when !receiverDoesNotComplete) {
@@ -4593,6 +4646,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
+
+    if (node.receiver case SuperReferenceImpl receiver) {
+      visitSuperReference(receiver);
+      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+        _startNullAwareAccess(receiver, offset: node.operator.offset);
+      }
+    }
 
     if (node.receiver case ExpressionImpl receiver) {
       // Legacy bare-name property reads start the dead interval at the selected
@@ -4868,21 +4928,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitSuperExpression(
-    SuperExpression node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    elementResolver.visitSuperExpression(node);
-    typeAnalyzer.visitSuperExpression(node as SuperExpressionImpl);
-    inferenceLogWriter?.exitExpression(node);
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _visitFormalParameter(node as FormalParameterImpl);
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitSuperReference(covariant SuperReferenceImpl node) {
+    elementResolver.visitSuperReference(node);
+    // V1 retained the current `this` type in some invalid super contexts,
+    // including extension types and parameterless anonymous methods. This
+    // recovery type must not be used to authorize superclass dispatch.
+    node.legacyStaticType =
+        !isThisAccessible ||
+            node.thisOrAncestorOfType2<ExtensionDeclaration>() != null
+        ? InvalidTypeImpl.instance
+        : unpromotedThisType ?? InvalidTypeImpl.instance;
   }
 
   @override
@@ -5999,11 +6059,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return false;
   }
 
-  /// Starts null aware access on a given [target] expression.
+  /// Starts null aware access on a given [target] receiver.
   ///
   /// Note: there is no corresponding "stop" method. Null shorting will be
   /// automatically stopped by [TypeAnalyzer.analyzeExpression].
-  void _startNullAwareAccess(ExpressionImpl? target, {required int offset}) {
+  void _startNullAwareAccess(
+    InstanceReceiverImpl? target, {
+    required int offset,
+  }) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
       switch (target) {
@@ -6016,12 +6079,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         case SimpleIdentifier(element: InterfaceElement()):
           // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
+        case SuperReferenceImpl():
+          // Preserve null shorting when recovering the invalid `super?.` and
+          // `super?[` forms, without giving the receiver an expression type.
+          startNullShorting(
+            null,
+            flow.superExpression(),
+            SharedTypeView(superLookupType(target)),
+            offset: offset,
+          );
         case ExtensionOverride(
           argumentList: ArgumentListImpl(
             arguments2: [ArgumentImpl(argumentExpression: var expression)],
           ),
         ):
-        case var expression:
+        case ExpressionImpl expression:
           flowAnalysis.storeExpressionInfo(
             expression,
             startNullShorting(

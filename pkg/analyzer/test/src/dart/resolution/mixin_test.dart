@@ -402,9 +402,8 @@ class X extends A with M {}
     var node = result.findNode.receiverPropertyExtraction('super.foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: M
   operator: .
   name: foo
   resolution: GetterInvocationResolution
@@ -443,9 +442,8 @@ class X extends A with M {}
     var node = result.findNode.receiverMethodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: M
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -498,11 +496,27 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: M
     operator: .
@@ -512,7 +526,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int

@@ -30,7 +30,11 @@ class A<T> {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A<T>
   isOperator: is

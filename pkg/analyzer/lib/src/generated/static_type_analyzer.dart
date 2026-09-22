@@ -238,23 +238,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
-  void visitSuperExpression(covariant SuperExpressionImpl node) {
-    var thisType = _resolver.unpromotedThisType;
-    if (!_resolver.isThisAccessible ||
-        thisType == null ||
-        node.thisOrAncestorOfType2<ExtensionDeclaration>() != null) {
-      // TODO(brianwilkerson): Report this error if it hasn't already been
-      // reported.
-      thisType = InvalidTypeImpl.instance;
-    } else {
-      _resolver.flowAnalysis.storeExpressionInfo(
-        node,
-        _resolver.flowAnalysis.flow?.superExpression(),
-      );
-    }
-    node.recordStaticType(thisType, resolver: _resolver);
-  }
-
   void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
     node.recordStaticType(_typeProvider.symbolType, resolver: _resolver);
   }

@@ -1125,6 +1125,24 @@ var x = -a;
     );
   }
 
+  test_prefixExpression_minus_super() async {
+    await _assertNotConst(
+      r'''
+class A {
+  int operator -() => 0;
+}
+
+class B extends A {
+  void f() {
+    var x = -super;
+  }
+}
+''',
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.superReference('super;')],
+    );
+  }
+
   test_prefixExpression_plusPlus() async {
     await _assertNotConst(
       r'''

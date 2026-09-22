@@ -475,9 +475,10 @@ ReceiverIndexExpression
     thisKeyword: this
     staticType: A
   leftBracket: [
-  index: SuperExpression
-    superKeyword: super
-    staticType: A
+  index: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]

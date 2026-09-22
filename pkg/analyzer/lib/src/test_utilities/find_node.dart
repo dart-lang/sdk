@@ -17,6 +17,8 @@ class FindNode extends _FindNodeBase {
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
+  SuperExpression get singleSuperExpression => _single();
+
   BinaryExpression binary(String search) {
     return _node(search, (node) => node is BinaryExpression);
   }
@@ -31,6 +33,10 @@ class FindNode extends _FindNodeBase {
 
   PostfixExpression postfixExpression(String search) {
     return _node(search, (node) => node is PostfixExpression);
+  }
+
+  SuperExpression super_(String search) {
+    return _node(search, (n) => n is SuperExpression);
   }
 
   @override
@@ -91,6 +97,8 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
       _single();
 
+  InvalidSuperExpression get singleInvalidSuperExpression => _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -100,6 +108,8 @@ class FindNode2 extends _FindNodeBase {
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
   ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
+
+  SuperReference get singleSuperReference => _single();
 
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
@@ -168,6 +178,10 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is IncrementOrDecrementExpression);
   }
 
+  InvalidSuperExpression invalidSuperExpression(String search) {
+    return _node(search, (node) => node is InvalidSuperExpression);
+  }
+
   LogicalAnd logicalAnd(String search) {
     return _node(search, (node) => node is LogicalAnd);
   }
@@ -186,6 +200,10 @@ class FindNode2 extends _FindNodeBase {
 
   ReceiverMethodInvocation receiverMethodInvocation(String search) {
     return _node(search, (node) => node is ReceiverMethodInvocation);
+  }
+
+  SuperReference superReference(String search) {
+    return _node(search, (node) => node is SuperReference);
   }
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
@@ -544,8 +562,6 @@ abstract class _FindNodeBase {
   StringInterpolation get singleStringInterpolation => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
-
-  SuperExpression get singleSuperExpression => _single();
 
   SuperFormalParameter get singleSuperFormalParameter => _single();
 
@@ -1232,10 +1248,6 @@ abstract class _FindNodeBase {
 
   StringLiteral stringLiteral(String search) {
     return _node(search, (n) => n is StringLiteral);
-  }
-
-  SuperExpression super_(String search) {
-    return _node(search, (n) => n is SuperExpression);
   }
 
   SuperConstructorInvocation superConstructorInvocation(String search) {

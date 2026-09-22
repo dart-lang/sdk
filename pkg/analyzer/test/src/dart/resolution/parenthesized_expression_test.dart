@@ -33,11 +33,15 @@ class A {
     assertResolvedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 

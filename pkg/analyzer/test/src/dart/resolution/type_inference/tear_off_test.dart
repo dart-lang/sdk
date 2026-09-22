@@ -230,9 +230,8 @@ class D extends C {
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: D
     operator: .
     name: f
     resolution: ExecutableTearOffResolution

@@ -650,9 +650,8 @@ class D extends C {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: D
     operator: .
     name: _foo
     resolution: GetterInvocationResolution
@@ -708,9 +707,8 @@ class D extends C {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: D
     operator: .
     name: _foo
     resolution: GetterInvocationResolution
@@ -948,9 +946,8 @@ class D extends C {
     var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: D
   operator: .
   name: _foo
   resolution: GetterInvocationResolution
@@ -1414,9 +1411,8 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: ReceiverPropertyExtraction
-        receiver: SuperExpression
+        receiver: SuperReference
           superKeyword: super
-          staticType: C
         operator: .
         name: _i
         resolution: GetterInvocationResolution
@@ -1457,9 +1453,8 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: ReceiverPropertyExtraction
-        receiver: SuperExpression
+        receiver: SuperReference
           superKeyword: super
-          staticType: C
         operator: .
         name: _i
         resolution: GetterInvocationResolution
@@ -1528,9 +1523,8 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: ReceiverPropertyExtraction
-        receiver: SuperExpression
+        receiver: SuperReference
           superKeyword: super
-          staticType: C<T>
         operator: .
         name: _t
         resolution: GetterInvocationResolution
@@ -1579,9 +1573,8 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: ReceiverPropertyExtraction
-        receiver: SuperExpression
+        receiver: SuperReference
           superKeyword: super
-          staticType: C<T>
         operator: .
         name: _t
         resolution: GetterInvocationResolution
@@ -1666,9 +1659,8 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: ReceiverPropertyExtraction
-          receiver: SuperExpression
+          receiver: SuperReference
             superKeyword: super
-            staticType: C
           operator: .
           name: _f
           resolution: GetterInvocationResolution
@@ -1739,9 +1731,8 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: ReceiverPropertyExtraction
-          receiver: SuperExpression
+          receiver: SuperReference
             superKeyword: super
-            staticType: C
           operator: .
           name: _f
           resolution: GetterInvocationResolution
@@ -1840,9 +1831,8 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: ReceiverPropertyExtraction
-          receiver: SuperExpression
+          receiver: SuperReference
             superKeyword: super
-            staticType: C<T>
           operator: .
           name: _f
           resolution: GetterInvocationResolution
@@ -1921,9 +1911,8 @@ Block
     ExpressionStatement
       expression2: CallInvocation
         receiver: ReceiverPropertyExtraction
-          receiver: SuperExpression
+          receiver: SuperReference
             superKeyword: super
-            staticType: C<T>
           operator: .
           name: _f
           resolution: GetterInvocationResolution
