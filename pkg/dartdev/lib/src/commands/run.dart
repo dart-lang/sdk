@@ -38,6 +38,10 @@ class RunCommand extends DartdevCommand {
   static const gitRefOption = 'git-ref';
   static const gitPathOption = 'git-path';
 
+  // kDartFrontendErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const dartFrontendErrorExitCode = 252;
+  // kCompilationErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const compilationErrorExitCode = 254;
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
 
@@ -393,10 +397,10 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   /// [shouldRetryOnFrontendCompilerException] is true, when a
   /// [FrontendCompilerException] is encountered during compilation, the
   /// Resident Frontend Compiler will be restarted, and compilation will be
-  /// retried. This method returns the compiled kernel file if compilation
-  /// succeeds, otherwise it returns null.
-  static Future<DartExecutableWithPackageConfig?>
-  _compileToKernelUsingResidentCompiler({
+  /// retried. This method returns [_CompileToKernelResult] with the compiled
+  /// kernel file in `goodResult` if compilation succeeds, or the given
+  /// [CompilationIssue] in `error` otherwise.
+  static Future<_CompileToKernelResult> _compileToKernelUsingResidentCompiler({
     required DartExecutableWithPackageConfig executable,
     required File residentCompilerInfoFile,
     required GenerateKernelArguments args,
@@ -413,14 +417,16 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     );
 
     try {
-      return await generateKernel(
-        executable,
-        residentCompilerInfoFile,
-        args,
-        createCompileJitJson,
-        quiet: quiet,
-        nativeAssetsYaml: nativeAssetsYaml,
-        progressUpdatesOnStderr: progressUpdatesOnStderr,
+      return _CompileToKernelResult.good(
+        await generateKernel(
+          executable,
+          residentCompilerInfoFile,
+          args,
+          createCompileJitJson,
+          quiet: quiet,
+          nativeAssetsYaml: nativeAssetsYaml,
+          progressUpdatesOnStderr: progressUpdatesOnStderr,
+        ),
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
@@ -453,14 +459,14 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           await shutDownOrForgetResidentFrontendCompiler(
             residentCompilerInfoFile,
           );
-          return null;
+          return _CompileToKernelResult.bad(e.issue);
         }
       } else {
         log.stderr(
           '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}',
         );
         log.stderr(e.message);
-        return null;
+        return _CompileToKernelResult.bad(e.issue);
       }
     }
   }
@@ -694,7 +700,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         }
       } else if (!await isFileAppJitSnapshot(executableFile) &&
           !await isFileAotSnapshot(executableFile)) {
-        final compiledKernelFile = await _compileToKernelUsingResidentCompiler(
+        final compilationResult = await _compileToKernelUsingResidentCompiler(
           executable: executable,
           residentCompilerInfoFile: residentCompilerInfoFile,
           args: generateKernelArguments,
@@ -703,10 +709,17 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           nativeAssetsYaml: nativeAssets,
           progressUpdatesOnStderr: true,
         );
-        if (compiledKernelFile == null) {
-          return errorExitCode;
+        if (compilationResult.goodResult != null) {
+          executable = compilationResult.goodResult!;
         } else {
-          executable = compiledKernelFile;
+          switch (compilationResult.error!) {
+            case CompilationIssue.serverError:
+              return dartFrontendErrorExitCode;
+            case CompilationIssue.serverCreationError:
+              return dartFrontendErrorExitCode;
+            case CompilationIssue.compilationError:
+              return compilationErrorExitCode;
+          }
         }
       }
     } else if (nativeAssets != null) {
@@ -918,4 +931,13 @@ String? getPackageForCommand(String descriptor) {
     return null; // Root package.
   }
   return package;
+}
+
+class _CompileToKernelResult {
+  final DartExecutableWithPackageConfig? goodResult;
+  final CompilationIssue? error;
+
+  _CompileToKernelResult.good(DartExecutableWithPackageConfig this.goodResult)
+    : error = null;
+  _CompileToKernelResult.bad(CompilationIssue this.error) : goodResult = null;
 }
