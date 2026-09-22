@@ -1,4 +1,4 @@
-Want to contribute? Great! 
+Want to contribute? Great!
 
 You can help the Dart project in many ways, by [giving feedback](#contributing-feedback), [improving documentation](#contributing-to-documentation), [contributing code](#contributing-code), or asking and answering [Dart questions on StackOverflow](https://stackoverflow.com/questions/tagged/dart).
 
@@ -8,8 +8,8 @@ The Dart projects tracks everything from features to bugs using GitHub issues. T
 
 - [SDK](https://github.com/dart-lang/sdk): Everything related to the VM, JS and Wasm compilers, analysis, core libraries, and the `dart` CLI.
 - [Language](https://github.com/dart-lang/language): Design and evolution of the Dart programming language.
-- [Native](https://github.com/dart-lang/native) and [Web](https://github.com/dart-lang/web): Platform specific issues.
-- [Pub.dev](https://github.com/dart-lang/pub-dev): The Dart package manager.
+- [Native](https://github.com/dart-lang/native) and [Web](https://github.com/dart-lang/web): Platform interop specific issues.
+- [Pub.dev](https://github.com/dart-lang/pub-dev): The Dart package manager website.
 - For additional more specialized repos, see the full list at https://github.com/orgs/dart-lang/repositories
 
 Once you have located the repo, you can contribute feedback in several ways:
@@ -18,7 +18,7 @@ Once you have located the repo, you can contribute feedback in several ways:
 
 - **Upvote existing issue**: If you're experiencing an issue that has already been reported, or want to indicate interest in an issue tracking a new feature, consider upvoting it to help the Dart team understand its importance. You can upvote an issue by locating it in the GitHub issue tracker, and pressing the "thumbs up" reaction on the issue's top-most comment. Avoid otherwise empty +1, emoji, or similar comments. The Dart team reviews the highest voted issues on a regular basis for consideration into our roadmap.
 
-**Note**: Dart currently does _not_ have a formal *RFC* (request for comments) process to propose larger changes. We hope to add this soon. 
+**Note**: Dart currently does _not_ have a formal *RFC* (request for comments) process to propose larger changes. We hope to add this soon.
 
 # Contributing to documentation
 
