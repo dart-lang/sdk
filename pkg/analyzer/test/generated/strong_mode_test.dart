@@ -6955,9 +6955,22 @@ main() {
   v = 3;
   v; // marker
 }''');
-    var node = result.findNode.assignment('= 3');
+    var node = result.findNode.directAssignment('= 3');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: v
+    read: <null>
+    write: VariableWriteResolution
+      element: v@15
+      acceptedType: dynamic
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v
     element: v@15

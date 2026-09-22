@@ -1179,9 +1179,40 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a[0]');
+    var node = result.findNode.compoundAssignment('a[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: num Function(int)
+      type: num
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: +=
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: double
+  staticType: double
+V1: AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
@@ -1221,9 +1252,46 @@ void f(A<double> a) {
 }
 ''');
 
-    var node = result.findNode.assignment('a[0]');
+    var node = result.findNode.compoundAssignment('a[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+CompoundAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A<double>
+      staticType: A<double>
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+        substitution: {T: double}
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]
+        substitution: {T: double}
+      invokeType: double Function(int)
+      type: double
+    write: MethodIndexWriteResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: <testLibrary>::@class::A::@method::[]=
+        substitution: {T: double}
+      invokeType: void Function(int, double)
+      acceptedType: double
+  operator: +=
+  value: DoubleLiteral
+    literal: 1.2
+    correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::double::@method::+
+  operatorResultType: double
+  staticType: double
+V1: AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a

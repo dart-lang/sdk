@@ -2081,9 +2081,33 @@ void f(E e) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: e
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::e
+          type: E
+        staticType: E
+      rightParenthesis: )
+      staticType: E
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@enum::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2181,9 +2205,33 @@ augment extension E {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2765,9 +2813,33 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extensionType::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (

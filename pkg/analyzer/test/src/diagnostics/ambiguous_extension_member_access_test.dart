@@ -569,9 +569,25 @@ f() {
 }
 ''');
 
-    var node = result.findNode.assignment('= 3');
+    var node = result.findNode.directAssignment('= 3');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    name: a
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: IntegerLiteral
       literal: 0
