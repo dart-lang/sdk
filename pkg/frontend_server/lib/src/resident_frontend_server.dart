@@ -83,31 +83,45 @@ enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
 ///   compiled concurrently.
 class ResidentCompiler {
   final File _entryPoint;
-  File? _currentPackage;
-  ArgResults _compileOptions;
-  late FrontendCompiler _compiler;
-  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
-  _ResidentState _state = _ResidentState.waitingForFirstCompile;
-  final StringBuffer _compilerOutput = new StringBuffer();
+  final File? _currentPackage;
+  final ArgResults _compileOptions;
+  final FrontendCompiler _compiler;
+  final StringBuffer _compilerOutput;
   final Set<Uri> trackedSources = <Uri>{};
   final List<String> _formattedOutput = <String>[];
-  bool incrementalMode = false;
+  final bool incrementalMode;
+  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
+  _ResidentState _state = _ResidentState.waitingForFirstCompile;
+
+  factory(File entryPoint, ArgResults compileOptions) {
+    StringBuffer compilerOutput = new StringBuffer();
+    FrontendCompiler compiler = new FrontendCompiler(compilerOutput);
+    String? packages = compileOptions['packages'];
+    bool incrementalMode = compileOptions['incremental'] == true;
+    File? currentPackage = packages == null ? null : new File(packages);
+
+    return new ResidentCompiler._(
+      entryPoint,
+      currentPackage,
+      compileOptions,
+      compiler,
+      compilerOutput,
+      incrementalMode,
+    );
+  }
+
+  new _(
+    this._entryPoint,
+    this._currentPackage,
+    this._compileOptions,
+    this._compiler,
+    this._compilerOutput,
+    this.incrementalMode,
+  );
 
   /// The file where kernel data will be output by this [ResidentCompiler].
   File get _outputDill =>
       new File(_compileOptions.option(ResidentFrontendServer._outputString)!);
-
-  new(this._entryPoint, this._compileOptions) {
-    _compiler = new FrontendCompiler(_compilerOutput);
-
-    final String? packages = _compileOptions['packages'];
-    incrementalMode = _compileOptions['incremental'] == true;
-    _currentPackage = packages == null ? null : new File(packages);
-    // Refresh the compiler's output for the next compile
-    _compilerOutput.clear();
-    _formattedOutput.clear();
-    resetStateToWaitingForFirstCompile();
-  }
 
   void resetStateToWaitingForFirstCompile() {
     _state = _ResidentState.waitingForFirstCompile;
@@ -126,7 +140,7 @@ class ResidentCompiler {
     }
     return _currentPackage != null &&
         !_lastCompileStartTime.isAfter(
-          _currentPackage!.statSync().modified.floorTime(),
+          _currentPackage.statSync().modified.floorTime(),
         );
   }
 
