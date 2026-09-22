@@ -229,15 +229,15 @@ class D extends C {
     var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
 ImplicitFunctionInstantiation
-  operand: PropertyAccess
-    target2: SuperExpression
+  operand: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
-    propertyName: SimpleIdentifier
-      token: f
+    name: f
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::f
-      staticType: T Function<T>(T)
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes

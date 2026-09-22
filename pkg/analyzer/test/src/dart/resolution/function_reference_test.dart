@@ -3736,15 +3736,15 @@ class B extends A {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: SuperExpression
+  operand: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3796,15 +3796,14 @@ class A {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: SuperExpression
+  operand: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: A
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -3850,15 +3849,14 @@ bar() {
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PropertyAccess
-    target2: SuperExpression
+  operand: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: InvalidType
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: InvalidType
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <

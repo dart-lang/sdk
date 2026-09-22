@@ -51,6 +51,17 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    if (_usage == _Usage.reading &&
+        node.operand is SuperExpression &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitParsedNameAccess(node);
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     if (_usage == _Usage.reading) {
       var parent = node.parent2;
@@ -64,6 +75,28 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperExpression &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperExpression &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyExtraction(node);
   }
 }
 

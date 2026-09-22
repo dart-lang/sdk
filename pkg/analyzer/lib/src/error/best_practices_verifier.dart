@@ -1507,6 +1507,19 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
+      if (invocation case ReceiverMethodInvocation(
+        receiver: SuperExpression(),
+        :var name,
+        :var argumentList,
+        resolution: ExecutableInvocationResolution(:var element),
+      )) {
+        var classElement = element.enclosingElement;
+        return name.lexeme == MethodElement.NO_SUCH_METHOD_METHOD_NAME &&
+            argumentList.arguments2.length == 1 &&
+            element is MethodElement &&
+            classElement is ClassElement &&
+            !classElement.isDartCoreObject;
+      }
       if (invocation is MethodInvocation &&
           invocation.target2 is SuperExpression &&
           invocation.argumentList.arguments2.length == 1) {
@@ -2122,9 +2135,16 @@ class _InvalidAccessVerifier {
 
     var hasVisibleForOverriding = _hasVisibleForOverriding(element);
     if (hasVisibleForOverriding) {
-      var parent = node.parent2;
+      var parent = switch (node) {
+        ReceiverMethodInvocation() || ReceiverPropertyExtraction() => node,
+        _ => node.parent2,
+      };
       if (parent is MethodInvocation && parent.target2 is SuperExpression ||
-          parent is PropertyAccess && parent.target2 is SuperExpression) {
+          parent is PropertyAccess && parent.target2 is SuperExpression ||
+          parent is ReceiverMethodInvocation &&
+              parent.receiver is SuperExpression ||
+          parent is ReceiverPropertyExtraction &&
+              parent.receiver is SuperExpression) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
             ?.thisOrAncestorOfType2<MethodDeclaration>();

@@ -67,10 +67,23 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: A
   operator: .
@@ -97,10 +110,19 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: A
   operator: .

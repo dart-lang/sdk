@@ -487,7 +487,7 @@ class AstRewriter {
             head is ParsedTypeArgumentsImpl &&
                 node is ParsedNameAccessImpl &&
                 _isFunctionInstantiationReceiver(nameScope, head) ||
-            head is! ParsedExpressionImpl && head is! SuperExpressionImpl
+            head is! ParsedExpressionImpl
         ? _parsedNestedReceiver(nameScope, node, head: head, hasSelector: false)
               as ExpressionImpl
         : node.buildUnresolvedExpression();
@@ -1023,11 +1023,10 @@ class AstRewriter {
     // Constructor qualifiers are handled earlier; ambiguous names retain their
     // constructor recovery path.
     if (head is ParsedExpressionImpl &&
-            head is! ParsedUnqualifiedNameImpl &&
-            head is! ParsedValueArgumentsImpl &&
-            !(head is ParsedTypeArgumentsImpl &&
-                _isFunctionInstantiationReceiver(nameScope, head)) ||
-        head is SuperExpressionImpl) {
+        head is! ParsedUnqualifiedNameImpl &&
+        head is! ParsedValueArgumentsImpl &&
+        !(head is ParsedTypeArgumentsImpl &&
+            _isFunctionInstantiationReceiver(nameScope, head))) {
       return null;
     }
 

@@ -984,6 +984,31 @@ class PropertyElementResolver with ScopeHelpers {
   })
   resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
+    if (receiver is SuperExpressionImpl) {
+      var result = _resolveTargetSuperExpression(
+        node: node,
+        target: receiver,
+        propertyName: SimpleIdentifierImpl(token: node.name),
+        hasRead: true,
+        hasWrite: false,
+      );
+      var element = result.readElementRequested2;
+      var resolution =
+          _createNamedReadResolutionWithElement(
+            element,
+            type: element is InternalPropertyAccessorElement
+                ? result.getType as TypeImpl?
+                : _namedReadType(element),
+          ) ??
+          InvalidNamedReadResolutionImpl(
+            recoveryElement: result.readElementRecovery2,
+          );
+      return (
+        expressionInfo: _resolver.flowAnalysis.getExpressionInfo(node),
+        resolution: resolution,
+        type: resolution.type,
+      );
+    }
     var qualifierResult = switch (receiver) {
       StaticQualifierImpl() => _resolveStaticQualifier(
         receiver,

@@ -2240,12 +2240,11 @@ Block
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
-                  receiver: PropertyAccess
-                    target2: SuperExpression
+                  receiver: ParsedNameAccess
+                    operand: SuperExpression
                       superKeyword: super
                     operator: .
-                    propertyName: SimpleIdentifier
-                      token: y
+                    name: y
                   leftBracket: [
                   index: IntegerLiteral
                     literal: 0
@@ -2445,12 +2444,12 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: MethodInvocation
-                  target2: SuperExpression
-                    superKeyword: super
-                  operator: .
-                  methodName: SimpleIdentifier
-                    token: m
+                operand: ParsedValueArguments
+                  operand: ParsedNameAccess
+                    operand: SuperExpression
+                      superKeyword: super
+                    operator: .
+                    name: m
                   argumentList: ArgumentList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -3463,12 +3462,11 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: PropertyAccess
-                  target2: SuperExpression
+                operand: ParsedNameAccess
+                  operand: SuperExpression
                     superKeyword: super
                   operator: .
-                  propertyName: SimpleIdentifier
-                    token: p
+                  name: p
                 operator: !
               operator: +
               rightOperand: IntegerLiteral

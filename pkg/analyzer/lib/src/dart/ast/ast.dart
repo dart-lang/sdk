@@ -41946,6 +41946,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   /// [ConstructorInvocationImpl] and [ConstructorTearOffImpl]. Selectors on
   /// known function-value type applications also resolve directly, preserving
   /// constructor recovery for ambiguous type-shaped names.
+  /// Super property reads and named calls use the direct receiver paths too.
   /// It must not consume the cached V1 projection, whose children have different
   /// parents.
   ExpressionImpl buildUnresolvedExpression() =>
