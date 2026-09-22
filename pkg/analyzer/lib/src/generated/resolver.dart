@@ -1301,12 +1301,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  bool isDotShorthand(ExpressionImpl node) {
-    if (node is DotShorthandMixin) {
-      return node.isDotShorthand;
-    }
-    return false;
-  }
+  bool isDotShorthand(ExpressionImpl node) =>
+      node is ParsedDotShorthandExpressionImpl;
 
   @override
   bool isLegacySwitchExhaustive(AstNode node, SharedTypeView expressionType) =>
@@ -1532,13 +1528,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (node is IndexExpressionImpl) {
       var target = node.target2;
       if (target != null) {
-        if (isDotShorthand(node)) {
-          // Recovery.
-          // It's a compile-time error to use postfix or prefix operators with
-          // dot shorthands. We provide an unknown type since this shouldn't be
-          // valid code, but we want to prevent any crashes.
-          pushDotShorthandContext(target, operations.unknownType);
-        }
         analyzeExpression(
           target,
           operations.unknownType,
@@ -1613,13 +1602,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
     } else if (node is PropertyAccessImpl) {
       if (node.target2 case var target?) {
-        if (isDotShorthand(node)) {
-          // Recovery.
-          // It's a compile-time error to use a dot shorthand as the target of a
-          // write, but to prevent any crashing we provide an unknown context
-          // type since this shouldn't be valid code.
-          pushDotShorthandContext(target, operations.unknownType);
-        }
         analyzeExpression(
           target,
           operations.unknownType,
@@ -2091,11 +2073,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     checkUnreachableNode(node);
 
     var target = node.target2;
@@ -2199,10 +2176,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
     } else {
       returnedType = node.body.resolve(this, contextType);
-    }
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
     }
 
     node.recordStaticType(returnedType, resolver: this);
@@ -2469,11 +2442,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     analyzeExpression(
       node.receiver as ExpressionImpl,
       SharedTypeSchemaView(UnknownInferredType.instance),
@@ -2497,10 +2465,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       whyNotPromotedArguments,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3087,23 +3051,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    var hasDotShorthandContext = isDotShorthand(node);
-    if (hasDotShorthandContext) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     var shorthandContext = _resolveDotShorthandContext();
 
-    var replacement =
-        DotShorthandConstructorInvocation2Impl(
-            constKeyword: node.constKeyword,
-            period: node.period,
-            name: node.constructorName.token,
-            typeArguments: node.typeArguments,
-            argumentList: node.argumentList,
-          )
-          ..isDotShorthand = node.isDotShorthand
-          ..shorthandContext = shorthandContext;
+    var replacement = DotShorthandConstructorInvocation2Impl(
+      constKeyword: node.constKeyword,
+      period: node.period,
+      name: node.constructorName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    )..shorthandContext = shorthandContext;
     replaceExpression(node, replacement);
     flowAnalysis.transferExpressionInfo(node, replacement);
     flowAnalysis.transferTestData(node, replacement);
@@ -3113,10 +3069,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
       shorthandContext: shorthandContext,
     );
-
-    if (hasDotShorthandContext) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3128,10 +3080,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     var shorthandContext = _resolveDotShorthandContext();
     node.shorthandContext = shorthandContext;
 
@@ -3140,10 +3088,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
       shorthandContext: shorthandContext,
     );
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3154,11 +3098,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
 
     var shorthandContext = _resolveDotShorthandContext();
 
@@ -3199,10 +3138,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       _insertImplicitCallTearOff(replacement, contextType: contextType);
     }
 
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
-
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3230,30 +3165,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    var hasDotShorthandContext = isDotShorthand(node);
-    if (hasDotShorthandContext) {
-      // Preserve the parser node as the context-stack key. This both reuses a
-      // context already cached specifically for this shorthand (for example,
-      // on the right of `==`) and distinguishes this shorthand from an outer
-      // shorthand whose argument happens to contain it.
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
     var replacement = DotShorthandNameExpressionImpl(
       period: node.period,
       name: node.propertyName.token,
-    )..isDotShorthand = node.isDotShorthand;
+    );
     replaceExpression(node, replacement);
     flowAnalysis.transferExpressionInfo(node, replacement);
     flowAnalysis.transferTestData(node, replacement);
     inferenceHelper.transferTestData(node, replacement);
-    _resolveDotShorthandNameExpression(
-      replacement,
-      contextType,
-      cacheContext: false,
-    );
-    if (hasDotShorthandContext) {
-      popDotShorthandContext();
-    }
+    _resolveDotShorthandNameExpression(replacement, contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3695,16 +3615,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     _functionReferenceResolver.resolve(node);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3926,22 +3837,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    var hasDotShorthandContext = isDotShorthand(node);
-    if (hasDotShorthandContext) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     checkUnreachableNode(node);
     _incrementOrDecrementResolver.resolve(node);
     _insertImplicitCallTearOff(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
     );
-
-    if (hasDotShorthandContext) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3952,11 +3853,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
 
     checkUnreachableNode(node);
 
@@ -4021,10 +3917,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4282,11 +4174,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
@@ -4333,7 +4220,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
       if (identical(resolvedNode, node) &&
           target != null &&
-          !isDotShorthand(node) &&
           (node.operator?.type == TokenType.PERIOD ||
               node.operator?.type == TokenType.QUESTION_PERIOD) &&
           _isSupportedReceiverMethodInvocationReceiver(target)) {
@@ -4351,10 +4237,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyMethodInvocation(node);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4442,20 +4324,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     checkUnreachableNode(node);
     _nullAssertionExpressionResolver.resolve(node, contextType: contextType);
     _insertImplicitCallTearOff(
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
     );
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4513,6 +4387,31 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         flowAnalysis.getExpressionInfo(node.expression2),
       ),
     );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitParsedDotShorthandExpression(
+    covariant ParsedDotShorthandExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    analyzeExpression(
+      node.expression,
+      SharedTypeSchemaView(contextType),
+      continueNullShorting: true,
+    );
+    var expression = popRewrite()!;
+    node.recordStaticType(expression.typeOrThrow, resolver: this);
+    flowAnalysis.storeExpressionInfo(
+      node,
+      flowAnalysis.getExpressionInfo(node.expression),
+    );
+    replaceExpression(node, expression);
+    flowAnalysis.transferTestData(node, expression);
+    inferenceHelper.transferTestData(node, expression);
+    popDotShorthandContext();
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4758,11 +4657,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
     checkUnreachableNode(node);
 
     var target = node.target2;
@@ -4778,10 +4672,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.propertyName);
     _resolvePropertyAccessRhs(node, contextType);
 
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
-
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4791,10 +4681,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
 
     checkUnreachableNode(node);
     analyzeExpression(
@@ -4848,10 +4734,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyReceiverIndexExpression(node);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -5896,15 +5778,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   void _resolveDotShorthandNameExpression(
     DotShorthandNameExpressionImpl node,
-    TypeImpl contextType, {
-    bool cacheContext = true,
-  }) {
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    var hasDotShorthandContext = cacheContext && isDotShorthand(node);
-    if (hasDotShorthandContext) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
+    TypeImpl contextType,
+  ) {
     checkUnreachableNode(node);
     var shorthandContext = _resolveDotShorthandContext();
     node.shorthandContext = shorthandContext;
@@ -5921,10 +5796,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
-
-    if (hasDotShorthandContext) {
-      popDotShorthandContext();
-    }
   }
 
   void _resolvePropertyAccessRhs(
@@ -6143,7 +6014,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       argumentList: node.argumentList,
     );
     invocation
-      ..isDotShorthand = node.isDotShorthand
       ..shorthandContext = shorthandContext
       ..resolution = resolution
       ..staticInvokeType = invokeType

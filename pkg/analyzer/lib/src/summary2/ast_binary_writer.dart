@@ -322,10 +322,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandConstructorInvocation);
     _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.constKeyword?.type == Keyword.CONST,
-        isDotShorthand: node.isDotShorthand,
-      ),
+      AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
     );
     _writeNode(node.constructorName);
     _writeNode(node.argumentList);
@@ -338,10 +335,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandConstructorInvocation2);
     _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.constKeyword?.type == Keyword.CONST,
-        isDotShorthand: node.isDotShorthand,
-      ),
+      AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
     );
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
@@ -357,7 +351,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeEnum(AstNodeTag.DotShorthandInvocation);
-    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeNode(node.memberName);
     _storeInvocationExpression(node);
   }
@@ -367,7 +360,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant DotShorthandMethodInvocationImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandMethodInvocation);
-    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
@@ -386,7 +378,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant DotShorthandNameExpressionImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandNameExpression);
-    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeStringReference(node.name.lexeme);
     _sink.writeOptionalObject(
       node.shorthandContext,
@@ -401,7 +392,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant DotShorthandPropertyAccessImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.DotShorthandPropertyAccess);
-    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeNode(node.propertyName);
     _storeExpression(node);
   }

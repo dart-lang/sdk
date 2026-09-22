@@ -1119,7 +1119,6 @@ abstract final class AnonymousMethodInvocation
 )
 @experimental
 final class AnonymousMethodInvocationImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements AnonymousMethodInvocation {
   @generated
   ExpressionImpl? _target2;
@@ -5518,7 +5517,6 @@ abstract final class CallInvocation implements FunctionInvocation {
   ],
 )
 final class CallInvocationImpl extends FunctionInvocationImpl
-    with DotShorthandMixin
     implements CallInvocation {
   @generated
   InstanceReceiverImpl _receiver;
@@ -14678,7 +14676,6 @@ abstract final class DotShorthandConstructorInvocation2
   ],
 )
 final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandConstructorInvocation2 {
   @generated
   @override
@@ -14938,7 +14935,6 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
 )
 final class DotShorthandConstructorInvocationImpl
     extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandConstructorInvocation {
   @generated
   @override
@@ -14976,7 +14972,6 @@ final class DotShorthandConstructorInvocationImpl
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
       ) {
-    isDotShorthand = origin.isDotShorthand;
     _attachV1Children();
   }
 
@@ -15384,7 +15379,6 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
   ],
 )
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandInvocation {
   @generated
   @override
@@ -15414,7 +15408,6 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
       ) {
-    isDotShorthand = origin.isDotShorthand;
     _attachV1Children();
   }
 
@@ -15764,7 +15757,6 @@ abstract final class DotShorthandMethodInvocation
   ],
 )
 final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
-    with DotShorthandMixin
     implements DotShorthandMethodInvocation {
   @generated
   @override
@@ -15933,22 +15925,6 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 }
 
-base mixin DotShorthandMixin on ExpressionImpl {
-  /// Whether the AST node is a dot shorthand and has a dot shorthand head
-  /// ([DotShorthandInvocation], [DotShorthandMethodInvocation],
-  /// [DotShorthandNameExpression], [DotShorthandConstructorInvocation] or
-  /// [DotShorthandPropertyAccess]) as its inner-most target.
-  ///
-  /// This is `false` and remains `false` when there is no dot shorthand head as
-  /// its inner-most target. When we are parsing and notice that we have a dot
-  /// shorthand head, we flip this flag to `true` and it remains `true` for that
-  /// expression.
-  ///
-  /// We use this flag to determine the correct context type to cache. This
-  /// cached context type is then used to resolve the dot shorthand head.
-  bool isDotShorthand = false;
-}
-
 /// The value-producing dot-shorthand form `.name`.
 ///
 /// Depending on resolution, the name can invoke a static getter, including a
@@ -15968,7 +15944,6 @@ abstract final class DotShorthandNameExpression
   ],
 )
 final class DotShorthandNameExpressionImpl extends NameExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandNameExpression {
   @generated
   @override
@@ -16106,7 +16081,6 @@ abstract final class DotShorthandPropertyAccess extends Expression {
   ],
 )
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements DotShorthandPropertyAccess {
   @generated
   @override
@@ -16130,7 +16104,6 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   ) : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
-    isDotShorthand = origin.isDotShorthand;
     _attachV1Children();
   }
 
@@ -24895,7 +24868,6 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements FunctionExpressionInvocation {
   final CallInvocationImpl _origin;
 
@@ -24946,14 +24918,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  bool get isDotShorthand => _origin.isDotShorthand;
-
-  @override
-  set isDotShorthand(bool isDotShorthand) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -25525,7 +25489,6 @@ abstract final class FunctionReference
   ],
 )
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
-    with DotShorthandMixin
     implements FunctionReference {
   @generated
   ExpressionImpl _function2;
@@ -30936,7 +30899,6 @@ abstract final class IncrementOrDecrementExpression implements Expression {
   ],
 )
 final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements IncrementOrDecrementExpression {
   @generated
   @override
@@ -31510,7 +31472,6 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   ],
 )
 final class IndexExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements IndexExpression {
   @generated
   @override
@@ -37460,7 +37421,6 @@ abstract final class MethodInvocation implements InvocationExpression {
   ],
 )
 final class MethodInvocationImpl extends InvocationExpressionImpl
-    with DotShorthandMixin
     implements MethodInvocation {
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   ExpressionImpl? _target2;
@@ -40110,7 +40070,6 @@ abstract final class NullAssertionExpression implements Expression {
   ],
 )
 final class NullAssertionExpressionImpl extends ExpressionImpl
-    with DotShorthandMixin
     implements NullAssertionExpression {
   @generated
   ExpressionImpl _operand;
@@ -41899,6 +41858,169 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
 
   @override
   WriteResolutionImpl? get write => null;
+}
+
+/// The complete grammar boundary of a dot-shorthand expression.
+///
+/// Its context selects the leading shorthand namespace independently of the
+/// downward contexts of subsequent selectors. Resolution removes this wrapper.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ParsedDotShorthandExpression implements Expression {
+  Expression get expression;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+  ],
+)
+final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
+    implements ParsedDotShorthandExpression {
+  @generated
+  ExpressionImpl _expression;
+
+  @generated
+  ParsedDotShorthandExpressionImpl({required ExpressionImpl expression})
+    : _expression = expression {
+    _becomeParentOf2(expression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return expression.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return expression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get expression => _expression;
+
+  @generated
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf2(expression);
+  }
+
+  @override
+  bool get isAssignable => expression.isAssignable;
+
+  @override
+  Precedence get precedence => expression.precedence;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('expression', expression);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitParsedDotShorthandExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    assert(identical(expression, child));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(expression, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(expression, oldNode)) {
+      expression = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitParsedDotShorthandExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    expression.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitExpression,
+  }) {
+    if (visitExpression != null) {
+      visitExpression(expression);
+    } else {
+      expression.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
+    }
+    return null;
+  }
 }
 
 /// A syntactic expression whose final semantic role has not yet been selected.
@@ -45811,7 +45933,6 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   ],
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
-    with DotShorthandMixin
     implements PropertyAccess {
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   late final Token _operator;
@@ -46545,7 +46666,6 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
   ],
 )
 final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
-    with DotShorthandMixin
     implements ReceiverIndexExpression {
   @generated
   ExpressionImpl _receiver;
@@ -57332,6 +57452,9 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
+    if (node is ParsedDotShorthandExpressionImpl) {
+      return _toV1Expression(node.expression, createIfAbsent: createIfAbsent);
+    }
     if (node is ParsedExpressionImpl) {
       return createIfAbsent ? node.v1Projection : node._v1Projection;
     }

@@ -2191,6 +2191,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    _runSubscriptions(node, _registry._forParsedDotShorthandExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _runSubscriptions(node, _registry._forParsedNameAccess);
     node.visitChildren2(this);
@@ -4851,6 +4858,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ParenthesizedPattern>> _forParenthesizedPattern =
       [];
 
+  final List<_Subscription2<ParsedDotShorthandExpression>>
+  _forParsedDotShorthandExpression = [];
+
   final List<_Subscription2<ParsedNameAccessAssignmentTarget>>
   _forParsedNameAccessAssignmentTarget = [];
 
@@ -6210,6 +6220,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forParenthesizedPattern.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addParsedDotShorthandExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forParsedDotShorthandExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

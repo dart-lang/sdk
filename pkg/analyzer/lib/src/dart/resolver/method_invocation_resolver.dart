@@ -1878,7 +1878,6 @@ class MethodInvocationResolver with ScopeHelpers {
               argumentList: node.argumentList,
             )
             ..element = element
-            ..isDotShorthand = node.isDotShorthand
             ..shorthandContext = shorthandContext;
       _resolver.replaceExpression(node, replacement);
       _resolver.flowAnalysis.transferTestData(node, replacement);

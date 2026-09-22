@@ -88,6 +88,14 @@ class FunctionReferenceResolver {
       return;
     }
     if (rawType is InvalidType) {
+      // Redundant: the head already reported why it did not resolve. Kept to
+      // avoid changing the diagnostics that users see.
+      // TODO(scheglov): Drop this cascading diagnostic.
+      if (operand is DotShorthandNameExpressionImpl) {
+        _diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(operand),
+        );
+      }
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       return;
     }
@@ -108,6 +116,11 @@ class FunctionReferenceResolver {
         _ => null,
       };
       target = switch (resolution) {
+        // A dot shorthand constructor tear-off, such as `.new<int>`, keeps its
+        // constructor resolution here, and [InvocationTargetExecutableElement]
+        // rejects constructors. Report against the function type instead.
+        // TODO(scheglov): Use [InvocationTargetConstructorElement].
+        ExecutableTearOffResolutionImpl(element: ConstructorElement()) => null,
         ExecutableTearOffResolutionImpl(:var element) =>
           InvocationTargetExecutableElement(element),
         GetterInvocationResolutionImpl(:var element)

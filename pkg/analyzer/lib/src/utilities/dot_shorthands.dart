@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -17,10 +18,8 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 /// Example of fixes that use this helper are extract local refactoring and
 /// `omit_local_variable_types`.
 bool hasDependentDotShorthand(AstNode node) {
-  if (node case DotShorthandMixin(
-    isDotShorthand: true,
-    :var correspondingParameter,
-  )) {
+  if (node is Expression && isDotShorthand(node)) {
+    var correspondingParameter = node.correspondingParameter;
     // There's no corresponding parameter, so we rely on the type provided by
     // the for-loop or variable declaration.
     if (correspondingParameter == null) return true;
@@ -109,10 +108,31 @@ bool hasDependentDotShorthand(AstNode node) {
   return false;
 }
 
-/// Whether the [node] is a dot shorthand expression that relies on a context
-/// type.
-bool isDotShorthand(AstNode node) =>
-    node is DotShorthandMixin && node.isDotShorthand;
+/// Whether [node] is a complete dot-shorthand selector chain.
+///
+/// Only receiver and operand edges continue the chain. Parentheses, arguments,
+/// index operands, and cascade sections do not. The leading shorthand operation
+/// and intermediate selectors are not complete chains when another selector
+/// follows them. Both the canonical AST and its V1 projection are supported.
+bool isDotShorthand(AstNode node) {
+  var parent = (node as AstNodeImpl).parentInPrimaryView;
+  if (identical(_selectorOperand(parent), node)) {
+    return false;
+  }
+  AstNode? current = node;
+  while (current != null) {
+    switch (current) {
+      case ParsedDotShorthandExpression():
+      case DotShorthandExpression():
+      case DotShorthandConstructorInvocation():
+      case DotShorthandInvocation():
+      case DotShorthandPropertyAccess():
+        return true;
+    }
+    current = _selectorOperand(current);
+  }
+  return false;
+}
 
 /// Finds and returns all the type parameter elements in the formal parameter,
 /// [parameter].
@@ -157,6 +177,31 @@ bool _invocationHasDependentDotShorthand(
   }
   return false;
 }
+
+/// The preceding expression in a written selector chain. Implicit adaptations
+/// retain the same source expression and are transparent to this query.
+AstNode? _selectorOperand(AstNode? node) => switch (node) {
+  ReceiverMethodInvocation(:var receiver) => receiver,
+  ReceiverPropertyExtraction(:var receiver) => receiver,
+  ReceiverIndexExpression(:var receiver) => receiver,
+  CallInvocation(:var receiver) => receiver,
+  FunctionInstantiation(:var operand) => operand,
+  NullAssertionExpression(:var operand) => operand,
+  ImplicitCallTearOff(:var operand) => operand,
+  ImplicitFunctionInstantiation(:var operand) => operand,
+  ImplicitCallReference(:var expression2) => expression2,
+  AnonymousMethodInvocation(:var target2) => target2,
+  // These forms occur in the V1 projection and transitional parser paths.
+  MethodInvocation(:var target) => target,
+  PropertyAccess(:var target) => target,
+  IndexExpression(:var target) => target,
+  FunctionExpressionInvocation(:var function) => function,
+  FunctionReference(:var function) => function,
+  PostfixExpression(:var operand, :var operator)
+      when operator.type == TokenType.BANG =>
+    operand,
+  _ => null,
+};
 
 class _TypeParameterVisitor extends RecursiveTypeVisitor {
   Set<TypeParameterElement> typeParameters = {};

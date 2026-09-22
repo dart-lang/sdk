@@ -3940,8 +3940,7 @@ class AstBuilder extends StackListener {
         :var leftBracket,
         :var index,
         :var rightBracket,
-      )
-          when !lhs.isDotShorthand =>
+      ) =>
         ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: question,
@@ -3956,8 +3955,7 @@ class AstBuilder extends StackListener {
         :var leftBracket,
         index2: var index,
         :var rightBracket,
-      )
-          when !lhs.isDotShorthand =>
+      ) =>
         ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: null,
@@ -4347,18 +4345,8 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var dotShorthand = pop() as ExpressionImpl;
-    if (dotShorthand is DotShorthandMixin) {
-      dotShorthand.isDotShorthand = true;
-    } else {
-      assert(
-        false,
-        "'$dotShorthand' must be a 'DotShorthandMixin' because we "
-        "should only call 'handleDotShorthandContext' after parsing "
-        "expressions that have a context type we can cache.",
-      );
-    }
-    push(dotShorthand);
+    var expression = pop() as ExpressionImpl;
+    push(ParsedDotShorthandExpressionImpl(expression: expression));
   }
 
   @override
@@ -6515,32 +6503,17 @@ class AstBuilder extends StackListener {
 
   /// Whether another selector can use the neutral parsed representation.
   ///
-  /// Dot-shorthand heads need the context boundary on their enclosing selector.
-  /// Legacy selectors propagate that choice, as well as recovery
-  /// syntax, until an ordinary expression boundary such as parentheses.
-  // TODO(scheglov): Remove this migration gate once cascade, dot-shorthand,
-  // and recovery selector paths use V2 representations without legacy fallbacks.
-  // This includes representing the dot-shorthand context boundary explicitly,
-  // instead of relying on isDotShorthand on the enclosing selector expression.
+  /// Cascade starts and recovery syntax retain their existing parser forms.
+  // TODO(scheglov): Remove this migration gate once cascade and recovery
+  // selector paths use V2 representations without legacy fallbacks.
   bool _canBuildParsedSelector(ExpressionImpl receiver) {
     switch (receiver) {
       case CascadePropertyExtractionImpl():
       case CascadeIndexExpressionImpl():
-      case DotShorthandConstructorInvocationImpl():
-      case DotShorthandInvocationImpl():
-      case DotShorthandPropertyAccessImpl():
       case MethodInvocationImpl():
       case PropertyAccessImpl():
       case FunctionReferenceImpl():
         return false;
-      case DotShorthandMixin():
-        // Indexing and other postfix syntax can sit between the shorthand head
-        // and this selector. Its context marker is set only after the entire
-        // selector chain has been parsed, so recognize the written head here.
-        var token = receiver.beginToken;
-        return token.type != TokenType.PERIOD &&
-            !(token.keyword == Keyword.CONST &&
-                token.next!.type == TokenType.PERIOD);
       default:
         return true;
     }
@@ -6988,8 +6961,7 @@ class AstBuilder extends StackListener {
     }
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
-    if (expression is ReceiverIndexExpressionImpl &&
-        !expression.isDotShorthand) {
+    if (expression is ReceiverIndexExpressionImpl) {
       return ReceiverIndexAssignmentTargetImpl(
         receiver: expression.receiver,
         question: expression.question,
@@ -7003,9 +6975,7 @@ class AstBuilder extends StackListener {
     // Keep accepting it until all parser paths produce ReceiverIndexExpression.
     if (expression is IndexExpressionImpl) {
       var receiver = expression.target2;
-      if (receiver != null &&
-          expression.period == null &&
-          !expression.isDotShorthand) {
+      if (receiver != null && expression.period == null) {
         return ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: expression.question,

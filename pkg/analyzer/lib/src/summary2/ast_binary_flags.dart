@@ -83,13 +83,6 @@ class AstBinaryFlags {
 
   static final _isDeclaration = _checkBit(0, SimpleIdentifier);
 
-  static final _isDotShorthand = _checkBit(
-    0,
-    DotShorthandConstructorInvocation,
-    DotShorthandInvocation,
-    DotShorthandPropertyAccess,
-  );
-
   static final _isDeferred = _checkBit(0, ImportDirective);
 
   static final _isExternal = _checkBit(
@@ -183,7 +176,6 @@ class AstBinaryFlags {
     bool isCovariant = false,
     bool isDeclaration = false,
     bool isDeferred = false,
-    bool isDotShorthand = false,
     bool isExternal = false,
     bool isFactory = false,
     bool isFinal = false,
@@ -259,9 +251,6 @@ class AstBinaryFlags {
     }
     if (isDeferred) {
       result |= _isDeferred;
-    }
-    if (isDotShorthand) {
-      result |= _isDotShorthand;
     }
     if (isConst) {
       result |= _isConst;
@@ -471,10 +460,6 @@ class AstBinaryFlags {
 
   static bool isDeferred(int flags) {
     return (flags & _isDeferred) != 0;
-  }
-
-  static bool isDotShorthand(int flags) {
-    return (flags & _isDotShorthand) != 0;
   }
 
   static bool isExternal(int flags) {

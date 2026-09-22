@@ -1284,12 +1284,12 @@ class A {
 
   void test_methodInvocation() {
     // TODO(scheglov): Remove this test once the parser no longer constructs
-    // MethodInvocationImpl. Selectors after dot shorthand still use it.
+    // MethodInvocationImpl. Selectors after cascade starts still use it.
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
   void f() {
-    .a.foo<int>(0);
-    .b.bar<double>(1);
+    a..b.foo<int>(0);
+    c..d.bar<double>(1);
   }
 }
 ''');

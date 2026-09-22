@@ -718,6 +718,31 @@ void g() {
 ''');
   }
 
+  Future<void> test_dotShorthand_inferred_chain_property() async {
+    await indexTestUnit('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+T f<T>(T arg) => arg;
+void g() {
+  A a = f(.value.self);
+}
+''');
+    _createRefactoringForString('.value.self');
+    return _assertSuccessfulRefactoring('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+T f<T>(T arg) => arg;
+void g() {
+  A res = .value.self;
+  A a = f(res);
+}
+''');
+  }
+
   Future<void> test_fragmentExpression() async {
     await indexTestUnit('''
 void f() {

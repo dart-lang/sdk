@@ -1303,6 +1303,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    node.expression.accept2(this);
+  }
+
+  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _visitParsedExpression(node);
   }
