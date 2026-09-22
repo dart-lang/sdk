@@ -9,6 +9,7 @@ vm_sources = [
   "allocation.h",
   "app_snapshot.cc",
   "app_snapshot.h",
+  "autorelease_pool_scope.h",
   "base64.cc",
   "base64.h",
   "bit_vector.cc",
