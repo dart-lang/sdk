@@ -4,8 +4,6 @@
 
 import "dart:_internal" show patch;
 
-import "dart:async" show Future, Stream;
-
 import "dart:typed_data" show TypedData;
 
 @patch
@@ -145,6 +143,14 @@ abstract class RawReceivePort {
   @patch
   factory RawReceivePort([Function? handler, String debugName = '']) {
     throw UnsupportedError("RawReceivePort");
+  }
+}
+
+@patch
+class Capability {
+  @patch
+  factory Capability() {
+    throw UnsupportedError("Capability");
   }
 }
 
