@@ -48,18 +48,16 @@ based on the stable release. (We also publish docs from our
 [beta](https://api.dart.dev/beta) and [dev](https://api.dart.dev/dev) channels,
 as well as from the [primary development branch](https://api.dart.dev/be)).
 
+## Contributing to Dart
+
+See the [contribution guide][contrib] for details.
+
 ## Building Dart
 
 If you want to build Dart yourself, here is a guide to
 [getting the source, preparing your machine to build the SDK, and building][building].
 
 There are more documents in our repo at [docs](https://github.com/dart-lang/sdk/tree/main/docs).
-
-## Contributing to Dart
-
-The easiest way to contribute to Dart is to [file issues][issues].
-
-You can also contribute patches, as described in [Contributing][contrib].
 
 ## Roadmap
 
