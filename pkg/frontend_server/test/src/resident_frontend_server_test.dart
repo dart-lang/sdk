@@ -551,6 +551,79 @@ void main() async {
       );
     }
 
+    for (bool inMemory in [true, false]) {
+      test('invalidates when package file goes away '
+          '(${inMemory ? 'in memory' : 'from disk'})', () async {
+        executable.writeAsStringSync(
+          'import "package:pkga/main.dart"; void main() => hello();',
+        );
+        new File(path.join(d.path, 'pkga_v1', 'lib', 'main.dart'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync('void hello() => print("hello v1");');
+        new File(path.join(d.path, 'pkga_v2', 'lib', 'main.dart'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync('void hello() => print("hello v2");');
+
+        writePackageHelper([("pkga", "../pkga_v1")]);
+
+        // Let everything be old.
+        await new Future.delayed(const Duration(milliseconds: statGranularity));
+
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        Map<String, dynamic> compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        expect(compileResult['errorCount'], 0);
+        expect(compileResult['incremental'], isNull);
+        executeDillExpectStdout(compileResult, "hello v1");
+
+        // Delete package config and recompile. This should give errors.
+        package.deleteSync();
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], false);
+
+        // Recreate package config and recompile.
+        writePackageHelper([("pkga", "../pkga_v2")]);
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        executeDillExpectStdout(compileResult, "hello v2");
+      });
+    }
+
     test('produces aot kernel', () async {
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(

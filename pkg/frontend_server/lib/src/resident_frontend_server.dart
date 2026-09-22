@@ -12,7 +12,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
-    show exit, File, InternetAddress, ProcessSignal, ServerSocket, Socket;
+    show
+        exit,
+        File,
+        InternetAddress,
+        ProcessSignal,
+        ServerSocket,
+        Socket,
+        FileStat,
+        FileSystemEntityType;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
@@ -133,15 +141,10 @@ class ResidentCompiler {
     if (newOptions.arguments.length != _compileOptions.arguments.length) {
       return true;
     }
-    if (!newOptions.arguments.toSet().containsAll(
-      _compileOptions.arguments.toSet(),
-    )) {
+    if (!newOptions.arguments.toSet().containsAll(_compileOptions.arguments)) {
       return true;
     }
-    return _currentPackage != null &&
-        !_lastCompileStartTime.isAfter(
-          _currentPackage.statSync().modified.floorTime(),
-        );
+    return _currentPackage != null && _fileIsTooNew(_currentPackage);
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to, abiding
@@ -157,9 +160,8 @@ class ResidentCompiler {
     // compilation request. If no files have been modified, we can return
     // the cached kernel. Otherwise, perform an incremental compilation.
     if (_state == _ResidentState.waitingForRecompile) {
-      List<Uri> invalidatedUris = await _getSourceFilesToRecompile(
-        _lastCompileStartTime,
-      );
+      List<Uri> invalidatedUris = await _getSourceFilesToRecompile();
+
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
       // fall through to produce the kernel in recompileDelta.
@@ -297,21 +299,24 @@ class ResidentCompiler {
     }
   }
 
+  /// Returns true if [file] was modified at or after the last compile start
+  /// time, or if the file doesn't exist.
+  bool _fileIsTooNew(File file) {
+    FileStat statSync = file.statSync();
+    if (statSync.type == FileSystemEntityType.notFound) return true;
+    final DateTime fileChangeTime = statSync.modified.floorTime();
+    return !_lastCompileStartTime.isAfter(fileChangeTime);
+  }
+
   /// Returns a list of uris that need to be recompiled, based on the
   /// [lastKernelCompileTime] timestamp.
   /// Due to Windows timestamp granularity, all timestamps are truncated by
   /// the second. This has no effect on correctness but may result in more
   /// files being marked as invalid than are strictly required.
-  Future<List<Uri>> _getSourceFilesToRecompile(
-    DateTime lastKernelCompileTime,
-  ) async {
+  Future<List<Uri>> _getSourceFilesToRecompile() async {
     final List<Uri> sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final DateTime sourceModifiedTime = new File(uri.toFilePath())
-          .statSync()
-          .modified
-          .floorTime();
-      if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
+      if (_fileIsTooNew(new File(uri.toFilePath()))) {
         sourcesToRecompile.add(uri);
       }
     }
