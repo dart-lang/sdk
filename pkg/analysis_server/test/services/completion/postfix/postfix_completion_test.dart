@@ -25,7 +25,7 @@ void main() {
   });
 }
 
-class PostfixCompletionTest extends AbstractSingleUnitTest {
+class PostfixCompletionTest extends SingleUnitTest {
   late TestCode testCodeCode;
   late PostfixCompletionProcessor processor;
   late SourceChange change;

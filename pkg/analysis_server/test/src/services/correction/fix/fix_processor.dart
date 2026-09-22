@@ -29,7 +29,7 @@ export 'package:linter/src/lint_names.dart';
 
 typedef DiagnosticFilter = bool Function(Diagnostic diagnostic);
 
-abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
+abstract class BaseFixProcessorTest extends SingleUnitTest {
   /// The source change associated with the fix that was found.
   late SourceChange change;
 
@@ -107,7 +107,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 /// Tests using this base class validate that if there is more than one place to
 /// apply a fix, then the code is valid after applying as many fixes as possible
 /// in a single pass.
-abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
+abstract class BulkFixProcessorTest extends SingleUnitTest {
   final ByteStore _byteStore = MemoryByteStore();
 
   /// The source change associated with the fix that was found, or `null` if

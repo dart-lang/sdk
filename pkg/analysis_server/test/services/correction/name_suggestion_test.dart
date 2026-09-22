@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class VariableNameSuggestionTest extends AbstractSingleUnitTest
+class VariableNameSuggestionTest extends SingleUnitTest
     with FindElementMixin, FindNodeMixin {
   Future<void> test_forExpression_cast() async {
     await resolveTestCode('''

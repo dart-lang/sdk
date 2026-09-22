@@ -459,7 +459,7 @@ extension type E^(int x) {}
   }
 }
 
-abstract class _SelectionConstructorTestBase extends AbstractSingleUnitTest {
+abstract class _SelectionConstructorTestBase extends SingleUnitTest {
   void _assertHasConstructor() {
     expect(_getConstructor(), isA<ConstructorElement>());
   }

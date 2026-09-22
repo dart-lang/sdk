@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortMembersTest extends AbstractSingleUnitTest {
+class SortMembersTest extends SingleUnitTest {
   @override
   void setUp() {
     registerLintRules();

@@ -23,7 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class SourceEditsTest extends AbstractSingleUnitTest with LspEditHelpersMixin {
+class SourceEditsTest extends SingleUnitTest with LspEditHelpersMixin {
   Future<void> test_format_version_defaultsToLatest() async {
     // Latest version should parse and format records.
     const startContent = '''

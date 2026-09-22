@@ -21,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertElementTest extends AbstractSingleUnitTest with FindElementMixin {
+class ConvertElementTest extends SingleUnitTest with FindElementMixin {
   @override
   bool get addMetaPackageDep => true;
 

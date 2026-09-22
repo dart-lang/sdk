@@ -20,8 +20,7 @@ void main() {
   });
 }
 
-abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest
-    with FindNodeMixin {
+abstract class BaseRangeFactoryTest extends SingleUnitTest with FindNodeMixin {
   /// Assuming that the test code starts with a function whose block body starts
   /// with a method invocation, return the list of arguments in that invocation.
   NodeList<Argument> get _argumentList {

@@ -17,8 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class SuggestionBuilderTest extends AbstractSingleUnitTest
-    with FindElementMixin {
+class SuggestionBuilderTest extends SingleUnitTest with FindElementMixin {
   void assertSuggestion(
     CompletionSuggestion suggestion, {
     String? expectedDefaultArgumentList,

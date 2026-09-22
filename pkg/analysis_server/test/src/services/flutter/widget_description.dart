@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
 
-class WidgetDescriptionBase extends AbstractSingleUnitTest {
+class WidgetDescriptionBase extends SingleUnitTest {
   final descriptions = WidgetDescriptions();
 
   @override
