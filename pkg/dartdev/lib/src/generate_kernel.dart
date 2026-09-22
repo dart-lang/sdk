@@ -250,9 +250,6 @@ enum CompilationIssue {
 
   /// There were compilation errors in the Dart source code.
   compilationError,
-
-  /// Resident mode is only supported for sources within Dart packages
-  standaloneProgramError,
 }
 
 /// Indicates an error with the Resident Frontend Compiler.

@@ -1164,6 +1164,64 @@ Future<void> main() async {
     },
   );
 
+  Future<void> compareResidentAndNonResidentCompile(String content) async {
+    p = project();
+    p.file('hello.dart', content);
+    var script = File(path.join(p.dir.path, 'hello.dart'));
+    expect(script.existsSync(), true);
+
+    ProcessResult residentResult = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      'hello.dart',
+    ]);
+    ProcessResult nonResidentResult = await p.run([
+      'run',
+      'hello.dart',
+    ]);
+    expect(residentResult.exitCode, nonResidentResult.exitCode);
+
+    // Compile time errors have more text via the resident compiler, but should
+    // contain the same actual error text as the non-resident compiler.
+    String residentStderr = residentResult.stderr.toString().fixupForWindows();
+    String nonResidentStderr = nonResidentResult.stderr
+        .toString()
+        .fixupForWindows();
+    expect(residentStderr, contains(nonResidentStderr));
+
+    // Expect stdout to be the same.
+    String residentStdout = residentResult.stdout.toString().fixupForWindows();
+    String nonResidentStdout = nonResidentResult.stdout
+        .toString()
+        .fixupForWindows();
+    expect(residentStdout, nonResidentStdout);
+  }
+
+  test(
+    'compile time error via the resident compiler '
+    'gives same exit code as a non-resident compile',
+    () async {
+      await compareResidentAndNonResidentCompile(r'''
+void main(List<String> args) {
+  print(args.isEven);
+}
+''');
+    },
+  );
+
+  test(
+    'runtime error via the resident compiler '
+    'gives same exit code as a non-resident compile',
+    () async {
+      await compareResidentAndNonResidentCompile(r'''
+void main(List<String> args) {
+  print(42 ~/ args.length);
+}
+''');
+    },
+  );
+
   Future<Set<String>> runResidentExpectGoodAndReturnOptionsReceived(
     List<String> arguments, {
     String? scriptData,
@@ -2018,4 +2076,12 @@ List<String> getCachedCompilerOptions(String mainPath) {
     ).readAsStringSync(),
   );
   return [...cachedCompilerOptionsFileContents];
+}
+
+extension on String {
+  /// Trims, and converts a string with windows line-endings (\r\n) to posix
+  /// line endings (\n) and converts to lower case.
+  String fixupForWindows() {
+    return trim().split('\n').map((s) => s.trim()).join('\n').toLowerCase();
+  }
 }
