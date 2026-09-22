@@ -8,10 +8,12 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
+import '../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {

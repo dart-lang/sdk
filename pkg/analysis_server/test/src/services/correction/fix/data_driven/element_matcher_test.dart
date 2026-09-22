@@ -10,7 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../../abstract_single_unit.dart';
+import '../../../../../find_node.dart';
 import 'data_driven_test_support.dart';
 
 void main() {

@@ -7,10 +7,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_single_unit.dart';
+import '../../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {
