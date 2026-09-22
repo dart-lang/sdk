@@ -13,6 +13,7 @@ import 'code_action_refactors_test.dart' as code_action_refactors;
 import 'code_action_source_test.dart' as code_action_source;
 import 'completion_resolve_test.dart' as completion_resolve;
 import 'completion_test.dart' as completion;
+import 'configuration_test.dart' as configuration;
 import 'definition_test.dart' as definition;
 import 'diagnostics_test.dart' as diagnostics;
 import 'document_color_test.dart' as document_color;
@@ -52,6 +53,7 @@ void main() {
     completion.main();
     completion_resolve.main();
     code_action_source.main();
+    configuration.main();
     definition.main();
     diagnostics.main();
     document_color.main();

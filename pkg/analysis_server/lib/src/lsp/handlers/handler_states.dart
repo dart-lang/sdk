@@ -92,7 +92,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         TextDocumentChangeHandler.new,
         TextDocumentCloseHandler.new,
         ChangeWorkspaceFoldersHandler.new,
-        WorkspaceDidChangeConfigurationMessageHandler.new,
       ];
 
   new(LspAnalysisServer server) : super(server) {
@@ -162,6 +161,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
         WorkspaceAnalysisCompleteHandler.new,
+        WorkspaceDidChangeConfigurationMessageHandler.new,
         WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];

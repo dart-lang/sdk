@@ -146,6 +146,13 @@ abstract class IntegrationTest {
   ///
   ///   If LSP capabilities are not provided or no setClientCapabilities
   ///   request is made, a very basic set of capabilities will be assumed.
+  ///
+  ///   If the capabilities include `workspace.configuration`, the server
+  ///   requests the user's configuration with a `workspace/configuration`
+  ///   request after responding to this request. LSP messages received in the
+  ///   meantime are not handled until the client has responded to it, so that
+  ///   they see the user's configuration and not the defaults. Other requests
+  ///   are not affected.
   Future<void> sendServerSetClientCapabilities(
     List<String> requests, {
     bool? supportsUris,
@@ -2992,12 +2999,17 @@ abstract class IntegrationTest {
   /// Stream controller for [onFlutterOutline].
   final _onFlutterOutline = StreamController<FlutterOutlineParams>(sync: true);
 
-  /// Call an LSP handler. Message can be requests or notifications.
+  /// Call an LSP handler. The message must be an LSP request; LSP
+  /// notifications are sent with the `lsp.notification` notification.
   ///
   /// This request can be called in either direction, either by the client to
   /// the server, or by the server to the client. The server will only call the
   /// client if the client has indicated it supports the associated LSP request
-  /// via `lspCapabilities` in the `setClientCapabilities` request.
+  /// via `lspCapabilities` in the `setClientCapabilities` request. For
+  /// example, a client that sets the `workspace.configuration` capability will
+  /// be sent `workspace/configuration` requests to provide the user's
+  /// configuration, both after `setClientCapabilities` and whenever it sends a
+  /// `workspace/didChangeConfiguration` notification.
   ///
   /// Parameters
   ///
@@ -3029,7 +3041,7 @@ abstract class IntegrationTest {
   ///
   /// * `lspNotification: object`
   ///
-  ///   The LSP NotificationMessage sent by the server.
+  ///   The LSP NotificationMessage.
   late final Stream<LspNotificationParams> onLspNotification =
       _onLspNotification.stream.asBroadcastStream();
 
