@@ -1146,7 +1146,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     if (offset <= node.exportKeyword.end) {
+      collector.completionLocation = 'CompilationUnit_directive';
       _forCompilationUnitMemberBefore(node);
+    } else if (offset <= node.uri.offset) {
+      return;
+    } else if (offset >= node.uri.end) {
+      collector.completionLocation = 'CompilationUnit_directive';
+      keywordHelper.addExportDirectiveKeywords(node);
     }
   }
 
@@ -4348,6 +4354,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         var body = declaration.functionExpression.body;
         if (body.isEmpty) {
           keywordHelper.addFunctionBodyModifiers(body);
+        }
+      case ExportDirective directive:
+        if (directive.semicolon.isSynthetic) {
+          visitExportDirective(directive);
+          return true;
         }
       case ImportDirective directive:
         if (directive.semicolon.isSynthetic) {
