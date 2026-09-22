@@ -621,8 +621,19 @@ class BulkFixProcessor {
       return originalContext;
     }
 
+    var originalRoot = originalContext.contextRoot;
+    // Preserve the included paths of the original context root rather than
+    // using `originalRoot.root`. The root can be an ancestor of what the
+    // caller actually asked to be analyzed -- in a pub workspace it is the
+    // workspace directory, not the individual package -- so using it would
+    // silently widen the set of analyzed files to the whole workspace.
+    var includedPaths = originalRoot.includedPaths.toList();
+    if (includedPaths.isEmpty) {
+      includedPaths = [originalRoot.root.path];
+    }
+
     var collection = AnalysisContextCollectionImpl(
-      includedPaths: [originalContext.contextRoot.root.path],
+      includedPaths: includedPaths,
       resourceProvider: _workspace.resourceProvider,
       byteStore: _byteStore,
       sdkPath: originalContext.sdkRoot?.path,
@@ -641,7 +652,13 @@ class BulkFixProcessor {
           },
     );
 
-    return collection.contextFor(originalContext.contextRoot.root.path);
+    // Any one of the included paths names the context we want: a context
+    // root's included paths are exactly those that resolved to that same
+    // root, so `ContextLocator` groups them back together here too. See
+    // `ContextLocatorImpl.locateRoots`, which only appends a folder to an
+    // existing root when `_matchRootWithLocation` reports the same options
+    // file, package config, and workspace.
+    return collection.contextFor(includedPaths.first);
   }
 
   /// Filters errors to only those that are in [_codesToFix] and are not filtered out
