@@ -250,5 +250,32 @@ void migrate() {
       ).readAsStringSync();
       expect(pubspec, contains('^3.13.0'));
     });
+
+    test('--apply with overlapping edits in a step', () async {
+      // Converting a private field emits edits that overlap each other, an
+      // insertion of `this.` at the parameter name and a replacement of that
+      // same name with the field name.
+      p = project(
+        sdkConstraint: VersionConstraint.parse('^3.11.0'),
+        languageVersion: '3.12',
+        mainSrc: '''
+class C {
+  final bool _a;
+  C({bool a = true}) : _a = a;
+}
+''',
+      );
+
+      final result = await p.runMigrate(['--apply', p.dirPath]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(p.findFile('lib/main.dart')!.readAsStringSync(), '''
+class C {
+  final bool _a;
+  C({this._a = true});
+}
+''');
+    });
   });
 }
