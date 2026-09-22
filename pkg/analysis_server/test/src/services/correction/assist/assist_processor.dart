@@ -15,11 +15,11 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_testing/src/single_unit.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../../../../selection_mixin.dart';
-import '../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
