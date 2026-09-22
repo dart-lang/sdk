@@ -445,25 +445,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
-  }
-
-  @override
-  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
-    node.visitChildrenWithHooks(this, visitMemberName: (_) {});
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(
-    covariant DotShorthandPropertyAccessImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitPropertyName: (_) {});
-  }
-
-  @override
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
@@ -768,6 +749,10 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     node.localVariableInfo = _localVariableInfo;
     super.visitNativeFunctionBody(node);
   }
+
+  @override
+  void visitParsedDotShorthandName(covariant ParsedDotShorthandNameImpl node) =>
+      _visitParsedExpression(node);
 
   @override
   void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
@@ -1544,6 +1529,11 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   void _visitParsedExpression(ParsedExpressionImpl node) {
     switch (_astRewriter.parsedExpression(nameScope, node)) {
+      case PreparedDotShorthandInvocation(:var valueArguments):
+        valueArguments.dotShorthandInvocationParts!.typeArguments?.accept2(
+          this,
+        );
+        valueArguments.argumentList.accept2(this);
       case PreparedReceiverInvocation(
         :var receiver,
         :var typeArguments,

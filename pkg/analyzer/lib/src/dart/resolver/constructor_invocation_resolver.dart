@@ -73,9 +73,8 @@ class ConstructorInvocationResolver {
       lookupType: InterfaceTypeImpl(element: var contextElement),
     )) {
       // This branch will be true if we're resolving an explicitly marked
-      // const constructor invocation. It's completely unresolved, unlike a
-      // rewritten [DotShorthandConstructorInvocation2] that resulted from
-      // resolving a [DotShorthandInvocation].
+      // const constructor invocation. Other shorthand constructor invocations
+      // already have an element selected from the parsed invocation head.
       if (node.element == null) {
         if (contextElement.getNamedConstructor(node.name.lexeme)
             case ConstructorElementImpl element?

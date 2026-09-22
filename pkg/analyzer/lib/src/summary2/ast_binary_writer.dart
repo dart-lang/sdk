@@ -317,19 +317,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    _sink.writeEnum(AstNodeTag.DotShorthandConstructorInvocation);
-    _writeByte(
-      AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
-    );
-    _writeNode(node.constructorName);
-    _writeNode(node.argumentList);
-    _storeExpression(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -346,13 +333,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     );
     _sink.writeElement(node.element);
     _storeExpression(node);
-  }
-
-  @override
-  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
-    _sink.writeEnum(AstNodeTag.DotShorthandInvocation);
-    _writeNode(node.memberName);
-    _storeInvocationExpression(node);
   }
 
   @override
@@ -384,15 +364,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       _writeDotShorthandContextResolution,
     );
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(
-    covariant DotShorthandPropertyAccessImpl node,
-  ) {
-    _sink.writeEnum(AstNodeTag.DotShorthandPropertyAccess);
-    _writeNode(node.propertyName);
     _storeExpression(node);
   }
 

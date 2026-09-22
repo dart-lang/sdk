@@ -2907,6 +2907,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitParsedNameAccess(ParsedNameAccess node) {
     node.visitChildren2(this);
     return null;
@@ -4517,6 +4524,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) => null;
+
+  @experimental
+  @override
   R? visitParsedNameAccess(ParsedNameAccess node) => null;
 
   @experimental
@@ -5934,6 +5945,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) =>
       _throw(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) => _throw(node);
 
   @experimental
   @override
@@ -9024,6 +9039,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitParsedDotShorthandName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitParsedNameAccess(ParsedNameAccess node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedNameAccess(node);
@@ -10857,6 +10881,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node) =>
       visitNode(node);
 
   @experimental

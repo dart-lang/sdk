@@ -440,23 +440,6 @@ class AstBinaryReader {
     return node;
   }
 
-  DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
-    var flags = _readByte();
-    var constructorName = _readNode() as SimpleIdentifierImpl;
-    var argumentList = _readNode() as ArgumentListImpl;
-
-    var node = DotShorthandConstructorInvocationImpl(
-      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
-      period: Tokens.period(),
-      constructorName: constructorName,
-      typeArguments: null,
-      argumentList: argumentList,
-    );
-    _readExpressionResolution(node);
-    _resolveArguments(node.constructorName.element, node.argumentList);
-    return node;
-  }
-
   DotShorthandConstructorInvocation2 _readDotShorthandConstructorInvocation2() {
     var flags = _readByte();
     var name = _readStringReference();
@@ -492,20 +475,6 @@ class AstBinaryReader {
     }
   }
 
-  DotShorthandInvocation _readDotShorthandInvocation() {
-    var memberName = _readNode() as SimpleIdentifierImpl;
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var arguments = _readNode() as ArgumentListImpl;
-    var node = DotShorthandInvocationImpl(
-      period: Tokens.period(),
-      memberName: memberName,
-      typeArguments: typeArguments,
-      argumentList: arguments,
-    );
-    _readInvocationExpression(node);
-    return node;
-  }
-
   DotShorthandMethodInvocation _readDotShorthandMethodInvocation() {
     var name = _readStringReference();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
@@ -536,16 +505,6 @@ class AstBinaryReader {
       _readDotShorthandContextResolution,
     );
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  DotShorthandPropertyAccess _readDotShorthandPropertyAccess() {
-    var propertyName = _readNode() as SimpleIdentifierImpl;
-    var node = DotShorthandPropertyAccessImpl(
-      period: Tokens.period(),
-      propertyName: propertyName,
-    );
     _readExpressionResolution(node);
     return node;
   }
@@ -1375,12 +1334,6 @@ class AstBinaryReader {
         return _readDeclaredIdentifier();
       case AstNodeTag.DelimitedFormalParameters:
         return _readDelimitedFormalParameters();
-      case AstNodeTag.DotShorthandConstructorInvocation:
-        return _readDotShorthandConstructorInvocation();
-      case AstNodeTag.DotShorthandInvocation:
-        return _readDotShorthandInvocation();
-      case AstNodeTag.DotShorthandPropertyAccess:
-        return _readDotShorthandPropertyAccess();
       case AstNodeTag.DottedName:
         return _readDottedName();
       case AstNodeTag.DoubleLiteral:

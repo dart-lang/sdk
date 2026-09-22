@@ -311,20 +311,6 @@ class DotShorthandConstructorInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [DotShorthandInvocation].
-class DotShorthandInvocationInferrer
-    extends InvocationExpressionInferrer<DotShorthandInvocationImpl> {
-  DotShorthandInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes that require full downward and upward inference.
 abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     extends InvocationInferrer<Node> {

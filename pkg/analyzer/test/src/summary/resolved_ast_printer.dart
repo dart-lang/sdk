@@ -1636,6 +1636,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _sink.writeln('ParsedDotShorthandName');
+    _sink.withIndent(() {
+      _writeToken('period', node.period);
+      _writeToken('name', node.name);
+    });
+  }
+
+  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _sink.writeln('ParsedNameAccess');
     _sink.withIndent(() => _writeNamedChildEntities(node));

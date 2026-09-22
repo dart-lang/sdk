@@ -252,57 +252,6 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
-  /// Resolves the dot shorthand invocation, [node].
-  ///
-  /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation2] in the process, then returns that
-  /// new node. Otherwise, returns `null`.
-  ExpressionImpl? resolveDotShorthand(
-    DotShorthandInvocationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-    required DotShorthandContextResolutionImpl shorthandContext,
-  }) {
-    _invocation = node;
-
-    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
-      lookupType: InterfaceTypeImpl(:var element),
-    )) {
-      return _resolveReceiverTypeLiteralForDotShorthand(
-        node,
-        element,
-        node.memberName,
-        node.memberName.name,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        shorthandContext: shorthandContext,
-      );
-    }
-    if (shorthandContext case InvalidDotShorthandContextResolutionImpl(
-      contextType: null,
-    )) {
-      _resolver.diagnosticReporter.report(
-        diag.dotShorthandMissingContext.at(node),
-      );
-    } else {
-      _resolver.diagnosticReporter.report(
-        diag.dotShorthandUndefinedInvocation
-            .withArguments(
-              name: node.memberName.name,
-              contextType: contextType.getDisplayString(),
-            )
-            .at(node.memberName),
-      );
-    }
-    _setInvalidTypeResolutionForDotShorthand(
-      node,
-      setNameTypeToDynamic: false,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    return null;
-  }
-
   /// Resolves a call through an import namespace without constructing an
   /// expression receiver for the prefix.
   void resolveImportPrefixed(
@@ -905,22 +854,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
   void _reportUseOfVoidType(AstNode errorNode) {
     _resolver.diagnosticReporter.report(diag.useOfVoidResult.at(errorNode));
-  }
-
-  void _resolveArguments_finishDotShorthandInference(
-    DotShorthandInvocationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-  }) {
-    DartType staticStaticType = DotShorthandInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      target: null,
-    ).resolveInvocation();
-    node.recordStaticType(staticStaticType, resolver: _resolver);
   }
 
   void _resolveArguments_finishInference(
@@ -1823,86 +1756,6 @@ class MethodInvocationResolver with ScopeHelpers {
     _reportUndefinedMethodOrNew(receiver, nameNode);
   }
 
-  /// Resolves the dot shorthand invocation, [node], as an method invocation
-  /// with a type literal target.
-  ///
-  /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation2] in the process, then returns that
-  /// new node. Otherwise, returns `null`.
-  ExpressionImpl? _resolveReceiverTypeLiteralForDotShorthand(
-    DotShorthandInvocationImpl node,
-    InterfaceElement receiver,
-    SimpleIdentifierImpl nameNode,
-    String name,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-    required ValidDotShorthandContextResolutionImpl shorthandContext,
-  }) {
-    var element = _resolveElement(receiver, node.memberName);
-    if (element is InternalExecutableElement && element.isStatic) {
-      node.memberName.element = element;
-      if (element is InternalPropertyAccessorElement) {
-        return _rewriteAsCallInvocation(
-          node,
-          null,
-          node.period,
-          node.memberName,
-          node.typeArguments,
-          node.argumentList,
-          element.returnType,
-          isCascaded: false,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-          dotShorthandContext: shorthandContext,
-        );
-      }
-      _setResolutionForDotShorthand(
-        node,
-        element.type,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        target: InvocationTargetExecutableElement(element),
-      );
-      return null;
-    } else if (receiver.getNamedConstructor(name)
-        case ConstructorElementImpl element?
-        when element.isAccessibleIn(_resolver.definingLibrary)) {
-      // The dot shorthand is a constructor invocation so we rewrite to a
-      // [DotShorthandConstructorInvocation2].
-      var replacement =
-          DotShorthandConstructorInvocation2Impl(
-              constKeyword: null,
-              period: node.period,
-              name: nameNode.token,
-              typeArguments: node.typeArguments,
-              argumentList: node.argumentList,
-            )
-            ..element = element
-            ..shorthandContext = shorthandContext;
-      _resolver.replaceExpression(node, replacement);
-      _resolver.flowAnalysis.transferTestData(node, replacement);
-      _resolver.constructorInvocationResolver.resolveDotShorthand(
-        replacement,
-        contextType: contextType,
-        shorthandContext: shorthandContext,
-      );
-      return replacement;
-    }
-
-    _resolver.diagnosticReporter.report(
-      diag.dotShorthandUndefinedInvocation
-          .withArguments(name: nameNode.name, contextType: receiver.displayName)
-          .at(nameNode),
-    );
-    _setInvalidTypeResolutionForDotShorthand(
-      node,
-      setNameTypeToDynamic: element == null,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    return null;
-  }
-
   void _resolveReceiverWithoutTarget(
     ReceiverMethodInvocationImpl node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -2021,7 +1874,6 @@ class MethodInvocationResolver with ScopeHelpers {
     bool isSuperAccess = false,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
-    DotShorthandContextResolutionImpl? dotShorthandContext,
   }) {
     var targetType = getterReturnType;
 
@@ -2047,14 +1899,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       functionExpression = propertyExtraction;
     } else if (target == null) {
-      if (node is DotShorthandInvocationImpl) {
-        functionExpression = DotShorthandNameExpressionImpl(
-          period: node.period,
-          name: node.memberName.token,
-        )..shorthandContext = dotShorthandContext;
-      } else {
-        functionExpression = methodName;
-      }
+      functionExpression = methodName;
 
       var element = methodName.element;
       if (element is ExecutableElement &&
@@ -2116,19 +1961,6 @@ class MethodInvocationResolver with ScopeHelpers {
     if (functionExpression != methodName) {
       functionExpression.setPseudoExpressionStaticType(targetType);
     }
-    if (functionExpression case DotShorthandNameExpressionImpl expression) {
-      expression.resolution = switch (methodName.element) {
-        InternalGetterElement element => GetterInvocationResolutionImpl(
-          element: element,
-          type: targetType,
-        ),
-        InternalExecutableElement element => ExecutableTearOffResolutionImpl(
-          element: element,
-        ),
-        var element => InvalidNamedReadResolutionImpl(recoveryElement: element),
-      };
-    }
-
     var invocation = CallInvocationImpl(
       receiver: functionExpression,
       typeArguments: typeArguments,
@@ -2163,25 +1995,6 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
-  void _setDynamicTypeResolutionForDotShorthand(
-    DotShorthandInvocationImpl node, {
-    bool setNameTypeToDynamic = true,
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    if (setNameTypeToDynamic) {
-      node.memberName.setPseudoExpressionStaticType(_dynamicType);
-    }
-    node.staticInvokeType = _dynamicType;
-    node.setPseudoExpressionStaticType(_dynamicType);
-    _setExplicitTypeArgumentTypes();
-    _resolveArguments_finishDotShorthandInference(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
   /// Set explicitly specified type argument types, or empty if not specified.
   /// Inference is done in type analyzer, so inferred type arguments might be
   /// set later.
@@ -2210,25 +2023,6 @@ class MethodInvocationResolver with ScopeHelpers {
     }
     _setExplicitTypeArgumentTypes();
     _resolveArguments_finishInference(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    node.staticInvokeType = InvalidTypeImpl.instance;
-    node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-  }
-
-  void _setInvalidTypeResolutionForDotShorthand(
-    DotShorthandInvocationImpl node, {
-    bool setNameTypeToDynamic = true,
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    if (setNameTypeToDynamic) {
-      node.memberName.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-    }
-    _setExplicitTypeArgumentTypes();
-    _resolveArguments_finishDotShorthandInference(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
@@ -2314,60 +2108,5 @@ class MethodInvocationResolver with ScopeHelpers {
       contextType: contextType,
     );
     _reportInvocationOfNonFunction(node.methodName);
-  }
-
-  void _setResolutionForDotShorthand(
-    DotShorthandInvocationImpl node,
-    TypeImpl type,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-    required InvocationTarget target,
-  }) {
-    inferenceLogWriter?.recordLookupResult(
-      expression: node,
-      type: type,
-      target: null,
-      methodName: node.memberName.name,
-    );
-    // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
-    // But it seems weird. Do we need to know the raw type of a function?!
-    node.memberName.setPseudoExpressionStaticType(type);
-
-    if (type == _dynamicType || _isCoreFunction(type)) {
-      _setDynamicTypeResolutionForDotShorthand(
-        node,
-        setNameTypeToDynamic: false,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    if (type is FunctionTypeImpl) {
-      _inferenceHelper.resolveDotShorthandInvocation(
-        node: node,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-        target: target,
-      );
-      return;
-    }
-
-    if (type is VoidType) {
-      _setInvalidTypeResolutionForDotShorthand(
-        node,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return _reportUseOfVoidType(node.memberName);
-    }
-
-    _setInvalidTypeResolutionForDotShorthand(
-      node,
-      setNameTypeToDynamic: false,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    _reportInvocationOfNonFunction(node.memberName);
   }
 }

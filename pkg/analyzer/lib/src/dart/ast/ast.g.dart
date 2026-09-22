@@ -777,6 +777,9 @@ abstract class AstVisitor2<R> {
   R? visitParsedDotShorthandExpression(ParsedDotShorthandExpression node);
 
   @experimental
+  R? visitParsedDotShorthandName(ParsedDotShorthandName node);
+
+  @experimental
   R? visitParsedNameAccess(ParsedNameAccess node);
 
   @experimental

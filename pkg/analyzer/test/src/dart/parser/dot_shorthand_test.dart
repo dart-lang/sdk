@@ -24,11 +24,10 @@ Object f() => const .new().value;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
   expression: ParsedNameAccess
-    operand: DotShorthandConstructorInvocation
+    operand: DotShorthandConstructorInvocation2
       constKeyword: const
       period: .
-      constructorName: SimpleIdentifier
-        token: new
+      name: new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -61,10 +60,9 @@ ParsedDotShorthandExpression
       operand: ParsedNameAccess
         operand: NullAssertionExpression
           operand: ReceiverIndexExpression
-            receiver: DotShorthandPropertyAccess
+            receiver: ParsedDotShorthandName
               period: .
-              propertyName: SimpleIdentifier
-                token: values
+              name: values
             leftBracket: [
             index: IntegerLiteral
               literal: 0
@@ -118,10 +116,9 @@ ParsedDotShorthandExpression
   expression: ParsedValueArguments
     operand: ParsedNameAccess
       operand: ParsedTypeArguments
-        operand: DotShorthandPropertyAccess
+        operand: ParsedDotShorthandName
           period: .
-          propertyName: SimpleIdentifier
-            token: identity
+          name: identity
         typeArguments: TypeArgumentList
           leftBracket: <
           arguments
@@ -172,10 +169,10 @@ void main() {
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: DotShorthandInvocation
-    period: .
-    memberName: SimpleIdentifier
-      token: new
+  expression: ParsedValueArguments
+    operand: ParsedDotShorthandName
+      period: .
+      name: new
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
@@ -185,6 +182,99 @@ V1: DotShorthandInvocation
     token: new
   argumentList: ArgumentList
     leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_invocation_selector() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+Object f() => .member<int>(0).value;
+''');
+    var node = parseResult.findNode.singleExpressionFunctionBody.expression2;
+    assertParsedNodeText(node, r'''
+ParsedDotShorthandExpression
+  expression: ParsedNameAccess
+    operand: ParsedValueArguments
+      operand: ParsedTypeArguments
+        operand: ParsedDotShorthandName
+          period: .
+          name: member
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    operator: .
+    name: value
+V1: PropertyAccess
+  target: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: member
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  operator: .
+  propertyName: SimpleIdentifier
+    token: value
+''');
+  }
+
+  void test_invocation_typeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+Object f() => .member<int>(0);
+''');
+    var node = parseResult.findNode.singleExpressionFunctionBody.expression2;
+    assertParsedNodeText(node, r'''
+ParsedDotShorthandExpression
+  expression: ParsedValueArguments
+    operand: ParsedTypeArguments
+      operand: ParsedDotShorthandName
+        period: .
+        name: member
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
     rightParenthesis: )
 ''');
   }
@@ -200,10 +290,9 @@ ParsedValueArguments
     operand: ParenthesizedExpression
       leftParenthesis: (
       expression2: ParsedDotShorthandExpression
-        expression: DotShorthandPropertyAccess
+        expression: ParsedDotShorthandName
           period: .
-          propertyName: SimpleIdentifier
-            token: value
+          name: value
       rightParenthesis: )
     operator: .
     name: method
@@ -239,10 +328,9 @@ void main() {
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: DotShorthandPropertyAccess
+  expression: ParsedDotShorthandName
     period: .
-    propertyName: SimpleIdentifier
-      token: a
+    name: a
 V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier

@@ -317,6 +317,18 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
+    if (node is ParsedDotShorthandNameImpl) {
+      var expression = DotShorthandNameExpressionImpl(
+        period: node.period,
+        name: node.name,
+      );
+      node.replaceWith(expression);
+      return RewrittenParsedExpression._(expression);
+    }
+    if (node is ParsedValueArgumentsImpl &&
+        node.dotShorthandInvocationParts != null) {
+      return PreparedDotShorthandInvocation(node);
+    }
     var constructorSelector = switch (node) {
       ParsedNameAccessImpl selector => selector,
       ParsedValueArgumentsImpl(operand: ParsedNameAccessImpl selector) =>
@@ -483,6 +495,7 @@ class AstRewriter {
     var head = _parsedReceiverHead(node);
     var expression =
         head is ParsedUnqualifiedNameImpl ||
+            head is ParsedDotShorthandNameImpl ||
             head is ParsedValueArgumentsImpl && node is ParsedNameAccessImpl ||
             head is ParsedTypeArgumentsImpl &&
                 node is ParsedNameAccessImpl &&
@@ -634,6 +647,7 @@ class AstRewriter {
       receiver = switch (parsedExpression(nameScope, receiver)) {
         RewrittenParsedExpression(:var expression) => expression,
         PreparedReceiverInvocation(:var valueArguments) => valueArguments,
+        PreparedDotShorthandInvocation(:var valueArguments) => valueArguments,
       };
     }
 
@@ -1024,6 +1038,7 @@ class AstRewriter {
     // constructor recovery path.
     if (head is ParsedExpressionImpl &&
         head is! ParsedUnqualifiedNameImpl &&
+        head is! ParsedDotShorthandNameImpl &&
         head is! ParsedValueArgumentsImpl &&
         !(head is ParsedTypeArgumentsImpl &&
             _isFunctionInstantiationReceiver(nameScope, head))) {
@@ -1486,6 +1501,14 @@ class AstRewriter {
 
 /// The outcome of interpreting a parsed expression during lexical binding.
 sealed class ParsedExpressionResult {}
+
+/// A shorthand call needs the context established by its enclosing expression
+/// before lookup can distinguish a constructor, method, or callable property.
+final class PreparedDotShorthandInvocation extends ParsedExpressionResult {
+  final ParsedValueArgumentsImpl valueArguments;
+
+  PreparedDotShorthandInvocation(this.valueArguments);
+}
 
 /// A call ready for receiver traversal and subsequent member lookup.
 final class PreparedReceiverInvocation extends ParsedExpressionResult {

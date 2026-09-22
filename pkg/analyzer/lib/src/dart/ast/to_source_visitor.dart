@@ -1308,6 +1308,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+  }
+
+  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     _visitParsedExpression(node);
   }
@@ -1959,7 +1965,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   void _visitParsedExpression(ParsedExpression root) {
     Expression node = root;
-    while (node is ParsedExpression && node is! ParsedUnqualifiedName) {
+    while (node is ParsedExpression &&
+        node is! ParsedUnqualifiedName &&
+        node is! ParsedDotShorthandName) {
       node = switch (node) {
         ParsedNameAccess(:var operand) => operand,
         ParsedTypeArguments(:var operand) => operand,
@@ -1981,6 +1989,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
         case ParsedValueArguments(:var argumentList):
           _visitNode(argumentList);
         case ParsedUnqualifiedName():
+        case ParsedDotShorthandName():
           throw StateError('A parsed name cannot contain an operand.');
       }
     }

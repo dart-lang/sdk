@@ -1250,10 +1250,9 @@ var v = .;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: DotShorthandPropertyAccess
+  expression: ParsedDotShorthandName
     period: .
-    propertyName: SimpleIdentifier
-      token: <empty> <synthetic>
+    name: <empty> <synthetic>
 V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier

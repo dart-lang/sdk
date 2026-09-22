@@ -968,6 +968,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   @experimental
+  void addParsedDotShorthandName(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

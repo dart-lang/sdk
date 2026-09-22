@@ -286,6 +286,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ParenthesizedPattern,
         ParsedAssignmentTarget,
         ParsedDotShorthandExpression,
+        ParsedDotShorthandName,
         ParsedExpression,
         ParsedNameAccess,
         ParsedNameAccessAssignmentTarget,

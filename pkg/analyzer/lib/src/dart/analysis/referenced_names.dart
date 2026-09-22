@@ -325,6 +325,14 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
@@ -420,6 +428,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    names.add(node.name.lexeme);
   }
 
   @override

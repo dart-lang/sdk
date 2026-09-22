@@ -244,6 +244,110 @@ V1: DotShorthandInvocation
 ''');
   }
 
+  test_chain_genericInvocation_nestedShorthand() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  C();
+  static C make<T>(T value) => C();
+  C get self => this;
+}
+
+C value = .make<C>(.new()).self;
+''');
+    var node = result.findNode.receiverPropertyExtraction('.self');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: DotShorthandMethodInvocation
+    period: .
+    name: make
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        DotShorthandConstructorInvocation2
+          period: .
+          name: new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          shorthandContext: ValidDotShorthandContextResolution
+            contextType: C
+            lookupType: C
+          element: <testLibrary>::@class::C::@constructor::new
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::C::@method::make::@formalParameter::value
+            substitution: {T: C}
+          staticType: C
+      rightParenthesis: )
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@class::C::@method::make
+      invokeType: C Function(C)
+      type: C
+    staticType: C
+    typeArgumentTypes
+      C
+  operator: .
+  name: self
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::self
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
+  target: DotShorthandInvocation
+    period: .
+    memberName: SimpleIdentifier
+      token: make
+      element: <testLibrary>::@class::C::@method::make
+      staticType: C Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        DotShorthandConstructorInvocation
+          period: .
+          constructorName: SimpleIdentifier
+            token: new
+            element: <testLibrary>::@class::C::@constructor::new
+            staticType: null
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::C::@method::make::@formalParameter::value
+            substitution: {T: C}
+          staticType: C
+      rightParenthesis: )
+    staticInvokeType: C Function(C)
+    staticType: C
+    typeArgumentTypes
+      C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: self
+    element: <testLibrary>::@class::C::@getter::self
+    staticType: C
+  staticType: C
+''');
+  }
+
   test_chain_method() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {

@@ -1574,24 +1574,25 @@ class AstBuilder extends StackListener {
     }
 
     var dotShorthand = pop() as Expression;
-    if (dotShorthand is DotShorthandInvocationImpl) {
+    if (dotShorthand is ParsedValueArgumentsImpl) {
+      var (:head, :typeArguments) = dotShorthand.dotShorthandInvocationParts!;
       push(
-        DotShorthandConstructorInvocationImpl(
+        DotShorthandConstructorInvocation2Impl(
           constKeyword: token,
-          period: dotShorthand.period,
-          constructorName: dotShorthand.memberName,
-          typeArguments: dotShorthand.typeArguments,
+          period: head.period,
+          name: head.name,
+          typeArguments: typeArguments,
           argumentList: dotShorthand.argumentList,
         ),
       );
-    } else if (dotShorthand is DotShorthandPropertyAccessImpl) {
+    } else if (dotShorthand is ParsedDotShorthandNameImpl) {
       push(
-        DotShorthandConstructorInvocationImpl(
+        DotShorthandConstructorInvocation2Impl(
           constKeyword: token,
           period: dotShorthand.period,
-          constructorName: dotShorthand.propertyName,
+          name: dotShorthand.name,
           typeArguments: null,
-          argumentList: _syntheticArgumentList(dotShorthand.propertyName.token),
+          argumentList: _syntheticArgumentList(dotShorthand.name),
         ),
       );
     }
@@ -4362,23 +4363,22 @@ class AstBuilder extends StackListener {
     var operand = pop() as ExpressionImpl;
     if (operand is SimpleIdentifierImpl) {
       push(
-        DotShorthandPropertyAccessImpl(
-          period: periodToken,
-          propertyName: operand,
-        ),
+        ParsedDotShorthandNameImpl(period: periodToken, name: operand.token),
       );
     } else if (operand is ParsedValueArgumentsImpl) {
       var function = operand.operand;
       var types = function is ParsedTypeArgumentsImpl ? function : null;
       var name = (types?.operand ?? function) as ParsedUnqualifiedNameImpl;
-      push(
-        DotShorthandInvocationImpl(
-          period: periodToken,
-          memberName: SimpleIdentifierImpl(token: name.name),
-          typeArguments: types?.typeArguments,
-          argumentList: operand.argumentList,
-        ),
+      var head = ParsedDotShorthandNameImpl(
+        period: periodToken,
+        name: name.name,
       );
+      if (types != null) {
+        types.operand = head;
+      } else {
+        operand.operand = head;
+      }
+      push(operand);
     } else {
       push(operand);
     }

@@ -3045,35 +3045,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    var shorthandContext = _resolveDotShorthandContext();
-
-    var replacement = DotShorthandConstructorInvocation2Impl(
-      constKeyword: node.constKeyword,
-      period: node.period,
-      name: node.constructorName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    )..shorthandContext = shorthandContext;
-    replaceExpression(node, replacement);
-    flowAnalysis.transferExpressionInfo(node, replacement);
-    flowAnalysis.transferTestData(node, replacement);
-    inferenceHelper.transferTestData(node, replacement);
-    constructorInvocationResolver.resolveDotShorthand(
-      replacement,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
-
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3093,55 +3064,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitDotShorthandInvocation(
-    covariant DotShorthandInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    var shorthandContext = _resolveDotShorthandContext();
-
-    checkUnreachableNode(node);
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-
-    node.typeArguments?.accept2(this);
-    var rewrittenExpression = elementResolver.visitDotShorthandInvocation(
-      node,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
-
-    ExpressionImpl resolvedExpression = node;
-    if (rewrittenExpression == null) {
-      resolvedExpression = _rewriteDotShorthandMethodInvocation(
-        node,
-        shorthandContext,
-      );
-    }
-
-    // TODO(paulberry): why don't we do this for
-    // DotShorthandConstructorInvocationImpl?
-    if (rewrittenExpression is CallInvocationImpl ||
-        rewrittenExpression == null) {
-      var replacement = insertGenericFunctionInstantiation(
-        resolvedExpression,
-        contextType: contextType,
-      );
-      checkForArgumentTypesNotAssignableInList(
-        resolvedExpression is FunctionInvocationImpl
-            ? resolvedExpression.argumentList
-            : node.argumentList,
-        whyNotPromotedArguments,
-      );
-      _insertImplicitCallTearOff(replacement, contextType: contextType);
-    }
-
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(
     covariant DotShorthandMethodInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3156,24 +3078,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     _resolveDotShorthandNameExpression(node, contextType);
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(
-    covariant DotShorthandPropertyAccessImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    var replacement = DotShorthandNameExpressionImpl(
-      period: node.period,
-      name: node.propertyName.token,
-    );
-    replaceExpression(node, replacement);
-    flowAnalysis.transferExpressionInfo(node, replacement);
-    flowAnalysis.transferTestData(node, replacement);
-    inferenceHelper.transferTestData(node, replacement);
-    _resolveDotShorthandNameExpression(replacement, contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4420,6 +4324,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant ParsedValueArgumentsImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
+    if (node.dotShorthandInvocationParts != null) {
+      _resolveParsedDotShorthandInvocation(node, contextType);
+      return;
+    }
     var (:selector, :typeArguments) = node.namedInvocationParts!;
     var receiver = AstRewriter.receiverInvocationReceiver(node);
     inferenceLogWriter?.enterExpression(node, contextType);
@@ -5688,6 +5596,56 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     required TypeImpl contextType,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
+    _resolveNamedFunctionInvocation(node, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  /// Resolves the context shared by every canonical dot-shorthand head.
+  ///
+  /// The surrounding context is preserved separately from the normalized
+  /// interface type used for static namespace lookup. Operation-specific
+  /// resolvers consume this result instead of repeating context normalization.
+  DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
+    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
+    var lookupType = typeSystem.futureOrBase(contextType);
+    if (lookupType is InterfaceTypeImpl &&
+        lookupType.element.isAccessibleIn(definingLibrary)) {
+      return ValidDotShorthandContextResolutionImpl(
+        contextType: contextType,
+        lookupType: lookupType,
+      );
+    }
+    return InvalidDotShorthandContextResolutionImpl(
+      contextType: contextType is UnknownInferredType ? null : contextType,
+    );
+  }
+
+  void _resolveDotShorthandNameExpression(
+    DotShorthandNameExpressionImpl node,
+    TypeImpl contextType,
+  ) {
+    checkUnreachableNode(node);
+    var shorthandContext = _resolveDotShorthandContext();
+    node.shorthandContext = shorthandContext;
+    var resolution = _propertyElementResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+      shorthandContext: shorthandContext,
+    );
+    node.resolution = resolution;
+    node.recordStaticType(resolution.type, resolver: this);
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
+  void _resolveNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
     checkUnreachableNode(node);
     node.typeArguments?.accept2(this);
 
@@ -5753,49 +5711,144 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       whyNotPromotedArguments,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
-    inferenceLogWriter?.exitExpression(node);
   }
 
-  /// Resolves the context shared by every canonical dot-shorthand head.
-  ///
-  /// The surrounding context is preserved separately from the normalized
-  /// interface type used for static namespace lookup. Operation-specific
-  /// resolvers consume this result instead of repeating context normalization.
-  DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
-    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
-    var lookupType = typeSystem.futureOrBase(contextType);
-    if (lookupType is InterfaceTypeImpl &&
-        lookupType.element.isAccessibleIn(definingLibrary)) {
-      return ValidDotShorthandContextResolutionImpl(
-        contextType: contextType,
-        lookupType: lookupType,
-      );
-    }
-    return InvalidDotShorthandContextResolutionImpl(
-      contextType: contextType is UnknownInferredType ? null : contextType,
-    );
-  }
-
-  void _resolveDotShorthandNameExpression(
-    DotShorthandNameExpressionImpl node,
+  /// Selects the operation before resolving arguments, so contextual inference
+  /// runs on the canonical invocation and never needs a legacy shorthand node.
+  void _resolveParsedDotShorthandInvocation(
+    ParsedValueArgumentsImpl node,
     TypeImpl contextType,
   ) {
+    inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
+    var (:head, :typeArguments) = node.dotShorthandInvocationParts!;
     var shorthandContext = _resolveDotShorthandContext();
-    node.shorthandContext = shorthandContext;
-    var resolution = _propertyElementResolver.resolveDotShorthand(
-      node,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
-    node.resolution = resolution;
-    node.recordStaticType(resolution.type, resolver: this);
+    InternalExecutableElement? element;
+    InterfaceElementImpl? interfaceElement;
+    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
+      lookupType: InterfaceTypeImpl(:var element),
+    )) {
+      interfaceElement = element;
+    }
+    if (interfaceElement != null) {
+      element =
+          interfaceElement.getGetter(head.name.lexeme) ??
+          interfaceElement.getMethod(head.name.lexeme);
+      if (element != null && !element.isAccessibleIn(definingLibrary)) {
+        element = null;
+      }
+    }
 
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
+    void replace(ExpressionImpl replacement) {
+      replaceExpression(node, replacement);
+      flowAnalysis.transferExpressionInfo(node, replacement);
+      flowAnalysis.transferTestData(node, replacement);
+      inferenceHelper.transferTestData(node, replacement);
+    }
+
+    if (element is InternalGetterElement && element.isStatic) {
+      typeArguments?.accept2(this);
+      var read =
+          DotShorthandNameExpressionImpl(period: head.period, name: head.name)
+            ..shorthandContext = shorthandContext
+            ..resolution = GetterInvocationResolutionImpl(
+              element: element,
+              type: element.returnType,
+            );
+      inferenceLogWriter?.enterFunctionExpressionInvocationTarget(read);
+      read.recordStaticType(element.returnType, resolver: this);
+      if (element.returnType.isBottom) {
+        flowAnalysis.flow?.handleExit(offset: head.name.end);
+      }
+      inferenceLogWriter?.exitExpression(read);
+      var invocation = CallInvocationImpl(
+        receiver: read,
+        typeArguments: typeArguments,
+        argumentList: node.argumentList,
+      );
+      replace(invocation);
+      var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+      callInvocationResolver.resolve(
+        invocation,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      var replacement = insertGenericFunctionInstantiation(
+        invocation,
+        contextType: contextType,
+      );
+      checkForArgumentTypesNotAssignableInList(
+        invocation.argumentList,
+        whyNotPromotedArguments,
+      );
+      _insertImplicitCallTearOff(replacement, contextType: contextType);
+      inferenceLogWriter?.exitExpression(node);
+      return;
+    }
+    if (element == null || !element.isStatic) {
+      if (interfaceElement?.getNamedConstructor(head.name.lexeme)
+          case ConstructorElementImpl constructor?
+          when constructor.isAccessibleIn(definingLibrary)) {
+        var invocation =
+            DotShorthandConstructorInvocation2Impl(
+                constKeyword: null,
+                period: head.period,
+                name: head.name,
+                typeArguments: typeArguments,
+                argumentList: node.argumentList,
+              )
+              ..element = constructor
+              ..shorthandContext = shorthandContext;
+        replace(invocation);
+        constructorInvocationResolver.resolveDotShorthand(
+          invocation,
+          contextType: contextType,
+          shorthandContext: shorthandContext,
+        );
+        inferenceLogWriter?.exitExpression(node);
+        return;
+      }
+      if (shorthandContext case InvalidDotShorthandContextResolutionImpl(
+        contextType: null,
+      )) {
+        diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
+      } else {
+        diagnosticReporter.report(
+          diag.dotShorthandUndefinedInvocation
+              .withArguments(
+                name: head.name.lexeme,
+                contextType:
+                    interfaceElement?.displayName ??
+                    contextType.getDisplayString(),
+              )
+              .at(head.name),
+        );
+      }
+      element = null;
+    }
+    var invocation = DotShorthandMethodInvocationImpl(
+      period: head.period,
+      name: head.name,
+      typeArguments: typeArguments,
+      argumentList: node.argumentList,
+    )..shorthandContext = shorthandContext;
+    if (element != null) {
+      invocation.resolution = ExecutableInvocationResolutionImpl(
+        element: element,
+        invokeType: element.type,
+        type: element.type.returnType,
+      );
+    } else {
+      invocation.resolution = InvalidInvocationResolutionImpl(
+        candidates: const [],
+        recovery: null,
+        type: InvalidTypeImpl.instance,
+      );
+      invocation.staticInvokeType = InvalidTypeImpl.instance;
+    }
+    replace(invocation);
+    _resolveNamedFunctionInvocation(invocation, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
   }
 
   void _resolvePropertyAccessRhs(
@@ -5959,70 +6012,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       ..setPseudoExpressionStaticType(resultType);
     replaceExpression(node, invocation);
     flowAnalysis.transferTestData(node, invocation);
-    return invocation;
-  }
-
-  DotShorthandMethodInvocationImpl _rewriteDotShorthandMethodInvocation(
-    DotShorthandInvocationImpl node,
-    DotShorthandContextResolutionImpl shorthandContext,
-  ) {
-    var resultType = node.typeOrThrow;
-    var invokeType = node.staticInvokeType;
-    var element = node.memberName.element;
-    var candidateElement = node.memberName.writeOrReadElement2;
-
-    ValidInvocationResolutionImpl? recovery;
-    if (invokeType is FunctionTypeImpl) {
-      recovery = switch (element) {
-        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
-          element: element,
-          invokeType: invokeType,
-          type: resultType,
-        ),
-        _ => FunctionCallInvocationResolutionImpl(
-          invokeType: invokeType,
-          type: resultType,
-        ),
-      };
-    }
-
-    InvocationResolutionImpl resolution;
-    if (candidateElement is MultiplyDefinedElement) {
-      resolution = InvalidInvocationResolutionImpl(
-        candidates: [candidateElement],
-        recovery: recovery,
-        type: resultType,
-      );
-    } else if (resultType is InvalidTypeImpl || invokeType is InvalidTypeImpl) {
-      resolution = InvalidInvocationResolutionImpl(
-        candidates: [?candidateElement],
-        recovery: recovery,
-        type: resultType,
-      );
-    } else if (recovery != null) {
-      resolution = recovery;
-    } else if (invokeType != null && invokeType.isDartCoreFunction) {
-      resolution = FunctionInterfaceInvocationResolutionImpl(type: resultType);
-    } else {
-      resolution = DynamicInvocationResolutionImpl(type: resultType);
-    }
-
-    var invocation = DotShorthandMethodInvocationImpl(
-      period: node.period,
-      name: node.memberName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    );
-    invocation
-      ..shorthandContext = shorthandContext
-      ..resolution = resolution
-      ..staticInvokeType = invokeType
-      ..typeArgumentTypes = node.typeArgumentTypes
-      ..setPseudoExpressionStaticType(resultType);
-    replaceExpression(node, invocation);
-    flowAnalysis.transferExpressionInfo(node, invocation);
-    flowAnalysis.transferTestData(node, invocation);
-    inferenceHelper.transferTestData(node, invocation);
     return invocation;
   }
 
