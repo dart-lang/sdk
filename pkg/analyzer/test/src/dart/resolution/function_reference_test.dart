@@ -31,9 +31,8 @@ T Function<T>(T) makeFunction() => identity;
 var f = makeFunction()<int>;
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionInstantiation('makeFunction()<int>'),
-      r'''
+    var node = result.findNode.functionInstantiation('makeFunction()<int>');
+    assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: UnqualifiedFunctionInvocation
     name: makeFunction
@@ -78,8 +77,7 @@ V1: FunctionReference
   staticType: int Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_callResult_callable() async {
@@ -92,9 +90,8 @@ C makeCallable() => C();
 var f = makeCallable()<int>;
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionInstantiation('makeCallable()<int>'),
-      r'''
+    var node = result.findNode.functionInstantiation('makeCallable()<int>');
+    assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ImplicitCallTearOff
     operand: UnqualifiedFunctionInvocation
@@ -143,8 +140,99 @@ V1: ImplicitCallReference
   staticType: int Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
+  }
+
+  test_callResult_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+T Function<T>(T) makeFunction() => identity;
+
+var x = makeFunction()<int>.call(0);
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: UnqualifiedFunctionInvocation
+      name: makeFunction
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::makeFunction
+        invokeType: T Function<T>(T) Function()
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <null-name>@null
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: FunctionReference
+    function: MethodInvocation
+      methodName: SimpleIdentifier
+        token: makeFunction
+        element: <testLibrary>::@function::makeFunction
+        staticType: T Function<T>(T) Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: T Function<T>(T) Function()
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <null-name>@null
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
   }
 
   test_constructorFunction_named() async {
@@ -1983,7 +2071,8 @@ void f(C c) {
   g(c<int>);
 }
 ''');
-    assertResolvedNodeText(result.findNode.singleFunctionInstantiation, r'''
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ImplicitCallTearOff
     operand: UnqualifiedNameExpression
@@ -2350,6 +2439,95 @@ V1: ImplicitCallReference
   staticType: int Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_implicitCallTearoff_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+C get c => C();
+
+var x = c<int>.call(0);
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: ImplicitCallTearOff
+      operand: UnqualifiedNameExpression
+        name: c
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::c
+          invokeType: C Function()
+          type: C
+        staticType: C
+      element: <testLibrary>::@class::C::@method::call
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: ImplicitCallReference
+    expression: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@getter::c
+      staticType: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@class::C::@method::call
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
 ''');
   }
 
@@ -3295,7 +3473,72 @@ void f(A a) {
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int, String>');
-    assertType(node, 'void Function(dynamic)');
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(dynamic)
+  typeArgumentTypes
+    dynamic
+V1: FunctionReference
+  function: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(dynamic)
+  typeArgumentTypes
+    dynamic
+''');
   }
 
   test_instanceMethod_explicitReceiver_parameter_promoted() async {
@@ -3666,17 +3909,18 @@ bar(A a) {
     var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::bar::@formalParameter::a
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::bar::@formalParameter::a
+        type: A
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    operator: .
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
-      staticType: void Function<T>(T)
-    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -4347,9 +4591,8 @@ void f(C? c) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionInstantiation('c?.foo<int>'),
-      r'''
+    var node = result.findNode.functionInstantiation('c?.foo<int>');
+    assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
     receiver: UnqualifiedNameExpression
@@ -4363,7 +4606,7 @@ FunctionInstantiation
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::foo
       type: T Function<T>(T)
-    staticType: T Function<T>(T)?
+    staticType: T Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -4386,7 +4629,7 @@ V1: FunctionReference
       token: foo
       element: <testLibrary>::@class::C::@method::foo
       staticType: T Function<T>(T)
-    staticType: T Function<T>(T)?
+    staticType: T Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -4398,8 +4641,211 @@ V1: FunctionReference
   staticType: int Function(int)?
   typeArgumentTypes
     int
-''',
-    );
+''');
+  }
+
+  test_instanceMethod_nullAware_parenthesized_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T m<T>(T value) => value;
+}
+
+int f(C? c) {
+  return (c?.m<int>).call(0);
+//                   ^^^^
+// [diag.uncheckedMethodInvocationOfNullableValue] The method 'call' can't be unconditionally invoked because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleReturnStatement.expression2!;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: FunctionInstantiation
+      operand: ReceiverPropertyExtraction
+        receiver: UnqualifiedNameExpression
+          name: c
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::c
+            type: C?
+          staticType: C?
+        operator: ?.
+        name: m
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@class::C::@method::m
+          type: T Function<T>(T)
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)?
+      typeArgumentTypes
+        int
+    rightParenthesis: )
+    staticType: int Function(int)?
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: FunctionReference
+      function: PropertyAccess
+        target: SimpleIdentifier
+          token: c
+          element: <testLibrary>::@function::f::@formalParameter::c
+          staticType: C?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: m
+          element: <testLibrary>::@class::C::@method::m
+          staticType: T Function<T>(T)
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)?
+      typeArgumentTypes
+        int
+    rightParenthesis: )
+    staticType: int Function(int)?
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_instanceMethod_nullAware_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T m<T>(T value) => value;
+}
+
+int? f(C? c) {
+  return c?.m<int>.call(0);
+}
+''');
+
+    var node = result.findNode.singleReturnStatement.expression2!;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C?
+        staticType: C?
+      operator: ?.
+      name: m
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::C::@method::m
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int?
+V1: MethodInvocation
+  target: FunctionReference
+    function: PropertyAccess
+      target: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: m
+        element: <testLibrary>::@class::C::@method::m
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int?
+''');
   }
 
   test_instanceMethod_prefixedIdentifier_fromExtension() async {
@@ -4683,10 +5129,10 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: FunctionInstantiation
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
     operand: UnqualifiedNameExpression
       name: foo
       resolution: ExecutableTearOffResolution
@@ -4704,7 +5150,18 @@ MethodInvocation
     staticType: void Function(int)
     typeArgumentTypes
       int
-  target(v1): FunctionReference
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::#0::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: FunctionReference
     function: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
@@ -5373,9 +5830,8 @@ void f(Object value) {
 }
 ''');
 
-    assertResolvedNodeText(
-      result.findNode.functionInstantiation('value<int>'),
-      r'''
+    var node = result.findNode.functionInstantiation('value<int>');
+    assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: UnqualifiedNameExpression
     name: value
@@ -5410,8 +5866,7 @@ V1: FunctionReference
   staticType: int Function(int)
   typeArgumentTypes
     int
-''',
-    );
+''');
   }
 
   test_localVariable_typeVariable_boundToFunction() async {
@@ -5650,11 +6105,95 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 }
 ''');
 
-    var reference = result.findNode.functionInstantiation(
+    var node = result.findNode.functionInstantiation(
       '(1 == 2 ? foo : bar)<int>;',
     );
-    assertType(reference, 'void Function(int)');
-    // A ParenthesizedExpression has no element to assert on.
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ConditionalExpression
+      condition2: BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: ==
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+          staticType: int
+        binaryOperator: equal
+        element: dart:core::@class::num::@method::==
+        staticType: bool
+      question: ?
+      thenExpression2: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::foo
+          type: void Function<T>(T)
+        staticType: void Function<T>(T)
+      colon: :
+      elseExpression2: UnqualifiedNameExpression
+        name: bar
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::bar
+          type: void Function<T>(T)
+        staticType: void Function<T>(T)
+      staticType: void Function<T>(T)
+    rightParenthesis: )
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ConditionalExpression
+      condition: BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: ==
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+          staticType: int
+        element: dart:core::@class::num::@method::==
+        staticInvokeType: bool Function(Object)
+        staticType: bool
+      question: ?
+      thenExpression: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@function::f::@formalParameter::foo
+        staticType: void Function<T>(T)
+      colon: :
+      elseExpression: SimpleIdentifier
+        token: bar
+        element: <testLibrary>::@function::f::@formalParameter::bar
+        staticType: void Function<T>(T)
+      staticType: void Function<T>(T)
+    rightParenthesis: )
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
   }
 
   test_otherExpression_wrongNumberOfTypeArguments() async {
@@ -5666,11 +6205,103 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 }
 ''');
 
-    var reference = result.findNode.functionInstantiation(
+    var node = result.findNode.functionInstantiation(
       '(1 == 2 ? foo : bar)<int, String>;',
     );
-    assertType(reference, 'void Function(dynamic)');
-    // A ParenthesizedExpression has no element to assert on.
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ConditionalExpression
+      condition2: BinaryOperatorInvocation
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: ==
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+          staticType: int
+        binaryOperator: equal
+        element: dart:core::@class::num::@method::==
+        staticType: bool
+      question: ?
+      thenExpression2: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::foo
+          type: void Function<T>(T)
+        staticType: void Function<T>(T)
+      colon: :
+      elseExpression2: UnqualifiedNameExpression
+        name: bar
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::bar
+          type: void Function<T>(T)
+        staticType: void Function<T>(T)
+      staticType: void Function<T>(T)
+    rightParenthesis: )
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(dynamic)
+  typeArgumentTypes
+    dynamic
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ConditionalExpression
+      condition: BinaryExpression
+        leftOperand: IntegerLiteral
+          literal: 1
+          staticType: int
+        operator: ==
+        rightOperand: IntegerLiteral
+          literal: 2
+          correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
+          staticType: int
+        element: dart:core::@class::num::@method::==
+        staticInvokeType: bool Function(Object)
+        staticType: bool
+      question: ?
+      thenExpression: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@function::f::@formalParameter::foo
+        staticType: void Function<T>(T)
+      colon: :
+      elseExpression: SimpleIdentifier
+        token: bar
+        element: <testLibrary>::@function::f::@formalParameter::bar
+        staticType: void Function<T>(T)
+      staticType: void Function<T>(T)
+    rightParenthesis: )
+    staticType: void Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  staticType: void Function(dynamic)
+  typeArgumentTypes
+    dynamic
+''');
   }
 
   test_receiverIsDynamic() async {
@@ -6522,17 +7153,15 @@ void bar() {
     var node = result.findNode.functionInstantiation('foo<int>');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: a
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: a
+      period: .
       element: <testLibraryFragment>::@prefix::a
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@function::foo
-      staticType: void Function<T>(T)
-    element: package:test/a.dart::@function::foo
+      type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -6569,6 +7198,119 @@ V1: FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_topLevelFunction_importPrefix_targetOfGenericExtensionCall() async {
+    newFile('$testPackageLibPath/a.dart', '''
+T identity<T>(T value) => value;
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+extension E on int Function(int) {
+  T transform<T>(T value) => value;
+}
+
+var x = p.identity<int>.transform<String>('s');
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: identity
+      resolution: ExecutableTearOffResolution
+        element: package:test/a.dart::@function::identity
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: transform
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::transform
+    invokeType: String Function(String)
+    type: String
+  staticType: String
+  typeArgumentTypes
+    String
+V1: MethodInvocation
+  target: FunctionReference
+    function: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        element: <testLibraryFragment>::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: identity
+        element: package:test/a.dart::@function::identity
+        staticType: T Function<T>(T)
+      element: package:test/a.dart::@function::identity
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: transform
+    element: <testLibrary>::@extension::E::@method::transform
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticInvokeType: String Function(String)
+  staticType: String
+  typeArgumentTypes
+    String
 ''');
   }
 
@@ -6638,10 +7380,10 @@ void bar() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.call');
+    var node = result.findNode.receiverPropertyExtraction('.call');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: FunctionInstantiation
+ReceiverPropertyExtraction
+  receiver: FunctionInstantiation
     operand: UnqualifiedNameExpression
       name: foo
       resolution: ExecutableTearOffResolution
@@ -6659,7 +7401,14 @@ PropertyAccess
     staticType: void Function(int)
     typeArgumentTypes
       int
-  target(v1): FunctionReference
+  operator: .
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: void Function(int)
+    associatedFunctionType: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
+  target: FunctionReference
     function: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -6732,6 +7481,67 @@ V1: FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_topLevelFunction_targetOfProperty() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+
+var x = identity<int>.hashCode;
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: identity
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::identity
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: identity
+      element: <testLibrary>::@function::identity
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
 ''');
   }
 
@@ -7039,6 +7849,64 @@ V1: FunctionReference
 ''');
   }
 
+  test_unknownIdentifier_constructorShapedInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var x = missing<int>.call();
+//      ^^^^^^^
+// [diag.newWithNonType] The name 'missing' isn't a class.
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: missing
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <null>
+      type: InvalidType
+    selector: ConstructorSelector
+      period: .
+      name2: call
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: missing
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <null>
+      type: InvalidType
+    period: .
+    name: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+
   test_unknownIdentifier_explicitReceiver() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -7158,6 +8026,75 @@ V1: FunctionReference
   staticType: InvalidType
 ''');
   }
+
+  test_unknownIdentifier_importPrefix_constructorShapedInvocation() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+var x = p.missing<int>.call();
+//        ^^^^^^^
+// [diag.newWithNonType] The name 'missing' isn't a class.
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: missing
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <null>
+      type: InvalidType
+    selector: ConstructorSelector
+      period: .
+      name2: call
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: missing
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <null>
+      type: InvalidType
+    period: .
+    name: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
 }
 
 @reflectiveTest
@@ -7212,6 +8149,72 @@ V1: FunctionReference
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_topLevelFunction_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+
+var x = identity<int>.call(0);
+//      ^^^^^^^^^^^^^^^^^^^^^
+// [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: identity
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::identity
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  target(v1): FunctionReference
+    function: SimpleIdentifier
+      token: identity
+      element: <testLibrary>::@function::identity
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::identity::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
 ''');
   }
 

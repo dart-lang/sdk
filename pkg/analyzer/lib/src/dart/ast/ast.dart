@@ -41943,7 +41943,9 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   /// applications to function values and instantiable types lower directly to
   /// [FunctionInstantiationImpl] and [TypeLiteralImpl]; type-qualified
   /// constructor calls and tear-offs lower directly to
-  /// [ConstructorInvocationImpl] and [ConstructorTearOffImpl].
+  /// [ConstructorInvocationImpl] and [ConstructorTearOffImpl]. Selectors on
+  /// known function-value type applications also resolve directly, preserving
+  /// constructor recovery for ambiguous type-shaped names.
   /// It must not consume the cached V1 projection, whose children have different
   /// parents.
   ExpressionImpl buildUnresolvedExpression() =>
