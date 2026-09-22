@@ -1,3 +1,12 @@
+## 3.13.5
+
+This is a patch release that:
+
+- Fixes an issue in dart2wasm where tree-shaking (TFA) erroneously removed
+  reachable methods containing static JS interop calls (issue [#64153]).
+
+[#64153]: https://github.com/dart-lang/sdk/issues/64153
+
 ## 3.13.4
 
 **Released on:** 2026-09-15

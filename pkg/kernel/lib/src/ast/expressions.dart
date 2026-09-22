@@ -1994,6 +1994,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
     name.accept(v);
     arguments.accept(v);
     functionType.accept(v);
+    resultType.accept(v);
   }
 
   @override
@@ -2003,6 +2004,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
     arguments = v.transform(arguments);
     arguments.parent = this;
     functionType = v.visitDartType(functionType) as FunctionType;
+    resultType = v.visitDartType(resultType);
   }
 
   @override
@@ -2013,6 +2015,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
     arguments.parent = this;
     functionType =
         v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
+    resultType = v.visitDartType(resultType, cannotRemoveSentinel);
   }
 
   @override
