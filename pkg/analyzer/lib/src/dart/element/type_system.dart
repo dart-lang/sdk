@@ -1189,30 +1189,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  bool isNonNullable(DartType type) {
-    if (type is DynamicType ||
-        type is InvalidType ||
-        type is UnknownInferredType ||
-        type is VoidType ||
-        type.isDartCoreNull) {
-      return false;
-    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
-      return isNonNullable(type.promotedBound!);
-    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
-      return false;
-    } else if (type is InterfaceTypeImpl) {
-      if (type.isDartAsyncFutureOr) {
-        return isNonNullable(type.typeArguments[0]);
-      }
-      if (type.element is ExtensionTypeElement) {
-        return type.interfaces.isNotEmpty;
-      }
-    } else if (type is TypeParameterType) {
-      var bound = type.element.bound;
-      return bound != null && isNonNullable(bound);
-    }
-    return true;
-  }
+  bool isNonNullable(DartType type) => _isNonNullable(type, null);
 
   /// Return `true` for things in the equivalence class of `Null`.
   bool isNull(TypeImpl type) {
@@ -1283,27 +1260,8 @@ class TypeSystemImpl implements TypeSystem {
   bool isPotentiallyNullable(DartType type) => !isNonNullable(type);
 
   @override
-  bool isStrictlyNonNullable(DartType type) {
-    if (type is DynamicType ||
-        type is InvalidType ||
-        type is UnknownInferredType ||
-        type is VoidType ||
-        type.isDartCoreNull) {
-      return false;
-    } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
-      return false;
-    } else if (type is InterfaceTypeImpl) {
-      if (type.isDartAsyncFutureOr) {
-        return isStrictlyNonNullable(type.typeArguments[0]);
-      }
-      if (type.element is ExtensionTypeElement) {
-        return type.interfaces.isNotEmpty;
-      }
-    } else if (type is TypeParameterType) {
-      return isStrictlyNonNullable(type.bound);
-    }
-    return true;
-  }
+  bool isStrictlyNonNullable(DartType type) =>
+      _isStrictlyNonNullable(type, null);
 
   /// Check if [leftType] is a subtype of [rightType].
   ///
@@ -1903,6 +1861,93 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return null;
+  }
+
+  /// Implementation of [isNonNullable].
+  ///
+  /// [visitedTypeParameters] is the set of type parameters whose bounds are
+  /// already being examined further up the recursion, or `null` if none are.
+  /// It is allocated lazily, so that the common case of a type that involves
+  /// no type parameters allocates nothing.
+  ///
+  /// A type parameter whose nullability depends on itself, such as
+  /// `X extends FutureOr<X>`, would otherwise recurse forever, because
+  /// `NonNullable(FutureOr<S>) = NonNullable(S)` and
+  /// `NonNullable(X extends T) = NonNullable(T)` feed each other. Such a type
+  /// parameter is reported as *not* non-nullable. That is the least fixed
+  /// point, and it is the correct answer: `X extends FutureOr<X>` may be
+  /// instantiated with `Null`, since `Null <: FutureOr<Null>`. It also
+  /// matches the CFE, which assigns such a type parameter
+  /// `Nullability.undetermined`; see
+  /// `TypeParameter.computeNullabilityFromBound` in `package:kernel`.
+  bool _isNonNullable(
+    DartType type,
+    Set<TypeParameterElement>? visitedTypeParameters,
+  ) {
+    if (type is DynamicType ||
+        type is InvalidType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
+      return false;
+    } else if (type is TypeParameterTypeImpl && type.promotedBound != null) {
+      return _isNonNullable(type.promotedBound!, visitedTypeParameters);
+    } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    } else if (type is InterfaceTypeImpl) {
+      if (type.isDartAsyncFutureOr) {
+        return _isNonNullable(type.typeArguments[0], visitedTypeParameters);
+      }
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
+      }
+    } else if (type is TypeParameterType) {
+      var bound = type.element.bound;
+      if (bound == null) return false;
+      visitedTypeParameters ??= {};
+      if (!visitedTypeParameters.add(type.element)) {
+        return false;
+      }
+      return _isNonNullable(bound, visitedTypeParameters);
+    }
+    return true;
+  }
+
+  /// Implementation of [isStrictlyNonNullable].
+  ///
+  /// [visitedTypeParameters] guards against type parameters whose nullability
+  /// depends on themselves, in the same way as [_isNonNullable]; see that
+  /// method for details.
+  bool _isStrictlyNonNullable(
+    DartType type,
+    Set<TypeParameterElement>? visitedTypeParameters,
+  ) {
+    if (type is DynamicType ||
+        type is InvalidType ||
+        type is UnknownInferredType ||
+        type is VoidType ||
+        type.isDartCoreNull) {
+      return false;
+    } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
+      return false;
+    } else if (type is InterfaceTypeImpl) {
+      if (type.isDartAsyncFutureOr) {
+        return _isStrictlyNonNullable(
+          type.typeArguments[0],
+          visitedTypeParameters,
+        );
+      }
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
+      }
+    } else if (type is TypeParameterType) {
+      visitedTypeParameters ??= {};
+      if (!visitedTypeParameters.add(type.element)) {
+        return false;
+      }
+      return _isStrictlyNonNullable(type.bound, visitedTypeParameters);
+    }
+    return true;
   }
 
   /// Refines the context type of a numeric invocation.
