@@ -1221,6 +1221,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).function_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).delayed_type_arguments()));
+
+    if (!consts_to_retain_.HasKey(&instance)) {
+      consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.ptr()));
+    }
     return;
   }
 
