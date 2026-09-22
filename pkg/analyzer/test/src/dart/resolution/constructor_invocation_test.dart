@@ -1688,6 +1688,77 @@ V1: InstanceCreationExpression
 ''');
   }
 
+  test_importPrefix_class_typeArguments_missingName() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<T> {
+  const C.named();
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+const x = p.C<int>.();
+//        ^^^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                 ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    assertResolvedNodeText(
+      result.findNode.singleVariableDeclaration.initializer2!,
+      r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: package:test/a.dart::@class::C
+    type: C<int>
+  selector: ConstructorSelector
+    period: .
+    name2: (
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: (
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''',
+    );
+  }
+
   test_importPrefix_class_typeArguments_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -2347,6 +2418,104 @@ V1: InstanceCreationExpression
     rightParenthesis: )
   staticType: C
 ''');
+  }
+
+  test_typeAlias_generic_class_generic_named_explicit_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<T, U> {
+  C.named(T first, U second);
+}
+typedef A<V> = C<int, V>;
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+var x = p.A<String>.named(0, 's');
+''');
+
+    assertResolvedNodeText(
+      result.findNode.constructorInvocation("p.A<String>.named(0, 's')"),
+      r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::A
+      type: C<int, String>
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@constructor::named::@formalParameter::first
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticType: C<int, String>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::A
+      type: C<int, String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::C::@constructor::named
+        substitution: {T: int, U: String}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@constructor::named::@formalParameter::first
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticType: C<int, String>
+''',
+    );
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {

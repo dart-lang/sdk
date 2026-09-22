@@ -319,6 +319,37 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
+    var constructorSelector = switch (node) {
+      ParsedNameAccessImpl selector => selector,
+      ParsedValueArgumentsImpl(operand: ParsedNameAccessImpl selector) =>
+        selector,
+      _ => null,
+    };
+    if (constructorSelector?.operand case ParsedTypeArgumentsImpl qualifier) {
+      if (_parsedConstructorType(nameScope, qualifier)
+          case var typeReference?) {
+        var selector = ConstructorSelectorImpl.v2(
+          period: constructorSelector!.operator,
+          name2: constructorSelector.name,
+        );
+        var expression = node is ParsedValueArgumentsImpl
+            ? ConstructorInvocationImpl(
+                keyword: null,
+                constructorReference: ConstructorReference2Impl(
+                  typeReference: typeReference,
+                  selector: selector,
+                ),
+                argumentList: node.argumentList,
+                typeArguments: null,
+              )
+            : ConstructorTearOffImpl(
+                typeReference: typeReference,
+                selector: selector,
+              );
+        node.replaceWith(expression);
+        return RewrittenParsedExpression._(expression);
+      }
+    }
     if (node is ParsedTypeArgumentsImpl) {
       var expression = _parsedTypeArguments(nameScope, node);
       node.replaceWith(expression);
@@ -579,13 +610,25 @@ class AstRewriter {
     }
     var receiver = node.target2!;
 
-    // Recovery syntax can retain a legacy selector around a parsed receiver.
-    // Normalize it before classifying the enclosing constructor tear-off.
+    // Recovery can leave a legacy selector around a parsed qualifier, as in
+    // `C<int>.()`. Classify it before lowering the qualifier independently.
+    if (receiver is ParsedTypeArgumentsImpl) {
+      if (_parsedConstructorType(nameScope, receiver) case var typeReference?) {
+        var tearOff = ConstructorTearOffImpl(
+          typeReference: typeReference,
+          selector: ConstructorSelectorImpl.v2(
+            period: node.operator,
+            name2: node.propertyName.token,
+          ),
+        );
+        node.replaceWith(tearOff);
+        return tearOff;
+      }
+    }
+
+    // Other recovery selectors still need unresolved-expression lowering.
     // TODO(scheglov): Remove this bridge when recovery selectors use parsed
-    // representations too. For example, `class C<T> { const C.named(); }
-    // const x = C<int>.();` leaves a PropertyAccessImpl around a
-    // ParsedTypeArgumentsImpl. The parent rewrite runs before visiting that
-    // receiver and is not retried after the receiver is rewritten.
+    // representations too.
     if (receiver is ParsedExpressionImpl) {
       receiver = switch (parsedExpression(nameScope, receiver)) {
         RewrittenParsedExpression(:var expression) => expression,
@@ -776,6 +819,51 @@ class AstRewriter {
     return false;
   }
 
+  /// Binds the type-shaped qualifier in `C<T>.name` or `p.C<T>.name`.
+  ///
+  /// Written type arguments make this constructor syntax even when the named
+  /// constructor is missing. Function values and non-interface aliases retain
+  /// their existing selector interpretation.
+  ConstructorTypeReferenceImpl? _parsedConstructorType(
+    Scope nameScope,
+    ParsedTypeArgumentsImpl qualifier,
+  ) {
+    Token name;
+    ImportPrefixReferenceImpl? importPrefix;
+    Element? element;
+    switch (qualifier.operand) {
+      case ParsedUnqualifiedNameImpl(name: var typeName):
+        name = typeName;
+        element = nameScope.lookup(name.lexeme).getter;
+      case ParsedNameAccessImpl(
+            operand: ParsedUnqualifiedNameImpl(name: var prefixName),
+            :var operator,
+            name: var typeName,
+          )
+          when operator.type == TokenType.PERIOD:
+        var prefix = nameScope.lookup(prefixName.lexeme).getter;
+        if (prefix is! PrefixElement) return null;
+        name = typeName;
+        element = prefix.scope.lookup(name.lexeme).getter;
+        importPrefix = ImportPrefixReferenceImpl(
+          name: prefixName,
+          period: operator,
+        )..element = prefix;
+      default:
+        return null;
+    }
+    if (element is! InterfaceElement &&
+        !(element is TypeAliasElement &&
+            element.aliasedType is InterfaceType)) {
+      return null;
+    }
+    return ConstructorTypeReferenceImpl(
+      importPrefix: importPrefix,
+      name: name,
+      typeArguments: qualifier.typeArguments,
+    );
+  }
+
   NamedReceiverImpl _parsedNestedReceiver(
     Scope nameScope,
     ExpressionImpl root, {
@@ -883,8 +971,8 @@ class AstRewriter {
     var head = _parsedReceiverHead(selector.operand);
 
     // Nested call syntax resolves its own invocation or extension-override role.
-    // Type applications can still be constructor qualifiers, so leave them,
-    // and super, to unresolved-expression lowering.
+    // Remaining type-application receivers and super still use unresolved-
+    // expression lowering. Direct constructor qualifiers are handled earlier.
     if (head is ParsedExpressionImpl &&
             head is! ParsedUnqualifiedNameImpl &&
             head is! ParsedValueArgumentsImpl ||
