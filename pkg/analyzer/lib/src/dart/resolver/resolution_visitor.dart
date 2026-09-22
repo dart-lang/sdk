@@ -112,7 +112,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       typeProvider,
       libraryFragment,
       diagnosticReporter,
-      AstRewriter(diagnosticReporter),
+      AstRewriter(diagnosticReporter, scopeContext, libraryElement),
       namedTypeResolver,
       recordTypeResolver,
       scopeContext,
@@ -349,12 +349,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
-    var newNode = _astRewriter.constructorInvocation(
-      nameScope,
-      node,
-      libraryElement: _libraryElement,
-      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
-    );
+    var newNode = _astRewriter.constructorInvocation(nameScope, node);
     if (newNode != node) {
       if (node.constructorReference.typeReference.typeArguments != null &&
           newNode is MethodInvocation &&

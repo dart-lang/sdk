@@ -90,8 +90,19 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PropertyAccess
-    target2: SuperExpression
+  expression2: ReceiverPropertyExtraction
+    receiver: SuperExpression
+      superKeyword: super
+      staticType: A
+    operator: .
+    name: hashCode
+    resolution: GetterInvocationResolution
+      element: dart:core::@class::Object::@getter::hashCode
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: A
     operator: .

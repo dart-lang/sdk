@@ -813,8 +813,13 @@ var v = super.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ParsedNameAccess
+  operand: SuperExpression
+    superKeyword: super
+  operator: .
+  name: y
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
   operator: .
   propertyName: SimpleIdentifier
@@ -2886,8 +2891,17 @@ var v = super.m();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: SuperExpression
+      superKeyword: super
+    operator: .
+    name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
   operator: .
   methodName: SimpleIdentifier
@@ -2904,8 +2918,24 @@ var v = super.m<E>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ParsedValueArguments
+  operand: ParsedTypeArguments
+    operand: ParsedNameAccess
+      operand: SuperExpression
+        superKeyword: super
+      operator: .
+      name: m
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: E
+      rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
   operator: .
   methodName: SimpleIdentifier
@@ -2928,9 +2958,28 @@ var v = super.b.c<D>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: PropertyAccess
-    target2: SuperExpression
+ParsedValueArguments
+  operand: ParsedTypeArguments
+    operand: ParsedNameAccess
+      operand: ParsedNameAccess
+        operand: SuperExpression
+          superKeyword: super
+        operator: .
+        name: b
+      operator: .
+      name: c
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: D
+      rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: PropertyAccess
+    target: SuperExpression
       superKeyword: super
     operator: .
     propertyName: SimpleIdentifier
@@ -3046,8 +3095,17 @@ var v = super.m();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: SuperExpression
+      superKeyword: super
+    operator: .
+    name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
   operator: .
   methodName: SimpleIdentifier
@@ -3065,8 +3123,24 @@ var v = super.m<E>();
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ParsedValueArguments
+  operand: ParsedTypeArguments
+    operand: ParsedNameAccess
+      operand: SuperExpression
+        superKeyword: super
+      operator: .
+      name: m
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: E
+      rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
   operator: .
   methodName: SimpleIdentifier
@@ -4764,8 +4838,13 @@ var v = super.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ParsedNameAccess
+  operand: SuperExpression
+    superKeyword: super
+  operator: .
+  name: x
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
   operator: .
   propertyName: SimpleIdentifier

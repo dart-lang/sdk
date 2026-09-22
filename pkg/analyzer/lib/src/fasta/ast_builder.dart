@@ -645,6 +645,16 @@ class AstBuilder extends StackListener {
       }
       if (operand is ParsedNameAccessImpl) {
         var receiver = operand.operand;
+        if (receiver is SuperExpressionImpl) {
+          return SuperConstructorInvocationImpl(
+            superKeyword: receiver.superKeyword,
+            constructorSelector: ConstructorSelectorImpl.v2(
+              period: operand.operator,
+              name2: operand.name,
+            ),
+            argumentList: initializerObject.argumentList,
+          );
+        }
         if (receiver is ThisExpressionImpl) {
           return RedirectingConstructorInvocationImpl(
             thisKeyword: receiver.thisKeyword,
@@ -6506,9 +6516,9 @@ class AstBuilder extends StackListener {
   /// Whether another selector can use the neutral parsed representation.
   ///
   /// Dot-shorthand heads need the context boundary on their enclosing selector.
-  /// Legacy selectors propagate that choice, as well as super and recovery
+  /// Legacy selectors propagate that choice, as well as recovery
   /// syntax, until an ordinary expression boundary such as parentheses.
-  // TODO(scheglov): Remove this migration gate once super, cascade, dot-shorthand,
+  // TODO(scheglov): Remove this migration gate once cascade, dot-shorthand,
   // and recovery selector paths use V2 representations without legacy fallbacks.
   // This includes representing the dot-shorthand context boundary explicitly,
   // instead of relying on isDotShorthand on the enclosing selector expression.
@@ -6519,7 +6529,6 @@ class AstBuilder extends StackListener {
       case DotShorthandConstructorInvocationImpl():
       case DotShorthandInvocationImpl():
       case DotShorthandPropertyAccessImpl():
-      case SuperExpressionImpl():
       case MethodInvocationImpl():
       case PropertyAccessImpl():
       case FunctionReferenceImpl():
@@ -7054,6 +7063,9 @@ class AstBuilder extends StackListener {
         while (head is ParsedNameAccessImpl) {
           head = head.operand;
         }
+        // Super assignment targets retain their existing lowering while reads
+        // and named calls migrate through parsed selectors.
+        if (head is SuperExpressionImpl) return null;
         if (head is ParsedUnqualifiedNameImpl) {
           return ParsedNameAccessAssignmentTargetImpl(
             operand: operand as ParsedExpressionImpl,

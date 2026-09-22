@@ -3689,15 +3689,16 @@ class B extends A {
     var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SuperExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: int
+      invokeType: int Function()
+      type: int
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8711,10 +8712,24 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -8743,10 +8758,24 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -8788,10 +8817,24 @@ augment class B {
 
     var result = results[b]!;
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -8834,10 +8877,28 @@ augment class B {
 
     var result = results[b]!;
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -8847,7 +8908,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -8874,15 +8935,16 @@ class B extends A {
     var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SuperExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
-    propertyName: SimpleIdentifier
-      token: foo
+    name: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -8921,6 +8983,76 @@ V1: FunctionExpressionInvocation
 ''');
   }
 
+  test_hasReceiver_super_getter_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int Function(int)? _f;
+  A(this._f);
+}
+
+class B extends A {
+  B(super.f);
+
+  int? f() {
+    if (super._f != null) {
+      return super._f(0);
+    }
+    return null;
+  }
+}
+''');
+
+    var node = result.findNode.callInvocation('super._f(0)');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    name: _f
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::_f
+      invokeType: int Function(int)? Function()
+      type: int Function(int)
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: _f
+      element: <testLibrary>::@class::A::@getter::_f
+      staticType: int Function(int)
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
   test_hasReceiver_super_method() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -8934,10 +9066,29 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -8947,7 +9098,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
@@ -8955,6 +9106,267 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: void Function(int)
   staticType: void
+''');
+  }
+
+  test_hasReceiver_super_method_abstract() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  T m<T>(T value);
+}
+
+abstract class B extends A {
+  int f() => super.m<int>(0);
+//                 ^
+// [diag.abstractSuperMemberReference] The method 'm' is always abstract in the supertype.
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::m
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    element: <testLibrary>::@class::A::@method::m
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_hasReceiver_super_method_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T m<U>(T value, U other) => value;
+}
+
+class B extends A<int> {
+  int f() => super.m<String>(0, 's');
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: m
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: value@null
+          substitution: {U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::m
+      substitution: {T: int, U: U}
+    invokeType: int Function(int, String)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    String
+V1: MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  methodName: SimpleIdentifier
+    token: m
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::m
+      substitution: {T: int, U: U}
+    staticType: int Function<U>(int, U)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: value@null
+          substitution: {U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticInvokeType: int Function(int, String)
+  staticType: int
+  typeArgumentTypes
+    String
+''');
+  }
+
+  test_hasReceiver_super_method_instantiation_targetOfCall() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  T m<T>(T value) => value;
+}
+
+class B extends A {
+  int f() => super.m<int>.call(0);
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
+    operand: ReceiverPropertyExtraction
+      receiver: SuperExpression
+        superKeyword: super
+        staticType: B
+      operator: .
+      name: m
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::m
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: FunctionReference
+    function: PropertyAccess
+      target: SuperExpression
+        superKeyword: super
+        staticType: B
+      operator: .
+      propertyName: SimpleIdentifier
+        token: m
+        element: <testLibrary>::@class::A::@method::m
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: int Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::A::@method::m::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
 ''');
   }
 
@@ -8969,10 +9381,24 @@ mixin M on A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -9001,10 +9427,24 @@ mixin M on A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.foo()');
+    var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -13436,10 +13876,24 @@ enum E with M {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: E
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: E
   operator: .
@@ -13468,10 +13922,28 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -13481,7 +13953,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -13504,10 +13976,28 @@ enum E {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: E
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: E
   operator: .
@@ -13517,7 +14007,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -13541,10 +14031,28 @@ mixin M on A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -13554,7 +14062,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>

@@ -2063,6 +2063,82 @@ V1: ConstructorReference
 ''');
   }
 
+  test_prefixedAlias_generic_named() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<T, U> {
+  C.named(T first, U second);
+}
+typedef A<V> = C<int, V>;
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+var x = p.A<String>.named;
+''');
+
+    assertResolvedNodeText(
+      result.findNode.constructorTearOff('p.A<String>.named'),
+      r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: A
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: package:test/a.dart::@typeAlias::A
+    type: C<int, String>
+      alias: package:test/a.dart::@typeAlias::A
+        typeArguments
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: named
+  element: SubstitutedConstructorElementImpl
+    baseElement: package:test/a.dart::@class::C::@constructor::named
+    substitution: {T: int, U: String}
+  staticType: C<int, String> Function(int, String)
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::A
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::C::@constructor::named
+        substitution: {T: int, U: String}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::named
+      substitution: {T: int, U: String}
+  staticType: C<int, String> Function(int, String)
+''',
+    );
+  }
+
   test_prefixedAlias_generic_unnamed() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A<T> {

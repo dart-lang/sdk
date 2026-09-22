@@ -62,7 +62,11 @@ class FunctionReferenceResolver {
   /// method only selects an implicit `call` tear-off and instantiates its type.
   void resolveInstantiation(FunctionInstantiationImpl node) {
     node.typeArguments.accept2(_resolver);
-    _resolver.analyzeExpression(node.operand, _resolver.operations.unknownType);
+    _resolver.analyzeExpression(
+      node.operand,
+      _resolver.operations.unknownType,
+      continueNullShorting: true,
+    );
     var operand = _resolver.popRewrite()!;
     var rawType = operand.typeOrThrow;
 

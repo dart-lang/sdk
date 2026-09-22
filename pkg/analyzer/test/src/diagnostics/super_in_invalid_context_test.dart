@@ -269,10 +269,23 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.m()');
+    var node = result.findNode.receiverMethodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: InvalidType
   operator: .
@@ -300,10 +313,19 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
+  operator: .
+  name: a
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: InvalidType
   operator: .

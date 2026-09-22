@@ -401,6 +401,15 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
     receiver as ExpressionImpl;
+    if (receiver is SuperExpressionImpl) {
+      _resolveSuperInvocation(
+        node,
+        receiver,
+        whyNotPromotedArguments,
+        contextType: contextType,
+      );
+      return;
+    }
     if (receiver is ExtensionOverrideImpl) {
       var member = _extensionResolver
           .getOverrideMember(receiver, name.lexeme)
@@ -949,9 +958,11 @@ class MethodInvocationResolver with ScopeHelpers {
       var flow?,
     )) {
       var (promotedType, expressionInfo) = flow.propertyGet(
-        ExpressionPropertyTarget(
-          _resolver.flowAnalysis.getExpressionInfo(receiver),
-        ),
+        receiver is SuperExpressionImpl
+            ? SuperPropertyTarget.singleton
+            : ExpressionPropertyTarget(
+                _resolver.flowAnalysis.getExpressionInfo(receiver),
+              ),
         selector.name.lexeme,
         element,
         SharedTypeView(type),
@@ -1921,6 +1932,75 @@ class MethodInvocationResolver with ScopeHelpers {
           )
         : DynamicInvocationResolutionImpl(type: type);
     node.recordStaticType(type, resolver: _resolver);
+  }
+
+  void _resolveSuperInvocation(
+    ParsedValueArgumentsImpl node,
+    SuperExpressionImpl receiver,
+    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
+    required TypeImpl contextType,
+  }) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl ||
+        SuperContext.of(receiver) != SuperContext.valid) {
+      _resolveReceiverWithoutTarget(
+        _createReceiverMethodInvocation(node, receiver),
+        whyNotPromotedArguments,
+        contextType: contextType,
+        type: InvalidTypeImpl.instance,
+      );
+      return;
+    }
+
+    var name = node.namedInvocationParts!.selector.name;
+    var memberName = Name(_definingLibraryUri, name.lexeme);
+    var member = _inheritance.getMember(
+      enclosingInterface,
+      memberName,
+      forSuper: true,
+    );
+    if (member is InternalPropertyAccessorElement) {
+      _resolveCallableProperty(
+        node,
+        receiver,
+        whyNotPromotedArguments,
+        contextType: contextType,
+        element: member,
+        type: member.returnType,
+      );
+      return;
+    }
+    if (member == null) {
+      // Keep the inherited interface member for argument checking when there
+      // is no concrete superclass dispatch target.
+      member = _inheritance.getInherited(enclosingInterface, memberName);
+      if (member != null) {
+        diagnosticReporter.report(
+          diag.abstractSuperMemberReference
+              .withArguments(
+                memberKind: member.kind.displayName,
+                name: name.lexeme,
+              )
+              .at(name),
+        );
+      } else {
+        diagnosticReporter.report(
+          diag.undefinedSuperMethod
+              .withArguments(
+                methodName: name.lexeme,
+                typeName: enclosingInterface.firstFragment.displayName,
+              )
+              .at(name),
+        );
+      }
+    }
+    _resolveNamedInvocation(
+      _createReceiverMethodInvocation(node, receiver),
+      whyNotPromotedArguments,
+      contextType: contextType,
+      candidate: member,
+      element: member,
+    );
   }
 
   /// Rewrites [node] as a [CallInvocation].

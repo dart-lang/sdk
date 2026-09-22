@@ -819,10 +819,19 @@ class A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: A
   operator: .
@@ -849,10 +858,21 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -879,10 +899,20 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -911,10 +941,19 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -4195,10 +4234,21 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('super.foo');
+    var node = result.findNode.receiverPropertyExtraction('super.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: B
   operator: .

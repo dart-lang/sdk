@@ -96,6 +96,14 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    if (node.operand is SuperExpression) {
+      _names.add(node.name.lexeme);
+    }
+    super.visitParsedNameAccess(node);
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     if (node.target2 is SuperExpression) {
       var name = node.propertyName.name;
@@ -127,6 +135,22 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       _names.add('[]');
     }
     super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.receiver is SuperExpression) {
+      _names.add(node.name.lexeme);
+    }
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (node.receiver is SuperExpression) {
+      _names.add(node.name.lexeme);
+    }
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override

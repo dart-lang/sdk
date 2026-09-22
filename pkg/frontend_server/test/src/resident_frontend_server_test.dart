@@ -475,6 +475,182 @@ void main() async {
       executeDillExpectStdout(compileResult, "corge");
     });
 
+    void writePackageHelper(List<(String, String)> packages) {
+      package.writeAsStringSync(
+        json.encode({
+          "configVersion": 2,
+          "packages": [
+            for ((String, String) package in packages)
+              {"name": package.$1, "rootUri": package.$2, "packageUri": "lib/"},
+          ],
+        }),
+      );
+    }
+
+    for (bool inMemory in [true, false]) {
+      test(
+        'handle package changes (${inMemory ? 'in memory' : 'from disk'})',
+        () async {
+          executable.writeAsStringSync(
+            'import "package:pkga/main.dart"; void main() => hello();',
+          );
+          new File(path.join(d.path, 'pkga_v1', 'lib', 'main.dart'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void hello() => print("hello v1");');
+          new File(path.join(d.path, 'pkga_v2', 'lib', 'main.dart'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void hello() => print("hello v2");');
+
+          writePackageHelper([("pkga", "../pkga_v1")]);
+
+          // Let everything be old.
+          await new Future.delayed(
+            const Duration(milliseconds: statGranularity),
+          );
+
+          if (!inMemory) ResidentFrontendServer.compilers.clear();
+          Map<String, dynamic> compileResult = jsonDecode(
+            await ResidentFrontendServer.handleRequest(
+              createCompileJSON(
+                executable: executable.path,
+                packages: package.path,
+                outputDill: outputDill.path,
+                supportMirrors: true,
+                enableAsserts: true,
+                soundNullSafety: true,
+              ),
+            ),
+          );
+          expect(compileResult['success'], true);
+          expect(compileResult['errorCount'], 0);
+          expect(compileResult['incremental'], isNull);
+          executeDillExpectStdout(compileResult, "hello v1");
+
+          // Update package config and recompile.
+          writePackageHelper([("pkga", "../pkga_v2")]);
+
+          // Make sure the timestamp saved in the resident compiler is after the
+          // change timestamp.
+          await new Future.delayed(
+            const Duration(milliseconds: statGranularity),
+          );
+
+          if (!inMemory) ResidentFrontendServer.compilers.clear();
+          compileResult = jsonDecode(
+            await ResidentFrontendServer.handleRequest(
+              createCompileJSON(
+                executable: executable.path,
+                packages: package.path,
+                outputDill: outputDill.path,
+                supportMirrors: true,
+                enableAsserts: true,
+                soundNullSafety: true,
+              ),
+            ),
+          );
+          expect(compileResult['success'], true);
+          expect(compileResult['errorCount'], 0);
+          if (inMemory) expect(compileResult['incremental'], isTrue);
+          executeDillExpectStdout(compileResult, "hello v2");
+
+          if (inMemory) {
+            // When in memory when recompiling with no change we should just get
+            // the cached dill. Also if the package config was changed
+            // previously (but before a previous compile).
+            compileResult = jsonDecode(
+              await ResidentFrontendServer.handleRequest(
+                createCompileJSON(
+                  executable: executable.path,
+                  packages: package.path,
+                  outputDill: outputDill.path,
+                  supportMirrors: true,
+                  enableAsserts: true,
+                  soundNullSafety: true,
+                ),
+              ),
+            );
+            expect(compileResult['success'], true);
+            expect(compileResult['errorCount'], 0);
+            expect(compileResult['returnedStoredKernel'], isTrue);
+            executeDillExpectStdout(compileResult, "hello v2");
+          }
+        },
+      );
+    }
+
+    for (bool inMemory in [true, false]) {
+      test('invalidates when package file goes away '
+          '(${inMemory ? 'in memory' : 'from disk'})', () async {
+        executable.writeAsStringSync(
+          'import "package:pkga/main.dart"; void main() => hello();',
+        );
+        new File(path.join(d.path, 'pkga_v1', 'lib', 'main.dart'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync('void hello() => print("hello v1");');
+        new File(path.join(d.path, 'pkga_v2', 'lib', 'main.dart'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync('void hello() => print("hello v2");');
+
+        writePackageHelper([("pkga", "../pkga_v1")]);
+
+        // Let everything be old.
+        await new Future.delayed(const Duration(milliseconds: statGranularity));
+
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        Map<String, dynamic> compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        expect(compileResult['errorCount'], 0);
+        expect(compileResult['incremental'], isNull);
+        executeDillExpectStdout(compileResult, "hello v1");
+
+        // Delete package config and recompile. This should give errors.
+        package.deleteSync();
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], false);
+
+        // Recreate package config and recompile.
+        writePackageHelper([("pkga", "../pkga_v2")]);
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], true);
+        executeDillExpectStdout(compileResult, "hello v2");
+      });
+    }
+
     test('produces aot kernel', () async {
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
@@ -770,7 +946,7 @@ void main() async {
         ),
       );
       expect(compileResult2['success'], true);
-      expect(compileResult2['incremental'], null);
+      expect(compileResult2['incremental'], true);
       expect(compileResult2['returnedStoredKernel'], null);
       expect(
         ResidentFrontendServer

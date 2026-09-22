@@ -638,15 +638,16 @@ class D extends C {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SuperExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: void Function()
+      invokeType: void Function()? Function()
+      type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -695,15 +696,16 @@ class D extends C {
     var node = result.findNode.callInvocation('_foo()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    target2: SuperExpression
+  receiver: ReceiverPropertyExtraction
+    receiver: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
-    propertyName: SimpleIdentifier
-      token: _foo
+    name: _foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      staticType: int Function()
+      invokeType: int? Function() Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -932,10 +934,21 @@ class D extends C {
   }
 }
 ''');
-    var node = result.findNode.propertyAccess('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperExpression
+    superKeyword: super
+    staticType: D
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: D
   operator: .
@@ -1389,8 +1402,19 @@ Block
         staticType: int
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperExpression
+          superKeyword: super
+          staticType: C
+        operator: .
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::B::@getter::_i
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -1421,8 +1445,19 @@ Block
         staticType: int?
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperExpression
+          superKeyword: super
+          staticType: C
+        operator: .
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::B::@getter::_i
+          invokeType: int? Function()
+          type: int
+        staticType: int
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C
         operator: .
@@ -1481,8 +1516,21 @@ Block
         staticType: T
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperExpression
+          superKeyword: super
+          staticType: C<T>
+        operator: .
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::B::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1519,8 +1567,21 @@ Block
         staticType: T?
       semicolon: ;
     ExpressionStatement
-      expression2: PropertyAccess
-        target2: SuperExpression
+      expression2: ReceiverPropertyExtraction
+        receiver: SuperExpression
+          superKeyword: super
+          staticType: C<T>
+        operator: .
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::B::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T
+        staticType: T
+      expression(v1): PropertyAccess
+        target: SuperExpression
           superKeyword: super
           staticType: C<T>
         operator: .
@@ -1593,15 +1654,16 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: CallInvocation
-        receiver: PropertyAccess
-          target2: SuperExpression
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
-          propertyName: SimpleIdentifier
-            token: _f
+          name: _f
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@class::B::@getter::_f
-            staticType: int? Function()
+            invokeType: int? Function() Function()
+            type: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1665,15 +1727,16 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: CallInvocation
-        receiver: PropertyAccess
-          target2: SuperExpression
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperExpression
             superKeyword: super
             staticType: C
           operator: .
-          propertyName: SimpleIdentifier
-            token: _f
+          name: _f
+          resolution: GetterInvocationResolution
             element: <testLibrary>::@class::B::@getter::_f
-            staticType: int Function()
+            invokeType: int? Function() Function()
+            type: int Function()
           staticType: int Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1765,17 +1828,18 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: CallInvocation
-        receiver: PropertyAccess
-          target2: SuperExpression
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .
-          propertyName: SimpleIdentifier
-            token: _f
+          name: _f
+          resolution: GetterInvocationResolution
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
-            staticType: T? Function()
+            invokeType: T? Function() Function()
+            type: T? Function()
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1845,17 +1909,18 @@ Block
       semicolon: ;
     ExpressionStatement
       expression2: CallInvocation
-        receiver: PropertyAccess
-          target2: SuperExpression
+        receiver: ReceiverPropertyExtraction
+          receiver: SuperExpression
             superKeyword: super
             staticType: C<T>
           operator: .
-          propertyName: SimpleIdentifier
-            token: _f
+          name: _f
+          resolution: GetterInvocationResolution
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
-            staticType: T Function()
+            invokeType: T? Function() Function()
+            type: T Function()
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
