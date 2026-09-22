@@ -29,34 +29,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   TestCode? _parsedTestCode;
 
-  /// The [ParsedUnitResult] obtained from parsing [testFile].
-  ///
-  /// Populated by [parseTestCode]. Note that this is _not_ populated by
-  /// [resolveTestCode].
-  late ParsedUnitResult testParsedResult;
+  ParsedUnitResult? _testParsedResult;
 
-  /// The [ResolvedLibraryResult] for the library containing [testFile].
-  ///
-  /// Populated when resolving [testFile] via [getResolvedUnit],
-  /// [resolveTestFile], or [resolveTestCode]. May be `null` if the library
-  /// could not be resolved.
-  ///
-  /// Typically used by intermediate test classes (such as `FixProcessorTest`
-  /// and `AssistProcessorTest`) rather than individual test cases to access
-  /// the containing library context when computing fixes or assists.
-  late ResolvedLibraryResult? testLibraryResult;
+  ResolvedLibraryResult? _testLibraryResult;
 
-  /// The [ResolvedUnitResult] for [testFile].
-  ///
-  /// Populated when resolving [testFile] via [getResolvedUnit],
-  /// [resolveTestFile], or [resolveTestCode].
-  late ResolvedUnitResult testAnalysisResult;
+  ResolvedUnitResult? _testAnalysisResult;
 
-  /// The [CompilationUnit] of [testFile].
-  ///
-  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
-  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
-  late CompilationUnit testUnit;
+  CompilationUnit? _testUnit;
 
   /// The [TestCode] representation of the test source code.
   ///
@@ -71,11 +50,64 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     );
   }
 
+  /// The [ResolvedUnitResult] for [testFile].
+  ///
+  /// Populated when resolving [testFile] via [getResolvedUnit],
+  /// [resolveTestFile], or [resolveTestCode].
+  ResolvedUnitResult get testAnalysisResult {
+    if (_testAnalysisResult case var testAnalysisResult?) {
+      return testAnalysisResult;
+    }
+    throw StateError(
+      "'testAnalysisResult' has not yet been set; this is set by "
+      "'getResolvedUnit'.",
+    );
+  }
+
   /// The source code of [testFile] without test markers.
   ///
   /// Setting this property parses the code into [parsedTestCode] using
   /// [TestCode.parseNormalized].
   String get testCode => parsedTestCode.code;
+
+  /// The [ResolvedLibraryResult] for the library containing [testFile].
+  ///
+  /// Populated when resolving [testFile] via [getResolvedUnit],
+  /// [resolveTestFile], or [resolveTestCode]. May be `null` if the library
+  /// could not be resolved.
+  ///
+  /// Typically used by intermediate test classes (such as `FixProcessorTest`
+  /// and `AssistProcessorTest`) rather than individual test cases to access
+  /// the containing library context when computing fixes or assists.
+  ResolvedLibraryResult? get testLibraryResult => _testLibraryResult;
+
+  /// The [ParsedUnitResult] obtained from parsing [testFile].
+  ///
+  /// Populated by [parseTestCode]. Note that this is _not_ populated by
+  /// [resolveTestCode].
+  ParsedUnitResult get testParsedResult {
+    if (_testParsedResult case var testParsedResult?) {
+      return testParsedResult;
+    }
+    throw StateError(
+      "'testParsedResult' has not yet been set; this is set by "
+      "'parseTestCode'.",
+    );
+  }
+
+  /// The [CompilationUnit] of [testFile].
+  ///
+  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
+  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
+  CompilationUnit get testUnit {
+    if (_testUnit case var testUnit?) {
+      return testUnit;
+    }
+    throw StateError(
+      "'testUnit' has not yet been set; this is set by "
+      "'getResolvedUnit' and 'parseTestCode'.",
+    );
+  }
 
   /// Sets the test source [code] for [testFile] and creates the file on disk.
   ///
@@ -122,9 +154,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     unitResult ??= await super.getResolvedUnit(file);
 
     if (file.path == convertPath(testFilePath)) {
-      testLibraryResult = libraryResult;
-      testAnalysisResult = unitResult;
-      testUnit = unitResult.unit;
+      _testLibraryResult = libraryResult;
+      _testAnalysisResult = unitResult;
+      _testUnit = unitResult.unit;
     }
 
     if (verifyNoTestUnitErrors) {
@@ -163,8 +195,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   /// is not needed.
   Future<void> parseTestCode(String code) async {
     addTestSource(code);
-    testParsedResult = await getParsedUnit(testFile);
-    testUnit = testParsedResult.unit;
+    _testParsedResult = await getParsedUnit(testFile);
+    _testUnit = testParsedResult.unit;
   }
 
   /// Adds the given [code] as the test source and resolves [testFile].
