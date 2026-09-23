@@ -36,24 +36,26 @@ class UnaryOperatorInvocationResolver {
 
     node.element = null;
     TypeImpl type;
-    if (operand is ExtensionOverrideImpl) {
-      node.element = _resolveElement(node, operand, null);
-      type = node.element?.returnType ?? InvalidTypeImpl.instance;
-    } else {
-      var operandType = _resolver.instanceReceiverType(operand);
-      if (operandType is DynamicTypeImpl) {
-        type = DynamicTypeImpl.instance;
-      } else if (operandType is InvalidTypeImpl) {
-        type = InvalidTypeImpl.instance;
-      } else if (identical(operandType, NeverTypeImpl.instance)) {
-        _resolver.diagnosticReporter.report(
-          diag.receiverOfTypeNever.at(operand),
-        );
-        type = NeverTypeImpl.instance;
-      } else {
-        node.element = _resolveElement(node, operand, operandType);
+    switch (operand) {
+      case ExpressionImpl():
+      case SuperReferenceImpl():
+        var operandType = _resolver.instanceReceiverType(operand);
+        if (operandType is DynamicTypeImpl) {
+          type = DynamicTypeImpl.instance;
+        } else if (operandType is InvalidTypeImpl) {
+          type = InvalidTypeImpl.instance;
+        } else if (identical(operandType, NeverTypeImpl.instance)) {
+          _resolver.diagnosticReporter.report(
+            diag.receiverOfTypeNever.at(operand),
+          );
+          type = NeverTypeImpl.instance;
+        } else {
+          node.element = _resolveElement(node, operand, operandType);
+          type = node.element?.returnType ?? InvalidTypeImpl.instance;
+        }
+      case ExtensionOverride2Impl():
+        node.element = _resolveElement(node, operand, null);
         type = node.element?.returnType ?? InvalidTypeImpl.instance;
-      }
     }
 
     node.recordStaticType(type, resolver: _resolver);
@@ -69,48 +71,50 @@ class UnaryOperatorInvocationResolver {
       UnaryOperator.bitwiseComplement => '~',
     };
 
-    if (operand is ExtensionOverrideImpl) {
-      var extension = operand.element;
-      var member = extension.getMethod(methodName);
-      if (member == null) {
-        // Extension overrides always refer to named extensions.
-        _resolver.diagnosticReporter.report(
-          diag.undefinedExtensionOperator
-              .withArguments(
-                operator: methodName,
-                extensionName: extension.name!,
-              )
-              .at(node.operator),
+    switch (operand) {
+      case ExpressionImpl():
+      case SuperReferenceImpl():
+        var result = _typePropertyResolver.resolve(
+          receiver: operand,
+          receiverType: operandType!,
+          name: methodName,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: node.operator,
+          nameErrorEntity: operand,
         );
-      }
-      return member;
+        var element = result.getter2 as InternalMethodElement?;
+        if (result.needsGetterError) {
+          if (operand is SuperReference) {
+            _resolver.diagnosticReporter.report(
+              diag.undefinedSuperOperator
+                  .withArguments(operator: methodName, type: operandType)
+                  .at(node.operator),
+            );
+          } else {
+            _resolver.diagnosticReporter.report(
+              diag.undefinedOperator
+                  .withArguments(operator: methodName, type: operandType)
+                  .at(node.operator),
+            );
+          }
+        }
+        return element;
+      case ExtensionOverride2Impl():
+        var extension = operand.element;
+        var member = extension.getMethod(methodName);
+        if (member == null) {
+          // Extension overrides always refer to named extensions.
+          _resolver.diagnosticReporter.report(
+            diag.undefinedExtensionOperator
+                .withArguments(
+                  operator: methodName,
+                  extensionName: extension.name!,
+                )
+                .at(node.operator),
+          );
+        }
+        return member;
     }
-
-    var result = _typePropertyResolver.resolve(
-      receiver: operand,
-      receiverType: operandType!,
-      name: methodName,
-      hasRead: true,
-      hasWrite: false,
-      propertyErrorEntity: node.operator,
-      nameErrorEntity: operand,
-    );
-    var element = result.getter2 as InternalMethodElement?;
-    if (result.needsGetterError) {
-      if (operand is SuperReference) {
-        _resolver.diagnosticReporter.report(
-          diag.undefinedSuperOperator
-              .withArguments(operator: methodName, type: operandType)
-              .at(node.operator),
-        );
-      } else {
-        _resolver.diagnosticReporter.report(
-          diag.undefinedOperator
-              .withArguments(operator: methodName, type: operandType)
-              .at(node.operator),
-        );
-      }
-    }
-    return element;
   }
 }

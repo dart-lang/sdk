@@ -1953,7 +1953,7 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride2(ExtensionOverride2 node) {
     node.importPrefix?.accept2(this);
     node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);

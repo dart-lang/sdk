@@ -235,7 +235,7 @@ void f(A a) {
     var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -250,7 +250,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: foo
   resolution: GetterInvocationResolution
@@ -300,7 +299,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -315,7 +314,6 @@ CompoundAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: foo
     read: GetterInvocationResolution
@@ -387,7 +385,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -402,7 +400,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: foo
     read: <null>

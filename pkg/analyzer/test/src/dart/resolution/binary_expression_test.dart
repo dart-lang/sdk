@@ -1168,7 +1168,7 @@ void f(int a) {
     var node = result.findNode.binaryOperatorInvocation('!= 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1183,7 +1183,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: !=
   rightOperand: IntegerLiteral
     literal: 0
@@ -1318,7 +1317,7 @@ void f(int a) {
     var node = result.findNode.binaryOperatorInvocation('== 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1333,7 +1332,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: ==
   rightOperand: IntegerLiteral
     literal: 0
@@ -2439,7 +2437,7 @@ f(int a, int b) {
     var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2454,7 +2452,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: +
   rightOperand: UnqualifiedNameExpression
     name: b
@@ -2863,7 +2860,7 @@ f(A a, int b) {
     var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2878,7 +2875,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: +
   rightOperand: UnqualifiedNameExpression
     name: b

@@ -27,6 +27,10 @@ class FindNode extends _FindNodeBase {
     return _node(search, (n) => n is ConstructorName);
   }
 
+  ExtensionOverride extensionOverride(String search) {
+    return _node(search, (n) => n is ExtensionOverride);
+  }
+
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (node) => node is InstanceCreationExpression);
   }
@@ -97,6 +101,9 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
       _single();
 
+  InvalidExtensionOverrideExpression
+  get singleInvalidExtensionOverrideExpression => _single();
+
   InvalidSuperExpression get singleInvalidSuperExpression => _single();
 
   LogicalAnd get singleLogicalAnd => _single();
@@ -150,6 +157,10 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandNameExpression dotShorthandNameExpression(String search) {
     return _node(search, (node) => node is DotShorthandNameExpression);
+  }
+
+  ExtensionOverride2 extensionOverride2(String search) {
+    return _node(search, (n) => n is ExtensionOverride2);
   }
 
   IfNull ifNull(String search) {
@@ -839,10 +850,6 @@ abstract class _FindNodeBase {
 
   ExtensionDeclaration extensionDeclaration(String search) {
     return _node(search, (n) => n is ExtensionDeclaration);
-  }
-
-  ExtensionOverride extensionOverride(String search) {
-    return _node(search, (n) => n is ExtensionOverride);
   }
 
   ExtensionTypeDeclaration extensionTypeDeclaration(String search) {

@@ -632,7 +632,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride2(ExtensionOverride2 node) {
     _visitNode(node.importPrefix);
     _visitToken(node.name);
     _visitNode(node.typeArguments);
@@ -1026,6 +1026,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
     InvalidExpressionAssignmentTarget node,
   ) {
     _visitNode(node.expression);
+  }
+
+  @override
+  void visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    node.extensionOverride.accept2(this);
+  }
+
+  @override
+  void visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    node.extensionOverride.accept2(this);
   }
 
   @override

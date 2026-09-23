@@ -1093,9 +1093,9 @@ f(A a) {
   E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1124,7 +1124,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');
@@ -2008,9 +2007,9 @@ f(prefix.A a) {
   prefix.E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
@@ -2043,7 +2042,6 @@ ExtensionOverride
     rightParenthesis: )
   element: package:test/a.dart::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');

@@ -853,6 +853,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordIndexReadWriteTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
       case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -987,6 +988,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordIndexReadWriteTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
       case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -1142,7 +1144,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  visitExtensionOverride(ExtensionOverride node) {
+  visitExtensionOverride2(ExtensionOverride2 node) {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
@@ -1216,6 +1218,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordIndexReadWriteTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
       case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():
@@ -1293,6 +1296,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         _recordIndexReadWriteTarget(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
       case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
       case ImportPrefixedAssignmentTargetImpl():

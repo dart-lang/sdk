@@ -503,7 +503,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCallInvocation(CallInvocation node) {
     var functionExpression = node.receiver;
 
-    if (functionExpression is ExtensionOverride) {
+    if (functionExpression is ExtensionOverride2) {
       return super.visitCallInvocation(node);
     }
 
@@ -710,6 +710,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
+      case InvalidExtensionOverrideAssignmentTargetImpl():
       case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         break;
@@ -2210,7 +2211,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                 .withArguments(operator: '?.', replacement: '.')
                 .at(node.operator),
           );
-        case Expression receiver:
+        case InstanceReceiver receiver:
           _checkForUnnecessaryNullAware(
             receiver,
             node.operator,
@@ -2245,7 +2246,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                 .withArguments(operator: '?.', replacement: '.')
                 .at(node.operator),
           );
-        case Expression receiver:
+        case InstanceReceiver receiver:
           _checkForUnnecessaryNullAware(
             receiver,
             node.operator,
@@ -2271,7 +2272,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                 .withArguments(operator: '?.', replacement: '.')
                 .at(node.operator),
           );
-        case ExpressionImpl receiver:
+        case InstanceReceiverImpl receiver:
           _checkForUnnecessaryNullAware(
             receiver,
             node.operator,
@@ -6179,7 +6180,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is ExtensionElement) {
-        if (target is ExtensionOverride) {
+        if (target is ExtensionOverride2) {
           // OK, target is an extension override
           return;
         } else if (target is SimpleIdentifier &&
@@ -8021,7 +8022,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (target is SuperReference || target is SuperExpression) {
       return;
     }
-    target as Expression;
 
     /// If the operator is not valid because the target already makes use of a
     /// null aware operator, return the null aware operator from the target.
@@ -8064,8 +8064,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return null;
     }
 
-    var targetType = target.staticType;
-    if (target is ExtensionOverride) {
+    var targetType = target is Expression ? target.staticType : null;
+    if (target is ExtensionOverride2) {
       var arguments = target.argumentList.arguments2;
       if (arguments.length == 1) {
         targetType = arguments[0].argumentExpression2.typeOrThrow;

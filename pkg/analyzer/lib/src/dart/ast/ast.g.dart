@@ -592,7 +592,8 @@ abstract class AstVisitor2<R> {
 
   R? visitExtensionOnClause(ExtensionOnClause node);
 
-  R? visitExtensionOverride(ExtensionOverride node);
+  @experimental
+  R? visitExtensionOverride2(ExtensionOverride2 node);
 
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
 
@@ -697,6 +698,16 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
+  );
+
+  @experimental
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  );
+
+  @experimental
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
   );
 
   @experimental

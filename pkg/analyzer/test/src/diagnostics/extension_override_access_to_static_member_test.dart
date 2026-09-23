@@ -33,7 +33,7 @@ void f() {
     var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -45,7 +45,6 @@ CallInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -119,7 +118,7 @@ void f() {
     var node = result.findNode.receiverMethodInvocation('empty();');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -129,7 +128,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: String
-    staticType: null
   operator: .
   name: empty
   argumentList: ArgumentList

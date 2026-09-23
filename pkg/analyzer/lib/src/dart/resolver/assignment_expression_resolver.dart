@@ -54,22 +54,25 @@ class AssignmentExpressionResolver {
           );
         }
         return;
-      case ExpressionImpl():
-        if (receiver is ExtensionOverrideImpl) {
-          _resolver.visitExtensionOverride(receiver);
-          receiver.setPseudoExpressionStaticType(
-            receiver.extendedType ?? InvalidTypeImpl.instance,
-          );
-        } else {
-          _resolver.analyzeExpression(
+      case ExtensionOverride2Impl():
+        _resolver.visitExtensionOverride2(receiver);
+        receiver.legacyStaticType =
+            receiver.extendedType ?? InvalidTypeImpl.instance;
+        if (target.operator.type == TokenType.QUESTION_PERIOD) {
+          _resolver.startNullAwareAssignmentTarget(
             receiver,
-            SharedTypeSchemaView(UnknownInferredType.instance),
-            continueNullShorting: true,
+            offset: target.operator.offset,
           );
-          receiver = _resolver.popRewrite()!;
-          target.receiver = receiver;
         }
-
+        return;
+      case ExpressionImpl():
+        _resolver.analyzeExpression(
+          receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        receiver = _resolver.popRewrite()!;
+        target.receiver = receiver;
         var receiverDoesNotComplete = identical(
           _typeSystem.resolveToBound(receiver.typeOrThrow),
           NeverTypeImpl.instance,
@@ -339,6 +342,9 @@ class AssignmentExpressionResolver {
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+        _resolveInvalidExtensionOverride(node, target);
+        return;
       case InvalidSuperAssignmentTargetImpl():
         _resolveInvalidSuper(node, target);
         return;
@@ -472,7 +478,7 @@ class AssignmentExpressionResolver {
           continueNullShorting: true,
         );
         var receiverDoesNotComplete =
-            target.receiver is! ExtensionOverrideImpl &&
+            target.receiver is! ExtensionOverride2Impl &&
             identical(
               _typeSystem.resolveToBound(
                 _resolver.instanceReceiverType(target.receiver),
@@ -547,6 +553,9 @@ class AssignmentExpressionResolver {
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+        _resolveInvalidExtensionOverride(node, target);
+        return;
       case InvalidSuperAssignmentTargetImpl():
         _resolveInvalidSuper(node, target);
         return;
@@ -677,6 +686,9 @@ class AssignmentExpressionResolver {
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+        _resolveInvalidExtensionOverride(node, target);
+        return;
       case InvalidSuperAssignmentTargetImpl():
         _resolveInvalidSuper(node, target);
         return;
@@ -745,7 +757,7 @@ class AssignmentExpressionResolver {
     );
 
     var receiverDoesNotComplete =
-        target.receiver is! ExtensionOverrideImpl &&
+        target.receiver is! ExtensionOverride2Impl &&
         identical(
           _typeSystem.resolveToBound(
             _resolver.instanceReceiverType(target.receiver),
@@ -1064,6 +1076,28 @@ class AssignmentExpressionResolver {
     );
     node.value = _resolver.popRewrite()!;
     node.recordStaticType(node.value.typeOrThrow, resolver: _resolver);
+  }
+
+  void _resolveInvalidExtensionOverride(
+    AssignmentExpression2Impl node,
+    InvalidExtensionOverrideAssignmentTargetImpl target,
+  ) {
+    _resolver.visitExtensionOverride2(target.extensionOverride);
+    if (target.hasRead) target.read = const InvalidReadResolutionImpl();
+    target.write = const InvalidWriteResolutionImpl();
+    _resolver.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(InvalidTypeImpl.instance),
+    );
+    node.value = _resolver.popRewrite()!;
+    if (node is CompoundAssignmentImpl) {
+      node.operatorResultType = InvalidTypeImpl.instance;
+    }
+    node.recordStaticType(switch (node) {
+      DirectAssignmentImpl() => node.value.typeOrThrow,
+      IfNullAssignmentImpl() => DynamicTypeImpl.instance,
+      _ => InvalidTypeImpl.instance,
+    }, resolver: _resolver);
   }
 
   void _resolveInvalidIfNull(

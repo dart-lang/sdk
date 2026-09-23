@@ -166,7 +166,7 @@ class FunctionReferenceResolver {
         _diagnosticReporter.report(
           diag.disallowedTypeInstantiationExpression.at(
             operand is ReceiverPropertyExtractionImpl &&
-                    operand.receiver is! ExtensionOverrideImpl
+                    operand.receiver is! ExtensionOverride2Impl
                 ? operand.name
                 : operand,
           ),
@@ -455,7 +455,7 @@ class FunctionReferenceResolver {
   void _resolveExtensionOverride(
     FunctionReferenceImpl node,
     PropertyAccessImpl function,
-    ExtensionOverrideImpl override,
+    ExtensionOverride2Impl override,
   ) {
     var propertyName = function.propertyName;
     var result = _extensionResolver.getOverrideMember(
@@ -618,8 +618,10 @@ class FunctionReferenceResolver {
         node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
         return;
       }
-    } else if (target is ExtensionOverrideImpl) {
-      _resolveExtensionOverride(node, function, target);
+    } else if (target case InvalidExtensionOverrideExpressionImpl(
+      :var extensionOverride,
+    )) {
+      _resolveExtensionOverride(node, function, extensionOverride);
       return;
     } else {
       var targetType = target.staticType;

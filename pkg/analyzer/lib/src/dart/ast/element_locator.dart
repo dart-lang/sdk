@@ -434,7 +434,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitExtensionOverride(ExtensionOverride node) {
+  Element? visitExtensionOverride2(ExtensionOverride2 node) {
     return node.element;
   }
 

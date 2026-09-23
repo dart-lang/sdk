@@ -490,6 +490,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     bool continueNullShorting = false,
   }) {
     switch (receiver) {
+      case ExtensionOverride2Impl():
+        visitExtensionOverride2(receiver);
+        return receiver;
       case SuperReferenceImpl():
         visitSuperReference(receiver);
         return receiver;
@@ -534,6 +537,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         pattern: field.pattern,
       );
     }).toList();
+  }
+
+  /// The receiver used for member lookup within [cascade].
+  ///
+  /// An invalid extension override still selects extension members for recovery;
+  /// its enclosing expression retains the invalid value type of the target.
+  InstanceReceiverImpl cascadeReceiver(CascadeExpressionImpl cascade) {
+    return switch (cascade.target2) {
+      InvalidExtensionOverrideExpressionImpl(:var extensionOverride) =>
+        extensionOverride,
+      var target => target,
+    };
   }
 
   /// Verify that the arguments in the given [argumentList] can be assigned to
@@ -803,9 +818,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
       var shouldHaveType = true;
-      if (replacementExpression is ExtensionOverride) {
-        shouldHaveType = false;
-      } else if (replacementExpression is IdentifierImpl) {
+      if (replacementExpression is IdentifierImpl) {
         var element = replacementExpression.element;
         if (element is ExtensionElement ||
             element is InterfaceElement ||
@@ -1327,6 +1340,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return switch (receiver) {
       ExpressionImpl() => receiver.typeOrThrow,
       SuperReferenceImpl() => superLookupType(receiver),
+      ExtensionOverride2Impl() =>
+        receiver.extendedType ?? InvalidTypeImpl.instance,
     };
   }
 
@@ -1516,7 +1531,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
     return _propertyElementResolver.resolveCascadeIndex(
       node: node,
-      receiver: cascade.target2,
+      receiver: cascadeReceiver(cascade),
       isNullAware: cascade.isNullAware,
       hasRead: hasRead,
       hasWrite: hasWrite,
@@ -1540,7 +1555,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
     return _propertyElementResolver.resolveCascadeProperty(
       node: node,
-      receiver: cascade.target2,
+      receiver: cascadeReceiver(cascade),
       isNullAware: cascade.isNullAware,
       propertyName: propertyName,
       hasRead: hasRead,
@@ -2514,8 +2529,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     analyzeExpression(node.target2, SharedTypeSchemaView(contextType));
-    var targetType = node.target2.staticType ?? typeProvider.dynamicType;
-    popRewrite();
+    node.target2 = popRewrite()!;
+    var targetType = node.target2.typeOrThrow;
 
     flowAnalysis.flow!.cascadeExpression_afterTarget(
       flowAnalysis.getExpressionInfo(node.target2),
@@ -3273,8 +3288,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitExtensionOverride(
-    covariant ExtensionOverrideImpl node, {
+  void visitExtensionOverride2(
+    covariant ExtensionOverride2Impl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExtensionOverride(node, contextType);
@@ -3303,7 +3318,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         ),
       );
     }
-    InvocationInferrer<ExtensionOverrideImpl>(
+    InvocationInferrer<ExtensionOverride2Impl>(
       resolver: this,
       node: node,
       argumentList: node.argumentList,
@@ -3823,6 +3838,18 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitInvalidExtensionOverrideExpression(
+    covariant InvalidExtensionOverrideExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    visitExtensionOverride2(node.extensionOverride);
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitInvalidSuperExpression(
     covariant InvalidSuperExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4313,23 +4340,24 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var receiver = AstRewriter.receiverInvocationReceiver(node);
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    if (receiver is SuperReferenceImpl) {
-      visitSuperReference(receiver);
-      if (selector.operator.type == TokenType.QUESTION_PERIOD) {
-        _startNullAwareAccess(receiver, offset: selector.operator.offset);
-      }
-    }
-    if (receiver is ExpressionImpl) {
-      analyzeExpression(
-        receiver,
-        operations.unknownType,
-        continueNullShorting: true,
-      );
-      receiver = popRewrite()!;
-      if (selector.operator.type == TokenType.QUESTION_PERIOD) {
-        _startNullAwareAccess(receiver, offset: selector.operator.offset);
-        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, selector.name);
-      }
+    switch (receiver) {
+      case ExpressionImpl() && InstanceReceiverImpl instanceReceiver:
+      case ExtensionOverride2Impl() && InstanceReceiverImpl instanceReceiver:
+        receiver = analyzeInstanceReceiver(
+          instanceReceiver,
+          continueNullShorting: true,
+        );
+        if (selector.operator.type == TokenType.QUESTION_PERIOD) {
+          _startNullAwareAccess(receiver, offset: selector.operator.offset);
+          nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, selector.name);
+        }
+      case StaticQualifierImpl():
+        break;
+      case SuperReferenceImpl():
+        visitSuperReference(receiver);
+        if (selector.operator.type == TokenType.QUESTION_PERIOD) {
+          _startNullAwareAccess(receiver, offset: selector.operator.offset);
+        }
     }
     typeArguments?.accept2(this);
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
@@ -4343,7 +4371,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // supplies an invoke type for recovery and argument checking.
     var invocation = peekRewrite()!;
     if (receiver is ExpressionImpl &&
-        receiver is! ExtensionOverrideImpl &&
         invocation is ReceiverMethodInvocationImpl &&
         selector.operator.type == TokenType.QUESTION_PERIOD &&
         typeSystem.isNull(typeSystem.resolveToBound(receiver.typeOrThrow))) {
@@ -4584,7 +4611,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
 
     var receiverDoesNotComplete =
-        node.receiver is! ExtensionOverrideImpl &&
+        node.receiver is! ExtensionOverride2Impl &&
         identical(
           typeSystem.resolveToBound(instanceReceiverType(node.receiver)),
           NeverTypeImpl.instance,
@@ -4647,35 +4674,41 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
 
-    if (node.receiver case SuperReferenceImpl receiver) {
-      visitSuperReference(receiver);
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
-        _startNullAwareAccess(receiver, offset: node.operator.offset);
-      }
-    }
+    switch (node.receiver) {
+      case ExpressionImpl receiver:
+        // Legacy bare-name property reads start the dead interval at the selected
+        // name. Capture this source form before receiver analysis can rewrite it.
+        var isBareNameRead =
+            receiver is UnqualifiedNameExpressionImpl &&
+            node.operator.type == TokenType.PERIOD;
+        analyzeExpression(
+          receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        var resolvedReceiver = popRewrite()!;
+        node.receiver = resolvedReceiver;
 
-    if (node.receiver case ExpressionImpl receiver) {
-      // Legacy bare-name property reads start the dead interval at the selected
-      // name. Capture this source form before receiver analysis can rewrite it.
-      var isBareNameRead =
-          receiver is UnqualifiedNameExpressionImpl &&
-          node.operator.type == TokenType.PERIOD;
-      analyzeExpression(
-        receiver,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-        continueNullShorting: true,
-      );
-      var resolvedReceiver = popRewrite()!;
-      node.receiver = resolvedReceiver;
+        if (isBareNameRead || resolvedReceiver is FunctionInvocationImpl) {
+          nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
+        }
 
-      if (isBareNameRead || resolvedReceiver is FunctionInvocationImpl) {
-        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
-      }
-
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
-        _startNullAwareAccess(resolvedReceiver, offset: node.operator.offset);
-        nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
-      }
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          _startNullAwareAccess(resolvedReceiver, offset: node.operator.offset);
+          nullSafetyDeadCodeVerifier.recordDeadIntervalAt(node, node.name);
+        }
+      case ExtensionOverride2Impl receiver:
+        visitExtensionOverride2(receiver);
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          _startNullAwareAccess(receiver, offset: node.operator.offset);
+        }
+      case StaticQualifierImpl():
+        break;
+      case SuperReferenceImpl receiver:
+        visitSuperReference(receiver);
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          _startNullAwareAccess(receiver, offset: node.operator.offset);
+        }
     }
 
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
@@ -6088,7 +6121,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             SharedTypeView(superLookupType(target)),
             offset: offset,
           );
-        case ExtensionOverride(
+        case ExtensionOverride2(
           argumentList: ArgumentListImpl(
             arguments2: [ArgumentImpl(argumentExpression: var expression)],
           ),
@@ -6103,6 +6136,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               offset: offset,
             ),
           );
+        case ExtensionOverride2Impl():
+          // Invalid argument counts have no single receiver to null-short.
+          break;
       }
     }
   }

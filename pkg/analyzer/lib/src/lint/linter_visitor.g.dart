@@ -1688,9 +1688,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _runSubscriptions(node, _registry._forExtensionOverride);
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    _runSubscriptions(node, _registry._forExtensionOverride2);
     node.visitChildren2(this);
   }
 
@@ -1976,6 +1977,27 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     InvalidExpressionAssignmentTarget node,
   ) {
     _runSubscriptions(node, _registry._forInvalidExpressionAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    _runSubscriptions(
+      node,
+      _registry._forInvalidExtensionOverrideAssignmentTarget,
+    );
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    _runSubscriptions(node, _registry._forInvalidExtensionOverrideExpression);
     node.visitChildren2(this);
   }
 
@@ -4705,7 +4727,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ExtensionOnClause>> _forExtensionOnClause = [];
 
-  final List<_Subscription2<ExtensionOverride>> _forExtensionOverride = [];
+  final List<_Subscription2<ExtensionOverride2>> _forExtensionOverride2 = [];
 
   final List<_Subscription2<ExtensionTypeDeclaration>>
   _forExtensionTypeDeclaration = [];
@@ -4814,6 +4836,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<InvalidExpressionAssignmentTarget>>
   _forInvalidExpressionAssignmentTarget = [];
+
+  final List<_Subscription2<InvalidExtensionOverrideAssignmentTarget>>
+  _forInvalidExtensionOverrideAssignmentTarget = [];
+
+  final List<_Subscription2<InvalidExtensionOverrideExpression>>
+  _forInvalidExtensionOverrideExpression = [];
 
   final List<_Subscription2<InvalidSuperAssignmentTarget>>
   _forInvalidSuperAssignmentTarget = [];
@@ -5677,9 +5705,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionOverride(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addExtensionOverride2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forExtensionOverride.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forExtensionOverride2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6039,6 +6067,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forInvalidExpressionAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addInvalidExtensionOverrideAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidExtensionOverrideAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addInvalidExtensionOverrideExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidExtensionOverrideExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

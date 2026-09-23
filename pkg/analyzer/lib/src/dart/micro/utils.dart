@@ -179,7 +179,7 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   // prepare used element
   Element? usedElement;
   var parent = prefixNode.parent2;
-  if (parent is ExtensionOverride) {
+  if (parent is ExtensionOverride2) {
     usedElement = parent.element;
   } else if (parent is NamedType) {
     usedElement = parent.element;

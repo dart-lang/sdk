@@ -8,10 +8,10 @@ import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../utils/test_instrumentation_service.dart';
 import 'fix_processor.dart';
 
 void main() {

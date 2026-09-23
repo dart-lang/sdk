@@ -20,10 +20,9 @@ import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_testing/src/single_unit.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
-
-import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:linter/src/lint_names.dart';
 

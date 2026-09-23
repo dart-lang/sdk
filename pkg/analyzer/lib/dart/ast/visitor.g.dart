@@ -2401,8 +2401,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitExtensionOverride(ExtensionOverride node) {
+  R? visitExtensionOverride2(ExtensionOverride2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2683,6 +2684,24 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
   ) {
     node.visitChildren2(this);
     return null;
@@ -4273,8 +4292,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOnClause(ExtensionOnClause node) => null;
 
+  @experimental
   @override
-  R? visitExtensionOverride(ExtensionOverride node) => null;
+  R? visitExtensionOverride2(ExtensionOverride2 node) => null;
 
   @override
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) => null;
@@ -4429,6 +4449,18 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
+  ) => null;
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) => null;
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
   ) => null;
 
   @experimental
@@ -5707,8 +5739,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOnClause(ExtensionOnClause node) => _throw(node);
 
+  @experimental
   @override
-  R? visitExtensionOverride(ExtensionOverride node) => _throw(node);
+  R? visitExtensionOverride2(ExtensionOverride2 node) => _throw(node);
 
   @override
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
@@ -5867,6 +5900,18 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
+  ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
   ) => _throw(node);
 
   @experimental
@@ -8423,10 +8468,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitExtensionOverride(ExtensionOverride node) {
+  T? visitExtensionOverride2(ExtensionOverride2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitExtensionOverride(node);
+    T? result = _baseVisitor.visitExtensionOverride2(node);
     stopwatch.stop();
     return result;
   }
@@ -8796,6 +8842,30 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   ) {
     stopwatch.start();
     T? result = _baseVisitor.visitInvalidExpressionAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitInvalidExtensionOverrideAssignmentTarget(
+      node,
+    );
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitInvalidExtensionOverrideExpression(node);
     stopwatch.stop();
     return result;
   }
@@ -10675,8 +10745,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOnClause(ExtensionOnClause node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitExtensionOverride(ExtensionOverride node) => visitNode(node);
+  R? visitExtensionOverride2(ExtensionOverride2 node) => visitNode(node);
 
   @override
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
@@ -10838,6 +10909,18 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitInvalidExpressionAssignmentTarget(
     InvalidExpressionAssignmentTarget node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
   ) => visitNode(node);
 
   @experimental
