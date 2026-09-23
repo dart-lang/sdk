@@ -353,6 +353,7 @@ class Constants {
     Constant constant,
     w.ValueType expectedType, {
     w.ModuleBuilder? deferredModuleGuard,
+    bool dummyValueIfIncompatible = false,
   }) {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(
@@ -360,6 +361,7 @@ class Constants {
       b,
       expectedType,
       deferredModuleGuard,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     ).instantiate(constant);
   }
 
@@ -560,13 +562,15 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   final w.InstructionsBuilder b;
   final w.ValueType expectedType;
   final w.ModuleBuilder? deferredModuleGuard;
+  final bool dummyValueIfIncompatible;
 
   ConstantInstantiator(
     this.constants,
     this.b,
     this.expectedType,
-    this.deferredModuleGuard,
-  );
+    this.deferredModuleGuard, {
+    this.dummyValueIfIncompatible = false,
+  });
 
   Translator get translator => constants.translator;
 
@@ -576,6 +580,16 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       if (expectedType == const w.RefType.extern(nullable: true)) {
         assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
         b.extern_convert_any();
+      } else if (dummyValueIfIncompatible) {
+        // In a dispatch table call, an optional parameter may be declared by
+        // some targets in the selector (where it is always explicitly passed at
+        // call sites reaching those targets, giving it a narrower inferred type
+        // in the selector signature than its declared default value), while the
+        // targets actually reachable from this call site do not declare the
+        // parameter at all. Any reachable callee will ignore this parameter, so
+        // we can pass a dummy value of the expected signature type.
+        b.drop();
+        constants.instantiateDummyValueConstant(b, expectedType);
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.

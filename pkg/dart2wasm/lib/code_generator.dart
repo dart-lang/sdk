@@ -2898,7 +2898,11 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      instantiateConstantBackendUse(paramInfo.positional[i]!, type);
+      instantiateConstantBackendUse(
+        paramInfo.positional[i]!,
+        type,
+        dummyValueIfIncompatible: true,
+      );
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2921,7 +2925,11 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        instantiateConstantBackendUse(paramInfo.named[name]!, type);
+        instantiateConstantBackendUse(
+          paramInfo.named[name]!,
+          type,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
   }
@@ -3478,13 +3486,15 @@ abstract class AstCodeGenerator
   /// It should therefore not use a `deferredModuleGuard`.
   void instantiateConstantBackendUse(
     Constant constant,
-    w.ValueType expectedType,
-  ) {
+    w.ValueType expectedType, {
+    bool dummyValueIfIncompatible = false,
+  }) {
     translator.constants.instantiateConstant(
       b,
       constant,
       expectedType,
       deferredModuleGuard: null,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     );
   }
 }
@@ -3992,7 +4002,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 
@@ -4034,7 +4048,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 
