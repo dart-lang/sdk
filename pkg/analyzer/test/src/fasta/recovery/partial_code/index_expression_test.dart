@@ -1106,8 +1106,8 @@ CompilationUnit
                     name: intList
                   leftBracket: [
                   index: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2

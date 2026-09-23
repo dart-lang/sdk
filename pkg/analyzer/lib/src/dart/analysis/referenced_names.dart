@@ -232,12 +232,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   });
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _addCompoundAssignmentOperator(node.operator);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {

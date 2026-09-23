@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoGenericFunctionSyntaxTest extends AssistProcessorTest {
+class ConvertIntoGenericFunctionSyntaxTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoGenericFunctionSyntax;
 

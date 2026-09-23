@@ -214,7 +214,7 @@ class ObjectLayout {
   // Synthetic common base class for all typed data lists and ffi Pointer.
   late final ast.Class _pointerBaseClass = ast.Class(
     name: '#PointerBase',
-    supertype: ast.Supertype(_coreTypes.objectClass, const []),
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
     fileUri: ast.dummyUri,
   )..parent = _coreTypes.coreLibrary;
   late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
@@ -320,7 +320,7 @@ class ObjectLayout {
     _suspendStateClass,
     'thenCallback',
     ast.FunctionType(
-      [const ast.DynamicType()],
+      ast.DartTypeList.dynamic1,
       const ast.VoidType(),
       .nullable,
     ),
@@ -330,10 +330,10 @@ class ObjectLayout {
     _suspendStateClass,
     'errorCallback',
     ast.FunctionType(
-      [
+      ast.DartTypeList(
         _coreTypes.objectNonNullableRawType,
         _coreTypes.stackTraceNonNullableRawType,
-      ],
+      ),
       const ast.DynamicType(),
       .nullable,
     ),
@@ -389,7 +389,7 @@ class ObjectLayout {
   // External non-Dart fields.
   late final ast.Class _threadClass = ast.Class(
     name: '#Thread',
-    supertype: ast.Supertype(_coreTypes.objectClass, const []),
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
     fileUri: ast.dummyUri,
   )..parent = _vmLibrary;
   late final CField Thread_threadLocals = _createBuiltInField(

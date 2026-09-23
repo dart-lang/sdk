@@ -1350,17 +1350,13 @@ class KernelTarget {
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-      TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-        new TypeParameterType.withDefaultNullability(typeParameter),
-      );
-    }
     return new InterfaceType(
       enclosingClass,
       enclosingClass.enclosingLibrary.nonNullable,
-      typeParameterTypes,
+      getAsTypeArguments(
+        enclosingClass.typeParameters,
+        enclosingClass.enclosingLibrary,
+      ),
     );
   }
 

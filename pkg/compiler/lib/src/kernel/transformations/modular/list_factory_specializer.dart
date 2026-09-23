@@ -120,9 +120,7 @@ class ListFactorySpecializer extends BaseSpecializer {
       cosmeticName: _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
-      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, [
-        ...args.types,
-      ]),
+      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, args.types),
     )..fileOffset = node.fileOffset;
 
     final indexVariable = SyntheticVariable(
@@ -156,7 +154,7 @@ class ListFactorySpecializer extends BaseSpecializer {
             Arguments([IntLiteral(1)]),
             interfaceTarget: intPlus,
             functionType: FunctionType(
-              [intType],
+              DartTypeList(intType),
               intType,
               Nullability.nonNullable,
             ),

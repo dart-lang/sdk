@@ -48,8 +48,8 @@ CompilationUnit
                     name: a
                   inKeyword: in
                   iterable2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -1719,8 +1719,8 @@ CompilationUnit
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
                   initialization2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -3331,8 +3331,8 @@ CompilationUnit
                     name: a
                   inKeyword: in <synthetic>
                   iterable2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -4177,8 +4177,8 @@ CompilationUnit
                     token: a
                   inKeyword: in <synthetic>
                   iterable2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -4996,8 +4996,8 @@ CompilationUnit
                     name: a
                   inKeyword: in
                   iterable2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2

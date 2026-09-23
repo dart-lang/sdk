@@ -2366,24 +2366,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitAssignmentExpression(
-    AssignmentExpression node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    _assignmentExpressionResolver.resolve(
-      node as AssignmentExpressionImpl,
-      contextType: contextType,
-    );
-    _insertImplicitCallTearOff(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitAwaitExpression(
     covariant AwaitExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3631,20 +3613,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitImplicitCallReference(
-    covariant ImplicitCallReferenceImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    checkUnreachableNode(node);
-    analyzeExpression(
-      node.expression2,
-      SharedTypeSchemaView(UnknownInferredType.instance),
-    );
-    popRewrite();
-    node.typeArguments?.accept2(this);
-  }
-
-  @override
   void visitImplicitCallTearOff(
     covariant ImplicitCallTearOffImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3728,80 +3696,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       insertGenericFunctionInstantiation(node, contextType: contextType),
       contextType: contextType,
     );
-
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(
-    covariant IndexExpressionImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    checkUnreachableNode(node);
-
-    var target = node.target2;
-    if (target != null) {
-      analyzeExpression(
-        target,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-        continueNullShorting: true,
-      );
-      popRewrite();
-    }
-    var targetType = node.realTarget2.staticType;
-
-    if (node.isNullAware) {
-      _startNullAwareAccess(
-        node.target2,
-        offset: (node.period ?? node.question ?? node.leftBracket).offset,
-      );
-      nullSafetyDeadCodeVerifier.visitNode(node.index2);
-    }
-
-    var result = _propertyElementResolver.resolveIndexExpression(
-      node: node,
-      hasRead: true,
-      hasWrite: false,
-    );
-
-    var element = result.readElement2;
-    node.element = element as MethodElement?;
-
-    analyzeExpression(
-      node.index2,
-      SharedTypeSchemaView(result.indexContextType),
-    );
-    popRewrite();
-    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-      flowAnalysis.getExpressionInfo(node.index2),
-    );
-    checkIndexExpressionIndex(
-      node.index2,
-      readElement: result.readElement2 as InternalExecutableElement?,
-      writeElement: null,
-      whyNotPromoted: whyNotPromoted,
-    );
-
-    DartType type;
-    if (identical(targetType, NeverTypeImpl.instance)) {
-      type = NeverTypeImpl.instance;
-    } else if (element is MethodElement) {
-      type = element.returnType;
-    } else if (targetType is DynamicType) {
-      type = DynamicTypeImpl.instance;
-    } else {
-      type = InvalidTypeImpl.instance;
-    }
-    node.recordStaticType(type, resolver: this);
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-    nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
 
     inferenceLogWriter?.exitExpression(node);
   }

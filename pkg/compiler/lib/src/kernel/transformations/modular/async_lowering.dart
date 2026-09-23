@@ -61,20 +61,17 @@ class AsyncLowering {
       ReturnStatement(
         StaticInvocation(
           _coreTypes.futureSyncFactory,
-          Arguments(
-            [
-              FunctionExpression(
-                FunctionNode(
-                  node.body,
-                  returnType: FutureOrType(
-                    futureValueType,
-                    futureValueType.nullability,
-                  ),
+          Arguments([
+            FunctionExpression(
+              FunctionNode(
+                node.body,
+                returnType: FutureOrType(
+                  futureValueType,
+                  futureValueType.nullability,
                 ),
               ),
-            ],
-            types: [futureValueType],
-          ),
+            ),
+          ], types: DartTypeList(futureValueType)),
         ),
       ),
     );
@@ -89,7 +86,7 @@ class AsyncLowering {
       if (expression == null) continue;
       final futureValueCall = StaticInvocation(
         _coreTypes.futureValueFactory,
-        Arguments([expression], types: [futureValueType]),
+        Arguments([expression], types: DartTypeList(futureValueType)),
       );
       returnStatement.expression = futureValueCall;
       futureValueCall.parent = returnStatement;

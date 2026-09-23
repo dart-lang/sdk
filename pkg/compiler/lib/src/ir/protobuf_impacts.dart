@@ -196,18 +196,15 @@ class ProtobufImpactHandler implements ConditionalImpactHandler {
         ir.InstanceAccessKind.Instance,
         _CloneVisitorLenientVariables().clone(node.receiver),
         _builderInfoAddMethod.name,
-        ir.Arguments(
-          <ir.Expression>[
-            ir.IntLiteral(0), // tagNumber
-            ir.NullLiteral(), // name
-            ir.NullLiteral(), // fieldType
-            ir.NullLiteral(), // defaultOrMaker
-            ir.NullLiteral(), // subBuilder
-            ir.NullLiteral(), // valueOf
-            ir.NullLiteral(), // enumValues
-          ],
-          types: <ir.DartType>[const ir.NullType()],
-        ),
+        ir.Arguments(<ir.Expression>[
+          ir.IntLiteral(0), // tagNumber
+          ir.NullLiteral(), // name
+          ir.NullLiteral(), // fieldType
+          ir.NullLiteral(), // defaultOrMaker
+          ir.NullLiteral(), // subBuilder
+          ir.NullLiteral(), // valueOf
+          ir.NullLiteral(), // enumValues
+        ], types: ir.DartTypeList.null1),
         interfaceTarget: _builderInfoAddMethod,
         functionType: _typeOfBuilderInfoAddOfNull,
       )..fileOffset = node.fileOffset;

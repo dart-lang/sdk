@@ -99,15 +99,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _visitNode(node.leftHandSide2);
-    sink.write(' ');
-    sink.write(node.operator.lexeme);
-    sink.write(' ');
-    _visitNode(node.rightHandSide2);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     sink.write('await ');
     _visitNode(node.expression2);
@@ -467,31 +458,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    _visitToken(node.constKeyword, suffix: ' ');
-    _visitToken(node.period);
-    _visitNode(node.constructorName);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.period);
     _visitToken(node.name);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
-  }
-
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _visitToken(node.period);
-    _visitNode(node.memberName);
     _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
   }
@@ -508,12 +480,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
     _visitToken(node.period);
     _visitToken(node.name);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _visitToken(node.period);
-    _visitNode(node.propertyName);
   }
 
   @override
@@ -793,12 +759,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionReference(FunctionReference node) {
-    _visitNode(node.function2);
-    _visitNode(node.typeArguments);
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
@@ -913,12 +873,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitImplicitCallReference(ImplicitCallReference node) {
-    _visitNode(node.expression2);
-    _visitNode(node.typeArguments);
-  }
-
-  @override
   void visitImplicitCallTearOff(ImplicitCallTearOff node) {
     node.operand.accept2(this);
   }
@@ -984,19 +938,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
         _visitNode(node.target);
         sink.write(node.operator.lexeme);
     }
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    if (node.isCascaded) {
-      _visitToken(node.period);
-    } else {
-      _visitNode(node.target2);
-    }
-    _visitToken(node.question);
-    _visitToken(node.leftBracket);
-    _visitNode(node.index2);
-    _visitToken(node.rightBracket);
   }
 
   @override

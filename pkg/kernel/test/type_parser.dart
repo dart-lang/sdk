@@ -162,11 +162,19 @@ class DartTypeParser {
         } else if (target is Class) {
           List<DartType>? typeArguments = parseOptionalTypeArgumentList();
           Nullability nullability = parseOptionalNullability()!;
-          return new InterfaceType(target, nullability, typeArguments);
+          return new InterfaceType(
+            target,
+            nullability,
+            typeArguments != null ? DartTypeList.from(typeArguments) : null,
+          );
         } else if (target is Typedef) {
           List<DartType>? typeArguments = parseOptionalTypeArgumentList();
           Nullability nullability = parseOptionalNullability()!;
-          return new TypedefType(target, nullability, typeArguments);
+          return new TypedefType(
+            target,
+            nullability,
+            typeArguments != null ? DartTypeList.from(typeArguments) : null,
+          );
         } else if (target is TypeParameter) {
           Nullability? nullability = parseOptionalNullability(null);
           DartType? promotedBound;
@@ -212,10 +220,10 @@ class DartTypeParser {
         Nullability nullability = parseOptionalNullability()!;
         var returnType = parseType();
         return new FunctionType(
-          parameters,
+          DartTypeList.from(parameters),
           returnType,
           nullability,
-          namedParameters: namedParameters,
+          namedParameters: NamedDartTypeList.from(namedParameters),
         );
 
       case Token.LeftAngle:
@@ -228,11 +236,11 @@ class DartTypeParser {
         var returnType = parseType();
         popStructuralParameters(typeParameters);
         return new FunctionType(
-          parameters,
+          DartTypeList.from(parameters),
           returnType,
           nullability,
-          typeParameters: typeParameters,
-          namedParameters: namedParameters,
+          typeParameters: StructuralParameterList.from(typeParameters),
+          namedParameters: NamedDartTypeList.from(namedParameters),
         );
 
       default:

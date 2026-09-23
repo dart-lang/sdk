@@ -83,16 +83,15 @@ class ForInLowering {
       final streamIteratorType = new InterfaceType(
         coreTypes.streamIteratorClass,
         staticTypeContext.nullable,
-        [valueVariable.type],
+        DartTypeList(valueVariable.type),
       );
       final forIteratorVariable = SyntheticVariable(
         cosmeticName: ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
-          new Arguments(
-            <Expression>[new VariableGet(streamVariable)],
-            types: [valueVariable.type],
-          ),
+          new Arguments(<Expression>[
+            new VariableGet(streamVariable),
+          ], types: DartTypeList(valueVariable.type)),
         ),
         type: streamIteratorType,
       );
@@ -233,7 +232,7 @@ class ForInLowering {
     final iteratorType = InterfaceType(
       coreTypes.iteratorClass,
       staticTypeContext.nonNullable,
-      [elementType],
+      DartTypeList(elementType),
     );
 
     final syncForIteratorVariableInitializer = InstanceGet(

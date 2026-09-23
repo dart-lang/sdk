@@ -39,42 +39,51 @@ abstract class TypeEnvironment extends Types {
   /// Returns the type `List<E>` with the given [nullability] and [elementType]
   /// as `E`.
   InterfaceType listType(DartType elementType, Nullability nullability) {
-    return new InterfaceType(coreTypes.listClass, nullability, <DartType>[
-      elementType,
-    ]);
+    return new InterfaceType(
+      coreTypes.listClass,
+      nullability,
+      DartTypeList(elementType),
+    );
   }
 
   /// Returns the type `Set<E>` with the given [nullability] and [elementType]
   /// as `E`.
   InterfaceType setType(DartType elementType, Nullability nullability) {
-    return new InterfaceType(coreTypes.setClass, nullability, <DartType>[
-      elementType,
-    ]);
+    return new InterfaceType(
+      coreTypes.setClass,
+      nullability,
+      DartTypeList(elementType),
+    );
   }
 
   /// Returns the type `Map<K,V>` with the given [nullability], [key] as `K`
   /// and [value] is `V`.
   InterfaceType mapType(DartType key, DartType value, Nullability nullability) {
-    return new InterfaceType(coreTypes.mapClass, nullability, <DartType>[
-      key,
-      value,
-    ]);
+    return new InterfaceType(
+      coreTypes.mapClass,
+      nullability,
+      DartTypeList(key, value),
+    );
   }
 
   /// Returns the type `Iterable<E>` with the given [nullability] and [type]
   /// as `E`.
   InterfaceType iterableType(DartType type, Nullability nullability) {
-    return new InterfaceType(coreTypes.iterableClass, nullability, <DartType>[
-      type,
-    ]);
+    return new InterfaceType(
+      coreTypes.iterableClass,
+      nullability,
+      DartTypeList(type),
+    );
   }
 
   /// Returns the type `Future<E>` with the given [nullability] and [type]
   /// as `E`.
   InterfaceType futureType(DartType type, Nullability nullability) {
-    return new InterfaceType(coreTypes.futureClass, nullability, <DartType>[
-      type,
-    ]);
+    return new InterfaceType(
+      coreTypes.futureClass,
+      nullability,
+      DartTypeList(type),
+    );
   }
 
   DartType? _futureTypeOf(DartType t) {
@@ -449,11 +458,10 @@ abstract class TypeEnvironment extends Types {
               new InterfaceType(
                 checkTargetType.classNode,
                 checkTargetType.declaredNullability,
-                [
-                  for (TypeParameter typeParameter
-                      in checkTargetTypeOwnTypeParameters)
-                    new TypeParameterType.withDefaultNullability(typeParameter),
-                ],
+                getAsTypeArguments(
+                  checkTargetTypeOwnTypeParameters,
+                  checkTargetType.classNode.enclosingLibrary,
+                ),
               ),
               expressionStaticType.classNode,
             )!;

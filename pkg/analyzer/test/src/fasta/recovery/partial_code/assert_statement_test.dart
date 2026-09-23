@@ -45,8 +45,8 @@ CompilationUnit
                   token: a
                 comma: ,
                 message2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
@@ -2176,8 +2176,8 @@ CompilationUnit
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2

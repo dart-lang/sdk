@@ -48,13 +48,13 @@ class ListLiteralsLowering {
     if (length == 0) {
       return StaticInvocation(
         _defaultFactory,
-        Arguments([IntLiteral(0)], types: [node.typeArgument]),
+        Arguments([IntLiteral(0)], types: DartTypeList(node.typeArgument)),
       )..fileOffset = node.fileOffset;
     } else if (length <= numSpecializedFactories) {
       final factory = getSpecializedFactory(length);
       return StaticInvocation(
         factory,
-        Arguments(node.expressions, types: [node.typeArgument]),
+        Arguments(node.expressions, types: DartTypeList(node.typeArgument)),
       )..fileOffset = node.fileOffset;
     }
     return node;

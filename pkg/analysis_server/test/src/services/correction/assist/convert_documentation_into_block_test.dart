@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertDocumentationIntoBlockTest extends AssistProcessorTest {
+class ConvertDocumentationIntoBlockTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertDocumentationIntoBlock;
 

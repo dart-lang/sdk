@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryNameTest extends AssistProcessorTest {
+class RemoveUnnecessaryNameTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.removeUnnecessaryName;
 

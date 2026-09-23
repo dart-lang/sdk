@@ -4,7 +4,7 @@
 
 library kernel.hierarchy_based_type_environment;
 
-import '../ast.dart' show DartType, TypeDeclaration, TypeDeclarationType;
+import '../ast.dart' show DartTypeList, TypeDeclaration, TypeDeclarationType;
 
 import '../class_hierarchy.dart' show ClassHierarchy;
 
@@ -29,7 +29,7 @@ class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  DartTypeList? getTypeArgumentsAsInstanceOf(
     TypeDeclarationType type,
     TypeDeclaration typeDeclaration,
   ) {

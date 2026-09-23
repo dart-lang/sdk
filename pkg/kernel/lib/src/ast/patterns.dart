@@ -745,7 +745,7 @@ class RelationalPattern extends Pattern {
   /// The type arguments passed to [target].
   ///
   /// This is used for [RelationalAccessKind.Static].
-  List<DartType>? typeArguments;
+  DartTypeList? typeArguments;
 
   /// The type of [target].
   ///
@@ -766,7 +766,7 @@ class RelationalPattern extends Pattern {
     required RelationalAccessKind accessKind,
     required Name? name,
     required Procedure? target,
-    required List<DartType>? typeArguments,
+    required DartTypeList? typeArguments,
     required FunctionType? functionType,
   }) : this.byReference(
          kind: kind,
@@ -1252,7 +1252,7 @@ class NamedPattern extends Pattern {
   /// This is used for [ObjectAccessKind.Static].
   ///
   /// This is set during inference.
-  List<DartType>? typeArguments;
+  DartTypeList? typeArguments;
 
   @override
   List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
@@ -2378,14 +2378,14 @@ final Pattern dummyPattern = new ConstantPattern.byReference(
 );
 
 final FunctionType dummyFunctionType = new FunctionType(
-  [],
+  DartTypeList.empty,
   dummyDartType,
   Nullability.nonNullable,
 );
 
 final RecordType dummyRecordType = new RecordType(
-  [],
-  [],
+  DartTypeList.empty,
+  NamedDartTypeList.empty,
   Nullability.nonNullable,
 );
 

@@ -8,20 +8,20 @@ import 'package:kernel/kernel.dart';
 FunctionType createVoidToR() {
   StructuralParameter R = StructuralParameter("R", const DynamicType());
   return new FunctionType(
-    [],
+    DartTypeList.empty,
     new StructuralParameterType(R, Nullability.undetermined),
     Nullability.nonNullable,
-    typeParameters: [R],
+    typeParameters: new StructuralParameterList(R),
   );
 }
 
 FunctionType createTTo_VoidToR() {
   StructuralParameter T = new StructuralParameter("T", const DynamicType());
   return new FunctionType(
-    [new StructuralParameterType(T, Nullability.undetermined)],
+    new DartTypeList(new StructuralParameterType(T, Nullability.undetermined)),
     createVoidToR(),
     Nullability.nonNullable,
-    typeParameters: [T],
+    typeParameters: new StructuralParameterList(T),
   );
 }
 
@@ -54,14 +54,14 @@ void test1() {
 FunctionType createVoidTo_VoidToR() {
   StructuralParameter R = new StructuralParameter("R", const DynamicType());
   return new FunctionType(
-    [],
+    DartTypeList.empty,
     new FunctionType(
-      [],
+      DartTypeList.empty,
       new StructuralParameterType(R, Nullability.undetermined),
       Nullability.nonNullable,
     ),
     Nullability.nonNullable,
-    typeParameters: [R],
+    typeParameters: new StructuralParameterList(R),
   );
 }
 

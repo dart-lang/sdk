@@ -25,21 +25,17 @@ class AstBinaryFlags {
 
   static final _hasPrefix = _checkBit(1, ImportDirective);
 
-  static final _hasPeriod = _checkBit(
-    0,
-    IndexExpression,
-    MethodInvocation,
-    PropertyAccess,
-  );
+  static final _hasPeriod = _checkBit(0, MethodInvocation, PropertyAccess);
 
   static final _hasPeriod2 = _checkBit(1, MethodInvocation, PropertyAccess);
 
   static final _hasQuestion = _checkBit(
     2,
     GenericFunctionType,
-    IndexExpression,
     NamedType,
     PropertyAccess,
+    ReceiverIndexAssignmentTarget,
+    ReceiverIndexExpression,
   );
 
   static final _hasSeparatorColon = _checkBit(0, ConstructorDeclaration);

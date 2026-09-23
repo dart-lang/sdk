@@ -154,7 +154,7 @@ void annotateComponent(
 }
 
 InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
-  return InstanceConstant(coreTypes.pragmaClass.reference, [], {
+  return InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
     coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
     coreTypes.pragmaOptions.fieldReference: NullConstant(),
   });

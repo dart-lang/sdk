@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortChildPropertyLastTest extends AssistProcessorTest {
+class SortChildPropertyLastTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

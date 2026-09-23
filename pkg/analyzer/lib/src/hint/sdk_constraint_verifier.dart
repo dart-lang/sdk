@@ -70,13 +70,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _checkSinceSdkVersion(node.readElement, node);
-    _checkSinceSdkVersion(node.writeElement, node);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (checkTripleShift) {
       TokenType operatorType = node.operator.type;
@@ -193,12 +186,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
     _checkNamedRead(node.resolution, node, errorEntity: node.name);
     super.visitImportPrefixedNameExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitIndexExpression(node);
   }
 
   @override

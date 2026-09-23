@@ -966,13 +966,15 @@ class Translator with KernelNodes {
       Nullability.nonNullable,
     );
 
-    final positionalParameters = List.of(staticType.positionalParameters);
+    final positionalParameters = DartTypeList.from(
+      staticType.positionalParameters,
+    );
     assert(
       positionalParameters.length ==
           method.function.positionalParameters.length,
     );
 
-    final namedParameters = List.of(staticType.namedParameters);
+    final namedParameters = NamedDartTypeList.from(staticType.namedParameters);
     assert(namedParameters.length == method.function.namedParameters.length);
 
     for (int i = 0; i < positionalParameters.length; i++) {
@@ -2202,9 +2204,7 @@ class Translator with KernelNodes {
     if (concreteClass == coreTypes.deprecatedNullClass) return const NullType();
 
     final typeParameters = concreteClass.typeParameters;
-    final typeArguments = typeParameters.isEmpty
-        ? const <DartType>[]
-        : List<DartType>.filled(typeParameters.length, const DynamicType());
+    final typeArguments = DartTypeList.filledWithDynamic(typeParameters.length);
     final nullability = inferredType.nullable
         ? Nullability.nullable
         : Nullability.nonNullable;

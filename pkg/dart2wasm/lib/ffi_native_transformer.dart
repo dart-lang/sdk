@@ -211,7 +211,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     // types, and it will convert the return value to the right Dart type.
     final wasmImportName = Name('${node.name.text}_\$import', currentLibrary);
     final wasmImportPragma = ConstantExpression(
-      InstanceConstant(pragmaClass.reference, [], {
+      InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
         pragmaName.fieldReference: StringConstant("wasm:import"),
         pragmaOptions.fieldReference: nativeFunctionName,
       }),

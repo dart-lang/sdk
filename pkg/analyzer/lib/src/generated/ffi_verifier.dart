@@ -445,22 +445,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(covariant IndexExpressionImpl node) {
-    var element = node.element;
-    if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructArrayExtension ||
-          enclosingElement.isNativeUnionPointerExtension ||
-          enclosingElement.isNativeUnionArrayExtension) {
-        if (element.name == '[]') {
-          _validateRefIndexed(node, node.realTarget2);
-        }
-      }
-    }
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;

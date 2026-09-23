@@ -284,9 +284,10 @@ final class TearOffFunction extends ClosureFunction {
         ? ast.InterfaceType(
             member.enclosingClass!,
             ast.Nullability.nonNullable,
-            member.enclosingClass!.typeParameters
-                .map((tp) => tp.defaultType)
-                .toList(),
+            ast.DartTypeList.generate(
+              member.enclosingClass!.typeParameters.length,
+              (i) => member.enclosingClass!.typeParameters[i].defaultType,
+            ),
           )
         : member.function!.returnType,
   );

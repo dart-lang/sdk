@@ -403,52 +403,6 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   ReferencesCollector(this.element);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement;
-    if (writeElement is PropertyAccessorElement) {
-      var kind = MatchKind.WRITE;
-      if (writeElement.variable == element || writeElement == element) {
-        if (node.leftHandSide2 is SimpleIdentifier) {
-          references.add(
-            MatchInfo(
-              node.leftHandSide2.offset,
-              node.leftHandSide2.length,
-              kind,
-            ),
-          );
-        } else if (node.leftHandSide2 is PrefixedIdentifier) {
-          var prefixIdentifier = node.leftHandSide2 as PrefixedIdentifier;
-          references.add(
-            MatchInfo(
-              prefixIdentifier.identifier.offset,
-              prefixIdentifier.identifier.length,
-              kind,
-            ),
-          );
-        } else if (node.leftHandSide2 is PropertyAccess) {
-          var accessor = node.leftHandSide2 as PropertyAccess;
-          references.add(
-            MatchInfo(accessor.propertyName.offset, accessor.length, kind),
-          );
-        }
-      }
-    }
-
-    var readElement = node.readElement;
-    if (readElement is PropertyAccessorElement) {
-      if (readElement.variable == element) {
-        references.add(
-          MatchInfo(
-            node.rightHandSide2.offset,
-            node.rightHandSide2.length,
-            MatchKind.READ,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     _visitNamedFunctionInvocation(node);
   }

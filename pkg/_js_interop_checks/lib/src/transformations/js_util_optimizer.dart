@@ -381,7 +381,10 @@ class JsUtilOptimizer extends Transformer {
     for (String selector in selectors) {
       jsValue = StaticInvocation(
         _getPropertyTrustTypeTarget,
-        Arguments([jsValue, StringLiteral(selector)], types: [_objectType]),
+        Arguments([
+          jsValue,
+          StringLiteral(selector),
+        ], types: DartTypeList(_objectType)),
       );
     }
     return jsValue;
@@ -445,7 +448,10 @@ class JsUtilOptimizer extends Transformer {
         final property = StringLiteral(name);
         final expression = StaticInvocation(
           target,
-          Arguments([receiver, property], types: [function.returnType]),
+          Arguments([
+            receiver,
+            property,
+          ], types: DartTypeList(function.returnType)),
         )..fileOffset = node.fileOffset;
         _convertToStubWithExpression(node, expression);
       });
@@ -462,10 +468,10 @@ class JsUtilOptimizer extends Transformer {
       final property = StringLiteral(name);
       return StaticInvocation(
           target,
-          Arguments(
-            [receiver, property],
-            types: [invocation.getStaticType(_staticTypeContext)],
-          ),
+          Arguments([
+            receiver,
+            property,
+          ], types: DartTypeList(invocation.getStaticType(_staticTypeContext))),
         )
         ..fileOffset = invocation.fileOffset
         ..parent = invocation.parent;
@@ -512,10 +518,11 @@ class JsUtilOptimizer extends Transformer {
         final value = positional.single;
         final setterMethodInvocation = StaticInvocation(
           target,
-          Arguments(
-            [receiver, property, value],
-            types: [value.getStaticType(_staticTypeContext)],
-          ),
+          Arguments([
+            receiver,
+            property,
+            value,
+          ], types: DartTypeList(value.getStaticType(_staticTypeContext))),
         )..fileOffset = node.fileOffset;
         _convertToStubWithExpression(node, setterMethodInvocation);
         // [_lowerSetProperty] called when transformer visits synthesized body.
@@ -534,10 +541,11 @@ class JsUtilOptimizer extends Transformer {
       return _lowerSetProperty(
         StaticInvocation(
             target,
-            Arguments(
-              [receiver, property, value],
-              types: [value.getStaticType(_staticTypeContext)],
-            ),
+            Arguments([
+              receiver,
+              property,
+              value,
+            ], types: DartTypeList(value.getStaticType(_staticTypeContext))),
           )
           ..fileOffset = invocation.fileOffset
           ..parent = invocation.parent,
@@ -591,10 +599,11 @@ class JsUtilOptimizer extends Transformer {
         ], selectors);
         final callMethodInvocation = StaticInvocation(
           target,
-          Arguments(
-            [receiver, StringLiteral(name), ListLiteral(positional)],
-            types: [function.returnType],
-          ),
+          Arguments([
+            receiver,
+            StringLiteral(name),
+            ListLiteral(positional),
+          ], types: DartTypeList(function.returnType)),
         )..fileOffset = node.fileOffset;
         _convertToStubWithExpression(node, callMethodInvocation);
         // [_lowerCallMethod] called when transformer visits synthesized body.
@@ -612,7 +621,9 @@ class JsUtilOptimizer extends Transformer {
               target,
               Arguments(
                 [receiver, StringLiteral(name), ListLiteral(positional)],
-                types: [invocation.getStaticType(_staticTypeContext)],
+                types: DartTypeList(
+                  invocation.getStaticType(_staticTypeContext),
+                ),
               ),
             )
             ..fileOffset = invocation.fileOffset
@@ -705,7 +716,9 @@ class JsUtilOptimizer extends Transformer {
               target,
               Arguments(
                 arguments.positional,
-                types: [invocation.getStaticType(_staticTypeContext)],
+                types: DartTypeList(
+                  invocation.getStaticType(_staticTypeContext),
+                ),
               ),
             )
             ..fileOffset = invocation.fileOffset
@@ -734,7 +747,9 @@ class JsUtilOptimizer extends Transformer {
               _callConstructorTarget,
               Arguments(
                 [_cloner.clone(constructor), ListLiteral(arguments.positional)],
-                types: [invocation.getStaticType(_staticTypeContext)],
+                types: DartTypeList(
+                  invocation.getStaticType(_staticTypeContext),
+                ),
               ),
             )
             ..fileOffset = invocation.fileOffset
@@ -970,7 +985,7 @@ class JsUtilOptimizer extends Transformer {
   /// with the given 0-4 arguments.
   StaticInvocation _createCallUncheckedNode(
     List<Procedure> callUncheckedTargets,
-    List<DartType> callUncheckedTypes,
+    DartTypeList callUncheckedTypes,
     List<Expression> callUncheckedArguments,
     List<Expression> originalArguments,
     int nodeFileOffset,
@@ -1049,7 +1064,7 @@ class JsUtilOptimizer extends Transformer {
           _jsFunctionToDart,
           Arguments(
             [node.arguments.positional.first],
-            types: [node.arguments.types.first],
+            types: node.arguments.types,
           )..fileOffset = node.arguments.fileOffset,
         )
         ..fileOffset = node.fileOffset
@@ -1408,7 +1423,7 @@ class ExtensionIndex {
     var positionalParameters = functionType.positionalParameters;
     if (isInstanceInteropMember(node)) {
       // Ignore the instance parameter.
-      positionalParameters = positionalParameters.skip(1).toList();
+      positionalParameters = positionalParameters.skip(1);
     }
     return FunctionType(
       positionalParameters,

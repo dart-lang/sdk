@@ -359,7 +359,10 @@ class VmTarget extends Target {
                 ..isConst = (arguments.named.isEmpty)
                 ..fileOffset = arguments.fileOffset,
             ],
-            types: [coreTypes.symbolNonNullableRawType, new DynamicType()],
+            types: DartTypeList(
+              coreTypes.symbolNonNullableRawType,
+              new DynamicType(),
+            ),
           ),
         )..fileOffset = offset,
       ]),
@@ -459,13 +462,10 @@ class VmTarget extends Target {
 
     return new StaticInvocation(
       coreTypes.listUnmodifiableConstructor,
-      new Arguments(
-        [
-          new ListLiteral(elements, typeArgument: typeArgument)
-            ..fileOffset = offset,
-        ],
-        types: [typeArgument],
-      ),
+      new Arguments([
+        new ListLiteral(elements, typeArgument: typeArgument)
+          ..fileOffset = offset,
+      ], types: DartTypeList(typeArgument)),
     );
   }
 

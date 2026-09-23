@@ -166,7 +166,7 @@ T addPragma<T extends Annotatable>(
 }) => node
   ..addAnnotation(
     ConstantExpression(
-      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+      InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
       }),

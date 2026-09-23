@@ -848,7 +848,8 @@ class _NonConstListLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.listOf,
-        new Arguments([spread], types: [_elementType])..fileOffset = fileOffset,
+        new Arguments([spread], types: new DartTypeList(_elementType))
+          ..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -1411,8 +1412,10 @@ class _NonConstMapLiteralBuilder(
         result = _createVariable(
           new StaticInvocation(
             _engine.mapOf,
-            new Arguments([value], types: [_keyType, _valueType])
-              ..fileOffset = fileOffset,
+            new Arguments(
+              [value],
+              types: new DartTypeList(_keyType, _valueType),
+            )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
           _receiverType,
         );
@@ -1999,7 +2002,7 @@ class _NonConstMapLiteralBuilder(
       final InterfaceType variableType = new InterfaceType(
         _engine.mapEntryClass,
         Nullability.nonNullable,
-        <DartType>[const DynamicType(), const DynamicType()],
+        DartTypeList.dynamic2,
       );
       DeclaredVariable variable = _createForInVariable(
         entry.fileOffset,
@@ -2174,7 +2177,8 @@ class _NonConstSetLiteralBuilder(
       DeclaredVariable result = _createVariable(
         new StaticInvocation(
           _engine.setFactory,
-          new Arguments([], types: [_elementType])..fileOffset = fileOffset,
+          new Arguments([], types: new DartTypeList(_elementType))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset,
         _receiverType,
       );
@@ -2200,7 +2204,8 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.setOf,
-        new Arguments([spread], types: [_elementType])..fileOffset = fileOffset,
+        new Arguments([spread], types: new DartTypeList(_elementType))
+          ..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -2241,12 +2246,12 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable setVar = extern.createVariable(
       new StaticInvocation(
         _engine.setFactory,
-        new Arguments([], types: [node.typeArgument]),
+        new Arguments([], types: new DartTypeList(node.typeArgument)),
       ),
       receiverType = new InterfaceType(
         _coreTypes.setClass,
         Nullability.nonNullable,
-        [node.typeArgument],
+        new DartTypeList(node.typeArgument),
       ),
     );
 

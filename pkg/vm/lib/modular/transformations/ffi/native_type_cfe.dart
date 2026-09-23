@@ -441,12 +441,16 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
-    InterfaceType(transformer.pointerClass, Nullability.nonNullable, [
-      InterfaceType(
-        transformer.pointerClass.superclass!,
-        Nullability.nonNullable,
+    InterfaceType(
+      transformer.pointerClass,
+      Nullability.nonNullable,
+      DartTypeList(
+        InterfaceType(
+          transformer.pointerClass.superclass!,
+          Nullability.nonNullable,
+        ),
       ),
-    ]),
+    ),
   );
 
   /// Sample output:
@@ -465,10 +469,10 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.loadMethods[NativeType.kPointer]!,
-      Arguments(
-        [typedDataBase, offsetInBytes],
-        types: [(dartType as InterfaceType).typeArguments.single],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 
@@ -493,14 +497,11 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.storeMethods[NativeType.kPointer]!,
-      Arguments(
-        [
-          typedDataBase,
-          offsetInBytes,
-          VariableGet(value)..fileOffset = fileOffset,
-        ],
-        types: [(dartType as InterfaceType).typeArguments.single],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+        VariableGet(value)..fileOffset = fileOffset,
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 
@@ -839,16 +840,19 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
 
   // Note that we flatten multi dimensional arrays.
   @override
-  Constant generateConstant(FfiTransformer transformer) =>
-      InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
-        transformer.ffiInlineArrayElementTypeField.fieldReference:
-            singleElementType.generateConstant(transformer),
-        transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
-          dimensionsFlattened,
-        ),
-        transformer.ffiInlineArrayVariableLengthField.fieldReference:
-            BoolConstant(variableLength),
-      });
+  Constant generateConstant(FfiTransformer transformer) => InstanceConstant(
+    transformer.ffiInlineArrayClass.reference,
+    DartTypeList.empty,
+    {
+      transformer.ffiInlineArrayElementTypeField.fieldReference:
+          singleElementType.generateConstant(transformer),
+      transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
+        dimensionsFlattened,
+      ),
+      transformer.ffiInlineArrayVariableLengthField.fieldReference:
+          BoolConstant(variableLength),
+    },
+  );
 
   /// Sample output for `Array<Int8>`:
   ///
@@ -868,24 +872,18 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
     required Expression offsetInBytes,
     bool unaligned = false,
   }) {
-    InterfaceType typeArgument =
-        (dartType as InterfaceType).typeArguments.single as InterfaceType;
-
     return ConstructorInvocation(
       transformer.arrayConstructor,
-      Arguments(
-        [
-          typedDataBase,
-          offsetInBytes,
-          ConstantExpression(IntConstant(length)),
-          ConstantExpression(BoolConstant(variableLength)),
-          transformer.intListConstantExpression(
-            nestedDimensions,
-            Nullability.nonNullable,
-          ),
-        ],
-        types: [typeArgument],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+        ConstantExpression(IntConstant(length)),
+        ConstantExpression(BoolConstant(variableLength)),
+        transformer.intListConstantExpression(
+          nestedDimensions,
+          Nullability.nonNullable,
+        ),
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 

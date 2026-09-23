@@ -69,9 +69,10 @@ Component createMockSdkComponent() {
       'List',
       typeParameters: [T],
       implementedTypes: [
-        new Supertype(iterable, [
-          new TypeParameterType.withDefaultNullability(T),
-        ]),
+        new Supertype(
+          iterable,
+          new DartTypeList(new TypeParameterType.withDefaultNullability(T)),
+        ),
       ],
     );
   }

@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class DestructureLocalVariableAssignmentObjectTest extends AssistProcessorTest {
+class DestructureLocalVariableAssignmentObjectTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 
@@ -159,7 +160,8 @@ m() {
 }
 
 @reflectiveTest
-class DestructureLocalVariableAssignmentRecordTest extends AssistProcessorTest {
+class DestructureLocalVariableAssignmentRecordTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 

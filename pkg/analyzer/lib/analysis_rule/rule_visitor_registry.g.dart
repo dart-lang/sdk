@@ -523,8 +523,6 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addAssignmentExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addAwaitExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -660,18 +658,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addDotShorthandConstructorInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
   @experimental
   void addDotShorthandConstructorInvocation2(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addDotShorthandInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -684,11 +672,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addDotShorthandNameExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addDotShorthandPropertyAccess(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -791,8 +774,6 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypedFormalParameterSuffix(
@@ -822,8 +803,6 @@ abstract class RuleVisitorRegistry2 {
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -861,8 +840,6 @@ abstract class RuleVisitorRegistry2 {
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
-
-  void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

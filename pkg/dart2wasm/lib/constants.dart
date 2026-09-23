@@ -214,9 +214,11 @@ class Constants {
   }
 
   Constant makeWasmI32(int value) {
-    return InstanceConstant(translator.wasmI32Class.reference, const [], {
-      translator.wasmI32Value.fieldReference: IntConstant(value),
-    });
+    return InstanceConstant(
+      translator.wasmI32Class.reference,
+      DartTypeList.empty,
+      {translator.wasmI32Value.fieldReference: IntConstant(value)},
+    );
   }
 
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
@@ -231,7 +233,7 @@ class Constants {
   InstanceConstant makeNamedParameterConstant(NamedType n) {
     return InstanceConstant(
       translator.namedParameterClass.reference,
-      const [],
+      DartTypeList.empty,
       {
         translator.namedParameterNameField.fieldReference: translator.symbols
             .symbolForNamedParameter(n.name),
@@ -261,7 +263,7 @@ class Constants {
     mutable
         ? translator.wasmArrayClass.reference
         : translator.immutableWasmArrayClass.reference,
-    [elementType],
+    DartTypeList(elementType),
     {
       mutable
               ? translator.wasmArrayValueField.fieldReference
@@ -552,7 +554,11 @@ class Constants {
         nullability == Nullability.nullable
         ? _cachedTrueConstant
         : _cachedFalseConstant;
-    return InstanceConstant(classNode.reference, const [], fieldValues);
+    return InstanceConstant(
+      classNode.reference,
+      DartTypeList.empty,
+      fieldValues,
+    );
   }
 }
 
@@ -1147,14 +1153,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitListConstant(ListConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableListClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         translator.listBaseLengthField.fieldReference: IntConstant(
           constant.entries.length,
         ),
         translator.listBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1176,7 +1182,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     final instanceConstant = InstanceConstant(
       translator.immutableMapClass.reference,
-      [constant.keyType, constant.valueType],
+      DartTypeList(constant.keyType, constant.valueType),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1188,7 +1194,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1214,7 +1220,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitSetConstant(SetConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableSetClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1226,7 +1232,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,

@@ -5,8 +5,7 @@
 import 'package:kernel/ast.dart'
     show
         Combinator,
-        DartType,
-        DynamicType,
+        DartTypeList,
         FunctionNode,
         InterfaceType,
         LibraryDependency,
@@ -88,7 +87,7 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
               returnType: new InterfaceType(
                 parent.loader.coreTypes.futureClass,
                 Nullability.nonNullable,
-                <DartType>[const DynamicType()],
+                DartTypeList.dynamic1,
               ),
             ),
             fileUri: parent.library.fileUri,

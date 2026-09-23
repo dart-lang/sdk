@@ -299,11 +299,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitAssignmentExpression(AssignmentExpression node) {
-    return node.element;
-  }
-
-  @override
   Element? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     return node.element;
   }
@@ -384,22 +379,10 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    return node.constructorName.element;
-  }
-
-  @override
   Element? visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
     return node.element;
-  }
-
-  @override
-  Element? visitDotShorthandInvocation(DotShorthandInvocation node) {
-    return node.memberName.element;
   }
 
   @override
@@ -413,11 +396,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       element,
     _ => null,
   };
-
-  @override
-  Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    return node.propertyName.element;
-  }
 
   @override
   Element? visitDottedName(DottedName node) {
@@ -464,11 +442,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitIndexExpression(IndexExpression node) {
     return node.element;
   }
 

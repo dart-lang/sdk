@@ -186,26 +186,24 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     required Nullability nullability,
     required int requiredParameterCount,
   }) {
-    List<StructuralParameter> structuralParameters;
+    StructuralParameterList structuralParameters;
     DartType functionReturnType;
-    List<DartType> positionalParameterTypes;
-    List<NamedType> namedParameterTypes;
+    DartTypeList positionalParameterTypes;
+    NamedDartTypeList namedParameterTypes;
     if (typeParameters.isEmpty) {
-      structuralParameters = const <StructuralParameter>[];
+      structuralParameters = StructuralParameterList.empty;
       functionReturnType = returnType;
-      positionalParameterTypes = List.generate(
+      positionalParameterTypes = DartTypeList.generate(
         positionalParameters.length,
         (index) => _getTypeOfVariable(positionalParameters[index]),
-        growable: false,
       );
 
       if (namedParameters.isEmpty) {
-        namedParameterTypes = const <NamedType>[];
+        namedParameterTypes = NamedDartTypeList.empty;
       } else {
-        namedParameterTypes = List.generate(
+        namedParameterTypes = NamedDartTypeList.generate(
           namedParameters.length,
           (index) => _getNamedTypeOfVariable(namedParameters[index]),
-          growable: false,
         );
         namedParameterTypes.sort();
       }
@@ -218,21 +216,19 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       Substitution substitution = freshStructuralParameters.substitution;
       functionReturnType = substitution.substituteType(returnType);
 
-      positionalParameterTypes = List.generate(
+      positionalParameterTypes = DartTypeList.generate(
         positionalParameters.length,
         (index) => substitution.substituteType(
           _getTypeOfVariable(positionalParameters[index]),
         ),
-        growable: false,
       );
       if (namedParameters.isEmpty) {
-        namedParameterTypes = const <NamedType>[];
+        namedParameterTypes = NamedDartTypeList.empty;
       } else {
-        namedParameterTypes = List.generate(
+        namedParameterTypes = NamedDartTypeList.generate(
           namedParameters.length,
           (index) =>
               _getNamedTypeOfVariable(namedParameters[index], substitution),
-          growable: false,
         );
         namedParameterTypes.sort();
       }
@@ -284,7 +280,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       emittedValueType = v.visitDartType(emittedValueType!);
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transform(body!);
@@ -309,7 +307,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       );
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);

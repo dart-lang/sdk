@@ -47,13 +47,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
@@ -200,15 +193,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    usedElements.addElement(node.element?.enclosingElement);
-    _addParametersForArguments(node.argumentList);
-    super.visitDotShorthandConstructorInvocation(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -219,22 +203,9 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    usedElements.addElement(node.memberName.element?.enclosingElement);
-    _addParametersForArguments(node.argumentList);
-    super.visitDotShorthandInvocation(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    usedElements.addElement(node.propertyName.element?.enclosingElement);
-    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
@@ -307,13 +278,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       readCountsAsUse: node.parent2 is! ExpressionStatement,
     );
     super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
-    usedElements.addMember(element);
-    super.visitIndexExpression(node);
   }
 
   @override

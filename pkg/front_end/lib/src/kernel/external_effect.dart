@@ -73,7 +73,7 @@ class ExternalEffect {
 
     if (function.computeFunctionType(Nullability.nonNullable) !=
         new FunctionType(
-          [coreTypes.objectNullableRawType],
+          new DartTypeList(coreTypes.objectNullableRawType),
           const VoidType(),
           Nullability.nonNullable,
         )) {

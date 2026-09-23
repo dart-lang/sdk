@@ -40,13 +40,13 @@ DartType? rawUnalias(DartType type) {
 ///
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
-List<DartType>? rawUnaliasTypes(List<DartType> types) {
-  List<DartType>? newTypes;
+DartTypeList? rawUnaliasTypes(List<DartType> types) {
+  DartTypeList? newTypes;
   for (int i = 0; i < types.length; i++) {
     DartType typeArgument = types[i];
     DartType? newTypeArgument = rawUnalias(typeArgument);
     if (newTypeArgument != null) {
-      newTypes ??= types.toList(growable: false);
+      newTypes ??= DartTypeList.from(types);
       newTypes[i] = newTypeArgument;
     }
   }
@@ -65,11 +65,11 @@ class _Unalias extends ReplacementVisitor {
   DartType visitTypedefType(TypedefType node, Variance variance) {
     DartType result;
     if (node.typeArguments.isNotEmpty) {
-      List<DartType>? newTypeArguments = null;
+      DartTypeList? newTypeArguments = null;
       for (int i = 0; i < node.typeArguments.length; i++) {
         DartType? substitution = node.typeArguments[i].accept1(this, variance);
         if (substitution != null) {
-          newTypeArguments ??= node.typeArguments.toList(growable: false);
+          newTypeArguments ??= DartTypeList.from(node.typeArguments);
           newTypeArguments[i] = substitution;
         }
       }

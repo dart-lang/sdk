@@ -40,16 +40,14 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     assert(a.positionalParameters.length == b.positionalParameters.length);
     assert(a.namedParameters.length == b.namedParameters.length);
 
-    List<StructuralParameter> newTypeParameters =
-        new List<StructuralParameter>.generate(a.typeParameters.length, (
-          int i,
-        ) {
+    StructuralParameterList newTypeParameters =
+        StructuralParameterList.generate(a.typeParameters.length, (int i) {
           StructuralParameter aTypeParameter = a.typeParameters[i];
           StructuralParameter bTypeParameter = b.typeParameters[i];
           return new StructuralParameter(
             aTypeParameter.name ?? bTypeParameter.name,
           );
-        }, growable: false);
+        });
 
     FunctionTypeInstantiator? aInstantiator;
     FunctionTypeInstantiator? bInstantiator;
@@ -100,7 +98,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
 
     DartType? newReturnType = mergeTypes(a.returnType, b.returnType);
     if (newReturnType == null) return null;
-    List<DartType> newPositionalParameters = new List<DartType>.filled(
+    DartTypeList newPositionalParameters = DartTypeList.filled(
       a.positionalParameters.length,
       dummyDartType,
     );
@@ -114,7 +112,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newPositionalParameters[i] = newType;
     }
-    List<NamedType> newNamedParameters = new List<NamedType>.filled(
+    NamedDartTypeList newNamedParameters = NamedDartTypeList.filled(
       a.namedParameters.length,
       dummyNamedType,
     );
@@ -174,7 +172,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       return a.accept1(this, b);
     }
 
-    List<DartType> newPositional = new List<DartType>.filled(
+    DartTypeList newPositional = DartTypeList.filled(
       a.positional.length,
       dummyDartType,
     );
@@ -185,7 +183,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newPositional[i] = newType;
     }
-    List<NamedType> newNamed = new List<NamedType>.filled(
+    NamedDartTypeList newNamed = NamedDartTypeList.filled(
       a.named.length,
       dummyNamedType,
     );
@@ -241,7 +239,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (a.typeArguments.isEmpty) {
       return new InterfaceType(a.classNode, nullability);
     }
-    List<DartType> newTypeArguments = new List<DartType>.filled(
+    DartTypeList newTypeArguments = DartTypeList.filled(
       a.typeArguments.length,
       dummyDartType,
     );
@@ -281,7 +279,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (a.typeArguments.isEmpty) {
       return new ExtensionType(a.extensionTypeDeclaration, nullability);
     }
-    List<DartType> newTypeArguments = new List<DartType>.filled(
+    DartTypeList newTypeArguments = DartTypeList.filled(
       a.typeArguments.length,
       dummyDartType,
     );
@@ -481,7 +479,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     if (a.typeArguments.isEmpty) {
       return new TypedefType(a.typedefNode, nullability);
     }
-    List<DartType> newTypeArguments = new List<DartType>.filled(
+    DartTypeList newTypeArguments = DartTypeList.filled(
       a.typeArguments.length,
       dummyDartType,
     );

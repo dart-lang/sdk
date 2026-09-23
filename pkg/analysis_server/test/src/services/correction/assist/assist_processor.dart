@@ -136,14 +136,6 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
     }).toList();
   }
 
-  @override
-  void setUp() {
-    registerLintRules();
-    registerBuiltInAssistGenerators();
-    registerBuiltInFixGenerators();
-    super.setUp();
-  }
-
   /// Computes assists and verifies that there is an assist of the given kind.
   Future<Assist> _assertHasAssist() async {
     var assists = await _computeAssists();
@@ -178,5 +170,17 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
       positions.add(Position(testFile.path, offset));
     }
     return positions;
+  }
+}
+
+/// A base class defining support for writing assist processor tests for
+/// built-in assist processors.
+abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
+  @override
+  void setUp() {
+    registerLintRules();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
+    super.setUp();
   }
 }

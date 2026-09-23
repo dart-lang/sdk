@@ -154,11 +154,6 @@ class StaticTypeAnalyzer {
   /// specified as dynamic.</blockquote>
   void visitFunctionExpression(FunctionExpression node) {}
 
-  void visitFunctionReference(covariant FunctionReferenceImpl node) {
-    // TODO(paulberry): implement
-    node.setPseudoExpressionStaticType(_dynamicType);
-  }
-
   /// <blockquote>
   /// An integer literal has static type \code{int}, unless the surrounding
   /// static context type is a type which \code{int} is not assignable to, and

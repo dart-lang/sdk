@@ -3565,7 +3565,7 @@ class Intrinsifier {
       InterfaceType wasmFunctionType = InterfaceType(
         translator.wasmFunctionClass,
         Nullability.nonNullable,
-        [receiver.arguments.types.single],
+        receiver.arguments.types,
       );
       w.RefType receiverType =
           translator.translateType(wasmFunctionType) as w.RefType;

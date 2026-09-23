@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
+class AddDiagnosticPropertyReferenceTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

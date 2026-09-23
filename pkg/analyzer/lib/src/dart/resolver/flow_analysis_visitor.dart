@@ -1123,20 +1123,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var left = node.leftHandSide2;
-
-    super.visitAssignmentExpression(node);
-
-    if (left is SimpleIdentifier) {
-      var element = left.element;
-      if (element is PromotableElementImpl) {
-        assignedVariables.write(element);
-      }
-    }
-  }
-
-  @override
   void visitCatchClause(covariant CatchClauseImpl node) {
     for (var identifier in [
       node.exceptionParameter,

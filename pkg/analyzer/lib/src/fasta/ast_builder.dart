@@ -35,7 +35,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -208,7 +207,7 @@ class AstBuilder extends StackListener {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
 
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     push(token);
     if (expression is CascadeExpressionImpl) {
       push(expression);
@@ -604,15 +603,15 @@ class AstBuilder extends StackListener {
   @override
   void beginTypeVariable(Token token) {
     debugEvent("beginTypeVariable");
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var metadata = pop() as List<AnnotationImpl>?;
 
-    var comment = _findComment(metadata, name.beginToken);
+    var comment = _findComment(metadata, name);
     var typeParameter = TypeParameterImpl(
       comment: comment,
       metadata: metadata,
       varianceKeyword: null,
-      name: name.token,
+      name: name,
       extendsKeyword: null,
       bound: null,
     );
@@ -698,41 +697,6 @@ class AstBuilder extends StackListener {
       return null;
     }
 
-    if (initializerObject is MethodInvocationImpl) {
-      var target = initializerObject.target2;
-      if (target is SuperExpressionImpl) {
-        return SuperConstructorInvocationImpl(
-          superKeyword: target.superKeyword,
-          constructorSelector: ConstructorSelectorImpl.v2(
-            period: initializerObject.operator!,
-            name2: initializerObject.methodName.token,
-          ),
-          argumentList: initializerObject.argumentList,
-        );
-      }
-      if (target is ThisExpressionImpl) {
-        return RedirectingConstructorInvocationImpl(
-          thisKeyword: target.thisKeyword,
-          constructorSelector: ConstructorSelectorImpl.v2(
-            period: initializerObject.operator!,
-            name2: initializerObject.methodName.token,
-          ),
-          argumentList: initializerObject.argumentList,
-        );
-      }
-      return buildInitializerTargetExpressionRecovery(
-        target,
-        initializerObject,
-      );
-    }
-
-    if (initializerObject is PropertyAccessImpl) {
-      return buildInitializerTargetExpressionRecovery(
-        initializerObject.target2,
-        initializerObject,
-      );
-    }
-
     if (initializerObject is ReceiverPropertyExtractionImpl) {
       return buildInitializerTargetExpressionRecovery(
         _parsedPropertyReceiver(initializerObject.receiver),
@@ -776,36 +740,6 @@ class AstBuilder extends StackListener {
       );
     }
 
-    if (initializerObject is AssignmentExpressionImpl) {
-      Token? thisKeyword;
-      Token? period;
-      SimpleIdentifierImpl fieldName;
-      var left = initializerObject.leftHandSide2;
-      if (left is PropertyAccessImpl) {
-        var target = left.target2;
-        if (target is ThisExpressionImpl) {
-          thisKeyword = target.thisKeyword;
-          period = left.operator;
-        } else {
-          assert(target is SuperExpressionImpl);
-          // Recovery:
-          // Parser has reported FieldInitializedOutsideDeclaringClass.
-        }
-        fieldName = left.propertyName;
-      } else if (left is SimpleIdentifierImpl) {
-        fieldName = left;
-      } else {
-        return null;
-      }
-      return ConstructorFieldInitializerImpl(
-        thisKeyword: thisKeyword,
-        period: period,
-        fieldName2: fieldName.token,
-        equals: initializerObject.operator,
-        expression2: initializerObject.rightHandSide2,
-      );
-    }
-
     if (initializerObject is AssertInitializerImpl) {
       return initializerObject;
     }
@@ -813,13 +747,6 @@ class AstBuilder extends StackListener {
     if (initializerObject is ReceiverIndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.receiver,
-        initializerObject,
-      );
-    }
-
-    if (initializerObject is IndexExpressionImpl) {
-      return buildInitializerTargetExpressionRecovery(
-        initializerObject.target2,
         initializerObject,
       );
     }
@@ -853,12 +780,6 @@ class AstBuilder extends StackListener {
       } else if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
         target = target.receiver;
-      } else if (target is MethodInvocationImpl) {
-        argumentList = target.argumentList;
-        target = target.target2;
-      } else if (target is PropertyAccessImpl) {
-        argumentList = null;
-        target = target.target2;
       } else if (target is ReceiverPropertyExtractionImpl) {
         argumentList = null;
         target = _parsedPropertyReceiver(target.receiver);
@@ -946,15 +867,14 @@ class AstBuilder extends StackListener {
               (dot.type == TokenType.PERIOD ||
                   dot.type == TokenType.QUESTION_PERIOD)),
     );
-    if (identifierOrInvoke is SimpleIdentifierImpl) {
-      if (receiver is SimpleIdentifierImpl ||
-          receiver is ParsedUnqualifiedNameImpl ||
+    if (identifierOrInvoke is ParsedUnqualifiedNameImpl) {
+      if (receiver is ParsedUnqualifiedNameImpl ||
           receiver is ParsedNameAccessImpl) {
         push(
           ParsedNameAccessImpl(
             operand: _toInstanceReceiver(receiver!),
             operator: dot,
-            name: identifierOrInvoke.token,
+            name: identifierOrInvoke.name,
           ),
         );
       } else if (receiver != null &&
@@ -964,7 +884,7 @@ class AstBuilder extends StackListener {
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
             operator: dot,
-            name: identifierOrInvoke.token,
+            name: identifierOrInvoke.name,
           ),
         );
       } else if (receiver != null) {
@@ -972,11 +892,11 @@ class AstBuilder extends StackListener {
           ParsedNameAccessImpl(
             operand: _toInstanceReceiver(receiver),
             operator: dot,
-            name: identifierOrInvoke.token,
+            name: identifierOrInvoke.name,
           ),
         );
       } else {
-        push(ParsedCascadeNameImpl(name: identifierOrInvoke.token));
+        push(ParsedCascadeNameImpl(name: identifierOrInvoke.name));
       }
     } else if (identifierOrInvoke is ParsedValueArgumentsImpl) {
       var operand = identifierOrInvoke.operand;
@@ -1029,10 +949,8 @@ class AstBuilder extends StackListener {
   ) {
     var receiver = pop() as ExpressionImpl;
     switch (receiver) {
-      case SimpleIdentifierImpl():
-        ParsedExpressionImpl operand = ParsedUnqualifiedNameImpl(
-          name: receiver.token,
-        );
+      case ParsedUnqualifiedNameImpl():
+        ParsedExpressionImpl operand = receiver;
         if (typeArguments != null) {
           operand = ParsedTypeArgumentsImpl(
             operand: operand,
@@ -1071,10 +989,6 @@ class AstBuilder extends StackListener {
     var formals = pop(NullValues.FormalParameters) as FormalParameterListImpl?;
     var target = pop() as ExpressionImpl?;
 
-    if (target != null) {
-      target = _toParsedExpression(target);
-    }
-
     if (formals != null) {
       var formalParameters = formals.allFormalParameters;
       if (formalParameters.isEmpty ||
@@ -1095,7 +1009,7 @@ class AstBuilder extends StackListener {
       expressionOrBlock as ExpressionImpl;
       methodBody = AnonymousExpressionBodyImpl(
         functionDefinition: functionDefinition!,
-        expression2: _toParsedExpression(expressionOrBlock),
+        expression2: expressionOrBlock,
       );
     } else {
       expressionOrBlock as BlockImpl;
@@ -1119,11 +1033,6 @@ class AstBuilder extends StackListener {
     debugEvent("Arguments");
 
     var expressions = popTypedList2<ArgumentImpl>(count);
-    for (var i = 0; i < expressions.length; i++) {
-      if (expressions[i] case ExpressionImpl expression) {
-        expressions[i] = _toParsedExpression(expression);
-      }
-    }
     for (var argument in expressions) {
       reportErrorIfSuper(argument.argumentExpression2);
     }
@@ -1173,10 +1082,7 @@ class AstBuilder extends StackListener {
     debugEvent("Assert");
 
     var message = popIfNotNull(comma) as ExpressionImpl?;
-    if (message != null) {
-      message = _toParsedExpression(message);
-    }
-    var condition = _popParsedExpression();
+    var condition = _popExpression();
     switch (kind) {
       case Assert.Expression:
         // The parser has already reported an error indicating that assert
@@ -1187,7 +1093,7 @@ class AstBuilder extends StackListener {
         }
         push(
           CallInvocationImpl(
-            receiver: SimpleIdentifierImpl(token: assertKeyword),
+            receiver: ParsedUnqualifiedNameImpl(name: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
@@ -1227,7 +1133,7 @@ class AstBuilder extends StackListener {
     assert(optional('await', awaitKeyword));
     debugEvent("AwaitExpression");
 
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -1244,8 +1150,8 @@ class AstBuilder extends StackListener {
     );
     debugEvent("BinaryExpression");
 
-    var right = _popParsedExpression();
-    var left = _popParsedExpression();
+    var right = _popExpression();
+    var left = _popExpression();
     reportErrorIfSuper(right);
     if (operatorToken.type == TokenType.QUESTION_QUESTION ||
         operatorToken.type == TokenType.AMPERSAND_AMPERSAND ||
@@ -1389,7 +1295,7 @@ class AstBuilder extends StackListener {
 
     WhenClauseImpl? whenClause;
     if (when != null) {
-      var expression = _popParsedExpression();
+      var expression = _popExpression();
       whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
 
@@ -1485,9 +1391,9 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("ConditionalExpression");
 
-    var elseExpression = _popParsedExpression();
-    var thenExpression = _popParsedExpression();
-    var condition = _popParsedExpression();
+    var elseExpression = _popExpression();
+    var thenExpression = _popExpression();
+    var condition = _popExpression();
     reportErrorIfSuper(elseExpression);
     reportErrorIfSuper(thenExpression);
     reportErrorIfSuper(condition);
@@ -1547,7 +1453,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endConstantPattern(Token? constKeyword) {
-    var expression = _toParsedExpression(pop() as ExpressionImpl);
+    var expression = pop() as ExpressionImpl;
     push(
       ConstantPatternImpl(constKeyword: constKeyword, expression2: expression),
     );
@@ -1644,19 +1550,26 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("ConstructorReference");
 
-    var constructorName = pop() as SimpleIdentifierImpl?;
+    var constructorName = pop() as Token?;
     var typeArguments = pop() as TypeArgumentListImpl?;
-    var typeNameIdentifier = pop() as IdentifierImpl;
+    var typeName = pop()!;
     var selector = switch (periodBeforeName) {
       var period? => ConstructorSelectorImpl.v2(
         period: period,
-        name2: constructorName!.token,
+        name2: constructorName!,
       ),
       _ => null,
     };
     push(
       ConstructorReference2Impl(
-        typeReference: typeNameIdentifier.toConstructorTypeReference(
+        typeReference: ConstructorTypeReferenceImpl(
+          importPrefix: typeName is _QualifiedName
+              ? ImportPrefixReferenceImpl(
+                  name: typeName.prefix,
+                  period: typeName.period,
+                )
+              : null,
+          name: typeName is _QualifiedName ? typeName.name : typeName as Token,
           typeArguments: typeArguments,
         ),
         selector: selector,
@@ -1844,14 +1757,14 @@ class AstBuilder extends StackListener {
     assert(optional('=', equals));
     debugEvent("FieldInitializer");
 
-    var initializer = _popParsedExpression();
-    var name = pop() as SimpleIdentifierImpl;
+    var initializer = _popExpression();
+    var name = pop() as Token;
     reportErrorIfSuper(initializer);
     push(
       VariableDeclarationImpl(
         comment: null,
         metadata: [],
-        name: name.token,
+        name: name,
         equals: equals,
         initializer2: initializer,
       ),
@@ -1990,7 +1903,7 @@ class AstBuilder extends StackListener {
     }
 
     var defaultClause = pop() as FormalParameterDefaultClauseImpl?;
-    var name = pop() as SimpleIdentifierImpl?;
+    var name = pop() as Token?;
     var typeOrFunctionTypedParameter = pop();
     var modifiers = pop() as _Modifiers?;
     var keyword = modifiers?.finalConstOrVarKeyword;
@@ -2073,7 +1986,7 @@ class AstBuilder extends StackListener {
         type: type,
         superKeyword: superKeyword,
         period: periodAfterThisOrSuper!,
-        name: name!.token,
+        name: name!,
         functionTypedSuffix: functionTypedSuffix,
         defaultClause: defaultClause,
       );
@@ -2092,7 +2005,7 @@ class AstBuilder extends StackListener {
         type: type,
         thisKeyword: thisKeyword,
         period: periodAfterThisOrSuper!,
-        name: name!.token,
+        name: name!,
         functionTypedSuffix: functionTypedSuffix,
         defaultClause: defaultClause,
       );
@@ -2105,7 +2018,7 @@ class AstBuilder extends StackListener {
         requiredKeyword: requiredKeyword,
         constFinalOrVarKeyword: keyword,
         type: type,
-        name: name?.token,
+        name: name,
         functionTypedSuffix: functionTypedSuffix,
         defaultClause: defaultClause,
       );
@@ -2249,13 +2162,12 @@ class AstBuilder extends StackListener {
     assert(optional('hide', hideKeyword));
     debugEvent("Hide");
 
-    var names = pop() as List<SimpleIdentifierImpl>;
+    var names = pop() as List<Token>;
     push(
       HideCombinatorImpl(
         keyword: hideKeyword,
         names: [
-          for (var identifier in names)
-            CombinatorNameImpl(name: identifier.token),
+          for (var identifier in names) CombinatorNameImpl(name: identifier),
         ],
       ),
     );
@@ -2339,7 +2251,7 @@ class AstBuilder extends StackListener {
     var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValues.Deferred) as Token?;
     var asKeyword = pop(NullValues.As) as Token?;
-    var prefixName = (pop(NullValues.Prefix) as SimpleIdentifierImpl?)?.token;
+    var prefixName = pop(NullValues.Prefix) as Token?;
     var configurations = pop() as List<ConfigurationImpl>?;
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -2365,19 +2277,19 @@ class AstBuilder extends StackListener {
   void endInitializedIdentifier(Token nameToken) {
     debugEvent("InitializedIdentifier");
 
-    var node = pop() as AstNodeImpl?;
+    var node = pop();
     VariableDeclarationImpl variable;
     // TODO(paulberry): This seems kludgy.  It would be preferable if we
     // could respond to a "handleNoVariableInitializer" event by converting a
-    // SimpleIdentifier into a VariableDeclaration, and then when this code was
+    // name token into a VariableDeclaration, and then when this code was
     // reached, node would always be a VariableDeclaration.
     if (node is VariableDeclarationImpl) {
       variable = node;
-    } else if (node is SimpleIdentifierImpl) {
+    } else if (node is Token) {
       variable = VariableDeclarationImpl(
         comment: null,
         metadata: [],
-        name: node.token,
+        name: node,
         equals: null,
         initializer2: null,
       );
@@ -2576,7 +2488,7 @@ class AstBuilder extends StackListener {
       pop(); // separator before constructor initializers
     }
     var parameters = pop() as FormalParameterListImpl;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var metadata = pop(NullValues.Metadata) as List<AnnotationImpl>?;
@@ -2592,7 +2504,7 @@ class AstBuilder extends StackListener {
       externalKeyword: null,
       returnType: returnType,
       propertyKeyword: null,
-      name: name.token,
+      name: name,
       functionExpression: functionExpression,
     );
     push(
@@ -2614,9 +2526,7 @@ class AstBuilder extends StackListener {
     debugEvent("Metadata");
 
     var argumentList = pop() as ArgumentListImpl?;
-    var constructorName = periodBeforeName != null
-        ? pop() as SimpleIdentifierImpl
-        : null;
+    var constructorName = periodBeforeName != null ? pop() as Token : null;
     var typeArguments = pop() as TypeArgumentListImpl?;
     if (typeArguments != null &&
         !_featureSet.isEnabled(Feature.generic_metadata)) {
@@ -2625,14 +2535,26 @@ class AstBuilder extends StackListener {
         startToken: typeArguments.beginToken,
       );
     }
-    var name = pop() as IdentifierImpl;
+    // Annotation names still use the legacy identifier API. Keep their
+    // construction here rather than using identifiers as parser-stack values.
+    var name = pop()!;
     push(
       AnnotationImpl(
         atSign: atSign,
-        name: name,
+        name: switch (name) {
+          Token() => SimpleIdentifierImpl(token: name),
+          _QualifiedName() => PrefixedIdentifierImpl(
+            prefix: SimpleIdentifierImpl(token: name.prefix),
+            period: name.period,
+            identifier: SimpleIdentifierImpl(token: name.name),
+          ),
+          _ => throw StateError('Unexpected annotation name: $name'),
+        },
         typeArguments: typeArguments,
         period: periodBeforeName,
-        constructorName: constructorName,
+        constructorName: constructorName != null
+            ? SimpleIdentifierImpl(token: constructorName)
+            : null,
         arguments: argumentList,
       ),
     );
@@ -2753,7 +2675,7 @@ class AstBuilder extends StackListener {
     var sealedKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var abstractKeyword = modifiers?.abstractKeyword;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
@@ -2762,7 +2684,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         typedefKeyword: classKeyword,
-        name: name.token,
+        name: name,
         typeParameters: typeParameters,
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
@@ -2816,7 +2738,7 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     debugEvent("ParenthesizedExpression");
 
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -2894,7 +2816,7 @@ class AstBuilder extends StackListener {
   @override
   void endPatternGuard(Token when) {
     debugEvent("PatternGuard");
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     push(WhenClauseImpl(whenKeyword: when, expression2: expression));
   }
 
@@ -2934,10 +2856,10 @@ class AstBuilder extends StackListener {
 
     PrimaryConstructorNameImpl? constructorName;
     if (hasConstructorName) {
-      var nameIdentifier = pop() as SimpleIdentifierImpl;
+      var nameIdentifier = pop() as Token;
       constructorName = PrimaryConstructorNameImpl(
         period: beginToken,
-        name: nameIdentifier.token,
+        name: nameIdentifier,
       );
     }
 
@@ -2987,11 +2909,6 @@ class AstBuilder extends StackListener {
     debugEvent("RecordLiteral");
 
     var fields = popTypedList<RecordLiteralFieldImpl>(count) ?? const [];
-    for (var i = 0; i < fields.length; i++) {
-      if (fields[i] case ExpressionImpl expression) {
-        fields[i] = _toParsedExpression(expression);
-      }
-    }
     var rightParenthesis = leftParenthesis.endGroup!;
 
     if (enableRecords) {
@@ -3010,8 +2927,8 @@ class AstBuilder extends StackListener {
       );
 
       var expression = fields.firstOrNull?.fieldExpression2;
-      expression ??= SimpleIdentifierImpl(
-        token: parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
+      expression ??= ParsedUnqualifiedNameImpl(
+        name: parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
       );
 
       push(
@@ -3076,7 +2993,7 @@ class AstBuilder extends StackListener {
   void endRecordTypeEntry() {
     debugEvent("RecordTypeEntry");
 
-    var name = pop() as SimpleIdentifierImpl?;
+    var name = pop() as Token?;
     var type = pop() as TypeAnnotationImpl;
     var metadata = pop() as List<AnnotationImpl>?;
 
@@ -3084,7 +3001,7 @@ class AstBuilder extends StackListener {
       RecordTypeAnnotationPositionalFieldImpl(
         metadata: metadata,
         type: type,
-        name: name?.token,
+        name: name,
       ),
     );
   }
@@ -3156,7 +3073,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ReturnStatement");
 
-    var expression = hasExpression ? _popParsedExpression() : null;
+    var expression = hasExpression ? _popExpression() : null;
     push(
       ReturnStatementImpl(
         returnKeyword: returnKeyword,
@@ -3171,13 +3088,12 @@ class AstBuilder extends StackListener {
     assert(optional('show', showKeyword));
     debugEvent("Show");
 
-    var names = pop() as List<SimpleIdentifierImpl>;
+    var names = pop() as List<Token>;
     push(
       ShowCombinatorImpl(
         keyword: showKeyword,
         names: [
-          for (var identifier in names)
-            CombinatorNameImpl(name: identifier.token),
+          for (var identifier in names) CombinatorNameImpl(name: identifier),
         ],
       ),
     );
@@ -3364,10 +3280,10 @@ class AstBuilder extends StackListener {
     Token endToken,
   ) {
     debugEvent("SwitchExpressionCase");
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     WhenClauseImpl? whenClause;
     if (when != null) {
-      var expression = _popParsedExpression();
+      var expression = _popExpression();
       whenClause = WhenClauseImpl(whenKeyword: when, expression2: expression);
     }
     var pattern = pop() as DartPatternImpl;
@@ -3480,7 +3396,7 @@ class AstBuilder extends StackListener {
     var body = pop() as FunctionBodyImpl;
     var formalParameters = pop() as FormalParameterListImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var returnType = pop() as TypeAnnotationImpl?;
     var modifiers = pop() as _Modifiers?;
     var augmentKeyword = modifiers?.augmentKeyword;
@@ -3501,7 +3417,7 @@ class AstBuilder extends StackListener {
           externalKeyword: externalKeyword,
           returnType: returnType,
           getKeyword: getOrSet!,
-          name: name.token,
+          name: name,
           recoveryTypeParameters: typeParameters,
           recoveryFormalParameters: formalParameters,
           body: body,
@@ -3516,7 +3432,7 @@ class AstBuilder extends StackListener {
           externalKeyword: externalKeyword,
           returnType: returnType,
           propertyKeyword: getOrSet,
-          name: name.token,
+          name: name,
           functionExpression: FunctionExpressionImpl(
             typeParameters: typeParameters,
             parameters: formalParameters,
@@ -3583,7 +3499,7 @@ class AstBuilder extends StackListener {
     if (equals == null) {
       var parameters = pop() as FormalParameterListImpl;
       var typeParameters = pop() as TypeParameterListImpl?;
-      var name = pop() as SimpleIdentifierImpl;
+      var name = pop() as Token;
       var returnType = pop() as TypeAnnotationImpl?;
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
@@ -3594,7 +3510,7 @@ class AstBuilder extends StackListener {
           augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
           returnType: returnType,
-          name: name.token,
+          name: name,
           typeParameters: typeParameters,
           parameters: parameters,
           semicolon: semicolon,
@@ -3603,7 +3519,7 @@ class AstBuilder extends StackListener {
     } else {
       var type = pop() as TypeAnnotationImpl;
       var codeParameters = pop() as TypeParameterListImpl?;
-      var name = pop() as SimpleIdentifierImpl;
+      var name = pop() as Token;
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
       if (type is! GenericFunctionTypeImpl && !enableNonFunctionTypeAliases) {
@@ -3618,7 +3534,7 @@ class AstBuilder extends StackListener {
           metadata: metadata,
           augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
-          name: name.token,
+          name: name,
           typeParameters: codeParameters,
           equals: equals,
           type: type,
@@ -3691,15 +3607,15 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('=', equals));
     debugEvent("VariableInitializer");
 
-    var initializer = _popParsedExpression();
-    var identifier = pop() as SimpleIdentifierImpl;
+    var initializer = _popExpression();
+    var identifier = pop() as Token;
     reportErrorIfSuper(initializer);
     // TODO(ahe): Don't push initializers, instead install them.
     push(
       VariableDeclarationImpl(
         comment: null,
         metadata: [],
-        name: identifier.token,
+        name: identifier,
         equals: equals,
         initializer2: initializer,
       ),
@@ -3733,13 +3649,13 @@ class AstBuilder extends StackListener {
               if (awaitToken.type == Keyword.AWAIT) {
                 push(
                   ExpressionStatementImpl(
-                    expression2: PrefixedIdentifierImpl(
-                      prefix: SimpleIdentifierImpl(token: importPrefix.name),
-                      period: importPrefix.period,
-                      identifier: SimpleIdentifierImpl(
-                        token: parser.rewriter.insertSyntheticIdentifier(
-                          importPrefix.period,
-                        ),
+                    expression2: ParsedNameAccessImpl(
+                      operand: ParsedUnqualifiedNameImpl(
+                        name: importPrefix.name,
+                      ),
+                      operator: importPrefix.period,
+                      name: parser.rewriter.insertSyntheticIdentifier(
+                        importPrefix.period,
                       ),
                     ),
                     semicolon: semicolon,
@@ -3766,10 +3682,12 @@ class AstBuilder extends StackListener {
                 );
                 push(
                   ExpressionStatementImpl(
-                    expression2: PrefixedIdentifierImpl(
-                      prefix: SimpleIdentifierImpl(token: importPrefix.name),
-                      period: importPrefix.period,
-                      identifier: SimpleIdentifierImpl(token: type.name),
+                    expression2: ParsedNameAccessImpl(
+                      operand: ParsedUnqualifiedNameImpl(
+                        name: importPrefix.name,
+                      ),
+                      operator: importPrefix.period,
+                      name: type.name,
                     ),
                     semicolon: semicolon2,
                   ),
@@ -3827,7 +3745,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("YieldStatement");
 
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     push(
       YieldStatementImpl(
         yieldKeyword: yieldToken,
@@ -3852,7 +3770,7 @@ class AstBuilder extends StackListener {
     debugEvent("AsOperator");
 
     var type = pop() as TypeAnnotationImpl;
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -3877,9 +3795,9 @@ class AstBuilder extends StackListener {
     assert(token.type.isAssignmentOperator);
     debugEvent("AssignmentExpression");
 
-    var rhs = _popParsedExpression();
+    var rhs = _popExpression();
     var lhs = pop() as ExpressionImpl;
-    var isAssignable = lhs.isAssignable;
+    var isAssignable = _isAssignable(lhs);
     if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
@@ -3889,179 +3807,13 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    var namedTarget =
-        _toParsedAssignmentTarget(lhs) ??
-        switch (lhs) {
-          CascadePropertyExtractionImpl(:var name) =>
-            CascadePropertyAssignmentTargetImpl(name: name),
-          ReceiverPropertyExtractionImpl(
-            :var receiver,
-            :var operator,
-            :var name,
-          ) =>
-            ReceiverPropertyAssignmentTargetImpl(
-              receiver: _parsedPropertyReceiver(receiver),
-              operator: operator,
-              name: name,
-            ),
-          PropertyAccessImpl(target2: var receiver?, :var operator)
-              when operator.type == TokenType.PERIOD &&
-                  _isSupportedPropertyReceiver(receiver) =>
-            ReceiverPropertyAssignmentTargetImpl(
-              receiver: receiver,
-              operator: operator,
-              name: lhs.propertyName.token,
-            ),
-          _ => null,
-        };
-    var indexTarget = switch (lhs) {
-      CascadeIndexExpressionImpl(
-        :var leftBracket,
-        :var index,
-        :var rightBracket,
-      ) =>
-        CascadeIndexAssignmentTargetImpl(
-          leftBracket: leftBracket,
-          index: index,
-          rightBracket: rightBracket,
-        ),
-      ReceiverIndexExpressionImpl(
-        :var receiver,
-        :var question,
-        :var leftBracket,
-        :var index,
-        :var rightBracket,
-      ) =>
-        ReceiverIndexAssignmentTargetImpl(
-          receiver: receiver,
-          question: question,
-          leftBracket: leftBracket,
-          index: index,
-          rightBracket: rightBracket,
-        ),
-      IndexExpressionImpl(
-        target2: var receiver?,
-        period: null,
-        question: null,
-        :var leftBracket,
-        index2: var index,
-        :var rightBracket,
-      ) =>
-        ReceiverIndexAssignmentTargetImpl(
-          receiver: receiver,
-          question: null,
-          leftBracket: leftBracket,
-          index: index,
-          rightBracket: rightBracket,
-        ),
-      _ => null,
-    };
-    if (!isAssignable &&
-        namedTarget is! InvalidSuperAssignmentTargetImpl &&
-        token.type == TokenType.EQ) {
-      push(
-        DirectAssignmentImpl(
-          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
-          operator: token,
-          value: rhs,
-        ),
-      );
-    } else if (!isAssignable &&
-        namedTarget is! InvalidSuperAssignmentTargetImpl &&
-        token.type == TokenType.QUESTION_QUESTION_EQ) {
-      push(
-        IfNullAssignmentImpl(
-          target: InvalidExpressionAssignmentTargetImpl(expression: lhs),
-          operator: token,
-          value: rhs,
-        ),
-      );
-    } else if (indexTarget != null) {
-      if (token.type == TokenType.EQ) {
-        push(
-          DirectAssignmentImpl(
-            target: indexTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
-        push(
-          IfNullAssignmentImpl(
-            target: indexTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else {
-        push(
-          CompoundAssignmentImpl(
-            target: indexTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      }
-    } else if (namedTarget != null) {
-      if (token.type == TokenType.EQ) {
-        push(
-          DirectAssignmentImpl(
-            target: namedTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
-        push(
-          IfNullAssignmentImpl(
-            target: namedTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else {
-        push(
-          CompoundAssignmentImpl(
-            target: namedTarget,
-            operator: token,
-            value: rhs,
-          ),
-        );
-      }
-    } else if (lhs is SimpleIdentifierImpl) {
-      if (token.type == TokenType.EQ) {
-        push(
-          DirectAssignmentImpl(
-            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
-        push(
-          IfNullAssignmentImpl(
-            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
-            operator: token,
-            value: rhs,
-          ),
-        );
-      } else {
-        push(
-          CompoundAssignmentImpl(
-            target: UnqualifiedNameAssignmentTargetImpl(name: lhs.token),
-            operator: token,
-            value: rhs,
-          ),
-        );
-      }
+    var target = _toAssignmentTarget(lhs);
+    if (token.type == TokenType.EQ) {
+      push(DirectAssignmentImpl(target: target, operator: token, value: rhs));
+    } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
+      push(IfNullAssignmentImpl(target: target, operator: token, value: rhs));
     } else {
-      push(
-        AssignmentExpressionImpl(
-          leftHandSide2: lhs,
-          operator: token,
-          rightHandSide2: rhs,
-        ),
-      );
+      push(CompoundAssignmentImpl(target: target, operator: token, value: rhs));
     }
     if (!enableTripleShift && token.type == TokenType.GT_GT_GT_EQ) {
       _reportFeatureNotEnabled(
@@ -4232,7 +3984,7 @@ class AstBuilder extends StackListener {
     var sealedKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var abstractKeyword = modifiers?.abstractKeyword;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, begin);
@@ -4249,7 +4001,7 @@ class AstBuilder extends StackListener {
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
-      name: name.token,
+      name: name,
       primaryConstructorBuilder: primaryConstructorBuilder,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
@@ -4353,10 +4105,8 @@ class AstBuilder extends StackListener {
     }
 
     var operand = pop() as ExpressionImpl;
-    if (operand is SimpleIdentifierImpl) {
-      push(
-        ParsedDotShorthandNameImpl(period: periodToken, name: operand.token),
-      );
+    if (operand is ParsedUnqualifiedNameImpl) {
+      push(ParsedDotShorthandNameImpl(period: periodToken, name: operand.name));
     } else if (operand is ParsedValueArgumentsImpl) {
       var function = operand.operand;
       var types = function is ParsedTypeArgumentsImpl ? function : null;
@@ -4513,7 +4263,7 @@ class AstBuilder extends StackListener {
         pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
     pop() as Token?; // constKeyword
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, enumKeyword);
 
@@ -4537,7 +4287,7 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       augmentKeyword: augmentToken,
       enumKeyword: enumKeyword,
-      name: name.token,
+      name: name,
       typeParameters: typeParameters,
       primaryConstructorBuilder: primaryConstructorBuilder,
       withClause: withClause,
@@ -4573,7 +4323,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("ExpressionFunctionBody");
 
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     reportErrorIfSuper(expression);
     var star = pop() as Token?;
     var asyncKeyword = pop() as Token?;
@@ -4598,8 +4348,8 @@ class AstBuilder extends StackListener {
     debugEvent("ExpressionStatement");
     var expression = pop() as ExpressionImpl;
     reportErrorIfSuper(expression);
-    if (expression is SimpleIdentifierImpl &&
-        expression.token.keyword?.isBuiltInOrPseudo == false) {
+    if (expression is ParsedUnqualifiedNameImpl &&
+        expression.name.keyword?.isBuiltInOrPseudo == false) {
       // This error is also reported by the body builder.
       handleRecoverableError(
         fe_diag.expectedStatement,
@@ -4614,9 +4364,10 @@ class AstBuilder extends StackListener {
       IfNullAssignmentImpl(
         target: InvalidSuperAssignmentTargetImpl(:var superReference),
       ) => superReference,
-      AssignmentExpressionImpl(:var leftHandSide2)
-          when !leftHandSide2.isAssignable =>
-        leftHandSide2,
+      CompoundAssignmentImpl(
+        target: InvalidExpressionAssignmentTargetImpl(:var expression),
+      ) =>
+        expression,
       DirectAssignmentImpl(
         target: InvalidExpressionAssignmentTargetImpl(:var expression),
       ) =>
@@ -4636,10 +4387,7 @@ class AstBuilder extends StackListener {
       );
     }
     push(
-      ExpressionStatementImpl(
-        expression2: _toParsedExpression(expression),
-        semicolon: semicolon,
-      ),
+      ExpressionStatementImpl(expression2: expression, semicolon: semicolon),
     );
   }
 
@@ -4670,7 +4418,7 @@ class AstBuilder extends StackListener {
     Token keyword,
     Token equals,
   ) {
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     var pattern = pop() as DartPatternImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     push(
@@ -4698,7 +4446,7 @@ class AstBuilder extends StackListener {
     assert(optional('(', leftParenthesis));
     assert(optional('in', inKeyword) || optional(':', inKeyword));
 
-    var iterable = _popParsedExpression();
+    var iterable = _popExpression();
     var variableOrDeclaration = pop()!;
     reportErrorIfSuper(iterable);
 
@@ -4726,17 +4474,18 @@ class AstBuilder extends StackListener {
         iterable2: iterable,
       );
     } else {
-      if (variableOrDeclaration is! SimpleIdentifierImpl) {
+      Token name;
+      if (variableOrDeclaration is ParsedUnqualifiedNameImpl) {
+        name = variableOrDeclaration.name;
+      } else {
         // Parser has already reported the error.
         if (!leftParenthesis.next!.isIdentifier) {
           parser.rewriter.insertSyntheticIdentifier(leftParenthesis);
         }
-        variableOrDeclaration = SimpleIdentifierImpl(
-          token: leftParenthesis.next!,
-        );
+        name = leftParenthesis.next!;
       }
       forLoopParts = ForEachPartsWithIdentifierImpl(
-        identifier2: variableOrDeclaration.token,
+        identifier2: name,
         inKeyword: inKeyword,
         iterable2: iterable,
       );
@@ -4762,9 +4511,6 @@ class AstBuilder extends StackListener {
     assert(updateExpressionCount >= 0);
 
     var updates = popTypedList2<ExpressionImpl>(updateExpressionCount);
-    for (var i = 0; i < updates.length; i++) {
-      updates[i] = _toParsedExpression(updates[i]);
-    }
     var conditionStatement = pop() as StatementImpl;
     var initializerPart = pop();
 
@@ -4800,9 +4546,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       forLoopParts = ForPartsWithExpressionImpl(
-        initialization2: initializerPart == null
-            ? null
-            : _toParsedExpression(initializerPart as ExpressionImpl),
+        initialization2: initializerPart as ExpressionImpl?,
         leftSeparator: leftSeparator,
         condition2: condition,
         rightSeparator: rightSeparator,
@@ -4836,7 +4580,6 @@ class AstBuilder extends StackListener {
       return;
     }
 
-    var identifier = SimpleIdentifierImpl(token: token);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([token]);
@@ -4863,8 +4606,11 @@ class AstBuilder extends StackListener {
           arguments: null,
         ),
       );
+    } else if (context == IdentifierContext.expression ||
+        context == IdentifierContext.expressionContinuation) {
+      push(ParsedUnqualifiedNameImpl(name: token));
     } else {
-      push(identifier);
+      push(token);
     }
   }
 
@@ -4872,9 +4618,7 @@ class AstBuilder extends StackListener {
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
-    push(
-      popTypedList<SimpleIdentifierImpl>(count) ?? NullValues.IdentifierList,
-    );
+    push(popTypedList<Token>(count) ?? NullValues.IdentifierList);
   }
 
   @override
@@ -4925,11 +4669,8 @@ class AstBuilder extends StackListener {
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 
-    var index = _popParsedExpression();
+    var index = _popExpression();
     var target = pop() as ExpressionImpl?;
-    if (target != null) {
-      target = _toParsedExpression(target);
-    }
     reportErrorIfSuper(index);
     if (target == null) {
       var receiver = pop() as CascadeExpressionImpl;
@@ -4955,7 +4696,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleInterpolationExpression(Token leftBracket, Token? rightBracket) {
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     push(
       InterpolationExpressionImpl(
         leftBracket: leftBracket,
@@ -4998,7 +4739,7 @@ class AstBuilder extends StackListener {
     assert(optional('operator', operatorKeyword));
     debugEvent("InvalidOperatorName");
 
-    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token: token)));
+    push(_OperatorName(operatorKeyword, token));
   }
 
   @override
@@ -5044,7 +4785,7 @@ class AstBuilder extends StackListener {
     debugEvent("IsOperator");
 
     var type = pop() as TypeAnnotationImpl;
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     reportErrorIfSuper(expression);
 
     push(
@@ -5205,8 +4946,8 @@ class AstBuilder extends StackListener {
       nullAwareValueToken = null;
     }
 
-    var value = _popParsedExpression();
-    var key = _popParsedExpression();
+    var value = _popExpression();
+    var key = _popExpression();
     push(
       MapLiteralEntryImpl(
         keyQuestion: nullAwareKeyToken,
@@ -5272,7 +5013,7 @@ class AstBuilder extends StackListener {
     debugEvent("MapPatternEntry");
 
     var value = pop() as DartPatternImpl;
-    var key = _popParsedExpression();
+    var key = _popExpression();
     push(MapPatternEntryImpl(key2: key, separator: colon, value: value));
   }
 
@@ -5290,7 +5031,7 @@ class AstBuilder extends StackListener {
     var baseKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     var metadata = pop() as List<AnnotationImpl>?;
 
     var begin = baseKeyword ?? mixinKeyword;
@@ -5302,7 +5043,7 @@ class AstBuilder extends StackListener {
       augmentKeyword: augmentKeyword,
       baseKeyword: baseKeyword,
       mixinKeyword: mixinKeyword,
-      name: name.token,
+      name: name,
       typeParameters: typeParameters,
       onClause: onClause,
       implementsClause: implementsClause,
@@ -5342,12 +5083,12 @@ class AstBuilder extends StackListener {
     assert(optional(':', colon));
     debugEvent("NamedArgument");
 
-    var expression = _popParsedExpression();
-    var name = pop() as SimpleIdentifierImpl;
+    var expression = _popExpression();
+    var name = pop() as Token;
 
     push(
       NamedArgumentImpl(
-        name: name.token,
+        name: name,
         colon: colon,
         argumentExpression2: expression,
       ),
@@ -5367,12 +5108,12 @@ class AstBuilder extends StackListener {
   void handleNamedRecordField(Token colon) {
     debugEvent("NamedRecordField");
 
-    var expression = _popParsedExpression();
-    var name = pop() as SimpleIdentifierImpl;
+    var expression = _popExpression();
+    var name = pop() as Token;
 
     push(
       RecordLiteralNamedFieldImpl(
-        name: name.token,
+        name: name,
         colon: colon,
         fieldExpression2: expression,
       ),
@@ -5465,12 +5206,12 @@ class AstBuilder extends StackListener {
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
 
-    var name = pop() as SimpleIdentifierImpl;
+    var name = pop() as Token;
     push(
       VariableDeclarationImpl(
         comment: null,
         metadata: [],
-        name: name.token,
+        name: name,
         equals: null,
         initializer2: null,
       ),
@@ -5506,10 +5247,7 @@ class AstBuilder extends StackListener {
     debugEvent('NonNullAssertExpression');
 
     push(
-      NullAssertionExpressionImpl(
-        operand: _popParsedExpression(),
-        operator: bang,
-      ),
+      NullAssertionExpressionImpl(operand: _popExpression(), operator: bang),
     );
   }
 
@@ -5528,7 +5266,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoTypeNameInConstructorReference");
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    push(SimpleIdentifierImpl(token: builder.name));
+    push(builder.name);
   }
 
   @override
@@ -5553,7 +5291,7 @@ class AstBuilder extends StackListener {
         startToken: nullAwareElement,
       );
     } else {
-      var expression = _popParsedExpression();
+      var expression = _popExpression();
       push(
         NullAwareElementImpl(question: nullAwareElement, value2: expression),
       );
@@ -5637,7 +5375,7 @@ class AstBuilder extends StackListener {
     assert(token.type.isUserDefinableOperator);
     debugEvent("OperatorName");
 
-    push(_OperatorName(operatorKeyword, SimpleIdentifierImpl(token: token)));
+    push(_OperatorName(operatorKeyword, token));
   }
 
   @override
@@ -5659,7 +5397,7 @@ class AstBuilder extends StackListener {
         ),
       );
     }
-    condition = _popParsedExpression();
+    condition = _popExpression();
     reportErrorIfSuper(condition);
     push(_ParenthesizedCondition(leftParenthesis, condition, caseClause));
   }
@@ -5681,7 +5419,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handlePatternAssignment(Token equals) {
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     var pattern = pop() as DartPatternImpl;
     push(
       PatternAssignmentImpl(
@@ -5699,7 +5437,7 @@ class AstBuilder extends StackListener {
     var pattern = pop() as DartPatternImpl;
     PatternFieldNameImpl? fieldName;
     if (colon != null) {
-      var name = (pop() as SimpleIdentifierImpl?)?.token;
+      var name = pop() as Token?;
       fieldName = PatternFieldNameImpl(name: name, colon: colon);
     }
     push(PatternFieldImpl(name: fieldName, pattern: pattern));
@@ -5711,7 +5449,7 @@ class AstBuilder extends StackListener {
     Token equals,
     Token semicolon,
   ) {
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     var pattern = pop() as DartPatternImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, keyword);
@@ -5741,16 +5479,8 @@ class AstBuilder extends StackListener {
       prefix.add(period);
       prefix.add(identifier);
       push(prefix);
-    } else if (prefix is SimpleIdentifierImpl) {
-      // TODO(paulberry): resolve [identifier].  Note that BodyBuilder handles
-      // this situation using SendAccessGenerator.
-      push(
-        PrefixedIdentifierImpl(
-          prefix: prefix,
-          period: period,
-          identifier: identifier as SimpleIdentifierImpl,
-        ),
-      );
+    } else if (prefix is Token) {
+      push(_QualifiedName(prefix, period, identifier as Token));
     } else {
       // TODO(paulberry): implement.
       logEvent('Qualified with >1 dot');
@@ -5853,7 +5583,7 @@ class AstBuilder extends StackListener {
     var combinators = pop() as List<CombinatorImpl>?;
     var deferredKeyword = pop(NullValues.Deferred) as Token?;
     var asKeyword = pop(NullValues.As) as Token?;
-    var prefixName = (pop(NullValues.Prefix) as SimpleIdentifierImpl?)?.token;
+    var prefixName = pop(NullValues.Prefix) as Token?;
     var configurations = pop() as List<ConfigurationImpl>?;
 
     var directive = directives.last;
@@ -5924,9 +5654,7 @@ class AstBuilder extends StackListener {
   @override
   void handleRelationalPattern(Token token) {
     debugEvent("RelationalPattern");
-    push(
-      RelationalPatternImpl(operator: token, operand2: _popParsedExpression()),
-    );
+    push(RelationalPatternImpl(operator: token, operand2: _popExpression()));
   }
 
   @override
@@ -5965,7 +5693,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleSpreadExpression(Token spreadToken) {
-    var expression = _popParsedExpression();
+    var expression = _popExpression();
     push(
       SpreadElementImpl(spreadOperator: spreadToken, expression2: expression),
     );
@@ -6024,7 +5752,7 @@ class AstBuilder extends StackListener {
     push(
       ThrowExpressionImpl(
         throwKeyword: throwToken,
-        expression2: _popParsedExpression(),
+        expression2: _popExpression(),
       ),
     );
   }
@@ -6034,9 +5762,17 @@ class AstBuilder extends StackListener {
     debugEvent("Type");
 
     var arguments = pop() as TypeArgumentListImpl?;
-    var name = pop() as IdentifierImpl;
-
-    push(name.toNamedType(typeArguments: arguments, question: question));
+    var name = pop()!;
+    push(
+      NamedTypeImpl(
+        importPrefix: name is _QualifiedName
+            ? ImportPrefixReferenceImpl(name: name.prefix, period: name.period)
+            : null,
+        name: name is _QualifiedName ? name.name : name as Token,
+        typeArguments: arguments,
+        question: question,
+      ),
+    );
   }
 
   @override
@@ -6052,10 +5788,7 @@ class AstBuilder extends StackListener {
     }
     reportErrorIfSuper(receiver);
     push(
-      ParsedTypeArgumentsImpl(
-        operand: _toParsedExpression(receiver),
-        typeArguments: typeArguments,
-      ),
+      ParsedTypeArgumentsImpl(operand: receiver, typeArguments: typeArguments),
     );
   }
 
@@ -6072,7 +5805,7 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPostfixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
-    if (!expression.isAssignable) {
+    if (!_isAssignable(expression)) {
       // This error is also reported by the body builder.
       handleRecoverableError(
         fe_diag.illegalAssignmentToNonAssignable,
@@ -6084,7 +5817,7 @@ class AstBuilder extends StackListener {
       IncrementOrDecrementExpressionImpl(
         position: IncrementOrDecrementPosition.postfix,
         operator: operator,
-        target: _toIncrementOrDecrementTarget(expression),
+        target: _toAssignmentTarget(expression),
       ),
     );
   }
@@ -6095,7 +5828,7 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPrefixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
-    if (!expression.isAssignable) {
+    if (!_isAssignable(expression)) {
       // This error is also reported by the body builder.
       handleRecoverableError(
         fe_diag.missingAssignableSelector,
@@ -6107,7 +5840,7 @@ class AstBuilder extends StackListener {
       IncrementOrDecrementExpressionImpl(
         position: IncrementOrDecrementPosition.prefix,
         operator: operator,
-        target: _toIncrementOrDecrementTarget(expression),
+        target: _toAssignmentTarget(expression),
       ),
     );
   }
@@ -6117,7 +5850,7 @@ class AstBuilder extends StackListener {
     assert(operator.type.isUnaryPrefixOperator);
     debugEvent("UnaryPrefixExpression");
 
-    var operand = _popParsedExpression();
+    var operand = _popExpression();
     if (!(operator.type == TokenType.MINUS ||
         operator.type == TokenType.TILDE)) {
       reportErrorIfSuper(operand);
@@ -6144,7 +5877,7 @@ class AstBuilder extends StackListener {
     assert(optional('=', equals) || optional(':', equals));
     debugEvent("ValuedFormalParameter");
 
-    var value = _popParsedExpression();
+    var value = _popExpression();
     push(FormalParameterDefaultClauseImpl(separator: equals, value2: value));
   }
 
@@ -6352,18 +6085,18 @@ class AstBuilder extends StackListener {
     switch (preliminaryName) {
       case null:
         break;
-      case SimpleIdentifierImpl():
+      case Token():
         if (newKeyword != null) {
-          constructorNameToken = preliminaryName.token;
+          constructorNameToken = preliminaryName;
         } else {
-          typeName = preliminaryName.token;
+          typeName = preliminaryName;
         }
-      case PrefixedIdentifierImpl():
-        typeName = preliminaryName.prefix.token;
+      case _QualifiedName():
+        typeName = preliminaryName.prefix;
         period = preliminaryName.period;
-        constructorNameToken = preliminaryName.identifier.token;
+        constructorNameToken = preliminaryName.name;
       case _OperatorName():
-        typeName = preliminaryName.name.token;
+        typeName = preliminaryName.name;
       default:
         throw UnimplementedError(
           'name is an instance of ${preliminaryName.runtimeType} in endClassConstructor',
@@ -6439,7 +6172,7 @@ class AstBuilder extends StackListener {
 
     var parameters = pop() as FormalParameterListImpl;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var preliminaryName = pop() as IdentifierImpl?;
+    var preliminaryName = pop();
     var modifiers = pop() as _Modifiers?;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
@@ -6459,7 +6192,7 @@ class AstBuilder extends StackListener {
     switch (preliminaryName) {
       case null:
         break;
-      case SimpleIdentifierImpl():
+      case Token():
         if (_featureSet.isEnabled(Feature.primary_constructors)) {
           // Consider a factory constructor declaration of the form
           // `factory C(...` optionally starting with zero or more of the
@@ -6468,18 +6201,20 @@ class AstBuilder extends StackListener {
           // type. In this situation, the declaration declares a constructor
           // whose name is `C`.
           var enclosingClassName = _classLikeBuilder?.name;
-          if (enclosingClassName?.lexeme == preliminaryName.token.lexeme) {
-            typeName = preliminaryName.token;
+          if (enclosingClassName?.lexeme == preliminaryName.lexeme) {
+            typeName = preliminaryName;
           } else {
-            constructorNameToken = preliminaryName.token;
+            constructorNameToken = preliminaryName;
           }
         } else {
-          typeName = preliminaryName.token;
+          typeName = preliminaryName;
         }
-      case PrefixedIdentifierImpl():
-        typeName = preliminaryName.prefix.token;
+      case _QualifiedName():
+        typeName = preliminaryName.prefix;
         period = preliminaryName.period;
-        constructorNameToken = preliminaryName.identifier.token;
+        constructorNameToken = preliminaryName.name;
+      default:
+        throw StateError('Unexpected constructor name: $preliminaryName');
     }
 
     var constructor = ConstructorDeclarationImpl(
@@ -6607,8 +6342,8 @@ class AstBuilder extends StackListener {
     assert(formalParameters != null || optional('get', getOrSet!));
 
     Token? operatorKeyword;
-    SimpleIdentifierImpl nameId;
-    if (name is SimpleIdentifierImpl) {
+    Token nameId;
+    if (name is Token) {
       nameId = name;
     } else if (name is _OperatorName) {
       operatorKeyword = name.operatorKeyword;
@@ -6656,7 +6391,7 @@ class AstBuilder extends StackListener {
         returnType: returnType,
         propertyKeyword: getOrSet,
         operatorKeyword: operatorKeyword,
-        name: nameId.token,
+        name: nameId,
         typeParameters: typeParameters,
         parameters: formalParameters,
         body: body,
@@ -6682,7 +6417,7 @@ class AstBuilder extends StackListener {
   }
 
   FormalParameterListImpl? _ensureSetterFormalParameter(
-    SimpleIdentifierImpl setterName,
+    Token setterName,
     FormalParameterListImpl? formalParameterList,
   ) {
     formalParameterList ??= throw StateError(
@@ -6694,7 +6429,7 @@ class AstBuilder extends StackListener {
     if (valueFormalParameter == null) {
       if (!formalParameterList.leftParenthesis.isSynthetic) {
         diagnosticReporter.diagnosticReporter?.report(
-          diag.wrongNumberOfParametersForSetter.at(setterName.token),
+          diag.wrongNumberOfParametersForSetter.at(setterName),
         );
       }
       var valueNameToken = parser.rewriter.insertSyntheticIdentifier(
@@ -6727,7 +6462,7 @@ class AstBuilder extends StackListener {
     }
 
     diagnosticReporter.diagnosticReporter?.report(
-      diag.wrongNumberOfParametersForSetter.at(setterName.token),
+      diag.wrongNumberOfParametersForSetter.at(setterName),
     );
     return FormalParameterListImpl(
       leftParenthesis: formalParameterList.leftParenthesis,
@@ -6822,6 +6557,24 @@ class AstBuilder extends StackListener {
     );
   }
 
+  /// Whether the written syntax admits an assignment or update, independently
+  /// of whether resolution will find a writable element.
+  bool _isAssignable(ExpressionImpl expression) {
+    return switch (expression) {
+      ParsedUnqualifiedNameImpl() ||
+      ParsedNameAccessImpl() ||
+      ParsedCascadeNameImpl() ||
+      ReceiverPropertyExtractionImpl() ||
+      CascadePropertyExtractionImpl() ||
+      ReceiverIndexExpressionImpl() ||
+      CascadeIndexExpressionImpl() => true,
+      ParsedDotShorthandExpressionImpl(:var expression) => _isAssignable(
+        expression,
+      ),
+      _ => false,
+    };
+  }
+
   /// Whether [receiver] is in the property migration slice.
   ///
   /// Parentheses establish an expression boundary even when the expression
@@ -6833,13 +6586,9 @@ class AstBuilder extends StackListener {
       case LiteralImpl():
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
-      case InstanceCreationExpressionImpl():
       case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
-      case PropertyAccessImpl(target2: var target?, :var operator)
-          when operator.type == TokenType.PERIOD:
-        return _isSupportedPropertyReceiver(target);
       case ReceiverPropertyExtractionImpl(:var receiver):
         return _isSupportedPropertyReceiver(_parsedPropertyReceiver(receiver));
       default:
@@ -6854,11 +6603,11 @@ class AstBuilder extends StackListener {
   }
 
   CollectionElementImpl _popCollectionElement() {
-    var element = pop() as CollectionElementImpl;
-    if (element is ExpressionImpl) {
-      return _toParsedExpression(element);
-    }
-    return element;
+    return pop() as CollectionElementImpl;
+  }
+
+  ExpressionImpl _popExpression() {
+    return pop() as ExpressionImpl;
   }
 
   List<NamedTypeImpl> _popNamedTypeList({
@@ -6876,10 +6625,6 @@ class AstBuilder extends StackListener {
       }
     }
     return namedTypes;
-  }
-
-  ExpressionImpl _popParsedExpression() {
-    return _toParsedExpression(pop() as ExpressionImpl);
   }
 
   void _reportFeatureNotEnabled({
@@ -6933,94 +6678,24 @@ class AstBuilder extends StackListener {
     }
   }
 
-  AssignmentTargetImpl _toIncrementOrDecrementTarget(
-    ExpressionImpl expression,
-  ) {
-    if (_toParsedAssignmentTarget(expression) case var target?) {
-      return target;
-    }
-    // Ordinary index reads are canonical V2 nodes. Move their children into
-    // the corresponding read/write target used by `++` and `--`.
-    if (expression is ReceiverIndexExpressionImpl) {
-      return ReceiverIndexAssignmentTargetImpl(
-        receiver: expression.receiver,
-        question: expression.question,
-        leftBracket: expression.leftBracket,
-        index: expression.index,
-        rightBracket: expression.rightBracket,
-      );
-    }
-
-    // Recovery can still produce a legacy, non-cascade index expression.
-    // Keep accepting it until all parser paths produce ReceiverIndexExpression.
-    if (expression is IndexExpressionImpl) {
-      var receiver = expression.target2;
-      if (receiver != null && expression.period == null) {
-        return ReceiverIndexAssignmentTargetImpl(
-          receiver: receiver,
-          question: expression.question,
+  AssignmentTargetImpl _toAssignmentTarget(ExpressionImpl expression) {
+    switch (expression) {
+      case CascadeIndexExpressionImpl():
+        return CascadeIndexAssignmentTargetImpl(
           leftBracket: expression.leftBracket,
-          index: expression.index2,
+          index: expression.index,
           rightBracket: expression.rightBracket,
         );
-      }
-    }
-
-    // ReceiverPropertyExtraction is the canonical V2 representation of `receiver.x`.
-    if (expression is ReceiverPropertyExtractionImpl) {
-      return ReceiverPropertyAssignmentTargetImpl(
-        receiver: _parsedPropertyReceiver(expression.receiver),
-        operator: expression.operator,
-        name: expression.name,
-      );
-    }
-
-    // Legacy property nodes are still possible in unmigrated parser paths.
-    if (expression is PropertyAccessImpl) {
-      var receiver = expression.target2;
-      if (receiver != null) {
-        return ReceiverPropertyAssignmentTargetImpl(
-          receiver: receiver,
-          operator: expression.operator,
-          name: expression.propertyName.token,
+      case CascadePropertyExtractionImpl():
+        return CascadePropertyAssignmentTargetImpl(name: expression.name);
+      case InvalidSuperExpressionImpl():
+        return InvalidSuperAssignmentTargetImpl(
+          superReference: expression.superReference,
         );
-      }
-    }
-    if (expression is PrefixedIdentifierImpl) {
-      return ReceiverPropertyAssignmentTargetImpl(
-        receiver: expression.prefix,
-        operator: expression.period,
-        name: expression.identifier.token,
-      );
-    }
-
-    // An unqualified target owns just the identifier token, not a value
-    // expression node.
-    if (expression is SimpleIdentifierImpl) {
-      return UnqualifiedNameAssignmentTargetImpl(name: expression.token);
-    }
-
-    // Preserve an invalid operand as an expression so later phases can still
-    // analyze it and provide useful recovery information.
-    return InvalidExpressionAssignmentTargetImpl(expression: expression);
-  }
-
-  InstanceReceiverImpl _toInstanceReceiver(InstanceReceiverImpl expression) {
-    if (expression is InvalidSuperExpressionImpl) {
-      return expression.superReference;
-    }
-    return expression is ExpressionImpl
-        ? _toParsedExpression(expression)
-        : expression;
-  }
-
-  AssignmentTargetImpl? _toParsedAssignmentTarget(ExpressionImpl expression) {
-    switch (expression) {
-      case InvalidSuperExpressionImpl(:var superReference):
-        return InvalidSuperAssignmentTargetImpl(superReference: superReference);
-      case ParsedCascadeNameImpl(:var name):
-        return CascadePropertyAssignmentTargetImpl(name: name);
-      case ParsedNameAccessImpl(:var operand, :var operator, :var name):
+      case ParsedCascadeNameImpl():
+        return CascadePropertyAssignmentTargetImpl(name: expression.name);
+      case ParsedNameAccessImpl():
+        var operand = expression.operand;
         // Preserve namespace and type-application interpretation for targets.
         var head = operand;
         while (head is ParsedNameAccessImpl) {
@@ -7030,45 +6705,43 @@ class AstBuilder extends StackListener {
             head is ParsedTypeArgumentsImpl) {
           return ParsedNameAccessAssignmentTargetImpl(
             operand: operand as ParsedExpressionImpl,
-            operator: operator,
-            name: name,
+            operator: expression.operator,
+            name: expression.name,
           );
         }
         return ReceiverPropertyAssignmentTargetImpl(
           receiver: _toInstanceReceiver(operand),
-          operator: operator,
-          name: name,
+          operator: expression.operator,
+          name: expression.name,
         );
-      case SimpleIdentifierImpl(:var token):
-        return ParsedUnqualifiedNameAssignmentTargetImpl(name: token);
-      case PrefixedIdentifierImpl(:var prefix, :var period, :var identifier):
-        return ParsedNameAccessAssignmentTargetImpl(
-          operand: ParsedUnqualifiedNameImpl(name: prefix.token),
-          operator: period,
-          name: identifier.token,
+      case ParsedUnqualifiedNameImpl():
+        return ParsedUnqualifiedNameAssignmentTargetImpl(name: expression.name);
+      case ReceiverIndexExpressionImpl():
+        return ReceiverIndexAssignmentTargetImpl(
+          receiver: expression.receiver,
+          question: expression.question,
+          leftBracket: expression.leftBracket,
+          index: expression.index,
+          rightBracket: expression.rightBracket,
+        );
+      case ReceiverPropertyExtractionImpl():
+        return ReceiverPropertyAssignmentTargetImpl(
+          receiver: _parsedPropertyReceiver(expression.receiver),
+          operator: expression.operator,
+          name: expression.name,
         );
       default:
-        break;
+        // Preserve an invalid operand as an expression so later phases can still
+        // analyze it and provide useful recovery information.
+        return InvalidExpressionAssignmentTargetImpl(expression: expression);
     }
-    return null;
   }
 
-  /// Commits a completed expression to a value slot without selecting its
-  /// interpretation. Identifier callbacks also serve declarations and types,
-  /// so their names acquire an expression role only at this boundary.
-  ExpressionImpl _toParsedExpression(ExpressionImpl expression) {
-    return switch (expression) {
-      SimpleIdentifierImpl(:var token) => ParsedUnqualifiedNameImpl(
-        name: token,
-      ),
-      PrefixedIdentifierImpl(:var prefix, :var period, :var identifier) =>
-        ParsedNameAccessImpl(
-          operand: ParsedUnqualifiedNameImpl(name: prefix.token),
-          operator: period,
-          name: identifier.token,
-        ),
-      _ => expression,
-    };
+  InstanceReceiverImpl _toInstanceReceiver(InstanceReceiverImpl expression) {
+    if (expression is InvalidSuperExpressionImpl) {
+      return expression.superReference;
+    }
+    return expression;
   }
 
   static String _versionAsString(Version version) {
@@ -7482,7 +7155,7 @@ class _ObjectPatternFields {
 /// followed by a token.
 class _OperatorName {
   final Token operatorKeyword;
-  final SimpleIdentifierImpl name;
+  final Token name;
 
   _OperatorName(this.operatorKeyword, this.name);
 }
@@ -7527,6 +7200,15 @@ class _PrimaryConstructorBuilder {
       formalParameters: formalParameterList,
     );
   }
+}
+
+/// A qualified name before its declaration, type, or annotation owner is built.
+class _QualifiedName {
+  final Token prefix;
+  final Token period;
+  final Token name;
+
+  _QualifiedName(this.prefix, this.period, this.name);
 }
 
 /// Data structure placed on stack to represent the redirected constructor.

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterMoveDownTest extends AssistProcessorTest {
+class FlutterMoveDownTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

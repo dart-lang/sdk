@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class SurroundWithWhileTest extends AssistProcessorTest {
+class SurroundWithWhileTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.surroundWithWhile;
 

@@ -21,12 +21,12 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   /// Returns a new type list that contains the recursively visited [types].
   ///
   /// Returns `null` if a recursive visit of [types] does not change the list.
-  List<DartType>? visitDartTypeList(List<DartType> types) {
-    List<DartType>? newTypes;
+  DartTypeList? visitDartTypeList(DartTypeList types) {
+    DartTypeList? newTypes;
     for (int i = 0; i < types.length; i++) {
       DartType? result = visitDartType(types[i]);
       if (result != null) {
-        (newTypes ??= List.of(types))[i] = result;
+        (newTypes ??= DartTypeList.from(types))[i] = result;
       }
     }
     return newTypes;
@@ -92,7 +92,7 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
 
   @override
   Constant? visitInstanceConstant(InstanceConstant node) {
-    List<DartType>? typeArguments = visitDartTypeList(node.typeArguments);
+    DartTypeList? typeArguments = visitDartTypeList(node.typeArguments);
     Map<Reference, Constant>? fieldValues;
     for (Reference reference in node.fieldValues.keys) {
       Constant? result = visitConstant(node.fieldValues[reference]!);
@@ -113,7 +113,7 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
 
   @override
   Constant? visitInstantiationConstant(InstantiationConstant node) {
-    List<DartType>? types = visitDartTypeList(node.types);
+    DartTypeList? types = visitDartTypeList(node.types);
     Constant? tearOffConstant = visitConstant(node.tearOffConstant);
     if (types == null && tearOffConstant == null) {
       return null;
@@ -218,14 +218,16 @@ class ConstantReplacer implements ConstantVisitor<Constant?> {
   Constant? visitTypedefTearOffConstant(TypedefTearOffConstant node) {
     TearOffConstant? tearOffConstant =
         visitConstant(node.tearOffConstant) as TearOffConstant?;
-    List<DartType>? types = visitDartTypeList(node.types);
-    List<StructuralParameter>? parameters;
+    DartTypeList? types = visitDartTypeList(node.types);
+    StructuralParameterList? parameters;
     for (int i = 0; i < node.parameters.length; i++) {
       StructuralParameter parameter = node.parameters[i];
       DartType? newBound = visitDartType(parameter.bound);
       DartType? newDefaultType = visitDartType(parameter.defaultType);
       if (newBound != null || newDefaultType != null) {
-        (parameters ??= List.of(node.parameters))[i] = new StructuralParameter(
+        (parameters ??= StructuralParameterList.from(
+          node.parameters,
+        ))[i] = new StructuralParameter(
           parameter.name,
           newBound ?? parameter.bound,
           newDefaultType ?? parameter.defaultType,

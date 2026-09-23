@@ -479,7 +479,7 @@ mixin StandardBounds {
             type1.declaredNullability,
             type2.declaredNullability,
           ),
-          <DartType>[getStandardLowerBound(t1, t2)],
+          DartTypeList(getStandardLowerBound(t1, t2)),
         );
       // GLB(FutureOr<A>, B) == GLB(A, B)
       case (FutureOrType(typeArgument: DartType t1), DartType t2):
@@ -506,7 +506,7 @@ mixin StandardBounds {
             type1.declaredNullability,
             type2.declaredNullability,
           ),
-          <DartType>[getStandardLowerBound(t2, t1)],
+          DartTypeList(getStandardLowerBound(t2, t1)),
         );
       // GLB(A, FutureOr<B>) == GLB(B, A)
       case (DartType t1, FutureOrType(typeArgument: DartType t2)):
@@ -888,7 +888,7 @@ mixin StandardBounds {
           List<DartType> leftArguments = typeDeclarationType1.typeArguments;
           List<DartType> rightArguments = typeDeclarationType2.typeArguments;
           int n = typeParameters.length;
-          List<DartType> typeArguments = new List<DartType>.of(leftArguments);
+          DartTypeList typeArguments = DartTypeList.from(leftArguments);
           for (int i = 0; i < n; ++i) {
             Variance variance = typeParameters[i].variance;
             if (variance == Variance.contravariant) {
@@ -1189,9 +1189,9 @@ mixin StandardBounds {
       g.positionalParameters.length,
     );
 
-    List<StructuralParameter> typeParameters = f.typeParameters;
+    StructuralParameterList typeParameters = f.typeParameters;
 
-    List<DartType> positionalParameters = new List<DartType>.filled(
+    DartTypeList positionalParameters = DartTypeList.filled(
       maxPos,
       dummyDartType,
     );
@@ -1262,7 +1262,7 @@ mixin StandardBounds {
       positionalParameters,
       returnType,
       intersectNullabilities(f.declaredNullability, g.declaredNullability),
-      namedParameters: namedParameters,
+      namedParameters: NamedDartTypeList.from(namedParameters),
       typeParameters: typeParameters,
       requiredParameterCount: math.min(
         f.requiredParameterCount,
@@ -1309,12 +1309,12 @@ mixin StandardBounds {
       }
     }
 
-    List<DartType> positional = new List<DartType>.generate(
+    DartTypeList positional = DartTypeList.generate(
       positionalLength,
       (i) => _getStandardLowerBound(r1.positional[i], r2.positional[i]),
     );
 
-    List<NamedType> named = new List<NamedType>.generate(
+    NamedDartTypeList named = NamedDartTypeList.generate(
       namedLength,
       (i) => new NamedType(
         r1.named[i].name,
@@ -1452,9 +1452,9 @@ mixin StandardBounds {
       g.positionalParameters.length,
     );
 
-    List<StructuralParameter> typeParameters = f.typeParameters;
+    StructuralParameterList typeParameters = f.typeParameters;
 
-    List<DartType> positionalParameters = new List<DartType>.filled(
+    DartTypeList positionalParameters = DartTypeList.filled(
       minPos,
       dummyDartType,
     );
@@ -1511,7 +1511,7 @@ mixin StandardBounds {
       positionalParameters,
       returnType,
       uniteNullabilities(f.declaredNullability, g.declaredNullability),
-      namedParameters: namedParameters,
+      namedParameters: NamedDartTypeList.from(namedParameters),
       typeParameters: typeParameters,
       requiredParameterCount: f.requiredParameterCount,
     );
@@ -1558,12 +1558,12 @@ mixin StandardBounds {
       }
     }
 
-    List<DartType> positional = new List<DartType>.generate(
+    DartTypeList positional = DartTypeList.generate(
       positionalLength,
       (i) => _getStandardUpperBound(r1.positional[i], r2.positional[i]),
     );
 
-    List<NamedType> named = new List<NamedType>.generate(
+    NamedDartTypeList named = NamedDartTypeList.generate(
       namedLength,
       (i) => new NamedType(
         r1.named[i].name,

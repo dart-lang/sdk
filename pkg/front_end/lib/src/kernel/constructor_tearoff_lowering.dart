@@ -348,7 +348,11 @@ FreshTypeParameters _createFreshTypeParameters(
     newFunctionNode.typeParameters.addAll(typeParameters);
     setParents(typeParameters, newFunctionNode);
   } else {
-    freshTypeParameters = new FreshTypeParameters([], [], Substitution.empty);
+    freshTypeParameters = new FreshTypeParameters(
+      const <TypeParameter>[],
+      DartTypeList.empty,
+      Substitution.empty,
+    );
   }
   return freshTypeParameters;
 }

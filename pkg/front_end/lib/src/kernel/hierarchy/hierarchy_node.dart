@@ -168,7 +168,7 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
         // A similar normalization is performed on [supernode] above.
         supertype = new Supertype(
           _hierarchy.coreTypes.objectClass,
-          const <DartType>[],
+          DartTypeList.empty,
         );
       }
       InterfaceType superTypeAsInterfaceType = supertype.asInterfaceType;

@@ -226,7 +226,10 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
         realClass.supertype!.className,
-        realClass.supertype!.typeArguments.map(cloner.visitType).toList(),
+        new DartTypeList.generate(
+          realClass.supertype!.typeArguments.length,
+          (int i) => cloner.visitType(realClass.supertype!.typeArguments[i]),
+        ),
       );
     }
 

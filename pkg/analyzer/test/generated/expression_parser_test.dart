@@ -2504,6 +2504,65 @@ V1: AssignmentExpression
 ''');
   }
 
+  void test_parseExpression_assign_compound_invalidInvocation() {
+    var result = parseTestCodeWithDiagnostics(r'''
+void f() {
+  g() += 1;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+}
+''');
+    assertParsedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+  binaryOperator: add
+V1: AssignmentExpression
+  leftHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+''');
+  }
+
+  void test_parseExpression_assign_compound_invalidLiteral() {
+    var result = parseTestCodeWithDiagnostics(r'''
+var v = 0 += 1;
+//      ^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+''');
+    assertParsedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: IntegerLiteral
+      literal: 0
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+  binaryOperator: add
+V1: AssignmentExpression
+  leftHandSide: IntegerLiteral
+    literal: 0
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+''');
+  }
+
   void test_parseExpression_chain_genericConstructor() {
     var result = parseTestCodeWithDiagnostics('var v = p.C<int>.named(0);');
     var node = result.findNode.singleVariableDeclaration.initializer2!;

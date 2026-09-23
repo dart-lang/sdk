@@ -108,7 +108,7 @@ abstract class TypeInferrer {
   });
 
   /// Infers the type arguments a redirecting factory target reference.
-  List<DartType>? inferRedirectingFactoryTypeArguments({
+  DartTypeList? inferRedirectingFactoryTypeArguments({
     required DartType typeContext,
     required FunctionNode redirectingFactoryFunction,
     required Uri fileUri,
@@ -352,7 +352,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  List<DartType>? inferRedirectingFactoryTypeArguments({
+  DartTypeList? inferRedirectingFactoryTypeArguments({
     required DartType typeContext,
     required FunctionNode redirectingFactoryFunction,
     required Uri fileUri,
@@ -710,7 +710,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   }
 
   @override
-  List<DartType>? inferRedirectingFactoryTypeArguments({
+  DartTypeList? inferRedirectingFactoryTypeArguments({
     required DartType typeContext,
     required FunctionNode redirectingFactoryFunction,
     required Uri fileUri,
@@ -721,7 +721,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     benchmarker.beginSubdivide(
       BenchmarkSubdivides.inferRedirectingFactoryTypeArguments,
     );
-    List<DartType>? result = impl.inferRedirectingFactoryTypeArguments(
+    DartTypeList? result = impl.inferRedirectingFactoryTypeArguments(
       typeContext: typeContext,
       redirectingFactoryFunction: redirectingFactoryFunction,
       fileUri: fileUri,

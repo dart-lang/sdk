@@ -116,35 +116,11 @@ final List<Supertype> emptyListOfSupertype = List.filled(
   growable: false,
 );
 
-/// Almost const <DartType>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<DartType> emptyListOfDartType = List.filled(
-  0,
-  dummyDartType,
-  growable: false,
-);
-
-/// Almost const <NamedType>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedType> emptyListOfNamedType = List.filled(
-  0,
-  dummyNamedType,
-  growable: false,
-);
-
 /// Almost const <TypeParameter>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<TypeParameter> emptyListOfTypeParameter = List.filled(
   0,
   dummyTypeParameter,
-  growable: false,
-);
-
-/// Almost const <StructuralParameter>[], but not const in an attempt to
-/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<StructuralParameter> emptyListOfStructuralParameter = List.filled(
-  0,
-  dummyStructuralParameter,
   growable: false,
 );
 
@@ -280,7 +256,7 @@ final DartType dummyDartType = new DynamicType();
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Supertype dummySupertype = new Supertype(dummyClass, const []);
+final Supertype dummySupertype = new Supertype(dummyClass, DartTypeList.empty);
 
 /// Non-nullable [NamedType] dummy value.
 ///

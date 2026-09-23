@@ -118,20 +118,6 @@ class AstBinaryReader {
     );
   }
 
-  AssignmentExpression _readAssignmentExpression() {
-    var leftHandSide = _readNode() as ExpressionImpl;
-    var rightHandSide = _readNode() as ExpressionImpl;
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
-    var node = AssignmentExpressionImpl(
-      leftHandSide2: leftHandSide,
-      operator: Tokens.fromType(operatorType),
-      rightHandSide2: rightHandSide,
-    );
-    node.element = _reader.readElement() as InternalMethodElement?;
-    _readExpressionResolution(node);
-    return node;
-  }
-
   AwaitExpression _readAwaitExpression() {
     var expression = _readNode() as ExpressionImpl;
     return AwaitExpressionImpl(
@@ -726,19 +712,6 @@ class AstBinaryReader {
     return node;
   }
 
-  FunctionReference _readFunctionReference() {
-    var function = _readNode() as ExpressionImpl;
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-
-    var node = FunctionReferenceImpl(
-      function2: function,
-      typeArguments: typeArguments,
-    );
-    node.typeArgumentTypes = _reader.readOptionalTypeList();
-    _readExpressionResolution(node);
-    return node;
-  }
-
   GenericFunctionType _readGenericFunctionType() {
     var flags = _readByte();
     // TODO(scheglov): add type parameters to locals
@@ -805,22 +778,6 @@ class AstBinaryReader {
       target: target,
       operator: Tokens.fromType(UnlinkedTokenType.QUESTION_QUESTION_EQ),
       value: value,
-    );
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  ImplicitCallReference _readImplicitCallReference() {
-    var expression = _readNode() as ExpressionImpl;
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var typeArgumentTypes = _reader.readOptionalTypeList()!;
-    var staticElement = _reader.readElement() as MethodElementImpl;
-
-    var node = ImplicitCallReferenceImpl(
-      expression2: expression,
-      element: staticElement,
-      typeArguments: typeArguments,
-      typeArgumentTypes: typeArgumentTypes,
     );
     _readExpressionResolution(node);
     return node;
@@ -915,23 +872,6 @@ class AstBinaryReader {
     );
     node.element = _reader.readElement() as InternalMethodElement?;
     node.operatorResultType = _reader.readType();
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  IndexExpression _readIndexExpression() {
-    var flags = _readByte();
-    var target = _readOptionalNode() as ExpressionImpl?;
-    var index = _readNode() as ExpressionImpl;
-    var node = IndexExpressionImpl(
-      target2: target,
-      period: AstBinaryFlags.hasPeriod(flags) ? Tokens.periodPeriod() : null,
-      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-      leftBracket: Tokens.openSquareBracket(),
-      index2: index,
-      rightBracket: Tokens.closeSquareBracket(),
-    );
-    node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
   }
@@ -1290,8 +1230,6 @@ class AstBinaryReader {
         return _readAsExpression();
       case AstNodeTag.AssertInitializer:
         return _readAssertInitializer();
-      case AstNodeTag.AssignmentExpression:
-        return _readAssignmentExpression();
       case AstNodeTag.CompoundAssignment:
         return _readCompoundAssignment();
       case AstNodeTag.DirectAssignment:
@@ -1356,8 +1294,6 @@ class AstBinaryReader {
         return _readFormalParameterList();
       case AstNodeTag.CallInvocation:
         return _readCallInvocation();
-      case AstNodeTag.FunctionReference:
-        return _readFunctionReference();
       case AstNodeTag.FunctionInstantiation:
         return _readFunctionInstantiation();
       case AstNodeTag.GenericFunctionType:
@@ -1366,8 +1302,6 @@ class AstBinaryReader {
         return _readRegularFormalParameter();
       case AstNodeTag.IfElement:
         return _readIfElement();
-      case AstNodeTag.ImplicitCallReference:
-        return _readImplicitCallReference();
       case AstNodeTag.ImplicitFunctionInstantiation:
         return _readImplicitFunctionInstantiation();
       case AstNodeTag.ImplicitCallTearOff:
@@ -1380,8 +1314,6 @@ class AstBinaryReader {
         return _readImportPrefixedAssignmentTarget();
       case AstNodeTag.ImportPrefixedNameExpression:
         return _readImportPrefixedNameExpression();
-      case AstNodeTag.IndexExpression:
-        return _readIndexExpression();
       case AstNodeTag.ReceiverIndexExpression:
         return _readReceiverIndexExpression();
       case AstNodeTag.ReceiverIndexAssignmentTarget:
