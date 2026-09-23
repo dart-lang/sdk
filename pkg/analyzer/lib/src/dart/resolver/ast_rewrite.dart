@@ -554,18 +554,6 @@ class AstRewriter {
     }
     var prefix = node.prefix;
     var prefixElement = nameScope.lookup(prefix.name).getter;
-    if (parent is ConstantPatternImpl && prefixElement is PrefixElement) {
-      var element = prefixElement.scope.lookup(node.identifier.name).getter;
-      switch (element) {
-        case DynamicElementImpl():
-        case InterfaceElementImpl():
-        case NeverElementImpl():
-        case TypeAliasElementImpl():
-        case TypeParameterElementImpl():
-          return _toPatternTypeLiteral(parent, node);
-      }
-    }
-
     if (_isTypeLiteralContext(parent, node)) {
       if (prefixElement is PrefixElement) {
         var element = prefixElement.scope.lookup(node.identifier.name).getter;
@@ -730,18 +718,6 @@ class AstRewriter {
       // prefix receiver until they have a dedicated canonical target node.
       return node;
     }
-    if (parent is ConstantPatternImpl) {
-      var element = nameScope.lookup(node.name).getter;
-      switch (element) {
-        case DynamicElementImpl():
-        case InterfaceElementImpl():
-        case NeverElementImpl():
-        case TypeAliasElementImpl():
-        case TypeParameterElementImpl():
-          return _toPatternTypeLiteral(parent, node);
-      }
-    }
-
     if (_isTypeLiteralContext(parent, node)) {
       var element = nameScope.lookup(node.name).getter;
       switch (element) {
@@ -1306,17 +1282,6 @@ class AstRewriter {
     );
     node.replaceWith(methodInvocation);
     return methodInvocation;
-  }
-
-  TypeLiteralImpl _toPatternTypeLiteral(
-    ConstantPattern parent,
-    IdentifierImpl node,
-  ) {
-    var result = TypeLiteralImpl(
-      type: node.toNamedType(typeArguments: null, question: null),
-    );
-    node.replaceWith(result);
-    return result;
   }
 
   TypeLiteralImpl _toTypeLiteral(IdentifierImpl node) {

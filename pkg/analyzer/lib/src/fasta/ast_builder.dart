@@ -1547,11 +1547,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endConstantPattern(Token? constKeyword) {
-    var expression = pop() as ExpressionImpl;
-    // Constant-pattern classification still consumes the legacy name shapes.
-    if (expression is ParsedExpressionImpl) {
-      expression = expression.buildUnresolvedExpression();
-    }
+    var expression = _toParsedExpression(pop() as ExpressionImpl);
     push(
       ConstantPatternImpl(constKeyword: constKeyword, expression2: expression),
     );
