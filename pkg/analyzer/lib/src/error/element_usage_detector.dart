@@ -862,10 +862,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     );
   }
 
-  void methodInvocation(MethodInvocation node) {
-    _invocationArguments(node.methodName.element, node.argumentList);
-  }
-
   void namedFunctionInvocation(NamedFunctionInvocation node) {
     var element = switch (node.resolution) {
       ExecutableInvocationResolution(:var element) => element,

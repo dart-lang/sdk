@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -101,27 +100,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
     ImportPrefixedFunctionInvocation node,
   ) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      var targetType = node.realTarget2?.staticType;
-      if (targetType is FunctionType) {
-        _check(
-          parameters: targetType.formalParameters,
-          arguments: node.argumentList.arguments2,
-          errorEntity: node.methodName,
-        );
-        return;
-      }
-    }
-
-    _check(
-      parameters: _executableElement(node.methodName.element)?.formalParameters,
-      arguments: node.argumentList.arguments2,
-      errorEntity: node.methodName,
-    );
   }
 
   @override

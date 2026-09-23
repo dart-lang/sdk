@@ -214,12 +214,7 @@ class CallInvocationResolver {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
-    } else {
-      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
-    }
+    _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
 
     return true;
   }

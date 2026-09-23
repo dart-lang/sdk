@@ -3971,78 +3971,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitMethodInvocation(
-    covariant MethodInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    checkUnreachableNode(node);
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    var target = node.target2;
-    if (target != null) {
-      analyzeExpression(
-        target,
-        operations.unknownType,
-        continueNullShorting: true,
-      );
-      target = popRewrite();
-    }
-
-    if (node.isNullAware) {
-      _startNullAwareAccess(
-        target,
-        offset: (node.operator ?? node.methodName).offset,
-      );
-      nullSafetyDeadCodeVerifier.visitNode(node.methodName);
-    }
-
-    node.typeArguments?.accept2(this);
-    elementResolver.visitMethodInvocation(
-      node,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-
-    ExpressionImpl resolvedNode = peekRewrite()!;
-    if (identical(resolvedNode, node)) {
-      var target = node.target2;
-      if (target is SimpleIdentifierImpl) {
-        var prefixElement = target.element;
-        if (prefixElement is PrefixElement) {
-          if (node.operator?.type == TokenType.PERIOD) {
-            resolvedNode = _rewriteImportPrefixedFunctionInvocation(
-              node,
-              prefixElement,
-            );
-          }
-        }
-      }
-      if (identical(resolvedNode, node) &&
-          target != null &&
-          (node.operator?.type == TokenType.PERIOD ||
-              node.operator?.type == TokenType.QUESTION_PERIOD) &&
-          _isSupportedReceiverMethodInvocationReceiver(target)) {
-        resolvedNode = _rewriteReceiverMethodInvocation(node, target);
-      }
-    }
-
-    var replacement = insertGenericFunctionInstantiation(
-      resolvedNode,
-      contextType: contextType,
-    );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-    nullSafetyDeadCodeVerifier.verifyMethodInvocation(node);
-
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
@@ -5270,8 +5198,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
     var invocation = parent.parent2;
     var targetType = switch (invocation) {
-      MethodInvocation(methodName: SimpleIdentifier(name: 'catchError')) =>
-        invocation.realTarget2?.staticType,
       ReceiverMethodInvocation(
         name: Token(lexeme: 'catchError'),
         :Expression receiver,
@@ -5494,20 +5420,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       wrapFunctionInstantiation(tearOff, typeArgumentTypes);
     }
   }
-
-  /// Whether [receiver] is in the receiver-method migration slice.
-  ///
-  /// Parentheses establish an expression boundary even when the expression
-  /// inside them requires resolution. The other cases are already canonical
-  /// V2 value-producing receiver forms.
-  bool _isSupportedReceiverMethodInvocationReceiver(ExpressionImpl receiver) =>
-      receiver is LiteralImpl ||
-      receiver is ParenthesizedExpressionImpl ||
-      receiver is ConstructorInvocationImpl ||
-      receiver is ReceiverIndexExpressionImpl ||
-      receiver is ReceiverPropertyExtractionImpl ||
-      receiver is FunctionInvocationImpl ||
-      receiver is ThisExpressionImpl;
 
   void _resolveDirectNamedFunctionInvocation(
     NamedFunctionInvocationImpl node, {
@@ -5915,47 +5827,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.exitExpression(node);
   }
 
-  ImportPrefixedFunctionInvocationImpl _rewriteImportPrefixedFunctionInvocation(
-    MethodInvocationImpl node,
-    PrefixElement prefixElement,
-  ) {
-    var target = node.target2 as SimpleIdentifierImpl;
-    var invocation = ImportPrefixedFunctionInvocationImpl(
-      importPrefix: ImportPrefixReferenceImpl(
-        name: target.token,
-        period: node.operator!,
-      )..element = prefixElement,
-      name: node.methodName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    );
-    _transferNamedFunctionInvocationResolution(node, invocation);
-    replaceExpression(node, invocation);
-    flowAnalysis.transferExpressionInfo(node, invocation);
-    flowAnalysis.transferTestData(node, invocation);
-    inferenceHelper.transferTestData(node, invocation);
-    return invocation;
-  }
-
-  ReceiverMethodInvocationImpl _rewriteReceiverMethodInvocation(
-    MethodInvocationImpl node,
-    ExpressionImpl receiver,
-  ) {
-    var invocation = ReceiverMethodInvocationImpl(
-      receiver: receiver,
-      operator: node.operator!,
-      name: node.methodName.token,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-    );
-    _transferReceiverMethodInvocationResolution(node, invocation);
-    replaceExpression(node, invocation);
-    flowAnalysis.transferExpressionInfo(node, invocation);
-    flowAnalysis.transferTestData(node, invocation);
-    inferenceHelper.transferTestData(node, invocation);
-    return invocation;
-  }
-
   bool _shouldSkipImplicitCallTearOffDueToForm(
     Expression expression,
     AstNode? parent,
@@ -6033,85 +5904,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           // Invalid argument counts have no single receiver to null-short.
           break;
       }
-    }
-  }
-
-  void _transferNamedFunctionInvocationResolution(
-    MethodInvocationImpl source,
-    NamedFunctionInvocationImpl destination,
-  ) {
-    var resultType = source.typeOrThrow;
-    var invokeType = source.staticInvokeType;
-    var element = source.methodName.element;
-    if (element == null) {
-      var scopeElement = source.methodName.scopeLookupResult?.getter;
-      if (scopeElement is InternalExecutableElement) {
-        element = scopeElement;
-      }
-    }
-    var candidateElement = source.methodName.writeOrReadElement2;
-
-    ValidInvocationResolutionImpl? recovery;
-    if (invokeType is FunctionTypeImpl) {
-      recovery = switch (element) {
-        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
-          element: element,
-          invokeType: invokeType,
-          type: resultType,
-        ),
-        _ => FunctionCallInvocationResolutionImpl(
-          invokeType: invokeType,
-          type: resultType,
-        ),
-      };
-    }
-
-    InvocationResolutionImpl resolution;
-    if (candidateElement is MultiplyDefinedElement) {
-      resolution = InvalidInvocationResolutionImpl(
-        candidates: [candidateElement],
-        recovery: recovery,
-        type: resultType,
-      );
-    } else {
-      resolution = switch ((resultType, invokeType, recovery)) {
-        (InvalidTypeImpl(), _, _) ||
-        (_, InvalidTypeImpl(), _) => InvalidInvocationResolutionImpl(
-          candidates: [?candidateElement],
-          recovery: recovery,
-          type: resultType,
-        ),
-        (_, _, var recovery?) => recovery,
-        _ => DynamicInvocationResolutionImpl(type: resultType),
-      };
-    }
-
-    destination
-      ..resolution = resolution
-      ..staticInvokeType = invokeType
-      ..typeArgumentTypes = source.typeArgumentTypes
-      ..setPseudoExpressionStaticType(resultType);
-  }
-
-  void _transferReceiverMethodInvocationResolution(
-    MethodInvocationImpl source,
-    ReceiverMethodInvocationImpl destination,
-  ) {
-    var receiverType = typeSystem.resolveToBound(
-      (destination.receiver as ExpressionImpl).typeOrThrow,
-    );
-    var hasNoInvocation =
-        (receiverType is NeverType &&
-            receiverType.nullabilitySuffix == NullabilitySuffix.none) ||
-        (source.isNullAware && typeSystem.isNull(receiverType));
-    if (hasNoInvocation) {
-      destination
-        ..resolution = null
-        ..staticInvokeType = source.staticInvokeType
-        ..typeArgumentTypes = source.typeArgumentTypes
-        ..setPseudoExpressionStaticType(source.typeOrThrow);
-    } else {
-      _transferNamedFunctionInvocationResolution(source, destination);
     }
   }
 
@@ -6368,8 +6160,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           name = '${element.returnType.getDisplayString()}.new';
         }
       }
-    } else if (nameNode is MethodInvocation) {
-      name = nameNode.methodName.name;
     } else if (nameNode is NamedFunctionInvocation) {
       name = nameNode.name.lexeme;
     } else if (nameNode is CallInvocation) {

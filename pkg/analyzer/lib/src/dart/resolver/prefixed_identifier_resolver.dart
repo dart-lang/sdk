@@ -127,8 +127,7 @@ class PrefixedIdentifierResolver {
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is MethodInvocation ||
-        parent is PrefixedIdentifier && parent.prefix == node ||
+    if (parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||
         parent is NamedType) {
       return false;
@@ -150,7 +149,6 @@ class PrefixedIdentifierResolver {
     }
 
     if (parent is CommentReference ||
-        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl && parent.target2 == node) {
       inferenceLogWriter?.recordExpressionWithNoType(node);

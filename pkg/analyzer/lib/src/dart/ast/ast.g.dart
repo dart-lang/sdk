@@ -738,8 +738,6 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
 
-  R? visitMethodInvocation(MethodInvocation node);
-
   R? visitMixinDeclaration(MixinDeclaration node);
 
   R? visitMixinOnClause(MixinOnClause node);

@@ -1096,31 +1096,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.element;
-    if (element is TopLevelFunctionElementImpl) {
-      if (element.isDartCoreIdentical) {
-        var arguments = node.argumentList.arguments2;
-        var leftArgument = evaluateConstant(arguments[0]);
-        if (leftArgument is! DartObjectImpl) {
-          return leftArgument;
-        }
-        var rightArgument = evaluateConstant(arguments[1]);
-        if (rightArgument is! DartObjectImpl) {
-          return rightArgument;
-        }
-        return _dartObjectComputer.isIdentical(
-          node,
-          leftArgument,
-          rightArgument,
-        );
-      }
-    }
-
-    return _invalidConstantForMethodInvocation(node);
-  }
-
-  @override
   Constant visitNamedArgument(NamedArgument node) =>
       evaluateConstant(node.argumentExpression2);
 

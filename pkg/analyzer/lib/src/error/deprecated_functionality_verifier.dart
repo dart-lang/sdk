@@ -130,17 +130,6 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void methodInvocation(MethodInvocation node) {
-    var method = node.methodName.element;
-    if (method is! ExecutableElement) return;
-    if (method is LocalFunctionElement) return;
-    _checkForDeprecatedOptional(
-      element: method,
-      argumentList: node.argumentList,
-      errorEntity: node.methodName,
-    );
-  }
-
   void mixinDeclaration(MixinDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     // Not technically "implementing," but is similar enough for

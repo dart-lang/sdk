@@ -706,30 +706,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _sink.writeEnum(AstNodeTag.MethodInvocation);
-
-    var operatorType = node.operator?.type;
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasPeriod:
-            operatorType == TokenType.PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD,
-        hasPeriod2:
-            operatorType == TokenType.PERIOD_PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-        hasQuestion:
-            operatorType == TokenType.QUESTION_PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-      ),
-    );
-
-    _writeOptionalNode(node.target2);
-    _writeNode(node.methodName);
-    _storeInvocationExpression(node);
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     _sink.writeEnum(AstNodeTag.NamedArgument);
 
@@ -1210,14 +1186,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeOptionalNode(node.condition2);
     _writeNodeList(node.updaters2);
     _storeForLoopParts(node);
-  }
-
-  void _storeInvocationExpression(InvocationExpression node) {
-    _writeOptionalNode(node.typeArguments);
-    _writeNode(node.argumentList);
-    _sink.writeType(node.staticInvokeType);
-    _sink.writeOptionalTypeList(node.typeArgumentTypes);
-    _storeExpression(node);
   }
 
   void _storeRegularFormalParameter(FormalParameterImpl node, Token? keyword) {

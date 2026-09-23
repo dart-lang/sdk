@@ -197,12 +197,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _checkSinceSdkVersion(node.methodName.element, node);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     _checkSinceSdkVersion(
       node.correspondingParameter,

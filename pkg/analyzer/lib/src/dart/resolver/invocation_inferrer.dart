@@ -787,57 +787,6 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   }
 }
 
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [MethodInvocation].
-class MethodInvocationInferrer
-    extends InvocationExpressionInferrer<MethodInvocationImpl> {
-  MethodInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-
-  @override
-  bool get _isIdentical {
-    var invokedMethod =
-        node.methodName.element ?? node.methodName.scopeLookupResult?.getter;
-    return invokedMethod is TopLevelFunctionElement &&
-        invokedMethod.isDartCoreIdentical &&
-        node.argumentList.arguments2.length == 2;
-  }
-
-  @override
-  TypeImpl _computeContextForArgument(TypeImpl parameterType) {
-    var argumentContextType = super._computeContextForArgument(parameterType);
-    var targetType = node.realTarget2?.staticType;
-    if (targetType != null) {
-      argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
-        targetType,
-        node.methodName.element,
-        contextType,
-        parameterType,
-      );
-    }
-    return argumentContextType;
-  }
-
-  @override
-  TypeImpl _refineReturnType(TypeImpl returnType) {
-    var targetType = node.realTarget2?.staticType;
-    if (targetType != null) {
-      returnType = resolver.typeSystem
-          .refineNumericInvocationType(targetType, node.methodName.element, [
-            for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression2.typeOrThrow,
-          ], returnType);
-    }
-    return returnType;
-  }
-}
-
 /// Performs invocation inference for a canonical direct named function
 /// invocation, including repeated resolution of top-level initializers.
 class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>

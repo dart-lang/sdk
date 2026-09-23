@@ -1829,43 +1829,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget2;
-    SimpleIdentifier methodName = node.methodName;
-    if (target != null) {
-      var typeReference = getTypeReference(target);
-      _checkForStaticAccessToInstanceMember(typeReference, methodName);
-      _checkForInstanceAccessToStaticMember(
-        typeReference,
-        node.target2,
-        methodName,
-      );
-      // Note: `node.isNullAware` produces the wrong behavior because it considers
-      // all sections of a null-aware cascade to be null-aware, so it's necessary
-      // to look directly at the operator.
-      var isNullAware =
-          node.operator?.type == TokenType.QUESTION_PERIOD ||
-          node.operator?.type == TokenType.QUESTION_PERIOD_PERIOD;
-      if (isNullAware) {
-        _checkForUnnecessaryNullAware(
-          target,
-          node.operator!,
-          kind: node.isCascaded
-              ? _NullAwareKind.cascaded
-              : _NullAwareKind.access,
-        );
-      }
-    } else {
-      _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
-    }
-    _typeArgumentsVerifier.checkMethodInvocation(node);
-    _requiredParametersVerifier.visitMethodInvocation(node);
-    _constArgumentsVerifier.visitMethodInvocation(node);
-    _checkUseVerifier.checkMethodInvocation(node);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
     var declaredFragment = node.declaredFragment!;

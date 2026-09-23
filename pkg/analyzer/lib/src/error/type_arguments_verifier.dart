@@ -277,14 +277,6 @@ class TypeArgumentsVerifier {
     }
   }
 
-  void checkMethodInvocation(MethodInvocation node) {
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      node.function.staticType,
-      node.staticInvokeType,
-    );
-  }
-
   void checkNamedType(NamedTypeImpl node) {
     _checkForTypeArgumentNotMatchingBounds(
       node: node,

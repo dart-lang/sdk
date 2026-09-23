@@ -2784,12 +2784,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitMethodInvocation(MethodInvocation node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitMixinDeclaration(MixinDeclaration node) {
     node.visitChildren2(this);
     return null;
@@ -4461,9 +4455,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitMethodDeclaration2(MethodDeclaration2 node) => null;
 
   @override
-  R? visitMethodInvocation(MethodInvocation node) => null;
-
-  @override
   R? visitMixinDeclaration(MixinDeclaration node) => null;
 
   @override
@@ -5886,9 +5877,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitMethodDeclaration2(MethodDeclaration2 node) => _throw(node);
-
-  @override
-  R? visitMethodInvocation(MethodInvocation node) => _throw(node);
 
   @override
   R? visitMixinDeclaration(MixinDeclaration node) => _throw(node);
@@ -8880,14 +8868,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitMethodInvocation(MethodInvocation node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitMethodInvocation(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitMixinDeclaration(MixinDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitMixinDeclaration(node);
@@ -10813,9 +10793,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitMethodDeclaration2(MethodDeclaration2 node) => visitNode(node);
-
-  @override
-  R? visitMethodInvocation(MethodInvocation node) => visitNode(node);
 
   @override
   R? visitMixinDeclaration(MixinDeclaration node) => visitNode(node);

@@ -651,9 +651,6 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   }
 
   @override
-  Object? visitMethodInvocation(MethodInvocation node) => visitNode(node);
-
-  @override
   Object? visitNode(AstNode node) => NOT_A_CONSTANT;
 
   @override

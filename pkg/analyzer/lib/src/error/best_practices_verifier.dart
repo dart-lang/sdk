@@ -741,15 +741,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    _elementUsageFrontierDetector.methodInvocation(node);
-    _deprecatedFunctionalityVerifier.methodInvocation(node);
-    _errorHandlerVerifier.verifyMethodInvocation(node);
-    _nullSafeApiVerifier.methodInvocation(node);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = node.declaredFragment!.element;
 

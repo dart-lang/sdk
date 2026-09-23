@@ -65,7 +65,6 @@ enum AstNodeTag {
   LogicalNot,
   LogicalOr,
   MapLiteralEntry,
-  MethodInvocation,
   NamedArgument,
   NamedType,
   NullAssertionExpression,
