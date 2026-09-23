@@ -843,7 +843,26 @@ class TypeSystemImpl implements TypeSystem {
 
   /// https://github.com/dart-lang/language
   /// accepted/future-releases/0546-patterns/feature-specification.md#exhaustiveness-and-reachability
-  bool isAlwaysExhaustive(DartType type) {
+  bool isAlwaysExhaustive(DartType type) => _isAlwaysExhaustive(type, null);
+
+  /// Implementation of [isAlwaysExhaustive].
+  ///
+  /// [visitedTypeParameters] is the set of type parameters whose bounds are
+  /// already being examined further up the recursion, or `null` if none
+  /// are. It is allocated lazily, so that the common case of a type that
+  /// involves no type parameters allocates nothing.
+  ///
+  /// A type parameter whose exhaustiveness depends on itself, such as
+  /// `X extends FutureOr<X>`, would otherwise recurse forever, in the same
+  /// way as `X extends FutureOr<X>` does for [_isNonNullable]: unwrapping
+  /// `FutureOr<S>` and recursing into a type parameter's bound feed each
+  /// other. Such a type parameter is reported as not always-exhaustive,
+  /// matching how a cyclic bound is treated as the least fixed point
+  /// elsewhere in this class.
+  bool _isAlwaysExhaustive(
+    DartType type,
+    Set<TypeParameterElement>? visitedTypeParameters,
+  ) {
     if (type is InterfaceType) {
       if (type.isDartCoreBool) {
         return true;
@@ -859,25 +878,36 @@ class TypeSystemImpl implements TypeSystem {
         return true;
       }
       if (element is ExtensionTypeElement) {
-        return isAlwaysExhaustive(type.extensionTypeErasure);
+        return _isAlwaysExhaustive(
+          type.extensionTypeErasure,
+          visitedTypeParameters,
+        );
       }
       if (type.isDartAsyncFutureOr) {
-        return isAlwaysExhaustive(type.typeArguments[0]);
+        return _isAlwaysExhaustive(
+          type.typeArguments[0],
+          visitedTypeParameters,
+        );
       }
       return false;
     } else if (type is TypeParameterTypeImpl) {
       var promotedBound = type.promotedBound;
-      if (promotedBound != null && isAlwaysExhaustive(promotedBound)) {
+      if (promotedBound != null &&
+          _isAlwaysExhaustive(promotedBound, visitedTypeParameters)) {
         return true;
       }
       var bound = type.element.bound;
-      if (bound != null && isAlwaysExhaustive(bound)) {
-        return true;
+      if (bound == null) {
+        return false;
       }
-      return false;
+      visitedTypeParameters ??= {};
+      if (!visitedTypeParameters.add(type.element)) {
+        return false;
+      }
+      return _isAlwaysExhaustive(bound, visitedTypeParameters);
     } else if (type is RecordType) {
       for (var field in type.fields) {
-        if (!isAlwaysExhaustive(field.type)) {
+        if (!_isAlwaysExhaustive(field.type, visitedTypeParameters)) {
           return false;
         }
       }
