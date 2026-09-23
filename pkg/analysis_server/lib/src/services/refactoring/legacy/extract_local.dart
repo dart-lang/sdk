@@ -164,18 +164,24 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         var prefix = utils.getNodePrefix(target.parent!);
         var indent = utils.oneIndent;
         var expr = target.expression;
-        builder.addReplacement(range.startStart(target, expr), (builder) {
-          builder.write('{$eol$prefix$indent');
-          builder.write(declarationPrefix);
-          builder.addSimpleLinkedEdit(
-            'variableName',
-            name,
-            kind: LinkedEditSuggestionKind.VARIABLE,
-            suggestions: names,
-          );
-          builder.write(declarationInitializer);
-          builder.write('$eol$prefix${indent}return ');
-        });
+        // Replace starting at the `=>`, not at the start of the body, so that
+        // a leading `async` modifier is preserved.
+        // https://github.com/dart-lang/sdk/issues/39542
+        builder.addReplacement(
+          range.startStart(target.functionDefinition, expr),
+          (builder) {
+            builder.write('{$eol$prefix$indent');
+            builder.write(declarationPrefix);
+            builder.addSimpleLinkedEdit(
+              'variableName',
+              name,
+              kind: LinkedEditSuggestionKind.VARIABLE,
+              suggestions: names,
+            );
+            builder.write(declarationInitializer);
+            builder.write('$eol$prefix${indent}return ');
+          },
+        );
         builder.addSimpleReplacement(
           range.startOffsetEndOffset(expr.end, target.end),
           ';$eol$prefix}',

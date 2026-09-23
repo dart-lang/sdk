@@ -1499,6 +1499,40 @@ void f(p) {
 ''');
   }
 
+  Future<void> test_singleExpression_inExpressionBody_ofAsyncFunction() async {
+    // https://github.com/dart-lang/sdk/issues/39542
+    await indexTestUnit('''
+Future<void> f() async => print(await Future.value('message'));
+''');
+    _createRefactoringForString("Future.value('message')");
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+Future<void> f() async {
+  var res = Future.value('message');
+  return print(await res);
+}
+''');
+  }
+
+  Future<void> test_singleExpression_inExpressionBody_ofAsyncMethod() async {
+    // https://github.com/dart-lang/sdk/issues/39542
+    await indexTestUnit('''
+class A {
+  Future<int> foo() async => await Future.value(42);
+}
+''');
+    _createRefactoringForString('Future.value(42)');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+class A {
+  Future<int> foo() async {
+    var res = Future.value(42);
+    return await res;
+  }
+}
+''');
+  }
+
   Future<void> test_singleExpression_inExpressionBody_ofClosure() async {
     await indexTestUnit('''
 void f() {
