@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToPrimaryConstructorClassTest extends AssistProcessorTest {
+class ConvertToPrimaryConstructorClassTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPrimaryConstructor;
 
@@ -471,7 +471,7 @@ class B {
 }
 
 @reflectiveTest
-class ConvertToPrimaryConstructorEnumTest extends AssistProcessorTest {
+class ConvertToPrimaryConstructorEnumTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPrimaryConstructor;
 

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class InvertIfStatementTest extends AssistProcessorTest {
+class InvertIfStatementTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.invertIfStatement;
 

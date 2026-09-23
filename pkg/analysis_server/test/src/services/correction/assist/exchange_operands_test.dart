@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ExchangeOperandsTest extends AssistProcessorTest {
+class ExchangeOperandsTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.exchangeOperands;
 

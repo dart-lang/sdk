@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoExpressionBodyTest extends AssistProcessorTest {
+class ConvertIntoExpressionBodyTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoExpressionBody;
 

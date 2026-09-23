@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodyTest extends AssistProcessorTest {
+class ConvertIntoBlockBodyTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoBlockBody;
 
