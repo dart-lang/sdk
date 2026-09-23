@@ -241,8 +241,8 @@ String unescape(
 
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
-/// [stringStartOffset] is the offset of [codeUnits] from the start of
-/// [location]. The default, 1, assumes that one opening quote was removed.
+/// [stringStartOffset] counts source code units before [codeUnits], relative
+/// to [location]. It defaults to 1 for compatibility with existing callers.
 String unescapeCodeUnits(
   List<int> codeUnits,
   bool isRaw,
@@ -254,7 +254,7 @@ String unescapeCodeUnits(
   List<int> result = new List<int>.filled(codeUnits.length, /* fill = */ 0);
   int resultOffset = 0;
 
-  // The offsets passed here point to the code unit after the backslash.
+  // Each supplied offset is one past the backslash index, possibly at EOF.
   void handleUnescapeError(Message message, int offset, int length) {
     listener.handleUnescapeError(
       message,
