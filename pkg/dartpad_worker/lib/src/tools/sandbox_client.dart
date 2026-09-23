@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
 import 'package:json_rpc_2/json_rpc_2.dart';
 
+import '../shared.dart';
 import '../util/message_port.dart';
 
 /// Client for talking to the [MessagePort] posted by `sandbox.js`.
@@ -112,15 +113,10 @@ final class SandboxClient {
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _extensionEventController.stream;
 
-  /// Injects compiled DDC module into the sandbox.
-  Future<void> loadModule({
-    required String code,
-    String moduleName = 'main',
-  }) async {
-    await _sendRequest<void>('loadModule', {
-      'code': code,
-      'moduleName': moduleName,
-    });
+  /// Injects compiled DDC library bundles into the sandbox.
+  Future<void> loadModules({required List<CompiledModule> modules}) async {
+    assert(modules.isNotEmpty);
+    await _sendRequest<void>('loadModules', {'modules': modules.toJson()});
   }
 
   /// Runs the application using the specified mode.
@@ -135,30 +131,22 @@ final class SandboxClient {
   ///
   /// Returns the current hot restart generation number from the embedder.
   Future<({int generation})> hotRestart({
-    String? code,
-    String? moduleName = 'main',
+    List<CompiledModule> modules = const [],
   }) async {
     final r = await _sendRequest<Map>('hotRestart', {
-      'code': ?code,
-      'moduleName': ?moduleName,
+      'modules': modules.toJson(),
     });
     return (generation: (r['generation'] as num).toInt());
   }
 
   /// Triggers a stateful hot reload.
   ///
-  /// [librariesToReload] should contain the URIs of the libraries that changed.
-  ///
   /// Returns the current hot reload generation number from the embedder.
   Future<({int generation})> hotReload({
-    String? code,
-    String? moduleName = 'main',
-    List<Uri> librariesToReload = const [],
+    List<CompiledModule> modules = const [],
   }) async {
     final r = await _sendRequest<Map>('hotReload', {
-      'code': ?code,
-      'moduleName': ?moduleName,
-      'librariesToReload': librariesToReload.map((u) => u.toString()).toList(),
+      'modules': modules.toJson(),
     });
 
     return (generation: (r['generation'] as num).toInt());
@@ -207,4 +195,15 @@ final class SandboxClient {
       'args': args,
     });
   }
+}
+
+extension on List<CompiledModule> {
+  List<Map<String, Object?>> toJson() => [
+    for (final module in this)
+      {
+        'moduleName': module.moduleName,
+        'code': module.code,
+        'libraries': module.libraries,
+      },
+  ];
 }

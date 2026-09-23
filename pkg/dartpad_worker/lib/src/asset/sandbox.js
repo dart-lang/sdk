@@ -153,15 +153,56 @@
     });
   }
 
+  // Synthetic root for bundles of libraries from a package.
+  //
+  // `dart_stack_trace_mapper.js` rewrites a source to `package:` URI, when it
+  // is under `<root>/packages`, for some root in `$dartLoader.rootDirectories`.
+  // We use `//# sourceURL` to make this happen.
+  //
+  // Must stay relative: Chrome resolves a `//# sourceURL` starting with `/`
+  // against the document, which breaks the lookup in `setupStackTraceMapper`.
+  const packageRoot = 'dartpad';
+
+  // DDC will resolve file urls to absolute URLs using `Uri.base` which when
+  // running on web is `window.location`. As dartpad_worker normally runs from
+  // a blob-url to enable WASM loading across origins, what was supposed to be
+  // an absolute path, instead becomes mangled blob:...
+  // We undo that here, until appropriate fix is landed in DDC.
+  // See: https://github.com/dart-lang/sdk/issues/40251
+  const ddcWorkingDirectory = /^blob:[^/]*\//;
+  function undoDdcWorkingDirectory(sourceMap) {
+    if (!sourceMap.includes('blob:')) {
+      return sourceMap;
+    }
+    try {
+      const map = JSON.parse(sourceMap);
+      if (!Array.isArray(map.sources)) {
+        return sourceMap;
+      }
+      map.sources = map.sources.map((s) => s.replace(ddcWorkingDirectory, ''));
+      return JSON.stringify(map);
+    } catch (e) {
+      // The mapper has no error handling; a throw here would replace the
+      // exception whose stack trace is being rendered.
+      return sourceMap;
+    }
+  }
+
   // Set sourceMapProvider for dart_stack_trace_mapper.js which is used when
   // Dart renders a stacktrace.
-  // `createAndRegisterBlob` names each script `<moduleName>.js?<generation>`,
-  // DDC modules register their source map with `dartDevEmbedder`.
-  // The generation is present to purge cache in dart_stack_trace_mapper.js
+  //
+  // See `createAndRegisterBlob` which attaches `//# sourceURL` comment.
   function setupStackTraceMapper() {
+    self.$dartLoader.rootDirectories.push(packageRoot);
+
     self.$dartStackTraceUtility.setSourceMapProvider((scriptUrl) => {
-      const moduleName = scriptUrl.replace(/\.js\?\d+$/, '');
-      return self.dartDevEmbedder?.debugger?.getSourceMap(moduleName) ?? null;
+      const scriptName = scriptUrl.replace(/\.js\?\d+$/, '');
+      const moduleName = scriptName.startsWith(`${packageRoot}/`)
+        ? scriptName.substring(packageRoot.length + 1)
+        : scriptName;
+      const sourceMap =
+        self.dartDevEmbedder?.debugger?.getSourceMap(moduleName) ?? null;
+      return sourceMap === null ? null : undoDdcWorkingDirectory(sourceMap);
     });
   }
 
@@ -298,6 +339,10 @@
 
   // Create a blob URL and register it with DDC's internal loader.
   function createAndRegisterBlob(moduleName, code) {
+    // Name given to the script holding <moduleName>, see `//# sourceURL` below.
+    const scriptName = moduleName.startsWith('packages/')
+      ? `${packageRoot}/${moduleName}`
+      : moduleName;
     // sourceUrl is used by browsers to name files in stack traces.
     // We use it because blob-urls are ugly, and we don't want them in our
     // stack traces.
@@ -305,7 +350,7 @@
     // and we put <generation> in to burst the cache in
     // dart_stack_trace_mapper.js
     const blob = new Blob(
-      [code, `\n//# sourceURL=${moduleName}.js?${generation++}\n`],
+      [code, `\n//# sourceURL=${scriptName}.js?${generation++}\n`],
       { type: 'application/javascript' },
     );
     const newUrl = URL.createObjectURL(blob);
@@ -334,23 +379,37 @@
     return newUrl;
   }
 
-  rpcMethods.loadModule = async (params) => {
-    const { code, moduleName } = params;
-
-    if (!code) {
-      throw new RpcError("'code' is required.", errorCode.INVALID_PARAMS);
+  // Validate a `modules` parameter and return it.
+  function validateModules(modules = []) {
+    if (!Array.isArray(modules)) {
+      throw new RpcError("'modules' is required.", errorCode.INVALID_PARAMS);
     }
-    if (!moduleName) {
-      throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
+    for (const module of modules) {
+      if (!module || !module.code) {
+        throw new RpcError("'code' is required.", errorCode.INVALID_PARAMS);
+      }
+      if (!module.moduleName) {
+        throw new RpcError(
+          "'moduleName' is required.",
+          errorCode.INVALID_PARAMS,
+        );
+      }
     }
+    return modules;
+  }
 
-    const url = createAndRegisterBlob(moduleName, code);
-    await new Promise((resolve) =>
-      // TODO(jonasfj): Handle script loading failure and throw
-      //                MODULE_LOADING_FAILED. Requires us to duplicate logic
-      //                from DDC module loader.
-      self.$dartLoader.forceLoadScript(url, resolve),
-    );
+  rpcMethods.loadModules = async (params) => {
+    const modules = validateModules(params.modules);
+
+    for (const { moduleName, code } of modules) {
+      const url = createAndRegisterBlob(moduleName, code);
+      await new Promise((resolve) =>
+        // TODO(jonasfj): Handle script loading failure and throw
+        //                MODULE_LOADING_FAILED. Requires us to duplicate logic
+        //                from DDC module loader.
+        self.$dartLoader.forceLoadScript(url, resolve),
+      );
+    }
 
     return {};
   };
@@ -395,7 +454,7 @@
   };
 
   rpcMethods.hotRestart = async (params) => {
-    const { code, moduleName } = params;
+    const modules = validateModules(params.modules);
 
     if (!self.dartDevEmbedder) {
       throw new RpcError(
@@ -404,18 +463,19 @@
       );
     }
 
-    if (code && !moduleName) {
-      throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
-    }
-
     try {
       // Define the official DDC hook for reloading modules during restart
       const reloadModules = (appName, callback) => {
-        if (code) {
-          const url = createAndRegisterBlob(moduleName, code);
-          self.$dartLoader.forceLoadScript(url, callback);
-        } else {
+        let pending = modules.length;
+        if (pending === 0) {
           callback();
+          return;
+        }
+        for (const { moduleName, code } of modules) {
+          const url = createAndRegisterBlob(moduleName, code);
+          self.$dartLoader.forceLoadScript(url, () => {
+            if (--pending === 0) callback();
+          });
         }
       };
 
@@ -432,7 +492,8 @@
   };
 
   rpcMethods.hotReload = async (params) => {
-    const { code, librariesToReload = [], moduleName } = params;
+    const modules = validateModules(params.modules);
+    const librariesToReload = modules.flatMap((m) => m.libraries ?? []);
 
     if (!self.dartDevEmbedder) {
       throw new RpcError(
@@ -441,13 +502,9 @@
       );
     }
 
-    const filesToLoad = [];
-    if (code) {
-      if (!moduleName) {
-        throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
-      }
-      filesToLoad.push(createAndRegisterBlob(moduleName, code));
-    }
+    const filesToLoad = modules.map(({ moduleName, code }) =>
+      createAndRegisterBlob(moduleName, code),
+    );
 
     try {
       await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);

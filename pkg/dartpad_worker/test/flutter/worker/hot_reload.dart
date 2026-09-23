@@ -20,10 +20,10 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello Flutter 1!')
-          ..code.contains('MaterialApp'),
+          ..anyModuleContains('Hello Flutter 1!')
+          ..anyModuleContains('MaterialApp'),
       ),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
@@ -42,8 +42,8 @@ void main() {
     await iframe.checkEvent(
       .it()..isA<HotReloadEvent>(
         .it()
-          ..code.isNotNull().contains('Hello Flutter 2!')
-          ..code.isNotNull().contains('MaterialApp'),
+          ..anyModuleContains('Hello Flutter 2!')
+          ..anyModuleContains('MaterialApp'),
       ),
     );
 
@@ -65,10 +65,10 @@ void main() {
     final result = await sandbox.run('lib/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello Lib Main!')
-          ..code.contains('MaterialApp'),
+          ..anyModuleContains('Hello Lib Main!')
+          ..anyModuleContains('MaterialApp'),
       ),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
@@ -102,7 +102,7 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello 1!')),
+      .it()..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello 1!')),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
 
@@ -113,7 +113,7 @@ void main() {
     result = await sandbox.hotReload();
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<HotReloadEvent>(.it()..code.isNotNull().contains('Hello 2!')),
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello 2!')),
     );
 
     await iframe.close();
@@ -135,7 +135,8 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello Flutter 1!')),
+      .it()
+        ..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello Flutter 1!')),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
 
@@ -170,9 +171,7 @@ void main() {
     result = await sandbox.hotReload();
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<HotReloadEvent>(
-        .it()..code.isNotNull().contains('Hello Flutter 2!'),
-      ),
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello Flutter 2!')),
     );
 
     await iframe.close();

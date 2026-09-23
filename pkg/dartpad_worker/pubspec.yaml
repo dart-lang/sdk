@@ -14,13 +14,12 @@ dependencies:
   args: any
   async: any
   dartpad: any
-  dev_compiler: any
   file: any
-  front_end: any
+  frontend_server: any
   http: any
   json_rpc_2: any
-  kernel: any
   linter: any
+  package_config: any
   path: any
   pool: any
   pub: any

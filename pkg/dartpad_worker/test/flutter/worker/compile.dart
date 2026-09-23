@@ -20,10 +20,10 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello Flutter')
-          ..code.contains('MaterialApp'),
+          ..anyModuleContains('Hello Flutter')
+          ..anyModuleContains('MaterialApp'),
       ),
     );
     await iframe.checkEvent(
@@ -73,11 +73,11 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'flutter');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello Flutter')
-          ..code.contains('Hello World')
-          ..code.contains('MaterialApp'),
+          ..anyModuleContains('Hello Flutter')
+          ..anyModuleContains('Hello World')
+          ..anyModuleContains('MaterialApp'),
       ),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());

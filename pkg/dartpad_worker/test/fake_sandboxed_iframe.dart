@@ -9,20 +9,31 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:checks/checks.dart';
 import 'package:dartpad/src/message_port/json_rpc_binary_channel.dart';
 import 'package:dartpad/src/message_port/message_port.dart';
+import 'package:dartpad_worker/src/shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
+import 'checks_ext.dart';
+
 sealed class SandboxEvent {}
 
+/// An event carrying DDC library bundles.
+sealed class ModulesEvent extends SandboxEvent {
+  final List<CompiledModule> modules;
+  ModulesEvent._(this.modules);
+
+  /// The names of the bundles, in the order they were sent.
+  List<String> get moduleNames => [
+    for (final module in modules) module.moduleName,
+  ];
+}
+
 /// Triggered by [Sandbox.run].
-final class LoadModuleEvent extends SandboxEvent {
-  final String moduleName;
-  final String code;
-  LoadModuleEvent._({required this.moduleName, required this.code});
+final class LoadModulesEvent extends ModulesEvent {
+  LoadModulesEvent._(super.modules) : super._();
 }
 
 /// Triggered by [Sandbox.run].
@@ -33,22 +44,13 @@ final class RunEvent extends SandboxEvent {
 }
 
 /// Triggered by [Sandbox.hotReload].
-final class HotReloadEvent extends SandboxEvent {
-  final String? code;
-  final String? moduleName;
-  final List<dynamic> librariesToReload;
-  HotReloadEvent._({
-    this.code,
-    this.moduleName,
-    required this.librariesToReload,
-  });
+final class HotReloadEvent extends ModulesEvent {
+  HotReloadEvent._(super.modules) : super._();
 }
 
 /// Triggered by [Sandbox.hotRestart].
-final class HotRestartEvent extends SandboxEvent {
-  final String? code;
-  final String? moduleName;
-  HotRestartEvent._({this.code, this.moduleName});
+final class HotRestartEvent extends ModulesEvent {
+  HotRestartEvent._(super.modules) : super._();
 }
 
 /// Triggered by [Sandbox.invokeExtension].
@@ -79,12 +81,8 @@ final class FakeSandboxedIframe {
 
     _peer = Peer.withoutJson(jsonRpcChannel.cast<dynamic>());
 
-    _peer.registerMethod('loadModule', (Parameters params) {
-      final event = LoadModuleEvent._(
-        moduleName: params['moduleName'].asString,
-        code: params['code'].asString,
-      );
-      _addEvent(event);
+    _peer.registerMethod('loadModules', (Parameters params) {
+      _addEvent(LoadModulesEvent._(_decodeModules(params)));
       return <String, dynamic>{};
     });
 
@@ -97,22 +95,13 @@ final class FakeSandboxedIframe {
     });
 
     _peer.registerMethod('hotReload', (Parameters params) {
-      final event = HotReloadEvent._(
-        code: params['code'].value as String?,
-        moduleName: params['moduleName'].value as String?,
-        librariesToReload: params['librariesToReload'].asList,
-      );
-      _addEvent(event);
+      _addEvent(HotReloadEvent._(_decodeModules(params)));
       _hotReloadGeneration++;
       return {'generation': _hotReloadGeneration, 'success': true};
     });
 
     _peer.registerMethod('hotRestart', (Parameters params) {
-      final event = HotRestartEvent._(
-        code: params['code'].value as String?,
-        moduleName: params['moduleName'].value as String?,
-      );
-      _addEvent(event);
+      _addEvent(HotRestartEvent._(_decodeModules(params)));
       _hotRestartGeneration++;
       return {'generation': _hotRestartGeneration, 'success': true};
     });
@@ -199,26 +188,34 @@ final class FakeSandboxedIframe {
   }
 }
 
-extension LoadModuleEventChecks on Subject<LoadModuleEvent> {
-  Subject<String> get moduleName => has((e) => e.moduleName, 'moduleName');
-  Subject<String> get code => has((e) => e.code, 'code');
+List<CompiledModule> _decodeModules(Parameters params) => [
+  for (final module in params['modules'].asList)
+    (
+      moduleName: (module as Map)['moduleName'] as String,
+      code: module['code'] as String,
+      libraries: [
+        for (final lib in (module['libraries'] as List?) ?? const [])
+          lib as String,
+      ],
+    ),
+];
+
+extension ModulesEventChecks on Subject<ModulesEvent> {
+  Subject<List<CompiledModule>> get modules => has((e) => e.modules, 'modules');
+  Subject<List<String>> get moduleNames =>
+      has((e) => e.moduleNames, 'moduleNames');
+
+  /// Some bundle contains [pattern].
+  ///
+  /// Bundles are per strongly connected component of the import graph, so
+  /// which bundle a given library lands in is an implementation detail.
+  void anyModuleContains(Pattern pattern) =>
+      modules.any(.it()..code.contains(pattern));
 }
 
 extension RunMainEventChecks on Subject<RunEvent> {
   Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
   Subject<String> get mode => has((e) => e.mode, 'mode');
-}
-
-extension HotReloadEventChecks on Subject<HotReloadEvent> {
-  Subject<String?> get code => has((e) => e.code, 'code');
-  Subject<String?> get moduleName => has((e) => e.moduleName, 'moduleName');
-  Subject<List<dynamic>> get librariesToReload =>
-      has((e) => e.librariesToReload, 'librariesToReload');
-}
-
-extension HotRestartEventChecks on Subject<HotRestartEvent> {
-  Subject<String?> get code => has((e) => e.code, 'code');
-  Subject<String?> get moduleName => has((e) => e.moduleName, 'moduleName');
 }
 
 extension InvokeExtensionEventChecks on Subject<InvokeExtensionEvent> {

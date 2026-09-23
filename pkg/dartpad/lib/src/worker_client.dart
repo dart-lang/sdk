@@ -552,6 +552,11 @@ final class Sandbox {
   ///
   /// The [mode] must be one of the supported [modes].
   ///
+  /// This may only be called **once** per [Sandbox]. Use [hotReload] or
+  /// [hotRestart] to run modified code, and create a new [Sandbox] (with a new
+  /// [SandboxedIframe]) to run a different program. Calling [run] again throws
+  /// [InvalidSandboxStateException].
+  ///
   /// {@macro run_modes}
   Future<({String log})> run(String path, {required String mode}) async {
     final result = await _workspace._request<Map>('workspace/sandbox/run', {

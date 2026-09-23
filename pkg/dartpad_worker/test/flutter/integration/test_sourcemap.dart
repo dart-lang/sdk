@@ -49,15 +49,16 @@ void main() =>
 
       await ctx.checkConsole(
         .it()..like('''
-stackTrace:%
-%main.dart 13:% boom
-%main.dart 5:% main%''', ignoreWhitespace: true),
+stackTrace:
+% throw_
+main.dart 13:% boom
+main.dart 5:% main%''', ignoreWhitespace: true),
       );
 
       // The framework catches the exception from `build`
       await ctx.checkConsole(
         .it()..like('''
 %EXCEPTION CAUGHT BY WIDGETS%
-%main.dart 20:% build%''', ignoreWhitespace: true),
+main.dart 20:% build%''', ignoreWhitespace: true),
       );
     });
