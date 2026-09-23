@@ -10,17 +10,17 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
         BlockKind,
-        boolFromToken,
         ConstructorReferenceContext,
         DeclarationHeaderKind,
         DeclarationKind,
-        doubleFromToken,
         FormalParameterKind,
         IdentifierContext,
-        intFromToken,
         MemberKind,
-        optional,
-        Parser;
+        Parser,
+        boolFromToken,
+        doubleFromToken,
+        intFromToken,
+        optional;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;

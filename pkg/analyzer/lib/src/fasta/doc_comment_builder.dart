@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show optional, Parser;
+    show Parser, optional;
 import 'package:_fe_analyzer_shared/src/parser/util.dart'
     show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
