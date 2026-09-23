@@ -37,6 +37,7 @@ enum _ErrorCode {
   compilationFailed(7101),
   packageConfigNotFound(7102),
   hotReloadRejected(7103),
+  moduleLoadingFailed(7104),
   executionFailed(7201);
 
   const _ErrorCode(this.code);
@@ -74,6 +75,7 @@ final _exceptionRegistry = <_ErrorCode, _MakeException>{
   .compilationFailed: CompilationFailedException.new,
   .packageConfigNotFound: PackageConfigNotFoundException.new,
   .hotReloadRejected: HotReloadRejectedException.new,
+  .moduleLoadingFailed: ModuleLoadingFailedException.new,
   .executionFailed: ExecutionFailedException.new,
 }.map((key, value) => MapEntry(key.code, value));
 
@@ -364,6 +366,15 @@ final class HotReloadRejectedException extends SandboxException {
 
   @override
   String toString() => 'HotReloadRejectedException($code: $message)';
+}
+
+/// A compiled module failed to load in the sandboxed iframe.
+final class ModuleLoadingFailedException extends SandboxException {
+  ModuleLoadingFailedException(String message, {super.data})
+    : super._(message, .moduleLoadingFailed);
+
+  @override
+  String toString() => 'ModuleLoadingFailedException($code: $message)';
 }
 
 /// Error happened when running `main()` from user-code.

@@ -40,6 +40,7 @@
     COMPILATION_FAILED: 7101,
     PACKAGE_CONFIG_NOT_FOUND: 7102,
     HOT_RELOAD_REJECTED: 7103,
+    MODULE_LOADING_FAILED: 7104,
     EXECUTION_FAILED: 7201,
     /* END GENERATED ERROR CODE TABLE */
   };
@@ -418,17 +419,22 @@
     return modules;
   }
 
+  async function loadModule({ moduleName, code }) {
+    try {
+      await loadScript(createAndRegisterBlob(moduleName, code));
+    } catch (e) {
+      throw new RpcError(
+        `Failed to load module: ${moduleName}`,
+        errorCode.MODULE_LOADING_FAILED,
+      );
+    }
+  }
+
   rpcMethods.loadModules = async (params) => {
     const modules = validateModules(params.modules);
 
-    for (const { moduleName, code } of modules) {
-      const url = createAndRegisterBlob(moduleName, code);
-      await new Promise((resolve) =>
-        // TODO(jonasfj): Handle script loading failure and throw
-        //                MODULE_LOADING_FAILED. Requires us to duplicate logic
-        //                from DDC module loader.
-        self.$dartLoader.forceLoadScript(url, resolve),
-      );
+    for (const module of modules) {
+      await loadModule(module);
     }
 
     return {};
@@ -476,19 +482,12 @@
       );
     }
 
-    // Define the official DDC hook for reloading modules during restart
-    const reloadModules = (appName, callback) => {
-      let pending = modules.length;
-      if (pending === 0) {
-        callback();
-        return;
-      }
-      for (const { moduleName, code } of modules) {
-        const url = createAndRegisterBlob(moduleName, code);
-        self.$dartLoader.forceLoadScript(url, () => {
-          if (--pending === 0) callback();
-        });
-      }
+    // Define the official DDC hook for reloading modules during restart.
+    // This is awaited by `hotRestart()`, so `callback()` -- which re-runs
+    // `main()` and bumps the generation -- must happen before it returns.
+    const reloadModules = async (appName, callback) => {
+      await Promise.all(modules.map(loadModule));
+      callback();
     };
 
     self.$dartReloadModifiedModules = reloadModules;

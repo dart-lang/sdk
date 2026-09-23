@@ -743,6 +743,7 @@ Errors returned by the worker use the following codes.
 | 7101 | `compilationFailed` | Failed to compile code, usually due to an issue in the code being compiled. |
 | 7102 | `packageConfigNotFound` | Unable to find `.dart_tool/package_config.json` in any parent directory. |
 | 7103 | `hotReloadRejected` | The hot reload request was rejected by the compiler. |
+| 7104 | `moduleLoadingFailed` | A compiled module failed to load in the sandboxed iframe. |
 | 7201 | `executionFailed` | Error happened when running `main()` from user-code. |
 
 <!-- END GENERATED ERROR CODE TABLE -->
