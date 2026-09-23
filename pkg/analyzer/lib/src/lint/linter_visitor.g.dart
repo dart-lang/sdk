@@ -1979,6 +1979,20 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forInvalidSuperAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitInvalidSuperExpression(InvalidSuperExpression node) {
+    _runSubscriptions(node, _registry._forInvalidSuperExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIsExpression(IsExpression node) {
     _runSubscriptions(node, _registry._forIsExpression);
@@ -2519,14 +2533,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
-    _runSubscriptions(node, _registry._forSuperExpression);
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _runSubscriptions(node, _registry._forSuperFormalParameter);
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    _runSubscriptions(node, _registry._forSuperFormalParameter);
+  void visitSuperReference(SuperReference node) {
+    _runSubscriptions(node, _registry._forSuperReference);
     node.visitChildren2(this);
   }
 
@@ -4800,6 +4815,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<InvalidExpressionAssignmentTarget>>
   _forInvalidExpressionAssignmentTarget = [];
 
+  final List<_Subscription2<InvalidSuperAssignmentTarget>>
+  _forInvalidSuperAssignmentTarget = [];
+
+  final List<_Subscription2<InvalidSuperExpression>>
+  _forInvalidSuperExpression = [];
+
   final List<_Subscription2<IsExpression>> _forIsExpression = [];
 
   final List<_Subscription2<LabeledStatement>> _forLabeledStatement = [];
@@ -4994,10 +5015,10 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<SuperConstructorInvocation>>
   _forSuperConstructorInvocation = [];
 
-  final List<_Subscription2<SuperExpression>> _forSuperExpression = [];
-
   final List<_Subscription2<SuperFormalParameter>> _forSuperFormalParameter =
       [];
+
+  final List<_Subscription2<SuperReference>> _forSuperReference = [];
 
   final List<_Subscription2<SwitchCase>> _forSwitchCase = [];
 
@@ -6023,6 +6044,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addInvalidSuperAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidSuperAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addInvalidSuperExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forInvalidSuperExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addIsExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIsExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -6652,17 +6695,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addSuperExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forSuperExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addSuperFormalParameter(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forSuperFormalParameter.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addSuperReference(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forSuperReference.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

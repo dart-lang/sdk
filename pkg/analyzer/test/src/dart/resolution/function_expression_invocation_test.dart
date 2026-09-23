@@ -1587,4 +1587,92 @@ V1: FunctionExpressionInvocation
   staticType: void
 ''');
   }
+
+  test_super_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T call(T value) => value;
+}
+
+class B extends A<int> {
+  @override
+  int call(int value) => value * 2;
+
+  int f() => super(1);
+}
+''');
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SuperReference
+    superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: value@null
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::A::@method::call
+      substitution: {T: int}
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SuperExpression
+    superKeyword: super
+    staticType: B
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: value@null
+        staticType: int
+    rightParenthesis: )
+  element: SubstitutedMethodElementImpl
+    baseElement: <testLibrary>::@class::A::@method::call
+    substitution: {T: int}
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_super_missingCall() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    super();
+//  ^^^^^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
+  }
+}
+''');
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SuperReference
+    superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SuperExpression
+    superKeyword: super
+    staticType: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
 }

@@ -14,10 +14,10 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
-import '../../../../abstract_single_unit.dart';
 import '../../../../selection_mixin.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 

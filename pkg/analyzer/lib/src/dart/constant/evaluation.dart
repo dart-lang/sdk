@@ -688,7 +688,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     }
 
     TokenType operatorType = node.operator.type;
-    var leftResult = evaluateConstant(node.leftOperand as Expression);
+    var leftResult = evaluateConstant(node.leftOperand);
     if (leftResult is! DartObjectImpl) {
       return leftResult;
     }
@@ -1525,7 +1525,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       }
     }
 
-    var operand = evaluateConstant(node.operand as Expression);
+    var operand = evaluateConstant(node.operand);
     if (operand is! DartObjectImpl) {
       return operand;
     }

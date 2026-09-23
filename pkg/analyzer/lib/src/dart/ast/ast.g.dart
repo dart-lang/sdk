@@ -699,6 +699,12 @@ abstract class AstVisitor2<R> {
     InvalidExpressionAssignmentTarget node,
   );
 
+  @experimental
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node);
+
+  @experimental
+  R? visitInvalidSuperExpression(InvalidSuperExpression node);
+
   R? visitIsExpression(IsExpression node);
 
   R? visitLabel(Label node);
@@ -899,9 +905,10 @@ abstract class AstVisitor2<R> {
 
   R? visitSuperConstructorInvocation(SuperConstructorInvocation node);
 
-  R? visitSuperExpression(SuperExpression node);
-
   R? visitSuperFormalParameter(SuperFormalParameter node);
+
+  @experimental
+  R? visitSuperReference(SuperReference node);
 
   R? visitSwitchCase(SwitchCase node);
 

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -25,17 +23,16 @@ class UnaryOperatorInvocationResolver {
     UnaryOperatorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    var operand = node.operand as ExpressionImpl;
+    var operand = node.operand;
     var innerContextType =
         node.unaryOperator == UnaryOperator.negate &&
             operand is IntegerLiteralImpl
         ? contextType
         : UnknownInferredType.instance;
-    _resolver.analyzeExpression(
+    operand = _resolver.analyzeInstanceReceiver(
       operand,
-      SharedTypeSchemaView(innerContextType),
+      contextType: innerContextType,
     );
-    operand = _resolver.popRewrite()!;
 
     node.element = null;
     TypeImpl type;
@@ -43,7 +40,7 @@ class UnaryOperatorInvocationResolver {
       node.element = _resolveElement(node, operand, null);
       type = node.element?.returnType ?? InvalidTypeImpl.instance;
     } else {
-      var operandType = operand.typeOrThrow;
+      var operandType = _resolver.instanceReceiverType(operand);
       if (operandType is DynamicTypeImpl) {
         type = DynamicTypeImpl.instance;
       } else if (operandType is InvalidTypeImpl) {
@@ -64,7 +61,7 @@ class UnaryOperatorInvocationResolver {
 
   InternalMethodElement? _resolveElement(
     UnaryOperatorInvocationImpl node,
-    ExpressionImpl operand,
+    InstanceReceiverImpl operand,
     TypeImpl? operandType,
   ) {
     var methodName = switch (node.unaryOperator) {
@@ -100,7 +97,7 @@ class UnaryOperatorInvocationResolver {
     );
     var element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      if (operand is SuperExpression) {
+      if (operand is SuperReference) {
         _resolver.diagnosticReporter.report(
           diag.undefinedSuperOperator
               .withArguments(operator: methodName, type: operandType)

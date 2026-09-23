@@ -11570,8 +11570,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vSuper (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::vSuper
           initializer: expression_0
-            SuperExpression
-              superKeyword: super @15
+            InvalidSuperExpression
+              superReference: SuperReference
+                superKeyword: super @15
               staticType: InvalidType
           inducedGetter: #F2
       getters

@@ -2688,6 +2688,20 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitInvalidSuperExpression(InvalidSuperExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitIsExpression(IsExpression node) {
     node.visitChildren2(this);
@@ -3223,13 +3237,14 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitSuperExpression(SuperExpression node) {
+  R? visitSuperFormalParameter(SuperFormalParameter node) {
     node.visitChildren2(this);
     return null;
   }
 
+  @experimental
   @override
-  R? visitSuperFormalParameter(SuperFormalParameter node) {
+  R? visitSuperReference(SuperReference node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4416,6 +4431,15 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
     InvalidExpressionAssignmentTarget node,
   ) => null;
 
+  @experimental
+  @override
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) =>
+      null;
+
+  @experimental
+  @override
+  R? visitInvalidSuperExpression(InvalidSuperExpression node) => null;
+
   @override
   R? visitIsExpression(IsExpression node) => null;
 
@@ -4706,10 +4730,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitSuperConstructorInvocation(SuperConstructorInvocation node) => null;
 
   @override
-  R? visitSuperExpression(SuperExpression node) => null;
-
-  @override
   R? visitSuperFormalParameter(SuperFormalParameter node) => null;
+
+  @experimental
+  @override
+  R? visitSuperReference(SuperReference node) => null;
 
   @override
   R? visitSwitchCase(SwitchCase node) => null;
@@ -5844,6 +5869,15 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
     InvalidExpressionAssignmentTarget node,
   ) => _throw(node);
 
+  @experimental
+  @override
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitInvalidSuperExpression(InvalidSuperExpression node) => _throw(node);
+
   @override
   R? visitIsExpression(IsExpression node) => _throw(node);
 
@@ -6138,10 +6172,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
       _throw(node);
 
   @override
-  R? visitSuperExpression(SuperExpression node) => _throw(node);
-
-  @override
   R? visitSuperFormalParameter(SuperFormalParameter node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitSuperReference(SuperReference node) => _throw(node);
 
   @override
   R? visitSwitchCase(SwitchCase node) => _throw(node);
@@ -8765,6 +8800,24 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitInvalidSuperAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitInvalidSuperExpression(InvalidSuperExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitInvalidSuperExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitIsExpression(IsExpression node) {
     stopwatch.start();
@@ -9466,17 +9519,18 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitSuperExpression(SuperExpression node) {
+  T? visitSuperFormalParameter(SuperFormalParameter node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitSuperExpression(node);
+    T? result = _baseVisitor.visitSuperFormalParameter(node);
     stopwatch.stop();
     return result;
   }
 
+  @experimental
   @override
-  T? visitSuperFormalParameter(SuperFormalParameter node) {
+  T? visitSuperReference(SuperReference node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitSuperFormalParameter(node);
+    T? result = _baseVisitor.visitSuperReference(node);
     stopwatch.stop();
     return result;
   }
@@ -10786,6 +10840,16 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
     InvalidExpressionAssignmentTarget node,
   ) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitInvalidSuperExpression(InvalidSuperExpression node) =>
+      visitNode(node);
+
   @override
   R? visitIsExpression(IsExpression node) => visitNode(node);
 
@@ -11094,10 +11158,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
       visitNode(node);
 
   @override
-  R? visitSuperExpression(SuperExpression node) => visitNode(node);
-
-  @override
   R? visitSuperFormalParameter(SuperFormalParameter node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitSuperReference(SuperReference node) => visitNode(node);
 
   @override
   R? visitSwitchCase(SwitchCase node) => visitNode(node);

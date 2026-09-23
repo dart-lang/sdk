@@ -878,6 +878,18 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addInvalidSuperAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidSuperExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addIsExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addLabel(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1138,9 +1150,10 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addSuperExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addSuperFormalParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addSuperReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addSwitchCase(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

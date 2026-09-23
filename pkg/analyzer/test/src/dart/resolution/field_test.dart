@@ -39,7 +39,11 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer2: SuperExpression
+        initializer2: InvalidSuperExpression
+          superReference: SuperReference
+            superKeyword: super
+          staticType: InvalidType
+        initializer(v1): SuperExpression
           superKeyword: super
           staticType: A
         declaredFragment: <testLibraryFragment> f@24

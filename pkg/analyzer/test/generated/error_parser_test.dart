@@ -2450,7 +2450,10 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SuperExpression
+      expression2: InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+      expression(v1): SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2476,7 +2479,10 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: SuperExpression
+            expression2: InvalidSuperExpression
+              superReference: SuperReference
+                superKeyword: super
+            expression(v1): SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }

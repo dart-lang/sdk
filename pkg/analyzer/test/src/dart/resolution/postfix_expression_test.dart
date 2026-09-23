@@ -398,19 +398,21 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: NullAssertionExpression
-    operand: SuperExpression
-      superKeyword: super
-      staticType: dynamic
+    operand: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
     operator: !
-    staticType: dynamic
+    staticType: InvalidType
   operator: .
   name: foo
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  resolution: DynamicInvocationResolution
-    type: dynamic
-  staticType: dynamic
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
 V1: MethodInvocation
   target: PostfixExpression
     operand: SuperExpression
@@ -418,17 +420,17 @@ V1: MethodInvocation
       staticType: dynamic
     operator: !
     element: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: foo
     element: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -887,9 +889,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverIndexAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -1442,9 +1443,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: x
     read: GetterInvocationResolution
@@ -1923,10 +1923,9 @@ class A {
     var node = result.findNode.singleIncrementOrDecrement;
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: InvalidExpressionAssignmentTarget
-    expression: SuperExpression
+  target: InvalidSuperAssignmentTarget
+    superReference: SuperReference
       superKeyword: super
-      staticType: A
     read: InvalidReadResolution
     write: InvalidWriteResolution
   operator: ++

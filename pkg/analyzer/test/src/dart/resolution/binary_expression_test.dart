@@ -1007,6 +1007,24 @@ V1: BinaryExpression
 ''');
   }
 
+  test_super_nonOverloadable_left() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    super && true;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+    super || false;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+    super ?? 0;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+  }
+}
+''');
+  }
+
   test_superQualifier_plus() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1025,9 +1043,8 @@ class B extends A {
     var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
-    staticType: B
   operator: +
   rightOperand: IntegerLiteral
     literal: 0

@@ -279,6 +279,17 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
+  /// A completer for [lspInitialized].
+  final Completer<lsp.InitializedStateMessageHandler> _lspInitializedCompleter =
+      Completer<lsp.InitializedStateMessageHandler>();
+
+  /// The handler passed to [completeLspInitialization], or `null` if LSP
+  /// initialization has not completed yet.
+  ///
+  /// This allows [lspInitialized] to provide the handler synchronously once it
+  /// is known.
+  lsp.InitializedStateMessageHandler? _initializedLspHandler;
+
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
@@ -486,6 +497,13 @@ abstract class AnalysisServer {
   /// tracked.
   List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
 
+  /// The workspace folders to request resource-scoped configuration for, in
+  /// addition to the global configuration.
+  ///
+  /// Only the LSP server tracks workspace folders, so for other servers this
+  /// is always empty and only the global configuration is requested.
+  List<String> get configurationWorkspaceFolders => const [];
+
   /// The list of current analysis sessions in all contexts.
   Future<List<AnalysisSessionImpl>> get currentSessions async {
     var sessions = <AnalysisSessionImpl>[];
@@ -526,6 +544,10 @@ abstract class AnalysisServer {
   /// [lspClientConfiguration] for the users config/preferences).
   lsp.LspInitializationOptions? get initializationOptions;
 
+  /// Whether [completeLspInitialization] has been called, and therefore whether
+  /// [lspInitialized] returns the handler itself instead of a [Future].
+  bool get isLspInitialized => _initializedLspHandler != null;
+
   /// The configuration (user/workspace settings) from the LSP client.
   ///
   /// For the legacy server, this set may be a fixed set that is not controlled
@@ -536,10 +558,14 @@ abstract class AnalysisServer {
   /// state and can handle normal LSP requests.
   ///
   /// Completes with the [lsp.InitializedStateMessageHandler] that is active.
+  /// Before [completeLspInitialization] has been called this is a [Future],
+  /// afterwards it is the handler itself, so callers that are not already async
+  /// can avoid an `await`.
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
-  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized;
+  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized =>
+      _initializedLspHandler ?? _lspInitializedCompleter.future;
 
   /// A [Future] that completes once the server transitions out of an
   /// initialized state.
@@ -635,6 +661,17 @@ abstract class AnalysisServer {
     }
   }
 
+  /// Completes [lspInitialized], signalling that the server has moved into an
+  /// initialized state where it can handle standard LSP requests.
+  ///
+  /// This must be called exactly once; a second call throws. The legacy server
+  /// can have initialization completed from more than one code path and routes
+  /// them through `LegacyAnalysisServer.completeLspInitializationIfNeeded`.
+  void completeLspInitialization(lsp.InitializedStateMessageHandler handler) {
+    _initializedLspHandler = handler;
+    _lspInitializedCompleter.complete(handler);
+  }
+
   /// Completes [lspUninitialized], signalling that the server has moved out
   /// of a state where it can handle standard LSP requests.
   void completeLspUninitialization() {
@@ -726,6 +763,77 @@ abstract class AnalysisServer {
       instrumentationService,
       analyticsManager.analytics,
     );
+  }
+
+  /// Fetches the configuration from the client (if supported) and updates
+  /// [lspClientConfiguration] with it.
+  ///
+  /// Configuration is requested for the whole workspace and additionally for
+  /// each of [configurationWorkspaceFolders].
+  Future<void> fetchClientConfiguration() async {
+    if (!(editorClientCapabilities?.configuration ?? false)) {
+      return;
+    }
+
+    // Take a copy of workspace folders because we need to match up the
+    // responses to the request by index and it's possible the folders will
+    // change after we sent the request but before we get the response.
+    var folders = configurationWorkspaceFolders.toList();
+
+    // Fetch all configuration we care about from the client. This is just
+    // "dart" for now, but in future this may be extended to include
+    // others (for example "flutter").
+    var response = await sendLspRequest(
+      lsp.Method.workspace_configuration,
+      lsp.ConfigurationParams(
+        items: [
+          // Dart settings for each workspace folder.
+          for (var folder in folders)
+            lsp.ConfigurationItem(
+              scopeUri: uriConverter.toClientUri(folder),
+              section: 'dart',
+            ),
+          // Global Dart settings. This comes last to simplify matching up the
+          // indexes in the results (folder[i] is the i'th item).
+          lsp.ConfigurationItem(section: 'dart'),
+        ],
+      ),
+    );
+
+    var result = response.result;
+
+    // Expect the result to be a list with 1 + folders.length items to
+    // match the request above, and each should be a standard map of settings.
+    // If the above code is extended to support multiple sets of config
+    // this will need tweaking to handle the item for each section.
+    if (result != null &&
+        result is List<Object?> &&
+        result.length == 1 + folders.length) {
+      // Config is stored as a map keyed by the workspace folder, and a key of
+      // null for the global config
+      var workspaceFolderConfig = {
+        for (var i = 0; i < folders.length; i++)
+          folders[i]: result[i] as Map<String, Object?>? ?? {},
+      };
+      var newGlobalConfig = result.last as Map<String, Object?>? ?? {};
+
+      var oldGlobalConfig = lspClientConfiguration.global;
+      lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
+
+      // Refreshing the analysis roots also re-analyzes, so only one of these is
+      // needed. Where [refreshAnalysisRoots] does nothing the settings that
+      // affect the roots (such as excluded folders) have no effect either, so
+      // skipping the re-analysis only matters for a change that affects both.
+      if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
+        await refreshAnalysisRoots();
+      } else if (lspClientConfiguration.affectsAnalysisResults(
+        oldGlobalConfig,
+      )) {
+        // Some settings affect analysis results and require re-analysis
+        // (such as showTodos).
+        await reanalyze();
+      }
+    }
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -953,8 +1061,9 @@ abstract class AnalysisServer {
     lsp.MessageInfo messageInfo, {
     lsp.CancellationToken? cancellationToken,
   }) async {
-    // This is FutureOr<> because for the legacy server it's never a future, so
-    // we can skip the await.
+    // `lspInitialized` returns the handler itself once
+    // `completeLspInitialization` has run and only before that a future, so the
+    // await can usually be skipped.
     var initializedLspHandler = lspInitialized;
     var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
         ? initializedLspHandler
@@ -1050,6 +1159,15 @@ abstract class AnalysisServer {
   Future<void> reanalyze() async {
     await contextManager.refresh();
   }
+
+  /// Recomputes the analysis roots because client configuration that affects
+  /// them (such as excluded folders) has changed.
+  ///
+  /// Analysis roots are only computed from client configuration by the LSP
+  /// server. Other clients set their roots explicitly (for the legacy protocol
+  /// with `analysis.setAnalysisRoots`) so there is nothing to do here.
+  @protected
+  Future<void> refreshAnalysisRoots() async {}
 
   /// Report analytics data related to the number and size of files that were
   /// analyzed.

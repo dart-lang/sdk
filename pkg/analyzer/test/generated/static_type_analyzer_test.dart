@@ -249,7 +249,7 @@ class B extends A {
 late B b;
 ''');
     var bType = result.findElement.topVar('b').type;
-    expect(result.findNode.super_('super').staticType, bType);
+    expect(result.findNodeV1.super_('super').staticType, bType);
   }
 
   test_visitSymbolLiteral() async {

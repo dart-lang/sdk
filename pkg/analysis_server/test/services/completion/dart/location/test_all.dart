@@ -29,6 +29,7 @@ import 'dot_shorthand_property_access_test.dart'
     as dot_shorthand_property_access;
 import 'enum_constant_test.dart' as enum_constant;
 import 'enum_declaration_test.dart' as enum_declaration;
+import 'export_directive_test.dart' as export_directive;
 import 'extends_clause_test.dart' as extends_clause;
 import 'extension_body_test.dart' as extension_body;
 import 'extension_declaration_test.dart' as extension_declaration;
@@ -117,6 +118,7 @@ void main() {
     dot_shorthand_property_access.main();
     enum_constant.main();
     enum_declaration.main();
+    export_directive.main();
     extends_clause.main();
     extension_body.main();
     extension_declaration.main();

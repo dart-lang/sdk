@@ -1344,6 +1344,31 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    _sink.writeln('InvalidSuperAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        if (node.read != null) {
+          _sink.writelnWithIndent('read: InvalidReadResolution');
+        }
+        if (node.write != null) {
+          _sink.writelnWithIndent('write: InvalidWriteResolution');
+        }
+      }
+    });
+  }
+
+  @override
+  void visitInvalidSuperExpression(InvalidSuperExpression node) {
+    _sink.writeln('InvalidSuperExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     _sink.writeln('IsExpression');
     _sink.withIndent(() {
@@ -2136,6 +2161,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _assertFormalParameterDeclaredElement(node);
       _writeDeclaredFragment(node.declaredFragment);
     });
+  }
+
+  @override
+  void visitSuperReference(SuperReference node) {
+    _sink.writeln('SuperReference');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override

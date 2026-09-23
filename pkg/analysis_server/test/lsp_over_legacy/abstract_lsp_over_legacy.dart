@@ -230,6 +230,20 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     return server.sendLspRequest(method, params);
   }
 
+  /// Sends [notification] to the server wrapped in a legacy
+  /// `lsp.notification` notification.
+  ///
+  /// Unlike [sendRequestToServer] there is nothing to wait for and no
+  /// [lastSentLegacyRequestId] to record: a notification is not acknowledged
+  /// and has no LSP response, so a failure to handle it is only logged by the
+  /// server.
+  void sendNotificationToServer(NotificationMessage notification) {
+    serverChannel.simulateNotificationFromClient(
+      LspNotificationParams(notification.toJson())
+          .toNotification(clientUriConverter: uriConverter),
+    );
+  }
+
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage message) async {
     var messageJson = message.toJson();

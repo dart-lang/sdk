@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -10,8 +11,143 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInInvalidContextTest);
+    defineReflectiveTests(SuperInInvalidContextAnonymousMethodTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class SuperInInvalidContextAnonymousMethodTest
+    extends PubPackageResolutionTest {
+  @override
+  List<Feature> get experimentalFeatures => [
+    ...super.experimentalFeatures,
+    Feature.anonymous_methods,
+  ];
+
+  test_call() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int call() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    super();
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SuperReference
+    superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SuperExpression
+    superKeyword: super
+    staticType: B
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_index() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    super[0];
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleReceiverIndexExpression;
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: SuperReference
+    superKeyword: super
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_unaryOperator() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator -() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    -super;
+//   ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleUnaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SuperReference
+    superKeyword: super
+  unaryOperator: negate
+  element: <null>
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: -
+  operand: SuperExpression
+    superKeyword: super
+    staticType: B
+  element: <null>
+  staticType: InvalidType
+''');
+  }
 }
 
 @reflectiveTest
@@ -272,9 +408,8 @@ class B extends A {
     var node = result.findNode.receiverMethodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: InvalidType
   operator: .
   name: m
   argumentList: ArgumentList
@@ -316,9 +451,8 @@ class B extends A {
     var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: InvalidType
   operator: .
   name: a
   resolution: InvalidNamedReadResolution

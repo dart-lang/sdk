@@ -733,7 +733,7 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
 
   @override
   Object? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
-    var operand = (node.operand as Expression).accept2(this);
+    var operand = node.operand.accept2(this);
     if (identical(operand, NOT_A_CONSTANT)) {
       return operand;
     }

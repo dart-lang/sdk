@@ -31,7 +31,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
+      if (node.leftOperand is SuperReference && node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -53,7 +53,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     if (_usage == _Usage.reading &&
-        node.operand is SuperExpression &&
+        node.operand is SuperReference &&
         node.name.lexeme == name) {
       hasSuperInvocation = true;
       return;
@@ -80,7 +80,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     if (_usage == _Usage.reading &&
-        node.receiver is SuperExpression &&
+        node.receiver is SuperReference &&
         node.name.lexeme == name) {
       hasSuperInvocation = true;
       return;
@@ -89,9 +89,22 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    if (node.receiver is SuperReference &&
+        node.name.lexeme == name &&
+        (_usage == _Usage.writing || node.hasRead)) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     if (_usage == _Usage.reading &&
-        node.receiver is SuperExpression &&
+        node.receiver is SuperReference &&
         node.name.lexeme == name) {
       hasSuperInvocation = true;
       return;

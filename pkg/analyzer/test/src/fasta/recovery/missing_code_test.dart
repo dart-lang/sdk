@@ -620,7 +620,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: &
                 rightOperand: ParsedUnqualifiedName
@@ -842,7 +842,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: |
                 rightOperand: ParsedUnqualifiedName
@@ -1147,7 +1147,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: ==
                 rightOperand: ParsedUnqualifiedName
@@ -1308,7 +1308,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: >
                 rightOperand: ParsedUnqualifiedName
@@ -1401,7 +1401,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: >>
                 rightOperand: ParsedUnqualifiedName
@@ -1494,7 +1494,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: >=
                 rightOperand: ParsedUnqualifiedName
@@ -1587,7 +1587,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: ^
                 rightOperand: ParsedUnqualifiedName
@@ -1919,7 +1919,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: <
                 rightOperand: ParsedUnqualifiedName
@@ -2012,7 +2012,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: <<
                 rightOperand: ParsedUnqualifiedName
@@ -2105,7 +2105,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: <=
                 rightOperand: ParsedUnqualifiedName
@@ -2198,7 +2198,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: -
                 rightOperand: ParsedUnqualifiedName
@@ -2419,7 +2419,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: %
                 rightOperand: ParsedUnqualifiedName
@@ -2512,7 +2512,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: +
                 rightOperand: ParsedUnqualifiedName
@@ -2656,7 +2656,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: /
                 rightOperand: ParsedUnqualifiedName
@@ -2749,7 +2749,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: *
                 rightOperand: ParsedUnqualifiedName
@@ -2914,7 +2914,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: BinaryOperatorInvocation
-                leftOperand: SuperExpression
+                leftOperand: SuperReference
                   superKeyword: super
                 operator: ~/
                 rightOperand: ParsedUnqualifiedName

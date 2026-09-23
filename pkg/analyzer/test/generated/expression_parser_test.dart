@@ -571,7 +571,7 @@ var v = super + y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: +
   rightOperand: ParsedUnqualifiedName
@@ -923,7 +923,7 @@ var v = super.y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
-  operand: SuperExpression
+  operand: SuperReference
     superKeyword: super
   operator: .
   name: y
@@ -943,7 +943,7 @@ var v = super[y];
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
   leftBracket: [
   index: ParsedUnqualifiedName
@@ -1081,7 +1081,7 @@ var v = super & y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: &
   rightOperand: ParsedUnqualifiedName
@@ -1125,7 +1125,7 @@ var v = super | y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: |
   rightOperand: ParsedUnqualifiedName
@@ -1169,7 +1169,7 @@ var v = super ^ y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ^
   rightOperand: ParsedUnqualifiedName
@@ -2434,7 +2434,7 @@ var v = super == y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: ==
   rightOperand: ParsedUnqualifiedName
@@ -3007,7 +3007,7 @@ var v = super.m();
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
-    operand: SuperExpression
+    operand: SuperReference
       superKeyword: super
     operator: .
     name: m
@@ -3035,7 +3035,7 @@ var v = super.m<E>();
 ParsedValueArguments
   operand: ParsedTypeArguments
     operand: ParsedNameAccess
-      operand: SuperExpression
+      operand: SuperReference
         superKeyword: super
       operator: .
       name: m
@@ -3076,7 +3076,7 @@ ParsedValueArguments
   operand: ParsedTypeArguments
     operand: ParsedNameAccess
       operand: ParsedNameAccess
-        operand: SuperExpression
+        operand: SuperReference
           superKeyword: super
         operator: .
         name: b
@@ -3211,7 +3211,7 @@ var v = super.m();
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
-    operand: SuperExpression
+    operand: SuperReference
       superKeyword: super
     operator: .
     name: m
@@ -3240,7 +3240,7 @@ var v = super.m<E>();
 ParsedValueArguments
   operand: ParsedTypeArguments
     operand: ParsedNameAccess
-      operand: SuperExpression
+      operand: SuperReference
         superKeyword: super
       operator: .
       name: m
@@ -4284,7 +4284,7 @@ var v = super * y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: *
   rightOperand: ParsedUnqualifiedName
@@ -4956,7 +4956,7 @@ var v = super.x;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
-  operand: SuperExpression
+  operand: SuperReference
     superKeyword: super
   operator: .
   name: x
@@ -5292,7 +5292,7 @@ var v = super < y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: <
   rightOperand: ParsedUnqualifiedName
@@ -5351,7 +5351,7 @@ var v = super << y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
   operator: <<
   rightOperand: ParsedUnqualifiedName
@@ -6232,7 +6232,7 @@ var v = --super.x;
 IncrementOrDecrementExpression
   operator: --
   target: ReceiverPropertyAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
     operator: .
     name: x
@@ -6320,7 +6320,7 @@ var v = ++super[0];
 IncrementOrDecrementExpression
   operator: ++
   target: ReceiverIndexAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
     leftBracket: [
     index: IntegerLiteral
@@ -6349,7 +6349,7 @@ var v = ++super.x;
 IncrementOrDecrementExpression
   operator: ++
   target: ReceiverPropertyAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
     operator: .
     name: x
@@ -6420,7 +6420,7 @@ var v = -super;
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: SuperExpression
+  operand: SuperReference
     superKeyword: super
   unaryOperator: negate
 V1: PrefixExpression
@@ -6457,8 +6457,9 @@ var v = !super;
     assertParsedNodeText(node, r'''
 LogicalNot
   operator: !
-  operand: SuperExpression
-    superKeyword: super
+  operand: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
 V1: PrefixExpression
   operator: !
   operand: SuperExpression
@@ -6492,7 +6493,7 @@ var v = ~super;
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: ~
-  operand: SuperExpression
+  operand: SuperReference
     superKeyword: super
   unaryOperator: bitwiseComplement
 V1: PrefixExpression

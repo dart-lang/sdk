@@ -195,7 +195,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+  void visitBinaryOperatorInvocation(
+    covariant BinaryOperatorInvocationImpl node,
+  ) {
     _elementUsageFrontierDetector.binaryOperatorInvocation(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
@@ -1267,7 +1269,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNanComparison(BinaryOperatorInvocation node) {
+  void _checkForInvariantNanComparison(BinaryOperatorInvocationImpl node) {
     void reportStartEnd(
       LocatableDiagnostic locatableDiagnostic,
       SyntacticEntity startEntity,
@@ -1283,8 +1285,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
-      if ((node.leftOperand as Expression).isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
+      if (node.leftOperand case ExpressionImpl left when left.isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, left, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
         reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
       }
@@ -1297,7 +1299,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNullComparison(BinaryOperatorInvocation node) {
+  void _checkForInvariantNullComparison(BinaryOperatorInvocationImpl node) {
     LocatableDiagnostic locatableDiagnostic;
     if (node.operator.type == TokenType.BANG_EQ) {
       locatableDiagnostic = diag.unnecessaryNullComparisonNeverNullTrue;
@@ -1321,8 +1323,13 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     if (node.rightOperand is NullLiteral) {
-      var leftType = (node.leftOperand as Expression).typeOrThrow;
-      if (_typeSystem.isStrictlyNonNullable(leftType)) {
+      var leftIsNeverNull = switch (node.leftOperand) {
+        SuperReferenceImpl() => true,
+        ExpressionImpl left => _typeSystem.isStrictlyNonNullable(
+          left.typeOrThrow,
+        ),
+      };
+      if (leftIsNeverNull) {
         var offset = node.operator.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
@@ -1508,7 +1515,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
       if (invocation case ReceiverMethodInvocation(
-        receiver: SuperExpression(),
+        receiver: SuperReference(),
         :var name,
         :var argumentList,
         resolution: ExecutableInvocationResolution(:var element),
@@ -1748,10 +1755,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         addTo: expressions,
       );
     } else if (expression is BinaryOperatorInvocation) {
-      _getSubExpressionsMarkedDoNotStore(
-        expression.leftOperand as Expression,
-        addTo: expressions,
-      );
+      if (expression.leftOperand case Expression left) {
+        _getSubExpressionsMarkedDoNotStore(left, addTo: expressions);
+      }
       _getSubExpressionsMarkedDoNotStore(
         expression.rightOperand,
         addTo: expressions,
@@ -1897,7 +1903,7 @@ class _InvalidAccessVerifier {
     if (element != null && _hasVisibleForOverriding(element)) {
       var operator = node.operator;
 
-      if (node.leftOperand is SuperExpression) {
+      if (node.leftOperand is SuperReference) {
         var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;
@@ -2136,15 +2142,19 @@ class _InvalidAccessVerifier {
     var hasVisibleForOverriding = _hasVisibleForOverriding(element);
     if (hasVisibleForOverriding) {
       var parent = switch (node) {
-        ReceiverMethodInvocation() || ReceiverPropertyExtraction() => node,
+        ReceiverMethodInvocation() ||
+        ReceiverPropertyExtraction() ||
+        ReceiverPropertyAssignmentTarget() => node,
         _ => node.parent2,
       };
       if (parent is MethodInvocation && parent.target2 is SuperExpression ||
           parent is PropertyAccess && parent.target2 is SuperExpression ||
           parent is ReceiverMethodInvocation &&
-              parent.receiver is SuperExpression ||
+              parent.receiver is SuperReference ||
           parent is ReceiverPropertyExtraction &&
-              parent.receiver is SuperExpression) {
+              parent.receiver is SuperReference ||
+          parent is ReceiverPropertyAssignmentTarget &&
+              parent.receiver is SuperReference) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
             ?.thisOrAncestorOfType2<MethodDeclaration>();

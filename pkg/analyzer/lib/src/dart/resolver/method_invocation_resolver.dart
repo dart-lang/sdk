@@ -52,9 +52,6 @@ class MethodInvocationResolver with ScopeHelpers {
   /// The invocation being resolved.
   InvocationExpressionImpl? _invocation;
 
-  /// The [Name] object of the invocation being resolved by [resolve].
-  Name? _currentName;
-
   MethodInvocationResolver(
     this._resolver, {
     required InvocationInferenceHelper inferenceHelper,
@@ -80,7 +77,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var nameNode = node.methodName;
     String name = nameNode.name;
-    _currentName = Name(_definingLibraryUri, name);
 
     var receiver = node.realTarget2;
 
@@ -126,17 +122,6 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
       }
-    }
-
-    if (receiver is SuperExpressionImpl) {
-      return _resolveReceiverSuper(
-        node,
-        receiver,
-        nameNode,
-        name,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
     }
 
     if (receiver is ExtensionOverrideImpl) {
@@ -362,33 +347,31 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var selector = node.namedInvocationParts!.selector;
-    if (receiver is StaticQualifierImpl) {
-      _resolveQualifiedInvocation(
-        node,
-        receiver,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
+    switch (receiver) {
+      case StaticQualifierImpl():
+        _resolveQualifiedInvocation(
+          node,
+          receiver,
+          whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      case SuperReferenceImpl():
+        _resolveSuperInvocation(
+          node,
+          receiver,
+          whyNotPromotedArguments,
+          contextType: contextType,
+        );
+      case ExpressionImpl():
+        var selector = node.namedInvocationParts!.selector;
+        _resolveInstanceInvocation(
+          node,
+          receiver,
+          whyNotPromotedArguments,
+          isNullAware: selector.operator.type == TokenType.QUESTION_PERIOD,
+          contextType: contextType,
+        );
     }
-    receiver as ExpressionImpl;
-    if (receiver is SuperExpressionImpl) {
-      _resolveSuperInvocation(
-        node,
-        receiver,
-        whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-    _resolveInstanceInvocation(
-      node,
-      receiver,
-      whyNotPromotedArguments,
-      isNullAware: selector.operator.type == TokenType.QUESTION_PERIOD,
-      contextType: contextType,
-    );
   }
 
   /// Resolves a named call whose lexical scope has already been recorded.
@@ -796,14 +779,16 @@ class MethodInvocationResolver with ScopeHelpers {
       name: selector.name,
     );
     if ((receiver, _resolver.flowAnalysis.flow) case (
-      ExpressionImpl receiver,
+      InstanceReceiverImpl receiver,
       var flow?,
     )) {
       var (promotedType, expressionInfo) = flow.propertyGet(
-        receiver is SuperExpressionImpl
+        receiver is SuperReferenceImpl
             ? SuperPropertyTarget.singleton
             : ExpressionPropertyTarget(
-                _resolver.flowAnalysis.getExpressionInfo(receiver),
+                _resolver.flowAnalysis.getExpressionInfo(
+                  receiver as ExpressionImpl,
+                ),
               ),
         selector.name.lexeme,
         element,
@@ -1545,99 +1530,6 @@ class MethodInvocationResolver with ScopeHelpers {
     );
   }
 
-  /// Resolves the method invocation, [node], as an instance invocation a
-  /// `super` expression.
-  void _resolveReceiverSuper(
-    MethodInvocationImpl node,
-    SuperExpression receiver,
-    SimpleIdentifierImpl nameNode,
-    String name,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeImpl contextType,
-  }) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
-    if (enclosingInterface is! InterfaceElementImpl ||
-        SuperContext.of(receiver) != SuperContext.valid) {
-      _setInvalidTypeResolution(
-        node,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        contextType: contextType,
-      );
-      return;
-    }
-
-    var target = _inheritance.getMember(
-      enclosingInterface,
-      _currentName!,
-      forSuper: true,
-    );
-
-    // If there is that concrete dispatch target, then we are done.
-    if (target != null) {
-      nameNode.element = target;
-      if (target is InternalPropertyAccessorElement) {
-        _rewriteAsCallInvocation(
-          node,
-          node.target2,
-          node.operator,
-          node.methodName,
-          node.typeArguments,
-          node.argumentList,
-          target.returnType,
-          isSuperAccess: true,
-          whyNotPromotedArguments: whyNotPromotedArguments,
-          contextType: contextType,
-        );
-        return;
-      }
-      _setResolution(
-        node,
-        target.type,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        target: InvocationTargetExecutableElement(target),
-      );
-      return;
-    }
-
-    // Otherwise, this is an error.
-    // But we would like to give the user at least some resolution.
-    // So, we try to find the interface target.
-    target = _inheritance.getInherited(enclosingInterface, _currentName!);
-    if (target != null) {
-      nameNode.element = target;
-      _setResolution(
-        node,
-        target.type,
-        whyNotPromotedArguments,
-        contextType: contextType,
-        target: InvocationTargetExecutableElement(target),
-      );
-
-      _resolver.diagnosticReporter.report(
-        diag.abstractSuperMemberReference
-            .withArguments(memberKind: target.kind.displayName, name: name)
-            .at(nameNode),
-      );
-      return;
-    }
-
-    // Nothing help, there is no target at all.
-    _setInvalidTypeResolution(
-      node,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    _resolver.diagnosticReporter.report(
-      diag.undefinedSuperMethod
-          .withArguments(
-            methodName: name,
-            typeName: enclosingInterface.firstFragment.displayName,
-          )
-          .at(nameNode),
-    );
-  }
-
   /// Resolves the type of the receiver of the method invocation, [node].
   void _resolveReceiverType({
     required MethodInvocationImpl node,
@@ -1862,7 +1754,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
   void _resolveSuperInvocation(
     ParsedValueArgumentsImpl node,
-    SuperExpressionImpl receiver,
+    SuperReferenceImpl receiver,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
@@ -1944,7 +1836,6 @@ class MethodInvocationResolver with ScopeHelpers {
     TypeArgumentListImpl? typeArguments,
     ArgumentListImpl argumentList,
     TypeImpl getterReturnType, {
-    bool isSuperAccess = false,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
   }) {
@@ -1988,11 +1879,9 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       if (_resolver.flowAnalysis.flow case var flow?) {
         var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
-          target is SuperExpressionImpl
-              ? SuperPropertyTarget.singleton
-              : ExpressionPropertyTarget(
-                  _resolver.flowAnalysis.getExpressionInfo(target),
-                ),
+          ExpressionPropertyTarget(
+            _resolver.flowAnalysis.getExpressionInfo(target),
+          ),
           methodName.name,
           methodName.element,
           SharedTypeView(getterReturnType),

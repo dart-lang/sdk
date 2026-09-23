@@ -472,7 +472,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitBinaryOperatorInvocation(
     covariant BinaryOperatorInvocationImpl node,
   ) {
-    checkForUseOfVoidResult(node.leftOperand as Expression);
+    if (node.leftOperand case Expression left) {
+      checkForUseOfVoidResult(left);
+    }
     _constArgumentsVerifier.visitBinaryOperatorInvocation(node);
 
     super.visitBinaryOperatorInvocation(node);
@@ -708,6 +710,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       case ImportPrefixedAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
@@ -2199,6 +2202,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       switch (node.receiver) {
+        case SuperReferenceImpl():
+          break;
         case StaticQualifier():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
@@ -2232,6 +2237,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       switch (node.receiver) {
+        case SuperReferenceImpl():
+          break;
         case StaticQualifier():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
@@ -2256,6 +2263,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _constArgumentsVerifier.checkNameExpression(node);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       switch (node.receiver) {
+        case SuperReferenceImpl():
+          break;
         case StaticQualifier():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
@@ -2669,9 +2678,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitUnaryOperatorInvocation(
     covariant UnaryOperatorInvocationImpl node,
   ) {
-    var operand = node.operand as ExpressionImpl;
-    checkForUseOfVoidResult(operand);
-    _checkForIntNotAssignable(operand);
+    if (node.operand case ExpressionImpl operand) {
+      checkForUseOfVoidResult(operand);
+      _checkForIntNotAssignable(operand);
+    }
     super.visitUnaryOperatorInvocation(node);
   }
 
@@ -8004,17 +8014,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForUnnecessaryNullAware(
-    Expression target,
+    InstanceReceiver target,
     Token operator, {
     required _NullAwareKind kind,
   }) {
-    if (target is SuperExpression) {
+    if (target is SuperReference || target is SuperExpression) {
       return;
     }
+    target as Expression;
 
     /// If the operator is not valid because the target already makes use of a
     /// null aware operator, return the null aware operator from the target.
-    Token? previousShortCircuitingOperator(Expression? target) {
+    Token? previousShortCircuitingOperator(InstanceReceiver? target) {
       if (target case ReceiverPropertyExtraction(:Expression receiver)) {
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
           return previousShortCircuitingOperator(receiver) ?? target.operator;

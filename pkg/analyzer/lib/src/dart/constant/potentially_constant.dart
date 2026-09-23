@@ -196,7 +196,7 @@ class _Collector {
     }
 
     if (node is UnaryOperatorInvocation) {
-      collect(node.operand as Expression);
+      collect(node.operand);
       return;
     }
 

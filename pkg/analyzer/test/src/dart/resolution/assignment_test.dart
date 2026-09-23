@@ -1987,9 +1987,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -2420,10 +2419,9 @@ class A {
     var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: SuperExpression
+  target: InvalidSuperAssignmentTarget
+    superReference: SuperReference
       superKeyword: super
-      staticType: A
     write: InvalidWriteResolution
   operator: =
   value: IntegerLiteral
@@ -7737,11 +7735,33 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.assignment('x += 2');
+    var node = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -7751,7 +7771,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -7759,6 +7779,155 @@ AssignmentExpression
   readType: int
   writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_super_ifNull_generic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T? get x => null;
+  set x(T? value) {}
+}
+
+class B extends A<int> {
+  void f() {
+    super.x ??= 1;
+  }
+}
+''');
+    assertResolvedNodeText(result.findNode.singleIfNullAssignment, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: SubstitutedGetterElementImpl
+        baseElement: <testLibrary>::@class::A::@getter::x
+        substitution: {T: int}
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: SubstitutedSetterElementImpl
+        baseElement: <testLibrary>::@class::A::@setter::x
+        substitution: {T: int}
+      acceptedType: int?
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: SubstitutedFormalParameterElementImpl
+      baseElement: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+      substitution: {T: int}
+    staticType: int
+  readElement: SubstitutedGetterElementImpl
+    baseElement: <testLibrary>::@class::A::@getter::x
+    substitution: {T: int}
+  readType: int?
+  writeElement: SubstitutedSetterElementImpl
+    baseElement: <testLibrary>::@class::A::@setter::x
+    substitution: {T: int}
+  writeType: int?
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_super_nested_compound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int y = 0;
+}
+
+class A {
+  C get x => C();
+}
+
+class B extends A {
+  void f() {
+    super.x.y += 1;
+  }
+}
+''');
+    assertResolvedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: SuperReference
+        superKeyword: super
+      operator: .
+      name: x
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::A::@getter::x
+        invokeType: C Function()
+        type: C
+      staticType: C
+    operator: .
+    name: y
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::y
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::C::@setter::y
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SuperExpression
+        superKeyword: super
+        staticType: B
+      operator: .
+      propertyName: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@class::A::@getter::x
+        staticType: C
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: y
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@class::C::@getter::y
+  readType: int
+  writeElement: <testLibrary>::@class::C::@setter::y
+  writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
 ''');
@@ -8471,10 +8640,11 @@ DirectAssignment
       element: <testLibrary>::@class::A::@method::f::@formalParameter::a
       acceptedType: Object
   operator: =
-  value: SuperExpression
-    superKeyword: super
-    staticType: A
-  staticType: A
+  value: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: a
@@ -8489,7 +8659,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::A::@method::f::@formalParameter::a
   writeType: Object
   element: <null>
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 

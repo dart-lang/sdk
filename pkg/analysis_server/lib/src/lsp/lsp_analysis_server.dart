@@ -125,10 +125,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// imports was modified, etc).
   final Set<String> _filesWithClientDiagnostics = {};
 
-  /// A completer for [lspInitialized].
-  final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
-      Completer<InitializedStateMessageHandler>();
-
   /// A completer that tracks in-progress workspace folders update.
   ///
   /// Starts completed and will be replaced each time workspace folders are
@@ -232,6 +228,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// as 'ssh-remote' or 'wsl' for remote workspaces.
   String? get clientRemoteName => _initializationOptions?.remoteName;
 
+  @override
+  List<String> get configurationWorkspaceFolders => _workspaceFolders.toList();
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   @override
   LspClientCapabilities? get editorClientCapabilities => _clientCapabilities;
@@ -245,12 +244,6 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Whether the server has transitioned into the shutting down state.
   bool get isShuttingDown => messageHandler is ShuttingDownStateMessageHandler;
-
-  /// A [Future] that completes with the [InitializedStateMessageHandler] for
-  /// the server once it transitions to the initialized state.
-  @override
-  FutureOr<InitializedStateMessageHandler> get lspInitialized =>
-      _lspInitializedCompleter.future;
 
   @override
   LspNotificationManager get notificationManager =>
@@ -316,80 +309,20 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await _refreshAnalysisRoots();
+        await refreshAnalysisRoots();
       }
     }
-  }
-
-  /// Completes [lspInitialized], signalling that the server has moved into an
-  /// initialized state where it can handle standard LSP requests.
-  void completeLspInitialization(InitializedStateMessageHandler handler) {
-    _lspInitializedCompleter.complete(handler);
   }
 
   /// The socket from which messages are being read has been closed.
   void done() {}
 
-  /// Fetches configuration from the client (if supported) and then sends
-  /// register/unregister requests for any supported/enabled dynamic registrations.
-  Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (editorClientCapabilities?.configuration ?? false) {
-      // Take a copy of workspace folders because we need to match up the
-      // responses to the request by index and it's possible _workspaceFolders
-      // will change after we sent the request but before we get the response.
-      var folders = _workspaceFolders.toList();
-
-      // Fetch all configuration we care about from the client. This is just
-      // "dart" for now, but in future this may be extended to include
-      // others (for example "flutter").
-      var response = await sendLspRequest(
-        Method.workspace_configuration,
-        ConfigurationParams(
-          items: [
-            // Dart settings for each workspace folder.
-            for (var folder in folders)
-              ConfigurationItem(
-                scopeUri: uriConverter.toClientUri(folder),
-                section: 'dart',
-              ),
-            // Global Dart settings. This comes last to simplify matching up the
-            // indexes in the results (folder[i] is the i'th item).
-            ConfigurationItem(section: 'dart'),
-          ],
-        ),
-      );
-
-      var result = response.result;
-
-      // Expect the result to be a list with 1 + folders.length items to
-      // match the request above, and each should be a standard map of settings.
-      // If the above code is extended to support multiple sets of config
-      // this will need tweaking to handle the item for each section.
-      if (result != null &&
-          result is List<Object?> &&
-          result.length == 1 + folders.length) {
-        // Config is stored as a map keyed by the workspace folder, and a key of
-        // null for the global config
-        var workspaceFolderConfig = {
-          for (var i = 0; i < folders.length; i++)
-            folders[i]: result[i] as Map<String, Object?>? ?? {},
-        };
-        var newGlobalConfig = result.last as Map<String, Object?>? ?? {};
-
-        var oldGlobalConfig = lspClientConfiguration.global;
-        lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
-
-        if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
-          await _refreshAnalysisRoots();
-        } else if (lspClientConfiguration.affectsAnalysisResults(
-          oldGlobalConfig,
-        )) {
-          // Some settings affect analysis results and require re-analysis
-          // (such as showTodos).
-          await reanalyze();
-        }
-      }
-    }
+  /// Fetches the configuration from the client (if supported) and then sends
+  /// register/unregister requests for any supported/enabled dynamic
+  /// registrations.
+  @override
+  Future<void> fetchClientConfiguration() async {
+    await super.fetchClientConfiguration();
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
@@ -751,6 +684,62 @@ class LspAnalysisServer extends AnalysisServer {
     sendLspNotification(message);
   }
 
+  @override
+  @protected
+  Future<void> refreshAnalysisRoots() async {
+    // When there are open folders, they are always the roots. If there are no
+    // open workspace folders, then we use the open (priority) files to compute
+    // roots.
+    var includedPaths = _workspaceFolders.isNotEmpty
+        ? _workspaceFolders.toList()
+        : _getRootsForOpenFiles().toList();
+
+    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
+        .expand(
+          (excludePath) => resourceProvider.pathContext.isAbsolute(excludePath)
+              ? [excludePath]
+              // Apply the relative path to each open workspace folder.
+              // TODO(dantup): Consider supporting per-workspace config by
+              // calling workspace/configuration whenever workspace folders change
+              // and caching the config for each one.
+              : _workspaceFolders.map(
+                  (root) =>
+                      resourceProvider.pathContext.join(root, excludePath),
+                ),
+        )
+        .map(pathContext.normalize)
+        .toSet()
+        .toList();
+
+    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    if (detachableFileSystemManager != null) {
+      detachableFileSystemManager?.setAnalysisRoots(
+        null,
+        includedPaths,
+        excludedPaths,
+      );
+    } else {
+      var completer = analysisContextRebuildCompleter = Completer();
+      try {
+        await contextManager.setRoots(includedPaths, excludedPaths);
+      } finally {
+        completer.complete();
+      }
+    }
+
+    pluginManager.setAnalysisSetAnalysisRootsParams(
+      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
+    );
+
+    // If there are no analysis roots, no drivers will be created and the plugin
+    // watcher will not complete the plugin managers initialization so we need
+    // to do it.
+    if (includedPaths.isEmpty &&
+        !pluginManager.initializedCompleter.isCompleted) {
+      pluginManager.initializedCompleter.complete();
+    }
+  }
+
   Future<void> removePriorityFile(String path) async {
     var didRemove = priorityFiles.remove(path);
     assert(didRemove);
@@ -760,7 +749,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await _refreshAnalysisRoots();
+        await refreshAnalysisRoots();
       }
     }
   }
@@ -1063,9 +1052,9 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Capture if there is an existing update in progress, we so can wait for
     // it after replacing the completer. This is required because of the async
-    // work below (`fetchClientConfigurationAndPerformDynamicRegistration`) that
-    // could otherwise allow another request to change the analysis roots before
-    // we've finished setting them up correctly.
+    // work below (`fetchClientConfiguration`) that could otherwise allow
+    // another request to change the analysis roots before we've finished
+    // setting them up correctly.
     var existingUpdateFuture = !workspaceFolderUpdateCompleter.isCompleted
         ? workspaceFolderUpdateCompleter.future
         : null;
@@ -1077,9 +1066,9 @@ class LspAnalysisServer extends AnalysisServer {
     try {
       // This async request is why we need to prevent this code running
       // concurrently because they could overlap with each other.
-      await fetchClientConfigurationAndPerformDynamicRegistration();
+      await fetchClientConfiguration();
 
-      await _refreshAnalysisRoots();
+      await refreshAnalysisRoots();
     } finally {
       completer.complete();
     }
@@ -1182,60 +1171,6 @@ class LspAnalysisServer extends AnalysisServer {
 
   void _onPluginsChanged() {
     capabilitiesComputer.performDynamicRegistration();
-  }
-
-  Future<void> _refreshAnalysisRoots() async {
-    // When there are open folders, they are always the roots. If there are no
-    // open workspace folders, then we use the open (priority) files to compute
-    // roots.
-    var includedPaths = _workspaceFolders.isNotEmpty
-        ? _workspaceFolders.toList()
-        : _getRootsForOpenFiles().toList();
-
-    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
-        .expand(
-          (excludePath) => resourceProvider.pathContext.isAbsolute(excludePath)
-              ? [excludePath]
-              // Apply the relative path to each open workspace folder.
-              // TODO(dantup): Consider supporting per-workspace config by
-              // calling workspace/configuration whenever workspace folders change
-              // and caching the config for each one.
-              : _workspaceFolders.map(
-                  (root) =>
-                      resourceProvider.pathContext.join(root, excludePath),
-                ),
-        )
-        .map(pathContext.normalize)
-        .toSet()
-        .toList();
-
-    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
-    if (detachableFileSystemManager != null) {
-      detachableFileSystemManager?.setAnalysisRoots(
-        null,
-        includedPaths,
-        excludedPaths,
-      );
-    } else {
-      var completer = analysisContextRebuildCompleter = Completer();
-      try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
-      } finally {
-        completer.complete();
-      }
-    }
-
-    pluginManager.setAnalysisSetAnalysisRootsParams(
-      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
-    );
-
-    // If there are no analysis roots, no drivers will be created and the plugin
-    // watcher will not complete the plugin managers initialization so we need
-    // to do it.
-    if (includedPaths.isEmpty &&
-        !pluginManager.initializedCompleter.isCompleted) {
-      pluginManager.initializedCompleter.complete();
-    }
   }
 
   void _updateDriversAndPluginsPriorityFiles() {

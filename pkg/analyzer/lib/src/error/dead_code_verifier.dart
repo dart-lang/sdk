@@ -455,7 +455,9 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
+    if (node.receiver case Expression receiver) {
+      _verifyUnassignedSimpleIdentifier(node, receiver, node.question);
+    }
   }
 
   void visitNode(AstNode node) {

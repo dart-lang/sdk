@@ -4072,18 +4072,6 @@ class A extends B {
     _assertSource(code, node);
   }
 
-  void test_visitSuperExpression() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  void foo() {
-    super.foo();
-  }
-}
-''');
-    var node = parseResult.findNode.singleSuperExpression;
-    _assertSource('super', node);
-  }
-
   void test_visitSuperFormalParameter_annotation() {
     var code = '@deprecated super.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -4161,6 +4149,18 @@ class A {
 ''');
     var node = parseResult.findNode.singleSuperFormalParameter;
     _assertSource(code, node);
+  }
+
+  void test_visitSuperReference() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void foo() {
+    super.foo();
+  }
+}
+''');
+    var node = parseResult.findNode.singleSuperReference;
+    _assertSource('super', node);
   }
 
   void test_visitSwitchCase_multipleLabels() {

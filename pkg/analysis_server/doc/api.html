@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.40.1
+  1.41.0
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -224,6 +224,14 @@ a:focus, a:hover {
   unrelated to the client request with that same id.
 </p>
 <p>
+  Clients can also send notifications to the server, currently only
+  <tt>lsp.notification</tt>, to provide an LSP notification for the server to
+  handle, such as <tt>workspace/didChangeConfiguration</tt>. As with
+  notifications sent from the server, they have an 'event' field and a 'params'
+  field. A notification has no 'id' and is not responded to, so a failure to
+  handle one is logged by the server rather than being reported to the client.
+</p>
+<p>
   In order to be backward compatible, clients should ignore fields that were
   not specified in the version of the API on which they were based. Clients
   should also use the server.getVersion request to test that the version of
@@ -245,6 +253,12 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.41.0</h4>
+<ul>
+  <li>The <tt>lsp.notification</tt> notification can now also be sent by the client, to provide an LSP notification for the server to handle. Like all notifications it is not acknowledged, so a failure to handle it is logged by the server.</li>
+  <li>The server can now send <tt>workspace/configuration</tt> requests to a client that provided the <tt>workspace.configuration</tt> LSP capability in <tt>setClientCapabilities</tt>, both after that request and whenever the client sends a <tt>workspace/didChangeConfiguration</tt> notification.</li>
+  <li>If the client provided the <tt>workspace.configuration</tt> LSP capability, LSP messages received after <tt>server.setClientCapabilities</tt> are not handled until the client has responded to the <tt>workspace/configuration</tt> request that follows it, so that they see the user's configuration and not the defaults.</li>
+</ul>
 <h4>1.40.1</h4>
 <ul>
   <li>Added an optional <tt>extendedType</tt> field to <tt>Element</tt> to store the name of the type that extensions apply to that can be used to improve the display names for unnamed extensions.</li>
@@ -651,6 +665,9 @@ a:focus, a:hover {
         </p>
         <p>
           If LSP capabilities are not provided or no setClientCapabilities request is made, a very basic set of capabilities will be assumed.
+        </p>
+        <p>
+          If the capabilities include <tt>workspace.configuration</tt>, the server requests the user's configuration with a <tt>workspace/configuration</tt> request after responding to this request. LSP messages received in the meantime are not handled until the client has responded to it, so that they see the user's configuration and not the defaults. Other requests are not affected.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_server.openUrlRequest">server.openUrlRequest</a></dt><dd><div class="box"><pre>request: {
   "id": String

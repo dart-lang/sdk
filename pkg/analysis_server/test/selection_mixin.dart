@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'abstract_single_unit.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 
 mixin SelectionMixin on SingleUnitTest {
   late int offset;

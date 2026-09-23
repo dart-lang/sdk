@@ -13,10 +13,12 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
+import '../../../find_element.dart';
+import '../../../find_node.dart';
 import '../../../selection_mixin.dart';
 
 int findIdentifierLength(String search) {

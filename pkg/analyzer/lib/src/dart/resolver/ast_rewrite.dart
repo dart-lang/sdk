@@ -911,8 +911,8 @@ class AstRewriter {
 
   NamedReceiverImpl _parsedNestedReceiver(
     Scope nameScope,
-    ExpressionImpl root, {
-    required ExpressionImpl head,
+    InstanceReceiverImpl root, {
+    required InstanceReceiverImpl head,
     required bool hasSelector,
   }) {
     if (head is ParsedUnqualifiedNameImpl) {
@@ -1336,8 +1336,8 @@ class AstRewriter {
   }
 
   static NamedReceiverImpl _boundParsedReceiver(
-    ExpressionImpl root, {
-    required ExpressionImpl head,
+    InstanceReceiverImpl root, {
+    required InstanceReceiverImpl head,
     required bool hasSelector,
   }) {
     var node = head;
@@ -1470,7 +1470,7 @@ class AstRewriter {
     );
   }
 
-  static ExpressionImpl _parsedReceiverHead(ExpressionImpl root) {
+  static InstanceReceiverImpl _parsedReceiverHead(InstanceReceiverImpl root) {
     var head = root;
     while (head is ParsedNameAccessImpl) {
       head = head.operand;

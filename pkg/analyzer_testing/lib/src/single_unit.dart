@@ -6,65 +6,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
+    as diag;
+import 'package:analyzer/src/test_utilities/test_code_format.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/utilities/extensions/analysis_session.dart'; // ignore: implementation_imports
 import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
-
-mixin FindElementMixin on SingleUnitTest {
-  /// A helper for finding declared elements within [testUnit].
-  ///
-  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
-  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
-  late FindElement findElement;
-
-  @override
-  Future<ResolvedUnitResult> getResolvedUnit(
-    File file, {
-    List<DiagnosticCode>? ignore,
-  }) async {
-    var unitResult = await super.getResolvedUnit(file, ignore: ignore);
-    if (file.path == convertPath(testFilePath)) {
-      findElement = FindElement(testUnit);
-    }
-    return unitResult;
-  }
-
-  @override
-  Future<void> parseTestCode(String code) async {
-    await super.parseTestCode(code);
-    findElement = FindElement(testUnit);
-  }
-}
-
-mixin FindNodeMixin on SingleUnitTest {
-  /// A helper for finding [AstNode]s within [testUnit].
-  ///
-  /// Populated when parsing [testFile] via [parseTestCode], or when resolving
-  /// [testFile] via [getResolvedUnit], [resolveTestFile], or [resolveTestCode].
-  late FindNode findNode;
-
-  @override
-  Future<ResolvedUnitResult> getResolvedUnit(
-    File file, {
-    List<DiagnosticCode>? ignore,
-  }) async {
-    var unitResult = await super.getResolvedUnit(file, ignore: ignore);
-    if (file.path == convertPath(testFilePath)) {
-      findNode = FindNode(unitResult.content, testUnit);
-    }
-    return unitResult;
-  }
-
-  @override
-  Future<void> parseTestCode(String code) async {
-    await super.parseTestCode(code);
-    findNode = FindNode(testCode, testUnit);
-  }
-}
 
 /// A base test class for tests operating on a single test unit ([testFile]).
 ///

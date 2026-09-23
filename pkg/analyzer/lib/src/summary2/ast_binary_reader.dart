@@ -1472,8 +1472,27 @@ class AstBinaryReader {
         return _readStringInterpolation();
       case AstNodeTag.SuperConstructorInvocation:
         return _readSuperConstructorInvocation();
-      case AstNodeTag.SuperExpression:
-        return _readSuperExpression();
+      case AstNodeTag.SuperReference:
+        return SuperReferenceImpl(superKeyword: Tokens.super_())
+          ..legacyStaticType = _reader.readType();
+      case AstNodeTag.InvalidSuperExpression:
+        var node = InvalidSuperExpressionImpl(
+          superReference: _readNode() as SuperReferenceImpl,
+        );
+        _readExpressionResolution(node);
+        return node;
+      case AstNodeTag.InvalidSuperAssignmentTarget:
+        var read = _reader.readOptionalObject(
+          () => const InvalidReadResolutionImpl(),
+        );
+        var write = _reader.readOptionalObject(
+          () => const InvalidWriteResolutionImpl(),
+        );
+        return InvalidSuperAssignmentTargetImpl(
+            superReference: _readNode() as SuperReferenceImpl,
+          )
+          ..read = read
+          ..write = write;
       case AstNodeTag.SuperFormalParameter:
         return _readSuperFormalParameter();
       case AstNodeTag.SymbolLiteral:
@@ -1591,7 +1610,7 @@ class AstBinaryReader {
 
   ReceiverIndexAssignmentTarget _readReceiverIndexAssignmentTarget() {
     var flags = _readByte();
-    var receiver = _readNode() as ExpressionImpl;
+    var receiver = _readNode() as InstanceReceiverImpl;
     var index = _readNode() as ExpressionImpl;
     var node = ReceiverIndexAssignmentTargetImpl(
       receiver: receiver,
@@ -1607,7 +1626,7 @@ class AstBinaryReader {
 
   ReceiverIndexExpression _readReceiverIndexExpression() {
     var flags = _readByte();
-    var receiver = _readNode() as ExpressionImpl;
+    var receiver = _readNode() as InstanceReceiverImpl;
     var index = _readNode() as ExpressionImpl;
     var node = ReceiverIndexExpressionImpl(
       receiver: receiver,
@@ -1909,12 +1928,6 @@ class AstBinaryReader {
     node.element = _reader.readElement() as InternalConstructorElement?;
     node.constructorSelector?.element = node.element;
     _resolveArguments(node.element, node.argumentList);
-    return node;
-  }
-
-  SuperExpression _readSuperExpression() {
-    var node = SuperExpressionImpl(superKeyword: Tokens.super_());
-    _readExpressionResolution(node);
     return node;
   }
 

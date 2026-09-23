@@ -6,10 +6,9 @@ import 'package:analysis_server/src/utilities/extensions/selection.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {

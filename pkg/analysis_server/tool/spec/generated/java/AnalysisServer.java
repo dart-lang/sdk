@@ -870,12 +870,17 @@ public interface AnalysisServer {
   /**
    * {@code lsp.handle}
    *
-   * Call an LSP handler. Message can be requests or notifications.
+   * Call an LSP handler. The message must be an LSP request; LSP notifications are sent with the
+   * <code>lsp.notification</code> notification.
    *
    * This request can be called in either direction, either by the client to the server, or by the
    * server to the client. The server will only call the client if the client has indicated it
    * supports the associated LSP request via <code>lspCapabilities</code> in the
-   * <code>setClientCapabilities</code> request.
+   * <code>setClientCapabilities</code> request. For example, a client that sets the
+   * <code>workspace.configuration</code> capability will be sent
+   * <code>workspace/configuration</code> requests to provide the user's configuration, both after
+   * <code>setClientCapabilities</code> and whenever it sends a
+   * <code>workspace/didChangeConfiguration</code> notification.
    *
    * @param lspMessage The LSP RequestMessage.
    */
@@ -1046,7 +1051,12 @@ public interface AnalysisServer {
    *        specification. If custom LSP capabilities are to be used, the setClientCapabilities
    *        request should be called before any LSP requests are made to the server. If LSP
    *        capabilities are not provided or no setClientCapabilities request is made, a very basic
-   *        set of capabilities will be assumed.
+   *        set of capabilities will be assumed. If the capabilities include
+   *        <code>workspace.configuration</code>, the server requests the user's configuration with a
+   *        <code>workspace/configuration</code> request after responding to this request. LSP
+   *        messages received in the meantime are not handled until the client has responded to it,
+   *        so that they see the user's configuration and not the defaults. Other requests are not
+   *        affected.
    */
   public void server_setClientCapabilities(List<String> requests, boolean supportsUris, Object lspCapabilities);
 

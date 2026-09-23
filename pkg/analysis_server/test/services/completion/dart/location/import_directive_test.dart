@@ -100,6 +100,15 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterHide_beforeSemicolon_noCombinatorKeywords() async {
+    await computeSuggestions('''
+import "foo" hide a ^;
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_afterLeftQuote_beforeRightQuote() async {
     await computeSuggestions('''
 import "^"
@@ -141,6 +150,15 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterPrefix_beforeHide() async {
+    await computeSuggestions('''
+import "foo" as f ^ hide a;
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_afterPrefix_beforeSemicolon() async {
     await computeSuggestions('''
 import "foo" as foo ^;
@@ -164,6 +182,24 @@ suggestions
     kind: keyword
   show
     kind: keyword
+''');
+  }
+
+  Future<void> test_afterPrefix_beforeShow() async {
+    await computeSuggestions('''
+import "foo" as f ^ show a;
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_afterShow_beforeSemicolon_noCombinatorKeywords() async {
+    await computeSuggestions('''
+import "foo" show a ^;
+''');
+    assertResponse(r'''
+suggestions
 ''');
   }
 
@@ -236,6 +272,19 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterUri_beforeHide() async {
+    await computeSuggestions('''
+import "foo" ^ hide foo;
+''');
+    assertResponse(r'''
+suggestions
+  as
+    kind: keyword
+  deferred as
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterUri_beforeHide_partial() async {
     await computeSuggestions('''
 import "foo" d^ hide foo;
@@ -245,8 +294,6 @@ replacement
   left: 1
 suggestions
   deferred as
-    kind: keyword
-  hide
     kind: keyword
 ''');
   }
@@ -314,6 +361,19 @@ suggestions
 ''');
   }
 
+  Future<void> test_afterUri_beforeShow() async {
+    await computeSuggestions('''
+import "foo" ^ show foo;
+''');
+    assertResponse(r'''
+suggestions
+  as
+    kind: keyword
+  deferred as
+    kind: keyword
+''');
+  }
+
   Future<void> test_afterUri_beforeShow_partial() async {
     await computeSuggestions('''
 import "foo" d^ show foo;
@@ -323,8 +383,6 @@ replacement
   left: 1
 suggestions
   deferred as
-    kind: keyword
-  hide
     kind: keyword
 ''');
   }

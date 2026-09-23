@@ -38,9 +38,10 @@ UnqualifiedFunctionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SuperExpression
-        superKeyword: super
-        staticType: A
+      InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+        staticType: InvalidType
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@function::g
@@ -3705,9 +3706,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: foo
     resolution: GetterInvocationResolution
@@ -8730,9 +8730,8 @@ class B extends A {
     var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -8776,9 +8775,8 @@ class B extends A {
     var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -8835,9 +8833,8 @@ augment class B {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -8895,9 +8892,8 @@ augment class B {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -8951,9 +8947,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: foo
     resolution: GetterInvocationResolution
@@ -9021,9 +9016,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: _f
     resolution: GetterInvocationResolution
@@ -9084,9 +9078,8 @@ class B extends A {
     var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -9140,9 +9133,8 @@ abstract class B extends A {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: m
   typeArguments: TypeArgumentList
@@ -9218,9 +9210,8 @@ class B extends A<int> {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: m
   typeArguments: TypeArgumentList
@@ -9306,9 +9297,8 @@ class B extends A {
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
     operand: ReceiverPropertyExtraction
-      receiver: SuperExpression
+      receiver: SuperReference
         superKeyword: super
-        staticType: B
       operator: .
       name: m
       resolution: ExecutableTearOffResolution
@@ -9399,9 +9389,8 @@ mixin M on A {
     var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: M
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -9445,9 +9434,8 @@ mixin M on A {
     var node = result.findNode.receiverMethodInvocation('super.foo()');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: M
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -13894,9 +13882,8 @@ enum E with M {
     var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: E
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -13940,9 +13927,8 @@ class B extends A {
     var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -13994,9 +13980,8 @@ enum E {
     var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: E
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -14049,9 +14034,8 @@ mixin M on A {
     var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: M
   operator: .
   name: foo
   argumentList: ArgumentList

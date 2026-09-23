@@ -340,7 +340,11 @@ ForElement
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable2: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
     write: VariableWriteResolution
@@ -1786,6 +1790,11 @@ ForElement
     leftSeparator: ;
     rightSeparator: ;
     updaters2
+      InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+        staticType: InvalidType
+    updaters(v1)
       SuperExpression
         superKeyword: super
         staticType: A

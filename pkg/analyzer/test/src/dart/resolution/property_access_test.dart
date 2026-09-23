@@ -822,9 +822,8 @@ class A {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: A
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
@@ -861,9 +860,8 @@ class B extends A {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   resolution: GetterInvocationResolution
@@ -902,9 +900,8 @@ class B extends A {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   resolution: ExecutableTearOffResolution
@@ -944,9 +941,8 @@ class B extends A {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
@@ -4330,9 +4326,8 @@ class B extends A {
     var node = result.findNode.receiverPropertyExtraction('super.foo');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: SuperExpression
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
   operator: .
   name: foo
   resolution: GetterInvocationResolution
@@ -4366,11 +4361,33 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -4380,7 +4397,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -4406,11 +4423,27 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -4420,7 +4453,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int

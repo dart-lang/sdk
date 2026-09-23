@@ -70,10 +70,14 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 
@@ -91,9 +95,8 @@ class A {
 AwaitExpression
   awaitKeyword: await
   expression2: ReceiverPropertyExtraction
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: A
     operator: .
     name: hashCode
     resolution: GetterInvocationResolution

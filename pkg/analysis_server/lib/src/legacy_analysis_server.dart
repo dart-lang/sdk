@@ -64,6 +64,7 @@ import 'package:analysis_server/src/handler/legacy/flutter_get_widget_descriptio
 import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/lsp_notification_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/lsp_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
@@ -275,9 +276,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// be sent.
   final ServerCommunicationChannel channel;
 
-  @override
-  late final FutureOr<InitializedStateMessageHandler> lspInitialized =
+  /// The handler that is used for LSP messages once LSP initialization is
+  /// complete (see [completeLspInitialization]).
+  late final InitializedStateMessageHandler lspMessageHandler =
       InitializedStateMessageHandler(this);
+
+  /// Whether the client has sent `server.setClientCapabilities`.
+  ///
+  /// A client that never sends it uses the default capabilities and
+  /// configuration, so LSP initialization does not need to wait for anything
+  /// (see [ensureLspInitializedForClientWithoutCapabilities]).
+  bool _hasReceivedClientCapabilities = false;
 
   /// Whether either the last status message sent to the client or the last
   /// status message sent from any [PluginServer] indicated `isWorking: true`.
@@ -447,7 +456,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     debounceRequests(
       channel,
       discardedRequests,
-    ).listen(handleRequestOrResponse, onDone: done, onError: error);
+    ).listen(handleClientMessage, onDone: done, onError: error);
     _newRefactoringManager();
 
     pluginManager.initializedCompleter.future.then((_) {
@@ -483,6 +492,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Updates the current set of client capabilities.
   set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
     _clientCapabilities = capabilities;
+    _hasReceivedClientCapabilities = true;
 
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
@@ -597,8 +607,40 @@ class LegacyAnalysisServer extends AnalysisServer {
     cancellationTokens[id]?.cancel();
   }
 
+  /// Completes LSP initialization unless that has already happened.
+  ///
+  /// Unlike the LSP server, which completes initialization exactly once from
+  /// the `initialized` notification, the legacy server has several triggers and
+  /// some of them can run more than once: `server.setClientCapabilities` (which
+  /// a client could send multiple times, but is not recommended) completes it
+  /// either immediately or once the configuration fetch it started has
+  /// finished, and every LSP-over-Legacy message from a client that has not
+  /// sent capabilities completes it as well. Whichever runs first completes
+  /// the initialization, the others must be no-ops.
+  void completeLspInitializationIfNeeded() {
+    if (!isLspInitialized) {
+      completeLspInitialization(lspMessageHandler);
+    }
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
+
+  /// Completes LSP initialization for a client that will never send
+  /// `server.setClientCapabilities`.
+  ///
+  /// Such a client gets the default capabilities and configuration, so there is
+  /// nothing to wait for. A client that does send capabilities completes the
+  /// initialization itself once it has provided its configuration (see
+  /// [ServerSetClientCapabilitiesHandler]).
+  ///
+  /// This is invoked for every LSP-over-Legacy message, so it is a no-op after
+  /// the first one.
+  void ensureLspInitializedForClientWithoutCapabilities() {
+    if (!_hasReceivedClientCapabilities) {
+      completeLspInitializationIfNeeded();
+    }
+  }
 
   /// There was an error related to the socket from which requests are being
   /// read.
@@ -619,6 +661,58 @@ class LegacyAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     super.handleAnalysisStatusChange(status);
     sendStatusNotificationNew(status);
+  }
+
+  /// Handle a [message] that was read from the communication channel.
+  void handleClientMessage(ClientMessage message) {
+    switch (message) {
+      case Request():
+        var cancellationToken = CancelableToken();
+        cancellationTokens[message.id] = cancellationToken;
+        messageScheduler.add(
+          LegacyMessage(request: message, cancellationToken: cancellationToken),
+        );
+      case Response():
+        handleResponse(message);
+      case Notification():
+        messageScheduler.add(LegacyNotificationMessage(notification: message));
+    }
+  }
+
+  /// Handle a [notification] that was read from the communication channel. The
+  /// completer is used to indicate when the notification handling is done.
+  void handleNotification(
+    Notification notification,
+    Completer<void> completer,
+  ) {
+    // Because we don't `await` the execution of the handler, we wrap the
+    // execution in order to have one central place to handle exceptions.
+    runZonedGuarded(
+      () async {
+        if (notification.event == lspNotificationNotification) {
+          await LspNotificationOverLegacyHandler(this, notification).handle();
+        } else {
+          // There is no response to carry an error back to the client, so an
+          // unknown notification can only be logged.
+          instrumentationService.logError(
+            'Unknown notification ${notification.event}',
+          );
+        }
+        completer.complete();
+      },
+      (exception, stackTrace) {
+        instrumentationService.logException(
+          FatalException(
+            'Failed to handle notification: ${notification.event}',
+            exception,
+            stackTrace,
+          ),
+          null,
+          crashReportingAttachmentsBuilder.forException(exception),
+        );
+        completer.complete();
+      },
+    );
   }
 
   /// Handle a [request] that was read from the communication channel. The completer
@@ -710,22 +804,6 @@ class LegacyAnalysisServer extends AnalysisServer {
         completer.complete();
       },
     );
-  }
-
-  /// Handle a [requestOrResponse] that was read from the communication channel.
-  void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
-    if (requestOrResponse is Request) {
-      var cancellationToken = CancelableToken();
-      cancellationTokens[requestOrResponse.id] = cancellationToken;
-      messageScheduler.add(
-        LegacyMessage(
-          request: requestOrResponse,
-          cancellationToken: cancellationToken,
-        ),
-      );
-    } else if (requestOrResponse is Response) {
-      handleResponse(requestOrResponse);
-    }
   }
 
   /// Handle a [response] that was read from the communication channel.

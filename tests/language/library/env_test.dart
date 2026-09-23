@@ -47,12 +47,16 @@ main() {
     const bool.fromEnvironment("dart.library.js_interop"),
   );
 
-  // Web platforms override 'dart.library.io' to return "false".
-  // We don't test for the non-existence, but just make sure that
-  // dart.library.io is not set to true.
+  // Web platforms override 'dart.library.io' and 'dart.library.isolate' to
+  // return "false". We don't test for the non-existence, but just make sure
+  // that dart.library.io and dart.library.isolate are not set to true.
   Expect.equals(
     isVmConfiguration,
     const bool.fromEnvironment("dart.library.io"),
+  );
+  Expect.equals(
+    isVmConfiguration,
+    const bool.fromEnvironment("dart.library.isolate"),
   );
 
   // `dart:mirrors` is only supported in JIT mode.

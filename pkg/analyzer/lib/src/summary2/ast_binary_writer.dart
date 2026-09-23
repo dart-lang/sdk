@@ -667,6 +667,21 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    _sink.writeEnum(AstNodeTag.InvalidSuperAssignmentTarget);
+    _sink.writeOptionalObject(node.read, (_) {});
+    _sink.writeOptionalObject(node.write, (_) {});
+    _writeNode(node.superReference);
+  }
+
+  @override
+  void visitInvalidSuperExpression(InvalidSuperExpression node) {
+    _sink.writeEnum(AstNodeTag.InvalidSuperExpression);
+    _writeNode(node.superReference);
+    _storeExpression(node);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     _sink.writeEnum(AstNodeTag.IsExpression);
     _writeByte(AstBinaryFlags.encode(hasNot: node.notOperator != null));
@@ -1058,12 +1073,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
-    _sink.writeEnum(AstNodeTag.SuperExpression);
-    _storeExpression(node);
-  }
-
-  @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _sink.writeEnum(AstNodeTag.SuperFormalParameter);
 
@@ -1073,6 +1082,12 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       _writeOptionalNode(node.functionTypedSuffix?.formalParameters);
       _storeRegularFormalParameter(node, node.constFinalOrVarKeyword);
     });
+  }
+
+  @override
+  void visitSuperReference(covariant SuperReferenceImpl node) {
+    _sink.writeEnum(AstNodeTag.SuperReference);
+    _sink.writeType(node.legacyStaticType);
   }
 
   @override

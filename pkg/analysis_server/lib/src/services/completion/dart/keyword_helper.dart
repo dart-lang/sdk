@@ -275,6 +275,16 @@ class KeywordHelper {
     addKeyword(Keyword.VOID);
   }
 
+  /// Adds the keywords that are appropriate when the selection is in an export
+  /// directive between the URI and the semicolon. The [node] is the export
+  /// directive containing the selection point.
+  void addExportDirectiveKeywords(ExportDirective node) {
+    if (node.combinators.isEmpty) {
+      addKeyword(Keyword.HIDE);
+      addKeyword(Keyword.SHOW);
+    }
+  }
+
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
@@ -513,31 +523,35 @@ class KeywordHelper {
     var deferredKeyword = node.deferredKeyword;
     var asKeyword = node.asKeyword;
     var firstCombinator = node.combinators.firstOrNull;
+    var hasCombinator = node.combinators.isNotEmpty;
     if (firstCombinator == null || offset < firstCombinator.offset) {
       if (deferredKeyword == null) {
         if (asKeyword == null) {
           addKeywordAndText(Keyword.DEFERRED, ' as');
           addKeyword(Keyword.AS);
-          addKeyword(Keyword.HIDE);
-          addKeyword(Keyword.SHOW);
+          if (!hasCombinator) {
+            addKeyword(Keyword.HIDE);
+            addKeyword(Keyword.SHOW);
+          }
         } else if (offset < asKeyword.offset) {
           addKeyword(Keyword.DEFERRED);
         } else {
           var prefix = node.prefix;
           if (prefix != null && offset > prefix.end) {
-            addKeyword(Keyword.HIDE);
-            addKeyword(Keyword.SHOW);
+            if (!hasCombinator) {
+              addKeyword(Keyword.HIDE);
+              addKeyword(Keyword.SHOW);
+            }
           }
         }
       } else if (offset > deferredKeyword.end && asKeyword == null) {
         addKeyword(Keyword.AS);
       } else {
-        addKeyword(Keyword.HIDE);
-        addKeyword(Keyword.SHOW);
+        if (!hasCombinator) {
+          addKeyword(Keyword.HIDE);
+          addKeyword(Keyword.SHOW);
+        }
       }
-    } else {
-      addKeyword(Keyword.HIDE);
-      addKeyword(Keyword.SHOW);
     }
   }
 

@@ -13,7 +13,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
-    if (node.leftOperand is SuperExpression) {
+    if (node.leftOperand is SuperReference) {
       _names.add(node.operator.lexeme);
     }
     super.visitBinaryOperatorInvocation(node);
@@ -21,7 +21,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       if (node.hasRead) {
         _names.add('[]');
       }
@@ -32,7 +32,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       _names.add('[]');
     }
     super.visitCascadeIndexExpression(node);
@@ -42,7 +42,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       if (node.parent2 is CompoundAssignment ||
           node.parent2 is IfNullAssignment) {
         _names.add(node.name.lexeme);
@@ -54,7 +54,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       _names.add(node.name.lexeme);
     }
     super.visitCascadePropertyExtraction(node);
@@ -65,9 +65,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
     IncrementOrDecrementExpression node,
   ) {
     if (node.position == IncrementOrDecrementPosition.prefix) {
-      if (node.target case InvalidExpressionAssignmentTarget(
-        expression: SuperExpression(),
-      )) {
+      if (node.target is InvalidSuperAssignmentTarget) {
         _names.add(node.operation.binaryOperatorName);
       }
     }
@@ -97,7 +95,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitParsedNameAccess(ParsedNameAccess node) {
-    if (node.operand is SuperExpression) {
+    if (node.operand is SuperReference) {
       _names.add(node.name.lexeme);
     }
     super.visitParsedNameAccess(node);
@@ -119,7 +117,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
-    if (node.receiver is SuperExpression) {
+    if (node.receiver is SuperReference) {
       if (node.parent2 is CompoundAssignment ||
           node.parent2 is IfNullAssignment) {
         _names.add('[]');
@@ -131,7 +129,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
-    if (node.receiver is SuperExpression) {
+    if (node.receiver is SuperReference) {
       _names.add('[]');
     }
     super.visitReceiverIndexExpression(node);
@@ -139,15 +137,26 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
-    if (node.receiver is SuperExpression) {
+    if (node.receiver is SuperReference) {
       _names.add(node.name.lexeme);
     }
     super.visitReceiverMethodInvocation(node);
   }
 
   @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    if (node.receiver is SuperReference) {
+      if (node.hasRead) _names.add(node.name.lexeme);
+      _names.add('${node.name.lexeme}=');
+    }
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    if (node.receiver is SuperExpression) {
+    if (node.receiver is SuperReference) {
       _names.add(node.name.lexeme);
     }
     super.visitReceiverPropertyExtraction(node);
@@ -155,7 +164,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
-    if (node.operand is SuperExpression) {
+    if (node.operand is SuperReference) {
       _names.add(switch (node.unaryOperator) {
         UnaryOperator.negate => 'unary-',
         UnaryOperator.bitwiseComplement => '~',

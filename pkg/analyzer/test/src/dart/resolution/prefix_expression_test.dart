@@ -173,7 +173,6 @@ class A {
     !super;
 //   ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolNegationExpression] A negation operand must have a static type of 'bool'.
   }
 }
 ''');
@@ -182,9 +181,10 @@ class A {
     assertResolvedNodeText(node, r'''
 LogicalNot
   operator: !
-  operand: SuperExpression
-    superKeyword: super
-    staticType: A
+  operand: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
   staticType: bool
 V1: PrefixExpression
   operator: !
@@ -451,9 +451,8 @@ class B extends A {
 IncrementOrDecrementExpression
   operator: ++
   target: ReceiverIndexAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -707,6 +706,34 @@ V1: PrefixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
   element: dart:core::@class::int::@method::unary-
+  staticType: int
+''');
+  }
+
+  test_minus_super() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator -() => 1;
+}
+
+class B extends A {
+  int f() => -super;
+}
+''');
+    assertResolvedNodeText(result.findNode.singleUnaryOperatorInvocation, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SuperReference
+    superKeyword: super
+  unaryOperator: negate
+  element: <testLibrary>::@class::A::@method::unary-
+  staticType: int
+V1: PrefixExpression
+  operator: -
+  operand: SuperExpression
+    superKeyword: super
+    staticType: B
+  element: <testLibrary>::@class::A::@method::unary-
   staticType: int
 ''');
   }
@@ -1189,9 +1216,8 @@ class B extends A {
 IncrementOrDecrementExpression
   operator: ++
   target: ReceiverPropertyAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
     name: x
     read: GetterInvocationResolution
@@ -1636,10 +1662,9 @@ class A {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: InvalidExpressionAssignmentTarget
-    expression: SuperExpression
+  target: InvalidSuperAssignmentTarget
+    superReference: SuperReference
       superKeyword: super
-      staticType: A
     read: InvalidReadResolution
     write: InvalidWriteResolution
   operation: increment

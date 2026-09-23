@@ -12,8 +12,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 
-import '../../../../../abstract_single_unit.dart';
 import '../fix_processor.dart';
 
 /// A base class defining support for writing fix processor tests for
