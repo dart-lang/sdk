@@ -52,6 +52,19 @@
     }
   }
 
+  // Wraps an error from an RPC method, preserving an explicit error code.
+  //
+  // Naming the code on a plain `Error` is the only option for run modes, which
+  // are separate scripts that cannot see `RpcError`.
+  function asRpcError(e) {
+    if (e instanceof RpcError) return e;
+    const code = errorCode[e?.name];
+    return new RpcError(
+      e?.message || String(e),
+      typeof code === 'number' ? code : errorCode.EXECUTION_FAILED,
+    );
+  }
+
   // Registry of RPC methods
   const rpcMethods = {};
 
@@ -114,8 +127,7 @@
         console.error(`RPC Notification Error (${m.method}):`, e);
         return;
       }
-      const code = e instanceof RpcError ? e.code : errorCode.SERVER_ERROR;
-      const message = e instanceof Error ? e.message : String(e);
+      const { code, message } = asRpcError(e);
 
       rpcPort.postMessage({
         payload: JSON.stringify({
@@ -443,14 +455,7 @@
       );
     }
 
-    try {
-      return await self.$dartpadRunModes[mode](libraryUri, options);
-    } catch (e) {
-      throw new RpcError(
-        e.message || String(e),
-        errorCode[e.name] || errorCode.EXECUTION_FAILED
-      );
-    }
+    return await self.$dartpadRunModes[mode](libraryUri, options);
   };
 
   rpcMethods.hotRestart = async (params) => {
@@ -463,32 +468,28 @@
       );
     }
 
-    try {
-      // Define the official DDC hook for reloading modules during restart
-      const reloadModules = (appName, callback) => {
-        let pending = modules.length;
-        if (pending === 0) {
-          callback();
-          return;
-        }
-        for (const { moduleName, code } of modules) {
-          const url = createAndRegisterBlob(moduleName, code);
-          self.$dartLoader.forceLoadScript(url, () => {
-            if (--pending === 0) callback();
-          });
-        }
-      };
-
-      self.$dartReloadModifiedModules = reloadModules;
-      await self.dartDevEmbedder.hotRestart();
-
-      if (self.$dartReloadModifiedModules === reloadModules) {
-        self.$dartReloadModifiedModules = null;
+    // Define the official DDC hook for reloading modules during restart
+    const reloadModules = (appName, callback) => {
+      let pending = modules.length;
+      if (pending === 0) {
+        callback();
+        return;
       }
-      return { generation: self.dartDevEmbedder.hotRestartGeneration };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
+      for (const { moduleName, code } of modules) {
+        const url = createAndRegisterBlob(moduleName, code);
+        self.$dartLoader.forceLoadScript(url, () => {
+          if (--pending === 0) callback();
+        });
+      }
+    };
+
+    self.$dartReloadModifiedModules = reloadModules;
+    await self.dartDevEmbedder.hotRestart();
+
+    if (self.$dartReloadModifiedModules === reloadModules) {
+      self.$dartReloadModifiedModules = null;
     }
+    return { generation: self.dartDevEmbedder.hotRestartGeneration };
   };
 
   rpcMethods.hotReload = async (params) => {
@@ -506,15 +507,11 @@
       createAndRegisterBlob(moduleName, code),
     );
 
-    try {
-      await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
-      if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
-        await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
-      }
-      return { generation: self.dartDevEmbedder.hotReloadGeneration };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
+    await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
+    if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
+      await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
     }
+    return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 
   rpcMethods.appMetrics = async () => {
@@ -544,15 +541,10 @@
         errorCode.SERVER_ERROR
       );
     }
-    try {
-      const result = await self.dartDevEmbedder.debugger.invokeExtension(
-        method,
-        JSON.stringify(args || {})
-      );
-      return result;
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    }
+    return await self.dartDevEmbedder.debugger.invokeExtension(
+      method,
+      JSON.stringify(args || {})
+    );
   };
 
   initialize();
