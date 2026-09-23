@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic.dart' as diag;
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 
@@ -125,12 +126,24 @@ String unescapeFirstStringPart(
   Object location,
   UnescapeErrorListener listener,
 ) {
+  int startIndex = firstQuoteLength(first, quote);
   return unescape(
-    first.substring(firstQuoteLength(first, quote)),
+    first.substring(startIndex),
     quote,
     location,
     listener,
+    stringStartOffset: startIndex,
   );
+}
+
+/// Unescapes [middle], a middle part of an interpolated string.
+String unescapeMiddleStringPart(
+  String middle,
+  Quote quote,
+  Object location,
+  UnescapeErrorListener listener,
+) {
+  return unescape(middle, quote, location, listener, stringStartOffset: 0);
 }
 
 String unescapeLastStringPart(
@@ -146,6 +159,7 @@ String unescapeLastStringPart(
     quote,
     location,
     listener,
+    stringStartOffset: 0,
   );
 }
 
@@ -166,15 +180,19 @@ String unescapeString(
     quote,
     location,
     listener,
+    stringStartOffset: startIndex,
   );
 }
 
+/// [stringStartOffset] is the offset of [string] from the start of
+/// [location]. The default, 1, assumes that one opening quote was removed.
 String unescape(
   String string,
   Quote quote,
   Object location,
-  UnescapeErrorListener listener,
-) {
+  UnescapeErrorListener listener, {
+  int stringStartOffset = 1,
+}) {
   String result;
   switch (quote) {
     case Quote.Single:
@@ -186,6 +204,7 @@ String unescape(
               /* isRaw = */ false,
               location,
               listener,
+              stringStartOffset: stringStartOffset,
             );
       break;
     case Quote.MultiLineSingle:
@@ -197,6 +216,7 @@ String unescape(
               /* isRaw = */ false,
               location,
               listener,
+              stringStartOffset: stringStartOffset,
             );
       break;
     case Quote.RawSingle:
@@ -212,6 +232,7 @@ String unescape(
               /* isRaw = */ true,
               location,
               listener,
+              stringStartOffset: stringStartOffset,
             );
       break;
   }
@@ -220,15 +241,28 @@ String unescape(
 
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
+/// [stringStartOffset] is the offset of [codeUnits] from the start of
+/// [location]. The default, 1, assumes that one opening quote was removed.
 String unescapeCodeUnits(
   List<int> codeUnits,
   bool isRaw,
   Object location,
-  UnescapeErrorListener listener,
-) {
+  UnescapeErrorListener listener, {
+  int stringStartOffset = 1,
+}) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
   List<int> result = new List<int>.filled(codeUnits.length, /* fill = */ 0);
   int resultOffset = 0;
+
+  // The offsets passed here point to the code unit after the backslash.
+  void handleUnescapeError(Message message, int offset, int length) {
+    listener.handleUnescapeError(
+      message,
+      location,
+      offset + stringStartOffset - 1,
+      length,
+    );
+  }
 
   for (int i = 0; i < codeUnits.length; i++) {
     int code = codeUnits[i];
@@ -240,12 +274,7 @@ String unescapeCodeUnits(
     } else if (!isRaw && code == $BACKSLASH) {
       if (codeUnits.length == ++i) {
         // This should only be reachable in error cases.
-        listener.handleUnescapeError(
-          diag.invalidEscapeStarted,
-          location,
-          i,
-          /* length = */ 1,
-        );
+        handleUnescapeError(diag.invalidEscapeStarted, i, /* length = */ 1);
         return new String.fromCharCodes(codeUnits);
       }
       code = codeUnits[i];
@@ -274,9 +303,8 @@ String unescapeCodeUnits(
         // Expect exactly 2 hex digits.
         int begin = i;
         if (codeUnits.length <= i + 2) {
-          listener.handleUnescapeError(
+          handleUnescapeError(
             diag.invalidHexEscape,
-            location,
             begin,
             codeUnits.length + 1 - begin,
           );
@@ -286,12 +314,7 @@ String unescapeCodeUnits(
         for (int j = 0; j < 2; j++) {
           int digit = codeUnits[++i];
           if (!isHexDigit(digit)) {
-            listener.handleUnescapeError(
-              diag.invalidHexEscape,
-              location,
-              begin,
-              i + 1 - begin,
-            );
+            handleUnescapeError(diag.invalidHexEscape, begin, i + 1 - begin);
             return new String.fromCharCodes(codeUnits);
           }
           code = (code << 4) + hexDigitValue(digit);
@@ -299,9 +322,8 @@ String unescapeCodeUnits(
       } else if (code == $u) {
         int begin = i;
         if (codeUnits.length == i + 1) {
-          listener.handleUnescapeError(
+          handleUnescapeError(
             diag.invalidUnicodeEscapeUStarted,
-            location,
             begin,
             codeUnits.length + 1 - begin,
           );
@@ -312,9 +334,8 @@ String unescapeCodeUnits(
         if (code == $OPEN_CURLY_BRACKET) {
           // Expect 1-6 hex digits followed by '}'.
           if (codeUnits.length == ++i) {
-            listener.handleUnescapeError(
+            handleUnescapeError(
               diag.invalidUnicodeEscapeUBracket,
-              location,
               begin,
               i + 1 - begin,
             );
@@ -323,9 +344,8 @@ String unescapeCodeUnits(
           code = 0;
           for (int j = 0; j < 7; j++) {
             if (codeUnits.length == ++i) {
-              listener.handleUnescapeError(
+              handleUnescapeError(
                 diag.invalidUnicodeEscapeUBracket,
-                location,
                 begin,
                 i + 1 - begin,
               );
@@ -339,9 +359,8 @@ String unescapeCodeUnits(
               break;
             }
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(
+              handleUnescapeError(
                 diag.invalidUnicodeEscapeUBracket,
-                location,
                 begin,
                 i + 2 - begin,
               );
@@ -350,9 +369,8 @@ String unescapeCodeUnits(
             code = (code << 4) + hexDigitValue(digit);
           }
           if (!foundEndBracket) {
-            listener.handleUnescapeError(
+            handleUnescapeError(
               diag.invalidUnicodeEscapeUBracket,
-              location,
               begin,
               i + 1 - begin,
             );
@@ -360,9 +378,8 @@ String unescapeCodeUnits(
         } else {
           // Expect exactly 4 hex digits.
           if (codeUnits.length <= i + 4) {
-            listener.handleUnescapeError(
+            handleUnescapeError(
               diag.invalidUnicodeEscapeUNoBracket,
-              location,
               begin,
               codeUnits.length + 1 - begin,
             );
@@ -372,9 +389,8 @@ String unescapeCodeUnits(
           for (int j = 0; j < 4; j++) {
             int digit = codeUnits[++i];
             if (!isHexDigit(digit)) {
-              listener.handleUnescapeError(
+              handleUnescapeError(
                 diag.invalidUnicodeEscapeUNoBracket,
-                location,
                 begin,
                 i + 1 - begin,
               );
@@ -384,12 +400,7 @@ String unescapeCodeUnits(
           }
         }
         if (code > 0x10FFFF) {
-          listener.handleUnescapeError(
-            diag.invalidCodePoint,
-            location,
-            begin,
-            i + 1 - begin,
-          );
+          handleUnescapeError(diag.invalidCodePoint, begin, i + 1 - begin);
           return new String.fromCharCodes(codeUnits);
         }
       } else {

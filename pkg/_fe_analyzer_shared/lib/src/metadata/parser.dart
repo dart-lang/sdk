@@ -931,7 +931,12 @@ class AnnotationsListener extends StackListener {
           if (object.text.length != 0) {
             // TODO(johnniwinther): Use the token corresponding to [object].
             Token token = endToken;
-            String value = unescape(object.text, quote, token, this);
+            String value = unescapeMiddleStringPart(
+              object.text,
+              quote,
+              token,
+              this,
+            );
             parts.add(new StringPart(value));
           }
         } else {
