@@ -729,6 +729,104 @@ bool false
 ''');
   }
 
+  test_equalEqual_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == dynamic;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = dynamic == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<A> == List<void>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<void> == List<A>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_equalEqual_userClass_hasEqEq() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -1172,6 +1270,104 @@ bool false
   test_identical_typeLiteral_simple_sameType() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 const c = identical(int, int);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, dynamic);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(dynamic, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<A>, List<void>);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<void>, List<A>);
 ''');
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
