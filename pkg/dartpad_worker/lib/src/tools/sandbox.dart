@@ -108,7 +108,9 @@ final class Sandbox {
     _pool.close().ignore();
     final c = _compiler;
     _compiler = null;
-    await c?.close();
-    await _client.close();
+    await Future.wait([
+      if (c != null) Future.sync(c.close),
+      Future.sync(_client.close),
+    ]);
   }
 }
