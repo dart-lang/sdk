@@ -15,20 +15,6 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   _SuperVisitor(this.name, this._usage);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    if (_usage == _Usage.writing) {
-      var left = node.leftHandSide2;
-      if (left is PropertyAccess) {
-        if (left.target2 is SuperExpression && left.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
-    }
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
       if (node.leftOperand is SuperReference && node.operator.lexeme == name) {

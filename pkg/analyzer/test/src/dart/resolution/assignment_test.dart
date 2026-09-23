@@ -19,6 +19,65 @@ main() {
 
 @reflectiveTest
 class AssignmentExpressionResolutionTest extends PubPackageResolutionTest {
+  test_callInvocation_compound_invalidTarget() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int g() => 0;
+void f() {
+  g() += 1;
+//^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: int Function()
+        type: int
+      staticType: int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      element: <testLibrary>::@function::g
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: int Function()
+    staticType: int
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_chain_importPrefix_setterOnly() async {
     newFile('$testPackageLibPath/a.dart', '''
 set value(int value) {}
@@ -3063,28 +3122,44 @@ void f(int a, int b, double c) {
 }
 ''');
 
-    var node = result.findNode.assignment('= c');
+    var node = result.findNode.compoundAssignment('= c');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: BinaryOperatorInvocation
-    leftOperand: UnqualifiedNameExpression
-      name: a
-      resolution: VariableReadResolution
-        element: <testLibrary>::@function::f::@formalParameter::a
-        type: int
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: BinaryOperatorInvocation
+      leftOperand: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: int
+        staticType: int
+      operator: +
+      rightOperand: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: int
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      binaryOperator: add
+      element: dart:core::@class::num::@method::+
       staticType: int
-    operator: +
-    rightOperand: UnqualifiedNameExpression
-      name: b
-      resolution: VariableReadResolution
-        element: <testLibrary>::@function::f::@formalParameter::b
-        type: int
-      correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-      staticType: int
-    binaryOperator: add
-    element: dart:core::@class::num::@method::+
-    staticType: int
-  leftHandSide(v1): BinaryExpression
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: double
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -3099,24 +3174,17 @@ AssignmentExpression
     staticInvokeType: num Function(num)
     staticType: int
   operator: +=
-  rightHandSide2: UnqualifiedNameExpression
-    name: c
-    resolution: VariableReadResolution
-      element: <testLibrary>::@function::f::@formalParameter::c
-      type: double
-    correspondingParameter: <null>
-    staticType: double
-  rightHandSide(v1): SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: c
-    correspondingParameter: <null>
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  element: <null>
-  staticType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: double
 ''');
   }
 
@@ -3326,30 +3394,50 @@ void f(int a, int b, double c) {
 }
 ''');
 
-    var node = result.findNode.assignment('= c');
+    var node = result.findNode.compoundAssignment('= c');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: ParenthesizedExpression
-    leftParenthesis: (
-    expression2: BinaryOperatorInvocation
-      leftOperand: UnqualifiedNameExpression
-        name: a
-        resolution: VariableReadResolution
-          element: <testLibrary>::@function::f::@formalParameter::a
-          type: int
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: BinaryOperatorInvocation
+        leftOperand: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int
+          staticType: int
+        operator: +
+        rightOperand: UnqualifiedNameExpression
+          name: b
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::b
+            type: int
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
         staticType: int
-      operator: +
-      rightOperand: UnqualifiedNameExpression
-        name: b
-        resolution: VariableReadResolution
-          element: <testLibrary>::@function::f::@formalParameter::b
-          type: int
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      binaryOperator: add
-      element: dart:core::@class::num::@method::+
+      rightParenthesis: )
       staticType: int
-    expression(v1): BinaryExpression
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: double
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: double
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: double
+  staticType: double
+V1: AssignmentExpression
+  leftHandSide: ParenthesizedExpression
+    leftParenthesis: (
+    expression: BinaryExpression
       leftOperand: SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
@@ -3366,24 +3454,17 @@ AssignmentExpression
     rightParenthesis: )
     staticType: int
   operator: +=
-  rightHandSide2: UnqualifiedNameExpression
-    name: c
-    resolution: VariableReadResolution
-      element: <testLibrary>::@function::f::@formalParameter::c
-      type: double
-    correspondingParameter: <null>
-    staticType: double
-  rightHandSide(v1): SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: c
-    correspondingParameter: <null>
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  element: <null>
-  staticType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: double
 ''');
   }
 
@@ -3512,25 +3593,41 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.compoundAssignment('= y');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IncrementOrDecrementExpression
-    target: UnqualifiedNameAssignmentTarget
-      name: x
-      read: VariableReadResolution
-        element: <testLibrary>::@function::f::@formalParameter::x
-        type: num
-      write: VariableWriteResolution
-        element: <testLibrary>::@function::f::@formalParameter::x
-        acceptedType: num
-    operator: ++
-    operation: increment
-    position: postfix
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PostfixExpression
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: IncrementOrDecrementExpression
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
+      operator: ++
+      operation: increment
+      position: postfix
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: UnqualifiedNameExpression
+    name: y
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::y
+      type: int
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+V1: AssignmentExpression
+  leftHandSide: PostfixExpression
     operand: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -3543,24 +3640,17 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
-  rightHandSide2: UnqualifiedNameExpression
-    name: y
-    resolution: VariableReadResolution
-      element: <testLibrary>::@function::f::@formalParameter::y
-      type: int
-    correspondingParameter: <null>
-    staticType: int
-  rightHandSide(v1): SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
-    correspondingParameter: <null>
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  element: <null>
-  staticType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: num
 ''');
   }
 
@@ -3709,25 +3799,41 @@ void f(num x, int y) {
 }
 ''');
 
-    var node = result.findNode.assignment('= y');
+    var node = result.findNode.compoundAssignment('= y');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IncrementOrDecrementExpression
-    operator: ++
-    target: UnqualifiedNameAssignmentTarget
-      name: x
-      read: VariableReadResolution
-        element: <testLibrary>::@function::f::@formalParameter::x
-        type: num
-      write: VariableWriteResolution
-        element: <testLibrary>::@function::f::@formalParameter::x
-        acceptedType: num
-    operation: increment
-    position: prefix
-    element: dart:core::@class::num::@method::+
-    operatorResultType: num
-    staticType: num
-  leftHandSide(v1): PrefixExpression
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: IncrementOrDecrementExpression
+      operator: ++
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
+      operation: increment
+      position: prefix
+      element: dart:core::@class::num::@method::+
+      operatorResultType: num
+      staticType: num
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: UnqualifiedNameExpression
+    name: y
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::y
+      type: int
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+V1: AssignmentExpression
+  leftHandSide: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: x
@@ -3740,24 +3846,17 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticType: num
   operator: +=
-  rightHandSide2: UnqualifiedNameExpression
-    name: y
-    resolution: VariableReadResolution
-      element: <testLibrary>::@function::f::@formalParameter::y
-      type: int
-    correspondingParameter: <null>
-    staticType: int
-  rightHandSide(v1): SimpleIdentifier
+  rightHandSide: SimpleIdentifier
     token: y
-    correspondingParameter: <null>
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  element: <null>
-  staticType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: num
 ''');
   }
 

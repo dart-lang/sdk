@@ -447,20 +447,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitAssignmentExpression(covariant AssignmentExpressionImpl node) {
-    TokenType operatorType = node.operator.type;
-    Expression lhs = node.leftHandSide2;
-    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
-      _checkForDeadNullCoalesce(node.readType!, node.rightHandSide2);
-    }
-    _checkForAssignmentToFinal(lhs);
-    _checkForAssignmentToPrimaryConstructorParameter(lhs);
-
-    _constArgumentsVerifier.visitAssignmentExpression(node);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     checkForUseOfVoidResult(node.expression2);
     _checkForAwaitInLateLocalVariableInitializer(node);
@@ -965,25 +951,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var constructorElement = node.constructorName.element;
-    if (constructorElement is ConstructorElement?) {
-      if (node.isConst) {
-        _checkForConstWithNonConst(constructorElement, node, node.constKeyword);
-      }
-      _checkForInvalidGenerativeConstructorReference(
-        node.constructorName,
-        constructorElement,
-      );
-    }
-    _requiredParametersVerifier.visitDotShorthandConstructorInvocation(node);
-    _checkUseVerifier.checkDotShorthandConstructorInvocation(node);
-    super.visitDotShorthandConstructorInvocation(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -1000,13 +967,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _requiredParametersVerifier.visitDotShorthandInvocation(node);
-    _checkUseVerifier.checkDotShorthandInvocation(node);
-    super.visitDotShorthandInvocation(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _verifyNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
@@ -1016,12 +976,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
     _constArgumentsVerifier.checkNameExpression(node);
     super.visitDotShorthandNameExpression(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _checkUseVerifier.checkDotShorthandPropertyAccess(node);
-    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
@@ -1522,13 +1476,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitFunctionReference(FunctionReference node) {
-    _constArgumentsVerifier.visitFunctionReference(node);
-    _typeArgumentsVerifier.checkFunctionReference(node);
-    super.visitFunctionReference(node);
-  }
-
-  @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var declaredFragment = node.declaredFragment!;
 
@@ -1728,27 +1675,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diagnosticReporter.report(diag.useOfVoidResult.at(node.target));
     }
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    // Note: `node.isNullAware` produces the wrong behavior because it considers
-    // all sections of a null-aware cascade to be null-aware, so it's necessary
-    // to look directly at the operator.
-    var isNullAware =
-        node.question != null ||
-        node.period?.type == TokenType.QUESTION_PERIOD_PERIOD;
-    if (isNullAware) {
-      _checkForUnnecessaryNullAware(
-        node.realTarget2,
-        node.question ?? node.period ?? node.leftBracket,
-        kind: node.isCascaded
-            ? _NullAwareKind.cascaded
-            : _NullAwareKind.indexExpression,
-      );
-    }
-
-    super.visitIndexExpression(node);
   }
 
   @override
@@ -3244,30 +3170,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         _diagnosticFactory.ambiguousImport(name: name, element: element),
       );
     }
-  }
-
-  /// Verify that the given [expression] is not final.
-  ///
-  /// See [diag.assignmentToConst],
-  /// [diag.assignmentToFinal], and
-  /// [diag.assignmentToMethod].
-  void _checkForAssignmentToFinal(Expression expression) {
-    // TODO(scheglov): Check SimpleIdentifier(s) as all other nodes.
-    if (expression is! SimpleIdentifier) return;
-
-    // Already handled in the assignment resolver.
-    if (expression.parent2 is AssignmentExpression) {
-      return;
-    }
-
-    // prepare element
-    var highlightedNode = expression;
-    var element = expression.element;
-    if (expression is PrefixedIdentifier) {
-      var prefixedIdentifier = expression as PrefixedIdentifier;
-      highlightedNode = prefixedIdentifier.identifier;
-    }
-    _checkForAssignmentToFinal2(highlightedNode, element);
   }
 
   void _checkForAssignmentToFinal2(

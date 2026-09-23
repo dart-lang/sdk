@@ -248,20 +248,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.isConst) {
-      var constructor = node.constructorName.element;
-      if (constructor is InternalConstructorElement) {
-        _validateConstructorInvocation(node, constructor, node.argumentList);
-      }
-    } else {
-      super.visitDotShorthandConstructorInvocation(node);
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -302,23 +288,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     super.visitFunctionInstantiation(node);
     if (node.inConstantContext || node.inConstantExpression) {
       for (var typeArgument in node.typeArguments.arguments) {
-        _checkForConstWithTypeParameters(
-          typeArgument,
-          diag.constWithTypeParametersFunctionTearoff,
-        );
-      }
-    }
-  }
-
-  @override
-  void visitFunctionReference(FunctionReference node) {
-    super.visitFunctionReference(node);
-    if (node.inConstantContext || node.inConstantExpression) {
-      var typeArguments = node.typeArguments;
-      if (typeArguments == null) {
-        return;
-      }
-      for (var typeArgument in typeArguments.arguments) {
         _checkForConstWithTypeParameters(
           typeArgument,
           diag.constWithTypeParametersFunctionTearoff,

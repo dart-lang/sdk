@@ -883,38 +883,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    // This check is used by the [ConstantVerifier] to check for constant
-    // default parameters and other instances where the invocation must be
-    // constant.
-    if (!node.isConst) {
-      // TODO(kallentu): Use a specific error code.
-      // https://github.com/dart-lang/sdk/issues/47061
-      return InvalidConstant.genericError(node: node);
-    }
-    var constructor = node.constructorName.element;
-    if (constructor is InternalConstructorElement) {
-      return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
-        _library,
-        node,
-        constructor.returnType.typeArguments,
-        node.argumentList.arguments2,
-        constructor,
-        this,
-      );
-    }
-
-    // Couldn't resolve the constructor so we can't compute a value.  No
-    // problem - the error has already been reported.
-    return InvalidConstant.forEntity(
-      entity: node,
-      locatableDiagnostic: diag.invalidConstant,
-    );
-  }
-
-  @override
   Constant visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -939,11 +907,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitDotShorthandInvocation(DotShorthandInvocation node) {
-    return _invalidConstantForMethodInvocation(node);
-  }
-
-  @override
   Constant visitDotShorthandMethodInvocation(
     DotShorthandMethodInvocation node,
   ) => _visitNamedFunctionInvocation(node);
@@ -961,18 +924,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitDotShorthandPropertyAccess(
-    covariant DotShorthandPropertyAccessImpl node,
-  ) {
-    return _getConstantValue(
-      errorNode: node,
-      expression: node,
-      element: node.propertyName.element,
-      tearOffTypeArgumentTypes: node.propertyName.tearOffTypeArgumentTypes,
-    );
-  }
-
-  @override
   Constant visitDoubleLiteral(DoubleLiteral node) {
     return DartObjectImpl(
       typeSystem,
@@ -986,22 +937,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     covariant FunctionInstantiationImpl node,
   ) {
     return _evaluateFunctionInstantiation(node.operand, node.typeArguments);
-  }
-
-  @override
-  Constant visitFunctionReference(covariant FunctionReferenceImpl node) {
-    if (node.typeArguments case var typeArguments?) {
-      return _evaluateFunctionInstantiation(node.function2, typeArguments);
-    }
-    var functionResult = evaluateConstant(node.function2);
-    if (functionResult is! DartObjectImpl) {
-      return functionResult;
-    }
-    return _instantiateFunctionType(
-      node,
-      node.typeArgumentTypes,
-      functionResult,
-    );
   }
 
   @override

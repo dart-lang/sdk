@@ -839,8 +839,8 @@ CompilationUnit
                         name: i
                         equals: =
                         initializer2: CallInvocation
-                          receiver: SimpleIdentifier
-                            token: assert
+                          receiver: ParsedUnqualifiedName
+                            name: assert
                           argumentList: ArgumentList
                             leftParenthesis: (
                             arguments2
@@ -1825,8 +1825,8 @@ CompilationUnit
                           literal: 0
                   leftSeparator: ;
                   condition2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -2793,8 +2793,8 @@ CompilationUnit
                           literal: 0
                   leftSeparator: ; <synthetic>
                   condition2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -4480,8 +4480,8 @@ CompilationUnit
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
                   initialization2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -6103,8 +6103,8 @@ CompilationUnit
                   rightSeparator: ;
                   updaters2
                     CallInvocation
-                      receiver: SimpleIdentifier
-                        token: assert
+                      receiver: ParsedUnqualifiedName
+                        name: assert
                       argumentList: ArgumentList
                         leftParenthesis: (
                         arguments2
@@ -7018,8 +7018,8 @@ CompilationUnit
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
                   condition2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
@@ -7936,8 +7936,8 @@ CompilationUnit
                         name: i
                   leftSeparator: ; <synthetic>
                   condition2: CallInvocation
-                    receiver: SimpleIdentifier
-                      token: assert
+                    receiver: ParsedUnqualifiedName
+                      name: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2

@@ -33,7 +33,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -80,7 +85,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: <empty> <synthetic>
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -129,7 +139,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .

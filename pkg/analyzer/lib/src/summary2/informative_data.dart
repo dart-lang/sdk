@@ -1898,12 +1898,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _tokenOrNull(node.operator);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
     super.visitBinaryOperatorInvocation(node);
@@ -2008,34 +2002,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    _tokenOrNull(node.constKeyword);
-    _tokenOrNull(node.period);
-    node.constructorName.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.period);
     _tokenOrNull(node.name);
-    node.typeArguments?.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
-  /// [DotShorthandConstructorInvocation]s when they're resolved to be
-  /// constructor invocations. However, since the tokens happen to be the same
-  /// between the two in this case, we have the same offsets.
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _tokenOrNull(node.period);
-    node.memberName.accept2(this);
     node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);
   }
@@ -2052,12 +2024,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
     _tokenOrNull(node.period);
     _tokenOrNull(node.name);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _tokenOrNull(node.period);
-    node.propertyName.accept2(this);
   }
 
   @override
@@ -2141,13 +2107,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   ) {
     _tokenOrNull(node.operator);
     super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexExpression(node);
   }
 
   @override

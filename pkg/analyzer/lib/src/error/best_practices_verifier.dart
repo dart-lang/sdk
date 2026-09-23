@@ -189,12 +189,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _elementUsageFrontierDetector.assignmentExpression(node);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(
     covariant BinaryOperatorInvocationImpl node,
   ) {
@@ -388,16 +382,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation(node);
-    _elementUsageFrontierDetector.dotShorthandConstructorInvocation(node);
-    _checkForLiteralConstructorUseInDotShorthand(node);
-    super.visitDotShorthandConstructorInvocation(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -408,24 +392,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
-    _elementUsageFrontierDetector.dotShorthandInvocation(node);
-    super.visitDotShorthandInvocation(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _elementUsageFrontierDetector.dotShorthandMethodInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _elementUsageFrontierDetector.dotShorthandPropertyAccess(node);
-    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
@@ -669,12 +640,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   ) {
     _elementUsageFrontierDetector.incrementOrDecrement(node);
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _elementUsageFrontierDetector.indexExpression(node);
-    super.visitIndexExpression(node);
   }
 
   @override
@@ -1355,24 +1320,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
           : diag.nonConstCallToLiteralConstructor;
       _diagnosticReporter.report(
         warning
-            .withArguments(constructorName: constructor.displayName)
-            .at(node),
-      );
-    }
-  }
-
-  /// Report a warning if the dot shorthand constructor is marked with [literal]
-  /// and is not const.
-  ///
-  /// See [diag.nonConstCallToLiteralConstructor].
-  void _checkForLiteralConstructorUseInDotShorthand(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var constructor = node.constructorName.element;
-    if (constructor is! ConstructorElement) return;
-    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      _diagnosticReporter.report(
-        diag.nonConstCallToLiteralConstructor
             .withArguments(constructorName: constructor.displayName)
             .at(node),
       );

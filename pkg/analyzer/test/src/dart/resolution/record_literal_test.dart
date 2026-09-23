@@ -127,7 +127,12 @@ VariableDeclaration
   equals: =
   initializer2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: <empty> <synthetic>
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    expression(v1): SimpleIdentifier
       token: <empty> <synthetic>
       element: <null>
       staticType: InvalidType

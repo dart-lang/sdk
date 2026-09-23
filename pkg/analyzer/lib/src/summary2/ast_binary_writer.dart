@@ -70,25 +70,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _sink.writeEnum(AstNodeTag.AssignmentExpression);
-
-    _writeNode(node.leftHandSide2);
-    _writeNode(node.rightHandSide2);
-
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _sink.writeEnum(binaryToken);
-
-    _sink.writeElement(node.element);
-    _sink.writeElement(node.readElement);
-    _sink.writeType(node.readType);
-    _sink.writeElement(node.writeElement);
-    _sink.writeType(node.writeType);
-    _storeExpression(node);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     _sink.writeEnum(AstNodeTag.AwaitExpression);
 
@@ -449,15 +430,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionReference(FunctionReference node) {
-    _sink.writeEnum(AstNodeTag.FunctionReference);
-    _writeNode(node.function2);
-    _writeOptionalNode(node.typeArguments);
-    _sink.writeOptionalTypeList(node.typeArgumentTypes);
-    _storeExpression(node);
-  }
-
-  @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     _sink.writeEnum(AstNodeTag.GenericFunctionType);
 
@@ -493,18 +465,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.IfNullAssignment);
     _writeNode(node.target);
     _writeNode(node.value);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitImplicitCallReference(ImplicitCallReference node) {
-    _sink.writeEnum(AstNodeTag.ImplicitCallReference);
-    _writeNode(node.expression2);
-    _writeOptionalNode(node.typeArguments);
-    _sink.writeOptionalTypeList(node.typeArgumentTypes);
-
-    _sink.writeElement(node.element);
-
     _storeExpression(node);
   }
 
@@ -581,23 +541,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNode(node.target);
     _sink.writeElement(node.element);
     _sink.writeType(node.operatorResultType);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _sink.writeEnum(AstNodeTag.IndexExpression);
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasPeriod: node.period != null,
-        hasQuestion: node.question != null,
-      ),
-    );
-    _writeOptionalNode(node.target2);
-    _writeNode(node.index2);
-
-    _sink.writeElement(node.element);
-
     _storeExpression(node);
   }
 

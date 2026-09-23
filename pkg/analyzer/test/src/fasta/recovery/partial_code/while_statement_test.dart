@@ -1345,8 +1345,8 @@ CompilationUnit
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2

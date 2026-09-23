@@ -73,19 +73,6 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    if (node.target2 is SuperExpression) {
-      if (node.inGetterContext()) {
-        _names.add('[]');
-      }
-      if (node.inSetterContext()) {
-        _names.add('[]=');
-      }
-    }
-    super.visitIndexExpression(node);
-  }
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.target2 is SuperExpression) {
       _names.add(node.methodName.name);

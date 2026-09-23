@@ -56,11 +56,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _check(arguments: [node.rightHandSide2], errorNode: node.operator);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _check(arguments: [node.rightOperand], errorNode: node.operator);
   }
@@ -116,11 +111,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     ImportPrefixedFunctionInvocation node,
   ) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index2], errorNode: node.leftBracket);
   }
 
   @override

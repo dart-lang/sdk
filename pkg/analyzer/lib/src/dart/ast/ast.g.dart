@@ -439,8 +439,6 @@ abstract class AstVisitor2<R> {
 
   R? visitAssignedVariablePattern(AssignedVariablePattern node);
 
-  R? visitAssignmentExpression(AssignmentExpression node);
-
   R? visitAwaitExpression(AwaitExpression node);
 
   @experimental
@@ -543,24 +541,16 @@ abstract class AstVisitor2<R> {
 
   R? visitDoStatement(DoStatement node);
 
-  R? visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  );
-
   @experimental
   R? visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   );
-
-  R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
   @experimental
   R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node);
 
   @experimental
   R? visitDotShorthandNameExpression(DotShorthandNameExpression node);
-
-  R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
 
   R? visitDottedName(DottedName node);
 
@@ -630,8 +620,6 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitFunctionInstantiation(FunctionInstantiation node);
 
-  R? visitFunctionReference(FunctionReference node);
-
   R? visitFunctionTypeAlias(FunctionTypeAlias node);
 
   R? visitFunctionTypedFormalParameterSuffix(
@@ -661,8 +649,6 @@ abstract class AstVisitor2<R> {
 
   R? visitImplementsClause(ImplementsClause node);
 
-  R? visitImplicitCallReference(ImplicitCallReference node);
-
   @experimental
   R? visitImplicitCallTearOff(ImplicitCallTearOff node);
 
@@ -686,8 +672,6 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node);
-
-  R? visitIndexExpression(IndexExpression node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
 
