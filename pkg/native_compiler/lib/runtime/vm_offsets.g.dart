@@ -2772,6 +2772,7 @@ enum ClassId {
   CodeSourceMapCid,
   CompressedStackMapsCid,
   LocalVarDescriptorsCid,
+  LocalVarDescriptorCid,
   ExceptionHandlersCid,
   ContextCid,
   ContextScopeCid,

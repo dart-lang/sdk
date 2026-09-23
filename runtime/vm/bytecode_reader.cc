@@ -3130,7 +3130,9 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
         vars.Add(LocalVarDescriptorsBuilder::VarDesc{
-            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+            &String::Handle(zone, parent_vars.GetName(i)),
+            &AbstractType::Handle(zone, parent_vars.GetStaticType(i)),
+            var_info});
       }
     }
   }

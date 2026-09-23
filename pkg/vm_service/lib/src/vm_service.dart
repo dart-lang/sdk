@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.22.0';
+const String vmServiceVersion = '4.23.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2776,6 +2776,9 @@ class BoundVariable extends Response {
   /// [value] can be one of [InstanceRef], [TypeArgumentsRef] or [Sentinel].
   dynamic value;
 
+  /// The static type of this variable, as declared in source.
+  InstanceRef? staticType;
+
   /// The token position where this variable was declared.
   int? declarationTokenPos;
 
@@ -2788,6 +2791,7 @@ class BoundVariable extends Response {
   BoundVariable({
     this.name,
     this.value,
+    this.staticType,
     this.declarationTokenPos,
     this.scopeStartTokenPos,
     this.scopeEndTokenPos,
@@ -2797,6 +2801,9 @@ class BoundVariable extends Response {
       : name = json['name'] ?? '',
         value = createServiceObject(json['value'],
             const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']),
+        staticType =
+            createServiceObject(json['staticType'], const ['InstanceRef'])
+                as InstanceRef?,
         declarationTokenPos = json['declarationTokenPos'] ?? -1,
         scopeStartTokenPos = json['scopeStartTokenPos'] ?? -1,
         scopeEndTokenPos = json['scopeEndTokenPos'] ?? -1,
@@ -2810,6 +2817,7 @@ class BoundVariable extends Response {
         'type': type,
         'name': name ?? '',
         'value': value?.toJson(),
+        'staticType': staticType?.toJson(),
         'declarationTokenPos': declarationTokenPos ?? -1,
         'scopeStartTokenPos': scopeStartTokenPos ?? -1,
         'scopeEndTokenPos': scopeEndTokenPos ?? -1,
@@ -2817,7 +2825,7 @@ class BoundVariable extends Response {
 
   @override
   String toString() => '[BoundVariable ' //
-      'name: $name, value: $value, declarationTokenPos: $declarationTokenPos, ' //
+      'name: $name, value: $value, staticType: $staticType, declarationTokenPos: $declarationTokenPos, ' //
       'scopeStartTokenPos: $scopeStartTokenPos, scopeEndTokenPos: $scopeEndTokenPos]';
 }
 

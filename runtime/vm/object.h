@@ -6193,14 +6193,37 @@ class InstructionsTable : public Object {
   friend class Deserializer;
 };
 
+class LocalVarDescriptor : public Object {
+ public:
+  StringPtr name() const { return untag()->name(); }
+  AbstractTypePtr static_type() const { return untag()->static_type(); }
+
+  void set_name(const String& value) const;
+  void set_static_type(const AbstractType& value) const;
+
+  static LocalVarDescriptorPtr New(const String& name,
+                                   const AbstractType& static_type,
+                                   Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptor));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
 
   StringPtr GetName(intptr_t var_index) const;
+  AbstractTypePtr GetStaticType(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
+              const AbstractType& static_type,
               UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   void GetInfo(intptr_t var_index,
@@ -6208,7 +6231,7 @@ class LocalVarDescriptors : public Object {
 
   static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo) +
-      sizeof(CompressedStringPtr);
+      sizeof(CompressedLocalVarDescriptorPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
 
@@ -6221,7 +6244,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
-           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, names));
+           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, descriptors));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
