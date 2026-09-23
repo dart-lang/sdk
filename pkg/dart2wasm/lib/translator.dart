@@ -23,6 +23,7 @@ import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'cfg/code_generator.dart';
+import 'cfg/ir_log.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
@@ -51,6 +52,7 @@ import 'wasm_annotations.dart';
 /// Options controlling the translation.
 class TranslatorOptions {
   bool useCfg = false;
+  String? dumpCfg;
   bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
@@ -100,6 +102,7 @@ class TranslatorOptions {
 class Translator with KernelNodes {
   // Options for the translation.
   final TranslatorOptions options;
+  late final CfgLog? cfgLog = options.dumpCfg != null ? CfgLog() : null;
 
   final Symbols symbols;
 

@@ -8,22 +8,26 @@ import 'package:cfg/ir/visitor.dart';
 
 /// Converts IR (either graph or a single instruction) to the text form.
 final class IrToText extends VoidInstructionVisitor {
-  final StringBuffer _buffer = StringBuffer();
+  final List<String> lines = [];
+  final StringBuffer _currentLine = StringBuffer();
   final bool printDominators;
   final bool printLoops;
   final String? Function(Instruction)? annotator;
+  final Map<Instruction, InstructionTextPosition>? positions;
 
   IrToText(
     FlowGraph graph, {
     this.printDominators = false,
     this.printLoops = false,
     this.annotator,
+    this.positions,
     Iterable<Block>? blockOrder,
   }) {
     blockOrder ??= graph.reversePostorder;
     for (final block in blockOrder) {
       block.accept(this);
     }
+    lines.add('');
   }
 
   IrToText.instruction(
@@ -31,23 +35,30 @@ final class IrToText extends VoidInstructionVisitor {
     this.printDominators = false,
     this.printLoops = false,
     this.annotator,
-  }) {
+  }) : positions = null {
     instr.accept(this);
+    if (_currentLine.isNotEmpty) {
+      _writeln();
+    }
   }
 
-  String toString() => _buffer.toString();
+  @override
+  String toString() => lines.join('\n');
 
   @override
   void defaultInstruction(Instruction instr) {
     _printReferenceIfNeeded(instr);
-    _buffer.write(opcode(instr));
-    _buffer.write('(');
-    _printInputs(instr);
-    _buffer.write(')');
+    final line = lines.length;
+    final col = instr is Block ? 0 : _currentLine.length;
+    _currentLine.write(opcode(instr));
+    _currentLine.write('(');
+    final inputCols = _printInputs(instr);
+    _currentLine.write(')');
+    positions?[instr] = InstructionTextPosition(line, col, inputCols);
     final extraInfo = annotator?.call(instr);
     if (extraInfo != null && extraInfo.isNotEmpty) {
-      _buffer.write(' ');
-      _buffer.write(extraInfo);
+      _currentLine.write(' ');
+      _currentLine.write(extraInfo);
     }
   }
 
@@ -55,125 +66,141 @@ final class IrToText extends VoidInstructionVisitor {
   void defaultBlock(Block block) {
     super.defaultBlock(block);
     if (block.exceptionHandler != null) {
-      _buffer.write(' exception-handler:${reference(block.exceptionHandler!)}');
+      _currentLine.write(
+        ' exception-handler:${reference(block.exceptionHandler!)}',
+      );
     }
     if (printDominators) {
       if (block.dominator != null) {
-        _buffer.write(' idom:${reference(block.dominator!)}');
+        _currentLine.write(' idom:${reference(block.dominator!)}');
       }
       if (block.dominatedBlocks.isNotEmpty) {
-        _buffer.write(' dominates:${block.dominatedBlocks.map(reference)}');
+        _currentLine.write(
+          ' dominates:${block.dominatedBlocks.map(reference)}',
+        );
       }
     }
     if (printLoops) {
       final loop = block.loop;
       if (loop != null) {
         if (block == loop.header) {
-          _buffer.write(
+          _currentLine.write(
             ' loop-header (depth:${loop.depth}' +
                 ' body:${loop.body.map(reference)}' +
                 ' back-edges:${loop.backEdges.map(reference)})',
           );
         } else {
-          _buffer.write(' in-loop:${reference(loop.header)}');
+          _currentLine.write(' in-loop:${reference(loop.header)}');
         }
       }
     }
-    _buffer.writeln();
+    _writeln();
     for (final instr in block) {
-      _buffer.write('  ');
+      _currentLine.write('  ');
       instr.accept(this);
-      _buffer.writeln();
+      _writeln();
     }
   }
 
   void _printReferenceIfNeeded(Instruction instr) {
     if (instr is Definition && instr.hasUses || instr is Block) {
-      _buffer.write(reference(instr));
-      _buffer.write(' = ');
+      _currentLine.write(reference(instr));
+      _currentLine.write(' = ');
     }
   }
 
-  void _printInputs(Instruction instr) {
+  List<int> _printInputs(Instruction instr) {
     switch (instr) {
       case Parameter():
-        _buffer.write(instr.variable.name);
+        _currentLine.write(instr.variable.name);
       case LoadLocal():
-        _buffer.write(instr.variable.name);
+        _currentLine.write(instr.variable.name);
       case StoreLocal():
-        _buffer.write(instr.variable.name);
-        _buffer.write(', ');
+        _currentLine.write(instr.variable.name);
+        _currentLine.write(', ');
       case LoadField():
-        _buffer.write(instr.field);
+        _currentLine.write(instr.field);
         if (instr.inputCount > 0) {
-          _buffer.write(', ');
+          _currentLine.write(', ');
         }
       case StoreField():
-        _buffer.write(instr.field);
-        _buffer.write(', ');
+        _currentLine.write(instr.field);
+        _currentLine.write(', ');
       case TypeLiteral():
-        _buffer.write(instr.uninstantiatedType.getDisplayString());
-        _buffer.write(', ');
+        _currentLine.write(instr.uninstantiatedType.getDisplayString());
+        _currentLine.write(', ');
       case SubtypeCheck():
-        _buffer.write('type: ');
-        _buffer.write(instr.type);
-        _buffer.write(', bound: ');
-        _buffer.write(instr.bound);
-        _buffer.write(', name:');
-        _buffer.write(instr.name);
+        _currentLine.write('type: ');
+        _currentLine.write(instr.type);
+        _currentLine.write(', bound: ');
+        _currentLine.write(instr.bound);
+        _currentLine.write(', name:');
+        _currentLine.write(instr.name);
         if (instr.inputCount > 0) {
-          _buffer.write(', ');
+          _currentLine.write(', ');
         }
       case _:
     }
-    for (int i = 0, n = instr.inputCount; i < n; ++i) {
-      if (i != 0) _buffer.write(', ');
-      _buffer.write(reference(instr.inputDefAt(i)));
+    List<int>? inputCols;
+    final n = instr.inputCount;
+    if (positions != null && n > 0) {
+      inputCols = List<int>.filled(n, 0);
+    }
+    for (var i = 0; i < n; ++i) {
+      if (i != 0) _currentLine.write(', ');
+      inputCols?[i] = _currentLine.length;
+      _currentLine.write(reference(instr.inputDefAt(i)));
     }
     switch (instr) {
       case JoinBlock():
-        _buffer.write(instr.predecessors.map(reference).join(', '));
+        _currentLine.write(instr.predecessors.map(reference).join(', '));
       case Goto():
-        _buffer.write(reference(instr.target));
+        _currentLine.write(reference(instr.target));
       case Branch():
-        _buffer.write(', true: ');
-        _buffer.write(reference(instr.trueSuccessor));
-        _buffer.write(', false: ');
-        _buffer.write(reference(instr.falseSuccessor));
+        _currentLine.write(', true: ');
+        _currentLine.write(reference(instr.trueSuccessor));
+        _currentLine.write(', false: ');
+        _currentLine.write(reference(instr.falseSuccessor));
       case CompareAndBranch():
-        _buffer.write(', true: ');
-        _buffer.write(reference(instr.trueSuccessor));
-        _buffer.write(', false: ');
-        _buffer.write(reference(instr.falseSuccessor));
+        _currentLine.write(', true: ');
+        _currentLine.write(reference(instr.trueSuccessor));
+        _currentLine.write(', false: ');
+        _currentLine.write(reference(instr.falseSuccessor));
       case TryEntry():
-        _buffer.write('try-body: ');
-        _buffer.write(reference(instr.tryBody));
-        _buffer.write(', catch-block: ');
-        _buffer.write(reference(instr.catchBlock));
+        _currentLine.write('try-body: ');
+        _currentLine.write(reference(instr.tryBody));
+        _currentLine.write(', catch-block: ');
+        _currentLine.write(reference(instr.catchBlock));
       case Constant():
-        _buffer.write(instr.value.valueToString());
+        _currentLine.write(instr.value.valueToString());
       case TypeCast():
-        _buffer.write(', ');
-        _buffer.write(instr.testedType);
+        _currentLine.write(', ');
+        _currentLine.write(instr.testedType);
         if (!instr.isChecked) {
-          _buffer.write(', unchecked');
+          _currentLine.write(', unchecked');
         }
       case TypeTest():
-        _buffer.write(', ');
-        _buffer.write(instr.testedType);
+        _currentLine.write(', ');
+        _currentLine.write(instr.testedType);
       case TypeArguments():
-        if (instr.inputCount > 0) _buffer.write(', ');
-        _buffer.write('<');
-        _buffer.write(
+        if (instr.inputCount > 0) _currentLine.write(', ');
+        _currentLine.write('<');
+        _currentLine.write(
           instr.types.map((type) => type.getDisplayString()).join(', '),
         );
-        _buffer.write('>');
+        _currentLine.write('>');
       case AllocateClosure():
-        _buffer.write(instr.closureLayout);
+        _currentLine.write(instr.closureLayout);
       case ParallelMove():
-        _buffer.write(instr.moves.join(', '));
+        _currentLine.write(instr.moves.join(', '));
       case _:
     }
+    return inputCols ?? const [];
+  }
+
+  void _writeln() {
+    lines.add(_currentLine.toString());
+    _currentLine.clear();
   }
 
   static String reference(Instruction instr) => switch (instr) {
@@ -206,4 +233,21 @@ final class IrToText extends VoidInstructionVisitor {
     AllocateRecord() => 'AllocateRecord ${instr.type}',
     _ => instr.runtimeType.toString(),
   };
+}
+
+/// Line and column positions of an [Instruction] in textual IR output.
+class InstructionTextPosition {
+  /// The 0-based line number of the instruction.
+  final int line;
+
+  /// The 0-based column number of the instruction's opcode.
+  final int column;
+
+  /// The 0-based column numbers of each input operand.
+  final List<int> inputColumns;
+
+  const InstructionTextPosition(this.line, this.column, this.inputColumns);
+
+  InstructionTextPosition withLineOffset(int offset) =>
+      InstructionTextPosition(line + offset, column, inputColumns);
 }
