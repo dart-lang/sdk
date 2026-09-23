@@ -1,6 +1,9 @@
 ## 14.5.0-dev
 
-* Internal changes only
+* Removed support for the `new` keyword in comment references. Text such as `[new C]` in a documentation comment is no
+  longer a comment reference, so it  isn't resolved, indexed, or renamed. Use `[C.new]` instead.
+* Deprecated `CommentReference.newKeyword`. It now always returns `null`.
+* Removed the `deprecated_new_in_comment_reference` diagnostic, along with its quick fix.
 
 ## 14.4.0
 

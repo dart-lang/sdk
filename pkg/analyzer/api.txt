@@ -1482,7 +1482,7 @@ package:analyzer/dart/ast/ast.dart:
   CommentReference (class extends Object implements AstNode, abstract, final):
     expression (getter: CommentReferableExpression)
     expression2 (getter: CommentReferableExpression, experimental)
-    newKeyword (getter: Token?)
+    newKeyword (getter: Token?, deprecated)
   CompilationUnit (class extends Object implements AstNode, FragmentDeclaringNode, abstract, final):
     beginToken (getter: Token)
     declarations (getter: NodeList<CompilationUnitMember>)

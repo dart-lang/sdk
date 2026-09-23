@@ -1896,41 +1896,21 @@ var s = 'begin \u{110000}';
   }
 
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_nonIdentifier() {
-    parseTestCodeWithDiagnostics(r'''
-/// [new 42]
-//       ^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
-''');
-  }
-
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_tooMuch() {
-    parseTestCodeWithDiagnostics(r'''
-/// [new a.b.c.d]
-//       ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
-''');
-  }
-
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_nonIdentifier() {
+  void test_invalidCommentReference_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [42]
 //   ^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }
 
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_tooMuch() {
+  void test_invalidCommentReference_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]
 //   ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }

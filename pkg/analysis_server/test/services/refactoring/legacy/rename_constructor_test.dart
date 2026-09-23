@@ -167,8 +167,7 @@ class A {
 
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   A^() {}
   factory A._() = A;
@@ -189,8 +188,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {}
   factory A._() = A.newName;
@@ -207,8 +205,7 @@ void f() {
 
   Future<void> test_createChange_add_toSynthetic() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   int field = 0;
 }
@@ -228,8 +225,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   int field = 0;
 
@@ -247,8 +243,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_factory() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   new () {}
   factory ^test() = A;
@@ -266,8 +261,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   new () {}
   factory newName() = A;
@@ -281,8 +275,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_full() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {}
   factory A._() = A.test;
@@ -303,8 +296,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {}
   factory A._() = A.newName;
@@ -321,8 +313,7 @@ void f() {
 
   Future<void> test_createChange_change_inBody_new() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   new ^test() {}
   factory A._() = A.test;
@@ -343,8 +334,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   new newName() {}
   factory A._() = A.newName;
@@ -361,8 +351,7 @@ void f() {
 
   Future<void> test_createChange_change_primary() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A.^test() {
   factory A._() = A.test;
 }
@@ -382,8 +371,7 @@ void f() {
     // validate change
     refactoring.newName = 'newName';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A.newName() {
   factory A._() = A.newName;
 }
@@ -543,8 +531,7 @@ void f() {
 
   Future<void> test_createChange_remove() async {
     await indexTestUnit('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {}
   factory A._() = A.test;
@@ -565,8 +552,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A] and [new A]
+/// Documentation for [A]
 class A {
   A() {}
   factory A._() = A;

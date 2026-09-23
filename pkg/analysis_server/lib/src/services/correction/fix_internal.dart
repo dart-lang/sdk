@@ -151,7 +151,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_constructor_
 import 'package:analysis_server/src/services/correction/dart/remove_dead_code.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_dead_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_default_value.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_deprecated_new_in_comment_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_duplicate_case.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
@@ -1037,9 +1036,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.deprecatedExtend: [RemoveExtendsClause.new],
   diag.deprecatedImplement: [RemoveNameFromDeclarationClause.new],
   diag.deprecatedImplementsFunction: [RemoveNameFromDeclarationClause.new],
-  diag.deprecatedNewInCommentReference: [
-    RemoveDeprecatedNewInCommentReference.new,
-  ],
   diag.deprecatedSubclass: [RemoveNameFromDeclarationClause.new],
   diag.duplicateHiddenName: [RemoveNameFromCombinator.new],
   diag.duplicateImport: [RemoveUnusedImport.new],

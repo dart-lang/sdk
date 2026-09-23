@@ -8924,7 +8924,7 @@ sealed class CommentReferableExpressionImpl extends ExpressionImpl
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///     commentReference ::=
-///         '[' 'new'? [CommentReferableExpression] ']'
+///         '[' [CommentReferableExpression] ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
@@ -8934,14 +8934,17 @@ abstract final class CommentReference implements AstNode {
   @experimental
   CommentReferableExpression get expression2;
 
-  /// The token representing the `new` keyword, or `null` if there was no `new`
-  /// keyword.
+  /// Always `null`.
+  ///
+  /// Comment references of the form `[new C]` are no longer recognized; such
+  /// text isn't a comment reference at all, so no [CommentReference] node is
+  /// created for it.
+  @Deprecated("Support for 'new' in comment references has been removed.")
   Token? get newKeyword;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('newKeyword'),
     GenerateNodeProperty(
       'expression2',
       v1Name: 'expression',
@@ -8953,10 +8956,6 @@ abstract final class CommentReference implements AstNode {
 final class CommentReferenceImpl extends AstNodeImpl
     implements CommentReference {
   @generated
-  @override
-  final Token? newKeyword;
-
-  @generated
   CommentReferableExpressionImpl _expression2;
 
   @generated
@@ -8965,7 +8964,6 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   @generated
   CommentReferenceImpl({
-    required this.newKeyword,
     required CommentReferableExpressionImpl expression2,
     required this.isSynthetic,
   }) : _expression2 = expression2 {
@@ -8975,9 +8973,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   Token get beginToken {
-    if (newKeyword case var newKeyword?) {
-      return newKeyword;
-    }
     return expression2.beginToken;
   }
 
@@ -9005,17 +9000,19 @@ final class CommentReferenceImpl extends AstNodeImpl
     _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
-  @generated
+  @Deprecated("Support for 'new' in comment references has been removed.")
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('expression', expression);
+  Token? get newKeyword => null;
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('expression2', expression2);
+  ChildEntities get _childEntities =>
+      ChildEntities()..addNode('expression', expression);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('expression2', expression2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')

@@ -306,18 +306,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitCommentReference(CommentReference node) {
-    var newKeyword = node.newKeyword;
-    if (newKeyword != null &&
-        _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      _diagnosticReporter.report(
-        diag.deprecatedNewInCommentReference.at(newKeyword),
-      );
-    }
-    super.visitCommentReference(node);
-  }
-
-  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _elementUsageFrontierDetector.compoundAssignment(node);
     super.visitCompoundAssignment(node);

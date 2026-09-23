@@ -481,15 +481,6 @@ class B {}
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
 Comment
-  references
-    CommentReference
-      newKeyword: new
-      expression2: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-        period: .
-        identifier: SimpleIdentifier
-          token: A
   tokens
     /// [new a.A].
 ''');
@@ -504,11 +495,6 @@ class B {}
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
 Comment
-  references
-    CommentReference
-      newKeyword: new
-      expression2: SimpleIdentifier
-        token: A
   tokens
     /// [new A].
 ''');

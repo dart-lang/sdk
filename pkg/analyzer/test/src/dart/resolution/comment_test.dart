@@ -1926,39 +1926,14 @@ class A {
 library;
 
 /// [new A] or [new A.named]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
-//              ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
 main() {}
 ''');
 
-    var node1 = result.findNode.commentReference('A]');
-    assertResolvedNodeText(node1, r'''
-CommentReference
-  newKeyword: new
-  expression2: SimpleIdentifier
-    token: A
-    element: package:test/foo.dart::@class::A::@constructor::new
-    staticType: null
-''');
-
-    var node2 = result.findNode.commentReference('A.named]');
-    assertResolvedNodeText(node2, r'''
-CommentReference
-  newKeyword: new
-  expression2: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: A
-      element: package:test/foo.dart::@class::A
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: named
-      element: package:test/foo.dart::@class::A::@constructor::named
-      staticType: null
-    element: package:test/foo.dart::@class::A::@constructor::named
-    staticType: null
+    var node = result.findNode.comment('[new A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  tokens
+    /// [new A] or [new A.named]
 ''');
   }
 
@@ -2126,39 +2101,14 @@ class A {
 }
 
 /// [new A] or [new A.named]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
-//              ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
 main() {}
 ''');
 
-    var node1 = result.findNode.commentReference('A]');
-    assertResolvedNodeText(node1, r'''
-CommentReference
-  newKeyword: new
-  expression2: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A::@constructor::new
-    staticType: null
-''');
-
-    var node2 = result.findNode.commentReference('A.named]');
-    assertResolvedNodeText(node2, r'''
-CommentReference
-  newKeyword: new
-  expression2: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: A
-      element: <testLibrary>::@class::A
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: named
-      element: <testLibrary>::@class::A::@constructor::named
-      staticType: null
-    element: <testLibrary>::@class::A::@constructor::named
-    staticType: null
+    var node = result.findNode.comment('[new A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  tokens
+    /// [new A] or [new A.named]
 ''');
   }
 
