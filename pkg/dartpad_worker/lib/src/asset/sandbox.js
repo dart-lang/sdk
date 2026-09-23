@@ -65,26 +65,33 @@
     );
   }
 
-  // Registry of RPC methods
-  const rpcMethods = {};
+  // Registry of RPC methods, `Object.create(null)` so that inherited properties
+  // such as `constructor` aren't mistaken for methods.
+  const rpcMethods = Object.create(null);
 
   async function onRcpMessage(ev) {
-    // Ignore invalid messages from the host
-    if (!ev.data.payload) return;
+    let m;
+    try {
+      // Ignore invalid messages from the host
+      if (!ev.data?.payload) return;
 
-    const m = JSON.parse(ev.data.payload);
+      m = JSON.parse(ev.data.payload);
 
-    // Ignore invalid payloads!
-    if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+      // Ignore invalid payloads!
+      if (!m || m.jsonrpc !== '2.0' || !m.method) return;
 
-    for (const prop of ['port', 'bytes']) {
-      if (ev.data[prop]) {
-        for (const k of ['params', 'result']) {
-          if (m[k]) {
-            m[k][prop] = ev.data[prop];
+      for (const prop of ['port', 'bytes']) {
+        if (ev.data[prop]) {
+          for (const k of ['params', 'result']) {
+            if (m[k]) {
+              m[k][prop] = ev.data[prop];
+            }
           }
         }
       }
+    } catch (e) {
+      originalConsole.error.call(console, 'Ignoring malformed RPC message:', e);
+      return;
     }
 
     const handler = rpcMethods[m.method];
@@ -98,7 +105,7 @@
       }
 
       // Execute the registered method
-      const result = await handler(m.params);
+      const result = (await handler(m.params)) ?? {};
 
       // If it's a request (has an id), send a success response
       if (m.id !== undefined) {
@@ -116,7 +123,7 @@
           payload: JSON.stringify({
             jsonrpc: '2.0',
             id: m.id,
-            result: result ?? {}
+            result,
           }),
           bytes,
           port,
@@ -124,7 +131,8 @@
       }
     } catch (e) {
       if (m.id === undefined) {
-        console.error(`RPC Notification Error (${m.method}):`, e);
+        originalConsole.error.call(
+          console, `RPC Notification Error (${m.method}):`, e);
         return;
       }
       const { code, message } = asRpcError(e);
