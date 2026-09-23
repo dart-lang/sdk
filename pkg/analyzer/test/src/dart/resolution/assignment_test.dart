@@ -212,6 +212,83 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_classInstantiation_staticSetter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {
+  static set value(int value) {}
+}
+void f() {
+  C<int>.value = 1;
+//^^^^^^^^^^^^
+// [diag.classInstantiationAccessToStaticMember] The static member 'value' can't be accessed on a class instantiation.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<int>
+      selector: ConstructorSelector
+        period: .
+        name2: value
+      element: <null>
+      staticType: InvalidType
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: value
+        element: <null>
+        staticType: null
+      element: <null>
+    staticType: InvalidType
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_compound_binaryOperator() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(dynamic x) {
@@ -791,6 +868,535 @@ V1: AssignmentExpression
   writeType: dynamic
   element: <null>
   staticType: dynamic
+''');
+  }
+
+  test_functionInstantiation_property_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+extension E on int Function(int) {
+  int get value => 0;
+  set value(int value) {}
+}
+void f() {
+  identity<int>.value += 1;
+}
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: FunctionInstantiation
+      operand: UnqualifiedNameExpression
+        name: identity
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@function::identity
+          type: T Function<T>(T)
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)
+      typeArgumentTypes
+        int
+    operator: .
+    name: value
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::value
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::value
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: FunctionReference
+      function: SimpleIdentifier
+        token: identity
+        element: <testLibrary>::@function::identity
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: value
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@extension::E::@getter::value
+  readType: int
+  writeElement: <testLibrary>::@extension::E::@setter::value
+  writeType: int
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_functionInstantiation_property_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T identity<T>(T value) => value;
+extension E on int Function(int) {
+  int? get value => null;
+  set value(int? value) {}
+}
+void f() {
+  identity<int>.value ??= 1;
+}
+''');
+
+    var node = result.findNode.singleIfNullAssignment;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: FunctionInstantiation
+      operand: UnqualifiedNameExpression
+        name: identity
+        resolution: ExecutableTearOffResolution
+          element: <testLibrary>::@function::identity
+          type: T Function<T>(T)
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)
+      typeArgumentTypes
+        int
+    operator: .
+    name: value
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::value
+      invokeType: int? Function()
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::value
+      acceptedType: int?
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::value::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: FunctionReference
+      function: SimpleIdentifier
+        token: identity
+        element: <testLibrary>::@function::identity
+        staticType: T Function<T>(T)
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      staticType: int Function(int)
+      typeArgumentTypes
+        int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: value
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::value::@formalParameter::value
+    staticType: int
+  readElement: <testLibrary>::@extension::E::@getter::value
+  readType: int?
+  writeElement: <testLibrary>::@extension::E::@setter::value
+  writeType: int?
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_functionTypeAlias_instantiated_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+extension E on Type {
+  int get foo => 0;
+  set foo(int value) {}
+}
+void f() {
+  Fn<int>.foo += 1;
+//        ^^^
+// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
+}
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Fn
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::Fn
+            typeArguments
+              int
+      selector: ConstructorSelector
+        period: .
+        name2: foo
+      element: <null>
+      staticType: InvalidType
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Fn
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: foo
+        element: <null>
+        staticType: null
+      element: <null>
+    staticType: InvalidType
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_functionTypeAlias_instantiated_setter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo = 7;
+//        ^^^
+// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
+}
+
+extension E on Type {
+  set foo(int value) {}
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Fn
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::Fn
+            typeArguments
+              int
+      selector: ConstructorSelector
+        period: .
+        name2: foo
+      element: <null>
+      staticType: InvalidType
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 7
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::Fn
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: foo
+        element: <null>
+        staticType: null
+      element: <null>
+    staticType: InvalidType
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 7
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_functionTypeAlias_instantiated_setter_parenthesized() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+extension E on Type {
+  set foo(int value) {}
+}
+void f() {
+  (Fn<int>).foo = 1;
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: TypeLiteral
+        type: NamedType
+          name: Fn
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+            rightBracket: >
+          element: <testLibrary>::@typeAlias::Fn
+          type: void Function(int)
+            alias: <testLibrary>::@typeAlias::Fn
+              typeArguments
+                int
+        staticType: Type
+      rightParenthesis: )
+      staticType: Type
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extension::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: TypeLiteral
+        type: NamedType
+          name: Fn
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+            rightBracket: >
+          element: <testLibrary>::@typeAlias::Fn
+          type: void Function(int)
+            alias: <testLibrary>::@typeAlias::Fn
+              typeArguments
+                int
+        staticType: Type
+      rightParenthesis: )
+      staticType: Type
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@setter::foo
+  writeType: int
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_functionTypeAlias_instantiated_setter_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+typedef Fn<T> = void Function(T);
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as a;
+extension E on Type {
+  set foo(int value) {}
+}
+void f() {
+  a.Fn<int>.foo = 1;
+//          ^^^
+// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'a.Fn' function type.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: a
+          period: .
+          element: <testLibraryFragment>::@prefix::a
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: package:test/a.dart::@typeAlias::Fn
+        type: void Function(int)
+          alias: package:test/a.dart::@typeAlias::Fn
+            typeArguments
+              int
+      selector: ConstructorSelector
+        period: .
+        name2: foo
+      element: <null>
+      staticType: InvalidType
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        importPrefix: ImportPrefixReference
+          name: a
+          period: .
+          element: <testLibraryFragment>::@prefix::a
+        name: Fn
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: package:test/a.dart::@typeAlias::Fn
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: foo
+        element: <null>
+        staticType: null
+      element: <null>
+    staticType: InvalidType
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
 ''');
   }
 

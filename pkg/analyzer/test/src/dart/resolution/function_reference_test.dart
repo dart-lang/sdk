@@ -7790,6 +7790,62 @@ V1: FunctionReference
 ''');
   }
 
+  test_typeParameter_parenthesized() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {
+  void f() {
+    (T)<int>;
+//  ^^^
+// [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+  }
+}
+''');
+
+    var node = result.findNode.functionInstantiation('(T)<int>');
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: T
+        element: #E0 T
+        type: T
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: T
+        element: #E0 T
+        type: T
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
   test_unknownIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void bar() {
@@ -8085,6 +8141,19 @@ V1: InstanceCreationExpression
 class FunctionReferenceResolutionTest_BeforeConstructorTearoffs
     extends PubPackageResolutionTest
     with BeforeConstructorTearoffsMixin {
+  test_instanceMethod_targetOfCall() async {
+    await resolveTestCodeWithDiagnostics('''
+class C {
+  T identity<T>(T value) => value;
+}
+void f(C c) {
+  c.identity<int>.call(0);
+//^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
+}
+''');
+  }
+
   test_localVariable() async {
     // This code includes a disallowed type instantiation (local variable),
     // but in the case that the experiment is not enabled, we suppress the
@@ -8136,6 +8205,16 @@ V1: FunctionReference
 ''');
   }
 
+  test_localVariable_targetOfCall() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(T Function<T>(T) identity) {
+  identity<int>.call(0);
+//^^^^^^^^
+// [diag.newWithNonType] The name 'identity' isn't a class.
+}
+''');
+  }
+
   test_topLevelFunction_targetOfCall() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T identity<T>(T value) => value;
@@ -8147,8 +8226,8 @@ var x = identity<int>.call(0);
 
     var node = result.findNode.singleVariableDeclaration.initializer2!;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: FunctionInstantiation
+ReceiverMethodInvocation
+  receiver: FunctionInstantiation
     operand: UnqualifiedNameExpression
       name: identity
       resolution: ExecutableTearOffResolution
@@ -8166,7 +8245,24 @@ MethodInvocation
     staticType: int Function(int)
     typeArgumentTypes
       int
-  target(v1): FunctionReference
+  operator: .
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::identity::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: FunctionReference
     function: SimpleIdentifier
       token: identity
       element: <testLibrary>::@function::identity
@@ -8186,10 +8282,10 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: call
     element: <null>
-    staticType: dynamic
+    staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl

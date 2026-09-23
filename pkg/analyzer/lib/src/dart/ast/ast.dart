@@ -25925,7 +25925,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     _checkV2View();
-    resolver.visitFunctionReference(this, contextType: contextType);
+    throw UnsupportedError('FunctionReference cannot be resolved.');
   }
 
   @override
@@ -43165,21 +43165,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   ExpressionImpl get v1Projection =>
-      _v1Projection ??= _ParsedExpressionBuilder(this, forV1: true).build();
-
-  /// Builds the unresolved invocation forms consumed by the existing resolver.
-  ///
-  /// This is a migration bridge for invocations and invalid type applications
-  /// that are not resolved directly from their parsed syntax. Standalone type
-  /// applications and type-qualified constructor calls and tear-offs lower
-  /// directly to their canonical V2 nodes. Selectors on known function-value
-  /// type applications also resolve directly, preserving constructor recovery
-  /// for ambiguous type-shaped names.
-  /// Super property reads and named calls use the direct receiver paths too.
-  /// It must not consume the cached V1 projection, whose children have different
-  /// parents.
-  ExpressionImpl buildUnresolvedExpression() =>
-      _ParsedExpressionBuilder(this, forV1: false).build();
+      _v1Projection ??= _ParsedExpressionBuilder(this).build();
 
   String _toSourceThrough(Token endToken) {
     InstanceReceiverImpl node = this;
@@ -61066,19 +61052,13 @@ class _Generated {
   const _Generated();
 }
 
-/// Builds a V1 projection or an unresolved resolver tree from parsed syntax.
+/// Builds a V1 projection from parsed syntax, preserving canonical ownership.
 ///
-/// With [forV1], builds compatibility projections and preserves canonical child
-/// ownership. Otherwise, builds unresolved expressions for the existing resolver
-/// and transfers canonical children to them. Both modes share syntactic grouping;
-/// this builder performs no name lookup or type inference.
-// TODO(scheglov): Resolve invocations directly from parsed expressions, then
-// remove buildUnresolvedExpression() and the non-V1 mode of this builder.
+/// This builder performs syntactic grouping without name lookup or inference.
 class _ParsedExpressionBuilder {
   final ParsedExpressionImpl chain;
-  final bool forV1;
 
-  _ParsedExpressionBuilder(this.chain, {required this.forV1});
+  _ParsedExpressionBuilder(this.chain);
 
   ExpressionImpl build() {
     InstanceReceiverImpl node = chain;
@@ -61100,57 +61080,30 @@ class _ParsedExpressionBuilder {
     var parent = node.parent2;
     ExpressionImpl result;
     if (node is ParsedCascadeNameImpl) {
-      result = forV1
-          ? PropertyAccessImpl.v1ProjectionFromParsedExpression(
-              node,
-              null,
-              node.thisOrAncestorOfType2<CascadeSectionImpl>()!.operator,
-              _identifier(node.name),
-            )
-          : CascadePropertyExtractionImpl(name: node.name);
+      result = PropertyAccessImpl.v1ProjectionFromParsedExpression(
+        node,
+        null,
+        node.thisOrAncestorOfType2<CascadeSectionImpl>()!.operator,
+        _identifier(node.name),
+      );
     } else if (node is ParsedDotShorthandNameImpl) {
-      result = forV1
-          ? DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
-              node,
-            )
-          : DotShorthandNameExpressionImpl(
-              period: node.period,
-              name: node.name,
-            );
+      result = DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
+        node,
+      );
     } else if (node is ParsedUnqualifiedNameImpl) {
-      result = forV1
-          ? SimpleIdentifierImpl.v1Projection(token: node.name, origin: node)
-          : _identifier(node.name);
+      result = SimpleIdentifierImpl.v1Projection(
+        token: node.name,
+        origin: node,
+      );
     } else {
-      result = forV1
-          ? V1Projection.toV1NamedReceiver(node)
-          : node is SuperReferenceImpl
-          ? InvalidSuperExpressionImpl(superReference: node)
-          : node as ExpressionImpl;
+      result = V1Projection.toV1NamedReceiver(node);
     }
-    // An ordinary expression operand is reused. Save its original parent
-    // before construction transfers it into the replacement tree.
     while (!identical(node, chain)) {
       node = parent as ParsedExpressionImpl;
       parent = node.parent2;
       switch (node) {
         case ParsedNameAccessImpl(:var operator, :var name):
-          if (forV1) {
-            result = V1Projection._parsedProperty(node, result, operator, name);
-          } else if (result is SimpleIdentifierImpl &&
-              operator.type == TokenType.PERIOD) {
-            result = PrefixedIdentifierImpl(
-              prefix: result,
-              period: operator,
-              identifier: _identifier(name),
-            );
-          } else {
-            result = PropertyAccessImpl(
-              target2: result,
-              operator: operator,
-              propertyName: _identifier(name),
-            );
-          }
+          result = V1Projection._parsedProperty(node, result, operator, name);
         case ParsedTypeArgumentsImpl(:var typeArguments):
           // Adjacent type and value arguments form one application. Avoid
           // constructing a tear-off for the intermediate parsed prefix, but
@@ -61181,16 +61134,11 @@ class _ParsedExpressionBuilder {
               }
             }
           }
-          result = forV1
-              ? FunctionReferenceImpl.v1ProjectionFromParsedExpression(
-                  chain,
-                  result,
-                  typeArguments,
-                )
-              : FunctionReferenceImpl(
-                  function2: result,
-                  typeArguments: typeArguments,
-                );
+          result = FunctionReferenceImpl.v1ProjectionFromParsedExpression(
+            chain,
+            result,
+            typeArguments,
+          );
         case ParsedValueArgumentsImpl(:var argumentList):
           result = _invoke(result, null, argumentList);
         case ParsedCascadeNameImpl():
@@ -61221,42 +61169,23 @@ class _ParsedExpressionBuilder {
           period: typeName.period,
         );
     }
-    if (forV1) {
-      return InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression(
-        origin: chain,
-        constructorName: ConstructorNameImpl.v1ProjectionFromParsedExpression(
-          type: NamedTypeImpl.v1ProjectionFromParsedExpression(
-            importPrefix: prefix,
-            name: name,
-            typeArguments: typeArguments,
-          ),
-          period: selectorOperator,
-          name: selectorName,
-        ),
-        argumentList: argumentList,
-      );
-    }
-    return ConstructorInvocationImpl(
-      keyword: null,
-      constructorReference: ConstructorReference2Impl(
-        typeReference: ConstructorTypeReferenceImpl(
+    return InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression(
+      origin: chain,
+      constructorName: ConstructorNameImpl.v1ProjectionFromParsedExpression(
+        type: NamedTypeImpl.v1ProjectionFromParsedExpression(
           importPrefix: prefix,
           name: name,
           typeArguments: typeArguments,
         ),
-        selector: ConstructorSelectorImpl.v2(
-          period: selectorOperator,
-          name2: selectorName,
-        ),
+        period: selectorOperator,
+        name: selectorName,
       ),
       argumentList: argumentList,
-      typeArguments: null,
     );
   }
 
-  SimpleIdentifierImpl _identifier(Token name) => forV1
-      ? SimpleIdentifierImpl.v1Projection(token: name)
-      : SimpleIdentifierImpl(token: name);
+  SimpleIdentifierImpl _identifier(Token name) =>
+      SimpleIdentifierImpl.v1Projection(token: name);
 
   ExpressionImpl _invoke(
     ExpressionImpl function,
@@ -61264,7 +61193,6 @@ class _ParsedExpressionBuilder {
     ArgumentListImpl argumentList,
   ) {
     if (function is DotShorthandPropertyAccessImpl) {
-      assert(forV1);
       return DotShorthandInvocationImpl.v1ProjectionFromParsedExpression(
         origin: chain,
         period: function.period,
@@ -61290,20 +61218,11 @@ class _ParsedExpressionBuilder {
       default:
         throw StateError('A parsed named invocation must end in a name.');
     }
-    if (forV1) {
-      return MethodInvocationImpl.v1ProjectionFromParsedExpression(
-        origin: chain,
-        target: target,
-        operator: operator,
-        name: name,
-        typeArguments: typeArguments,
-        argumentList: argumentList,
-      );
-    }
-    return MethodInvocationImpl(
-      target2: target,
+    return MethodInvocationImpl.v1ProjectionFromParsedExpression(
+      origin: chain,
+      target: target,
       operator: operator,
-      methodName: _identifier(name),
+      name: name,
       typeArguments: typeArguments,
       argumentList: argumentList,
     );

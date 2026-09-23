@@ -130,6 +130,22 @@ class ConstructorInvocationResolver {
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorReference = node.constructorReference;
+    var typeReference = constructorReference.typeReference;
+    if (constructorReference.selector case var selector?
+        when typeReference.type is FunctionTypeImpl) {
+      var aliasName = switch (typeReference.importPrefix) {
+        var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+        _ => typeReference.name.lexeme,
+      };
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethodOnFunctionType
+            .withArguments(
+              methodName: selector.name2.lexeme,
+              functionTypeAliasName: aliasName,
+            )
+            .at(selector.name2),
+      );
+    }
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       typeElement: constructorReference.typeReference.element,
       constructorName: constructorReference.selector?.name2,
@@ -154,7 +170,9 @@ class ConstructorInvocationResolver {
       target: target,
     ).resolveInvocation();
     node.recordStaticType(
-      node.constructorReference.typeReference.type!,
+      typeReference.type is FunctionTypeImpl
+          ? InvalidTypeImpl.instance
+          : typeReference.type!,
       resolver: _resolver,
     );
     _resolver.checkForArgumentTypesNotAssignableInList(

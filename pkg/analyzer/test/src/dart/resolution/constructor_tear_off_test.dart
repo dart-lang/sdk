@@ -451,6 +451,68 @@ V1: ConstructorReference
 ''');
   }
 
+  test_functionTypeAlias_instantiated_getter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo;
+//        ^^^
+// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
+}
+
+extension E on Type {
+  int get foo => 1;
+}
+''');
+
+    var node = result.findNode.singleConstructorTearOff;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: Fn
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::Fn
+    type: void Function(int)
+      alias: <testLibrary>::@typeAlias::Fn
+        typeArguments
+          int
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::Fn
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_prefixedAlias_nonGeneric_named() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
@@ -836,6 +898,77 @@ V1: ConstructorReference
       baseElement: <testLibrary>::@class::A::@constructor::foo
       substitution: {T: int}
   staticType: A<int> Function()
+''');
+  }
+
+  test_typeArguments_nestedPropertyAccess() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C<T> {}
+var x = C<int>.new.hashCode;
+''');
+
+    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: C<int>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: int}
+    staticType: C<int> Function()
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: new
+        element: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new
+          substitution: {T: int}
+        staticType: null
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: int}
+    staticType: C<int> Function()
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
 ''');
   }
 }

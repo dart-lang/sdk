@@ -36,14 +36,7 @@ class AstRewriter {
     this._libraryElement,
   );
 
-  /// Possibly rewrites [node] as a [MethodInvocation] with a
-  /// [FunctionReference] target.
-  ///
-  /// Code such as `a<...>.b(...);` (or with a prefix such as `p.a<...>.b(...)`)
-  /// is parsed as an [ExpressionStatement] with an [ConstructorInvocation]
-  /// with `a<...>.b` as the constructor reference. The
-  /// [ConstructorInvocation] is rewritten as a [MethodInvocation] if `a`
-  /// resolves to a function.
+  /// Possibly rewrites [node] as a method invocation on a function-type alias.
   AstNode constructorInvocation(
     Scope nameScope,
     ConstructorInvocationImpl node,
@@ -57,13 +50,9 @@ class AstRewriter {
     if (importPrefix == null) {
       var name = typeNode.name.lexeme;
       var element = _lookupReceiverName(nameScope, name);
-      if (element is ExecutableElement) {
-        return _toMethodInvocationOfFunctionReference(
-          node: node,
-          function: SimpleIdentifierImpl(token: typeNode.name),
-        );
-      } else if (element is TypeAliasElementImpl &&
-          element.aliasedType is FunctionType) {
+      if (element is TypeAliasElementImpl &&
+          element.aliasedType is FunctionType &&
+          typeNode.typeArguments == null) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
           function: SimpleIdentifierImpl(token: typeNode.name),
@@ -76,17 +65,9 @@ class AstRewriter {
       if (prefixElement is PrefixElement) {
         var prefixedName = typeNode.name.lexeme;
         var element = prefixElement.scope.lookup(prefixedName).getter;
-        if (element is TopLevelFunctionElement) {
-          return _toMethodInvocationOfFunctionReference(
-            node: node,
-            function: PrefixedIdentifierImpl(
-              prefix: SimpleIdentifierImpl(token: importPrefix.name),
-              period: importPrefix.period,
-              identifier: SimpleIdentifierImpl(token: typeNode.name),
-            ),
-          );
-        } else if (element is TypeAliasElementImpl &&
-            element.aliasedType is FunctionType) {
+        if (element is TypeAliasElementImpl &&
+            element.aliasedType is FunctionType &&
+            typeNode.typeArguments == null) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(
@@ -98,29 +79,11 @@ class AstRewriter {
           );
         }
 
-        // If `element` is a [ClassElement], or a [TypeAliasElement] aliasing
-        // an interface type, then this indeed looks like a constructor call; do
-        // not rewrite `node`.
-
-        // If `element` is a [TypeAliasElement] aliasing a function type, then
-        // this looks like an attempt type instantiate a function type alias
-        // (which is not a feature), and then call a method on the resulting
-        // [Type] object; no not rewrite `node`.
+        // Type arguments on a class or type alias commit the selection to
+        // constructor syntax, including invalid function-alias selections.
 
         // If `typeName.identifier` cannot be resolved, do not rewrite `node`.
         return node;
-      } else {
-        // In the case that `prefixElement` is not a [PrefixElement], then
-        // `typeName`, as a [PrefixedIdentifier], cannot refer to a class or an
-        // aliased type; rewrite `node` as a [MethodInvocation].
-        return _toMethodInvocationOfFunctionReference(
-          node: node,
-          function: PrefixedIdentifierImpl(
-            prefix: SimpleIdentifierImpl(token: importPrefix.name),
-            period: importPrefix.period,
-            identifier: SimpleIdentifierImpl(token: typeNode.name),
-          ),
-        );
       }
     }
 
@@ -269,6 +232,21 @@ class AstRewriter {
         :var operator,
         :var name,
       ):
+        if (operand is ParsedTypeArgumentsImpl) {
+          if (_parsedConstructorType(nameScope, operand)
+              case var typeReference?) {
+            target = InvalidExpressionAssignmentTargetImpl(
+              expression: ConstructorTearOffImpl(
+                typeReference: typeReference,
+                selector: ConstructorSelectorImpl.v2(
+                  period: operator,
+                  name2: name,
+                ),
+              ),
+            );
+            break;
+          }
+        }
         NamedReceiverImpl receiver;
         if (operand is ParsedUnqualifiedNameImpl) {
           var lookup = nameScope.lookup(operand.name.lexeme);
@@ -343,7 +321,11 @@ class AstRewriter {
       _ => null,
     };
     if (constructorSelector?.operand case ParsedTypeArgumentsImpl qualifier) {
-      if (_parsedConstructorType(nameScope, qualifier)
+      if (_parsedConstructorType(
+            nameScope,
+            qualifier,
+            invocation: node is ParsedValueArgumentsImpl ? node : null,
+          )
           case var typeReference?) {
         var selector = ConstructorSelectorImpl.v2(
           period: constructorSelector!.operator,
@@ -408,8 +390,7 @@ class AstRewriter {
             ) &&
             var access,
         :var argumentList,
-      )
-          when access.operator.type == TokenType.PERIOD =>
+      ) =>
         (
           name: name,
           access: access,
@@ -425,8 +406,7 @@ class AstRewriter {
           :var typeArguments,
         ),
         :var argumentList,
-      )
-          when access.operator.type == TokenType.PERIOD =>
+      ) =>
         (
           name: name,
           access: access,
@@ -445,10 +425,14 @@ class AstRewriter {
       ImportPrefixReferenceImpl? importPrefix;
       if (access != null) {
         var prefix = lookup.getter;
-        if (prefix is! PrefixElement) {
-          var expression = node.buildUnresolvedExpression();
-          node.replaceWith(expression);
-          return RewrittenParsedExpression._(expression);
+        // Non-prefix receivers were handled by _prepareReceiverInvocation.
+        prefix as PrefixElement;
+        if (access.operator.type != TokenType.PERIOD) {
+          _diagnosticReporter.report(
+            diag.prefixIdentifierNotFollowedByDot
+                .withArguments(name: name.lexeme)
+                .at(name),
+          );
         }
         importPrefix = ImportPrefixReferenceImpl(
           name: name,
@@ -504,17 +488,8 @@ class AstRewriter {
     }
     var head = _parsedReceiverHead(node);
     var expression =
-        head is ParsedUnqualifiedNameImpl ||
-            head is ParsedCascadeNameImpl ||
-            head is ParsedDotShorthandNameImpl ||
-            head is ParsedValueArgumentsImpl && node is ParsedNameAccessImpl ||
-            head is ParsedTypeArgumentsImpl &&
-                node is ParsedNameAccessImpl &&
-                _isFunctionInstantiationReceiver(nameScope, head) ||
-            head is! ParsedExpressionImpl
-        ? _parsedNestedReceiver(nameScope, node, head: head, hasSelector: false)
-              as ExpressionImpl
-        : node.buildUnresolvedExpression();
+        _parsedNestedReceiver(nameScope, node, head: head, hasSelector: false)
+            as ExpressionImpl;
     node.replaceWith(expression);
     return RewrittenParsedExpression._(expression);
   }
@@ -787,39 +762,6 @@ class AstRewriter {
     return constructorInvocation;
   }
 
-  /// Whether the application can be resolved as a value before its selectors.
-  /// Unknown type-shaped names retain constructor recovery, and class and alias
-  /// qualifiers are classified with their enclosing selector instead.
-  bool _isFunctionInstantiationReceiver(
-    Scope nameScope,
-    ParsedTypeArgumentsImpl node,
-  ) {
-    // The legacy constructor-shaped path also reports the language-version
-    // error for type applications that the parser interpreted as constructors.
-    if (!_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      return false;
-    }
-    Element? element;
-    switch (node.operand) {
-      case ParsedUnqualifiedNameImpl(:var name):
-        element = _lookupReceiverName(nameScope, name.lexeme);
-      case ParsedNameAccessImpl(
-        operand: ParsedUnqualifiedNameImpl(name: var prefixName),
-        :var operator,
-        :var name,
-      ):
-        var prefix = _lookupReceiverName(nameScope, prefixName.lexeme);
-        if (prefix is! PrefixElement) return true;
-        if (operator.type != TokenType.PERIOD) return false;
-        element = prefix.scope.lookup(name.lexeme).getter;
-      default:
-        // Other operands are already syntactically values, such as a call
-        // result, a parenthesized expression, or a longer member access.
-        return true;
-    }
-    return element is ExecutableElement || element is VariableElement;
-  }
-
   bool _isTypeLiteralContext(AstNode? parent, ExpressionImpl node) {
     if (parent is AstNodeImpl) {
       return parent.isInValueExpressionSlot(node);
@@ -844,19 +786,23 @@ class AstRewriter {
   /// Binds the type-shaped qualifier in `C<T>.name` or `p.C<T>.name`.
   ///
   /// Written type arguments make this constructor syntax even when the named
-  /// constructor is missing. Function values and non-interface aliases retain
-  /// their existing selector interpretation.
+  /// constructor is missing or a function-type alias cannot have constructors.
+  /// Function values retain their instance selector interpretation.
   ConstructorTypeReferenceImpl? _parsedConstructorType(
     Scope nameScope,
-    ParsedTypeArgumentsImpl qualifier,
-  ) {
+    ParsedTypeArgumentsImpl qualifier, {
+    ParsedValueArgumentsImpl? invocation,
+  }) {
     Token name;
     ImportPrefixReferenceImpl? importPrefix;
     Element? element;
+    var constructorTearoffsEnabled = _libraryElement.featureSet.isEnabled(
+      Feature.constructor_tearoffs,
+    );
     switch (qualifier.operand) {
       case ParsedUnqualifiedNameImpl(name: var typeName):
         name = typeName;
-        element = nameScope.lookup(name.lexeme).getter;
+        element = _lookupReceiverName(nameScope, name.lexeme);
       case ParsedNameAccessImpl(
             operand: ParsedUnqualifiedNameImpl(name: var prefixName),
             :var operator,
@@ -864,7 +810,14 @@ class AstRewriter {
           )
           when operator.type == TokenType.PERIOD:
         var prefix = nameScope.lookup(prefixName.lexeme).getter;
-        if (prefix is! PrefixElement) return null;
+        if (prefix is! PrefixElement) {
+          if (invocation != null && !constructorTearoffsEnabled) {
+            _diagnosticReporter.report(
+              diag.sdkVersionConstructorTearoffs.at(invocation),
+            );
+          }
+          return null;
+        }
         name = typeName;
         element = prefix.scope.lookup(name.lexeme).getter;
         importPrefix = ImportPrefixReferenceImpl(
@@ -876,8 +829,24 @@ class AstRewriter {
     }
     if (element is! InterfaceElement &&
         !(element is TypeAliasElement &&
-            element.aliasedType is InterfaceType)) {
-      return null;
+            (element.aliasedType is InterfaceType ||
+                element.aliasedType is FunctionType))) {
+      if (invocation == null) return null;
+      if (element is ExecutableElement || element is VariableElement) {
+        if (constructorTearoffsEnabled) return null;
+        // The parser allows this constructor-shaped syntax in old language
+        // versions. Preserve their function-declaration interpretation and
+        // constructor recovery for variables and imported accessors.
+        if (element is ExecutableElement &&
+            (importPrefix == null || element is TopLevelFunctionElement)) {
+          _diagnosticReporter.report(
+            diag.sdkVersionConstructorTearoffs.at(invocation),
+          );
+          return null;
+        }
+      }
+      // An unknown type-shaped call retains constructor recovery. A property
+      // read alone does not commit to a constructor without a known type.
     }
     return ConstructorTypeReferenceImpl(
       importPrefix: importPrefix,
@@ -894,6 +863,21 @@ class AstRewriter {
   }) {
     if (head is ParsedUnqualifiedNameImpl) {
       head.scopeLookupResult = nameScope.lookup(head.name.lexeme);
+    }
+    if (head is ParsedTypeArgumentsImpl && !identical(head, root)) {
+      if (_parsedConstructorType(nameScope, head) case var typeReference?) {
+        var selector = head.parent2 as ParsedNameAccessImpl;
+        var expression = ConstructorTearOffImpl(
+          typeReference: typeReference,
+          selector: ConstructorSelectorImpl.v2(
+            period: selector.operator,
+            name2: selector.name,
+          ),
+        );
+        selector.replaceWith(expression);
+        if (identical(selector, root)) return expression;
+        head = expression;
+      }
     }
     return _boundParsedReceiver(root, head: head, hasSelector: hasSelector);
   }
@@ -927,7 +911,11 @@ class AstRewriter {
         )..element = prefix;
       }
     }
-    if (element is InterfaceElement || element is TypeAliasElement) {
+    if (element is InterfaceElement ||
+        element is TypeAliasElement ||
+        element is DynamicElementImpl ||
+        element is NeverElementImpl ||
+        element is TypeParameterElementImpl) {
       return TypeLiteralImpl(
         type: NamedTypeImpl(
           importPrefix: importPrefix,
@@ -936,13 +924,6 @@ class AstRewriter {
           question: null,
         ),
       );
-    }
-    // Invalid applications to special types retain their existing recovery.
-    // They do not denote either an instantiable type or a function value.
-    if (element is DynamicElementImpl ||
-        element is NeverElementImpl ||
-        element is TypeParameterElementImpl) {
-      return node.buildUnresolvedExpression();
     }
     if (operand is ParsedNameAccessImpl) {
       var result = parsedExpression(nameScope, operand);
@@ -988,20 +969,6 @@ class AstRewriter {
     var (:selector, :typeArguments) = parts;
 
     var head = _parsedReceiverHead(selector.operand);
-
-    // Nested call syntax resolves its own invocation or extension-override role.
-    // Only value type applications can resolve independently of this selector.
-    // Constructor qualifiers are handled earlier; ambiguous names retain their
-    // constructor recovery path.
-    if (head is ParsedExpressionImpl &&
-        head is! ParsedUnqualifiedNameImpl &&
-        head is! ParsedCascadeNameImpl &&
-        head is! ParsedDotShorthandNameImpl &&
-        head is! ParsedValueArgumentsImpl &&
-        !(head is ParsedTypeArgumentsImpl &&
-            _isFunctionInstantiationReceiver(nameScope, head))) {
-      return null;
-    }
 
     // Leave `p.f()` to import-prefixed call handling; `p` is not a value.
     if (selector.operand case ParsedUnqualifiedNameImpl(:var name)) {
@@ -1253,30 +1220,6 @@ class AstRewriter {
       methodName: SimpleIdentifierImpl(
         token: node.constructorReference.selector!.name2,
       ),
-      typeArguments: null,
-      argumentList: node.argumentList,
-    );
-    node.replaceWith(methodInvocation);
-    return methodInvocation;
-  }
-
-  AstNode _toMethodInvocationOfFunctionReference({
-    required ConstructorInvocationImpl node,
-    required IdentifierImpl function,
-  }) {
-    var selector = node.constructorReference.selector;
-    if (selector == null) {
-      return node;
-    }
-
-    var functionReference = FunctionReferenceImpl(
-      function2: function,
-      typeArguments: node.constructorReference.typeReference.typeArguments,
-    );
-    var methodInvocation = MethodInvocationImpl(
-      target2: functionReference,
-      operator: selector.period,
-      methodName: SimpleIdentifierImpl(token: selector.name2),
       typeArguments: null,
       argumentList: node.argumentList,
     );

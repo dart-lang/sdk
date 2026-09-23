@@ -22,7 +22,162 @@ main() {
 
 @reflectiveTest
 class ConstructorInvocationResolutionTest extends PubPackageResolutionTest
-    with ConstructorInvocationTestCases {}
+    with ConstructorInvocationTestCases {
+  test_functionTypeAlias_noPrefix_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo();
+//        ^^^
+// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::Fn
+      type: void Function(int)
+        alias: <testLibrary>::@typeAlias::Fn
+          typeArguments
+            int
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::Fn
+      type: void Function(int)
+        alias: <testLibrary>::@typeAlias::Fn
+          typeArguments
+            int
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+
+  test_functionTypeAlias_withPrefix_instantiated() async {
+    newFile('$testPackageLibPath/a.dart', '''
+typedef Fn<T> = void Function(T);
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as a;
+
+void bar() {
+  a.Fn<int>.foo();
+//          ^^^
+// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: <testLibraryFragment>::@prefix::a
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::Fn
+      type: void Function(int)
+        alias: package:test/a.dart::@typeAlias::Fn
+          typeArguments
+            int
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: <testLibraryFragment>::@prefix::a
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::Fn
+      type: void Function(int)
+        alias: package:test/a.dart::@typeAlias::Fn
+          typeArguments
+            int
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+}
 
 @reflectiveTest
 class ConstructorInvocationResolutionTest_beforeConstructorTearoffs

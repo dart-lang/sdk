@@ -4057,9 +4057,7 @@ class AstBuilder extends StackListener {
     } else {
       push(
         AssignmentExpressionImpl(
-          leftHandSide2: lhs is ParsedNameAccessImpl
-              ? lhs.buildUnresolvedExpression()
-              : lhs,
+          leftHandSide2: lhs,
           operator: token,
           rightHandSide2: rhs,
         ),
@@ -6941,9 +6939,6 @@ class AstBuilder extends StackListener {
     if (_toParsedAssignmentTarget(expression) case var target?) {
       return target;
     }
-    if (expression is ParsedNameAccessImpl) {
-      expression = expression.buildUnresolvedExpression();
-    }
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
     if (expression is ReceiverIndexExpressionImpl) {
@@ -7026,22 +7021,19 @@ class AstBuilder extends StackListener {
       case ParsedCascadeNameImpl(:var name):
         return CascadePropertyAssignmentTargetImpl(name: name);
       case ParsedNameAccessImpl(:var operand, :var operator, :var name):
-        // Preserve namespace interpretation for name-only destinations.
+        // Preserve namespace and type-application interpretation for targets.
         var head = operand;
         while (head is ParsedNameAccessImpl) {
           head = head.operand;
         }
-        if (head is ParsedUnqualifiedNameImpl) {
+        if (head is ParsedUnqualifiedNameImpl ||
+            head is ParsedTypeArgumentsImpl) {
           return ParsedNameAccessAssignmentTargetImpl(
             operand: operand as ParsedExpressionImpl,
             operator: operator,
             name: name,
           );
         }
-        // A type application can still denote a static qualifier, e.g.
-        // `Fn<int>.x`. Keep the existing assignment resolver's interpretation
-        // until parsed targets support these qualifiers directly.
-        if (head is ParsedTypeArgumentsImpl) return null;
         return ReceiverPropertyAssignmentTargetImpl(
           receiver: _toInstanceReceiver(operand),
           operator: operator,

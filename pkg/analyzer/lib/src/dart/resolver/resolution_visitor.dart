@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -351,19 +350,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
     var newNode = _astRewriter.constructorInvocation(nameScope, node);
     if (newNode != node) {
-      if (node.constructorReference.typeReference.typeArguments != null &&
-          newNode is MethodInvocation &&
-          newNode.target2 is FunctionReference &&
-          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        // A function reference with explicit type arguments (an expression of
-        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
-        // refer to a class name, nor a type alias), is illegal without the
-        // constructor tearoff feature.
-        //
-        // This is a case where the parser does not report an error, because the
-        // parser thinks this could be an ConstructorInvocation.
-        _diagnosticReporter.report(diag.sdkVersionConstructorTearoffs.at(node));
-      }
       return newNode.accept2(this);
     }
 
