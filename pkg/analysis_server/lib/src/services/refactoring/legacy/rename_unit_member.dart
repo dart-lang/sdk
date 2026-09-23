@@ -335,6 +335,10 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   /// Validates if any usage of [element] renamed to [name] will be shadowed.
   void _validateWillBeShadowed() {
     for (var reference in references) {
+      // cannot be shadowed if qualified
+      if (reference.isQualified) {
+        continue;
+      }
       var refElement = reference.element;
       var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {
