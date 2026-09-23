@@ -278,7 +278,7 @@ extension type JSExportedDartFunction<T extends Function>._(
 /// features like `using`.
 @Since('3.14')
 extension type JSDisposableProtocol._(JSObject _) implements JSObject {
-  /// Notify this object that the caller no longer intends to use it.
+  /// Notifies this object that the caller no longer intends to use it.
   ///
   /// The specific behavior depends on the implementation, but this generally
   /// cleans up any resources associated with this object.
