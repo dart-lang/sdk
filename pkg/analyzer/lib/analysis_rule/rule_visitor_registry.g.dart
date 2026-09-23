@@ -729,7 +729,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addExtensionOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionOverride(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addExtensionOverride2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExtensionTypeDeclaration(
     AbstractAnalysisRule rule,
@@ -874,6 +875,18 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidExtensionOverrideAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidExtensionOverrideExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

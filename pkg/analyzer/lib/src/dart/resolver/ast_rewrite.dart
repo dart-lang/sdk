@@ -127,7 +127,7 @@ class AstRewriter {
     return node;
   }
 
-  /// Possibly rewrites [node] as an [ExtensionOverride] or as an
+  /// Possibly rewrites [node] as an [ExtensionOverride2] or as an
   /// [ConstructorInvocation].
   AstNode methodInvocation(Scope nameScope, MethodInvocationImpl node) {
     var methodName = node.methodName;
@@ -152,15 +152,14 @@ class AstRewriter {
           typeIdentifier: methodName,
         );
       } else if (element is ExtensionElementImpl) {
-        var extensionOverride = ExtensionOverrideImpl(
+        var extensionOverride = ExtensionOverride2Impl(
           importPrefix: null,
           name: methodName.token,
           element: element,
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
-        node.replaceWith(extensionOverride);
-        return extensionOverride;
+        return _replaceWithExtensionOverride(node, extensionOverride);
       } else if (element is TypeAliasElement &&
           element.aliasedType is InterfaceType) {
         return _toConstructorInvocation_type(
@@ -194,7 +193,7 @@ class AstRewriter {
             typeIdentifier: methodName,
           );
         } else if (prefixedElement is ExtensionElementImpl) {
-          var extensionOverride = ExtensionOverrideImpl(
+          var extensionOverride = ExtensionOverride2Impl(
             importPrefix: ImportPrefixReferenceImpl(
               name: target.token,
               period: operator,
@@ -204,8 +203,7 @@ class AstRewriter {
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );
-          node.replaceWith(extensionOverride);
-          return extensionOverride;
+          return _replaceWithExtensionOverride(node, extensionOverride);
         } else if (prefixedElement is TypeAliasElement &&
             prefixedElement.aliasedType is InterfaceType) {
           return _toConstructorInvocation_prefix_type(
@@ -477,12 +475,15 @@ class AstRewriter {
           typeArguments: null,
         );
       } else if (element is ExtensionElementImpl) {
-        expression = ExtensionOverrideImpl(
+        var receiver = ExtensionOverride2Impl(
           importPrefix: importPrefix,
           name: name,
           element: element,
           typeArguments: typeArguments,
           argumentList: argumentList,
+        );
+        return RewrittenParsedExpression._(
+          _replaceWithExtensionOverride(node, receiver),
         );
       } else if (importPrefix != null) {
         expression = ImportPrefixedFunctionInvocationImpl(
@@ -969,7 +970,10 @@ class AstRewriter {
     }
     if (operand is ParsedNameAccessImpl) {
       var result = parsedExpression(nameScope, operand);
-      operand = (result as RewrittenParsedExpression).expression;
+      // Rewriting a name access produces an expression. A bare extension
+      // override is produced only when rewriting value arguments.
+      operand =
+          (result as RewrittenParsedExpression).expression as ExpressionImpl;
       // As with calls, an uninstantiated function alias receives members of
       // Type, rather than static members of its aliased function type.
       if (operand case ReceiverPropertyExtractionImpl(
@@ -1477,6 +1481,72 @@ class AstRewriter {
     }
     return head;
   }
+
+  /// Installs an override only after lookup has selected extension dispatch.
+  /// Value and destination slots retain their own precise recovery nodes.
+  static InstanceReceiverImpl _replaceWithExtensionOverride(
+    ExpressionImpl node,
+    ExtensionOverride2Impl receiver,
+  ) {
+    var parent = node.parent2;
+    if (parent is InvalidExpressionAssignmentTargetImpl) {
+      parent.replaceWith(
+        InvalidExtensionOverrideAssignmentTargetImpl(
+          extensionOverride: receiver,
+        ),
+      );
+      return receiver;
+    }
+    if (parent is AssignmentExpressionImpl &&
+        identical(parent.leftHandSide2, node)) {
+      // For `=` or `??=`, the AST builder creates a DirectAssignmentImpl or
+      // IfNullAssignmentImpl with an InvalidExpressionAssignmentTargetImpl,
+      // which is handled above.
+      assert(
+        parent.operator.type != TokenType.EQ &&
+            parent.operator.type != TokenType.QUESTION_QUESTION_EQ,
+      );
+      parent.replaceWith(
+        CompoundAssignmentImpl(
+          target: InvalidExtensionOverrideAssignmentTargetImpl(
+            extensionOverride: receiver,
+          ),
+          operator: parent.operator,
+          value: parent.rightHandSide2,
+        ),
+      );
+      return receiver;
+    }
+    var isReceiver = switch (parent) {
+      ParsedNameAccessImpl(:var operand) => identical(operand, node),
+      ReceiverPropertyExtractionImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      ReceiverPropertyAssignmentTargetImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      ReceiverMethodInvocationImpl(:var receiver) => identical(receiver, node),
+      ReceiverIndexExpressionImpl(:var receiver) => identical(receiver, node),
+      ReceiverIndexAssignmentTargetImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      CallInvocationImpl(:var receiver) => identical(receiver, node),
+      BinaryOperatorInvocationImpl(:var leftOperand) => identical(
+        leftOperand,
+        node,
+      ),
+      UnaryOperatorInvocationImpl(:var operand) => identical(operand, node),
+      _ => false,
+    };
+    InstanceReceiverImpl replacement = isReceiver
+        ? receiver
+        : InvalidExtensionOverrideExpressionImpl(extensionOverride: receiver);
+    node.replaceWith(replacement);
+    return replacement;
+  }
 }
 
 /// The outcome of interpreting a parsed expression during lexical binding.
@@ -1512,7 +1582,7 @@ final class PreparedReceiverInvocation extends ParsedExpressionResult {
 
 /// A replacement expression ready for the lexical binding visitor.
 final class RewrittenParsedExpression extends ParsedExpressionResult {
-  final ExpressionImpl expression;
+  final InstanceReceiverImpl expression;
 
   RewrittenParsedExpression._(this.expression);
 }

@@ -538,20 +538,22 @@ class AstBinaryReader {
     node.setPseudoExpressionStaticType(_reader.readType());
   }
 
-  ExtensionOverride _readExtensionOverride() {
+  ExtensionOverride2 _readExtensionOverride() {
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
     var extensionName = _readStringReference();
-    var element = _reader.readElement() as ExtensionElementImpl;
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var argumentList = _readNode() as ArgumentListImpl;
-    var node = ExtensionOverrideImpl(
+    var element = _reader.readElement() as ExtensionElementImpl;
+    var node = ExtensionOverride2Impl(
       importPrefix: importPrefix,
       name: StringToken(TokenType.STRING, extensionName, -1),
       element: element,
       argumentList: argumentList,
       typeArguments: typeArguments,
     );
-    _readExpressionResolution(node);
+    node.extendedType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    node.legacyStaticType = _reader.readType();
     return node;
   }
 
@@ -1338,7 +1340,7 @@ class AstBinaryReader {
         return _readDottedName();
       case AstNodeTag.DoubleLiteral:
         return _readDoubleLiteral();
-      case AstNodeTag.ExtensionOverride:
+      case AstNodeTag.ExtensionOverride2:
         return _readExtensionOverride();
       case AstNodeTag.ForEachPartsWithDeclaration:
         return _readForEachPartsWithDeclaration();
@@ -1475,6 +1477,24 @@ class AstBinaryReader {
       case AstNodeTag.SuperReference:
         return SuperReferenceImpl(superKeyword: Tokens.super_())
           ..legacyStaticType = _reader.readType();
+      case AstNodeTag.InvalidExtensionOverrideExpression:
+        var node = InvalidExtensionOverrideExpressionImpl(
+          extensionOverride: _readNode() as ExtensionOverride2Impl,
+        );
+        _readExpressionResolution(node);
+        return node;
+      case AstNodeTag.InvalidExtensionOverrideAssignmentTarget:
+        var read = _reader.readOptionalObject(
+          () => const InvalidReadResolutionImpl(),
+        );
+        var write = _reader.readOptionalObject(
+          () => const InvalidWriteResolutionImpl(),
+        );
+        return InvalidExtensionOverrideAssignmentTargetImpl(
+            extensionOverride: _readNode() as ExtensionOverride2Impl,
+          )
+          ..read = read
+          ..write = write;
       case AstNodeTag.InvalidSuperExpression:
         var node = InvalidSuperExpressionImpl(
           superReference: _readNode() as SuperReferenceImpl,

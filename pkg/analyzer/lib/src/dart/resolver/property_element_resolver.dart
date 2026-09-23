@@ -48,12 +48,12 @@ class PropertyElementResolver with ScopeHelpers {
   ({IndexReadResolutionImpl? read, IndexWriteResolutionImpl? write})?
   resolveCascadeIndex({
     required AstNode node,
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required bool isNullAware,
     required bool hasRead,
     required bool hasWrite,
   }) {
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var readElement = result.getter2;
       var writeElement = result.setter2;
@@ -184,16 +184,14 @@ class PropertyElementResolver with ScopeHelpers {
   })?
   resolveCascadeProperty({
     required ExpressionImpl node,
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required bool isNullAware,
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
   }) {
-    if (receiver is! ExtensionOverrideImpl) {
-      var receiverType = _typeSystem.resolveToBound(
-        _resolver.instanceReceiverType(receiver),
-      );
+    if (receiver is ExpressionImpl) {
+      var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
       if (receiverType is NeverType &&
           receiverType.nullabilitySuffix == NullabilitySuffix.none) {
         diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
@@ -206,13 +204,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     var identifier = SimpleIdentifierImpl(token: propertyName);
     var result = switch (receiver) {
-      ExtensionOverrideImpl() => _resolveTargetExtensionOverride(
-        target: receiver,
-        propertyName: identifier,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      ),
-      _ => _resolve(
+      ExpressionImpl() => _resolve(
         node: node,
         target: receiver,
         isCascaded: true,
@@ -220,6 +212,15 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: identifier,
         hasRead: hasRead,
         hasWrite: hasWrite,
+      ),
+      ExtensionOverride2Impl() => _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      ),
+      SuperReferenceImpl() => throw StateError(
+        'A cascade receiver cannot be a super reference.',
       ),
     };
 
@@ -433,7 +434,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var writeElement = result.setter2;
       var isInvalid = writeElement == null;
@@ -507,9 +508,12 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasWrite,
   }) {
     var target = node.realTarget2;
+    var override = target is InvalidExtensionOverrideExpressionImpl
+        ? target.extensionOverride
+        : null;
 
-    if (target is ExtensionOverrideImpl) {
-      var result = _extensionResolver.getOverrideMember(target, '[]');
+    if (override != null) {
+      var result = _extensionResolver.getOverrideMember(override, '[]');
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
       if (hasRead &&
@@ -521,7 +525,7 @@ class PropertyElementResolver with ScopeHelpers {
           node,
           diag.undefinedExtensionOperator.withArguments(
             operator: '[]',
-            extensionName: target.element.name!,
+            extensionName: override.element.name!,
           ),
         );
       }
@@ -535,7 +539,7 @@ class PropertyElementResolver with ScopeHelpers {
           node,
           diag.undefinedExtensionOperator.withArguments(
             operator: '[]=',
-            extensionName: target.element.name!,
+            extensionName: override.element.name!,
           ),
         );
       }
@@ -564,7 +568,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (node.isNullAware) {
-      if (target is ExtensionOverride) {
+      if (target is ExtensionOverride2) {
         // https://github.com/dart-lang/language/pull/953
       } else {
         targetType = _typeSystem.promoteToNonNull(targetType);
@@ -609,7 +613,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var readElement = result.getter2;
       var writeElement = result.setter2;
@@ -758,11 +762,14 @@ class PropertyElementResolver with ScopeHelpers {
     PrefixedIdentifierImpl? originalNode,
   }) {
     var target = node.realTarget2;
+    var override = target is InvalidExtensionOverrideExpressionImpl
+        ? target.extensionOverride
+        : null;
     var propertyName = node.propertyName;
 
-    if (target is ExtensionOverrideImpl) {
+    if (override != null) {
       return _resolveTargetExtensionOverride(
-        target: target,
+        target: override,
         propertyName: propertyName,
         hasRead: hasRead,
         hasWrite: hasWrite,
@@ -788,7 +795,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var element = result.getter2;
       var isInvalid = element == null;
@@ -888,21 +895,21 @@ class PropertyElementResolver with ScopeHelpers {
             InvalidNamedWriteResolutionImpl(
               recoveryElement: result.writeElementRecovery2,
             );
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: false,
+          hasWrite: true,
+        );
+        return _createNamedWriteResolutionWithElement(
+              result.writeElementRequested2,
+            ) ??
+            InvalidNamedWriteResolutionImpl(
+              recoveryElement: result.writeElementRecovery2,
+            );
+
       case ExpressionImpl():
-        if (receiver is ExtensionOverrideImpl) {
-          var result = _resolveTargetExtensionOverride(
-            target: receiver,
-            propertyName: SimpleIdentifierImpl(token: node.name),
-            hasRead: false,
-            hasWrite: true,
-          );
-          return _createNamedWriteResolutionWithElement(
-                result.writeElementRequested2,
-              ) ??
-              InvalidNamedWriteResolutionImpl(
-                recoveryElement: result.writeElementRecovery2,
-              );
-        }
         var receiverType = _resolver.instanceReceiverType(receiver);
 
         if (receiverType is NeverType &&
@@ -1032,29 +1039,29 @@ class PropertyElementResolver with ScopeHelpers {
           resolution: resolution,
           type: resolution.type,
         );
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: true,
+          hasWrite: false,
+        );
+        var readElement = result.readElementRequested2;
+        var resolution =
+            _createNamedReadResolutionWithElement(
+              readElement,
+              type: _namedReadType(readElement),
+            ) ??
+            InvalidNamedReadResolutionImpl(
+              recoveryElement: result.readElementRecovery2,
+            );
+        return (
+          expressionInfo: null,
+          resolution: resolution,
+          type: resolution.type,
+        );
+
       case ExpressionImpl():
-        if (receiver is ExtensionOverrideImpl) {
-          var result = _resolveTargetExtensionOverride(
-            target: receiver,
-            propertyName: SimpleIdentifierImpl(token: node.name),
-            hasRead: true,
-            hasWrite: false,
-          );
-          var readElement = result.readElementRequested2;
-          var resolution =
-              _createNamedReadResolutionWithElement(
-                readElement,
-                type: _namedReadType(readElement),
-              ) ??
-              InvalidNamedReadResolutionImpl(
-                recoveryElement: result.readElementRecovery2,
-              );
-          return (
-            expressionInfo: null,
-            resolution: resolution,
-            type: resolution.type,
-          );
-        }
         var receiverType = _resolver.instanceReceiverType(receiver);
 
         if (receiverType is NeverType &&
@@ -1212,19 +1219,18 @@ class PropertyElementResolver with ScopeHelpers {
             hasWrite: true,
           ),
         );
-      case ExpressionImpl():
-        if (receiver is ExtensionOverrideImpl) {
-          var result = _resolveTargetExtensionOverride(
-            target: receiver,
-            propertyName: SimpleIdentifierImpl(token: node.name),
-            hasRead: true,
-            hasWrite: true,
-            assignmentToMethodOnMissingWrite:
-                node.parent2 is IncrementOrDecrementExpression,
-          );
-          return _propertyReadWriteTargetResult(result);
-        }
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: true,
+          hasWrite: true,
+          assignmentToMethodOnMissingWrite:
+              node.parent2 is IncrementOrDecrementExpression,
+        );
+        return _propertyReadWriteTargetResult(result);
 
+      case ExpressionImpl():
         if (receiver case TypeLiteralImpl(
           type: NamedTypeImpl(element: InterfaceElement typeReference),
         )) {
@@ -1603,7 +1609,7 @@ class PropertyElementResolver with ScopeHelpers {
     required ExecutableElement? element,
   }) {
     if (element != null && element.isStatic) {
-      if (target is ExtensionOverride) {
+      if (target is ExtensionOverride2) {
         diagnosticReporter.report(
           diag.extensionOverrideAccessToStaticMember.at(propertyNameEntity),
         );
@@ -2162,13 +2168,15 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionOverride({
-    required ExtensionOverrideImpl target,
+    required ExtensionOverride2Impl target,
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
     bool assignmentToMethodOnMissingWrite = false,
   }) {
-    if (target.parent2 is CascadeExpression) {
+    if (target.parent2 case InvalidExtensionOverrideExpression(
+      parent2: CascadeExpression(),
+    )) {
       // Report this error and recover by treating it like a non-cascade.
       diagnosticReporter.report(
         diag.extensionOverrideWithCascade.at(target.name),

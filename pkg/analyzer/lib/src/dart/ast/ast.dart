@@ -3138,6 +3138,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static TypeImpl? _v1IfNullReadType(AssignmentTargetImpl target) =>
       switch (target) {
+        InvalidExtensionOverrideAssignmentTargetImpl target =>
+          target.extensionOverride.legacyStaticType,
         IndexAssignmentTargetImpl target => target._legacyReadType,
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
@@ -3149,6 +3151,8 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
       switch (target) {
         ParsedAssignmentTargetImpl target => target.v1Projection,
+        InvalidExtensionOverrideAssignmentTargetImpl target =>
+          target.extensionOverride.v1Projection,
         InvalidSuperAssignmentTargetImpl target =>
           target.superReference.v1Projection,
         CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
@@ -3171,6 +3175,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
@@ -3195,6 +3200,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
@@ -19685,7 +19691,51 @@ abstract final class ExtensionOverride implements Expression {
   List<DartType>? get typeArgumentTypes;
 }
 
+/// An override to force resolution to choose a member from a specific
+/// extension.
+///
+///     extensionOverride ::=
+///         [Identifier] [TypeArgumentList]? [ArgumentList]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+abstract final class ExtensionOverride2 implements InstanceReceiver {
+  /// The list of arguments to the override.
+  ///
+  /// In valid code this contains a single argument that evaluates to the object
+  /// being extended.
+  ArgumentList get argumentList;
+
+  /// The extension that resolution will use to resolve member references.
+  ExtensionElement get element;
+
+  /// The actual type extended by this override, produced by applying
+  /// [typeArgumentTypes] to the generic type extended by the extension, or
+  /// `null` if the AST structure hasn't been resolved.
+  DartType? get extendedType;
+
+  /// The optional import prefix before [name].
+  ImportPrefixReference? get importPrefix;
+
+  /// Whether this override is null aware (as opposed to non-null).
+  bool get isNullAware;
+
+  /// The name of the extension being selected.
+  Token get name;
+
+  /// The type arguments to be applied to the extension, or `null` if there are
+  /// no type arguments.
+  TypeArgumentList? get typeArguments;
+
+  /// The actual type arguments to be applied to the extension, either
+  /// explicitly specified in [typeArguments], or inferred, or `null` if the AST
+  /// structure hasn't been resolved.
+  ///
+  /// An empty list if the extension doesn't have type arguments.
+  List<DartType>? get typeArgumentTypes;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('importPrefix'),
     GenerateNodeProperty('name'),
@@ -19694,8 +19744,8 @@ abstract final class ExtensionOverride implements Expression {
     GenerateNodeProperty('element', type: ExtensionElementImpl),
   ],
 )
-final class ExtensionOverrideImpl extends ExpressionImpl
-    implements ExtensionOverride {
+final class ExtensionOverride2Impl extends InstanceReceiverImpl
+    implements ExtensionOverride2 {
   @generated
   ImportPrefixReferenceImpl? _importPrefix;
 
@@ -19713,6 +19763,11 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   final ExtensionElementImpl element;
 
+  ExtensionOverrideImpl? _v1Projection;
+
+  /// Compatibility data for the V1 expression view, not a receiver value type.
+  TypeImpl? _legacyStaticType;
+
   @override
   List<DartType>? typeArgumentTypes;
 
@@ -19720,7 +19775,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   TypeImpl? extendedType;
 
   @generated
-  ExtensionOverrideImpl({
+  ExtensionOverride2Impl({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -19729,9 +19784,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }) : _importPrefix = importPrefix,
        _typeArguments = typeArguments,
        _argumentList = argumentList {
-    _becomeParentOf12(importPrefix);
-    _becomeParentOf12(typeArguments);
-    _becomeParentOf12(argumentList);
+    _becomeParentOf2(importPrefix);
+    _becomeParentOf2(typeArguments);
+    _becomeParentOf2(argumentList);
   }
 
   @generated
@@ -19740,7 +19795,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set argumentList(ArgumentListImpl argumentList) {
-    _argumentList = _becomeParentOf12(argumentList);
+    _argumentList = _becomeParentOf2(argumentList);
   }
 
   @generated
@@ -19764,7 +19819,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set importPrefix(ImportPrefixReferenceImpl? importPrefix) {
-    _importPrefix = _becomeParentOf12(importPrefix);
+    _importPrefix = _becomeParentOf2(importPrefix);
   }
 
   @override
@@ -19774,8 +19829,12 @@ final class ExtensionOverrideImpl extends ExpressionImpl
         nextType == TokenType.QUESTION;
   }
 
-  @override
-  Precedence get precedence => Precedence.postfix;
+  TypeImpl? get legacyStaticType => _legacyStaticType;
+
+  set legacyStaticType(TypeImpl? type) {
+    _legacyStaticType = type;
+    if (type != null) _v1Projection?.setPseudoExpressionStaticType(type);
+  }
 
   @generated
   @override
@@ -19783,16 +19842,26 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf12(typeArguments);
+    _typeArguments = _becomeParentOf2(typeArguments);
+  }
+
+  ExtensionOverrideImpl get v1Projection {
+    var result = _v1Projection ??= ExtensionOverrideImpl.v1Projection(this);
+    if (legacyStaticType case var type?) {
+      result.setPseudoExpressionStaticType(type);
+    }
+    return result;
   }
 
   @generated
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('importPrefix', importPrefix)
-    ..addToken('name', name)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ExtensionOverride2 is not in the V1 AST view.');
+  }
 
   @generated
   @override
@@ -19805,12 +19874,15 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ExtensionOverride2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtensionOverride(this);
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitExtensionOverride2(this);
 
   @generated
   @override
@@ -19855,18 +19927,10 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitExtensionOverride(this, contextType: contextType);
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    importPrefix?.accept(visitor);
-    typeArguments?.accept(visitor);
-    argumentList.accept(visitor);
+    throw StateError('ExtensionOverride2 is not in the V1 AST view.');
   }
 
   @generated
@@ -19915,20 +19979,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (importPrefix case var importPrefix?) {
-      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
-        return importPrefix;
-      }
-    }
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
-      return argumentList;
-    }
-    return null;
+    throw StateError('ExtensionOverride2 is not in the V1 AST view.');
   }
 
   @generated
@@ -19948,6 +19999,169 @@ final class ExtensionOverrideImpl extends ExpressionImpl
       return argumentList;
     }
     return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeArguments'),
+    GenerateNodeProperty('argumentList'),
+  ],
+)
+final class ExtensionOverrideImpl extends ExpressionImpl
+    implements ExtensionOverride {
+  final ExtensionOverride2Impl _origin;
+
+  ExtensionOverrideImpl.v1Projection(this._origin);
+
+  @DoNotGenerate(reason: 'Preserves V1 parent links')
+  @override
+  ArgumentListImpl get argumentList => _becomeParentOf1(_origin.argumentList);
+
+  @generated
+  @override
+  Token get beginToken {
+    if (importPrefix case var importPrefix?) {
+      return importPrefix.beginToken;
+    }
+    return name;
+  }
+
+  @override
+  ExtensionElementImpl get element => _origin.element;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical receiver')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  TypeImpl? get extendedType => _origin.extendedType;
+
+  @DoNotGenerate(reason: 'Preserves V1 parent links')
+  @override
+  ImportPrefixReferenceImpl? get importPrefix =>
+      _becomeParentOf1(_origin.importPrefix);
+
+  @override
+  bool get isNullAware => _origin.isNullAware;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical receiver')
+  @override
+  Token get name => _origin.name;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Preserves V1 parent links')
+  @override
+  TypeArgumentListImpl? get typeArguments =>
+      _becomeParentOf1(_origin.typeArguments);
+
+  @override
+  List<DartType>? get typeArgumentTypes => _origin.typeArgumentTypes;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('ExtensionOverride is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ExtensionOverride is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections are never resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('ExtensionOverride is a V1 projection.');
+  }
+
+  @DoNotGenerate(reason: 'The canonical receiver owns the source spelling')
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    importPrefix?.accept(visitor);
+    typeArguments?.accept(visitor);
+    argumentList.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('ExtensionOverride is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (importPrefix case var importPrefix?) {
+      if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+        return importPrefix;
+      }
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('ExtensionOverride is not in the V2 AST view.');
   }
 }
 
@@ -31029,6 +31243,8 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
   ExpressionImpl get _legacyOperand => switch (target) {
     ParsedAssignmentTargetImpl target => target.v1Projection,
+    InvalidExtensionOverrideAssignmentTargetImpl target =>
+      target.extensionOverride.v1Projection,
     InvalidSuperAssignmentTargetImpl target =>
       target.superReference.v1Projection,
     CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
@@ -31050,6 +31266,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
@@ -31068,6 +31285,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
     InvalidExpressionAssignmentTargetImpl() ||
+    InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
     ParsedAssignmentTargetImpl() => null,
   };
@@ -33095,6 +33313,338 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
       return expression;
+    }
+    return null;
+  }
+}
+
+/// An explicit extension override used where an assignment destination is required.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidExtensionOverrideAssignmentTarget
+    implements InvalidAssignmentTarget {
+  ExtensionOverride2 get extensionOverride;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('extensionOverride')],
+)
+final class InvalidExtensionOverrideAssignmentTargetImpl
+    extends AssignmentTargetImpl
+    implements InvalidExtensionOverrideAssignmentTarget {
+  @generated
+  ExtensionOverride2Impl _extensionOverride;
+
+  @override
+  InvalidReadResolutionImpl? read;
+
+  @override
+  InvalidWriteResolutionImpl? write;
+
+  @generated
+  InvalidExtensionOverrideAssignmentTargetImpl({
+    required ExtensionOverride2Impl extensionOverride,
+  }) : _extensionOverride = extensionOverride {
+    _becomeParentOf2(extensionOverride);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return extensionOverride.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return extensionOverride.endToken;
+  }
+
+  @generated
+  @override
+  ExtensionOverride2Impl get extensionOverride => _extensionOverride;
+
+  @generated
+  set extensionOverride(ExtensionOverride2Impl extensionOverride) {
+    _extensionOverride = _becomeParentOf2(extensionOverride);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'InvalidExtensionOverrideAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('extensionOverride', extensionOverride);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'InvalidExtensionOverrideAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInvalidExtensionOverrideAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(extensionOverride, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'extensionOverride'.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(extensionOverride, oldNode)) {
+      extensionOverride = newNode as ExtensionOverride2Impl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'InvalidExtensionOverrideAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    extensionOverride.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExtensionOverride2Impl)? visitExtensionOverride,
+  }) {
+    if (visitExtensionOverride != null) {
+      visitExtensionOverride(extensionOverride);
+    } else {
+      extensionOverride.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'InvalidExtensionOverrideAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (extensionOverride._containsOffset(rangeOffset, rangeEnd)) {
+      return extensionOverride;
+    }
+    return null;
+  }
+}
+
+/// An explicit extension override used in a slot that requires a value.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidExtensionOverrideExpression implements Expression {
+  ExtensionOverride2 get extensionOverride;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('extensionOverride')],
+)
+final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
+    implements InvalidExtensionOverrideExpression {
+  @generated
+  ExtensionOverride2Impl _extensionOverride;
+
+  @generated
+  InvalidExtensionOverrideExpressionImpl({
+    required ExtensionOverride2Impl extensionOverride,
+  }) : _extensionOverride = extensionOverride {
+    _becomeParentOf2(extensionOverride);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return extensionOverride.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return extensionOverride.endToken;
+  }
+
+  @generated
+  @override
+  ExtensionOverride2Impl get extensionOverride => _extensionOverride;
+
+  @generated
+  set extensionOverride(ExtensionOverride2Impl extensionOverride) {
+    _extensionOverride = _becomeParentOf2(extensionOverride);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'InvalidExtensionOverrideExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('extensionOverride', extensionOverride);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'InvalidExtensionOverrideExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitInvalidExtensionOverrideExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(extensionOverride, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'extensionOverride'.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(extensionOverride, oldNode)) {
+      extensionOverride = newNode as ExtensionOverride2Impl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitInvalidExtensionOverrideExpression(
+      this,
+      contextType: contextType,
+    );
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'InvalidExtensionOverrideExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    extensionOverride.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExtensionOverride2Impl)? visitExtensionOverride,
+  }) {
+    if (visitExtensionOverride != null) {
+      visitExtensionOverride(extensionOverride);
+    } else {
+      extensionOverride.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'InvalidExtensionOverrideExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (extensionOverride._containsOffset(rangeOffset, rangeEnd)) {
+      return extensionOverride;
     }
     return null;
   }
@@ -58089,6 +58639,7 @@ enum V1Projection {
 
   static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
     if (node is SuperReferenceImpl) return node.v1Projection;
+    if (node is ExtensionOverride2Impl) return node.v1Projection;
     if (node is StaticQualifierImpl) {
       return node.v1Projection;
     }
@@ -58107,6 +58658,7 @@ enum V1Projection {
   static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
     ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
     SuperReferenceImpl() => node._v1Projection,
+    ExtensionOverride2Impl() => node._v1Projection,
     CascadeSectionImpl() => _existingNode(node.body),
     CombinatorNameImpl() => node._v1Projection,
     TopLevelGetterDeclarationImpl() => node._v1Projection,
@@ -58147,6 +58699,7 @@ enum V1Projection {
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
       StaticQualifierImpl() => root.v1Projection,
       SuperReferenceImpl() => root.v1Projection,
+      ExtensionOverride2Impl() => root.v1Projection,
       _ => null,
     };
     if (projection != null && !identical(projection, root)) {
@@ -58207,6 +58760,7 @@ enum V1Projection {
     PropertyAccessImpl() => node._v1ProjectionOrigin,
     SimpleIdentifierImpl() => node._v1ProjectionOrigin,
     SuperExpressionImpl() => node._origin,
+    ExtensionOverrideImpl() => node._origin,
     _ => null,
   };
 
@@ -58214,6 +58768,11 @@ enum V1Projection {
     ExpressionImpl node, {
     required bool createIfAbsent,
   }) {
+    if (node is InvalidExtensionOverrideExpressionImpl) {
+      return createIfAbsent
+          ? node.extensionOverride.v1Projection
+          : node.extensionOverride._v1Projection;
+    }
     if (node is InvalidSuperExpressionImpl) {
       return createIfAbsent
           ? node.superReference.v1Projection

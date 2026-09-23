@@ -22,6 +22,7 @@ class A {}
 extension E on A {
   int call(String s) => 0;
 }
+
 void f(A a) {
   E(a)('');
 }
@@ -30,7 +31,7 @@ void f(A a) {
     var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -45,7 +46,6 @@ CallInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -99,7 +99,7 @@ void f(A a) {
     var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -122,7 +122,6 @@ CallInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       String
   argumentList: ArgumentList
@@ -194,7 +193,7 @@ void f(p.A a) {
     var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -213,7 +212,6 @@ CallInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -274,7 +272,7 @@ void f(p.A a) {
     var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -301,7 +299,6 @@ CallInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       String
   argumentList: ArgumentList
@@ -374,7 +371,7 @@ void f(A a) {
     var node = result.findNode.receiverPropertyExtraction('E(a)');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -389,7 +386,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: g
   resolution: GetterInvocationResolution
@@ -438,7 +434,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: ReceiverPropertyExtraction
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -453,7 +449,6 @@ CallInvocation
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
     operator: .
     name: g
     resolution: GetterInvocationResolution
@@ -523,7 +518,7 @@ void f(A a) {
     var node = result.findNode.receiverPropertyExtraction('(a)');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -546,7 +541,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -607,7 +601,7 @@ void f(p.A a) {
     var node = result.findNode.receiverPropertyExtraction('E(a)');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -626,7 +620,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: g
   resolution: GetterInvocationResolution
@@ -679,7 +672,7 @@ void f(p.A a) {
     var node = result.findNode.receiverPropertyExtraction('(a)');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -706,7 +699,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -768,7 +760,7 @@ void f(int? a) {
     var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -783,7 +775,6 @@ ReceiverIndexExpression
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   question: ?
   leftBracket: [
   index: IntegerLiteral
@@ -838,7 +829,7 @@ void f(int? a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -853,7 +844,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
     question: ?
     leftBracket: [
     index: IntegerLiteral
@@ -911,6 +901,195 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_invalidTarget_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {}
+void f() {
+  E(0) += 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleCompoundAssignment, r'''
+CompoundAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidTarget_direct() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+extension E on int {}
+void f() {
+  E(0) = 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleDirectAssignment, r'''
+DirectAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_invalidTarget_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {}
+void f() {
+  E(0) ??= 1;
+//^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+// [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
+// [diag.extensionOverrideWithoutAccess] An extension override can only be used to access instance members.
+}
+''');
+    assertResolvedNodeText(result.findNode.singleIfNullAssignment, r'''
+IfNullAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: dynamic
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: dynamic
+''');
+  }
+
   test_method_noPrefix_noTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {}
@@ -925,7 +1104,7 @@ void f(A a) {
     var node = result.findNode.receiverMethodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -940,7 +1119,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: m
   argumentList: ArgumentList
@@ -993,7 +1171,7 @@ void f(A a) {
     var node = result.findNode.receiverMethodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1016,7 +1194,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -1084,7 +1261,7 @@ void f(p.A a) {
     var node = result.findNode.receiverMethodInvocation('E(a)');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1103,7 +1280,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: m
   argumentList: ArgumentList
@@ -1163,7 +1339,7 @@ void f(p.A a) {
     var node = result.findNode.receiverMethodInvocation('(a)');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1190,7 +1366,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -1259,7 +1434,7 @@ void f(int? a) {
     var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1274,7 +1449,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: ?.
   name: foo
   argumentList: ArgumentList
@@ -1327,7 +1501,7 @@ void f(A a) {
     var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1342,7 +1516,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
@@ -1391,7 +1564,7 @@ void f(A a) {
     var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1414,7 +1587,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: +
@@ -1482,7 +1654,7 @@ f(){
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1494,7 +1666,6 @@ IncrementOrDecrementExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: int
     operator: .
     name: v
     read: ExecutableTearOffResolution
@@ -1556,7 +1727,7 @@ void f(p.A a) {
     var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1575,7 +1746,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
@@ -1631,7 +1801,7 @@ void f(p.A a) {
     var node = result.findNode.binaryOperatorInvocation('(a)');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -1658,7 +1828,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
     extendedType: A
-    staticType: null
     typeArgumentTypes
       int
   operator: +
@@ -1754,7 +1923,7 @@ void f(int? a) {
     var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1769,7 +1938,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: ?.
   name: foo
   resolution: GetterInvocationResolution
@@ -1828,7 +1996,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1843,7 +2011,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: s
     read: <null>
@@ -1907,7 +2074,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1930,7 +2097,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -2009,7 +2175,7 @@ void f(p.A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2028,7 +2194,6 @@ DirectAssignment
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: s
     read: <null>
@@ -2099,7 +2264,7 @@ void f(p.A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2126,7 +2291,6 @@ DirectAssignment
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -2207,7 +2371,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -2222,7 +2386,6 @@ CompoundAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: s
     read: GetterInvocationResolution
@@ -2293,7 +2456,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -2316,7 +2479,6 @@ CompoundAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -2402,7 +2564,7 @@ void f(p.A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2421,7 +2583,6 @@ CompoundAssignment
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: s
     read: GetterInvocationResolution
@@ -2499,7 +2660,7 @@ void f(p.A a) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       importPrefix: ImportPrefixReference
         name: p
         period: .
@@ -2526,7 +2687,6 @@ CompoundAssignment
         rightParenthesis: )
       element: package:test/lib.dart::@extension::E
       extendedType: A
-      staticType: A
       typeArgumentTypes
         int
     operator: .
@@ -2611,7 +2771,7 @@ f(C c) => E(c).a;
     var node = result.findNode.receiverPropertyExtraction('E(c)');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2626,7 +2786,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: C
-    staticType: null
   operator: .
   name: a
   resolution: ExecutableTearOffResolution

@@ -804,8 +804,8 @@ void f(C c) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: InvalidExpressionAssignmentTarget
-    expression: ExtensionOverride
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
       name: Ext
       argumentList: ArgumentList
         leftParenthesis: (
@@ -820,7 +820,6 @@ IncrementOrDecrementExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::Ext
       extendedType: C
-      staticType: null
     read: InvalidReadResolution
     write: InvalidWriteResolution
   operation: increment

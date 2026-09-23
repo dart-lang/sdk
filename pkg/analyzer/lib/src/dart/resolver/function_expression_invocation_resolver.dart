@@ -73,17 +73,15 @@ class CallInvocationResolver {
           );
         }
         return;
+      case ExtensionOverride2Impl function:
+        _resolveReceiverExtensionOverride(
+          node,
+          function,
+          whyNotPromotedArguments,
+          contextType: contextType,
+        );
+        return;
       case ExpressionImpl function:
-        if (function is ExtensionOverrideImpl) {
-          _resolveReceiverExtensionOverride(
-            node,
-            function,
-            whyNotPromotedArguments,
-            contextType: contextType,
-          );
-          return;
-        }
-
         var receiverType = function.typeOrThrow;
         if (_checkForUseOfVoidResult(function, receiverType)) {
           _unresolved(
@@ -263,7 +261,7 @@ class CallInvocationResolver {
 
   void _resolveReceiverExtensionOverride(
     CallInvocationImpl node,
-    ExtensionOverrideImpl function,
+    ExtensionOverride2Impl function,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {

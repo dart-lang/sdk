@@ -183,7 +183,7 @@ class BinaryExpressionResolver {
     var flowAnalysis = _resolver.flowAnalysis;
     var flow = flowAnalysis.flow;
     ExpressionInfo? leftInfo;
-    var leftExtensionOverride = left is ExtensionOverride;
+    var leftExtensionOverride = left is ExtensionOverride2;
     if (left is ExpressionImpl && !leftExtensionOverride) {
       leftInfo = flowAnalysis.getExpressionInfo(left);
     } else if (left is SuperReference) {
@@ -410,7 +410,7 @@ class BinaryExpressionResolver {
   }) {
     var leftOperand = node.leftOperand;
 
-    if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is ExtensionOverride2Impl) {
       var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {
@@ -474,7 +474,7 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     TypeImpl leftType;
-    if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is ExtensionOverride2Impl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = _resolver.instanceReceiverType(leftOperand);
@@ -494,7 +494,7 @@ class BinaryExpressionResolver {
     } else {
       staticType ??= InvalidTypeImpl.instance;
     }
-    if (leftOperand is! ExtensionOverride) {
+    if (leftOperand is! ExtensionOverride2) {
       staticType = _typeSystem.refineBinaryExpressionType(
         leftType,
         node.operator.type,

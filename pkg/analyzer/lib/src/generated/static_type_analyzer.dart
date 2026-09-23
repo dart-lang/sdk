@@ -117,7 +117,7 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
   }
 
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride2(ExtensionOverride2 node) {
     assert(
       false,
       'Resolver should call extensionResolver.resolveOverride directly',

@@ -384,8 +384,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _sink.writeEnum(AstNodeTag.ExtensionOverride);
+  void visitExtensionOverride2(covariant ExtensionOverride2Impl node) {
+    _sink.writeEnum(AstNodeTag.ExtensionOverride2);
 
     _writeOptionalNode(node.importPrefix);
     _writeStringReference(node.name.lexeme);
@@ -395,7 +395,8 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
-    // TODO(scheglov): typeArgumentTypes?
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeType(node.legacyStaticType);
   }
 
   @override
@@ -664,6 +665,25 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeOptionalObject(node.read, (_) {});
     _sink.writeOptionalObject(node.write, (_) {});
     _writeNode(node.expression);
+  }
+
+  @override
+  void visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    _sink.writeEnum(AstNodeTag.InvalidExtensionOverrideAssignmentTarget);
+    _sink.writeOptionalObject(node.read, (_) {});
+    _sink.writeOptionalObject(node.write, (_) {});
+    _writeNode(node.extensionOverride);
+  }
+
+  @override
+  void visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    _sink.writeEnum(AstNodeTag.InvalidExtensionOverrideExpression);
+    _writeNode(node.extensionOverride);
+    _storeExpression(node);
   }
 
   @override

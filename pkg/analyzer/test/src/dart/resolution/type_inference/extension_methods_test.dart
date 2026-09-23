@@ -635,7 +635,7 @@ void f(A<int> a) {
     var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -658,7 +658,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<num>
-    staticType: null
     typeArgumentTypes
       num
   operator: .
@@ -722,7 +721,7 @@ void f(A<int> a) {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -745,7 +744,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<num>
-    staticType: null
     typeArgumentTypes
       num
   operator: .
@@ -834,7 +832,7 @@ void f(A<int> a) {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -857,7 +855,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<num>
-    staticType: null
     typeArgumentTypes
       num
   operator: .
@@ -921,7 +918,7 @@ void f(A<int> a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -944,7 +941,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<num>
-      staticType: A<num>
       typeArgumentTypes
         num
     operator: .
@@ -1025,7 +1021,7 @@ f(String s) {
 // [diag.extensionOverrideArgumentNotAssignable] The type of the argument to the extension override 'String' isn't assignable to the extended type 'num'.
 }
 ''');
-    var override = result.findNode.extensionOverride('E(s)');
+    var override = result.findNode.extensionOverride2('E(s)');
     assertElementTypes(override.typeArgumentTypes, ['num']);
     assertType(override.extendedType, 'num');
   }
@@ -1046,7 +1042,7 @@ void f(A<int> a) {
     var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1061,7 +1057,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<int>
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -1117,7 +1112,7 @@ void f(A<int> a) {
     var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1132,7 +1127,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<int>
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -1213,7 +1207,7 @@ void f(A<int> a) {
     var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1228,7 +1222,6 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A<int>
-    staticType: null
     typeArgumentTypes
       int
   operator: .
@@ -1284,7 +1277,7 @@ void f(A<int> a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1299,7 +1292,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A<int>
-      staticType: A<int>
       typeArgumentTypes
         int
     operator: .
@@ -1380,7 +1372,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1395,7 +1387,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: A
     operator: .
     name: foo
     read: <null>

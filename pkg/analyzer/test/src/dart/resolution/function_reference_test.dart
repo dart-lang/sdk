@@ -935,7 +935,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -950,7 +950,6 @@ FunctionInstantiation
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
     operator: .
     name: foo
     resolution: GetterInvocationResolution
@@ -1210,7 +1209,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1225,7 +1224,6 @@ FunctionInstantiation
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
     operator: .
     name: foo
     resolution: ExecutableTearOffResolution
@@ -1357,7 +1355,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1372,7 +1370,6 @@ FunctionInstantiation
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
     operator: .
     name: foo
     resolution: ExecutableTearOffResolution
@@ -1443,7 +1440,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1458,7 +1455,6 @@ FunctionInstantiation
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: A
-      staticType: null
     operator: .
     name: foo
     resolution: InvalidNamedReadResolution

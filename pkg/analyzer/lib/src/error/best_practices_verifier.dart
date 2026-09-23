@@ -224,7 +224,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     _elementUsageFrontierDetector.namedFunctionInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     if (node.parent2 case CascadeSectionImpl(
-      parent2: CascadeExpressionImpl(:var target2),
+      parent2: CascadeExpressionImpl(:ExpressionImpl target2),
     )) {
       _errorHandlerVerifier.verifyNamedFunctionInvocation(node, target2);
       _nullSafeApiVerifier.namedFunctionInvocation(node, target2);
@@ -467,9 +467,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _elementUsageFrontierDetector.extensionOverride(node);
-    super.visitExtensionOverride(node);
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    _elementUsageFrontierDetector.extensionOverride2(node);
+    super.visitExtensionOverride2(node);
   }
 
   @override
@@ -1324,6 +1324,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
 
     if (node.rightOperand is NullLiteral) {
       var leftIsNeverNull = switch (node.leftOperand) {
+        ExtensionOverride2Impl() => false,
         SuperReferenceImpl() => true,
         ExpressionImpl left => _typeSystem.isStrictlyNonNullable(
           left.typeOrThrow,

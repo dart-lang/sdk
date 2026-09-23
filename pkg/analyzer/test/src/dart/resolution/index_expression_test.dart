@@ -1617,7 +1617,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: ExtensionOverride
+    receiver: ExtensionOverride2
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1629,7 +1629,6 @@ DirectAssignment
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
     leftBracket: [
     index: IntegerLiteral
       literal: 1

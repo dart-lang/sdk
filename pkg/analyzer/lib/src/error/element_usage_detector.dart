@@ -133,6 +133,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
+    } else if (node is ExtensionOverride2) {
+      errorEntity = node.name;
     } else if (node is NamedType) {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
@@ -255,6 +257,10 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void extensionOverride(ExtensionOverride node) {
+    checkUsage(node.element, node);
+  }
+
+  void extensionOverride2(ExtensionOverride2 node) {
     checkUsage(node.element, node);
   }
 
@@ -788,6 +794,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void extensionOverride(ExtensionOverride node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
+  }
+
+  void extensionOverride2(ExtensionOverride2 node) {
     checkUsage(node.element, node, usageRange: node.name.sourceRange);
   }
 

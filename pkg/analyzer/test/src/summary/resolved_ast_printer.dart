@@ -881,6 +881,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    _sink.writeln('ExtensionOverride2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeType('extendedType', node.extendedType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _sink.writeln('ExtensionTypeDeclaration');
     _sink.withIndent(() {
@@ -1340,6 +1351,35 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
             _sink.writelnWithIndent('write: InvalidWriteResolution');
         }
       }
+    });
+  }
+
+  @override
+  void visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    _sink.writeln('InvalidExtensionOverrideAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        if (node.read != null) {
+          _sink.writelnWithIndent('read: InvalidReadResolution');
+        }
+        if (node.write != null) {
+          _sink.writelnWithIndent('write: InvalidWriteResolution');
+        }
+      }
+    });
+  }
+
+  @override
+  void visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    _sink.writeln('InvalidExtensionOverrideExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 

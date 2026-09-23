@@ -124,10 +124,12 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     }
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver case InvalidExtensionOverrideExpressionImpl(
+      :var extensionOverride,
+    )) {
       return _resolveExtensionOverride(
         node,
-        receiver,
+        extensionOverride,
         nameNode,
         name,
         whyNotPromotedArguments,
@@ -239,8 +241,8 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var receiver = cascade.target2;
-    if (receiver is! ExtensionOverrideImpl &&
+    var receiver = _resolver.cascadeReceiver(cascade);
+    if (receiver is ExpressionImpl &&
         cascade.isNullAware &&
         _typeSystem.isNull(_typeSystem.resolveToBound(receiver.typeOrThrow))) {
       _resolveReceiverWithoutTarget(
@@ -362,7 +364,8 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedArguments,
           contextType: contextType,
         );
-      case ExpressionImpl():
+      case ExpressionImpl() && InstanceReceiverImpl receiver:
+      case ExtensionOverride2Impl() && InstanceReceiverImpl receiver:
         var selector = node.namedInvocationParts!.selector;
         _resolveInstanceInvocation(
           node,
@@ -787,7 +790,7 @@ class MethodInvocationResolver with ScopeHelpers {
             ? SuperPropertyTarget.singleton
             : ExpressionPropertyTarget(
                 _resolver.flowAnalysis.getExpressionInfo(
-                  receiver as ExpressionImpl,
+                  receiver is ExpressionImpl ? receiver : null,
                 ),
               ),
         selector.name.lexeme,
@@ -909,7 +912,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// override.
   void _resolveExtensionOverride(
     MethodInvocationImpl node,
-    ExtensionOverrideImpl override,
+    ExtensionOverride2Impl override,
     SimpleIdentifierImpl nameNode,
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
@@ -973,7 +976,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// use call inference and methods use their executable signatures.
   void _resolveInstanceInvocation(
     ParsedValueArgumentsImpl node,
-    ExpressionImpl receiver,
+    InstanceReceiverImpl receiver,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required bool isNullAware,
     required TypeImpl contextType,
@@ -981,7 +984,7 @@ class MethodInvocationResolver with ScopeHelpers {
     var name =
         node.cascadeInvocationParts?.head.name ??
         node.namedInvocationParts!.selector.name;
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var member = _extensionResolver
           .getOverrideMember(receiver, name.lexeme)
           .getter2;
@@ -1024,7 +1027,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       return;
     }
-    var receiverType = receiver.typeOrThrow;
+    var receiverType = _resolver.instanceReceiverType(receiver);
     if (_typeSystem.isDynamicBounded(receiverType)) {
       var method = _resolver.typeProvider.objectElement.getMethod(name.lexeme);
       if (receiverType is! InvalidType &&

@@ -40,7 +40,7 @@ f() {
     var node = result.findNode.receiverMethodInvocation('m();');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -50,7 +50,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: String
-    staticType: null
   operator: .
   name: m
   argumentList: ArgumentList

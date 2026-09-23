@@ -171,7 +171,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
 
   @override
   void enterExtensionOverride(
-    covariant ExtensionOverride node,
+    covariant ExtensionOverride2 node,
     TypeImpl contextType,
   ) {
     checkCall(
@@ -273,6 +273,7 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
         case ParsedTypeArguments():
           break;
         case Annotation():
+        case ExtensionOverride2():
         case CollectionElement():
         case DartPattern():
         case Statement():

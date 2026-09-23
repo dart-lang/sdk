@@ -1570,6 +1570,229 @@ library
 ''');
   }
 
+  test_const_extensionOverride_assignment() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {}
+const value = E<int>(0) ??= 1;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+IfNullAssignment
+  target: InvalidExtensionOverrideAssignmentTarget
+    extensionOverride: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      typeArgumentTypes
+        int
+    read: InvalidReadResolution
+    write: InvalidWriteResolution
+  operator: ??=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: dynamic
+V1: AssignmentExpression
+  leftHandSide: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+    typeArgumentTypes
+      int
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: dynamic
+''',
+    );
+  }
+
+  test_const_extensionOverride_cascade() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {
+  T get value => this;
+}
+const value = E<int>(0)..value;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+CascadeExpression
+  target2: InvalidExtensionOverrideExpression
+    extensionOverride: ExtensionOverride2
+      name: E
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <null>
+            staticType: int
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: int
+      typeArgumentTypes
+        int
+    staticType: InvalidType
+  target(v1): ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: dynamic
+    typeArgumentTypes
+      int
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: value
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@extension::E::@getter::value
+            substitution: {T: int}
+          invokeType: int Function()
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: value
+        element: SubstitutedGetterElementImpl
+          baseElement: <testLibrary>::@extension::E::@getter::value
+          substitution: {T: int}
+        staticType: int
+      staticType: int
+  staticType: InvalidType
+''',
+    );
+  }
+
+  test_const_extensionOverride_value() async {
+    var library = await buildLibrary(r'''
+extension E<T> on T {}
+const value = E<int>(0);
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('value')!.constantInitializer2!,
+      r'''
+InvalidExtensionOverrideExpression
+  extensionOverride: ExtensionOverride2
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    typeArgumentTypes
+      int
+  staticType: InvalidType
+V1: ExtensionOverride
+  name: E
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@extension::E
+  extendedType: int
+  staticType: dynamic
+  typeArgumentTypes
+    int
+''',
+    );
+  }
+
   test_const_finalField_hasConstConstructor() async {
     var library = await buildLibrary(r'''
 class C {

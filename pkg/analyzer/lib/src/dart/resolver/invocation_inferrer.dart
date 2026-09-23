@@ -516,7 +516,7 @@ abstract class InvocationExpressionInferrer<
 /// Base class containing functionality for performing type inference on AST
 /// nodes that invoke a method, function, or constructor.
 ///
-/// This class may be used directly for inference of [ExtensionOverride],
+/// This class may be used directly for inference of [ExtensionOverride2],
 /// [RedirectingConstructorInvocation], or [SuperConstructorInvocation].
 class InvocationInferrer<Node extends AstNodeImpl> {
   final ResolverVisitor resolver;
@@ -882,10 +882,9 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
       return staticType;
     }
     if (node is CascadeMethodInvocationImpl) {
-      return node
-          .thisOrAncestorOfType2<CascadeExpressionImpl>()!
-          .target2
-          .staticType;
+      return resolver.instanceReceiverType(
+        node.thisOrAncestorOfType2<CascadeExpressionImpl>()!.target2,
+      );
     }
     return null;
   }

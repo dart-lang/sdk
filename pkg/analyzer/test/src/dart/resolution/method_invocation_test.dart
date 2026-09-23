@@ -2121,7 +2121,7 @@ f(int a, int b, int c) {
     var node = result.findNode.receiverMethodInvocation('clamp(b');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2136,7 +2136,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: .
   name: clamp
   argumentList: ArgumentList
@@ -2630,7 +2629,7 @@ f(A a, int b, int c) {
     var node = result.findNode.receiverMethodInvocation('clamp(b');
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2645,7 +2644,6 @@ ReceiverMethodInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: .
   name: clamp
   argumentList: ArgumentList
