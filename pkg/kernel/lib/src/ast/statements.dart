@@ -765,14 +765,14 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
       return const InvalidType();
     }
     if (isAsync) {
-      List<DartType> typeArguments = context.typeEnvironment
+      DartTypeList typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
             iterableType,
             context.typeEnvironment.coreTypes.streamClass,
           )!;
       return typeArguments.single;
     } else {
-      List<DartType> typeArguments = context.typeEnvironment
+      DartTypeList typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
             iterableType,
             context.typeEnvironment.coreTypes.iterableClass,

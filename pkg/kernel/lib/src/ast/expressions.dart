@@ -1043,7 +1043,7 @@ class AbstractSuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    List<DartType>? receiverArguments = context.typeEnvironment
+    DartTypeList? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
       declaringClass.typeParameters,
@@ -1122,7 +1122,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    List<DartType>? receiverArguments = context.typeEnvironment
+    DartTypeList? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
       declaringClass.typeParameters,
@@ -1528,19 +1528,19 @@ class StaticSet extends Expression {
 /// The arguments to a function call, divided into type arguments,
 /// positional arguments, and named arguments.
 class Arguments extends TreeNode {
-  final List<DartType> types;
+  DartTypeList types;
   final List<Expression> positional;
   List<NamedExpression> named;
 
-  new(this.positional, {List<DartType>? types, List<NamedExpression>? named})
-    : this.types = types ?? <DartType>[],
+  new(this.positional, {DartTypeList? types, List<NamedExpression>? named})
+    : this.types = types ?? DartTypeList.empty,
       this.named = named ?? <NamedExpression>[] {
     setParents(this.positional, this);
     setParents(this.named, this);
   }
 
   new empty()
-    : types = <DartType>[],
+    : types = DartTypeList.empty,
       positional = <Expression>[],
       named = <NamedExpression>[];
 
@@ -1552,9 +1552,12 @@ class Arguments extends TreeNode {
       named: function.namedParameters
           .map((p) => new NamedExpression(p.parameterName, new VariableGet(p)))
           .toList(),
-      types: function.typeParameters
-          .map<DartType>((p) => new TypeParameterType.withDefaultNullability(p))
-          .toList(),
+      types: DartTypeList.generate(
+        function.typeParameters.length,
+        (i) => new TypeParameterType.withDefaultNullability(
+          function.typeParameters[i],
+        ),
+      ),
     );
   }
 
@@ -1573,14 +1576,14 @@ class Arguments extends TreeNode {
 
   @override
   void transformChildren(Transformer v) {
-    v.transformDartTypeList(types);
+    types = v.transformDartTypeList(types);
     v.transformList(positional, this);
     v.transformList(named, this);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformDartTypeList(types);
+    types = v.transformDartTypeList(types);
     v.transformExpressionList(positional, this);
     v.transformNamedExpressionList(named, this);
   }
@@ -2656,7 +2659,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Class superclass = interfaceTarget.enclosingClass!;
-    List<DartType>? receiverTypeArguments = context.typeEnvironment
+    DartTypeList? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
       superclass.typeParameters,
@@ -2760,7 +2763,7 @@ class SuperMethodInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Class superclass = interfaceTarget.enclosingClass!;
-    List<DartType>? receiverTypeArguments = context.typeEnvironment
+    DartTypeList? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
       superclass.typeParameters,
@@ -2951,7 +2954,7 @@ class ConstructorInvocation extends InvocationExpression {
         : new InterfaceType(
             target.enclosingClass,
             context.nonNullable,
-            DartTypeList.from(arguments.types),
+            arguments.types,
           );
   }
 
@@ -2989,7 +2992,7 @@ class ConstructorInvocation extends InvocationExpression {
     return new InterfaceType(
       enclosingClass,
       target.enclosingLibrary.nonNullable,
-      DartTypeList.from(arguments.types),
+      arguments.types,
     );
   }
 
@@ -3096,7 +3099,7 @@ class RedirectingFactoryInvocation extends Expression {
 /// An explicit type instantiation of a generic function.
 class Instantiation extends Expression {
   Expression expression;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
 
   new(this.expression, this.typeArguments) {
     expression.parent = this;
@@ -3133,7 +3136,7 @@ class Instantiation extends Expression {
     expression = v.transform(expression);
     expression.parent = this;
 
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
@@ -3141,7 +3144,7 @@ class Instantiation extends Expression {
     expression = v.transform(expression);
     expression.parent = this;
 
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
@@ -3659,7 +3662,7 @@ class MapConcatenation extends Expression {
 /// unevaluated constants in constant expressions.
 class InstanceCreation extends Expression {
   final Reference classReference;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
   final Map<Reference, Expression> fieldValues;
   final List<AssertStatement> asserts;
   final List<Expression> unusedArguments;
@@ -3689,11 +3692,7 @@ class InstanceCreation extends Expression {
             classNode,
             context.nonNullable,
           )
-        : new InterfaceType(
-            classNode,
-            context.nonNullable,
-            DartTypeList.from(typeArguments),
-          );
+        : new InterfaceType(classNode, context.nonNullable, typeArguments);
   }
 
   @override
@@ -3719,6 +3718,7 @@ class InstanceCreation extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    typeArguments = v.transformDartTypeList(typeArguments);
     fieldValues.forEach((Reference fieldRef, Expression value) {
       Expression transformed = v.transform(value);
       if (!identical(value, transformed)) {
@@ -3732,6 +3732,7 @@ class InstanceCreation extends Expression {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    typeArguments = v.transformDartTypeList(typeArguments);
     fieldValues.forEach((Reference fieldRef, Expression value) {
       Expression transformed = v.transform(value);
       if (!identical(value, transformed)) {
@@ -5488,9 +5489,9 @@ class RedirectingFactoryTearOff extends Expression {
 }
 
 class TypedefTearOff extends Expression {
-  final List<StructuralParameter> structuralParameters;
+  final StructuralParameterList structuralParameters;
   Expression expression;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
 
   new(this.structuralParameters, this.expression, this.typeArguments) {
     expression.parent = this;
@@ -5532,14 +5533,14 @@ class TypedefTearOff extends Expression {
   void transformChildren(Transformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override

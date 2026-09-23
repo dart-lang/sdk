@@ -378,7 +378,10 @@ class CloneVisitorNotMembers
     });
     return new InstanceCreation(
       node.classReference,
-      node.typeArguments.map(visitType).toList(),
+      DartTypeList.generate(
+        node.typeArguments.length,
+        (i) => visitType(node.typeArguments[i]),
+      ),
       fieldValues,
       node.asserts.map(clone).toList(),
       node.unusedArguments.map(clone).toList(),
@@ -1063,7 +1066,10 @@ class CloneVisitorNotMembers
   TreeNode visitArguments(Arguments node) {
     return new Arguments(
       node.positional.map(clone).toList(),
-      types: node.types.map(visitType).toList(),
+      types: DartTypeList.generate(
+        node.types.length,
+        (i) => visitType(node.types[i]),
+      ),
       named: node.named.map(clone).toList(),
     );
   }
@@ -1105,7 +1111,10 @@ class CloneVisitorNotMembers
   TreeNode visitInstantiation(Instantiation node) {
     return new Instantiation(
       clone(node.expression),
-      node.typeArguments.map(visitType).toList(),
+      DartTypeList.generate(
+        node.typeArguments.length,
+        (i) => visitType(node.typeArguments[i]),
+      ),
     );
   }
 
@@ -1303,7 +1312,10 @@ class CloneVisitorNotMembers
     return new TypedefTearOff(
       node.structuralParameters,
       clone(node.expression),
-      node.typeArguments.map(visitType).toList(),
+      DartTypeList.generate(
+        node.typeArguments.length,
+        (i) => visitType(node.typeArguments[i]),
+      ),
     );
   }
 
@@ -1447,6 +1459,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitRelationalPattern(RelationalPattern node) {
+    final DartTypeList? typeArguments = node.typeArguments;
     return new RelationalPattern(
       kind: node.kind,
       expression: clone(node.expression),
@@ -1455,7 +1468,12 @@ class CloneVisitorNotMembers
       accessKind: node.accessKind,
       name: node.name,
       target: node.target,
-      typeArguments: node.typeArguments?.map(visitType).toList(),
+      typeArguments: typeArguments == null
+          ? null
+          : DartTypeList.generate(
+              typeArguments.length,
+              (i) => visitType(typeArguments[i]),
+            ),
       functionType: visitOptionalType(node.functionType) as FunctionType?,
     );
   }

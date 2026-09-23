@@ -2739,8 +2739,11 @@ class ConstantEvaluator
     return norm(coreTypes, type);
   }
 
-  List<DartType> convertTypes(List<DartType> types) {
-    return types.map((DartType type) => norm(coreTypes, type)).toList();
+  DartTypeList convertTypes(List<DartType> types) {
+    return new DartTypeList.generate(
+      types.length,
+      (int i) => norm(coreTypes, types[i]),
+    );
   }
 
   LocatedMessage createLocatedMessage(TreeNode? node, Message message) {
@@ -3604,7 +3607,7 @@ class ConstantEvaluator
       );
     }
 
-    List<DartType>? types = _evaluateTypeArguments(node, node.arguments);
+    DartTypeList? types = _evaluateTypeArguments(node, node.arguments);
     if (types == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
@@ -3612,17 +3615,16 @@ class ConstantEvaluator
     }
     assert(_gotError == null);
 
-    final List<DartType> typeArguments = convertTypes(types);
+    DartTypeList typeArguments = convertTypes(types);
 
-    // Fill in any missing type arguments with "dynamic".
-    for (
-      int i = typeArguments.length;
-      i < klass.typeParameters.length;
-      // Coverage-ignore(suite): Not run.
-      i++
-    ) {
-      // Coverage-ignore: Probably unreachable.
-      typeArguments.add(const DynamicType());
+    if (typeArguments.length < klass.typeParameters.length) {
+      // Fill in any missing type arguments with "dynamic".
+      // Coverage-ignore-block(suite): Not run.
+      typeArguments = new DartTypeList.generate(
+        klass.typeParameters.length,
+        (int i) =>
+            i < typeArguments.length ? typeArguments[i] : const DynamicType(),
+      );
     }
 
     // Start building a new instance.
@@ -4513,7 +4515,7 @@ class ConstantEvaluator
       }
     } else if (enableConstFunctions) {
       // Evaluate type arguments of the method invoked.
-      List<DartType>? typeArguments = _evaluateTypeArguments(node, arguments);
+      DartTypeList? typeArguments = _evaluateTypeArguments(node, arguments);
       if (typeArguments == null) {
         // Coverage-ignore-block(suite): Not run.
         AbortConstant error = _gotError!;
@@ -5555,7 +5557,10 @@ class ConstantEvaluator
         node,
         new Instantiation(
           _wrap(constant),
-          node.typeArguments.map((t) => env.substituteType(t)).toList(),
+          new DartTypeList.generate(
+            node.typeArguments.length,
+            (i) => env.substituteType(node.typeArguments[i]),
+          ),
         ),
       );
     }
@@ -5582,10 +5587,7 @@ class ConstantEvaluator
         assert(_gotError == null);
 
         return canonicalize(
-          new InstantiationConstant(
-            constant,
-            new DartTypeList.from(convertTypes(types)),
-          ),
+          new InstantiationConstant(constant, convertTypes(types)),
         );
       } else {
         // Coverage-ignore: Probably unreachable.
@@ -5839,13 +5841,13 @@ class ConstantEvaluator
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateTypeArguments(TreeNode node, Arguments arguments) {
+  DartTypeList? _evaluateTypeArguments(TreeNode node, Arguments arguments) {
     return _evaluateDartTypes(node, arguments.types);
   }
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateSuperTypeArguments(TreeNode node, Supertype type) {
+  DartTypeList? _evaluateSuperTypeArguments(TreeNode node, Supertype type) {
     return _evaluateDartTypes(node, type.typeArguments);
   }
 
@@ -5857,15 +5859,11 @@ class ConstantEvaluator
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateDartTypes(TreeNode node, List<DartType> types) {
+  DartTypeList? _evaluateDartTypes(TreeNode node, List<DartType> types) {
     // TODO: Once the frontend guarantees that there are no free type parameters
     // left over after substitution, we can enable this shortcut again:
     // if (env.isEmpty) return types;
-    List<DartType> result = new List<DartType>.filled(
-      types.length,
-      dummyDartType,
-      growable: true,
-    );
+    DartTypeList result = new DartTypeList.filled(types.length, dummyDartType);
     for (int i = 0; i < types.length; i++) {
       DartType? type = _evaluateDartType(node, types[i]);
       if (type == null) {
@@ -5955,7 +5953,7 @@ class ConstantEvaluator
   Arguments unevaluatedArguments(
     List<Constant> positionalArgs,
     Map<String, Constant> namedArgs,
-    List<DartType> types,
+    DartTypeList types,
   ) {
     final List<Expression> positional = new List<Expression>.filled(
       positionalArgs.length,
@@ -5984,11 +5982,7 @@ class ConstantEvaluator
     return canonicalizationCache[constant] ??= constant;
   }
 
-  T withNewInstanceBuilder<T>(
-    Class klass,
-    List<DartType> typeArguments,
-    T fn(),
-  ) {
+  T withNewInstanceBuilder<T>(Class klass, DartTypeList typeArguments, T fn()) {
     InstanceBuilder? old = instanceBuilder;
     instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
     T result = fn();
@@ -6565,7 +6559,7 @@ class InstanceBuilder {
   final Class klass;
 
   /// The values of the type parameters of the new instance.
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   /// The field values of the new instance.
   final Map<Field, Constant> fields = <Field, Constant>{};
@@ -6588,11 +6582,7 @@ class InstanceBuilder {
       fieldValues[field.fieldReference] = value;
     });
     assert(unusedArguments.isEmpty);
-    return new InstanceConstant(
-      klass.reference,
-      new DartTypeList.from(typeArguments),
-      fieldValues,
-    );
+    return new InstanceConstant(klass.reference, typeArguments, fieldValues);
   }
 
   InstanceCreation buildUnevaluatedInstance() {

@@ -1407,7 +1407,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -1488,7 +1488,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -1601,7 +1601,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       extension,
       knownTypeArguments,
       receiverType,
@@ -1750,7 +1750,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -1942,7 +1942,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -2032,7 +2032,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -2148,7 +2148,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -2334,7 +2334,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverType,
@@ -3045,9 +3045,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       hasInferredTypeArguments: node.typeArguments == null,
     );
     DartType unaliasedType = aliasedType.unalias;
-    List<DartType>? invocationTypeArguments = null;
+    DartTypeList? invocationTypeArguments = null;
     if (unaliasedType is InterfaceType) {
-      invocationTypeArguments = unaliasedType.typeArguments.toList();
+      invocationTypeArguments = unaliasedType.typeArguments;
     }
     Arguments invocationArguments = new Arguments(
       positional,
@@ -6599,7 +6599,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.explicitTypeArguments?.types,
       receiverType,
@@ -6692,7 +6692,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.explicitTypeArguments?.types,
       receiverType,
@@ -7269,7 +7269,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.knownTypeArguments,
       receiverResult.inferredType,
@@ -8881,7 +8881,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType = nonNullReceiverType;
     }
 
-    List<DartType> extensionTypeArguments = computeExtensionTypeArgument(
+    DartTypeList extensionTypeArguments = computeExtensionTypeArgument(
       node.extension,
       node.explicitTypeArguments?.types,
       receiverType,

@@ -718,7 +718,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
-          DartTypeList(node.arguments.types[0]),
+          node.arguments.types,
         );
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -915,10 +915,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ReturnStatement(
             StaticInvocation(
               ffiCallMethod,
-              Arguments(
-                [VariableGet(pointerVar)],
-                types: [dartSignature.returnType],
-              ),
+              Arguments([
+                VariableGet(pointerVar),
+              ], types: DartTypeList(dartSignature.returnType)),
             )..fileOffset = fileOffset,
           ),
         ]),
@@ -1020,7 +1019,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      DartTypeList.from(node.arguments.types),
+      node.arguments.types,
     );
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
     var getterReference = currentLibraryIndex?.lookupGetterReference(name);
@@ -1033,20 +1032,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ),
       initializer: StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
-        Arguments(
-          [
-            StaticInvocation(
-              nativeCallbackFunctionProcedure,
-              Arguments([
-                node.arguments.positional[0],
-                exceptionalReturn,
-              ], types: node.arguments.types),
-            ),
-            NullLiteral(),
-            BoolLiteral(false),
-          ],
-          types: [nativeFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            nativeCallbackFunctionProcedure,
+            Arguments([
+              node.arguments.positional[0],
+              exceptionalReturn,
+            ], types: node.arguments.types),
+          ),
+          NullLiteral(),
+          BoolLiteral(false),
+        ], types: DartTypeList(nativeFunctionType)),
       ),
       isStatic: true,
       isFinal: true,
@@ -1078,42 +1074,33 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      DartTypeList.from(node.arguments.types),
+      node.arguments.types,
     );
     final target = node.arguments.positional[0];
     late StaticInvocation pointerValue;
     if (isStaticFunction) {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
-        Arguments(
-          [
-            StaticInvocation(
-              nativeCallbackFunctionProcedure,
-              Arguments([
-                target,
-                exceptionalReturn,
-              ], types: node.arguments.types),
-            ),
-            NullLiteral(),
-            BoolLiteral(true),
-          ],
-          types: [nativeFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            nativeCallbackFunctionProcedure,
+            Arguments([target, exceptionalReturn], types: node.arguments.types),
+          ),
+          NullLiteral(),
+          BoolLiteral(true),
+        ], types: DartTypeList(nativeFunctionType)),
       );
     } else {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
-        Arguments(
-          [
-            StaticInvocation(
-              nativeIsolateLocalCallbackFunctionProcedure,
-              Arguments([exceptionalReturn], types: node.arguments.types),
-            ),
-            target,
-            BoolLiteral(true),
-          ],
-          types: [nativeFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            nativeIsolateLocalCallbackFunctionProcedure,
+            Arguments([exceptionalReturn], types: node.arguments.types),
+          ),
+          target,
+          BoolLiteral(true),
+        ], types: DartTypeList(nativeFunctionType)),
       );
     }
     return ConstructorInvocation(
@@ -1132,13 +1119,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      DartTypeList.from(node.arguments.types),
+      node.arguments.types,
     );
     final listType = InterfaceType(listClass, currentLibrary.nonNullable);
     final nativeCallableType = InterfaceType(
       nativeCallableClass,
       currentLibrary.nonNullable,
-      DartTypeList.from(node.arguments.types),
+      node.arguments.types,
     );
     final targetType = node.arguments.types[0] as FunctionType;
 
@@ -1184,13 +1171,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeCallable = SyntheticVariable(
       initializer: ConstructorInvocation(
         nativeCallablePrivateListenerConstructor,
-        Arguments(
-          [
-            FunctionExpression(handler),
-            StringLiteral('NativeCallable($target)'),
-          ],
-          types: [targetType],
-        ),
+        Arguments([
+          FunctionExpression(handler),
+          StringLiteral('NativeCallable($target)'),
+        ], types: node.arguments.types),
       ),
       type: nativeCallableType,
       isFinal: true,
@@ -1200,22 +1184,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     //       _nativeAsyncCallbackFunction<T>(), _callback._port);
     final pointerValue = StaticInvocation(
       createNativeCallableListenerProcedure,
-      Arguments(
-        [
-          StaticInvocation(
-            nativeAsyncCallbackFunctionProcedure,
-            Arguments([], types: [targetType]),
-          ),
-          InstanceGet(
-            InstanceAccessKind.Instance,
-            VariableGet(nativeCallable),
-            nativeCallablePortField.name,
-            interfaceTarget: nativeCallablePortField,
-            resultType: nativeCallablePortField.getterType,
-          ),
-        ],
-        types: [nativeFunctionType],
-      ),
+      Arguments([
+        StaticInvocation(
+          nativeAsyncCallbackFunctionProcedure,
+          Arguments([], types: node.arguments.types),
+        ),
+        InstanceGet(
+          InstanceAccessKind.Instance,
+          VariableGet(nativeCallable),
+          nativeCallablePortField.name,
+          interfaceTarget: nativeCallablePortField,
+          resultType: nativeCallablePortField.getterType,
+        ),
+      ], types: DartTypeList(nativeFunctionType)),
     );
     final pointerSetter = ExpressionStatement(
       InstanceSet(
@@ -1256,40 +1237,31 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      DartTypeList.from(node.arguments.types),
+      node.arguments.types,
     );
     final target = node.arguments.positional[0];
     late StaticInvocation pointerValue;
     if (isStaticFunction) {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateGroupBoundProcedure,
-        Arguments(
-          [
-            StaticInvocation(
-              nativeIsolateGroupBoundCallbackFunctionProcedure,
-              Arguments([
-                target,
-                exceptionalReturn,
-              ], types: node.arguments.types),
-            ),
-            NullLiteral(),
-          ],
-          types: [nativeFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            nativeIsolateGroupBoundCallbackFunctionProcedure,
+            Arguments([target, exceptionalReturn], types: node.arguments.types),
+          ),
+          NullLiteral(),
+        ], types: DartTypeList(nativeFunctionType)),
       );
     } else {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateGroupBoundProcedure,
-        Arguments(
-          [
-            StaticInvocation(
-              nativeIsolateGroupBoundClosureFunctionProcedure,
-              Arguments([exceptionalReturn], types: node.arguments.types),
-            ),
-            target,
-          ],
-          types: [nativeFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            nativeIsolateGroupBoundClosureFunctionProcedure,
+            Arguments([exceptionalReturn], types: node.arguments.types),
+          ),
+          target,
+        ], types: DartTypeList(nativeFunctionType)),
       );
     }
 
@@ -1311,7 +1283,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final DartType nativeType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      DartTypeList(node.arguments.types[0]),
+      node.arguments.types,
     );
     final Expression func = node.arguments.positional[0];
     final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -1567,7 +1539,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       InstanceAccessKind.Instance,
       pointer,
       castMethod.name,
-      Arguments(const [], types: [uint8Type]),
+      Arguments(const [], types: DartTypeList(uint8Type)),
       interfaceTarget: castMethod,
       functionType: FunctionTypeInstantiator.instantiate(
         castMethod.getterType as FunctionType,
@@ -1654,21 +1626,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return ConstructorInvocation(
       arrayListConstructor,
-      Arguments(
-        [
-          node.arguments.positional[0],
-          inlineSizeOf(dartType)!,
-          ConstantExpression(
-            dartType.typeArguments.isNotEmpty
-                ? InstantiationConstant(
-                    ConstructorTearOffConstant(constructor),
-                    dartType.typeArguments,
-                  )
-                : ConstructorTearOffConstant(constructor),
-          ),
-        ],
-        types: [dartType],
-      ),
+      Arguments([
+        node.arguments.positional[0],
+        inlineSizeOf(dartType)!,
+        ConstantExpression(
+          dartType.typeArguments.isNotEmpty
+              ? InstantiationConstant(
+                  ConstructorTearOffConstant(constructor),
+                  dartType.typeArguments,
+                )
+              : ConstructorTearOffConstant(constructor),
+        ),
+      ], types: node.arguments.types),
     );
   }
 
@@ -1683,13 +1652,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return ConstructorInvocation(
       arrayArrayListConstructor,
-      Arguments(
-        [
-          node.arguments.positional[0],
-          inlineSizeOf(elementType as InterfaceType)!,
-        ],
-        types: [dartType],
-      ),
+      Arguments([
+        node.arguments.positional[0],
+        inlineSizeOf(elementType as InterfaceType)!,
+      ], types: node.arguments.types),
     );
   }
 
@@ -1716,7 +1682,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       type: InterfaceType(
         arrayClass,
         Nullability.nonNullable,
-        DartTypeList(typeArg),
+        node.arguments.types,
       ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -1752,7 +1718,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       type: InterfaceType(
         arrayClass,
         Nullability.nonNullable,
-        DartTypeList(typeArg),
+        node.arguments.types,
       ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -1791,10 +1757,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return ConstructorInvocation(
       abiSpecificIntegerArrayListConstructor,
-      Arguments(
-        [node.arguments.positional[0], loadClosure, storeClosure],
-        types: [typeArg],
-      ),
+      Arguments([
+        node.arguments.positional[0],
+        loadClosure,
+        storeClosure,
+      ], types: node.arguments.types),
     );
   }
 
@@ -1907,43 +1874,40 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         Block(checkIndexAndLocalVars),
         ConstructorInvocation(
           arrayConstructor,
-          Arguments(
-            [
-              getCompoundTypedDataBaseField(
+          Arguments([
+            getCompoundTypedDataBaseField(
+              VariableGet(arrayVar),
+              node.fileOffset,
+            ),
+            add(
+              getCompoundOffsetInBytesField(
                 VariableGet(arrayVar),
                 node.fileOffset,
               ),
-              add(
-                getCompoundOffsetInBytesField(
-                  VariableGet(arrayVar),
-                  node.fileOffset,
-                ),
-                VariableGet(offsetVar),
-              ),
-              InstanceGet(
-                InstanceAccessKind.Instance,
-                VariableGet(arrayVar),
-                arrayNestedDimensionsFirst.name,
-                interfaceTarget: arrayNestedDimensionsFirst,
-                resultType: arrayNestedDimensionsFirst.getterType,
-              ),
-              InstanceGet(
-                InstanceAccessKind.Instance,
-                VariableGet(arrayVar),
-                arrayVariableLengthField.name,
-                interfaceTarget: arrayVariableLengthField,
-                resultType: arrayVariableLengthField.type,
-              ),
-              InstanceGet(
-                InstanceAccessKind.Instance,
-                VariableGet(arrayVar),
-                arrayNestedDimensionsRest.name,
-                interfaceTarget: arrayNestedDimensionsRest,
-                resultType: arrayNestedDimensionsRest.getterType,
-              ),
-            ],
-            types: [dartType],
-          ),
+              VariableGet(offsetVar),
+            ),
+            InstanceGet(
+              InstanceAccessKind.Instance,
+              VariableGet(arrayVar),
+              arrayNestedDimensionsFirst.name,
+              interfaceTarget: arrayNestedDimensionsFirst,
+              resultType: arrayNestedDimensionsFirst.getterType,
+            ),
+            InstanceGet(
+              InstanceAccessKind.Instance,
+              VariableGet(arrayVar),
+              arrayVariableLengthField.name,
+              interfaceTarget: arrayVariableLengthField,
+              resultType: arrayVariableLengthField.type,
+            ),
+            InstanceGet(
+              InstanceAccessKind.Instance,
+              VariableGet(arrayVar),
+              arrayNestedDimensionsRest.name,
+              interfaceTarget: arrayNestedDimensionsRest,
+              resultType: arrayNestedDimensionsRest.getterType,
+            ),
+          ], types: node.arguments.types),
         ),
       );
     }
@@ -2112,7 +2076,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return StaticInvocation(
       nativePrivateAddressOf,
-      Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
+      Arguments([
+        ConstantExpression(nativeAnnotation),
+      ], types: DartTypeList(nativeType)),
     )..fileOffset = arg.fileOffset;
   }
 
@@ -2424,10 +2390,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       pointerVoidType,
       StaticInvocation(
         fromAddressInternal,
-        Arguments(
-          <Expression>[ConstantExpression(IntConstant(0))],
-          types: <DartType>[voidType],
-        ),
+        Arguments(<Expression>[
+          ConstantExpression(IntConstant(0)),
+        ], types: DartTypeList(voidType)),
       ),
     );
   }

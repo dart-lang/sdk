@@ -1049,7 +1049,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
   /// using [receiverType].
-  List<DartType> computeExtensionTypeArgument(
+  DartTypeList computeExtensionTypeArgument(
     Extension extension,
     List<DartType>? explicitTypeArguments,
     DartType receiverType, {
@@ -1057,10 +1057,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     if (explicitTypeArguments != null) {
       assert(explicitTypeArguments.length == extension.typeParameters.length);
-      return explicitTypeArguments;
+      return new DartTypeList.from(explicitTypeArguments);
     } else if (extension.typeParameters.isEmpty) {
       assert(explicitTypeArguments == null);
-      return const <DartType>[];
+      return DartTypeList.empty;
     } else {
       return inferExtensionTypeArguments(
         extension,
@@ -1072,7 +1072,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Infers the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType].
-  List<DartType> inferExtensionTypeArguments(
+  DartTypeList inferExtensionTypeArguments(
     Extension extension,
     DartType receiverType, {
     required InternalNode? internalNodeForTesting,
@@ -1084,7 +1084,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<StructuralParameter> typeParameters =
         freshTypeParameters.freshTypeParameters;
     DartType onType = freshTypeParameters.substitute(extension.onType);
-    List<DartType> inferredTypes = new List<DartType>.filled(
+    List<DartType> preliminaryTypes = new List<DartType>.filled(
       typeParameters.length,
       const UnknownType(),
     );
@@ -1106,17 +1106,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       [receiverType],
       internalNodeForTesting: internalNodeForTesting,
     );
-    inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+    return typeSchemaEnvironment.chooseFinalTypes(
       gatherer.computeConstraints(),
       typeParameters,
-      inferredTypes,
+      preliminaryTypes,
       inferenceUsingBoundsIsEnabled:
           libraryFeatures.inferenceUsingBounds.isEnabled,
       dataForTesting: dataForTesting,
       internalNodeForTesting: internalNodeForTesting,
       typeOperations: cfeOperations,
     );
-    return inferredTypes;
   }
 
   ObjectAccessTarget? _findExtensionTypeMember(
@@ -1230,10 +1229,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(thisBuilder != null || otherBuilder != null);
       DartType onType;
       DartType onTypeInstantiateToBounds;
-      List<DartType> inferredTypeArguments;
+      DartTypeList inferredTypeArguments;
       if (extensionBuilder.extension.typeParameters.isEmpty) {
         onTypeInstantiateToBounds = onType = extensionBuilder.extension.onType;
-        inferredTypeArguments = const <DartType>[];
+        inferredTypeArguments = DartTypeList.empty;
       } else {
         List<TypeParameter> typeParameters =
             extensionBuilder.extension.typeParameters;
@@ -2520,10 +2519,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Arguments extensionInvocationArguments = new Arguments(
       [receiver, ...positionalArguments],
       named: namedArguments,
-      types: [
+      types: new DartTypeList.from([
         ...target.receiverTypeArguments,
         ...explicitOrInferredTypeArguments,
-      ],
+      ]),
     )..fileOffset = argumentsOffset;
     return extern.createStaticInvocation(
       procedure,
@@ -4815,7 +4814,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       FunctionType functionType = tearoffType;
       List<StructuralParameter> typeParameters = functionType.typeParameters;
       if (typeParameters.isNotEmpty) {
-        List<DartType> inferredTypes = new List<DartType>.filled(
+        List<DartType> preliminaryTypes = new List<DartType>.filled(
           typeParameters.length,
           const UnknownType(),
         );
@@ -4833,10 +4832,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ?.typeInferenceResult,
               internalNodeForTesting: internalNodeForTesting,
             );
-        inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+        DartTypeList inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer.computeConstraints(),
           typeParameters,
-          inferredTypes,
+          preliminaryTypes,
           inferenceUsingBoundsIsEnabled:
               libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: dataForTesting,
@@ -4885,7 +4884,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (implicitInstantiation != null) {
       FunctionType uninstantiatedType = implicitInstantiation.functionType;
 
-      List<DartType> typeArguments = implicitInstantiation.typeArguments;
+      DartTypeList typeArguments = implicitInstantiation.typeArguments;
       checkBoundsInInstantiation(
         uninstantiatedType,
         typeArguments,
@@ -4899,9 +4898,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               expression.structuralParameters,
               typeArguments,
             );
-        typeArguments = expression.typeArguments
-            .map(instantiator.substitute)
-            .toList();
+        final DartTypeList targetTypeArguments = expression.typeArguments;
+        typeArguments = new DartTypeList.generate(
+          targetTypeArguments.length,
+          (i) => instantiator.substitute(targetTypeArguments[i]),
+        );
         expression = expression.expression;
       } else {
         LoweredTypedefTearOff? loweredTypedefTearOff =
@@ -4911,9 +4912,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             loweredTypedefTearOff.typedefTearOff.function.typeParameters,
             typeArguments,
           );
-          typeArguments = loweredTypedefTearOff.typeArguments
-              .map(substitution.substituteType)
-              .toList();
+          typeArguments = new DartTypeList.generate(
+            loweredTypedefTearOff.typeArguments.length,
+            (i) => substitution.substituteType(
+              loweredTypedefTearOff.typeArguments[i],
+            ),
+          );
           expression = loweredTypedefTearOff.targetTearOff;
         }
       }
@@ -6153,7 +6157,7 @@ class _WhyNotPromotedVisitor
 
 class ImplicitInstantiation {
   /// The type arguments for the instantiation.
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   /// The function type before the instantiation.
   final FunctionType functionType;
@@ -6561,7 +6565,7 @@ class ExtensionSetData {
   final DartType inferredReceiverType;
   final DartType valueType;
   final InternalNode valueNode;
-  final List<DartType> extensionTypeArguments;
+  final DartTypeList extensionTypeArguments;
   final Procedure setter;
 
   new({

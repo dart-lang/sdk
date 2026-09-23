@@ -17,6 +17,11 @@ extension type const DartTypeList._(List<DartType> _list)
     DynamicType(),
     DynamicType(),
   ]);
+  static const DartTypeList null1 = DartTypeList.constant([NullType()]);
+  static const DartTypeList void1 = DartTypeList.constant([VoidType()]);
+  static const DartTypeList never1 = DartTypeList.constant([
+    NeverType.nonNullable(),
+  ]);
 
   /// Creates a constant list (must be invoked with `const` so [_list] is an
   /// immutable list).
@@ -1859,7 +1864,7 @@ class ExtensionType extends TypeDeclarationType {
 
   static DartType _computeTypeErasure(
     Reference extensionTypeDeclarationReference,
-    List<DartType> typeArguments,
+    DartTypeList typeArguments,
     Nullability declaredNullability,
   ) {
     ExtensionTypeDeclaration extensionTypeDeclaration =

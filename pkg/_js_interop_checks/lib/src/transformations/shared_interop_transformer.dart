@@ -359,7 +359,9 @@ class SharedInteropTransformer extends Transformer {
 
     final futureToJSInvocation = StaticInvocation(
       isVoid ? _futureOfVoidToJS : _futureOfJSAnyToJS,
-      Arguments([originalCall], types: isVoid ? const [] : [typeArgument]),
+      Arguments([
+        originalCall,
+      ], types: isVoid ? DartTypeList.empty : DartTypeList(typeArgument)),
     )..fileOffset = invocation.fileOffset;
 
     final funcNode = FunctionNode(
@@ -386,7 +388,7 @@ class SharedInteropTransformer extends Transformer {
 
     return StaticInvocation(
       invocation.target,
-      Arguments([funcExpr], types: [newFuncType]),
+      Arguments([funcExpr], types: DartTypeList(newFuncType)),
     )..fileOffset = invocation.fileOffset;
   }
 
@@ -549,7 +551,9 @@ class SharedInteropTransformer extends Transformer {
                         .resolve(firstExport.getterType),
                   ),
                 ],
-                types: [_typeEnvironment.coreTypes.functionNonNullableRawType],
+                types: DartTypeList(
+                  _typeEnvironment.coreTypes.functionNonNullableRawType,
+                ),
               ),
             ),
           ),
@@ -621,9 +625,9 @@ class SharedInteropTransformer extends Transformer {
                       ),
                     ),
                   ],
-                  types: [
+                  types: DartTypeList(
                     _typeEnvironment.coreTypes.functionNonNullableRawType,
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -661,9 +665,9 @@ class SharedInteropTransformer extends Transformer {
                       ),
                     ),
                   ],
-                  types: [
+                  types: DartTypeList(
                     _typeEnvironment.coreTypes.functionNonNullableRawType,
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -816,10 +820,9 @@ class SharedInteropTransformer extends Transformer {
           interopTypeNullable
               ? _isNullableJSExportedDartFunction
               : _isJSExportedDartFunction,
-          Arguments(
-            [VariableGet(receiverVar)],
-            types: [interopType.typeArguments.first],
-          ),
+          Arguments([
+            VariableGet(receiverVar),
+          ], types: interopType.typeArguments),
         );
         break;
       case 'JSArray' when interopTypeDecl == jsType:
@@ -988,17 +991,14 @@ class SharedInteropTransformer extends Transformer {
     // `jsObject.callMethodVarArgs(methodName.toJS, args)`
     return StaticInvocation(
       _callMethodVarArgs,
-      Arguments(
-        [
-          jsObject,
-          toJSString(methodName),
-          ListLiteral(
-            args,
-            typeArgument: ExtensionType(_jsAny, Nullability.nullable),
-          ),
-        ],
-        types: [returnType],
-      ),
+      Arguments([
+        jsObject,
+        toJSString(methodName),
+        ListLiteral(
+          args,
+          typeArgument: ExtensionType(_jsAny, Nullability.nullable),
+        ),
+      ], types: DartTypeList(returnType)),
     )..fileOffset = invocation.fileOffset;
   }
 

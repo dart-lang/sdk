@@ -423,7 +423,7 @@ class _WasmTransformer extends Transformer {
     if (isAsync) {
       iteratorInitializer = ConstructorInvocation(
         coreTypes.streamIteratorDefaultConstructor,
-        Arguments([iterable], types: [elementType]),
+        Arguments([iterable], types: DartTypeList(elementType)),
       );
     } else {
       iteratorInitializer = InstanceGet(
@@ -641,7 +641,7 @@ class _WasmTransformer extends Transformer {
     final pausedVarType = InterfaceType(
       _completerClass,
       Nullability.nullable,
-      const DartTypeList.constant([VoidType()]),
+      DartTypeList.void1,
     );
 
     final pausedVar = SyntheticVariable(
@@ -656,7 +656,7 @@ class _WasmTransformer extends Transformer {
       type: InterfaceType(
         _completerClass,
         Nullability.nullable,
-        const DartTypeList.constant([VoidType()]),
+        DartTypeList.void1,
       ),
     );
 
@@ -702,7 +702,7 @@ class _WasmTransformer extends Transformer {
             cancelCompleterVar,
             StaticInvocation(
               _completerSyncConstructor,
-              Arguments([], types: [const VoidType()]),
+              Arguments([], types: DartTypeList.void1),
             ),
           ),
         ),
@@ -717,7 +717,7 @@ class _WasmTransformer extends Transformer {
           resultType: InterfaceType(
             coreTypes.futureClass,
             Nullability.nonNullable,
-            const DartTypeList.constant([VoidType()]),
+            DartTypeList.void1,
           ),
         ),
       ),
@@ -751,7 +751,7 @@ class _WasmTransformer extends Transformer {
       _streamControllerConstructor,
       Arguments(
         [],
-        types: [emittedValueType],
+        types: DartTypeList(emittedValueType),
         named: [
           NamedExpression('sync', ConstantExpression(BoolConstant(true))),
           NamedExpression('onCancel', VariableGet(onCancelCallbackVar)),
@@ -863,7 +863,7 @@ class _WasmTransformer extends Transformer {
       returnType: InterfaceType(
         coreTypes.futureClass,
         Nullability.nonNullable,
-        const DartTypeList.constant([VoidType()]),
+        DartTypeList.void1,
       ),
       asyncMarker: AsyncMarker.Async,
       dartAsyncMarker: AsyncMarker.Async,
@@ -967,7 +967,7 @@ class _WasmTransformer extends Transformer {
       final newBody = ReturnStatement(
         StaticInvocation(
           coreTypes.futureValueFactory,
-          Arguments([simpleReturn!], types: [futureValueType]),
+          Arguments([simpleReturn!], types: DartTypeList(futureValueType)),
         ),
       );
       newBody.parent = functionNode;
@@ -1072,7 +1072,7 @@ class _WasmTransformer extends Transformer {
                   pausedVar,
                   StaticInvocation(
                     _completerConstructor,
-                    Arguments([], types: [const VoidType()]),
+                    Arguments([], types: DartTypeList.void1),
                   ),
                 ),
                 Name('future'),
@@ -1322,7 +1322,7 @@ class PushPopWasmArrayTransformer {
     // WasmArray<T>(nextCapacity)
     final arrayAllocation = StaticInvocation(
       _wasmArrayFactory,
-      Arguments([nextCapacity], types: [elementType]),
+      Arguments([nextCapacity], types: DartTypeList(elementType)),
     );
 
     // var newArray = WasmArray<T>(nextCapacity)
@@ -1339,16 +1339,13 @@ class PushPopWasmArrayTransformer {
     // newArray.copy(...)
     final newArrayCopy = StaticInvocation(
       _wasmArrayCopy,
-      Arguments(
-        [
-          VariableGet(newArrayVariable),
-          IntLiteral(0),
-          clone(array),
-          IntLiteral(0),
-          clone(length),
-        ],
-        types: [elementType],
-      ),
+      Arguments([
+        VariableGet(newArrayVariable),
+        IntLiteral(0),
+        clone(array),
+        IntLiteral(0),
+        clone(length),
+      ], types: DartTypeList(elementType)),
     );
 
     // array = newArray
@@ -1380,7 +1377,11 @@ class PushPopWasmArrayTransformer {
     final arrayPush = ExpressionStatement(
       StaticInvocation(
         _wasmArrayElementSet,
-        Arguments([clone(array), clone(length), elem], types: [elementType]),
+        Arguments([
+          clone(array),
+          clone(length),
+          elem,
+        ], types: DartTypeList(elementType)),
       ),
     );
 
@@ -1491,7 +1492,10 @@ class PushPopWasmArrayTransformer {
     // array[length]
     final arrayGet = StaticInvocation(
       _wasmArrayElementGet,
-      Arguments([clone(array), clone(length)], types: [elementType]),
+      Arguments([
+        clone(array),
+        clone(length),
+      ], types: DartTypeList(elementType)),
     );
 
     // final temp = array[length]
@@ -1509,10 +1513,11 @@ class PushPopWasmArrayTransformer {
       final arrayClearElement = ExpressionStatement(
         StaticInvocation(
           _wasmArrayElementSet,
-          Arguments(
-            [clone(array), clone(length), NullLiteral()],
-            types: [elementType],
-          ),
+          Arguments([
+            clone(array),
+            clone(length),
+            NullLiteral(),
+          ], types: DartTypeList(elementType)),
         ),
       );
       blockStatements.add(arrayClearElement);

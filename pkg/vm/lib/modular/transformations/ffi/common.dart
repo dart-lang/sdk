@@ -1406,7 +1406,7 @@ class FfiTransformer extends Transformer {
         checkAbiSpecificIntegerMappingFunction,
         Arguments(
           [nullableExpression],
-          types: [InterfaceType(intClass, Nullability.nonNullable)],
+          types: DartTypeList(InterfaceType(intClass, Nullability.nonNullable)),
         ),
       );
 
@@ -1793,7 +1793,9 @@ class FfiTransformer extends Transformer {
           if (index != null) index,
           if (value != null) value,
         ],
-        types: [InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable)],
+        types: DartTypeList(
+          InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable),
+        ),
       ),
     )..fileOffset = fileOffset;
   }

@@ -2735,17 +2735,17 @@ severity: $severity
     _futureOfBottom = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,
-      const DartTypeList.constant([const NeverType.nonNullable()]),
+      DartTypeList.never1,
     );
     _iterableOfBottom = new InterfaceType(
       coreTypes.iterableClass,
       Nullability.nonNullable,
-      const DartTypeList.constant([const NeverType.nonNullable()]),
+      DartTypeList.never1,
     );
     _streamOfBottom = new InterfaceType(
       coreTypes.streamClass,
       Nullability.nonNullable,
-      const DartTypeList.constant([const NeverType.nonNullable()]),
+      DartTypeList.never1,
     );
 
     ticker.logMs("Computed core types");

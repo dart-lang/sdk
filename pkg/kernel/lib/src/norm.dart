@@ -74,7 +74,7 @@ class _Norm extends ReplacementVisitor {
       return new InterfaceType(
         coreTypes.futureClass,
         node.nullability,
-        DartTypeList(typeArgument),
+        DartTypeList.never1,
       );
     } else if (coreTypes.isNull(typeArgument)) {
       assert(!coreTypes.isTop(typeArgument));

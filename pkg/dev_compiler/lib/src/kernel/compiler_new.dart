@@ -3919,7 +3919,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!isAllowInterop(f)) {
         return StaticInvocation(
           _assertInteropMethod,
-          Arguments([f], types: [type]),
+          Arguments([f], types: DartTypeList(type)),
         );
       }
     }
@@ -8336,11 +8336,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var type = ctorClass.typeParameters.isEmpty
         ? _coreTypes.nonNullableRawType(ctorClass)
-        : InterfaceType(
-            ctorClass,
-            Nullability.nonNullable,
-            DartTypeList.from(args.types),
-          );
+        : InterfaceType(ctorClass, Nullability.nonNullable, args.types);
 
     if (isFromEnvironmentInvocation(_coreTypes, node)) {
       var value = _constants.evaluate(node);

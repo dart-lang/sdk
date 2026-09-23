@@ -1490,7 +1490,7 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
 class DelayedExtensionInvocation extends AbstractDelayedExpression {
   final Procedure _target;
   final List<DelayedExpression> _arguments;
-  final List<DartType> _typeArguments;
+  final DartTypeList _typeArguments;
   final DartType _resultType;
   final int fileOffset;
 

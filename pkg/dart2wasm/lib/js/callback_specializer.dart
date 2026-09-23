@@ -156,15 +156,12 @@ class CallbackSpecializer {
       type: instantiatedFunctionType,
       initializer: StaticInvocation(
         _util.unsafeCastOpaqueTarget,
-        Arguments(
-          [
-            StaticInvocation(
-              _util.wasmInternalizeNonNullable,
-              Arguments([VariableGet(callbackVariable)]),
-            ),
-          ],
-          types: [instantiatedFunctionType],
-        ),
+        Arguments([
+          StaticInvocation(
+            _util.wasmInternalizeNonNullable,
+            Arguments([VariableGet(callbackVariable)]),
+          ),
+        ], types: DartTypeList(instantiatedFunctionType)),
       ),
       isSynthesized: false,
     );
@@ -440,11 +437,11 @@ class CallbackSpecializer {
             _util.wasmFunctionFromFunction,
             Arguments(
               [ConstantExpression(StaticTearOffConstant(exportedFunction))],
-              types: [
+              types: DartTypeList(
                 exportedFunction.function.computeFunctionType(
                   Nullability.nonNullable,
                 ),
-              ],
+              ),
             ),
           ),
           StaticInvocation(

@@ -66,9 +66,11 @@ void main() {
   Procedure redirectingFactory = new Procedure(
     new Name('foo'),
     ProcedureKind.Factory,
-    new FunctionNode(
-      null,
-    )..redirectingFactoryTarget = new RedirectingFactoryTarget(constructor, []),
+    new FunctionNode(null)
+      ..redirectingFactoryTarget = new RedirectingFactoryTarget(
+        constructor,
+        DartTypeList.empty,
+      ),
     fileUri: uri,
     isStatic: true,
   );

@@ -252,13 +252,13 @@ class Types {
       return InterfaceType(
         coreTypes.futureClass,
         Nullability.nonNullable,
-        const DartTypeList.constant([NeverType.nonNullable()]),
+        DartTypeList.never1,
       );
     } else if (s is NullType) {
       return InterfaceType(
         coreTypes.futureClass,
         Nullability.nullable,
-        const DartTypeList.constant([NullType()]),
+        DartTypeList.null1,
       );
     }
 

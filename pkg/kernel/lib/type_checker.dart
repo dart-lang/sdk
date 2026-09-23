@@ -610,7 +610,7 @@ class TypeCheckingVisitor
     return new InterfaceType(
       target.enclosingClass,
       currentLibrary!.nonNullable,
-      DartTypeList.from(arguments.types),
+      arguments.types,
     );
   }
 
@@ -914,7 +914,7 @@ class TypeCheckingVisitor
     return new InterfaceType(
       node.classNode,
       currentLibrary!.nonNullable,
-      DartTypeList.from(node.typeArguments),
+      node.typeArguments,
     );
   }
 

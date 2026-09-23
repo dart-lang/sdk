@@ -280,7 +280,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       emittedValueType = v.visitDartType(emittedValueType!);
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transform(body!);
@@ -305,7 +307,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       );
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);

@@ -688,7 +688,7 @@ class NodeCreator {
       FunctionNode(null)
         ..redirectingFactoryTarget = new RedirectingFactoryTarget(
           _needConstructor(),
-          [],
+          DartTypeList.empty,
         ),
       fileUri: _uri,
     );
@@ -906,8 +906,13 @@ class NodeCreator {
         return FunctionTearOff(_createExpression())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceCreation:
-        return InstanceCreation(_needClass().reference, [], {}, [], [])
-          ..fileOffset = _needFileOffset();
+        return InstanceCreation(
+          _needClass().reference,
+          DartTypeList.empty,
+          {},
+          [],
+          [],
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceGet:
         return InstanceGet(
           InstanceAccessKind.Instance,
@@ -955,15 +960,16 @@ class NodeCreator {
       case ExpressionKind.Instantiation:
         return _createOneOf(_pendingExpressions, kind, index, [
           () =>
-              Instantiation(_createExpression(), [])
+              Instantiation(_createExpression(), DartTypeList.empty)
                 ..fileOffset = _needFileOffset(),
-          () =>
-              Instantiation(_createExpression(), [_createDartType()])
-                ..fileOffset = _needFileOffset(),
-          () => Instantiation(_createExpression(), [
-            _createDartType(),
-            _createDartType(),
-          ])..fileOffset = _needFileOffset(),
+          () => Instantiation(
+            _createExpression(),
+            DartTypeList(_createDartType()),
+          )..fileOffset = _needFileOffset(),
+          () => Instantiation(
+            _createExpression(),
+            DartTypeList(_createDartType(), _createDartType()),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.IntLiteral:
         return IntLiteral(42)..fileOffset = _needFileOffset();
@@ -1249,8 +1255,11 @@ class NodeCreator {
         return TypeLiteral(_createDartType())..fileOffset = _needFileOffset();
       case ExpressionKind.TypedefTearOff:
         // TODO(johnniwinther): Add non-trivial cases.
-        return TypedefTearOff([], _createExpression(), [])
-          ..fileOffset = _needFileOffset();
+        return TypedefTearOff(
+          StructuralParameterList.empty,
+          _createExpression(),
+          DartTypeList.empty,
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.VariableGet:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => VariableGet(_needVariable())..fileOffset = _needFileOffset(),

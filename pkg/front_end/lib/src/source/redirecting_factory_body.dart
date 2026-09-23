@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 
 ReturnStatement createRedirectingFactoryBody(
   Member target,
-  List<DartType> typeArguments,
+  DartTypeList typeArguments,
   FunctionNode function,
 ) {
   return new ReturnStatement(
@@ -20,7 +20,7 @@ ReturnStatement createRedirectingFactoryErrorBody(String errorMessage) {
 
 Expression _makeForwardingCall(
   Member target,
-  List<DartType> typeArguments,
+  DartTypeList typeArguments,
   FunctionNode function,
 ) {
   final List<Expression> positional = function.positionalParameters

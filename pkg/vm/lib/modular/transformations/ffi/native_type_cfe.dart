@@ -469,10 +469,10 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.loadMethods[NativeType.kPointer]!,
-      Arguments(
-        [typedDataBase, offsetInBytes],
-        types: [(dartType as InterfaceType).typeArguments.single],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 
@@ -497,14 +497,11 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.storeMethods[NativeType.kPointer]!,
-      Arguments(
-        [
-          typedDataBase,
-          offsetInBytes,
-          VariableGet(value)..fileOffset = fileOffset,
-        ],
-        types: [(dartType as InterfaceType).typeArguments.single],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+        VariableGet(value)..fileOffset = fileOffset,
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 
@@ -875,24 +872,18 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
     required Expression offsetInBytes,
     bool unaligned = false,
   }) {
-    InterfaceType typeArgument =
-        (dartType as InterfaceType).typeArguments.single as InterfaceType;
-
     return ConstructorInvocation(
       transformer.arrayConstructor,
-      Arguments(
-        [
-          typedDataBase,
-          offsetInBytes,
-          ConstantExpression(IntConstant(length)),
-          ConstantExpression(BoolConstant(variableLength)),
-          transformer.intListConstantExpression(
-            nestedDimensions,
-            Nullability.nonNullable,
-          ),
-        ],
-        types: [typeArgument],
-      ),
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+        ConstantExpression(IntConstant(length)),
+        ConstantExpression(BoolConstant(variableLength)),
+        transformer.intListConstantExpression(
+          nestedDimensions,
+          Nullability.nonNullable,
+        ),
+      ], types: (dartType as InterfaceType).typeArguments),
     )..fileOffset = fileOffset;
   }
 

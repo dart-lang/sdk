@@ -179,7 +179,7 @@ class LateLowering {
     int fileOffset,
   ) {
     Procedure procedure = reader._procedure;
-    List<DartType> typeArguments = [type];
+    DartTypeList typeArguments = DartTypeList(type);
     return InstanceInvocation(
       InstanceAccessKind.Instance,
       receiver,
@@ -529,7 +529,8 @@ class LateLowering {
             type: type,
             initializer: StaticInvocation(
               _coreTypes.createSentinelMethod,
-              Arguments(const [], types: [type])..fileOffset = fileOffset,
+              Arguments(const [], types: DartTypeList(type))
+                ..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             fileUri: fileUri,
             fieldReference: field.fieldReference,
@@ -559,10 +560,10 @@ class LateLowering {
         return ReturnStatement(
           StaticInvocation(
             _coreTypes.lateReadCheck,
-            Arguments(
-              [fieldRead(), _nameLiteral(nameText, fileOffset)],
-              types: [type],
-            )..fileOffset = fileOffset,
+            Arguments([
+              fieldRead(),
+              _nameLiteral(nameText, fileOffset),
+            ], types: DartTypeList(type))..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
       } else if (field.isFinal) {

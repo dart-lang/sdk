@@ -329,7 +329,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
       return StaticInvocation(
         fromAddressInternal,
-        Arguments(<Expression>[pointerAddress], types: <DartType>[voidType]),
+        Arguments(<Expression>[pointerAddress], types: DartTypeList(voidType)),
       );
     }
     return VariableGet(temporary);
@@ -396,7 +396,9 @@ class FfiNativeTransformer extends FfiTransformer {
     )) {
       resultInitializer = StaticInvocation(
         unsafeCastMethod,
-        Arguments([invocation], types: [dartFunctionType.returnType]),
+        Arguments([
+          invocation,
+        ], types: DartTypeList(dartFunctionType.returnType)),
       );
     }
 
@@ -798,7 +800,7 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     return StaticInvocation(
       nativePrivateAddressOf,
-      Arguments([ConstantExpression(native)], types: [ffiType]),
+      Arguments([ConstantExpression(native)], types: DartTypeList(ffiType)),
     )..fileOffset = node.fileOffset;
   }
 

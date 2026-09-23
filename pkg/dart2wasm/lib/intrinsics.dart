@@ -2096,7 +2096,7 @@ class Intrinsifier {
         final dartWasmArrayType = InterfaceType(
           cls!,
           Nullability.nonNullable,
-          DartTypeList.from(node.arguments.types),
+          node.arguments.types,
         );
         final dartElementType = node.arguments.types.single;
         final w.ArrayType arrayType =
@@ -3496,7 +3496,7 @@ class Intrinsifier {
       final dartWasmArrayType = InterfaceType(
         node.target.enclosingClass,
         Nullability.nonNullable,
-        DartTypeList.from(node.arguments.types),
+        node.arguments.types,
       );
       final w.ArrayType arrayType =
           (translator.translateType(dartWasmArrayType) as w.RefType).heapType
@@ -3565,7 +3565,7 @@ class Intrinsifier {
       InterfaceType wasmFunctionType = InterfaceType(
         translator.wasmFunctionClass,
         Nullability.nonNullable,
-        DartTypeList(receiver.arguments.types.single),
+        receiver.arguments.types,
       );
       w.RefType receiverType =
           translator.translateType(wasmFunctionType) as w.RefType;

@@ -385,7 +385,7 @@ abstract class ObjectAccessTarget {
     Member member,
     Member? tearoffTarget,
     ClassMemberKind kind,
-    List<DartType> inferredTypeArguments, {
+    DartTypeList inferredTypeArguments, {
     bool isPotentiallyNullable,
   }) = ExtensionAccessTarget;
 
@@ -395,7 +395,7 @@ abstract class ObjectAccessTarget {
     Member member,
     Member? tearoffTarget,
     ClassMemberKind kind,
-    List<DartType> extensionTypeArguments, {
+    DartTypeList extensionTypeArguments, {
     bool hasNonObjectMemberAccess,
   }) = ExtensionTypeAccessTarget;
 
@@ -568,7 +568,7 @@ abstract class ObjectAccessTarget {
   /// Returns type arguments for the type parameters of an extension or
   /// extension type method that comes from the extension or extension type
   /// declaration. These are determined from the receiver of the access.
-  List<DartType> get receiverTypeArguments =>
+  DartTypeList get receiverTypeArguments =>
       throw new UnsupportedError('ObjectAccessTarget.receiverTypeArguments');
 
   // Coverage-ignore(suite): Not run.
@@ -1371,7 +1371,7 @@ class ExtensionAccessTarget extends ObjectAccessTarget
   @override
   final ClassMemberKind declarationMethodKind;
   @override
-  final List<DartType> receiverTypeArguments;
+  final DartTypeList receiverTypeArguments;
 
   new(
     this.receiverType,
@@ -1621,7 +1621,7 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget
   @override
   final ClassMemberKind declarationMethodKind;
   @override
-  final List<DartType> receiverTypeArguments;
+  final DartTypeList receiverTypeArguments;
 
   new(
     this.receiverType,

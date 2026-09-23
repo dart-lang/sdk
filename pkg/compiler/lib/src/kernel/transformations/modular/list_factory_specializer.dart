@@ -120,11 +120,7 @@ class ListFactorySpecializer extends BaseSpecializer {
       cosmeticName: _listNameFromContext(node),
       initializer: allocation,
       isFinal: true,
-      type: InterfaceType(
-        _jsArrayClass,
-        Nullability.nonNullable,
-        DartTypeList.from(args.types),
-      ),
+      type: InterfaceType(_jsArrayClass, Nullability.nonNullable, args.types),
     )..fileOffset = node.fileOffset;
 
     final indexVariable = SyntheticVariable(

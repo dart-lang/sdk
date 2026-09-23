@@ -615,10 +615,10 @@ class _RecordClassGenerator {
                 ),
                 StaticInvocation(
                   wasmArrayIndex,
-                  Arguments(
-                    [VariableGet(typesParameter), IntLiteral(i)],
-                    types: [nonNullableTypeType],
-                  ),
+                  Arguments([
+                    VariableGet(typesParameter),
+                    IntLiteral(i),
+                  ], types: DartTypeList(nonNullableTypeType)),
                 ),
               ]),
             ),
@@ -699,15 +699,12 @@ class _RecordClassGenerator {
     // WasmArray.literal([_get*RuntimeTypeNullable(this.$1), ...])
     final fieldTypesList = ConstructorInvocation(
       wasmArrayLiteralConstructor,
-      Arguments(
-        [
-          ListLiteral(
-            fields.map(fieldRuntimeTypeExpr).toList(),
-            typeArgument: runtimeTypeType,
-          ),
-        ],
-        types: [runtimeTypeType],
-      ),
+      Arguments([
+        ListLiteral(
+          fields.map(fieldRuntimeTypeExpr).toList(),
+          typeArgument: runtimeTypeType,
+        ),
+      ], types: DartTypeList(runtimeTypeType)),
     );
 
     statements.add(
