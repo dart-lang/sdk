@@ -3755,10 +3755,24 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.importPrefixedFunctionInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: ?.
+    element: <testLibraryFragment>::@prefix::prefix
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: prefix
     element: <testLibraryFragment>::@prefix::prefix
     staticType: null
@@ -3786,10 +3800,26 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('loadLibrary()');
+    var node = result.findNode.importPrefixedFunctionInvocation(
+      'loadLibrary()',
+    );
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: math
+    period: ?.
+    element: <testLibraryFragment>::@prefix::math
+  name: loadLibrary
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:math::@function::loadLibrary
+    invokeType: Future<dynamic> Function()
+    type: Future<dynamic>
+  staticType: Future<dynamic>?
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: math
     element: <testLibraryFragment>::@prefix::math
     staticType: null

@@ -73,6 +73,7 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
       try {
         if (_tryGenerate(b, paramLocals, returnLabel)) return;
       } catch (_) {}
+      translator.cfgLog?.appendFailed(member);
       b.reset();
       fallback.generate(b, paramLocals, returnLabel);
     } else {

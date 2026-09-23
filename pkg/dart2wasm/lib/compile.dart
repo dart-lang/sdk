@@ -619,6 +619,15 @@ Future<CompilationResult> _runCodegenPhase(
   final modules = translator.translate(ioManager.sourceMapUrlGenerator);
   final writeFutures = <Future<void>>[];
 
+  if (translator.cfgLog != null) {
+    writeFutures.add(
+      ioManager.writeString(
+        options.translatorOptions.dumpCfg!,
+        translator.cfgLog!.getText(),
+      ),
+    );
+  }
+
   List<String?>? classNames;
   if (generateSourceMaps && options.translatorOptions.minify) {
     classNames = [];

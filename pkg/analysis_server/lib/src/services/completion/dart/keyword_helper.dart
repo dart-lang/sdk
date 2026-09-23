@@ -228,17 +228,41 @@ class KeywordHelper {
   /// beginning of a directive in a compilation unit. The [before] directive is
   /// the directive before the one being added.
   void addDirectiveKeywords(CompilationUnit unit, Directive? before) {
-    // TODO(brianwilkerson): If we had both the members before and after the new
-    //  directive, we could limit the keywords based on surrounding members.
-    if (before == null && !unit.directives.any((d) => d is LibraryDirective)) {
+    // TODO(brianwilkerson): If we had both the directives before and after the
+    //  completion location, we could limit the keywords based on surrounding
+    //  directives.
+    var hasLibrary = false;
+    var hasPartOf = false;
+    for (var directive in unit.directives) {
+      if (directive is LibraryDirective) {
+        hasLibrary = true;
+        break;
+      } else if (directive is PartOfDirective) {
+        hasPartOf = true;
+        break;
+      }
+    }
+    var enhancedPartsEnabled = featureSet.isEnabled(Feature.enhanced_parts);
+    if (before == null && !hasLibrary && !hasPartOf) {
       addKeyword(Keyword.LIBRARY);
+      if (enhancedPartsEnabled) {
+        addText("${Keyword.PART.lexeme} ${Keyword.OF.lexeme} '^';");
+      } else {
+        // If enhanced_parts isn't enabled, then we only offer a part-of
+        // directive if there are no directives in the file.
+        if (unit.directives.isEmpty) {
+          addText("${Keyword.PART.lexeme} ${Keyword.OF.lexeme} '^';");
+        }
+      }
+    }
+    if (!enhancedPartsEnabled && hasPartOf) {
+      // If enhanced_parts isn't enabled and there's a part-of directive, then
+      // we don't offer any other kinds of directives.
+      return;
     }
     addKeywordAndText(Keyword.IMPORT, " '^';");
     addKeywordAndText(Keyword.EXPORT, " '^';");
     addKeywordAndText(Keyword.PART, " '^';");
-    if (unit.directives.isEmpty) {
-      addText("${Keyword.PART.lexeme} ${Keyword.OF.lexeme} '^';");
-    }
   }
 
   /// Add the keywords that are appropriate when the selection is in an enum

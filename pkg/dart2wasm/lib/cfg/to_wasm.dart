@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
@@ -12,6 +13,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import '../reference_extensions.dart';
 import '../translator.dart';
+import 'ir_log.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode.
 class CfgToWasm {
@@ -23,6 +25,8 @@ class CfgToWasm {
   final List<w.Local> paramLocals;
   final w.Label? returnLabel;
   final EntryPoint kind;
+
+  Map<Instruction, InstructionTextPosition>? _textPositions;
 
   final Map<Definition, w.Local> _locals = {};
   final Map<Block, w.Label> _blockLabels = {};
@@ -57,6 +61,8 @@ class CfgToWasm {
   }
 
   void generate() {
+    _textPositions = translator.cfgLog?.append(member, graph);
+
     final entry = graph.entryBlock;
     _setupParameters(entry);
 
@@ -169,6 +175,17 @@ class CfgToWasm {
   /// source position instead.
   void setDebugPosition(Instruction instr, {int? inputIndex}) {
     if (!b.recordDebugInfo) return;
+    final textPositions = _textPositions;
+    if (textPositions != null) {
+      final pos = textPositions[instr]!;
+      b.setSourcePosition(
+        CfgLog.defaultUri,
+        pos.line,
+        inputIndex != null ? pos.inputColumns[inputIndex] : pos.column,
+        member.name.text,
+      );
+      return;
+    }
     var sourcePos = instr.sourcePosition;
     if (inputIndex != null) {
       final inputPos = instr.inputDefAt(inputIndex).sourcePosition;

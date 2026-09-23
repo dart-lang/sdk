@@ -3495,18 +3495,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFunctionReference(
-    covariant FunctionReferenceImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    _functionReferenceResolver.resolve(node);
-
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
@@ -3694,6 +3682,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant ImportPrefixedFunctionInvocationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
+    if (node.importPrefix.period.type == TokenType.QUESTION_PERIOD &&
+        flowAnalysis.flow != null) {
+      // Invalid `prefix?.name()` still resolves through the import namespace,
+      // preserving the null-shortened result of the original syntax.
+      startNullShorting(
+        null,
+        null,
+        SharedTypeView(typeProvider.dynamicType),
+        offset: node.importPrefix.period.offset,
+      );
+    }
     _resolveScopeFunctionInvocation(node, contextType: contextType);
   }
 

@@ -4285,6 +4285,41 @@ class Class {
         await runTests(moduleFormat: 'ddc', canary: true);
       });
     });
+
+    test('compile with dynamic-interface and incremental', () async {
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("void main() {}\n");
+      File extraFile = new File('${tempDir.path}/bar.dart')..createSync();
+      extraFile.writeAsStringSync("void exposedHelper() {}\n");
+      File dynamicInterface = new File('${tempDir.path}/dynamic_interface.yaml')
+        ..createSync();
+      dynamicInterface.writeAsStringSync('''
+callable:
+  - library: 'bar.dart'
+''');
+      File packageConfig =
+          new File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('{"configVersion": 2, "packages": []}');
+      File dillFile = new File('${tempDir.path}/app.dill');
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packageConfig.path}',
+        '--dynamic-interface=${dynamicInterface.path}',
+        file.path,
+      ];
+      expect(await starter(args), 0);
+      expect(dillFile.existsSync(), true);
+      Component component = loadComponentFromBinary(dillFile.path);
+      expect(
+        component.libraries.any((Library lib) => lib.fileUri == extraFile.uri),
+        true,
+      );
+    });
   });
 }
 
