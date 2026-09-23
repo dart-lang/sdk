@@ -41,20 +41,6 @@ class IncrementOrDecrementResolver {
   void resolve(IncrementOrDecrementExpressionImpl node) {
     var isPrefix = node.position == IncrementOrDecrementPosition.prefix;
     var target = node.target;
-    if (target is InvalidExpressionAssignmentTargetImpl) {
-      _resolver.analyzeExpression(
-        target.expression,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-      );
-      target.expression = _resolver.popRewrite()!;
-      target.read = const InvalidReadResolutionImpl();
-      target.write = const InvalidWriteResolutionImpl();
-      // Keep the child's resolution, but don't expose a partially resolved
-      // read-modify-write operation for a target that cannot be written.
-      node.operatorResultType = InvalidTypeImpl.instance;
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-      return;
-    }
 
     late TypeImpl readType;
     late TypeImpl writeAcceptedType;
@@ -92,7 +78,7 @@ class IncrementOrDecrementResolver {
         target.write = result.write;
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
-        if (target.receiver is! ExtensionOverride &&
+        if (target.receiver is! ExtensionOverride2 &&
             result.read is ExecutableTearOffResolution) {
           // TODO(scheglov): Review why ordinary method targets replace the
           // tear-off type with InvalidType, while extension overrides retain
@@ -111,8 +97,35 @@ class IncrementOrDecrementResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidSuperAssignmentTargetImpl():
+        _resolver.visitSuperReference(target.superReference);
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+        _resolver.visitExtensionOverride2(target.extensionOverride);
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
       case InvalidExpressionAssignmentTargetImpl():
-        throw StateError('Handled above');
+        _resolver.analyzeExpression(
+          target.expression,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+        );
+        target.expression = _resolver.popRewrite()!;
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        // Keep the child's resolution, but don't expose a partially resolved
+        // read-modify-write operation for a target that cannot be written.
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
     }
 
     _resolveOperator(

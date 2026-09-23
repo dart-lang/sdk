@@ -736,8 +736,8 @@ class MyClass;
     var expected = [
       Token('/// MyClass.', .comment, [.documentation]),
       Token('///', .comment, [.documentation]),
-      Token('///', .comment, [.documentation]),
-      Token('     CODE', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('    CODE', .comment, [.documentation, .source]),
       Token('class', .keyword),
       Token('MyClass', .class_, [.declaration]),
     ];
@@ -758,12 +758,12 @@ class MyClass;
     var expected = [
       Token('/// MyClass.', .comment, [.documentation]),
       Token('///', .comment, [.documentation]),
-      Token('///', .comment, [.documentation]),
-      Token(' ```', .comment, [.documentation, .source]),
-      Token('///', .comment, [.documentation]),
-      Token(' CODE', .comment, [.documentation, .source]),
-      Token('///', .comment, [.documentation]),
-      Token(' ```', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('```', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('CODE', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('```', .comment, [.documentation, .source]),
       Token('class', .keyword),
       Token('MyClass', .class_, [.declaration]),
     ];
@@ -784,12 +784,12 @@ class MyClass;
     var expected = [
       Token('/// MyClass.', .comment, [.documentation]),
       Token('///', .comment, [.documentation]),
-      Token('///', .comment, [.documentation]),
-      Token(' ```dart', .comment, [.documentation, .source]),
-      Token('///', .comment, [.documentation]),
-      Token(' CODE', .comment, [.documentation, .source]),
-      Token('///', .comment, [.documentation]),
-      Token(' ```', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('```dart', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('CODE', .comment, [.documentation, .source]),
+      Token('/// ', .comment, [.documentation]),
+      Token('```', .comment, [.documentation, .source]),
       Token('class', .keyword),
       Token('MyClass', .class_, [.declaration]),
     ];

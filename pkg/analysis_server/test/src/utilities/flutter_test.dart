@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
+import '../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterTest extends AbstractSingleUnitTest {
+class FlutterTest extends SingleUnitTest with FindElementMixin, FindNodeMixin {
   @override
   bool get addFlutterPackageDep => true;
 

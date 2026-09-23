@@ -23,6 +23,7 @@ namespace dart {
   V(AllocateRecord)                                                            \
   V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
+  V(BoxInt)                                                                    \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
   V(BoxFloat64x2)                                                              \
@@ -61,6 +62,7 @@ namespace dart {
   V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
+  V(UnsupportedError)                                                          \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(InterruptOrStackOverflow)                                                  \

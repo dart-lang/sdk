@@ -318,9 +318,7 @@ IfElement
   elseElement2: UnqualifiedNameExpression
     name: a
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   elseElement(v1): SimpleIdentifier
     token: a
@@ -336,7 +334,6 @@ class A {
     [if (super) 0 else 1];
 //       ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -346,7 +343,11 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -434,9 +435,11 @@ IfElement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: bool Function()
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -476,9 +479,11 @@ IfElement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -546,9 +551,11 @@ IfElement
       whenClause: WhenClause
         whenKeyword: when
         expression2: CallInvocation
-          receiver: SimpleIdentifier
-            token: a
-            element: <testLibrary>::@function::f::@formalParameter::a
+          receiver: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: bool Function()
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (

@@ -304,9 +304,8 @@ class Driver implements ServerStarter {
       clientId: clientId,
       clientVersion: analysisServerOptions.clientVersion,
     );
-    //
+
     // Initialize the instrumentation service.
-    //
     var logFilePath =
         results.option(protocolTrafficLogOption) ??
         results.option(protocolTrafficLogAliasOption);
@@ -330,17 +329,6 @@ class Driver implements ServerStarter {
       allInstrumentationServices,
     );
 
-    _instrumentationService.logVersion(
-      results.option(trainUsingOption) != null
-          ? 'training-0'
-          : _readUuid(_instrumentationService),
-      analysisServerOptions.clientId ?? '',
-      analysisServerOptions.clientVersion ?? '',
-      PROTOCOL_VERSION,
-      defaultSdk.languageVersion.toString(),
-    );
-    AnalysisEngine.instance.instrumentationService = _instrumentationService;
-
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
     _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
@@ -348,6 +336,18 @@ class Driver implements ServerStarter {
       defaultSdkPath,
       'dartSdkRoot',
     );
+
+    // Log the command-line.
+    _instrumentationService.logVersion(
+      results.option(trainUsingOption) != null
+          ? 'training-0'
+          : _readUuid(_instrumentationService, _sessionLogger),
+      analysisServerOptions.clientId ?? '',
+      analysisServerOptions.clientVersion ?? '',
+      PROTOCOL_VERSION,
+      defaultSdk.languageVersion.toString(),
+    );
+    AnalysisEngine.instance.instrumentationService = _instrumentationService;
     _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;
@@ -442,7 +442,7 @@ class Driver implements ServerStarter {
     Map<String, String>? environment,
   ) {
     var capture = results.flag(disableServerExceptionHandlingOption)
-        ? (_, Function f, {void Function(String)? print}) => f()
+        ? (_, _, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
     var trainDirectory = results.option(trainUsingOption);
     if (trainDirectory != null) {
@@ -525,6 +525,7 @@ class Driver implements ServerStarter {
     } else {
       capture(
         instrumentationService,
+        sessionLogger,
         () {
           Future<void> serveResult;
           if (sendPort == null) {
@@ -565,7 +566,7 @@ class Driver implements ServerStarter {
     Map<String, String>? environment,
   ) {
     var capture = args.flag(disableServerExceptionHandlingOption)
-        ? (_, Function f, {void Function(String)? print}) => f()
+        ? (_, _, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
 
     linter.registerLintRules();
@@ -585,16 +586,20 @@ class Driver implements ServerStarter {
       performanceLogger,
       environment: environment,
     );
-    errorNotifier.server = socketServer.analysisServer;
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
 
     if (diagnosticServerPort != null) {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    capture(instrumentationService, () {
+    capture(instrumentationService, sessionLogger, () {
       var stdioServer = LspStdioAnalysisServer(socketServer);
-      stdioServer.serveStdio().then((_) {
+      var serveResult = stdioServer.serveStdio();
+      errorNotifier.server = socketServer.analysisServer;
+      if (args.flag(disableSilentAnalysisExceptionsOption)) {
+        errorNotifier.sendSilentExceptionsToClient = true;
+      }
+      serveResult.then((_) {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {
@@ -611,6 +616,7 @@ class Driver implements ServerStarter {
   /// capture any data printed by the callback and redirect it to the function.
   void _captureExceptions(
     InstrumentationService service,
+    SessionLogger sessionLogger,
     void Function() callback, {
     void Function(String line)? print,
   }) {
@@ -622,6 +628,7 @@ class Driver implements ServerStarter {
       StackTrace stackTrace,
     ) {
       service.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
       throw exception;
     }
 
@@ -761,7 +768,10 @@ class Driver implements ServerStarter {
   }
 
   /// Read the UUID from disk, generating and storing a new one if necessary.
-  String _readUuid(InstrumentationService service) {
+  String _readUuid(
+    InstrumentationService service,
+    SessionLogger sessionLogger,
+  ) {
     var instrumentationLocation = PhysicalResourceProvider.INSTANCE
         .getStateLocation('.instrumentation');
     if (instrumentationLocation == null) {
@@ -777,6 +787,7 @@ class Driver implements ServerStarter {
       }
     } catch (exception, stackTrace) {
       service.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     var uuid = _generateUuidString();
     try {
@@ -784,6 +795,7 @@ class Driver implements ServerStarter {
       uuidFile.writeAsStringSync(uuid);
     } catch (exception, stackTrace) {
       service.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
       // Slightly alter the uuid to indicate it was not persisted
       uuid = 'temp-$uuid';
     }

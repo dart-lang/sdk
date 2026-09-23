@@ -332,9 +332,11 @@ class _WasmTransformer extends Transformer {
         ProcedureKind.Getter,
         FunctionNode(
           null,
-          returnType: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
-            _nonNullableTypeType,
-          ]),
+          returnType: InterfaceType(
+            _wasmArrayClass,
+            Nullability.nonNullable,
+            DartTypeList(_nonNullableTypeType),
+          ),
         ),
         isExternal: true,
         isSynthetic: true,
@@ -411,9 +413,11 @@ class _WasmTransformer extends Transformer {
     }
 
     final DartType elementType = stmt.getElementType(typeContext);
-    final iteratorType = InterfaceType(iteratorClass, Nullability.nonNullable, [
-      elementType,
-    ]);
+    final iteratorType = InterfaceType(
+      iteratorClass,
+      Nullability.nonNullable,
+      DartTypeList(elementType),
+    );
 
     late final Expression iteratorInitializer;
     if (isAsync) {
@@ -523,7 +527,7 @@ class _WasmTransformer extends Transformer {
     final controllerNullableObjectType = InterfaceType(
       _streamControllerClass,
       Nullability.nonNullable,
-      [coreTypes.objectNullableRawType],
+      DartTypeList(coreTypes.objectNullableRawType),
     );
     FunctionType controllerAddType =
         Substitution.fromInterfaceType(controllerNullableObjectType)
@@ -627,16 +631,18 @@ class _WasmTransformer extends Transformer {
     final controllerObjectType = InterfaceType(
       _streamControllerClass,
       Nullability.nonNullable,
-      [emittedValueType],
+      DartTypeList(emittedValueType),
     );
 
     // `void #body() async { ... }` statements.
     final List<Statement> bodyStatements = [];
 
     // Completer<void>? #paused;
-    final pausedVarType = InterfaceType(_completerClass, Nullability.nullable, [
-      const VoidType(),
-    ]);
+    final pausedVarType = InterfaceType(
+      _completerClass,
+      Nullability.nullable,
+      const DartTypeList.constant([VoidType()]),
+    );
 
     final pausedVar = SyntheticVariable(
       cosmeticName: '#paused',
@@ -647,9 +653,11 @@ class _WasmTransformer extends Transformer {
     final cancelCompleterVar = SyntheticVariable(
       cosmeticName: '#cancelCompleter',
       initializer: null,
-      type: InterfaceType(_completerClass, Nullability.nullable, [
-        const VoidType(),
-      ]),
+      type: InterfaceType(
+        _completerClass,
+        Nullability.nullable,
+        const DartTypeList.constant([VoidType()]),
+      ),
     );
 
     final isDoneVar = SyntheticVariable(
@@ -709,7 +717,7 @@ class _WasmTransformer extends Transformer {
           resultType: InterfaceType(
             coreTypes.futureClass,
             Nullability.nonNullable,
-            [const VoidType()],
+            const DartTypeList.constant([VoidType()]),
           ),
         ),
       ),
@@ -855,7 +863,7 @@ class _WasmTransformer extends Transformer {
       returnType: InterfaceType(
         coreTypes.futureClass,
         Nullability.nonNullable,
-        [const VoidType()],
+        const DartTypeList.constant([VoidType()]),
       ),
       asyncMarker: AsyncMarker.Async,
       dartAsyncMarker: AsyncMarker.Async,
@@ -1321,9 +1329,11 @@ class PushPopWasmArrayTransformer {
     final newArrayVariable = SyntheticVariable(
       cosmeticName: 'newArray',
       initializer: arrayAllocation,
-      type: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
-        elementType,
-      ]),
+      type: InterfaceType(
+        _wasmArrayClass,
+        Nullability.nonNullable,
+        DartTypeList(elementType),
+      ),
     );
 
     // newArray.copy(...)

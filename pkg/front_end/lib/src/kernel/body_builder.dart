@@ -10238,7 +10238,7 @@ class BodyBuilderImpl extends StackListenerImpl
         aliasBuilder.typedef,
         Nullability.nonNullable,
         typeArgumentBuilders != null
-            ? new List.generate(
+            ? new DartTypeList.generate(
                 typeArgumentBuilders.length,
                 (int index) => typeArgumentBuilders[index].build(
                   libraryBuilder,

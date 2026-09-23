@@ -144,14 +144,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var element = node.resolution?.elementOrRecovery;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if ((enclosingElement.isNativeStructPointerExtension ||
@@ -452,22 +445,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(covariant IndexExpressionImpl node) {
-    var element = node.element;
-    if (element is MethodElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructArrayExtension ||
-          enclosingElement.isNativeUnionPointerExtension ||
-          enclosingElement.isNativeUnionArrayExtension) {
-        if (element.name == '[]') {
-          _validateRefIndexed(node, node.realTarget2);
-        }
-      }
-    }
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
@@ -515,21 +492,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       typeArgumentTypes: node.typeArgumentTypes,
     );
     if (element is InternalMethodElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isPointer) {
-        if (element.name == 'fromFunction') {
-          _validateFromFunction(node, element);
-        }
-      } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
-        if (element.name == 'create') {
-          _validateCreate(node, enclosingElement!.name!);
-        }
-      } else if (enclosingElement.isNative) {
-        if (element.name == 'addressOf') {
-          _validateNativeAddressOf(node);
-        }
-      }
-      _validateFfiInstanceMethodInvocation(invocation, element);
+      _validateFfiMethodInvocation(invocation, element);
     } else if (element is TopLevelFunctionElement) {
       if (element.library.name == 'dart.ffi') {
         if (element.name == 'sizeOf') {
@@ -582,14 +545,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitReceiverIndexExpression(
     covariant ReceiverIndexExpressionImpl node,
   ) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var element = node.resolution?.elementOrRecovery;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
@@ -597,7 +553,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           enclosingElement.isNativeUnionPointerExtension ||
           enclosingElement.isNativeUnionArrayExtension) {
         if (element.name == '[]') {
-          _validateRefIndexed(node, node.receiver);
+          if (node.receiver case ExpressionImpl receiver) {
+            _validateRefIndexed(node, receiver);
+          }
         }
       }
     }
@@ -617,17 +575,17 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _ => null,
     };
     if (element is InternalMethodElement) {
-      _validateFfiInstanceMethodInvocation(
-        _FfiInvocation(
-          node: node,
-          name: node.name,
-          target: node.receiver,
-          typeArguments: node.typeArguments,
-          argumentList: node.argumentList,
-          typeArgumentTypes: node.typeArgumentTypes,
-        ),
-        element,
+      var invocation = _FfiInvocation(
+        node: node,
+        name: node.name,
+        target: node.receiver is ExpressionImpl
+            ? node.receiver as ExpressionImpl
+            : null,
+        typeArguments: node.typeArguments,
+        argumentList: node.argumentList,
+        typeArgumentTypes: node.typeArgumentTypes,
       );
+      _validateFfiMethodInvocation(invocation, element);
     }
     super.visitReceiverMethodInvocation(node);
   }
@@ -636,6 +594,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
+    // These getters are instance members. Static accesses have only a recovery
+    // element, so they do not reach the expression-receiver casts in the validators.
     var element = node.resolution?.element;
     if (element != null) {
       var enclosingElement = element.enclosingElement;
@@ -1454,7 +1414,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     switch (receiver) {
-      case ReceiverIndexExpression(receiver: var indexedReceiver):
+      case ReceiverIndexExpression(receiver: Expression indexedReceiver):
         // Array or TypedData element.
         var type = indexedReceiver.staticType;
         if (type?.isArray ?? false) {
@@ -1487,6 +1447,10 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         if (type?.isCompoundSubtype ?? false) {
           return;
         }
+      case ReceiverPropertyExtraction(receiver: Expression compound):
+        if (compound.staticType?.isCompoundSubtype ?? false) {
+          return;
+        }
       default:
     }
     _diagnosticReporter.report(diag.addressReceiver.at(errorNode));
@@ -1499,7 +1463,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var errorNode = node.name;
     _validateAddressPosition(node, errorNode);
     var extensionName = element.enclosingElement?.name;
-    _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
+    _validateAddressReceiver(
+      node,
+      extensionName,
+      node.receiver as Expression,
+      errorNode,
+    );
   }
 
   void _validateAllocate(CallInvocationImpl node) {
@@ -1757,8 +1726,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _validateCreate(MethodInvocationImpl node, String errorClass) {
-    var typeArgumentTypes = node.typeArgumentTypes;
+  void _validateCreate(_FfiInvocation invocation, String errorClass) {
+    var typeArgumentTypes = invocation.typeArgumentTypes;
     if (typeArgumentTypes == null || typeArgumentTypes.length != 1) {
       return;
     }
@@ -1767,7 +1736,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '$errorClass.create')
-            .at(node),
+            .at(invocation.node),
       );
     }
   }
@@ -1783,31 +1752,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
               .withArguments(executableName: 'elementAt')
               .at(invocation.node),
         );
-      }
-    }
-  }
-
-  void _validateFfiInstanceMethodInvocation(
-    _FfiInvocation invocation,
-    InternalMethodElement element,
-  ) {
-    var enclosingElement = element.enclosingElement;
-    if (enclosingElement.isPointer) {
-      if (element.name == 'elementAt') {
-        _validateElementAt(invocation);
-      }
-    } else if (enclosingElement.isNativeFunctionPointerExtension) {
-      if (element.name == 'asFunction') {
-        _validateAsFunction(invocation);
-      }
-    } else if (enclosingElement.isDynamicLibraryExtension) {
-      if (element.name == 'lookupFunction') {
-        _validateLookupFunction(invocation);
-      }
-    } else if (enclosingElement.isNativeStructPointerExtension ||
-        enclosingElement.isNativeUnionPointerExtension) {
-      if (element.name == 'refWithFinalizer') {
-        _validateRefWithFinalizer(invocation);
       }
     }
   }
@@ -1829,6 +1773,41 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
             diag.leafCallMustNotTakeHandle.at(errorEntity),
           );
         }
+      }
+    }
+  }
+
+  void _validateFfiMethodInvocation(
+    _FfiInvocation invocation,
+    InternalMethodElement element,
+  ) {
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement.isPointer) {
+      if (element.name == 'elementAt') {
+        _validateElementAt(invocation);
+      } else if (element.name == 'fromFunction') {
+        _validateFromFunction(invocation);
+      }
+    } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
+      if (element.name == 'create') {
+        _validateCreate(invocation, enclosingElement!.name!);
+      }
+    } else if (enclosingElement.isNative) {
+      if (element.name == 'addressOf') {
+        _validateNativeAddressOf(invocation);
+      }
+    } else if (enclosingElement.isNativeFunctionPointerExtension) {
+      if (element.name == 'asFunction') {
+        _validateAsFunction(invocation);
+      }
+    } else if (enclosingElement.isDynamicLibraryExtension) {
+      if (element.name == 'lookupFunction') {
+        _validateLookupFunction(invocation);
+      }
+    } else if (enclosingElement.isNativeStructPointerExtension ||
+        enclosingElement.isNativeUnionPointerExtension) {
+      if (element.name == 'refWithFinalizer') {
+        _validateRefWithFinalizer(invocation);
       }
     }
   }
@@ -1934,18 +1913,18 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Validate the invocation of the static method
   /// `Pointer<T>.fromFunction(f, e)`.
-  void _validateFromFunction(MethodInvocationImpl node, MethodElement element) {
-    int argCount = node.argumentList.arguments2.length;
+  void _validateFromFunction(_FfiInvocation invocation) {
+    int argCount = invocation.argumentList.arguments2.length;
     if (argCount < 1 || argCount > 2) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
     }
 
-    var T = node.typeArgumentTypes![0];
+    var T = invocation.typeArgumentTypes![0];
     if (!_isValidFfiNativeFunctionType(T)) {
-      AstNode errorNode = node.methodName;
-      var typeArgument = node.typeArguments?.arguments[0];
+      SyntacticEntity errorNode = invocation.name;
+      var typeArgument = invocation.typeArguments?.arguments[0];
       if (typeArgument != null) {
         errorNode = typeArgument;
       }
@@ -1957,7 +1936,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
 
-    var f = node.argumentList.arguments2[0];
+    var f = invocation.argumentList.arguments2[0];
     var FT = f.argumentExpression2.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
@@ -1982,17 +1961,17 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         _diagnosticReporter.report(
           diag.invalidExceptionValue
               .withArguments(methodName: 'fromFunction')
-              .at(node.argumentList.arguments2[1]),
+              .at(invocation.argumentList.arguments2[1]),
         );
       }
     } else if (argCount != 2) {
       _diagnosticReporter.report(
         diag.missingExceptionValue
             .withArguments(methodName: 'fromFunction')
-            .at(node.methodName),
+            .at(invocation.name),
       );
     } else {
-      Expression e = node.argumentList.arguments2[1].argumentExpression2;
+      Expression e = invocation.argumentList.arguments2[1].argumentExpression2;
       var eType = e.typeOrThrow;
       if (!_validateCompatibleNativeType(
         _FfiTypeCheckDirection.dartToNative,
@@ -2078,9 +2057,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   /// Validate the invocation of `Native.addressOf`.
-  void _validateNativeAddressOf(MethodInvocationImpl node) {
-    var typeArguments = node.typeArgumentTypes;
-    var arguments = node.argumentList.arguments2;
+  void _validateNativeAddressOf(_FfiInvocation invocation) {
+    var typeArguments = invocation.typeArgumentTypes;
+    var arguments = invocation.argumentList.arguments2;
     if (typeArguments == null ||
         typeArguments.length != 1 ||
         arguments.length != 1) {
@@ -2122,7 +2101,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
                         supertype: targetFunctionType,
                         name: _nativeAddressOf,
                       )
-                      .at(node),
+                      .at(invocation.node),
                 );
               }
             } else {
@@ -2132,7 +2111,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
                       type: targetType,
                       functionName: _nativeAddressOf,
                     )
-                    .at(node),
+                    .at(invocation.node),
               );
             }
           } else {
@@ -2164,7 +2143,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
                             supertype: targetFunctionType,
                             name: _nativeAddressOf,
                           )
-                          .at(node),
+                          .at(invocation.node),
                     );
                   }
                 } else {
@@ -2174,7 +2153,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
                           type: targetType,
                           functionName: _nativeAddressOf,
                         )
-                        .at(node),
+                        .at(invocation.node),
                   );
                 }
               } else {
@@ -2186,7 +2165,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
                           supertype: targetType,
                           name: _nativeAddressOf,
                         )
-                        .at(node),
+                        .at(invocation.node),
                   );
                 }
               }
@@ -2404,7 +2383,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   void _validateRefReceiverPropertyExtraction(
     ReceiverPropertyExtractionImpl node,
   ) {
-    var targetType = node.receiver.typeOrThrow;
+    var targetType = (node.receiver as ExpressionImpl).typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument

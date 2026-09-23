@@ -531,8 +531,11 @@ void main() {
       );
     });
     test('loadClassId', () {
-      asm.loadClassId(R0, R0);
-      asm.loadClassId(R1, R5);
+      asm.loadClassId(R0, R0, canBeSmi: false);
+      asm.loadClassId(R1, R5, canBeSmi: false);
+      asm.loadClassId(R1, R0, canBeSmi: true);
+      asm.loadClassId(R0, R0, canBeSmi: true);
+      asm.loadClassId(R1, R1, canBeSmi: true, scratch: R2);
       final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
       final highBit =
           vmOffsets.UntaggedObject_kClassIdTagPos +
@@ -542,20 +545,20 @@ void main() {
         'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
-        'ubfm r1, r1, #$lowBit, #$highBit\n',
-      );
-    });
-    test('loadClassIdMayBeSmi', () {
-      asm.loadClassIdMayBeSmi(R1, R0);
-      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
-      final highBit =
-          vmOffsets.UntaggedObject_kClassIdTagPos +
-          vmOffsets.UntaggedObject_kClassIdTagSize -
-          1;
-      expectDisassembly(
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
         'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r0, #${smiBit}, +12\n'
         'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        'mov r17, r0\n'
+        'movz r0, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r17, #${smiBit}, +12\n'
+        'ldr r0, [r17, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        'mov r2, r1\n'
+        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +12\n'
+        'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n',
       );
     });
@@ -1721,6 +1724,8 @@ void main() {
       asm.fldr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fldr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fldr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fldr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fldr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .s32);
       asm.fldr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fldr(
         V6,
@@ -1734,6 +1739,8 @@ void main() {
         'fldrs v2, [r1, #32]\n'
         'fldrd v3, [r1, #-5]\n'
         'fldrq v4, [csp, #32768]\n'
+        'fldrd v0, [r0, r1 uxtx scaled]\n'
+        'fldrs v31, [csp, r0 sxtw]\n'
         'fldrd v5, [r1], #16 !\n'
         'fldrq v6, [r1, #-8]!\n'
         'fldrs v0, [r0], #8 !\n',
@@ -1746,6 +1753,9 @@ void main() {
       });
       expectThrows(() {
         asm.fldr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fldr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fldr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
@@ -1761,6 +1771,8 @@ void main() {
       asm.fstr(V2, RegOffsetAddress(R1, 32), .s32);
       asm.fstr(V3, RegOffsetAddress(R1, -5), .s64);
       asm.fstr(V4, RegOffsetAddress(SP, 32768), .simd128);
+      asm.fstr(V0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.fstr(V31, RegExtRegAddress(SP, R0, .SXTW, scaled: false), .simd128);
       asm.fstr(V5, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.fstr(
         V6,
@@ -1774,6 +1786,8 @@ void main() {
         'fstrs v2, [r1, #32]\n'
         'fstrd v3, [r1, #-5]\n'
         'fstrq v4, [csp, #32768]\n'
+        'fstrd v0, [r0, r1 uxtx scaled]\n'
+        'fstrq v31, [csp, r0 sxtw]\n'
         'fstrd v5, [r1], #16 !\n'
         'fstrq v6, [r1, #-8]!\n'
         'fstrs v0, [r0], #8 !\n',
@@ -1786,6 +1800,9 @@ void main() {
       });
       expectThrows(() {
         asm.fstr(V0, RegOffsetAddress(R1, -512));
+      });
+      expectThrows(() {
+        asm.fstr(V0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
       });
       expectThrows(() {
         asm.fstr(V0, WritebackRegOffsetAddress(R1, 512, isPostIndexed: true));
@@ -2102,7 +2119,115 @@ void main() {
         asm.scvtf(V0, SP);
       });
     });
-
+    test('fcvt', () {
+      asm.fcvt(V0, V0, .s32, .s64);
+      asm.fcvt(V1, V2, .s64, .s32);
+      // TODO: extend disassembler to handle half precision.
+      expectDisassembly(
+        'fcvtds v0, v0\n'
+        'fcvtsd v1, v2\n',
+      );
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .s64);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s32, .u32);
+      });
+      expectThrows(() {
+        asm.fcvt(V0, V0, .s64, .simd128);
+      });
+    });
+    test('fcvtas', () {
+      asm.fcvtas(R0, V0);
+      asm.fcvtas(R2, V31, .s64, .s32);
+      asm.fcvtas(ZR, V1);
+      expectDisassembly(
+        'fcvtas r0, v0\n'
+        'fcvtasw r2, v31\n'
+        'fcvtas zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtas(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtas(SP, V0);
+      });
+    });
+    test('fcvtzs', () {
+      asm.fcvtzs(R0, V0);
+      asm.fcvtzs(R2, V31, .s64, .s32);
+      asm.fcvtzs(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtzs r0, v0\n'
+        'fcvtzsw r2, v31\n'
+        'fcvtzs zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtzs(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtzs(SP, V0);
+      });
+    });
+    test('fcvtms', () {
+      asm.fcvtms(R0, V0);
+      asm.fcvtms(R2, V31, .s64, .s32);
+      asm.fcvtms(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtms r0, v0\n'
+        'fcvtmsw r2, v31\n'
+        'fcvtms zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtms(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtms(SP, V0);
+      });
+    });
+    test('fcvtps', () {
+      asm.fcvtps(R0, V0);
+      asm.fcvtps(R2, V31, .s64, .s32);
+      asm.fcvtps(ZR, V1);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fcvtps r0, v0\n'
+        'fcvtpsw r2, v31\n'
+        'fcvtps zr, v1\n',
+      );
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s8);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .s16, .s16);
+      });
+      expectThrows(() {
+        asm.fcvtps(R0, V0, .simd128, .s64);
+      });
+      expectThrows(() {
+        asm.fcvtps(SP, V0);
+      });
+    });
     test('fmov', () {
       asm.fmov(V0, R0);
       asm.fmov(V2, ZR);
@@ -2110,13 +2235,19 @@ void main() {
       asm.fmov(V0, Immediate(doubleToIntBits(1.0)));
       asm.fmov(V1, Immediate(doubleToIntBits(2.0)));
       asm.fmov(V31, Immediate(doubleToIntBits(-0.25)));
+      asm.fmov(R0, V0);
+      asm.fmov(ZR, V31);
+      asm.fmov(R1, V2, .s32);
       expectDisassembly(
         'fmovdr v0, r0\n'
         'fmovdr v2, zr\n'
         'fmovsrw v3, r2\n'
         'fmovd v0, 1.0\n'
         'fmovd v1, 2.0\n'
-        'fmovd v31, -0.25\n',
+        'fmovd v31, -0.25\n'
+        'fmovrd r0, v0\n'
+        'fmovrd zr, v31\n'
+        'fmovrsw r1, v2\n',
       );
       expectThrows(() {
         asm.fmov(V0, Immediate(doubleToIntBits(0.0)));
@@ -2124,6 +2255,79 @@ void main() {
       expectThrows(() {
         asm.fmov(V1, Immediate(doubleToIntBits(1.23456789)));
       });
+      expectThrows(() {
+        asm.fmov(SP, V0);
+      });
+    });
+
+    test('fabs', () {
+      asm.fabs(V0, V1);
+      asm.fabs(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fabsd v0, v1\n'
+        'fabsd v31, v31\n',
+      );
+    });
+
+    test('fneg', () {
+      asm.fneg(V0, V0);
+      asm.fneg(V31, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fnegd v0, v0\n'
+        'fnegd v31, v30\n',
+      );
+    });
+
+    test('fsqrt', () {
+      asm.fsqrt(V1, V1);
+      asm.fsqrt(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'fsqrtd v1, v1\n'
+        'fsqrtd v0, v31\n',
+      );
+    });
+
+    test('frintp', () {
+      asm.frintp(V0, V0);
+      asm.frintp(V31, V3);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintp v0, v0\n'
+        'frintp v31, v3\n',
+      );
+    });
+
+    test('frintm', () {
+      asm.frintm(V1, V1);
+      asm.frintm(V0, V30);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintm v1, v1\n'
+        'frintm v0, v30\n',
+      );
+    });
+
+    test('frintz', () {
+      asm.frintz(V15, V16);
+      asm.frintz(V0, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frintz v15, v16\n'
+        'frintz v0, v31\n',
+      );
+    });
+
+    test('frinta', () {
+      asm.frinta(V1, V2);
+      asm.frinta(V31, V31);
+      // TODO: extend disassembler to handle single and half precision.
+      expectDisassembly(
+        'frinta v1, v2\n'
+        'frinta v31, v31\n',
+      );
     });
 
     test('fadd', () {

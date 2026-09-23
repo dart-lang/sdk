@@ -117,7 +117,7 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.doubleType, resolver: _resolver);
   }
 
-  void visitExtensionOverride(ExtensionOverride node) {
+  void visitExtensionOverride2(ExtensionOverride2 node) {
     assert(
       false,
       'Resolver should call extensionResolver.resolveOverride directly',
@@ -153,11 +153,6 @@ class StaticTypeAnalyzer {
   /// where <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>, is not specified, it is considered to have been
   /// specified as dynamic.</blockquote>
   void visitFunctionExpression(FunctionExpression node) {}
-
-  void visitFunctionReference(covariant FunctionReferenceImpl node) {
-    // TODO(paulberry): implement
-    node.setPseudoExpressionStaticType(_dynamicType);
-  }
 
   /// <blockquote>
   /// An integer literal has static type \code{int}, unless the surrounding
@@ -238,27 +233,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.stringType, resolver: _resolver);
   }
 
-  void visitSuperExpression(covariant SuperExpressionImpl node) {
-    var thisType = _resolver.unpromotedThisType;
-    if (thisType == null ||
-        node.thisOrAncestorOfType2<ExtensionDeclaration>() != null) {
-      // TODO(brianwilkerson): Report this error if it hasn't already been
-      // reported.
-      thisType = InvalidTypeImpl.instance;
-    } else {
-      _resolver.flowAnalysis.storeExpressionInfo(
-        node,
-        _resolver.flowAnalysis.flow?.thisOrSuper(
-          SharedTypeView(
-            _resolver.isThisAccessible ? thisType : InvalidTypeImpl.instance,
-          ),
-          isSuper: true,
-        ),
-      );
-    }
-    node.recordStaticType(thisType, resolver: _resolver);
-  }
-
   void visitSymbolLiteral(covariant SymbolLiteralImpl node) {
     node.recordStaticType(_typeProvider.symbolType, resolver: _resolver);
   }
@@ -266,16 +240,15 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
-    var staticType = _resolver.thisType ?? InvalidTypeImpl.instance;
-    _resolver.flowAnalysis.storeExpressionInfo(
-      node,
-      _resolver.flowAnalysis.flow?.thisOrSuper(
-        SharedTypeView(
-          _resolver.isThisAccessible ? staticType : InvalidTypeImpl.instance,
-        ),
-        isSuper: false,
-      ),
-    );
+    var (promotedType, expressionInfo) =
+        _resolver.flowAnalysis.flow?.thisExpression() ?? (null, null);
+    _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    var staticType =
+        (_resolver.isThisAccessible
+            ? promotedType?.unwrapTypeView<TypeImpl>() ??
+                  _resolver.unpromotedThisType
+            : null) ??
+        InvalidTypeImpl.instance;
     node.recordStaticType(staticType, resolver: _resolver);
   }
 

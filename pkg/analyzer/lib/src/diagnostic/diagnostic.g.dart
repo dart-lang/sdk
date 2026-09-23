@@ -328,17 +328,21 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String name: the name of the ambiguous type
-/// String libraries: the names of the libraries that the type is found
+/// String kind: the kind of conflicting declarations, or 'name' for other
+///              conflicts
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
+    required String kind,
     required String name,
     required String libraries,
   })
 >
 ambiguousImport = DiagnosticWithArguments(
   name: 'ambiguous_import',
-  problemMessage: "The name '{0}' is defined in the libraries {1}.",
+  problemMessage: "The {0} '{1}' is defined in the libraries {2}.",
   correctionMessage:
       "Try using 'as prefix' for one of the import directives, or hiding the "
       "name from all but one of the imports.",
@@ -346,7 +350,11 @@ ambiguousImport = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'ambiguous_import',
   withArguments: _withArgumentsAmbiguousImport,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// No parameters.
@@ -3890,11 +3898,53 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocation = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly invoked super constructor '{0}' is deprecated and "
+      "shouldn't be used.",
+  correctionMessage: "Try explicitly invoking a replacement super constructor.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_super_constructor_invocation',
+  withArguments:
+      _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage =
+    DiagnosticWithArguments(
+      name: 'deprecated_member_use',
+      problemMessage:
+          "The implicitly invoked super constructor '{0}' is deprecated and "
+          "shouldn't be used. {1}",
+      correctionMessage:
+          "Try explicitly invoking a replacement super constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.HINT,
+      uniqueName:
+          'deprecated_member_use_implicit_super_constructor_invocation_with_message',
+      withArguments:
+          _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+      expectedTypes: [ExpectedType.string, ExpectedType.string],
+    );
+
+/// Parameters:
 /// String name: the name of the implicitly referenced type
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
 >
-deprecatedMemberUseImplicit = DiagnosticWithArguments(
+deprecatedMemberUseImplicitType = DiagnosticWithArguments(
   name: 'deprecated_member_use',
   problemMessage:
       "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
@@ -3902,8 +3952,8 @@ deprecatedMemberUseImplicit = DiagnosticWithArguments(
       "Try replacing the use of the deprecated type with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'deprecated_member_use_implicit',
-  withArguments: _withArgumentsDeprecatedMemberUseImplicit,
+  uniqueName: 'deprecated_member_use_implicit_type',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitType,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -3913,7 +3963,7 @@ deprecatedMemberUseImplicit = DiagnosticWithArguments(
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name, required String details})
 >
-deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
+deprecatedMemberUseImplicitTypeWithMessage = DiagnosticWithArguments(
   name: 'deprecated_member_use',
   problemMessage:
       "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
@@ -3922,8 +3972,8 @@ deprecatedMemberUseImplicitWithMessage = DiagnosticWithArguments(
       "Try replacing the use of the deprecated type with the replacement.",
   hasPublishedDocs: true,
   type: DiagnosticType.HINT,
-  uniqueName: 'deprecated_member_use_implicit_with_message',
-  withArguments: _withArgumentsDeprecatedMemberUseImplicitWithMessage,
+  uniqueName: 'deprecated_member_use_implicit_type_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -10098,6 +10148,23 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
   uniqueName: 'invocation_of_non_function_expression',
   expectedTypes: [],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'js_interop_extension_constructor_js_annotation_has_no_effect',
+      problemMessage:
+          "The '@JS' annotation on an extension type constructor has no effect and "
+          "is disallowed.",
+      correctionMessage:
+          "Try removing the '@JS' annotation from the constructor, and putting "
+          "it on the extension type to rename non-object literal constructors.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'js_interop_extension_constructor_js_annotation_has_no_effect',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the unresolvable label
@@ -18881,10 +18948,11 @@ LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousImport({
+  required String kind,
   required String name,
   required String libraries,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousImport, [name, libraries]);
+  return LocatableDiagnosticImpl(diag.ambiguousImport, [kind, name, libraries]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
@@ -19713,20 +19781,41 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicit({
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation({
   required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicit, [name]);
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocation,
+    [name],
+  );
 }
 
-LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitWithMessage({
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage({
   required String name,
   required String details,
 }) {
-  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitWithMessage, [
-    name,
-    details,
-  ]);
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+    [name, details],
+  );
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitType({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitType, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitTypeWithMessage,
+    [name, details],
+  );
 }
 
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({

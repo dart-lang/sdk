@@ -11222,6 +11222,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   SIMD_PER_COMPONENT_XYZW(M, 1, Float32x4Get, (Float32x4), Double)             \
   SIMD_PER_COMPONENT_XYZW(M, 2, Float32x4With, (Double, Float32x4), Float32x4) \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4Get, (Int32x4), Int32)                  \
+  SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4With, (Int32x4, Int32), Int32x4)        \
   SIMD_PER_COMPONENT_XYZW(M, 1, Int32x4GetFlag, (Int32x4), Bool)               \
   SIMD_PER_COMPONENT_XYZW(M, 2, Int32x4WithFlag, (Int32x4, Bool), Int32x4)     \
   M(1, MASK, Float32x4Shuffle, (Float32x4), Float32x4)                         \
@@ -11242,6 +11243,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(2, _, Float64x2FromDoubles, (Double, Double), Float64x2)                   \
   M(0, _, Float32x4Zero, (), Float32x4)                                        \
   M(0, _, Float64x2Zero, (), Float64x2)                                        \
+  M(1, _, Int32x4Splat, (Int32), Int32x4)                                      \
   M(1, _, Float32x4Splat, (Double), Float32x4)                                 \
   M(1, _, Float64x2Splat, (Double), Float64x2)                                 \
   M(1, _, Int32x4GetSignMask, (Int32x4), Int8)                                 \

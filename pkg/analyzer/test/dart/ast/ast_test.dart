@@ -594,8 +594,7 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
-    node as IndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isFalse);
   }
 
@@ -643,8 +642,7 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
-    node as IndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -1020,8 +1018,9 @@ void f() {
   a..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a..')));
   }
 
   void test_isNullAware_cascade_true() {
@@ -1030,8 +1029,9 @@ void f() {
   a?..foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
+    expect(invocation.realTarget, same(parseResult.findNodeV1.simple('a?..')));
   }
 
   void test_isNullAware_regularInvocation() {
@@ -1040,7 +1040,7 @@ void f() {
   a.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
@@ -1050,7 +1050,7 @@ void f() {
   a?.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1315,7 +1315,7 @@ void f() {
   a?.foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 }
@@ -1428,7 +1428,7 @@ void f() {
   g(const .foo());
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1438,7 +1438,7 @@ void f() {
   g(.foo());
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1448,7 +1448,7 @@ void f() {
   g(.foo);
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1458,7 +1458,7 @@ void f() {
   foo(0);
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isFalse);
   }
@@ -1469,7 +1469,7 @@ void f() {
   a.foo();
 }
 ''');
-    var invocation = parseResult.findNode.methodInvocation('foo');
+    var invocation = parseResult.findNodeV1.methodInvocation('foo');
     var identifier = invocation.methodName;
     expect(identifier.isQualified, isTrue);
   }
@@ -1480,7 +1480,7 @@ void f() {
   prefix.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1490,7 +1490,7 @@ void f() {
   prefix.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('prefix');
+    var identifier = parseResult.findNodeV1.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1500,7 +1500,7 @@ void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('foo');
+    var identifier = parseResult.findNodeV1.simple('foo');
     expect(identifier.isQualified, isTrue);
   }
 
@@ -1510,7 +1510,7 @@ void f() {
   prefix?.foo;
 }
 ''');
-    var identifier = parseResult.findNode.simple('prefix');
+    var identifier = parseResult.findNodeV1.simple('prefix');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1532,7 +1532,7 @@ void f() {
   return test;
 }
 ''');
-    var identifier = parseResult.findNode.simple('test');
+    var identifier = parseResult.findNodeV1.simple('test');
     expect(identifier.isQualified, isFalse);
   }
 
@@ -1912,7 +1912,9 @@ StringInterpolation
       contents: <empty> <synthetic>
     InterpolationExpression
       leftBracket: $
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: foo
+      expression(v1): SimpleIdentifier
         token: foo
     InterpolationString
       contents: '

@@ -22,6 +22,7 @@ main() {
     defineReflectiveTests(ForEachPartsImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
     defineReflectiveTests(NodeCoveringTest);
+    defineReflectiveTests(ReceiverPropertyExtractionImplTest);
   });
 }
 
@@ -399,6 +400,16 @@ var x = 1 + 2;
     expect(result.value!.toIntValue(), 3);
   }
 
+  test_hasValue_booleanLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = true;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toBoolValue(), isTrue);
+  }
+
   test_hasValue_constantReference() async {
     var unitResult = await resolveTestCode('''
 const a = 42;
@@ -443,6 +454,16 @@ const x = p.a;
     }
   }
 
+  test_hasValue_doubleLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 3.14;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toDoubleValue(), 3.14);
+  }
+
   test_hasValue_intLiteral() async {
     var unitResult = await resolveTestCode('''
 var x = 42;
@@ -453,10 +474,110 @@ var x = 42;
     expect(result.value!.toIntValue(), 42);
   }
 
+  test_hasValue_nullLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = null;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.isNull, isTrue);
+  }
+
+  test_hasValue_stringLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 'hello';
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toStringValue(), 'hello');
+  }
+
   test_nonConstant() async {
     var unitResult = await resolveTestCode('''
 var a = 42;
 var x = a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_assignment() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = (a = 1);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_cascade() async {
+    var unitResult = await resolveTestCode('''
+var x = [1]..add(2);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_functionExpression() async {
+    var unitResult = await resolveTestCode('''
+var x = () => 42;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_getter() async {
+    var unitResult = await resolveTestCode('''
+int get g => 42;
+var x = g;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_instanceCreation() async {
+    var unitResult = await resolveTestCode('''
+class C {
+  C();
+}
+var x = C();
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_nullAssertion() async {
+    var unitResult = await resolveTestCode('''
+int? a = 42;
+var x = a!;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_postfix() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = a++;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_prefixIncrement() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = ++a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_throw() async {
+    var unitResult = await resolveTestCode('''
+var x = throw 42;
 ''');
     var result = _evaluateX(unitResult);
     expect(result, isNull);
@@ -476,7 +597,9 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
+    var node = testUnit
+        .nodeCovering2(offset: index)!
+        .thisOrAncestorOfType2<ExpressionImpl>();
     expect(node, TypeMatcher<ExpressionImpl>());
     expect(
       (node as ExpressionImpl).inConstantContext,
@@ -1534,7 +1657,8 @@ void f(int a, int b, int c) {
   f(a,^,c);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
+    expect(node.isSynthetic, isTrue);
   }
 
   Future<void> test_between_commaAndIdentifier_arguments() async {
@@ -1596,7 +1720,7 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndArgumentList_synthetic() async {
@@ -1608,7 +1732,8 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverPropertyExtraction;
+    expect(node.name.lexeme, '(');
   }
 
   Future<void> test_between_identifierAndComma_arguments() async {
@@ -1654,7 +1779,7 @@ void f^() {}
     var node = await coveringNode('''
 var x = o^.m();
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void>
@@ -1667,7 +1792,7 @@ class C {
   void m<T>() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndTypeParameterList() async {
@@ -1704,7 +1829,7 @@ class C {
     var node = await coveringNode('''
 var x = o.^m();
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_statements() async {
@@ -1786,7 +1911,7 @@ void f(int x) {
     var node = await coveringNode('''
 var x = o?^.m();
 ''');
-    node as MethodInvocation;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_inOperator_postfix() async {
@@ -1834,5 +1959,46 @@ class C { void call() {} }  Function f = C^();
         sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
     var result = await resolveTestCode(testCode);
     return (result, SourceRange(offset, 0));
+  }
+}
+
+@reflectiveTest
+class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
+  test_v1Projection_recordReceiver_parent() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f((int,) r) {
+  (r.$1);
+}
+''');
+    var resolved =
+        result.findNode.singleReceiverPropertyExtraction
+            as ReceiverPropertyExtractionImpl;
+    var resolvedParent = resolved.parent2 as ParenthesizedExpressionImpl;
+    var receiver = resolved.receiver as ExpressionImpl;
+    var receiverType = receiver.staticType;
+    receiver.setPseudoExpressionStaticType(null);
+    var node = ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: resolved.operator,
+      name: resolved.name,
+    );
+    var parent = ParenthesizedExpressionImpl(
+      leftParenthesis: resolvedParent.leftParenthesis,
+      expression2: node,
+      rightParenthesis: resolvedParent.rightParenthesis,
+    );
+
+    var provisional = parent.expression;
+    expect(provisional, isA<PrefixedIdentifier>());
+    expect(provisional.parent, same(parent));
+
+    receiver.setPseudoExpressionStaticType(receiverType);
+
+    var finalized = parent.expression;
+    expect(finalized, isA<PropertyAccess>());
+    expect(finalized.parent, same(parent));
+    expect(provisional.parent, isNull);
+    expect(node.parent2, same(parent));
+    expect(node.v1Projection, same(finalized));
   }
 }

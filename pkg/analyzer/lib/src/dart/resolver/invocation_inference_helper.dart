@@ -163,27 +163,6 @@ class InvocationInferenceHelper {
     return tearOffType;
   }
 
-  /// Finish resolution of the [DotShorthandInvocation].
-  ///
-  /// We have already found the invoked [ExecutableElement]. Here we perform
-  /// downwards inference, resolution of arguments, and upwards inference.
-  void resolveDotShorthandInvocation({
-    required DotShorthandInvocationImpl node,
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-    required InvocationTarget target,
-  }) {
-    var returnType = DotShorthandInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      target: target,
-    ).resolveInvocation();
-    node.recordStaticType(returnType, resolver: _resolver);
-  }
-
   /// Finish resolution of the [MethodInvocation].
   ///
   /// We have already found the invoked [ExecutableElement]. Here we perform

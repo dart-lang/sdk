@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class UseCurlyBracesTest extends AssistProcessorTest {
+class UseCurlyBracesTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.useCurlyBraces;
 

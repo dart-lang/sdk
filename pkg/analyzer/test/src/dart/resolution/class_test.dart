@@ -1552,9 +1552,7 @@ PrimaryConstructorBody
       condition2: UnqualifiedNameExpression
         name: x
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       condition(v1): SimpleIdentifier
         token: x
@@ -1569,9 +1567,7 @@ PrimaryConstructorBody
           expression2: UnqualifiedNameExpression
             name: y
             resolution: InvalidNamedReadResolution
-              type: InvalidType
-              candidates
-              recovery: <null>
+              recoveryElement: <null>
             staticType: InvalidType
           expression(v1): SimpleIdentifier
             token: y
@@ -1579,6 +1575,60 @@ PrimaryConstructorBody
             staticType: InvalidType
           semicolon: ;
       rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_deadCode() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so unreachable code is
+    // reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    return;
+    0;
+// [diag.deadCode][column 5][length 6] Dead code.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_definiteAssignment() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so the use of an
+    // unassigned local variable is reported.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    int v;
+    v;
+//  ^
+// [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'v' must be assigned before it can be used.
+  }
+}
+''');
+  }
+
+  test_primaryConstructorBody_noDeclaration_flowAnalysis_promotion() async {
+    // Even though there is no primary constructor declaration, flow analysis
+    // is performed on the primary constructor body, so `i` is promoted to
+    // `int`.
+    await resolveTestCodeWithDiagnostics(r'''
+int? f() => 0;
+class A {
+  this {
+//^^^^
+// [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
+    var i = f();
+    if (i != null) {
+      i.isEven;
+    }
+  }
+}
 ''');
   }
 
@@ -1624,9 +1674,11 @@ class A(final int A()) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1697,9 +1749,11 @@ class B(this.A) {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1798,9 +1852,11 @@ class B(super.A) extends A {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+  receiver: UnqualifiedNameExpression
+    name: A
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2128,9 +2184,7 @@ FieldDeclaration
         initializer2: UnqualifiedNameExpression
           name: foo
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         initializer(v1): SimpleIdentifier
           token: foo
@@ -2164,9 +2218,7 @@ FieldDeclaration
         initializer2: UnqualifiedNameExpression
           name: foo
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         initializer(v1): SimpleIdentifier
           token: foo

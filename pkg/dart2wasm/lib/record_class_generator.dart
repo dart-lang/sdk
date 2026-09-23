@@ -140,7 +140,7 @@ class _RecordClassGenerator {
   late final Procedure objectEqualsProcedure = coreTypes.objectEquals;
 
   late final FunctionType integerEqualsFunctionType = FunctionType(
-    [intType, intType],
+    DartTypeList(intType, intType),
     boolType,
     Nullability.nonNullable,
   );
@@ -201,13 +201,13 @@ class _RecordClassGenerator {
   late final InterfaceType wasmArrayOfType = InterfaceType(
     wasmArrayClass,
     Nullability.nonNullable,
-    [nonNullableTypeType],
+    DartTypeList(nonNullableTypeType),
   );
 
   late final InterfaceType immutableWasmArrayOfString = InterfaceType(
     immutableWasmArrayClass,
     Nullability.nonNullable,
-    [nonNullableStringType],
+    DartTypeList(nonNullableStringType),
   );
 
   late final InterfaceType runtimeTypeType = InterfaceType(
@@ -256,7 +256,7 @@ class _RecordClassGenerator {
         name: className,
         isAbstract: false,
         isAnonymousMixin: false,
-        supertype: Supertype(coreTypes.recordClass, []),
+        supertype: Supertype(coreTypes.recordClass, DartTypeList.empty),
         constructors: [_generateConstructor(shape, fields)],
         procedures: [
           _generateHashCode(fields, id),
@@ -402,7 +402,7 @@ class _RecordClassGenerator {
       Arguments([]),
       interfaceTarget: objectToStringProcedure,
       functionType: FunctionType(
-        [],
+        DartTypeList.empty,
         nonNullableStringType,
         Nullability.nonNullable,
       ),
@@ -439,7 +439,7 @@ class _RecordClassGenerator {
         Arguments([next]),
         interfaceTarget: stringPlusProcedure,
         functionType: FunctionType(
-          [nonNullableStringType],
+          DartTypeList(nonNullableStringType),
           nonNullableStringType,
           Nullability.nonNullable,
         ),
@@ -468,7 +468,7 @@ class _RecordClassGenerator {
     Procedure getRti,
   ) {
     final equalsFunctionType = FunctionType(
-      [nullableObjectType],
+      DartTypeList(nullableObjectType),
       boolType,
       Nullability.nonNullable,
     );
@@ -746,7 +746,7 @@ class _RecordClassGenerator {
   Constant _fieldNamesConstant(RecordShape shape) {
     return InstanceConstant(
       immutableWasmArrayClass.reference,
-      [nonNullableStringType],
+      DartTypeList(nonNullableStringType),
       {
         immutableWasmArrayValueField.fieldReference: ListConstant(
           nonNullableStringType,

@@ -56,11 +56,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _check(arguments: [node.rightHandSide2], errorNode: node.operator);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _check(arguments: [node.rightOperand], errorNode: node.operator);
   }
@@ -116,11 +111,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     ImportPrefixedFunctionInvocation node,
   ) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index2], errorNode: node.leftBracket);
   }
 
   @override
@@ -221,7 +211,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         _diagnosticReporter.report(
           diag.tearoffWithMustBeConstParameter
               .withArguments(name: name)
-              .at(node),
+              .at(node is PropertyExtraction ? node.name : node),
         );
       }
     }
@@ -255,7 +245,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
           return element.isConst;
       }
     } else if (expression is NameExpression) {
-      var element = expression.resolution.elementOrRecovery;
+      var element = expression.resolution?.elementOrRecovery;
       return switch (element) {
         GetterElement() => element.variable.isConst,
         VariableElement() => element.isConst,

@@ -28,7 +28,10 @@ aot_snapshot("modular_aot_compiler_snapshot") {
 }
 
 prebuilt_dart_action("modular_aot_platform") {
-  deps = [ "../../runtime/vm:vm_platform" ]
+  deps = [
+    ":modular_aot_compiler_snapshot",
+    "../../runtime/vm:vm_platform",
+  ]
 
   script = "../../pkg/native_compiler/bin/modular_aot_compiler.dart"
   packages = "../../.dart_tool/package_config.json"

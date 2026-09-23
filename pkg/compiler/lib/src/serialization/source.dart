@@ -63,9 +63,6 @@ class DataSourceReader {
   // input in the case of deferred indexed data.
   DataSource _sourceReader;
 
-  static final List<ir.DartType> emptyListOfDartTypes =
-      List<ir.DartType>.empty();
-
   final bool useDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner? interner;
@@ -841,11 +838,10 @@ class DataSourceReader {
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
-        List<ir.StructuralParameter> typeParameters =
-            List<ir.StructuralParameter>.generate(
+        ir.StructuralParameterList typeParameters =
+            ir.StructuralParameterList.generate(
               typeParameterCount,
               (int index) => ir.StructuralParameter(),
-              growable: false,
             );
         functionTypeVariables = List<ir.StructuralParameter>.of(
           functionTypeVariables,
@@ -862,7 +858,7 @@ class DataSourceReader {
         ir.DartType returnType = _readDartTypeNode(functionTypeVariables)!;
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         int requiredParameterCount = readInt();
-        List<ir.DartType> positionalParameters = _readDartTypeNodes(
+        ir.DartTypeList positionalParameters = _readDartTypeNodes(
           functionTypeVariables,
         );
         final namedParameters = _readNamedTypeNodes(functionTypeVariables);
@@ -879,22 +875,20 @@ class DataSourceReader {
       case DartTypeNodeKind.interfaceType:
         ir.Class cls = readClassNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments = _readDartTypeNodes(
+        ir.DartTypeList typeArguments = _readDartTypeNodes(
           functionTypeVariables,
         );
         return ir.InterfaceType(cls, nullability, typeArguments);
       case DartTypeNodeKind.recordType:
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> positional = _readDartTypeNodes(
-          functionTypeVariables,
-        );
-        List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
+        ir.DartTypeList positional = _readDartTypeNodes(functionTypeVariables);
+        ir.NamedDartTypeList named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
       case DartTypeNodeKind.extensionType:
         ir.ExtensionTypeDeclaration extensionTypeDeclaration =
             readExtensionTypeDeclarationNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments = _readDartTypeNodes(
+        ir.DartTypeList typeArguments = _readDartTypeNodes(
           functionTypeVariables,
         );
         return ir.ExtensionType(
@@ -905,7 +899,7 @@ class DataSourceReader {
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
-        List<ir.DartType> typeArguments = _readDartTypeNodes(
+        ir.DartTypeList typeArguments = _readDartTypeNodes(
           functionTypeVariables,
         );
         return ir.TypedefType(typedef, nullability, typeArguments);
@@ -920,17 +914,16 @@ class DataSourceReader {
     }
   }
 
-  List<ir.NamedType> _readNamedTypeNodes(
+  ir.NamedDartTypeList _readNamedTypeNodes(
     List<ir.StructuralParameter> functionTypeVariables,
   ) {
     int count = readInt();
-    if (count == 0) return const [];
-    return List<ir.NamedType>.generate(count, (index) {
+    return ir.NamedDartTypeList.generate(count, (index) {
       String name = readString();
       bool isRequired = readBool();
       ir.DartType type = _readDartTypeNode(functionTypeVariables)!;
       return ir.NamedType(name, type, isRequired: isRequired);
-    }, growable: false);
+    });
   }
 
   /// Reads a list of kernel type nodes from this data source.
@@ -956,15 +949,13 @@ class DataSourceReader {
     );
   }
 
-  List<ir.DartType> _readDartTypeNodes(
+  ir.DartTypeList _readDartTypeNodes(
     List<ir.StructuralParameter> functionTypeVariables,
   ) {
     int count = readInt();
-    if (count == 0) return emptyListOfDartTypes;
-    return List<ir.DartType>.generate(
+    return ir.DartTypeList.generate(
       count,
       (index) => _readDartTypeNode(functionTypeVariables)!,
-      growable: false,
     );
   }
 

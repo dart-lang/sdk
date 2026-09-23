@@ -1552,10 +1552,10 @@ class RuntimeType extends Type {
     final type = _type;
     if (type is InterfaceType && typeArgs != null) {
       final klass = type.classNode;
-      final typeArguments = typeArgs!
-          .take(klass.typeParameters.length)
-          .map((pt) => pt.representedType)
-          .toList();
+      final typeArguments = DartTypeList.generate(
+        klass.typeParameters.length,
+        (i) => typeArgs![i].representedType,
+      );
       return new InterfaceType(klass, type.nullability, typeArguments);
     } else if (type is FutureOrType) {
       return new FutureOrType(typeArgs![0].representedType, type.nullability);

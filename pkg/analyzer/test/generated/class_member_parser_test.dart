@@ -65,16 +65,23 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression2: MethodInvocation
-                      target2: ConstructorInvocation
-                        keyword: new
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: C
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      target(v1): InstanceCreationExpression
+                    expression2: ParsedValueArguments
+                      operand: ParsedNameAccess
+                        operand: ConstructorInvocation
+                          keyword: new
+                          constructorReference: ConstructorReference2
+                            typeReference: ConstructorTypeReference
+                              name: C
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                        operator: .
+                        name: late
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    expression(v1): MethodInvocation
+                      target: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -117,7 +124,9 @@ MethodDeclaration
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: SimpleIdentifier
+            expression2: ParsedUnqualifiedName
+              name: x
+            expression(v1): SimpleIdentifier
               token: x
           semicolon: ;
       rightBracket: }
@@ -183,12 +192,16 @@ MethodDeclaration
           expression2: BinaryOperatorInvocation
             leftOperand: AwaitExpression
               awaitKeyword: await
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
                 token: x
             operator: +
             rightOperand: AwaitExpression
               awaitKeyword: await
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: y
+              expression(v1): SimpleIdentifier
                 token: y
             binaryOperator: add
           expression(v1): BinaryExpression
@@ -230,7 +243,13 @@ MethodDeclaration
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: MethodInvocation
+            expression2: ParsedValueArguments
+              operand: ParsedUnqualifiedName
+                name: returnsFuture
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            expression(v1): MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -270,7 +289,13 @@ MethodDeclaration
           leftParenthesis: (
           expression2: AwaitExpression
             awaitKeyword: await
-            expression2: MethodInvocation
+            expression2: ParsedValueArguments
+              operand: ParsedUnqualifiedName
+                name: returnsFuture
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            expression(v1): MethodInvocation
               methodName: SimpleIdentifier
                 token: returnsFuture
               argumentList: ArgumentList
@@ -288,7 +313,13 @@ MethodDeclaration
               operator: !
               operand: AwaitExpression
                 awaitKeyword: await
-                expression2: MethodInvocation
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: returnsFuture
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: returnsFuture
                   argumentList: ArgumentList
@@ -334,15 +365,36 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
-            methodName: SimpleIdentifier
-              token: print
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
+              name: print
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression2: ParsedValueArguments
+                    operand: ParsedUnqualifiedName
+                      name: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                  expression(v1): MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              rightParenthesis: )
+          expression(v1): MethodInvocation
+            methodName: SimpleIdentifier
+              token: print
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -380,15 +432,21 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
-            methodName: SimpleIdentifier
-              token: xor
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
+              name: xor
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression2: ParsedValueArguments
+                    operand: ParsedUnqualifiedName
+                      name: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                  expression(v1): MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -396,7 +454,13 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression2: ParsedValueArguments
+                    operand: ParsedUnqualifiedName
+                      name: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                  expression(v1): MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -404,7 +468,44 @@ MethodDeclaration
                       rightParenthesis: )
                 AwaitExpression
                   awaitKeyword: await
-                  expression2: MethodInvocation
+                  expression2: ParsedValueArguments
+                    operand: ParsedUnqualifiedName
+                      name: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                  expression(v1): MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+              rightParenthesis: )
+          expression(v1): MethodInvocation
+            methodName: SimpleIdentifier
+              token: xor
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: returnsFuture
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                AwaitExpression
+                  awaitKeyword: await
+                  expression: MethodInvocation
                     methodName: SimpleIdentifier
                       token: returnsFuture
                     argumentList: ArgumentList
@@ -443,7 +544,13 @@ MethodDeclaration
           expression2: BinaryOperatorInvocation
             leftOperand: AwaitExpression
               awaitKeyword: await
-              expression2: MethodInvocation
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -452,7 +559,13 @@ MethodDeclaration
             operator: ^
             rightOperand: AwaitExpression
               awaitKeyword: await
-              expression2: MethodInvocation
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: returnsFuture
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: returnsFuture
                 argumentList: ArgumentList
@@ -506,16 +619,22 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: MethodInvocation
-            methodName: SimpleIdentifier
-              token: print
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
+              name: print
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
                 BinaryOperatorInvocation
                   leftOperand: AwaitExpression
                     awaitKeyword: await
-                    expression2: MethodInvocation
+                    expression2: ParsedValueArguments
+                      operand: ParsedUnqualifiedName
+                        name: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    expression(v1): MethodInvocation
                       methodName: SimpleIdentifier
                         token: returnsFuture
                       argumentList: ArgumentList
@@ -524,7 +643,13 @@ MethodDeclaration
                   operator: ^
                   rightOperand: AwaitExpression
                     awaitKeyword: await
-                    expression2: MethodInvocation
+                    expression2: ParsedValueArguments
+                      operand: ParsedUnqualifiedName
+                        name: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    expression(v1): MethodInvocation
                       methodName: SimpleIdentifier
                         token: returnsFuture
                       argumentList: ArgumentList
@@ -532,6 +657,31 @@ MethodDeclaration
                         rightParenthesis: )
                   binaryOperator: bitwiseXor
               arguments(v1)
+                BinaryExpression
+                  leftOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  operator: ^
+                  rightOperand: AwaitExpression
+                    awaitKeyword: await
+                    expression: MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: returnsFuture
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              rightParenthesis: )
+          expression(v1): MethodInvocation
+            methodName: SimpleIdentifier
+              token: print
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
                 BinaryExpression
                   leftOperand: AwaitExpression
                     awaitKeyword: await
@@ -595,7 +745,9 @@ ConstructorDeclaration
       equals: =
       expression2: ConditionalExpression
         condition2: IsExpression
-          expression2: SimpleIdentifier
+          expression2: ParsedUnqualifiedName
+            name: a
+          expression(v1): SimpleIdentifier
             token: a
           isOperator: is
           type: NamedType
@@ -666,7 +818,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -675,7 +829,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -735,7 +891,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -745,7 +903,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -808,7 +968,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -817,7 +979,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -881,7 +1045,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               isOperator: is
               type: NamedType
@@ -891,7 +1057,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: IsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -950,7 +1118,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -959,7 +1129,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1019,7 +1191,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1029,7 +1203,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1092,7 +1268,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1101,7 +1279,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1165,7 +1345,9 @@ CompilationUnit
             name: x
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
                 token: a
               asOperator: as
               type: NamedType
@@ -1175,7 +1357,9 @@ CompilationUnit
             name: y
             equals: =
             initializer2: AsExpression
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1251,11 +1435,11 @@ ConstructorDeclaration
         token: _a
       equals: =
       expression2: BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: _
+        leftOperand: ParsedUnqualifiedName
+          name: _
         operator: +
-        rightOperand: SimpleIdentifier
-          token: _$
+        rightOperand: ParsedUnqualifiedName
+          name: _$
         binaryOperator: add
       expression(v1): BinaryExpression
         leftOperand: SimpleIdentifier
@@ -2678,11 +2862,11 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: CompoundAssignment
-                      target: UnqualifiedNameAssignmentTarget
+                      target: ParsedUnqualifiedNameAssignmentTarget
                         name: x
                       operator: >>>=
-                      value: SimpleIdentifier
-                        token: value
+                      value: ParsedUnqualifiedName
+                        name: value
                       binaryOperator: unsignedShiftRight
                     expression(v1): AssignmentExpression
                       leftHandSide: SimpleIdentifier
@@ -2927,17 +3111,19 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
       condition2: BinaryOperatorInvocation
-        leftOperand: SimpleIdentifier
-          token: x
+        leftOperand: ParsedUnqualifiedName
+          name: x
         operator: <
-        rightOperand: SimpleIdentifier
-          token: y
+        rightOperand: ParsedUnqualifiedName
+          name: y
         binaryOperator: lessThan
       condition(v1): BinaryExpression
         leftOperand: SimpleIdentifier
@@ -2951,7 +3137,9 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: y
+      expression(v1): SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -3043,7 +3231,9 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _x
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
     ConstructorFieldInitializer
       thisKeyword: this
@@ -3052,7 +3242,9 @@ ConstructorDeclaration
       fieldName(v1): SimpleIdentifier
         token: _y
       equals: =
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: y
+      expression(v1): SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -3164,7 +3356,9 @@ CompilationUnit
                 leftBracket: {
                 statements
                   ExpressionStatement
-                    expression2: SimpleIdentifier
+                    expression2: ParsedUnqualifiedName
+                      name: n
+                    expression(v1): SimpleIdentifier
                       token: n
                     semicolon: ; <synthetic>
                 rightBracket: } <synthetic>
@@ -3315,7 +3509,9 @@ ConstructorDeclaration
       equals: =
       expression2: ParenthesizedExpression
         leftParenthesis: (
-        expression2: SimpleIdentifier
+        expression2: ParsedUnqualifiedName
+          name: b
+        expression(v1): SimpleIdentifier
           token: b
         rightParenthesis: )
   body: BlockFunctionBody
@@ -3341,7 +3537,9 @@ ConstructorFieldInitializer
   fieldName(v1): SimpleIdentifier
     token: a
   equals: =
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: b
+  expression(v1): SimpleIdentifier
     token: b
 ''');
   }
@@ -3360,7 +3558,9 @@ ConstructorFieldInitializer
   fieldName(v1): SimpleIdentifier
     token: a
   equals: =
-  expression2: SimpleIdentifier
+  expression2: ParsedUnqualifiedName
+    name: b
+  expression(v1): SimpleIdentifier
     token: b
 ''');
   }

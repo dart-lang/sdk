@@ -10,7 +10,7 @@
 import "dart:async" show Timer;
 import "dart:core" hide Symbol;
 import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
-import "dart:isolate" show SendPort;
+import "dart:isolate" show Isolate, SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 import "dart:_vm" show FinalThreadLocal, ThreadLocal;
 
@@ -451,14 +451,6 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
 
 @pragma("vm:external-name", "Internal_loadDynamicModule")
 external Object? _loadDynamicModule(Uint8List bytes);
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
-  external static Object? _runSync(Object computation);
-}
 
 @pragma("vm:shared")
 final _toStringVisiting = FinalThreadLocal<List<Object>>(() => <Object>[]);

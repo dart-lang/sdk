@@ -751,10 +751,14 @@ class LateLowering {
   }
 
   InstanceConstant _pragmaConstant(String pragmaName) {
-    return InstanceConstant(_coreTypes.pragmaClass.reference, [], {
-      _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
-      _coreTypes.pragmaOptions.fieldReference: NullConstant(),
-    });
+    return InstanceConstant(
+      _coreTypes.pragmaClass.reference,
+      DartTypeList.empty,
+      {
+        _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+        _coreTypes.pragmaOptions.fieldReference: NullConstant(),
+      },
+    );
   }
 
   TreeNode transformField(Field field, Member contextMember) {

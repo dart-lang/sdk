@@ -12,7 +12,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
-    show exit, File, InternetAddress, ProcessSignal, ServerSocket, Socket;
+    show
+        exit,
+        File,
+        InternetAddress,
+        ProcessSignal,
+        ServerSocket,
+        Socket,
+        FileStat,
+        FileSystemEntityType;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
@@ -83,40 +91,48 @@ enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
 ///   compiled concurrently.
 class ResidentCompiler {
   final File _entryPoint;
-  File? _currentPackage;
-  ArgResults _compileOptions;
-  late FrontendCompiler _compiler;
-  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
-  _ResidentState _state = _ResidentState.waitingForFirstCompile;
-  final StringBuffer _compilerOutput = new StringBuffer();
+  final File? _currentPackage;
+  final ArgResults _compileOptions;
+  final FrontendCompiler _compiler;
+  final StringBuffer _compilerOutput;
   final Set<Uri> trackedSources = <Uri>{};
   final List<String> _formattedOutput = <String>[];
-  bool incrementalMode = false;
+  final bool incrementalMode;
+  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
+  _ResidentState _state = _ResidentState.waitingForFirstCompile;
+
+  factory(File entryPoint, ArgResults compileOptions) {
+    StringBuffer compilerOutput = new StringBuffer();
+    FrontendCompiler compiler = new FrontendCompiler(compilerOutput);
+    String? packages = compileOptions['packages'];
+    bool incrementalMode = compileOptions['incremental'] == true;
+    File? currentPackage = packages == null ? null : new File(packages);
+
+    return new ResidentCompiler._(
+      entryPoint,
+      currentPackage,
+      compileOptions,
+      compiler,
+      compilerOutput,
+      incrementalMode,
+    );
+  }
+
+  new _(
+    this._entryPoint,
+    this._currentPackage,
+    this._compileOptions,
+    this._compiler,
+    this._compilerOutput,
+    this.incrementalMode,
+  );
 
   /// The file where kernel data will be output by this [ResidentCompiler].
   File get _outputDill =>
       new File(_compileOptions.option(ResidentFrontendServer._outputString)!);
 
-  new(this._entryPoint, this._compileOptions) {
-    _compiler = new FrontendCompiler(_compilerOutput);
-    updateState(_compileOptions);
-  }
-
   void resetStateToWaitingForFirstCompile() {
     _state = _ResidentState.waitingForFirstCompile;
-  }
-
-  /// The [ResidentCompiler] will use the [newOptions] for future compilation
-  /// requests.
-  void updateState(ArgResults newOptions) {
-    final String? packages = newOptions['packages'];
-    incrementalMode = newOptions['incremental'] == true;
-    _compileOptions = newOptions;
-    _currentPackage = packages == null ? null : new File(packages);
-    // Refresh the compiler's output for the next compile
-    _compilerOutput.clear();
-    _formattedOutput.clear();
-    resetStateToWaitingForFirstCompile();
   }
 
   /// The current compiler options are outdated when any option has changed
@@ -125,15 +141,10 @@ class ResidentCompiler {
     if (newOptions.arguments.length != _compileOptions.arguments.length) {
       return true;
     }
-    if (!newOptions.arguments.toSet().containsAll(
-      _compileOptions.arguments.toSet(),
-    )) {
+    if (!newOptions.arguments.toSet().containsAll(_compileOptions.arguments)) {
       return true;
     }
-    return _currentPackage != null &&
-        !_lastCompileStartTime.isAfter(
-          _currentPackage!.statSync().modified.floorTime(),
-        );
+    return false;
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to, abiding
@@ -149,9 +160,8 @@ class ResidentCompiler {
     // compilation request. If no files have been modified, we can return
     // the cached kernel. Otherwise, perform an incremental compilation.
     if (_state == _ResidentState.waitingForRecompile) {
-      List<Uri> invalidatedUris = await _getSourceFilesToRecompile(
-        _lastCompileStartTime,
-      );
+      List<Uri> invalidatedUris = await _getSourceFilesToRecompile();
+
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
       // fall through to produce the kernel in recompileDelta.
@@ -289,24 +299,32 @@ class ResidentCompiler {
     }
   }
 
+  /// Returns true if [file] was modified at or after the last compile start
+  /// time, or if the file doesn't exist.
+  bool _fileIsTooNew(File file) {
+    FileStat statSync = file.statSync();
+    if (statSync.type == FileSystemEntityType.notFound) return true;
+    final DateTime fileChangeTime = statSync.modified.floorTime();
+    return !_lastCompileStartTime.isAfter(fileChangeTime);
+  }
+
   /// Returns a list of uris that need to be recompiled, based on the
   /// [lastKernelCompileTime] timestamp.
   /// Due to Windows timestamp granularity, all timestamps are truncated by
   /// the second. This has no effect on correctness but may result in more
   /// files being marked as invalid than are strictly required.
-  Future<List<Uri>> _getSourceFilesToRecompile(
-    DateTime lastKernelCompileTime,
-  ) async {
+  Future<List<Uri>> _getSourceFilesToRecompile() async {
     final List<Uri> sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final DateTime sourceModifiedTime = new File(uri.toFilePath())
-          .statSync()
-          .modified
-          .floorTime();
-      if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
+      if (_fileIsTooNew(new File(uri.toFilePath()))) {
         sourcesToRecompile.add(uri);
       }
     }
+
+    if (_currentPackage != null && _fileIsTooNew(_currentPackage)) {
+      sourcesToRecompile.add(_currentPackage.uri);
+    }
+
     return sourcesToRecompile;
   }
 
@@ -388,13 +406,9 @@ class ResidentFrontendServer {
     required String canonicalizedLibraryPath,
     required ArgResults compileOptions,
     required File cachedCompilerOptions,
+    required File cachedDill,
   }) {
-    cachedCompilerOptions.createSync();
-    cachedCompilerOptions.writeAsStringSync(
-      compileOptions.arguments.map(jsonEncode).toList().toString(),
-    );
-
-    late final ResidentCompiler residentCompiler;
+    final ResidentCompiler residentCompiler;
     if (compilers[canonicalizedLibraryPath] == null) {
       // Avoids using too much memory.
       if (compilers.length >= ResidentFrontendServer._compilerLimit) {
@@ -405,14 +419,72 @@ class ResidentFrontendServer {
         compileOptions,
       );
       compilers[canonicalizedLibraryPath] = residentCompiler;
+      if (cachedCompilerOptions.existsSync()) {
+        final String cachedCompilerOptionsContents = cachedCompilerOptions
+            .readAsStringSync();
+        bool optionsOutdated = false;
+        try {
+          final List<String> cachedCompilerOptionsAsList = (jsonDecode(
+            cachedCompilerOptionsContents,
+          ) as List<dynamic>).cast<String>();
+          final ArgResults cachedOptions = argParser.parse(
+            cachedCompilerOptionsAsList,
+          );
+          optionsOutdated = residentCompiler.areOptionsOutdated(cachedOptions);
+        } catch (e) {
+          optionsOutdated = true;
+        }
+        if (optionsOutdated) {
+          // If the options are outdated or an exception was thrown when trying
+          // to read and/or understand the file we can't reuse the old dill.
+          _deleteCacheFor(
+            cachedCompilerOptions: cachedCompilerOptions,
+            cachedDill: cachedDill,
+          );
+        }
+      } else if (cachedDill.existsSync()) {
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+      }
     } else {
-      residentCompiler = compilers[canonicalizedLibraryPath]!;
-      if (residentCompiler.areOptionsOutdated(compileOptions)) {
-        residentCompiler.updateState(compileOptions);
+      ResidentCompiler cachedCompiler = compilers[canonicalizedLibraryPath]!;
+      if (cachedCompiler.areOptionsOutdated(compileOptions)) {
+        // If the options are outdated we can't reuse the compiler.
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+        residentCompiler = new ResidentCompiler(
+          new File(canonicalizedLibraryPath),
+          compileOptions,
+        );
+        compilers[canonicalizedLibraryPath] = residentCompiler;
+      } else {
+        residentCompiler = cachedCompiler;
       }
     }
 
+    cachedCompilerOptions.createSync();
+    cachedCompilerOptions.writeAsStringSync(
+      compileOptions.arguments.map(jsonEncode).toList().toString(),
+    );
+
     return residentCompiler;
+  }
+
+  static void _deleteCacheFor({
+    required File cachedCompilerOptions,
+    required File cachedDill,
+  }) {
+    // TODO(jensj): If we can't delete these what do we do?
+    if (cachedCompilerOptions.existsSync()) {
+      cachedCompilerOptions.deleteSync();
+    }
+    if (cachedDill.existsSync()) {
+      cachedDill.deleteSync();
+    }
   }
 
   static Future<String> _handleReplaceCachedDillRequest(
@@ -503,6 +575,7 @@ class ResidentFrontendServer {
       canonicalizedLibraryPath: canonicalizedExecutablePath,
       compileOptions: options,
       cachedCompilerOptions: cachedCompilerOptions,
+      cachedDill: new File(cachedDillPath),
     );
     final Map<String, dynamic> response = await residentCompiler.compile();
 
@@ -583,6 +656,7 @@ class ResidentFrontendServer {
       canonicalizedLibraryPath: canonicalizedLibraryPath,
       compileOptions: options,
       cachedCompilerOptions: cachedCompilerOptions,
+      cachedDill: new File(cachedDillPath),
     );
 
     final String expression = request[_expressionString];
@@ -753,51 +827,6 @@ class ResidentFrontendServer {
   static String _encodeErrorMessage(String message) => jsonEncode(
     <String, Object>{_successString: false, 'errorMessage': message},
   );
-
-  /// Used to create compile requests for the ResidentFrontendServer.
-  /// Returns a JSON string that the resident compiler will be able to
-  /// interpret.
-  static String createCompileJSON({
-    required String executable,
-    String? packages,
-    required String outputDill,
-    bool? supportMirrors,
-    bool? enableAsserts,
-    bool? soundNullSafety,
-    String? verbosity,
-    bool? aot,
-    bool? tfa,
-    bool? rta,
-    bool? treeShakeWriteOnlyFields,
-    bool? protobufTreeShakerV2,
-    List<String>? define,
-    List<String>? enableExperiment,
-    bool verbose = false,
-    String? nativeAssetsYaml,
-    String? recordUses,
-  }) {
-    return jsonEncode(<String, Object>{
-      "command": "compile",
-      "executable": executable,
-      "output-dill": outputDill,
-      if (aot != null) "aot": true,
-      if (define != null) "define": define,
-      if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiment != null) "enable-experiment": enableExperiment,
-      if (packages != null) "packages": packages,
-      if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
-      if (rta != null) "rta": true,
-      if (soundNullSafety != null) "sound-null-safety": soundNullSafety,
-      if (supportMirrors != null) "support-mirrors": true,
-      if (tfa != null) "tfa": true,
-      if (treeShakeWriteOnlyFields != null)
-        "tree-shaker-write-only-fields": true,
-      if (verbosity != null) "verbosity": verbosity,
-      "verbose": verbose,
-      if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
-      if (recordUses != null) _recordUsesString: recordUses,
-    });
-  }
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used

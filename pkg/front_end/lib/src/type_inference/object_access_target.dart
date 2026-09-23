@@ -259,7 +259,7 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
   // Coverage-ignore(suite): Not run.
   FunctionType get indexSetFunctionType {
     return new FunctionType(
-      [const DynamicType()],
+      DartTypeList.dynamic1,
       returnType,
       Nullability.nonNullable,
     );
@@ -281,7 +281,7 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
   // Coverage-ignore(suite): Not run.
   FunctionType get _oneParameterFunctionApproximation {
     return new FunctionType(
-      [const DynamicType()],
+      DartTypeList.dynamic1,
       returnType,
       Nullability.nonNullable,
     );
@@ -293,24 +293,29 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
     ActualArguments arguments,
   ) {
     return new FunctionType(
-      new List<DartType>.filled(arguments.positionalCount, const DynamicType()),
+      new DartTypeList.filledWithDynamic(arguments.positionalCount),
       this.returnType,
       Nullability.nonNullable,
       namedParameters: arguments.namedCount > 0
-          ? arguments.argumentList
-                .whereType<NamedArgument>()
-                .map((a) => new NamedType(a.name, const DynamicType()))
-                .toList()
-          : [],
-      typeParameters: [
-        if (typeArguments != null)
-          for (DartType _ in typeArguments)
-            new StructuralParameter(
-              null,
-              const DynamicType(),
-              const DynamicType(),
-            ),
-      ],
+          ? new NamedDartTypeList.wrap(
+              new List<NamedType>.of(
+                arguments.argumentList.whereType<NamedArgument>().map(
+                  (a) => new NamedType(a.name, const DynamicType()),
+                ),
+                growable: false,
+              ),
+            )
+          : NamedDartTypeList.empty,
+      typeParameters: typeArguments != null && typeArguments.isNotEmpty
+          ? new StructuralParameterList.generate(
+              typeArguments.length,
+              (i) => new StructuralParameter(
+                null,
+                const DynamicType(),
+                const DynamicType(),
+              ),
+            )
+          : StructuralParameterList.empty,
     );
   }
 }
@@ -1138,20 +1143,15 @@ mixin _ExtensionOrExtensionTypeAccessTargetMixin implements ObjectAccessTarget {
           Nullability.nonNullable,
         );
 
-        List<StructuralParameter> targetTypeParameters =
-            const <StructuralParameter>[];
-        if (functionType.typeParameters.length > receiverTypeArguments.length) {
-          targetTypeParameters = functionType.typeParameters
-              .skip(receiverTypeArguments.length)
-              .toList();
-        }
         FunctionType targetFunctionType = new FunctionType(
-          functionType.positionalParameters.skip(1).toList(),
+          functionType.positionalParameters.skip(1),
           functionType.returnType,
           Nullability.nonNullable,
           requiredParameterCount: functionType.requiredParameterCount - 1,
           namedParameters: functionType.namedParameters,
-          typeParameters: targetTypeParameters,
+          typeParameters: functionType.typeParameters.skip(
+            receiverTypeArguments.length,
+          ),
         );
         if (receiverTypeArguments.isNotEmpty) {
           FunctionTypeInstantiator instantiator =
@@ -1192,13 +1192,13 @@ mixin _ExtensionOrExtensionTypeAccessTargetMixin implements ObjectAccessTarget {
             );
         DartType resultType = instantiator.substitute(
           new FunctionType(
-            functionType.positionalParameters.skip(1).toList(),
+            functionType.positionalParameters.skip(1),
             functionType.returnType,
             Nullability.nonNullable,
             namedParameters: functionType.namedParameters,
-            typeParameters: functionType.typeParameters
-                .skip(receiverTypeArguments.length)
-                .toList(),
+            typeParameters: functionType.typeParameters.skip(
+              receiverTypeArguments.length,
+            ),
             requiredParameterCount: functionType.requiredParameterCount - 1,
           ),
         );

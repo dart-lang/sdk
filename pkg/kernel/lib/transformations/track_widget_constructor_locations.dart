@@ -455,7 +455,7 @@ class WidgetCreatorTracker {
       return;
     }
     clazz.implementedTypes.add(
-      new Supertype(tracking.hasCreationLocationClass, <DartType>[]),
+      new Supertype(tracking.hasCreationLocationClass, DartTypeList.empty),
     );
     changedStructureNotifier?.registerClassHierarchyChange(clazz);
 

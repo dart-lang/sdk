@@ -91,15 +91,7 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         TextDocumentOpenHandler.new,
         TextDocumentChangeHandler.new,
         TextDocumentCloseHandler.new,
-        CompletionResolveHandler.new,
-        DocumentLinkHandler.new,
         ChangeWorkspaceFoldersHandler.new,
-        PrepareRenameHandler.new,
-        RenameHandler.new,
-        FoldingHandler.new,
-        WorkspaceDidChangeConfigurationMessageHandler.new,
-        ReanalyzeHandler.new,
-        SelectionRangeHandler.new,
       ];
 
   new(LspAnalysisServer server) : super(server) {
@@ -124,33 +116,40 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         CodeLensHandler.new,
         CommandResolveHandler.new,
         CompletionHandler.new,
+        CompletionResolveHandler.new,
         ConnectToDtdHandler.new,
         DefinitionHandler.new,
         DiagnosticServerHandler.new,
         DocumentColorHandler.new,
         DocumentColorPresentationHandler.new,
         DocumentHighlightsHandler.new,
+        DocumentLinkHandler.new,
         DocumentSymbolHandler.new,
         EditableArgumentsHandler.new,
         EditArgumentHandler.new,
         ExecuteCommandHandler.new,
         ExperimentalEchoHandler.new,
         FlutterWidgetPreviewsHandler.new,
+        FoldingHandler.new,
         FormatOnTypeHandler.new,
         FormatRangeHandler.new,
         FormattingHandler.new,
         GetFixesHandler.new,
         HoverHandler.new,
-        ImportsHandler.new,
         ImplementationHandler.new,
+        ImportsHandler.new,
         IncomingCallHierarchyHandler.new,
         InlayHintHandler.new,
         InlineValueHandler.new,
         MigrateHandler.new,
         OutgoingCallHierarchyHandler.new,
         PrepareCallHierarchyHandler.new,
+        PrepareRenameHandler.new,
         PrepareTypeHierarchyHandler.new,
+        ReanalyzeHandler.new,
         ReferencesHandler.new,
+        RenameHandler.new,
+        SelectionRangeHandler.new,
         SemanticTokensFullHandler.new,
         SemanticTokensRangeHandler.new,
         SignatureHelpHandler.new,
@@ -162,6 +161,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
         WorkspaceAnalysisCompleteHandler.new,
+        WorkspaceDidChangeConfigurationMessageHandler.new,
         WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];
@@ -204,6 +204,9 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
       server.instrumentationService.logInfo(
         'Ignoring ${message.method} message while initializing',
       );
+      server.sessionLogger.logInfo(
+        'Ignoring ${message.method} message while initializing',
+      );
       return success(null);
     }
     return error(
@@ -224,6 +227,9 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService.logInfo(
+        'Ignoring ${message.method} message while shutting down',
+      );
+      server.sessionLogger.logInfo(
         'Ignoring ${message.method} message while shutting down',
       );
       return success(null);
@@ -247,6 +253,9 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
       server.instrumentationService.logInfo(
+        'Ignoring ${message.method} message while uninitialized',
+      );
+      server.sessionLogger.logInfo(
         'Ignoring ${message.method} message while uninitialized',
       );
       return success(null);

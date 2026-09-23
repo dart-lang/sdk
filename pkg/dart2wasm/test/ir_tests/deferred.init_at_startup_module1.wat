@@ -1,5 +1,4 @@
 (module $M1
-  (type $#Top <...>)
   (type $Array<WasmI16> <...>)
   (type $JSExternWrapper <...>)
   (type $Array<String?> <...>)
@@ -20,7 +19,7 @@
     array.new_default $Array<String?>
     global.set $array
   )
-  (func $Expect.equals (param $var0 (ref null $#Top)) <...>)
+  (func $Expect.equals (param $var0 (ref $JSExternWrapper)) <...>)
   (func $read (result (ref $JSExternWrapper))
     block $label0 (result (ref $JSExternWrapper))
       global.get $array

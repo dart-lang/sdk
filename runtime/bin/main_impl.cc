@@ -1417,6 +1417,9 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (!Options::load_module_snapshots().is_empty()) {
+    vm_options.AddArgument("--modular_aot");
+  }
   if (Options::gen_snapshot_kind() == kAppJIT) {
     // App-jit snapshot can be deployed to another machine,
     // so generated code should not depend on the CPU features

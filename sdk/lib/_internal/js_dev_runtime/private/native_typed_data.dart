@@ -1622,6 +1622,8 @@ final class NativeInt32x4 implements Int32x4 {
     return NativeInt32x4._truncated(t, t, t, t);
   }
 
+  NativeInt32x4.zero() : this._truncated(0, 0, 0, 0);
+
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
     : this.x = x ? -1 : 0,
       this.y = y ? -1 : 0,
@@ -1679,6 +1681,18 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  /// The bit-wise and-not operator (`this & ~other`).
+  Int32x4 andNot(Int32x4 other) {
+    // Dart2js uses unsigned results for bit-operations.
+    // We use "JS" to fall back to the signed versions.
+    return NativeInt32x4._truncated(
+      JS("int", "# & ~#", x, other.x),
+      JS("int", "# & ~#", y, other.y),
+      JS("int", "# & ~#", z, other.z),
+      JS("int", "# & ~#", w, other.w),
+    );
+  }
+
   Int32x4 operator ~() {
     // Dart2js uses unsigned results for bit-operations.
     // We use "JS" to fall back to the signed versions.
@@ -1717,6 +1731,39 @@ final class NativeInt32x4 implements Int32x4 {
       JS("int", "(-#) | 0", y),
       JS("int", "(-#) | 0", z),
       JS("int", "(-#) | 0", w),
+    );
+  }
+
+  Int32x4 abs() {
+    // Avoid going through the typed array by "| 0" the result, which also
+    // gives two's complement wrapping so abs(-0x80000000) yields itself.
+    return NativeInt32x4._truncated(
+      JS("int", "Math.abs(#) | 0", x),
+      JS("int", "Math.abs(#) | 0", y),
+      JS("int", "Math.abs(#) | 0", z),
+      JS("int", "Math.abs(#) | 0", w),
+    );
+  }
+
+  Int32x4 operator <<(int shiftAmount) {
+    // JavaScript's `<<` operates on 32-bit signed integers and takes the count
+    // modulo 32, matching the lane semantics.
+    return NativeInt32x4._truncated(
+      JS<int>('!', '(# << #) | 0', x, shiftAmount),
+      JS<int>('!', '(# << #) | 0', y, shiftAmount),
+      JS<int>('!', '(# << #) | 0', z, shiftAmount),
+      JS<int>('!', '(# << #) | 0', w, shiftAmount),
+    );
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    // `>>` is the sign-propagating (arithmetic) shift on 32-bit signed
+    // integers.
+    return NativeInt32x4._truncated(
+      JS<int>('!', '# >> #', x, shiftAmount),
+      JS<int>('!', '# >> #', y, shiftAmount),
+      JS<int>('!', '# >> #', z, shiftAmount),
+      JS<int>('!', '# >> #', w, shiftAmount),
     );
   }
 
@@ -1780,6 +1827,24 @@ final class NativeInt32x4 implements Int32x4 {
       y >= other.y ? -1 : 0,
       z >= other.z ? -1 : 0,
       w >= other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 min(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x < other.x ? x : other.x,
+      y < other.y ? y : other.y,
+      z < other.z ? z : other.z,
+      w < other.w ? w : other.w,
+    );
+  }
+
+  Int32x4 max(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x > other.x ? x : other.x,
+      y > other.y ? y : other.y,
+      z > other.z ? z : other.z,
+      w > other.w ? w : other.w,
     );
   }
 

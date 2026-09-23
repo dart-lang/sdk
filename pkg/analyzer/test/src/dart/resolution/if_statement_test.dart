@@ -1488,9 +1488,7 @@ IfStatement
         expression2: UnqualifiedNameExpression
           name: a
           resolution: InvalidNamedReadResolution
-            type: InvalidType
-            candidates
-            recovery: <null>
+            recoveryElement: <null>
           staticType: InvalidType
         expression(v1): SimpleIdentifier
           token: a
@@ -1508,7 +1506,6 @@ class A {
     if (super) {}
 //      ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -1518,7 +1515,11 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
@@ -1602,9 +1603,11 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: bool Function()
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1644,9 +1647,11 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1714,9 +1719,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: CallInvocation
-          receiver: SimpleIdentifier
-            token: a
-            element: <testLibrary>::@function::f::@formalParameter::a
+          receiver: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: bool Function()
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -1841,7 +1848,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@24
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@24
@@ -1910,7 +1931,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@29
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@29
@@ -1990,7 +2025,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@25
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@25
@@ -2070,7 +2119,21 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@30
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                invokeType: bool Function()
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@30

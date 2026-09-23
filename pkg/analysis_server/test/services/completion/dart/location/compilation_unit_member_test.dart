@@ -233,6 +233,64 @@ suggestions
     kind: keyword
   part '^';
     kind: keyword
+  part of '^';
+    kind: keyword
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterBOF_beforeIdentifier_preEnhancedParts() async {
+    await computeSuggestions('''
+// @dart=3.5
+^
+imp
+import "package:foo/foo.dart";
+''');
+    // TODO(danrubel): should not suggest declaration keywords
+    // TODO(brianwilkerson): Should not suggest export or part directives.
+    assertResponse(r'''
+suggestions
+  import '^';
+    kind: keyword
+  export '^';
+    kind: keyword
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  enum
+    kind: keyword
+  extension
+    kind: keyword
+  external
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  library
+    kind: keyword
+  mixin
+    kind: keyword
+  part '^';
+    kind: keyword
   sealed
     kind: keyword
   typedef
@@ -246,6 +304,27 @@ suggestions
 
   Future<void> test_afterBOF_beforeImport() async {
     await computeSuggestions('''
+^
+import foo;
+''');
+    assertResponse(r'''
+suggestions
+  import '^';
+    kind: keyword
+  export '^';
+    kind: keyword
+  library
+    kind: keyword
+  part '^';
+    kind: keyword
+  part of '^';
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterBOF_beforeImport_preEnhancedParts() async {
+    await computeSuggestions('''
+// @dart=3.5
 ^
 import foo;
 ''');
@@ -291,6 +370,29 @@ suggestions
 
   Future<void> test_afterBOF_suffix() async {
     await computeSuggestions('''
+^imp
+import "package:foo/foo.dart";
+''');
+    assertResponse(r'''
+replacement
+  right: 3
+suggestions
+  import '^';
+    kind: keyword
+  export '^';
+    kind: keyword
+  library
+    kind: keyword
+  part '^';
+    kind: keyword
+  part of '^';
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterBOF_suffix_preEnhancedParts() async {
+    await computeSuggestions('''
+// @dart=3.5
 ^imp
 import "package:foo/foo.dart";
 ''');
@@ -629,6 +731,29 @@ suggestions
 
   Future<void> test_afterWhitespaceAtBOF_suffix() async {
     await computeSuggestions('''
+ ^imp
+ import "package:foo/foo.dart";
+ ''');
+    assertResponse(r'''
+replacement
+  right: 3
+suggestions
+  import '^';
+    kind: keyword
+  export '^';
+    kind: keyword
+  library
+    kind: keyword
+  part '^';
+    kind: keyword
+  part of '^';
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterWhitespaceAtBOF_suffix_preEnhancedParts() async {
+    await computeSuggestions('''
+// @dart=3.5
  ^imp
  import "package:foo/foo.dart";
  ''');

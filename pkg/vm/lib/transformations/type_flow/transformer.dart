@@ -562,7 +562,7 @@ class AnnotateKernel extends RecursiveVisitor {
         exactType = InterfaceType(
           concreteClass!,
           nullable ? Nullability.nullable : Nullability.nonNullable,
-          typeArgs,
+          DartTypeList.from(typeArgs),
         );
       }
     }

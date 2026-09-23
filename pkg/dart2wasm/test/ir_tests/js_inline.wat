@@ -1,5 +1,4 @@
 (module $M
-  (type $#Top <...>)
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param i32 i32) (result i32))
   (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param i32))
   (func $"dart2wasm.O (import)" (import "dart2wasm" "O") (param i32))
@@ -27,7 +26,7 @@
   )
   (func $consumeAny  <...>)
   (func $consumeInt (param $arg i64) <...>)
-  (func $passIntToJS (param $a i64) (result (ref null $#Top))
+  (func $passIntToJS (param $a i64)
     (local $#this i64)
     local.get $a
     local.set $#this
@@ -37,13 +36,11 @@
       br $label0
     end $label0
     call $"dart2wasm.O (import)"
-    ref.null none
     return
   )
-  (func $passWasmI32ToJS (param $a i32) (result (ref null $#Top))
+  (func $passWasmI32ToJS (param $a i32)
     local.get $a
     call $"dart2wasm.N (import)"
-    ref.null none
     return
   )
   (@binaryen.inline 0)
@@ -56,11 +53,11 @@
     (local $#this i64)
     (local $a i32)
     (local $b i32)
-    (local $var0 (ref null $#Top))
-    (local $var1 (ref null $#Top))
-    (local $var2 (ref null $#Top))
+    (local $var0 nullref)
+    (local $var1 nullref)
+    (local $var2 nullref)
     (local $#this i64)
-    (local $var3 (ref null $#Top))
+    (local $var3 nullref)
     (local $#this i64)
     i64.const 1
     i64.const 2
@@ -128,12 +125,14 @@
     drop
     i64.const 1
     call $passIntToJS
+    ref.null none
     local.set $var0
     call $consumeAny
     ref.null none
     drop
     i64.const 2
     call $passIntToJS
+    ref.null none
     local.set $var1
     call $consumeAny
     ref.null none
@@ -146,6 +145,7 @@
       br $label6
     end $label6
     call $passWasmI32ToJS
+    ref.null none
     local.set $var2
     call $consumeAny
     ref.null none
@@ -158,6 +158,7 @@
       br $label7
     end $label7
     call $passWasmI32ToJS
+    ref.null none
     local.set $var3
     call $consumeAny
     ref.null none

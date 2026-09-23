@@ -406,17 +406,27 @@ class LspAnalysisServer {
     var response = await _sendRequest(method, params);
 
     if (response.error case var error?) {
-      throw _RequestError(error);
+      throw LspRequestError(error);
     }
 
     return converter(response.result as R);
   }
+
+  Future<DartGetWorkspaceFixesResult> getFixes(List<String> codes) async {
+    return _expectSuccessfulResponse(
+      CustomMethods.getWorkspaceFixes,
+      DartGetWorkspaceFixesParams(
+        diagnosticCodes: codes.isEmpty ? null : codes,
+      ),
+      DartGetWorkspaceFixesResult.fromJson,
+    );
+  }
 }
 
-class _RequestError implements Exception {
+class LspRequestError implements Exception {
   final ResponseError error;
 
-  _RequestError(this.error);
+  LspRequestError(this.error);
 
   @override
   String toString() => 'LspException: ${error.code}: ${error.message}';

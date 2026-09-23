@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterWrapValueListenableBuilderTest extends AssistProcessorTest {
+class FlutterWrapValueListenableBuilderTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

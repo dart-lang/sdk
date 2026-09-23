@@ -306,6 +306,9 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
   /// All of the [InterfaceType]s visited.
   final _visitedInterfaceTypes = <InterfaceType>{};
   final _visitedJsInteropTypes = <InterfaceType>{};
+
+  /// Maps a [Library] to the identifier name used in its type recipe.
+  final _libraryRecipeNames = <Library, String>{};
   final CoreTypes _coreTypes;
 
   _TypeRecipeVisitor(this._typeEnvironment, this._coreTypes);
@@ -569,8 +572,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
 
   /// Returns the recipe for the interface type introduced by [cls].
   String interfaceTypeRecipe(Class cls) {
-    var path = p.withoutExtension(cls.enclosingLibrary.importUri.path);
-    var library = pathToJSIdentifier(path);
+    var enclosingLibrary = cls.enclosingLibrary;
+    var library = _libraryRecipeNames[enclosingLibrary] ??= pathToJSIdentifier(
+      p.withoutExtension(enclosingLibrary.importUri.path),
+    );
     return '$library${Recipe.librarySeparatorString}${cls.name}';
   }
 

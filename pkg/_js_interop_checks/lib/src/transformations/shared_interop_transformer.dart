@@ -366,9 +366,11 @@ class SharedInteropTransformer extends Transformer {
       ReturnStatement(futureToJSInvocation)..fileOffset = invocation.fileOffset,
       positionalParameters: parameters,
       requiredParameterCount: funcType.requiredParameterCount,
-      returnType: ExtensionType(_jsPromise, Nullability.nonNullable, [
-        typeArgument,
-      ]),
+      returnType: ExtensionType(
+        _jsPromise,
+        Nullability.nonNullable,
+        DartTypeList(typeArgument),
+      ),
     )..fileOffset = invocation.fileOffset;
 
     final funcExpr = FunctionExpression(funcNode)
@@ -694,7 +696,11 @@ class SharedInteropTransformer extends Transformer {
         FunctionAccessKind.Function,
         FunctionExpression(FunctionNode(Block(block), returnType: returnType)),
         Arguments([]),
-        functionType: FunctionType([], returnType, Nullability.nonNullable),
+        functionType: FunctionType(
+          DartTypeList.empty,
+          returnType,
+          Nullability.nonNullable,
+        ),
       )
       ..fileOffset = invocation.fileOffset
       ..parent = invocation.parent;

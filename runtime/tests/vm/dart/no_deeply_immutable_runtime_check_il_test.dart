@@ -39,35 +39,8 @@ void main() {
   runtime_check_is_omitted();
 }
 
-void extractAllInstructions(dynamic data, List<String> into) {
-  if (data is Map) {
-    for (var entry in data.entries) {
-      if (entry.key == "o" && entry.value is String) {
-        into.add(entry.value);
-      } else {
-        extractAllInstructions(entry.value, into);
-      }
-    }
-  } else if (data is List) {
-    for (var entry in data) {
-      extractAllInstructions(entry, into);
-    }
-  } else {
-    if (data is int || data is String) {
-      // ok
-    } else {
-      print("Notice: Unhandled data: ${data.runtimeType}: $data");
-    }
-  }
-}
-
 bool hasCheckFieldImmutability(FlowGraph graph) {
-  List<String> ils = [];
-  extractAllInstructions(graph.blocks(), ils);
-  for (String il in ils) {
-    if (il == "CheckFieldImmutability") return true;
-  }
-  return false;
+  return containsInstruction(graph, const {'CheckFieldImmutability'});
 }
 
 void matchIL$runtime_check_is_present(FlowGraph graph) {

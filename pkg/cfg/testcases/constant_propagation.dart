@@ -118,4 +118,21 @@ void reorderPredecessors(List<int> bytes, int i, int end, bool c1, bool c2) {
   }
 }
 
+void typeTest<T>() {
+  Object? x = 'abc';
+  Object? y = 'def';
+  if (true) {
+    x = 42;
+    y = null;
+  }
+  print(x is int);
+  print(x is String);
+  if (y is T?) {
+    print('nullable1');
+  }
+  if (null is T) {
+    print('nullable2');
+  }
+}
+
 void main() {}

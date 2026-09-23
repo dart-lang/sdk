@@ -1824,7 +1824,10 @@ class For extends Statement {
       offset: _syntheticBodyBeginOffset!,
     );
     h.typeAnalyzer._visitLoopBody(this, body);
-    h.flow.for_updaterBegin(offset: _syntheticUpdaterBeginOffset!);
+    h.flow.for_updaterBegin(
+      offset: _syntheticUpdaterBeginOffset!,
+      updaterEndOffset: _syntheticBodyBeginOffset!,
+    );
     if (updater != null) {
       h.typeAnalyzer.analyzeExpression(updater!, h.operations.unknownType);
     } else {
@@ -1960,6 +1963,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool? _promotionChainIntersectionJoinEnabled;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -1978,8 +1983,9 @@ class Harness {
   );
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
@@ -1995,6 +2001,9 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get promotionChainIntersectionJoinEnabled =>
+      _promotionChainIntersectionJoinEnabled ?? false;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
@@ -2088,6 +2097,8 @@ class Harness {
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
         thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
+        promotionChainIntersectionJoinEnabled:
+            promotionChainIntersectionJoinEnabled,
       );
 
   void disableFieldPromotion() {
@@ -2110,6 +2121,11 @@ class Harness {
     _patternsEnabled = false;
   }
 
+  void disablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = false;
+  }
+
   void disableRespectImplicitlyTypedVarInitializers() {
     assert(!_started);
     _respectImplicitlyTypedVarInitializers = false;
@@ -2123,6 +2139,11 @@ class Harness {
   void disableThisPromotion() {
     assert(!_started);
     _thisPromotionEnabled = false;
+  }
+
+  void enablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
@@ -7526,6 +7547,8 @@ class _MiniAstTypeAnalyzer
   /// `arguments.length + 1`, whose `i`th element is the offset just before the
   /// `i`th argument, and whose last element is the offset just after the last
   /// argument. This determines the offsets that will be passed to
+  /// [FlowAnalysis.argumentVisitOrderException_begin],
+  /// [FlowAnalysis.argumentVisitOrderException_end], and
   /// [FlowAnalysis.recordArgumentVisitOrderException] when [argumentVisitOrder]
   /// indicates that arguments should be visited out of order.
   ///
@@ -7564,10 +7587,23 @@ class _MiniAstTypeAnalyzer
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     var lastVisitedArgument = -1;
+    var maxVisitedArgument = -1;
     for (var i = 0; i < arguments.length; i++) {
       var j = argumentVisitOrder[i];
       inputKinds.add(Kind.expression);
-      if (lastVisitedArgument != j - 1) {
+      // If any argument that follows this one has already been visited, then
+      // this argument is being visited out of order.
+      var isOutOfOrder = maxVisitedArgument > j;
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_begin(
+          offset: betweenArgumentOffsets[j],
+        );
+      } else if (lastVisitedArgument != j - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
         flow.recordArgumentVisitOrderException(
           offset: betweenArgumentOffsets[j],
         );
@@ -7580,7 +7616,13 @@ class _MiniAstTypeAnalyzer
               )
             : operations.unknownType,
       );
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_end(
+          offset: betweenArgumentOffsets[j + 1],
+        );
+      }
       lastVisitedArgument = j;
+      if (j > maxVisitedArgument) maxVisitedArgument = j;
     }
     if (lastVisitedArgument != arguments.length - 1) {
       flow.recordArgumentVisitOrderException(
@@ -7665,12 +7707,10 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var (wrappedPromotedTypeOfThis, flowAnalysisInfo) = flow.thisExpression();
+    var promotedTypeOfThis =
+        wrappedPromotedTypeOfThis?.unwrapTypeView() as Type?;
     var thisType = promotedTypeOfThis ?? this.thisType;
-    var flowAnalysisInfo = flow.thisOrSuper(
-      SharedTypeView(thisType),
-      isSuper: false,
-    );
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,

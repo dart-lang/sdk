@@ -292,8 +292,10 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 
   /// Whether methods/functions in completion should include parens and argument
   /// placeholders when used in an invocation context.
+  ///
+  /// If the client does not specify, defaults to `true`.
   bool get completeFunctionCalls =>
-      _settings['completeFunctionCalls'] as bool? ?? false;
+      _settings['completeFunctionCalls'] as bool? ?? true;
 
   /// A flag for including property access in Inline Values.
   bool get experimentalInlineValuesProperties =>
@@ -386,7 +388,7 @@ class LspResourceClientConfiguration {
 
   /// Whether to include Snippets in code completion results.
   bool get enableSnippets {
-    // Versions of Dart-Code earlier than v3.36 (1 Mar 2022) send
+    // Versions of Dart-Code earlier than v3.36 (2022-03-01) send
     // enableServerSnippets=false to opt-out of snippets. Later versions map
     // this version to the documented 'enableSnippets' setting in middleware.
     // Once the number of users on < 3.36 is insignificant, this check can be

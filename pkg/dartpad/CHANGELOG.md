@@ -1,3 +1,10 @@
+## v0.0.7
+ - Dart stack traces printed from a sandbox are now mapped back to Dart source
+   locations instead of rendering as raw JavaScript frames.
+ - Fix stale hardcoded SDK `platformVersion` in the embedded `pub` tool.
+ - The Flutter DartPad SDK can now build its web SDK from this SDK's sources,
+   instead of copying the one Flutter pins.
+
 ## v0.0.6
  - Provide `Sandbox.run(entrypoint, mode)` for configuring different run modes.
  - Simplifies embedding by introducing `SandboxedIframe` that manages `MessagePort`s directly.

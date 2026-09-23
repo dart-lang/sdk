@@ -57,13 +57,33 @@ class ConstructorTearOffResolver {
       var enclosingElement = node.typeReference.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
+        if (aliasedType is FunctionType) {
+          var typeReference = node.typeReference;
+          var aliasName = switch (typeReference.importPrefix) {
+            var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+            _ => typeReference.name.lexeme,
+          };
+          var isWriteOnly = switch (node.parent2) {
+            AssignmentTarget(hasRead: false) => true,
+            _ => false,
+          };
+          _resolver.diagnosticReporter.report(
+            (isWriteOnly
+                    ? diag.undefinedSetterOnFunctionType.withArguments(
+                        setterName: name.lexeme,
+                        functionTypeAliasName: aliasName,
+                      )
+                    : diag.undefinedGetterOnFunctionType.withArguments(
+                        getterName: name.lexeme,
+                        functionTypeAliasName: aliasName,
+                      ))
+                .at(name),
+          );
+        }
         enclosingElement = aliasedType is InterfaceType
             ? aliasedType.element
             : null;
       }
-      // TODO(srawlins): Handle `enclosingElement` being a function typedef:
-      // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
-      // This is illegal.
       if (enclosingElement is InterfaceElement) {
         var method =
             enclosingElement.getMethod(name.lexeme) ??

@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertPartOfToUriNonSiblingTest extends AssistProcessorTest {
+class ConvertPartOfToUriNonSiblingTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertPartOfToUri;
 
@@ -47,7 +47,7 @@ part of '../foo.dart';
 }
 
 @reflectiveTest
-class ConvertPartOfToUriTest extends AssistProcessorTest {
+class ConvertPartOfToUriTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertPartOfToUri;
 

@@ -340,7 +340,11 @@ ForElement
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable2: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
     write: VariableWriteResolution
@@ -1325,9 +1329,11 @@ f(bool Function() b) {
     var node = result.findNode.callInvocation('b()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: SimpleIdentifier
-    token: b
-    element: <testLibrary>::@function::f::@formalParameter::b
+  receiver: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool Function()
     staticType: bool Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -1784,6 +1790,11 @@ ForElement
     leftSeparator: ;
     rightSeparator: ;
     updaters2
+      InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+        staticType: InvalidType
+    updaters(v1)
       SuperExpression
         superKeyword: super
         staticType: A

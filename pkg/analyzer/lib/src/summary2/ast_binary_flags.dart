@@ -25,21 +25,17 @@ class AstBinaryFlags {
 
   static final _hasPrefix = _checkBit(1, ImportDirective);
 
-  static final _hasPeriod = _checkBit(
-    0,
-    IndexExpression,
-    MethodInvocation,
-    PropertyAccess,
-  );
+  static final _hasPeriod = _checkBit(0, MethodInvocation, PropertyAccess);
 
   static final _hasPeriod2 = _checkBit(1, MethodInvocation, PropertyAccess);
 
   static final _hasQuestion = _checkBit(
     2,
     GenericFunctionType,
-    IndexExpression,
     NamedType,
     PropertyAccess,
+    ReceiverIndexAssignmentTarget,
+    ReceiverIndexExpression,
   );
 
   static final _hasSeparatorColon = _checkBit(0, ConstructorDeclaration);
@@ -82,13 +78,6 @@ class AstBinaryFlags {
   static final _isCovariant = _checkBit(2, FieldDeclaration);
 
   static final _isDeclaration = _checkBit(0, SimpleIdentifier);
-
-  static final _isDotShorthand = _checkBit(
-    0,
-    DotShorthandConstructorInvocation,
-    DotShorthandInvocation,
-    DotShorthandPropertyAccess,
-  );
 
   static final _isDeferred = _checkBit(0, ImportDirective);
 
@@ -183,7 +172,6 @@ class AstBinaryFlags {
     bool isCovariant = false,
     bool isDeclaration = false,
     bool isDeferred = false,
-    bool isDotShorthand = false,
     bool isExternal = false,
     bool isFactory = false,
     bool isFinal = false,
@@ -259,9 +247,6 @@ class AstBinaryFlags {
     }
     if (isDeferred) {
       result |= _isDeferred;
-    }
-    if (isDotShorthand) {
-      result |= _isDotShorthand;
     }
     if (isConst) {
       result |= _isConst;
@@ -471,10 +456,6 @@ class AstBinaryFlags {
 
   static bool isDeferred(int flags) {
     return (flags & _isDeferred) != 0;
-  }
-
-  static bool isDotShorthand(int flags) {
-    return (flags & _isDotShorthand) != 0;
   }
 
   static bool isExternal(int flags) {

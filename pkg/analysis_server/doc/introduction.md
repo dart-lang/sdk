@@ -17,5 +17,6 @@ The documentation is divided into the following sections:
 - [process](process/overview.md), which describes the processes that should be
   followed when working on the analysis server code base.
 
-- [tutorial](tutorial/instrumentation.md), which provides end-user information
-  about the analysis server.
+- tutorial, which provides end-user information about the analysis server:
+  - [Instrumentation and insights pages](tutorial/instrumentation.md)
+  - [Recording a session communications log](tutorial/session_log.md)

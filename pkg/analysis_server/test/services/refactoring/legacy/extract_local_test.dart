@@ -718,6 +718,31 @@ void g() {
 ''');
   }
 
+  Future<void> test_dotShorthand_inferred_chain_property() async {
+    await indexTestUnit('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+T f<T>(T arg) => arg;
+void g() {
+  A a = f(.value.self);
+}
+''');
+    _createRefactoringForString('.value.self');
+    return _assertSuccessfulRefactoring('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+T f<T>(T arg) => arg;
+void g() {
+  A res = .value.self;
+  A a = f(res);
+}
+''');
+  }
+
   Future<void> test_fragmentExpression() async {
     await indexTestUnit('''
 void f() {
@@ -1470,6 +1495,40 @@ void f(p) {
   foo
   var res = p.bar;
   res.baz;
+}
+''');
+  }
+
+  Future<void> test_singleExpression_inExpressionBody_ofAsyncFunction() async {
+    // https://github.com/dart-lang/sdk/issues/39542
+    await indexTestUnit('''
+Future<void> f() async => print(await Future.value('message'));
+''');
+    _createRefactoringForString("Future.value('message')");
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+Future<void> f() async {
+  var res = Future.value('message');
+  return print(await res);
+}
+''');
+  }
+
+  Future<void> test_singleExpression_inExpressionBody_ofAsyncMethod() async {
+    // https://github.com/dart-lang/sdk/issues/39542
+    await indexTestUnit('''
+class A {
+  Future<int> foo() async => await Future.value(42);
+}
+''');
+    _createRefactoringForString('Future.value(42)');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+class A {
+  Future<int> foo() async {
+    var res = Future.value(42);
+    return await res;
+  }
 }
 ''');
   }

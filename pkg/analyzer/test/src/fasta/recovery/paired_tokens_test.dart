@@ -560,8 +560,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: x
+                  leftOperand: ParsedUnqualifiedName
+                    name: x
                   operator: !=
                   rightOperand: NullLiteral
                     literal: null
@@ -614,8 +614,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: x
+                  leftOperand: ParsedUnqualifiedName
+                    name: x
                   operator: !=
                   rightOperand: NullLiteral
                     literal: null
@@ -634,8 +634,8 @@ CompilationUnit
                       whileKeyword: while
                       leftParenthesis: (
                       condition2: BinaryOperatorInvocation
-                        leftOperand: SimpleIdentifier
-                          token: x
+                        leftOperand: ParsedUnqualifiedName
+                          name: x
                         operator: ==
                         rightOperand: NullLiteral
                           literal: null
@@ -689,11 +689,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: class
+                expression(v1): SimpleIdentifier
                   token: class
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: C
+                expression(v1): SimpleIdentifier
                   token: C
                 semicolon: ; <synthetic>
               Block
@@ -748,7 +752,9 @@ CompilationUnit
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: SimpleIdentifier
+                      expression2: ParsedUnqualifiedName
+                        name: y
+                      expression(v1): SimpleIdentifier
                         token: y
                       semicolon: ;
             rightBracket: } <synthetic>
@@ -860,11 +866,11 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ReceiverIndexExpression
-            receiver: SimpleIdentifier
-              token: l
+            receiver: ParsedUnqualifiedName
+              name: l
             leftBracket: [
-            index: SimpleIdentifier
-              token: x
+            index: ParsedUnqualifiedName
+              name: x
             rightBracket: ] <synthetic>
           expression(v1): IndexExpression
             target: SimpleIdentifier
@@ -905,12 +911,12 @@ CompilationUnit
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: ReceiverIndexExpression
-            receiver: SimpleIdentifier
-              token: l
+            receiver: ParsedUnqualifiedName
+              name: l
             question: ?
             leftBracket: [
-            index: SimpleIdentifier
-              token: x
+            index: ParsedUnqualifiedName
+              name: x
             rightBracket: ] <synthetic>
           expression(v1): IndexExpression
             target: SimpleIdentifier
@@ -1102,11 +1108,15 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1147,15 +1157,17 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
                   condition2: BinaryOperatorInvocation
-                    leftOperand: SimpleIdentifier
-                      token: x
+                    leftOperand: ParsedUnqualifiedName
+                      name: x
                     operator: !=
                     rightOperand: NullLiteral
                       literal: null

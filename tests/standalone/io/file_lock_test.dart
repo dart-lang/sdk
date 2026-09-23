@@ -55,14 +55,14 @@ checkNotLocked(
   FileLock mode = FileLock.exclusive,
 ]) => check(path, start, end, mode, locked: false);
 
-void testLockWholeFile() {
+Future<void> testLockWholeFile() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.write);
   raf.lockSync();
   asyncStart();
-  checkLocked(file.path)
+  return checkLocked(file.path)
       .then((_) {
         return checkLocked(file.path, 0, 2).then((_) {
           raf.unlockSync();
@@ -76,13 +76,13 @@ void testLockWholeFile() {
       });
 }
 
-void testLockWholeFileAsync() {
+Future<void> testLockWholeFileAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.write);
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lock(),
     () => checkLocked(file.path, 0, 2),
     () => checkLocked(file.path),
@@ -95,7 +95,7 @@ void testLockWholeFileAsync() {
   });
 }
 
-void testLockRange() {
+Future<void> testLockRange() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
@@ -133,7 +133,7 @@ void testLockRange() {
       () => checkNotLocked(file.path),
     ]);
   }
-  Future.forEach<Function>(tests, (f) => f()).whenComplete(() {
+  return Future.forEach<Function>(tests, (f) => f()).whenComplete(() {
     raf1.closeSync();
     raf2.closeSync();
     directory.deleteSync(recursive: true);
@@ -141,7 +141,7 @@ void testLockRange() {
   });
 }
 
-void testLockRangeAsync() {
+Future<void> testLockRangeAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
@@ -176,7 +176,7 @@ void testLockRangeAsync() {
   } else {
     tests.addAll([() => raf2.unlock(5, 7), () => checkNotLocked(file.path)]);
   }
-  Future.forEach<Function>(tests, (f) => f()).whenComplete(() {
+  return Future.forEach<Function>(tests, (f) => f()).whenComplete(() {
     raf1.closeSync();
     raf2.closeSync();
     directory.deleteSync(recursive: true);
@@ -184,13 +184,13 @@ void testLockRangeAsync() {
   });
 }
 
-void testLockEnd() {
+Future<void> testLockEnd() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.append);
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lockSync(FileLock.exclusive, 2),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
@@ -207,13 +207,13 @@ void testLockEnd() {
   });
 }
 
-void testLockEndAsync() {
+Future<void> testLockEndAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.append);
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lock(FileLock.exclusive, 2),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
@@ -230,13 +230,13 @@ void testLockEndAsync() {
   });
 }
 
-void testLockShared() {
+Future<void> testLockShared() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync();
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lock(FileLock.shared),
     () => checkLocked(file.path),
     () => checkLocked(file.path, 0, 2),
@@ -248,13 +248,13 @@ void testLockShared() {
   });
 }
 
-void testLockSharedAsync() {
+Future<void> testLockSharedAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync();
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lock(FileLock.shared),
     () => checkLocked(file.path),
     () => checkLocked(file.path, 0, 2),
@@ -266,13 +266,13 @@ void testLockSharedAsync() {
   });
 }
 
-void testLockAfterLength() {
+Future<void> testLockAfterLength() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.append);
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lockSync(FileLock.exclusive, 2, 15),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
@@ -290,13 +290,13 @@ void testLockAfterLength() {
   });
 }
 
-void testLockAfterLengthAsync() {
+Future<void> testLockAfterLengthAsync() {
   Directory directory = Directory.systemTemp.createTempSync('dart_file_lock');
   File file = new File(join(directory.path, "file"));
   file.writeAsBytesSync(new List.filled(10, 0));
   var raf = file.openSync(mode: FileMode.append);
   asyncStart();
-  Future.forEach<Function>([
+  return Future.forEach<Function>([
     () => raf.lock(FileLock.exclusive, 2, 15),
     () => checkNotLocked(file.path, 0, 2),
     () => checkLocked(file.path, 0, 3),
@@ -314,15 +314,17 @@ void testLockAfterLengthAsync() {
   });
 }
 
-void main() {
-  testLockWholeFile();
-  testLockWholeFileAsync();
-  testLockRange();
-  testLockRangeAsync();
-  testLockEnd();
-  testLockEndAsync();
-  testLockShared();
-  testLockSharedAsync();
-  testLockAfterLength();
-  testLockAfterLengthAsync();
+main() async {
+  asyncStart();
+  await testLockWholeFile();
+  await testLockWholeFileAsync();
+  await testLockRange();
+  await testLockRangeAsync();
+  await testLockEnd();
+  await testLockEndAsync();
+  await testLockShared();
+  await testLockSharedAsync();
+  await testLockAfterLength();
+  await testLockAfterLengthAsync();
+  asyncEnd();
 }

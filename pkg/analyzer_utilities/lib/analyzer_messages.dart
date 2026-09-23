@@ -64,6 +64,10 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
   ),
   DiagnosticClassInfo(name: 'HintCode', type: AnalyzerDiagnosticType.hint),
   DiagnosticClassInfo(
+    name: 'JsInteropCode',
+    type: AnalyzerDiagnosticType.compileTimeError,
+  ),
+  DiagnosticClassInfo(
     name: 'ParserErrorCode',
     type: AnalyzerDiagnosticType.syntacticError,
   ),

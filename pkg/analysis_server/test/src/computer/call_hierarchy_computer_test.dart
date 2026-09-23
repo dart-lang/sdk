@@ -7,11 +7,10 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:matcher/expect.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -67,7 +66,7 @@ Matcher _isResult(
   return matcher;
 }
 
-abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
+abstract class AbstractCallHierarchyTest extends SingleUnitTest {
   final startOfFile = SourceRange(0, 0);
 
   /// Gets the entire range for [code].
@@ -98,6 +97,10 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     var offset = code.code.indexOf(search);
     expect(offset, greaterThanOrEqualTo(0));
     return SourceRange(offset, (match ?? search).length);
+  }
+
+  void updateTestSource(String code) {
+    newFile(testFile.path, code);
   }
 }
 

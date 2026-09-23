@@ -54,13 +54,6 @@ static_weak_reference_*: SkipByDesign # 'weak-tearoff-reference' pragma is suppo
 [ $compiler != dart2js && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
-[ $compiler == dart2wasm && $runtime == safari ]
-stack_trace/demangle_ctors_test: Skip # Unstable on Safari https://dartbug.com/63543
-stack_trace/full2_test: Skip # Unstable on Safari https://dartbug.com/63543
-stack_trace/full3_test: Skip # Unstable on Safari https://dartbug.com/63543
-stack_trace/rethrow_error_test: Skip # Unstable on Safari https://dartbug.com/63543
-stack_trace/rethrow_nonerror_test: Skip # Unstable on Safari https://dartbug.com/63543
-
 [ $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
 identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 

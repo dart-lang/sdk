@@ -266,11 +266,22 @@ class DateTime {
   @patch
   int get microsecondsSinceEpoch => _value;
 
+  // The two sub-second components are derived arithmetically rather than read
+  // out of `_parts`. Computing `_parts` means computing the whole broken-down
+  // local date, which needs a time zone offset, and resolving the local zone
+  // calls `localtime`; glibc re-stats /etc/localtime on every such call unless
+  // TZ is set. Neither component needs any of that.
+  //
+  // This is valid because every time zone offset that has ever existed is a
+  // whole number of seconds, so the offset contributes nothing below a second.
+  // It does not extend to `second`: offsets are not always a whole number of
+  // minutes, for instance Africa/Monrovia used -00:44:30 until 1972.
   @patch
-  int get microsecond => _parts[_MICROSECOND_INDEX];
+  int get microsecond => _value % Duration.microsecondsPerMillisecond;
 
   @patch
-  int get millisecond => _parts[_MILLISECOND_INDEX];
+  int get millisecond =>
+      millisecondsSinceEpoch % Duration.millisecondsPerSecond;
 
   @patch
   int get second => _parts[_SECOND_INDEX];

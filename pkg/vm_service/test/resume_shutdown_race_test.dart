@@ -14,7 +14,7 @@ import 'dart:isolate';
 
 const childCount = 4;
 
-void child(i) {
+void child(int i) {
   print('Child $i');
   // Paused-at-exit.
 }
@@ -28,47 +28,57 @@ void main() {
   // Paused-at-exit.
 }
 
-Future<Map<String, dynamic>> get(
+Future<Map<String, Object?>> get(
+  HttpClient client,
   String method,
-  Map<String, dynamic> arguments,
+  Map<String, String> arguments,
 ) async {
   final info = await Service.getInfo();
-  final uri = info.serverUri!.replace(path: method, queryParameters: arguments);
-  final client = HttpClient();
-  try {
-    final request = await client.getUrl(uri);
-    final response = await request.close();
-    final string = await response.transform(utf8.decoder).join();
-    return jsonDecode(string);
-  } finally {
-    client.close();
-  }
+  final uri = info.serverUri!.replace(
+    path: method,
+    queryParameters: arguments.isEmpty ? null : arguments,
+  );
+  final request = await client.getUrl(uri);
+  final response = await request.close();
+  final string = await response.transform(utf8.decoder).join();
+  return jsonDecode(string) as Map<String, Object?>;
 }
 
-Future<Never> resumer(_) async {
+Future<Never> resumer(Object? _) async {
+  final client = HttpClient();
   try {
     // Wait for the main isolate and children to all be paused at exit.
     final paused = <String>[];
     do {
       try {
         paused.clear();
-        final vmResult = await get('getVM', {});
-        final vm = vmResult['result'];
-        if (vm != null) {
-          for (Map<String, dynamic> isolate in vm['isolates']) {
-            final id = isolate['id'];
-            final isolateResult = await get('getIsolate', {'isolateId': id});
-            isolate = isolateResult['result'] ?? {};
-            if ((isolate['pauseEvent'] != null) &&
-                (isolate['pauseEvent']['kind'] == 'PauseExit')) {
-              paused.add(id);
+        final vmResult = await get(client, 'getVM', const <String, String>{});
+        final vm = switch (vmResult['result']) {
+          final Map<String, Object?> result => result,
+          _ => vmResult,
+        };
+        if (vm case {'isolates': final List<Object?> isolates}) {
+          for (final isolate in isolates) {
+            if (isolate case {'id': final String id}) {
+              final isolateResult = await get(
+                client,
+                'getIsolate',
+                <String, String>{'isolateId': id},
+              );
+              final isolateData = switch (isolateResult['result']) {
+                final Map<String, Object?> result => result,
+                _ => isolateResult,
+              };
+              if (isolateData case {'pauseEvent': {'kind': 'PauseExit'}}) {
+                paused.add(id);
+              }
             }
           }
         }
       } catch (e) {
         print('Transient error in resumer: $e');
       }
-      await Future.delayed(const Duration(milliseconds: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
     } while (paused.length != childCount + 1);
 
     // Resume the main isolate and children. When the main isolate resumes, it
@@ -79,12 +89,24 @@ Future<Never> resumer(_) async {
     //    Attempt:138 waiting for isolate child to check in
     //    ...
     for (final id in paused) {
-      await get('resume', {'isolateId': id}).then((v) => print(v));
+      try {
+        final result = await get(
+          client,
+          'resume',
+          <String, String>{'isolateId': id},
+        );
+        print(result);
+      } catch (e) {
+        // The VM or service may have shut down during the race.
+        print('Error resuming $id: $e');
+      }
     }
   } catch (e, st) {
     print(e);
     print(st);
     rethrow;
+  } finally {
+    client.close(force: true);
   }
 
   // This isolate itself will be paused-at-exit with no resume message coming,

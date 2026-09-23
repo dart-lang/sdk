@@ -48,12 +48,12 @@ class PropertyElementResolver with ScopeHelpers {
   ({IndexReadResolutionImpl? read, IndexWriteResolutionImpl? write})?
   resolveCascadeIndex({
     required AstNode node,
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required bool isNullAware,
     required bool hasRead,
     required bool hasWrite,
   }) {
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var readElement = result.getter2;
       var writeElement = result.setter2;
@@ -95,7 +95,9 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    var receiverType = _typeSystem.resolveToBound(
+      _resolver.instanceReceiverType(receiver),
+    );
     if (identical(receiverType, NeverTypeImpl.instance)) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
@@ -115,9 +117,11 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
       return (
-        read: hasRead ? InvalidIndexReadResolutionImpl(recovery: null) : null,
+        read: hasRead
+            ? InvalidIndexReadResolutionImpl(recoveryElement: null)
+            : null,
         write: hasWrite
-            ? InvalidIndexWriteResolutionImpl(recovery: null)
+            ? InvalidIndexWriteResolutionImpl(recoveryElement: null)
             : null,
       );
     }
@@ -139,7 +143,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]', type: receiverType),
@@ -148,7 +152,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite && result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]=', type: receiverType),
@@ -180,13 +184,13 @@ class PropertyElementResolver with ScopeHelpers {
   })?
   resolveCascadeProperty({
     required ExpressionImpl node,
-    required ExpressionImpl receiver,
+    required InstanceReceiverImpl receiver,
     required bool isNullAware,
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
   }) {
-    if (receiver is! ExtensionOverrideImpl) {
+    if (receiver is ExpressionImpl) {
       var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
       if (receiverType is NeverType &&
           receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -200,20 +204,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     var identifier = SimpleIdentifierImpl(token: propertyName);
     var result = switch (receiver) {
-      ExtensionOverrideImpl() => _resolveTargetExtensionOverride(
-        target: receiver,
-        propertyName: identifier,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      ),
-      SuperExpressionImpl() => _resolveTargetSuperExpression(
-        node: node,
-        target: receiver,
-        propertyName: identifier,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      ),
-      _ => _resolve(
+      ExpressionImpl() => _resolve(
         node: node,
         target: receiver,
         isCascaded: true,
@@ -221,6 +212,15 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: identifier,
         hasRead: hasRead,
         hasWrite: hasWrite,
+      ),
+      ExtensionOverride2Impl() => _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      ),
+      SuperReferenceImpl() => throw StateError(
+        'A cascade receiver cannot be a super reference.',
       ),
     };
 
@@ -246,13 +246,10 @@ class PropertyElementResolver with ScopeHelpers {
                       type: result.getType as TypeImpl?,
                     ) ??
                     InvalidNamedReadResolutionImpl(
-                      candidates: [
-                        ?readElement,
-                        ?result.readElementRecovery2,
-                        ?writeElement,
-                      ],
-                      recovery: null,
-                      type: InvalidTypeImpl.instance,
+                      recoveryElement:
+                          readElement ??
+                          result.readElementRecovery2 ??
+                          writeElement,
                     ));
     }
 
@@ -262,13 +259,10 @@ class PropertyElementResolver with ScopeHelpers {
           ? const DynamicPropertyWriteResolutionImpl()
           : _createNamedWriteResolutionWithElement(writeElement) ??
                 InvalidNamedWriteResolutionImpl(
-                  acceptedType: InvalidTypeImpl.instance,
-                  candidates: [
-                    ?writeElement,
-                    ?result.writeElementRecovery2,
-                    ?readElement,
-                  ],
-                  recovery: null,
+                  recoveryElement:
+                      writeElement ??
+                      result.writeElementRecovery2 ??
+                      readElement,
                 );
     }
 
@@ -350,11 +344,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-    return InvalidNamedReadResolutionImpl(
-      candidates: const [],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
-    );
+    return InvalidNamedReadResolutionImpl(recoveryElement: null);
   }
 
   NamedWriteResolutionImpl resolveForEachPartsWithIdentifier(
@@ -395,9 +385,7 @@ class PropertyElementResolver with ScopeHelpers {
       node.write =
           _createNamedWriteResolutionWithElement(result.writeElement2) ??
           InvalidNamedWriteResolutionImpl(
-            acceptedType: InvalidTypeImpl.instance,
-            candidates: [?result.writeElement2, ?result.readElement2],
-            recovery: null,
+            recoveryElement: result.writeElement2 ?? result.readElement2,
           );
     }
   }
@@ -437,12 +425,7 @@ class PropertyElementResolver with ScopeHelpers {
           type: result.getType as TypeImpl? ?? _namedReadType(element),
         ) ??
         InvalidNamedReadResolutionImpl(
-          candidates: [?element, ?recoveryElement],
-          recovery: _createNamedReadResolutionWithElement(
-            recoveryElement,
-            type: _namedReadType(recoveryElement),
-          ),
-          type: InvalidTypeImpl.instance,
+          recoveryElement: element ?? recoveryElement,
         );
   }
 
@@ -451,7 +434,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var writeElement = result.setter2;
       var isInvalid = writeElement == null;
@@ -471,7 +454,9 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    var receiverType = _typeSystem.resolveToBound(
+      _resolver.instanceReceiverType(receiver),
+    );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
@@ -488,7 +473,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
-      return InvalidIndexWriteResolutionImpl(recovery: null);
+      return InvalidIndexWriteResolutionImpl(recoveryElement: null);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -504,7 +489,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]=', type: receiverType),
@@ -523,9 +508,12 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasWrite,
   }) {
     var target = node.realTarget2;
+    var override = target is InvalidExtensionOverrideExpressionImpl
+        ? target.extensionOverride
+        : null;
 
-    if (target is ExtensionOverrideImpl) {
-      var result = _extensionResolver.getOverrideMember(target, '[]');
+    if (override != null) {
+      var result = _extensionResolver.getOverrideMember(override, '[]');
 
       // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
       if (hasRead &&
@@ -537,7 +525,7 @@ class PropertyElementResolver with ScopeHelpers {
           node,
           diag.undefinedExtensionOperator.withArguments(
             operator: '[]',
-            extensionName: target.element.name!,
+            extensionName: override.element.name!,
           ),
         );
       }
@@ -551,7 +539,7 @@ class PropertyElementResolver with ScopeHelpers {
           node,
           diag.undefinedExtensionOperator.withArguments(
             operator: '[]=',
-            extensionName: target.element.name!,
+            extensionName: override.element.name!,
           ),
         );
       }
@@ -580,7 +568,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (node.isNullAware) {
-      if (target is ExtensionOverride) {
+      if (target is ExtensionOverride2) {
         // https://github.com/dart-lang/language/pull/953
       } else {
         targetType = _typeSystem.promoteToNonNull(targetType);
@@ -600,20 +588,14 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        (target is SuperExpression
-                ? diag.undefinedSuperOperator
-                : diag.undefinedOperator)
-            .withArguments(operator: '[]', type: targetType),
+        diag.undefinedOperator.withArguments(operator: '[]', type: targetType),
       );
     }
 
     if (hasWrite && result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        (target is SuperExpression
-                ? diag.undefinedSuperOperator
-                : diag.undefinedOperator)
-            .withArguments(operator: '[]=', type: targetType),
+        diag.undefinedOperator.withArguments(operator: '[]=', type: targetType),
       );
     }
 
@@ -631,7 +613,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var readElement = result.getter2;
       var writeElement = result.setter2;
@@ -671,7 +653,9 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    var receiverType = _typeSystem.resolveToBound(
+      _resolver.instanceReceiverType(receiver),
+    );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
@@ -692,8 +676,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
       return (
-        read: InvalidIndexReadResolutionImpl(recovery: null),
-        write: InvalidIndexWriteResolutionImpl(recovery: null),
+        read: InvalidIndexReadResolutionImpl(recoveryElement: null),
+        write: InvalidIndexWriteResolutionImpl(recoveryElement: null),
       );
     }
 
@@ -710,7 +694,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]', type: receiverType),
@@ -719,7 +703,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]=', type: receiverType),
@@ -778,21 +762,14 @@ class PropertyElementResolver with ScopeHelpers {
     PrefixedIdentifierImpl? originalNode,
   }) {
     var target = node.realTarget2;
+    var override = target is InvalidExtensionOverrideExpressionImpl
+        ? target.extensionOverride
+        : null;
     var propertyName = node.propertyName;
 
-    if (target is ExtensionOverrideImpl) {
+    if (override != null) {
       return _resolveTargetExtensionOverride(
-        target: target,
-        propertyName: propertyName,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-    }
-
-    if (target is SuperExpressionImpl) {
-      return _resolveTargetSuperExpression(
-        node: node,
-        target: target,
+        target: override,
         propertyName: propertyName,
         hasRead: hasRead,
         hasWrite: hasWrite,
@@ -818,7 +795,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var receiver = node.receiver;
 
-    if (receiver is ExtensionOverrideImpl) {
+    if (receiver is ExtensionOverride2Impl) {
       var result = _extensionResolver.getOverrideMember(receiver, '[]');
       var element = result.getter2;
       var isInvalid = element == null;
@@ -838,7 +815,9 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    var receiverType = _typeSystem.resolveToBound(
+      _resolver.instanceReceiverType(receiver),
+    );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
@@ -855,7 +834,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (receiverType is VoidType) {
       _reportUnresolvedIndex(node, diag.useOfVoidResult);
-      return InvalidIndexReadResolutionImpl(recovery: null);
+      return InvalidIndexReadResolutionImpl(recoveryElement: null);
     }
 
     var result = _resolver.typePropertyResolver.resolve(
@@ -871,7 +850,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (result.needsGetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperExpression
+        (receiver is SuperReference
                 ? diag.undefinedSuperOperator
                 : diag.undefinedOperator)
             .withArguments(operator: '[]', type: receiverType),
@@ -888,80 +867,123 @@ class PropertyElementResolver with ScopeHelpers {
     ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var receiver = node.receiver;
-    var receiverType = receiver.typeOrThrow;
-
-    if (receiverType is NeverType &&
-        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
-      return null;
-    }
-
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      if (_typeSystem.isNull(receiverType)) {
-        return null;
-      }
-      receiverType = _typeSystem.promoteToNonNull(receiverType);
-    }
-
-    if (receiverType is DynamicType) {
-      return const DynamicPropertyWriteResolutionImpl();
-    }
-
-    if (receiverType is VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
-      return InvalidNamedWriteResolutionImpl(
-        acceptedType: InvalidTypeImpl.instance,
-        candidates: const [],
-        recovery: null,
-      );
-    }
-
-    var result = _resolver.typePropertyResolver.resolve(
-      receiver: receiver,
-      receiverType: receiverType,
-      name: node.propertyName.lexeme,
-      hasRead: false,
-      hasWrite: true,
-      propertyErrorEntity: node.propertyName,
-      nameErrorEntity: node.propertyName,
-      parentNode: node.parent2,
-    );
-
-    var writeElement = result.setter2;
-    _checkForStaticMember2(
-      target: receiver,
-      propertyName: node.propertyName.lexeme,
-      propertyNameEntity: node.propertyName,
-      element: writeElement,
-    );
-
-    InternalExecutableElement? writeRecovery;
-    if (result.needsSetterError) {
-      var readResult = _resolver.typePropertyResolver.resolve(
-        receiver: receiver,
-        receiverType: receiverType,
-        name: node.propertyName.lexeme,
-        hasRead: true,
-        hasWrite: false,
-        propertyErrorEntity: node.propertyName,
-        nameErrorEntity: node.propertyName,
-        parentNode: node.parent2,
-      );
-      writeRecovery = readResult.getter2;
-      AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
-        node: node,
-        requested: null,
-        recovery: writeRecovery,
-        receiverType: receiverType,
-      );
-    }
-
-    return _createNamedWriteResolutionWithElement(writeElement) ??
-        InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: [?writeElement, ?writeRecovery],
-          recovery: null,
+    switch (receiver) {
+      case SuperReferenceImpl():
+        var result = _resolveTargetSuperReference(
+          node: node,
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: false,
+          hasWrite: true,
         );
+        return _createNamedWriteResolutionWithElement(
+              result.writeElementRequested2,
+            ) ??
+            InvalidNamedWriteResolutionImpl(
+              recoveryElement: result.writeElementRecovery2,
+            );
+      case StaticQualifierImpl():
+        var result = _resolveStaticQualifier(
+          receiver,
+          name: node.name,
+          hasRead: false,
+          hasWrite: true,
+        );
+        return _createNamedWriteResolutionWithElement(
+              result.writeElementRequested2,
+            ) ??
+            InvalidNamedWriteResolutionImpl(
+              recoveryElement: result.writeElementRecovery2,
+            );
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: false,
+          hasWrite: true,
+        );
+        return _createNamedWriteResolutionWithElement(
+              result.writeElementRequested2,
+            ) ??
+            InvalidNamedWriteResolutionImpl(
+              recoveryElement: result.writeElementRecovery2,
+            );
+
+      case ExpressionImpl():
+        var receiverType = _resolver.instanceReceiverType(receiver);
+
+        if (receiverType is NeverType &&
+            receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+          // V1 prefixed assignment targets recover without receiverOfTypeNever.
+          if (receiver is UnqualifiedNameExpressionImpl &&
+              node.operator.type == TokenType.PERIOD) {
+            return InvalidNamedWriteResolutionImpl(recoveryElement: null);
+          }
+          diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+          return null;
+        }
+
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          if (_typeSystem.isNull(receiverType)) {
+            return null;
+          }
+          receiverType = _typeSystem.promoteToNonNull(receiverType);
+        }
+
+        if (receiverType is DynamicType && node.name.lexeme != 'new') {
+          return const DynamicPropertyWriteResolutionImpl();
+        }
+
+        if (receiverType is VoidType) {
+          diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
+          return InvalidNamedWriteResolutionImpl(recoveryElement: null);
+        }
+
+        var result = _resolver.typePropertyResolver.resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: node.name.lexeme,
+          hasRead: false,
+          hasWrite: true,
+          propertyErrorEntity: node.name,
+          nameErrorEntity: node.name,
+          parentNode: node.parent2,
+        );
+
+        var writeElement = result.setter2;
+        _checkForStaticMember2(
+          target: receiver,
+          propertyName: node.name.lexeme,
+          propertyNameEntity: node.name,
+          element: writeElement,
+        );
+
+        InternalExecutableElement? writeRecovery;
+        if (result.needsSetterError) {
+          var readResult = _resolver.typePropertyResolver.resolve(
+            receiver: receiver,
+            receiverType: receiverType,
+            name: node.name.lexeme,
+            hasRead: true,
+            hasWrite: false,
+            propertyErrorEntity: node.name,
+            nameErrorEntity: node.name,
+            parentNode: node.parent2,
+          );
+          writeRecovery = readResult.getter2;
+          AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
+            node: node,
+            requested: null,
+            recovery: writeRecovery,
+            receiverType: receiverType,
+          );
+        }
+
+        return _createNamedWriteResolutionWithElement(writeElement) ??
+            InvalidNamedWriteResolutionImpl(
+              recoveryElement: writeElement ?? writeRecovery,
+            );
+    }
   }
 
   ({
@@ -971,127 +993,201 @@ class PropertyElementResolver with ScopeHelpers {
   })
   resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
-    var receiverType = receiver.typeOrThrow;
-
-    if (receiverType is NeverType &&
-        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
-      return (expressionInfo: null, resolution: null, type: receiverType);
-    }
-
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      if (_typeSystem.isNull(receiverType)) {
+    switch (receiver) {
+      case SuperReferenceImpl():
+        var result = _resolveTargetSuperReference(
+          node: node,
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: true,
+          hasWrite: false,
+        );
+        var element = result.readElementRequested2;
+        var resolution =
+            _createNamedReadResolutionWithElement(
+              element,
+              type: element is InternalPropertyAccessorElement
+                  ? result.getType as TypeImpl?
+                  : _namedReadType(element),
+            ) ??
+            InvalidNamedReadResolutionImpl(
+              recoveryElement: result.readElementRecovery2,
+            );
+        return (
+          expressionInfo: _resolver.flowAnalysis.getExpressionInfo(node),
+          resolution: resolution,
+          type: resolution.type,
+        );
+      case StaticQualifierImpl():
+        var result = _resolveStaticQualifier(
+          receiver,
+          name: node.name,
+          hasRead: true,
+          hasWrite: false,
+        );
+        var readElement = result.readElementRequested2;
+        var resolution =
+            _createNamedReadResolutionWithElement(
+              readElement,
+              type: _namedReadType(readElement),
+            ) ??
+            InvalidNamedReadResolutionImpl(
+              recoveryElement: result.readElementRecovery2,
+            );
         return (
           expressionInfo: null,
-          resolution: null,
-          type: NeverTypeImpl.instance,
+          resolution: resolution,
+          type: resolution.type,
         );
-      }
-      receiverType = _typeSystem.promoteToNonNull(receiverType);
-    }
-
-    if (receiverType is VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
-      var resolution = InvalidNamedReadResolutionImpl(
-        candidates: const [],
-        recovery: null,
-        type: InvalidTypeImpl.instance,
-      );
-      return (
-        expressionInfo: null,
-        resolution: resolution,
-        type: resolution.type,
-      );
-    }
-
-    if (_typeSystem.isDynamicBounded(receiverType)) {
-      var resolution = DynamicPropertyReadResolutionImpl();
-      return (
-        expressionInfo: null,
-        resolution: resolution,
-        type: resolution.type,
-      );
-    }
-
-    var result = _resolver.typePropertyResolver.resolve(
-      receiver: receiver,
-      receiverType: receiverType,
-      name: node.name.lexeme,
-      hasRead: true,
-      hasWrite: false,
-      propertyErrorEntity: node.name,
-      nameErrorEntity: node.name,
-      parentNode: node.parent2,
-    );
-
-    var functionCallTearOffResolution = _functionCallTearOffResolution(
-      receiverType: receiverType,
-      isCall: node.name.lexeme == MethodElement.CALL_METHOD_NAME,
-      callFunctionType: result.callFunctionType,
-    );
-    if (functionCallTearOffResolution != null) {
-      return (
-        expressionInfo: null,
-        resolution: functionCallTearOffResolution,
-        type: functionCallTearOffResolution.type,
-      );
-    }
-
-    var readElement = result.getter2;
-    _checkForStaticMember2(
-      target: receiver,
-      propertyName: node.name.lexeme,
-      propertyNameEntity: node.name,
-      element: readElement,
-    );
-
-    if (result.needsGetterError) {
-      diagnosticReporter.report(
-        diag.undefinedGetter
-            .withArguments(memberName: node.name.lexeme, type: receiverType)
-            .at(node.name),
-      );
-    }
-
-    var recordField = result.recordField;
-    var readType = switch (readElement) {
-      InternalPropertyAccessorElement(:var returnType) => returnType,
-      InternalMethodElement(:var type) => type,
-      _ => recordField?.type,
-    };
-    ExpressionInfo? expressionInfo;
-    if (readType != null) {
-      if (_resolver.flowAnalysis.flow case var flow?) {
-        var (wrappedPromotedType, readExpressionInfo) = flow.propertyGet(
-          ExpressionPropertyTarget(
-            _resolver.flowAnalysis.getExpressionInfo(receiver),
-          ),
-          node.name.lexeme,
-          readElement,
-          SharedTypeView(readType),
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: true,
+          hasWrite: false,
         );
-        expressionInfo = readExpressionInfo;
-        readType = wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
-      }
-    }
+        var readElement = result.readElementRequested2;
+        var resolution =
+            _createNamedReadResolutionWithElement(
+              readElement,
+              type: _namedReadType(readElement),
+            ) ??
+            InvalidNamedReadResolutionImpl(
+              recoveryElement: result.readElementRecovery2,
+            );
+        return (
+          expressionInfo: null,
+          resolution: resolution,
+          type: resolution.type,
+        );
 
-    var resolution = _createPropertyReadResolution(
-      element: readElement,
-      recordField: recordField,
-      type: readType,
-    );
-    resolution ??= _typeSystem.isDynamicBounded(receiverType)
-        ? DynamicPropertyReadResolutionImpl()
-        : InvalidNamedReadResolutionImpl(
-            candidates: [?readElement, ?result.setter2],
-            recovery: null,
-            type: InvalidTypeImpl.instance,
+      case ExpressionImpl():
+        var receiverType = _resolver.instanceReceiverType(receiver);
+
+        if (receiverType is NeverType &&
+            receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+          // Bare-name and call-result reads retain the legacy dead-code diagnostic
+          // at the selected name. Other receivers report receiverOfTypeNever.
+          // TODO(scheglov): Unify diagnostics for Never receivers across receiver
+          // forms. Preserve the legacy diagnostics during this migration.
+          if (receiver is! FunctionInvocationImpl &&
+              (receiver is! UnqualifiedNameExpressionImpl ||
+                  node.operator.type != TokenType.PERIOD)) {
+            diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+            return (expressionInfo: null, resolution: null, type: receiverType);
+          }
+        }
+
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          if (_typeSystem.isNull(receiverType)) {
+            return (
+              expressionInfo: null,
+              resolution: null,
+              type: NeverTypeImpl.instance,
+            );
+          }
+          receiverType = _typeSystem.promoteToNonNull(receiverType);
+        }
+
+        if (receiverType is VoidType) {
+          diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
+          var resolution = InvalidNamedReadResolutionImpl(
+            recoveryElement: null,
           );
-    return (
-      expressionInfo: expressionInfo,
-      resolution: resolution,
-      type: resolution.type,
-    );
+          return (
+            expressionInfo: null,
+            resolution: resolution,
+            type: resolution.type,
+          );
+        }
+
+        var result = _resolver.typePropertyResolver.resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: node.name.lexeme,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: node.name,
+          nameErrorEntity: node.name,
+          parentNode: node.parent2,
+        );
+
+        var functionCallTearOffResolution = _functionCallTearOffResolution(
+          receiverType: receiverType,
+          isCall: node.name.lexeme == MethodElement.CALL_METHOD_NAME,
+          callFunctionType: result.callFunctionType,
+        );
+        if (functionCallTearOffResolution != null) {
+          return (
+            expressionInfo: null,
+            resolution: functionCallTearOffResolution,
+            type: functionCallTearOffResolution.type,
+          );
+        }
+
+        var readElement = result.getter2;
+        _checkForStaticMember2(
+          target: receiver,
+          propertyName: node.name.lexeme,
+          propertyNameEntity: node.name,
+          element: readElement,
+        );
+
+        if (result.needsGetterError) {
+          diagnosticReporter.report(
+            diag.undefinedGetter
+                .withArguments(memberName: node.name.lexeme, type: receiverType)
+                .at(node.name),
+          );
+        }
+
+        var recordField = result.recordField;
+        var readType = switch (readElement) {
+          InternalPropertyAccessorElement(:var returnType) => returnType,
+          InternalMethodElement(:var type) => type,
+          _ => recordField?.type,
+        };
+        ExpressionInfo? expressionInfo;
+        if (readType != null) {
+          if (_resolver.flowAnalysis.flow case var flow?) {
+            var (wrappedPromotedType, readExpressionInfo) = flow.propertyGet(
+              ExpressionPropertyTarget(
+                _resolver.flowAnalysis.getExpressionInfo(receiver),
+              ),
+              node.name.lexeme,
+              readElement,
+              SharedTypeView(readType),
+            );
+            expressionInfo = readExpressionInfo;
+            readType =
+                wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
+          }
+        }
+
+        var resolution = _createPropertyReadResolution(
+          element: readElement,
+          recordField: recordField,
+          type: readType,
+        );
+        if (receiverType is NeverType &&
+            receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+          return (
+            expressionInfo: expressionInfo,
+            resolution: resolution,
+            type: receiverType,
+          );
+        }
+        resolution ??= _typeSystem.isDynamicBounded(receiverType)
+            ? DynamicPropertyReadResolutionImpl()
+            : InvalidNamedReadResolutionImpl(
+                recoveryElement: readElement ?? result.setter2,
+              );
+        return (
+          expressionInfo: expressionInfo,
+          resolution: resolution,
+          type: resolution.type,
+        );
+    }
   }
 
   ({
@@ -1103,183 +1199,200 @@ class PropertyElementResolver with ScopeHelpers {
     ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var receiver = node.receiver;
-
-    if (receiver is ExtensionOverrideImpl) {
-      var result = _resolveTargetExtensionOverride(
-        target: receiver,
-        propertyName: SimpleIdentifierImpl(token: node.propertyName),
-        hasRead: true,
-        hasWrite: true,
-        assignmentToMethodOnMissingWrite:
-            node.parent2 is IncrementOrDecrementExpression,
-      );
-      return _propertyReadWriteTargetResult(result);
-    }
-
-    if (receiver case TypeLiteralImpl(
-      type: NamedTypeImpl(element: InterfaceElement typeReference),
-    )) {
-      var result = _resolveTargetInterfaceElement(
-        typeReference: typeReference,
-        isCascaded: false,
-        propertyName: SimpleIdentifierImpl(token: node.propertyName),
-        hasRead: true,
-        hasWrite: true,
-      );
-      return _propertyReadWriteTargetResult(result);
-    }
-
-    if (receiver case SimpleIdentifierImpl(
-      element: InterfaceElement typeReference,
-    )) {
-      var result = _resolveTargetInterfaceElement(
-        typeReference: typeReference,
-        isCascaded: false,
-        propertyName: SimpleIdentifierImpl(token: node.propertyName),
-        hasRead: true,
-        hasWrite: true,
-      );
-      return _propertyReadWriteTargetResult(result);
-    }
-
-    var receiverType = receiver.typeOrThrow;
-
-    if (receiverType is NeverType &&
-        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
-      return null;
-    }
-
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      if (_typeSystem.isNull(receiverType)) {
-        return null;
-      }
-      receiverType = _typeSystem.promoteToNonNull(receiverType);
-    }
-
-    if (receiverType is VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
-      return (
-        read: InvalidNamedReadResolutionImpl(
-          candidates: const [],
-          recovery: null,
-          type: InvalidTypeImpl.instance,
-        ),
-        write: InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: const [],
-          recovery: null,
-        ),
-        readExpressionInfo: null,
-      );
-    }
-
-    if (_typeSystem.isDynamicBounded(receiverType)) {
-      return (
-        read: DynamicPropertyReadResolutionImpl(),
-        write: const DynamicPropertyWriteResolutionImpl(),
-        readExpressionInfo: null,
-      );
-    }
-
-    var result = _resolver.typePropertyResolver.resolve(
-      receiver: receiver,
-      receiverType: receiverType,
-      name: node.propertyName.lexeme,
-      hasRead: true,
-      hasWrite: true,
-      propertyErrorEntity: node.propertyName,
-      nameErrorEntity: node.propertyName,
-      parentNode: node.parent2,
-    );
-
-    var functionCallTearOffResolution = _functionCallTearOffResolution(
-      receiverType: receiverType,
-      isCall: node.propertyName.lexeme == MethodElement.CALL_METHOD_NAME,
-      callFunctionType: result.callFunctionType,
-    );
-
-    var readElement = result.getter2;
-    var writeElement = result.setter2;
-    _checkForStaticMember2(
-      target: receiver,
-      propertyName: node.propertyName.lexeme,
-      propertyNameEntity: node.propertyName,
-      element: readElement,
-    );
-    _checkForStaticMember2(
-      target: receiver,
-      propertyName: node.propertyName.lexeme,
-      propertyNameEntity: node.propertyName,
-      element: writeElement,
-    );
-
-    if (result.needsGetterError) {
-      diagnosticReporter.report(
-        diag.undefinedGetter
-            .withArguments(
-              memberName: node.propertyName.lexeme,
-              type: receiverType,
-            )
-            .at(node.propertyName),
-      );
-    }
-    if (result.needsSetterError) {
-      AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
-        node: node,
-        requested: null,
-        recovery: readElement,
-        receiverType: receiverType,
-      );
-    }
-
-    var recordField = result.recordField;
-    var readType = switch (readElement) {
-      InternalPropertyAccessorElement(:var returnType) => returnType,
-      InternalMethodElement(:var type) => type,
-      _ => recordField?.type,
-    };
-    ExpressionInfo? readExpressionInfo;
-    if (readType != null) {
-      if (_resolver.flowAnalysis.flow case var flow?) {
-        var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
-          ExpressionPropertyTarget(
-            _resolver.flowAnalysis.getExpressionInfo(receiver),
+    switch (receiver) {
+      case SuperReferenceImpl():
+        return _propertyReadWriteTargetResult(
+          _resolveTargetSuperReference(
+            node: node,
+            target: receiver,
+            propertyName: SimpleIdentifierImpl(token: node.name),
+            hasRead: true,
+            hasWrite: true,
           ),
-          node.propertyName.lexeme,
-          readElement,
-          SharedTypeView(readType),
         );
-        readExpressionInfo = expressionInfo;
-        readType = wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
-      }
-    }
+      case StaticQualifierImpl():
+        return _propertyReadWriteTargetResult(
+          _resolveStaticQualifier(
+            receiver,
+            name: node.name,
+            hasRead: true,
+            hasWrite: true,
+          ),
+        );
+      case ExtensionOverride2Impl():
+        var result = _resolveTargetExtensionOverride(
+          target: receiver,
+          propertyName: SimpleIdentifierImpl(token: node.name),
+          hasRead: true,
+          hasWrite: true,
+          assignmentToMethodOnMissingWrite:
+              node.parent2 is IncrementOrDecrementExpression,
+        );
+        return _propertyReadWriteTargetResult(result);
 
-    var readResolution =
-        functionCallTearOffResolution ??
-        _createPropertyReadResolution(
+      case ExpressionImpl():
+        if (receiver case TypeLiteralImpl(
+          type: NamedTypeImpl(element: InterfaceElement typeReference),
+        )) {
+          var result = _resolveTargetInterfaceElement(
+            typeReference: typeReference,
+            isCascaded: false,
+            propertyName: SimpleIdentifierImpl(token: node.name),
+            hasRead: true,
+            hasWrite: true,
+          );
+          return _propertyReadWriteTargetResult(result);
+        }
+
+        if (receiver case SimpleIdentifierImpl(
+          element: InterfaceElement typeReference,
+        )) {
+          var result = _resolveTargetInterfaceElement(
+            typeReference: typeReference,
+            isCascaded: false,
+            propertyName: SimpleIdentifierImpl(token: node.name),
+            hasRead: true,
+            hasWrite: true,
+          );
+          return _propertyReadWriteTargetResult(result);
+        }
+
+        var receiverType = _resolver.instanceReceiverType(receiver);
+
+        if (receiverType is NeverType &&
+            receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+          // Increment targets retain their existing receiverOfTypeNever behavior.
+          if (node.parent2 is AssignmentExpression2Impl &&
+              receiver is UnqualifiedNameExpressionImpl &&
+              node.operator.type == TokenType.PERIOD) {
+            return (
+              read: InvalidNamedReadResolutionImpl(recoveryElement: null),
+              write: InvalidNamedWriteResolutionImpl(recoveryElement: null),
+              readExpressionInfo: null,
+            );
+          }
+          diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+          return null;
+        }
+
+        if (node.operator.type == TokenType.QUESTION_PERIOD) {
+          if (_typeSystem.isNull(receiverType)) {
+            return null;
+          }
+          receiverType = _typeSystem.promoteToNonNull(receiverType);
+        }
+
+        if (receiverType is VoidType) {
+          diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
+          return (
+            read: InvalidNamedReadResolutionImpl(recoveryElement: null),
+            write: InvalidNamedWriteResolutionImpl(recoveryElement: null),
+            readExpressionInfo: null,
+          );
+        }
+
+        if (_typeSystem.isDynamicBounded(receiverType) &&
+            node.name.lexeme != 'new') {
+          return (
+            read: DynamicPropertyReadResolutionImpl(),
+            write: const DynamicPropertyWriteResolutionImpl(),
+            readExpressionInfo: null,
+          );
+        }
+
+        var result = _resolver.typePropertyResolver.resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: node.name.lexeme,
+          hasRead: true,
+          hasWrite: true,
+          propertyErrorEntity: node.name,
+          nameErrorEntity: node.name,
+          parentNode: node,
+        );
+
+        var functionCallTearOffResolution = _functionCallTearOffResolution(
+          receiverType: receiverType,
+          isCall: node.name.lexeme == MethodElement.CALL_METHOD_NAME,
+          callFunctionType: result.callFunctionType,
+        );
+
+        var readElement = result.getter2;
+        var writeElement = result.setter2;
+        _checkForStaticMember2(
+          target: receiver,
+          propertyName: node.name.lexeme,
+          propertyNameEntity: node.name,
           element: readElement,
-          recordField: recordField,
-          type: readType,
         );
-    readResolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElement, ?writeElement],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
-    );
-    NamedWriteResolutionImpl? writeResolution =
-        _createNamedWriteResolutionWithElement(writeElement);
-    writeResolution ??= InvalidNamedWriteResolutionImpl(
-      acceptedType: InvalidTypeImpl.instance,
-      candidates: [?writeElement, ?readElement],
-      recovery: null,
-    );
+        _checkForStaticMember2(
+          target: receiver,
+          propertyName: node.name.lexeme,
+          propertyNameEntity: node.name,
+          element: writeElement,
+        );
 
-    return (
-      read: readResolution,
-      write: writeResolution,
-      readExpressionInfo: readExpressionInfo,
-    );
+        if (result.needsGetterError) {
+          diagnosticReporter.report(
+            diag.undefinedGetter
+                .withArguments(memberName: node.name.lexeme, type: receiverType)
+                .at(node.name),
+          );
+        }
+        if (result.needsSetterError) {
+          AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
+            node: node,
+            requested: null,
+            recovery: readElement,
+            receiverType: receiverType,
+          );
+        }
+
+        var recordField = result.recordField;
+        var readType = switch (readElement) {
+          InternalPropertyAccessorElement(:var returnType) => returnType,
+          InternalMethodElement(:var type) => type,
+          _ => recordField?.type,
+        };
+        ExpressionInfo? readExpressionInfo;
+        if (readType != null) {
+          if (_resolver.flowAnalysis.flow case var flow?) {
+            var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
+              ExpressionPropertyTarget(
+                _resolver.flowAnalysis.getExpressionInfo(receiver),
+              ),
+              node.name.lexeme,
+              readElement,
+              SharedTypeView(readType),
+            );
+            readExpressionInfo = expressionInfo;
+            readType =
+                wrappedPromotedType?.unwrapTypeView<TypeImpl>() ?? readType;
+          }
+        }
+
+        var readResolution =
+            functionCallTearOffResolution ??
+            _createPropertyReadResolution(
+              element: readElement,
+              recordField: recordField,
+              type: readType,
+            );
+        readResolution ??= InvalidNamedReadResolutionImpl(
+          recoveryElement: readElement ?? writeElement,
+        );
+        NamedWriteResolutionImpl? writeResolution =
+            _createNamedWriteResolutionWithElement(writeElement);
+        writeResolution ??= InvalidNamedWriteResolutionImpl(
+          recoveryElement: writeElement ?? readElement,
+        );
+
+        return (
+          read: readResolution,
+          write: writeResolution,
+          readExpressionInfo: readExpressionInfo,
+        );
+    }
   }
 
   PropertyElementResolverResult resolveSimpleIdentifier({
@@ -1412,9 +1525,11 @@ class PropertyElementResolver with ScopeHelpers {
       }
     } else if (element is ExtensionElement) {
       diagnosticReporter.report(
-        diag.extensionAsExpression
-            .withArguments(name: node.name.lexeme)
-            .at(node),
+        node.parent2 is FunctionInstantiationImpl
+            ? diag.disallowedTypeInstantiationExpression.at(node)
+            : diag.extensionAsExpression
+                  .withArguments(name: node.name.lexeme)
+                  .at(node),
       );
     }
     return _resolveUnqualifiedNameRead(
@@ -1475,7 +1590,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   void _checkForStaticMember(
-    Expression target,
+    AstNode target,
     SimpleIdentifier propertyName,
     ExecutableElement? element,
   ) {
@@ -1488,13 +1603,13 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   void _checkForStaticMember2({
-    required Expression target,
+    required AstNode target,
     required String propertyName,
     required SyntacticEntity propertyNameEntity,
     required ExecutableElement? element,
   }) {
     if (element != null && element.isStatic) {
-      if (target is ExtensionOverride) {
+      if (target is ExtensionOverride2) {
         diagnosticReporter.report(
           diag.extensionOverrideAccessToStaticMember.at(propertyNameEntity),
         );
@@ -1536,20 +1651,19 @@ class PropertyElementResolver with ScopeHelpers {
     required bool atDynamicTarget,
     required bool isInvalid,
   }) {
-    MethodIndexReadResolutionImpl? methodResolution;
-    if (element is InternalMethodElement &&
-        element.formalParameters.length == 1) {
-      methodResolution = MethodIndexReadResolutionImpl(
-        element: element,
-        type: element.returnType,
-      );
+    if (element is InternalMethodElement) {
+      if (!isInvalid && element.formalParameters.length == 1) {
+        return MethodIndexReadResolutionImpl(
+          element: element,
+          type: element.returnType,
+        );
+      }
+      return InvalidIndexReadResolutionImpl(recoveryElement: element);
     }
-    if (isInvalid) {
-      return InvalidIndexReadResolutionImpl(recovery: methodResolution);
+    if (!isInvalid && atDynamicTarget) {
+      return const DynamicIndexReadResolutionImpl();
     }
-    if (methodResolution != null) return methodResolution;
-    if (atDynamicTarget) return const DynamicIndexReadResolutionImpl();
-    return InvalidIndexReadResolutionImpl(recovery: null);
+    return InvalidIndexReadResolutionImpl(recoveryElement: null);
   }
 
   IndexWriteResolutionImpl _createIndexWriteResolution(
@@ -1557,17 +1671,16 @@ class PropertyElementResolver with ScopeHelpers {
     required bool atDynamicTarget,
     required bool isInvalid,
   }) {
-    MethodIndexWriteResolutionImpl? methodResolution;
-    if (element is InternalMethodElement &&
-        element.formalParameters.length == 2) {
-      methodResolution = MethodIndexWriteResolutionImpl(element: element);
+    if (element is InternalMethodElement) {
+      if (!isInvalid && element.formalParameters.length == 2) {
+        return MethodIndexWriteResolutionImpl(element: element);
+      }
+      return InvalidIndexWriteResolutionImpl(recoveryElement: element);
     }
-    if (isInvalid) {
-      return InvalidIndexWriteResolutionImpl(recovery: methodResolution);
+    if (!isInvalid && atDynamicTarget) {
+      return const DynamicIndexWriteResolutionImpl();
     }
-    if (methodResolution != null) return methodResolution;
-    if (atDynamicTarget) return const DynamicIndexWriteResolutionImpl();
-    return InvalidIndexWriteResolutionImpl(recovery: null);
+    return InvalidIndexWriteResolutionImpl(recoveryElement: null);
   }
 
   NamedReadResolutionWithElementImpl? _createNamedReadResolutionWithElement(
@@ -1644,12 +1757,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     var recoveryElement = result.readElementRecovery2;
     return InvalidNamedReadResolutionImpl(
-      candidates: [?requestedElement, ?recoveryElement],
-      recovery: _createNamedReadResolutionWithElement(
-        recoveryElement,
-        type: readType(recoveryElement),
-      ),
-      type: InvalidTypeImpl.instance,
+      recoveryElement: requestedElement ?? recoveryElement,
     );
   }
 
@@ -1703,25 +1811,19 @@ class PropertyElementResolver with ScopeHelpers {
       type: result.getType as TypeImpl?,
     );
     readResolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElement, ?result.readElementRecovery2, ?writeElement],
-      recovery: null,
-      type: InvalidTypeImpl.instance,
+      recoveryElement:
+          readElement ?? result.readElementRecovery2 ?? writeElement,
     );
     var writeResolution =
         _createNamedWriteResolutionWithElement(writeElement) ??
         InvalidNamedWriteResolutionImpl(
-          acceptedType: InvalidTypeImpl.instance,
-          candidates: [
-            ?writeElement,
-            ?result.writeElementRecovery2,
-            ?readElement,
-          ],
-          recovery: null,
+          recoveryElement:
+              writeElement ?? result.writeElementRecovery2 ?? readElement,
         );
     return (
       read: readResolution,
       write: writeResolution,
-      readExpressionInfo: null,
+      readExpressionInfo: result.readExpressionInfo,
     );
   }
 
@@ -1939,6 +2041,65 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  PropertyElementResolverResult _resolveStaticQualifier(
+    StaticQualifierImpl receiver, {
+    required Token name,
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    if (receiver.scopeLookupResult case var lookupResult?) {
+      reportDeprecatedExportUseGetter(
+        scopeLookupResult: lookupResult,
+        nameToken: receiver.name,
+      );
+    }
+    var element = receiver.element;
+    var propertyName = SimpleIdentifierImpl(token: name);
+    var interfaceElement = switch (element) {
+      InterfaceElement element => element,
+      TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+      _ => null,
+    };
+    if (interfaceElement != null) {
+      return _resolveTargetInterfaceElement(
+        typeReference: interfaceElement,
+        isCascaded: false,
+        propertyName: propertyName,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    } else if (element is ExtensionElement) {
+      return _resolveTargetExtensionElement(
+        extension: element,
+        propertyName: propertyName,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      );
+    } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
+      if (hasRead) {
+        diagnosticReporter.report(
+          diag.undefinedGetterOnFunctionType
+              .withArguments(
+                getterName: name.lexeme,
+                functionTypeAliasName: receiver.name.lexeme,
+              )
+              .at(name),
+        );
+      } else if (hasWrite) {
+        diagnosticReporter.report(
+          diag.undefinedSetterOnFunctionType
+              .withArguments(
+                setterName: name.lexeme,
+                functionTypeAliasName: receiver.name.lexeme,
+              )
+              .at(name),
+        );
+      }
+      return PropertyElementResolverResult();
+    }
+    throw StateError('Unexpected static qualifier element: $element');
+  }
+
   PropertyElementResolverResult _resolveTargetExtensionElement({
     required ExtensionElement extension,
     required SimpleIdentifier propertyName,
@@ -2007,13 +2168,15 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionOverride({
-    required ExtensionOverrideImpl target,
+    required ExtensionOverride2Impl target,
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
     bool assignmentToMethodOnMissingWrite = false,
   }) {
-    if (target.parent2 is CascadeExpression) {
+    if (target.parent2 case InvalidExtensionOverrideExpression(
+      parent2: CascadeExpression(),
+    )) {
       // Report this error and recover by treating it like a non-cascade.
       diagnosticReporter.report(
         diag.extensionOverrideWithCascade.at(target.name),
@@ -2262,9 +2425,9 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult _resolveTargetSuperExpression({
-    required ExpressionImpl node,
-    required SuperExpression target,
+  PropertyElementResolverResult _resolveTargetSuperReference({
+    required AstNode node,
+    required SuperReference target,
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
@@ -2272,11 +2435,12 @@ class PropertyElementResolver with ScopeHelpers {
     if (SuperContext.of(target) != SuperContext.valid) {
       return PropertyElementResolverResult();
     }
-    var targetType = target.staticType;
+    var targetType = _resolver.superLookupType(target);
 
     InternalExecutableElement? readElement;
     InternalExecutableElement? writeElement;
     TypeImpl? getType;
+    ExpressionInfo? readExpressionInfo;
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
@@ -2326,7 +2490,10 @@ class PropertyElementResolver with ScopeHelpers {
             readElement,
             SharedTypeView(unpromotedType),
           );
-          _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+          if (node is Expression) {
+            _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+          }
+          readExpressionInfo = expressionInfo;
           getType = wrappedPromotedType?.unwrapTypeView();
         }
         getType ??= unpromotedType;
@@ -2378,6 +2545,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRequested2: readElement,
       writeElementRequested2: writeElement,
       getType: getType,
+      readExpressionInfo: readExpressionInfo,
     );
   }
 
@@ -2395,7 +2563,8 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (readElementRequested == null &&
         readLookup?.callFunctionType == null &&
-        readLookup?.recordField == null) {
+        readLookup?.recordField == null &&
+        !name.isSynthetic) {
       if (name.lexeme == 'await' &&
           _resolver.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
@@ -2404,7 +2573,17 @@ class PropertyElementResolver with ScopeHelpers {
         name: name.lexeme,
       )) {
         diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: name.lexeme).at(node),
+          node.parent2 is FunctionInstantiationImpl &&
+                  _resolver.thisType != null
+              ? diag.undefinedMethod
+                    .withArguments(
+                      methodName: name.lexeme,
+                      type: _resolver.thisType!,
+                    )
+                    .at(node)
+              : diag.undefinedIdentifier
+                    .withArguments(name: name.lexeme)
+                    .at(node),
         );
       }
     }
@@ -2459,12 +2638,7 @@ class PropertyElementResolver with ScopeHelpers {
       type: readType,
     );
     resolution ??= InvalidNamedReadResolutionImpl(
-      candidates: [?readElementRequested, ?readElementRecovery],
-      recovery: _createNamedReadResolutionWithElement(
-        readElementRecovery,
-        type: _namedReadType(readElementRecovery),
-      ),
-      type: InvalidTypeImpl.instance,
+      recoveryElement: readElementRequested ?? readElementRecovery,
     );
     return (resolution: resolution, expressionInfo: expressionInfo);
   }
@@ -2504,9 +2678,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (requestedResolution != null) return requestedResolution;
 
     return InvalidNamedWriteResolutionImpl(
-      acceptedType: InvalidTypeImpl.instance,
-      candidates: [?writeElementRequested, ?writeElementRecovery],
-      recovery: _createNamedWriteResolutionWithElement(writeElementRecovery),
+      recoveryElement: writeElementRequested ?? writeElementRecovery,
     );
   }
 
@@ -2533,6 +2705,7 @@ class PropertyElementResolver with ScopeHelpers {
 }
 
 class PropertyElementResolverResult {
+  final ExpressionInfo? readExpressionInfo;
   final Element? readElementRequested2;
   final Element? readElementRecovery2;
   final Element? writeElementRequested2;
@@ -2548,6 +2721,7 @@ class PropertyElementResolverResult {
   final TypeImpl indexContextType;
 
   PropertyElementResolverResult({
+    this.readExpressionInfo,
     this.readElementRequested2,
     this.readElementRecovery2,
     this.writeElementRequested2,

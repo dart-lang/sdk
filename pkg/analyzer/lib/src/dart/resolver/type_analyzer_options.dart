@@ -20,4 +20,7 @@ TypeAnalyzerOptions computeTypeAnalyzerOptions(FeatureSet featureSet) =>
       soundFlowAnalysisEnabled: featureSet.isEnabled(
         Feature.sound_flow_analysis,
       ),
+      promotionChainIntersectionJoinEnabled: featureSet.isEnabled(
+        Feature.promotion_chain_intersection_join,
+      ),
     );

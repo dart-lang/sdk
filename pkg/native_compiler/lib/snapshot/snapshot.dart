@@ -262,7 +262,7 @@ class SnapshotSerializer {
     ast.TypeLiteralConstant() => preprocess(obj.type),
     ast.SymbolConstant() => ast.InstanceConstant(
       GlobalContext.instance.coreTypes.internalSymbolClass.reference,
-      const [],
+      ast.DartTypeList.empty,
       {
         GlobalContext.instance.coreTypes.index
             .getField('dart:_internal', 'Symbol', '_name')
@@ -275,7 +275,7 @@ class SnapshotSerializer {
     ast.FutureOrType() => ast.InterfaceType(
       GlobalContext.instance.coreTypes.deprecatedFutureOrClass,
       obj.declaredNullability,
-      [obj.typeArgument],
+      ast.DartTypeList(obj.typeArgument),
     ),
     ast.ExtensionType() => preprocess(obj.extensionTypeErasure),
     ast.NeverType() when obj.nullability == .nullable => const ast.NullType(),

@@ -3566,6 +3566,30 @@ import 'package:test/b.dart';
 ''');
   }
 
+  test_getUnitElement_duplicatePart() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'b.dart';
+''');
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('B1', b);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement B1
+  path: /home/test/lib/b.dart
+  uri: package:test/b.dart
+  flags: isPart
+  enclosing: #F0
+''');
+  }
+
   test_getUnitElement_invalidPath_notAbsolute() async {
     var driver = driverFor(testFile);
     var result = await driver.getUnitElement('not_absolute.dart');

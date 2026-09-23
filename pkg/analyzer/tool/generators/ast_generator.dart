@@ -673,10 +673,7 @@ required super.metadata,''');
         case _PropertyTypeKindNode():
           var name = property.name;
           if (property.v1Name != null) {
-            buffer.writeln('_becomeParentOf2($name);');
-            buffer.writeln(
-              '_becomeParentOf1(${property.projectToV1Code(name)});',
-            );
+            buffer.writeln('_becomeParentOf2AndExisting1($name);');
           } else {
             buffer.writeln('${implClass.api.becomeParentMethod}($name);');
           }
@@ -964,9 +961,7 @@ ${property.typeCode} get $propertyName => _$propertyName;
           var setterBody = property.v1Name == null
               ? '_$propertyName = '
                     '${implClass.api.becomeParentMethod}($propertyName);'
-              : '_$propertyName = _becomeParentOf2($propertyName);\n'
-                    '_becomeParentOf1('
-                    '${property.projectToV1Code(propertyName)});';
+              : '_$propertyName = _becomeParentOf2AndExisting1($propertyName);';
           buffer.write('''
 \n@generated
 $setterAnnotations
@@ -983,7 +978,7 @@ set $propertyName(${property.typeCode} $propertyName) {
 \n@generated
 $v1ApiAnnotations
 @override
-${property.typeCode} get $v1Name => $projectedValue;
+${property.typeCode} get $v1Name => _becomeParentOf1($projectedValue);
 ''');
           }
         }

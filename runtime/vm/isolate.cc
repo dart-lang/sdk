@@ -12,6 +12,7 @@
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
 #include "platform/text_buffer.h"
+#include "vm/autorelease_pool_scope.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
@@ -1423,6 +1424,7 @@ bool Isolate::HasPendingMessages() {
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     std::unique_ptr<Message> message) {
+  AutoreleasePoolScope autorelease_pool;
 #ifdef DEBUG
   CheckAccess();
 #endif

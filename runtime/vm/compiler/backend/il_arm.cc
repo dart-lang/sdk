@@ -4861,6 +4861,11 @@ DEFINE_EMIT(Float32x4Zero, (QRegister out)) {
   __ veorq(out, out, out);
 }
 
+DEFINE_EMIT(Int32x4Splat, (QRegister result, Register value)) {
+  __ vmovdr(DTMP, 0, value);
+  __ vdup(compiler::kFourBytes, result, DTMP, 0);
+}
+
 DEFINE_EMIT(Float32x4Splat, (QRegister result, QRegisterView value)) {
   // Convert to Float32.
   __ vcvtsd(STMP, value.d(0));
@@ -5196,6 +5201,18 @@ DEFINE_EMIT(Int32x4Select,
   __ vorrq(out, temp1, temp2);
 }
 
+DEFINE_EMIT(Int32x4WithLane,
+            (QRegisterView result, QRegister value, Register newLaneValue)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ vmovq(result, value);
+  __ vmovdr(result.d(lane_index / 2), lane_index % 2, newLaneValue);
+}
+
 DEFINE_EMIT(Int32x4WithFlag,
             (QRegisterView result, QRegister mask, Register flag)) {
   __ vmovq(result, mask);
@@ -5269,6 +5286,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Float32x4Sqrt)                                                        \
   CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \
@@ -5317,9 +5335,13 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4AnyTrue)                                                         \
-  ____(Int32x4AnyTrue)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \

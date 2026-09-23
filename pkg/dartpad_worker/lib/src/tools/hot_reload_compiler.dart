@@ -187,6 +187,15 @@ final class HotReloadCompiler {
       customScheme: options.multiRootScheme,
       compiler: compiler,
       component: compiledLibraries,
+      // Inlining puts the map in the trailing `setSourceMap(...)` call, which
+      // is where `sandbox.js` picks it up to map stack traces.
+      buildSourceMap: true,
+      inlineSourceMap: true,
+      // Never fetched: these only root source paths at the in-memory
+      // filesystem, giving `workspace/pad_0/main.dart`. Must be `file:`, or
+      // `placeSourceMap` resolves against the worker's `http:` `Uri.base`.
+      jsUrl: 'file:///${options.moduleName}.js',
+      mapUrl: 'file:///${options.moduleName}.js.map',
     );
 
     final compiledLibraryUris = compiledLibraries.libraries

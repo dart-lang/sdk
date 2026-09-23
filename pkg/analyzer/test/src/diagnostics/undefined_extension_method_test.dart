@@ -37,14 +37,34 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('m();');
+    var node = result.findNode.receiverMethodInvocation('m();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ExtensionOverride
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: String
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
@@ -61,6 +81,38 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_static_getter_private_imported() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension E on int {
+  static int Function() get _getter => () => 0;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+void f() {
+  E._getter();
+//  ^^^^^^^
+// [diag.undefinedExtensionMethod] The method '_getter' isn't defined for the extension 'E'.
+}
+''');
+  }
+
+  test_static_method_private_imported() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension E on int {
+  static int _method() => 0;
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+void f() {
+  E._method();
+//  ^^^^^^^
+// [diag.undefinedExtensionMethod] The method '_method' isn't defined for the extension 'E'.
+}
 ''');
   }
 

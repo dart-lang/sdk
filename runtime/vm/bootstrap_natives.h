@@ -155,6 +155,7 @@ namespace dart {
   V(MicrotaskMirrorQueue_onAsyncCallbackComplete, 2)                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
+  V(TypedDataBase_memEquals, 5)                                                \
   V(TypedData_GetFloat32, 2)                                                   \
   V(TypedData_SetFloat32, 3)                                                   \
   V(TypedData_GetFloat64, 2)                                                   \
@@ -223,37 +224,12 @@ namespace dart {
   V(Float64x2_max, 2)                                                          \
   V(Float64x2_sqrt, 1)                                                         \
   V(Int32x4_fromInts, 4)                                                       \
-  V(Int32x4_fromBools, 4)                                                      \
+  V(Int32x4_select, 3)                                                         \
   V(Int32x4_fromFloat32x4Bits, 1)                                              \
-  V(Int32x4_or, 2)                                                             \
-  V(Int32x4_equal, 2)                                                          \
-  V(Int32x4_notEqual, 2)                                                       \
-  V(Int32x4_and, 2)                                                            \
-  V(Int32x4_xor, 2)                                                            \
-  V(Int32x4_not, 1)                                                            \
-  V(Int32x4_add, 2)                                                            \
-  V(Int32x4_sub, 2)                                                            \
   V(Int32x4_getX, 1)                                                           \
   V(Int32x4_getY, 1)                                                           \
   V(Int32x4_getZ, 1)                                                           \
   V(Int32x4_getW, 1)                                                           \
-  V(Int32x4_setX, 2)                                                           \
-  V(Int32x4_setY, 2)                                                           \
-  V(Int32x4_setZ, 2)                                                           \
-  V(Int32x4_setW, 2)                                                           \
-  V(Int32x4_getSignMask, 1)                                                    \
-  V(Int32x4_getAnyTrue, 1)                                                     \
-  V(Int32x4_shuffle, 2)                                                        \
-  V(Int32x4_shuffleMix, 3)                                                     \
-  V(Int32x4_getFlagX, 1)                                                       \
-  V(Int32x4_getFlagY, 1)                                                       \
-  V(Int32x4_getFlagZ, 1)                                                       \
-  V(Int32x4_getFlagW, 1)                                                       \
-  V(Int32x4_setFlagX, 2)                                                       \
-  V(Int32x4_setFlagY, 2)                                                       \
-  V(Int32x4_setFlagZ, 2)                                                       \
-  V(Int32x4_setFlagW, 2)                                                       \
-  V(Int32x4_select, 3)                                                         \
   V(Isolate_create_, 1)                                                        \
   V(Isolate_exit_, 2)                                                          \
   V(Isolate_getCurrentRootUriStr, 0)                                           \

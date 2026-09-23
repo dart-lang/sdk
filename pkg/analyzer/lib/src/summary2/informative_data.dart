@@ -1898,12 +1898,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _tokenOrNull(node.operator);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
     super.visitBinaryOperatorInvocation(node);
@@ -1939,7 +1933,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
   }
 
   @override
@@ -1949,14 +1943,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeSection(CascadeSection node) {
-    // TODO(scheglov): Remove this compatibility branch when cascade bodies no
-    // longer use parser-produced nodes that own the section operator.
-    // A transitional parser-produced cascade body can still own the section
-    // operator. Avoid recording it twice so that its offset stream has the
-    // same shape as the canonical V2 body read back from a summary.
-    if (!identical(node.body.beginToken, node.operator)) {
-      _tokenOrNull(node.operator);
-    }
+    _tokenOrNull(node.operator);
     super.visitCascadeSection(node);
   }
 
@@ -2015,34 +2002,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    _tokenOrNull(node.constKeyword);
-    _tokenOrNull(node.period);
-    node.constructorName.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
     _tokenOrNull(node.constKeyword);
     _tokenOrNull(node.period);
     _tokenOrNull(node.name);
-    node.typeArguments?.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  /// When we read from bytes, [DotShorthandInvocation]s are not rewritten to
-  /// [DotShorthandConstructorInvocation]s when they're resolved to be
-  /// constructor invocations. However, since the tokens happen to be the same
-  /// between the two in this case, we have the same offsets.
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _tokenOrNull(node.period);
-    node.memberName.accept2(this);
     node.typeArguments?.accept2(this);
     node.argumentList.accept2(this);
   }
@@ -2059,12 +2024,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
     _tokenOrNull(node.period);
     _tokenOrNull(node.name);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _tokenOrNull(node.period);
-    node.propertyName.accept2(this);
   }
 
   @override
@@ -2148,13 +2107,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   ) {
     _tokenOrNull(node.operator);
     super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexExpression(node);
   }
 
   @override
@@ -2261,6 +2213,45 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    node.operand.accept2(this);
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    node.operand.accept2(this);
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept2(this);
     _tokenOrNull(node.period);
@@ -2303,15 +2294,17 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     ReceiverPropertyAssignmentTarget node,
   ) {
     _tokenOrNull(node.operator);
-    _tokenOrNull(node.propertyName);
+    _tokenOrNull(node.name);
     super.visitReceiverPropertyAssignmentTarget(node);
   }
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    // Parsed chains and their lowered receivers must enumerate tokens in
+    // the same order when offsets are restored from informative data.
+    node.receiver.accept2(this);
     _tokenOrNull(node.operator);
     _tokenOrNull(node.name);
-    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -2402,13 +2395,19 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.importPrefix?.accept2(this);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _tokenOrNull(node.superKeyword);
     super.visitSuperConstructorInvocation(node);
   }
 
   @override
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperReference(SuperReference node) {
     _tokenOrNull(node.superKeyword);
   }
 

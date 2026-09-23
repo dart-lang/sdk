@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -46,8 +45,6 @@ class ColorComputer {
     ConstructorReferenceNode? constructor,
     ArgumentList argumentList,
   ) {
-    if (!expression.staticType.isColor) return null;
-
     var classElement = constructor?.element?.enclosingElement;
     var className = classElement?.name;
     var constructorName = constructor?.element?.name;
@@ -58,38 +55,42 @@ class ColorComputer {
       constructorName = null;
     }
 
-    ColorInformation? color;
-    if (_isDartUi(classElement) && className == 'Color') {
-      color = _getDartUiColor(constructorName, constructorArgs);
-    } else if (_isFlutterPainting(classElement) && className == 'ColorSwatch') {
-      color = _getFlutterSwatchColor(constructorName, constructorArgs);
-    } else if (_isFlutterMaterial(classElement) &&
-        className == 'MaterialAccentColor') {
-      color = _getFlutterMaterialAccentColor(constructorName, constructorArgs);
+    if (className == 'Color' && _isDartUi(classElement)) {
+      return _getDartUiColor(constructorName, constructorArgs);
+    } else if (className == 'ColorSwatch' && _isFlutterPainting(classElement)) {
+      return _getFlutterSwatchColor(constructorName, constructorArgs);
+    } else if (className == 'MaterialAccentColor' &&
+        _isFlutterMaterial(classElement)) {
+      return _getFlutterMaterialAccentColor(constructorName, constructorArgs);
     }
 
-    return color;
+    return null;
   }
 
-  /// Extract the [ColorInformation] for an expression.
+  /// Extracts the [ColorInformation] for an expression.
   ///
-  /// Handles invocations such as constructors and withX() calls, as well as
+  /// Handles invocations such as constructors and `withX()` calls, as well as
   /// static constants (via [getExpressionColorObject]). This method calls
   /// itself recusrively to handle expressions like
   /// `Color.fromARGB(...).withRed(...)`.
   ColorInformation? getExpressionColorInformation(Expression expression) {
-    var colorObject = getExpressionColorObject(expression);
-    if (colorObject != null) {
-      return getColorForObject(colorObject);
-    }
-
-    // Otherwise, see if we are a supported invocation.
+    // Fast path for constructor invocations that can be parsed directly
+    // without constant evaluation.
     if (expression is InstanceCreationExpression) {
-      return getConstructorInvocationColorInformation(
+      var color = getConstructorInvocationColorInformation(
         expression,
         expression.constructorName,
         expression.argumentList,
       );
+      if (color != null) return color;
+
+      if (!expression.isConst) return null;
+
+      var colorObject = getExpressionColorObject(expression);
+      if (colorObject != null) {
+        return getColorForObject(colorObject);
+      }
+      return null;
     } else if (expression is DotShorthandConstructorInvocation) {
       return getConstructorInvocationColorInformation(
         expression,
@@ -103,11 +104,15 @@ class ColorComputer {
           : null;
     }
 
-    // Otherwise, we can't handle this expression.
+    var colorObject = getExpressionColorObject(expression);
+    if (colorObject != null) {
+      return getColorForObject(colorObject);
+    }
+
     return null;
   }
 
-  /// Extract the [DartObject] representing the colour of an expression.
+  /// Extracts the [DartObject] representing the colour of an expression.
   ///
   /// If [memberName] or [index] are provided, the color will be read from the
   /// member or indexer. This method calls itself recursively to handle member
@@ -122,6 +127,63 @@ class ColorComputer {
     String? memberName,
     int? index,
   }) {
+    expression = expression.unParenthesized;
+
+    if (expression is MethodInvocation) return null;
+
+    if (expression is PropertyAccess) {
+      return getExpressionColorObject(
+        expression.realTarget,
+        memberName: expression.propertyName.name,
+      );
+    }
+
+    if (expression is IndexExpression) {
+      var indexNode = expression.index;
+      var indexValue = indexNode is IntegerLiteral ? indexNode.value : null;
+      if (indexValue == null) return null;
+
+      return getExpressionColorObject(expression.realTarget, index: indexValue);
+    }
+
+    if (expression is SimpleIdentifier) {
+      var element = expression.element;
+      var isConst = switch (element) {
+        VariableElement(:var isConst) => isConst,
+        PropertyAccessorElement(:var variable) => variable.isConst,
+        _ => false,
+      };
+      if (!isConst) return null;
+    } else if (expression is PrefixedIdentifier) {
+      var element = expression.identifier.element;
+      var isConst = switch (element) {
+        VariableElement(:var isConst) => isConst,
+        PropertyAccessorElement(:var variable) => variable.isConst,
+        _ => false,
+      };
+      if (!isConst) {
+        // Could be `target.instanceField` where target is a const variable,
+        // e.g. `theme.instanceWhite` in `const theme = MyTheme();`.
+        var prefixElement = expression.prefix.element;
+        var prefixIsConst = switch (prefixElement) {
+          VariableElement(:var isConst) => isConst,
+          PropertyAccessorElement(:var variable) => variable.isConst,
+          _ => false,
+        };
+        if (prefixIsConst) {
+          return getExpressionColorObject(
+            expression.prefix,
+            memberName: expression.identifier.name,
+          );
+        }
+        return null;
+      }
+    } else if (expression is InstanceCreationExpression) {
+      if (!expression.isConst) return null;
+    } else {
+      return null;
+    }
+
     // Exit out early if we are an expression that is not a color, but only
     // if we will not try to read a member/index.
     if (!expression.staticType.isColor && memberName == null && index == null) {
@@ -129,36 +191,16 @@ class ColorComputer {
     }
 
     // Try to evaluate the constant target.
-    var colorConstResult = expression.computeConstantValue();
+    AttemptedConstantEvaluationResult? colorConstResult;
+    try {
+      colorConstResult = expression.computeConstantValue();
+    } catch (_) {
+      return null;
+    }
     var colorConst = colorConstResult?.value;
-    if (colorConstResult == null ||
-        colorConstResult.diagnostics.isNotEmpty ||
-        colorConst == null) {
-      // If we failed to compute a constant, try handling member access.
-      if (expression is PrefixedIdentifier) {
-        // MyThemeClass().instanceField
-        return getExpressionColorObject(
-          expression.prefix,
-          memberName: expression.identifier.name,
-        );
-      } else if (expression is IndexExpression) {
-        // Colors.redAccent[500]
-        var index = expression.index;
-        var indexValue = index is IntegerLiteral ? index.value : null;
-        if (indexValue != null) {
-          return getExpressionColorObject(
-            expression.realTarget,
-            index: indexValue,
-          );
-        }
-      } else if (expression is PropertyAccess) {
-        // CupertinoColors.activeBlue.darkColor
-        return getExpressionColorObject(
-          expression.realTarget,
-          memberName: expression.propertyName.name,
-        );
-      }
-
+    if (colorConst == null ||
+        colorConstResult == null ||
+        colorConstResult.diagnostics.isNotEmpty) {
       return null;
     }
 
@@ -570,9 +612,24 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    computer.tryAddColor(node);
+    if (node.inDeclarationContext()) return;
+    var parent = node.parent;
+    if (parent is PropertyAccess && parent.propertyName == node) return;
+    if (parent is PrefixedIdentifier && parent.identifier == node) return;
+    if (parent is MethodInvocation && parent.methodName == node) return;
+    if (parent is ConstructorName) return;
+    if (parent is NamedType) return;
+    if (parent is Label) return;
 
-    super.visitSimpleIdentifier(node);
+    var element = node.element;
+    var isConst = switch (element) {
+      VariableElement(:var isConst) => isConst,
+      PropertyAccessorElement(:var variable) => variable.isConst,
+      _ => false,
+    };
+    if (!isConst) return;
+
+    computer.tryAddColor(node);
   }
 }
 

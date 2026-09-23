@@ -600,7 +600,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
               ),
             )
           : null;
-      constructorSelector?.name.element = superConstructor.baseElement;
+      constructorSelector?.element = superConstructor.baseElement;
       var superInvocation = SuperConstructorInvocationImpl(
         superKeyword: Tokens.super_(),
         constructorSelector: constructorSelector,
@@ -8137,9 +8137,7 @@ class LibraryFragmentImpl extends FragmentImpl
           var importedLibrary = importElement.importedLibrary;
           if (importedLibrary == null ||
               importedLibrary.isOriginNotExistingFile) {
-            var showCombinators = importElement.combinators
-                .whereType<ShowElementCombinator>()
-                .toList();
+            var showCombinators = importElement.showCombinators.toList();
             if (prefix != null && showCombinators.isEmpty) {
               return true;
             }
@@ -9339,7 +9337,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
     this.libraryFragment,
     this.name,
     this.conflictingElements,
-  );
+  ) : assert(conflictingElements.isNotEmpty);
 
   @override
   MultiplyDefinedElementImpl get baseElement => this;

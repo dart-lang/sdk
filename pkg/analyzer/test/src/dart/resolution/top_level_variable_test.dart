@@ -66,7 +66,19 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: z
+                resolution: VariableReadResolution
+                  element: z@102
+                  type: Object?
+                staticType: Object?
+              operator: .
+              name: length
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
+              staticType: InvalidType
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@102
@@ -232,7 +244,21 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: z
+                resolution: VariableReadResolution
+                  element: z@110
+                  type: String
+                staticType: String
+              operator: .
+              name: length
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::String::@getter::length
+                invokeType: int Function()
+                type: int
+              staticType: int
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@110

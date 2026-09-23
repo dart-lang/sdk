@@ -42,7 +42,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -87,7 +89,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -120,7 +124,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -216,7 +222,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -257,7 +265,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -388,7 +398,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -1489,7 +1501,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1534,7 +1548,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -1567,7 +1583,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1663,7 +1681,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1704,7 +1724,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -1835,7 +1857,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -2937,7 +2961,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2983,7 +3009,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -3017,7 +3045,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3115,7 +3145,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3157,7 +3189,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -3291,7 +3325,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -4420,7 +4456,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4466,7 +4504,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -4500,7 +4540,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4598,7 +4640,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4640,7 +4684,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -4774,7 +4820,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -5904,7 +5952,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5951,7 +6001,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -5986,7 +6038,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -6086,7 +6140,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -6129,7 +6185,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -6266,7 +6324,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -7454,7 +7514,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7500,7 +7562,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -7534,7 +7598,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7632,7 +7698,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7674,7 +7742,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -7808,7 +7878,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -8941,7 +9013,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -8987,7 +9061,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -9021,7 +9097,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9119,7 +9197,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9161,7 +9241,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -9295,7 +9377,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -10847,7 +10931,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10892,7 +10978,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -10925,7 +11013,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -11021,7 +11111,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  initializer(v1): SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -11062,7 +11154,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: int
+                  initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
           MethodDeclaration
@@ -11193,7 +11287,9 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: set
+                  initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
           MethodDeclaration

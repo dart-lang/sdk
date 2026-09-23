@@ -914,7 +914,7 @@ var x = foo(a, b);
 var x = a.foo();
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('a.foo()')],
+      (result) => [result.findNode.receiverMethodInvocation('a.foo()')],
     );
   }
 
@@ -1003,7 +1003,7 @@ final a = 'abc';
 var x = a.length;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a.')],
+      (result) => [result.findNode.unqualifiedNameExpression('a.')],
     );
   }
 
@@ -1020,7 +1020,7 @@ const a = const A();
 var x = a.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.m')],
     );
   }
 
@@ -1047,7 +1047,7 @@ const a = const A();
 var x = a.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.m')],
     );
   }
 
@@ -1064,7 +1064,7 @@ const a = const A();
 var x = a.b + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('a.b + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('a.b + 1')],
     );
   }
 
@@ -1086,7 +1086,7 @@ class A {
 var x = A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('A.a')],
+      (result) => [result.findNode.receiverPropertyExtraction('A.a')],
     );
   }
 
@@ -1125,6 +1125,24 @@ var x = -a;
     );
   }
 
+  test_prefixExpression_minus_super() async {
+    await _assertNotConst(
+      r'''
+class A {
+  int operator -() => 0;
+}
+
+class B extends A {
+  void f() {
+    var x = -super;
+  }
+}
+''',
+      (result) => _xInitializer(result),
+      (result) => [result.findNode.superReference('super;')],
+    );
+  }
+
   test_prefixExpression_plusPlus() async {
     await _assertNotConst(
       r'''
@@ -1155,7 +1173,7 @@ import 'a.dart' as p;
 var x = p.A.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('m;')],
+      (result) => [result.findNode.receiverPropertyExtraction('m;')],
     );
   }
 
@@ -1200,7 +1218,7 @@ import 'a.dart' deferred as p;
 var x = p.A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.A.a')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.A.a')],
     );
   }
 
@@ -1216,7 +1234,7 @@ import 'a.dart' as p;
 var x = p.A.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('a + 1')],
     );
   }
 
@@ -1244,7 +1262,7 @@ import 'a.dart' deferred as p;
 var x = p.A.m;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.A.m')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.A.m')],
     );
   }
 
@@ -1258,7 +1276,7 @@ class A {
 var x = A().a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('A().a')],
+      (result) => [result.findNode.receiverPropertyExtraction('A().a')],
     );
   }
 
@@ -1278,7 +1296,7 @@ import 'a.dart' as p;
 var x = p.a.b + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.propertyAccess('p.a.b + 1')],
+      (result) => [result.findNode.receiverPropertyExtraction('p.a.b + 1')],
     );
   }
 

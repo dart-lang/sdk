@@ -10,6 +10,7 @@ import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
 import 'dart:typed_data' show Uint8List;
+import 'dart:isolate' show Isolate;
 
 /// No-op in dart2js.
 ///
@@ -92,14 +93,6 @@ T unsafeCast<T>(dynamic v) => v;
 @patch
 Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) =>
     throw 'Unsupported operation';
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
 
 final List<Object> _toStringVisiting = [];
 @patch

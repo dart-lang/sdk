@@ -619,6 +619,15 @@ Future<CompilationResult> _runCodegenPhase(
   final modules = translator.translate(ioManager.sourceMapUrlGenerator);
   final writeFutures = <Future<void>>[];
 
+  if (translator.cfgLog != null) {
+    writeFutures.add(
+      ioManager.writeString(
+        options.translatorOptions.dumpCfg!,
+        translator.cfgLog!.getText(),
+      ),
+    );
+  }
+
   List<String?>? classNames;
   if (generateSourceMaps && options.translatorOptions.minify) {
     classNames = [];
@@ -627,8 +636,15 @@ Future<CompilationResult> _runCodegenPhase(
     }
   }
 
+  // Experimental interop also supports apps with zero or one memory. Only
+  // require multi-memory when an emitted module uses it, including deferred
+  // modules, so those apps can run on browsers without multi-memory support.
+  var requiresMultiMemory = false;
   modules.forEach((moduleMetadata, module) {
     if (moduleMetadata.skipEmit) return;
+    final memories = module.memories;
+    requiresMultiMemory |=
+        memories.imported.length + memories.defined.length > 1;
     final serializer = Serializer();
     final sourceMapBuilder = generateSourceMaps
         ? SourceMapBuilder(module.debugInfoTables)
@@ -667,7 +683,9 @@ Future<CompilationResult> _runCodegenPhase(
       options.supportsES6Modules,
     );
 
-    final supportJs = _generateSupportJs(options.translatorOptions);
+    final supportJs = _generateSupportJs(
+      requiresMultiMemory: requiresMultiMemory,
+    );
 
     final deferredMapFile = options.deferredMapUri;
     if (deferredMapFile != null) {
@@ -734,6 +752,8 @@ Future<CompilationResult> _runOptPhase(
 
   final wasmOptFlags = <String>[
     ...(options.useMultiModuleOpt ? _binaryenFlagsMultiModule : _binaryenFlags),
+    if (options.translatorOptions.enableExperimentalWasmInterop)
+      '--enable-multimemory',
     if (options.stripToolchainAnnotations) '--strip-toolchain-annotations',
     '--emit-module-names',
   ];
@@ -873,7 +893,11 @@ class _RecordClassesRepository extends MetadataRepository<RecordShape> {
   }
 }
 
-String _generateSupportJs(TranslatorOptions options) {
+// Note: Flutter's `flutter.js` bootstrap script copies the output of this
+// function (`<app>.support.js`) in `supportsDart2Wasm()` in:
+// `engine/src/flutter/lib/web_ui/flutter_js/src/browser_environment.js`
+// Keep that file in sync when updating the unconditionally required features.
+String _generateSupportJs({required bool requiresMultiMemory}) {
   // Copied from
   // https://github.com/GoogleChromeLabs/wasm-feature-detect/blob/main/src/detectors/gc/index.js
   //
@@ -905,6 +929,15 @@ String _generateSupportJs(TranslatorOptions options) {
   const String supportsWasmSimd =
       'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,5,1,96,0,1,123,3,2,1,0,10,10,1,8,0,65,0,253,15,253,98,11]))';
 
+  // Declares two memories so only engines with multi-memory support validate:
+  // ```
+  //     (module
+  //       (memory 1)
+  //       (memory 1))
+  // ```
+  const String supportsWasmMultiMemory =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,5,5,2,0,1,0,1]))';
+
   // Imports a `js-string` builtin spec function *with wrong signature*. An engine
   //
   //   * *without* knowledge about `js-string` builtin would accept such an import at
@@ -921,10 +954,24 @@ String _generateSupportJs(TranslatorOptions options) {
   const String supportsJsStringBuiltins =
       '!WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,2,23,1,14,119,97,115,109,58,106,115,45,115,116,114,105,110,103,4,99,97,115,116,0,0]),{"builtins":["js-string"]})';
 
+  // Validates a tiny module using `try_table` with `catch_all`:
+  // ```
+  //   (module
+  //     (func
+  //       block $0
+  //         try_table (catch_all $0)
+  //         end
+  //       end))
+  // ```
+  const String supportsTryTable =
+      'WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,0,0,1,4,1,96,0,0,3,2,1,0,10,13,1,11,0,2,64,31,64,1,2,0,11,11,11]))';
+
   final requiredFeatures = [
     supportsWasmGC,
     supportsWasmSimd,
     supportsJsStringBuiltins,
+    supportsTryTable,
+    if (requiresMultiMemory) supportsWasmMultiMemory,
   ];
   return '(${requiredFeatures.join('&&')})';
 }

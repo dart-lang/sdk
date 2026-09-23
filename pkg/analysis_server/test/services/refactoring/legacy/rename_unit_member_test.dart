@@ -119,6 +119,24 @@ typedef NewName(); // existing
     );
   }
 
+  Future<void> test_checkFinalConditions_OK_prefixedImportInvocation() async {
+    await indexTestUnit('''
+import '' as importPrefix;
+
+String my^Function() => '';
+
+final class X {
+  void foo() {
+    importPrefix.myFunction();
+  }
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'foo';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   Future<void>
   test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
     await indexTestUnit('''

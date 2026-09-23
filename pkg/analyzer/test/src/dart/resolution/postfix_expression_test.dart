@@ -394,32 +394,43 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: NullAssertionExpression
-    operand: SuperExpression
-      superKeyword: super
-      staticType: dynamic
+ReceiverMethodInvocation
+  receiver: NullAssertionExpression
+    operand: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
     operator: !
-    staticType: dynamic
-  target(v1): PostfixExpression
+    staticType: InvalidType
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: PostfixExpression
     operand: SuperExpression
       superKeyword: super
       staticType: dynamic
     operator: !
     element: <null>
-    staticType: dynamic
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: foo
     element: <null>
-    staticType: dynamic
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticInvokeType: dynamic
-  staticType: dynamic
+  staticInvokeType: InvalidType
+  staticType: InvalidType
 ''');
   }
 
@@ -555,9 +566,7 @@ IncrementOrDecrementExpression
       operatorResultType: int
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -699,9 +708,7 @@ IncrementOrDecrementExpression
       operatorResultType: int
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operation: increment
   position: prefix
   element: <null>
@@ -882,9 +889,8 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverIndexAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     leftBracket: [
     index: IntegerLiteral
       literal: 0
@@ -1011,9 +1017,7 @@ IncrementOrDecrementExpression
       rightParenthesis: )
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1053,15 +1057,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: int
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: dart:core::@class::int
-      recovery: <null>
+      recoveryElement: dart:core::@class::int
   operator: ++
   operation: increment
   position: postfix
@@ -1098,15 +1096,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: T
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-        candidate: #E0 T
-      recovery: <null>
+      recoveryElement: #E0 T
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-        candidate: #E0 T
-      recovery: <null>
+      recoveryElement: #E0 T
   operator: ++
   operation: increment
   position: postfix
@@ -1151,7 +1143,7 @@ IncrementOrDecrementExpression
         type: A
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extensionType::A::@getter::foo
       invokeType: int Function()
@@ -1209,7 +1201,7 @@ IncrementOrDecrementExpression
         type: A
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1329,7 +1321,7 @@ IncrementOrDecrementExpression
         rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1394,7 +1386,7 @@ IncrementOrDecrementExpression
         type: A?
       staticType: A?
     operator: ?.
-    propertyName: foo
+    name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
       invokeType: int Function()
@@ -1451,11 +1443,10 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: SuperExpression
+    receiver: SuperReference
       superKeyword: super
-      staticType: B
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1510,7 +1501,7 @@ IncrementOrDecrementExpression
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: x
+    name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
       invokeType: int Function()
@@ -1850,6 +1841,74 @@ V1: PostfixExpression
 ''');
   }
 
+  test_inc_staticQualifier_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  static int get value => 0;
+  static set value(int value) {}
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+void f() {
+  p.C.value++;
+}
+''');
+    assertResolvedNodeText(result.findNode.singleIncrementOrDecrement, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      element: package:test/a.dart::@class::C
+    operator: .
+    name: value
+    read: GetterInvocationResolution
+      element: package:test/a.dart::@class::C::@getter::value
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@class::C::@setter::value
+      acceptedType: int
+  operator: ++
+  operation: increment
+  position: postfix
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p
+        element: <testLibraryFragment>::@prefix::p
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        element: package:test/a.dart::@class::C
+        staticType: null
+      element: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: value
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: package:test/a.dart::@class::C::@getter::value
+  readType: int
+  writeElement: package:test/a.dart::@class::C::@setter::value
+  writeType: int
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_inc_super() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1864,14 +1923,11 @@ class A {
     var node = result.findNode.singleIncrementOrDecrement;
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: InvalidExpressionAssignmentTarget
-    expression: SuperExpression
+  target: InvalidSuperAssignmentTarget
+    superReference: SuperReference
       superKeyword: super
-      staticType: A
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1931,9 +1987,7 @@ IncrementOrDecrementExpression
       rightBracket: }
       staticType: int
     read: InvalidReadResolution
-      type: InvalidType
     write: InvalidWriteResolution
-      acceptedType: InvalidType
   operator: ++
   operation: increment
   position: postfix
@@ -1987,13 +2041,9 @@ IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     write: InvalidNamedWriteResolution
-      acceptedType: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
   operator: ++
   operation: increment
   position: postfix

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
@@ -50,8 +51,8 @@ ${result.stderr}
 
       var result = await p!.runFix([p!.dirPath, '--help']);
 
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         contains('Apply automated fixes to Dart source code.'),
@@ -64,8 +65,8 @@ ${result.stderr}
 
       var result = await p!.runFix([p!.dirPath, '--help', '--verbose']);
 
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         contains('Apply automated fixes to Dart source code.'),
@@ -81,8 +82,8 @@ ${result.stderr}
 
       var result = await p!.runFix([p!.dirPath]);
 
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         contains('Apply automated fixes to Dart source code.'),
@@ -109,8 +110,8 @@ ${result.stderr}
 
       var result = await p!.runFix(['--apply', p!.dirPath]);
 
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(result.stdout, contains('Nothing to fix!'));
     });
 
@@ -127,8 +128,8 @@ linter:
       );
 
       var result = await p!.runFix(['--apply'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -158,8 +159,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--dry-run', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -197,8 +198,8 @@ linter:
         'prefer_single_quotes',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -230,8 +231,8 @@ linter:
         '_undefined_',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 3);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -256,6 +257,7 @@ linter:
         path.join('lib', 'main.dart'),
       ], workingDir: p!.dirPath);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -265,7 +267,6 @@ linter:
           '1 fix made in 1 file.',
         ]),
       );
-      expect(result.exitCode, 0);
     });
 
     test('--apply --code=(single)', () async {
@@ -289,8 +290,8 @@ linter:
         'prefer_single_quotes',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -310,8 +311,8 @@ linter:
         '_undefined_',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 3);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -340,8 +341,8 @@ linter:
         'prefer_single_quotes',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -374,8 +375,8 @@ linter:
         'unnecessary_new',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 3);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -407,8 +408,8 @@ linter:
         'unnecessary_new',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -449,8 +450,8 @@ Stream<String> b() {
         'prefer_const_constructors',
         './lib/part.dart',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -494,8 +495,8 @@ Stream<String> b() {
         'prefer_const_constructors',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -529,8 +530,8 @@ linter:
         '--code=prefer_single_quotes,unnecessary_new',
         '.',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -555,8 +556,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -581,8 +582,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -610,8 +611,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(result.stdout, contains('Nothing to fix!'));
     });
 
@@ -628,8 +629,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(result.stdout, contains('Nothing to fix!'));
     });
 
@@ -647,8 +648,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -689,8 +690,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -713,6 +714,36 @@ class C {
 ''');
     });
 
+    test('--apply (a single pass can produce overlapping edits)', () async {
+      // Converting a private field emits edits that overlap each other, an
+      // insertion of `this.` at the parameter name and a replacement of that
+      // same name with the field name.
+      p = project(
+        sdkConstraint: VersionConstraint.parse('^3.12.0'),
+        languageVersion: '3.12',
+        mainSrc: '''
+class C {
+  final bool _a;
+  C({bool a = true}) : _a = a;
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_initializing_formals
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
+      expect(p!.findFile('lib/main.dart')!.readAsStringSync(), '''
+class C {
+  final bool _a;
+  C({this._a = true});
+}
+''');
+    });
+
     test(
       '--apply includes pubspec fixes (even without dart) when no codes',
       () async {
@@ -724,8 +755,8 @@ path.Context? a;
 ''',
         );
         var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(
           result.stdout,
           stringContainsInOrderWithVariableBullets([
@@ -756,8 +787,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -795,8 +826,8 @@ linter:
           '.',
           '--code=missing_dependency',
         ], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(
           result.stdout,
           stringContainsInOrderWithVariableBullets([
@@ -833,8 +864,8 @@ linter:
           '.',
           '--code=migrate_design_widgets',
         ], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(
           result.stdout,
           stringContainsInOrderWithVariableBullets([
@@ -871,8 +902,8 @@ linter:
           '.',
           '--code=prefer_single_quotes',
         ], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(
           result.stdout,
           stringContainsInOrderWithVariableBullets([
@@ -904,8 +935,8 @@ linter:
           '--dry-run',
           '.',
         ], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(result.stdout, contains('1 proposed fix in 1 file.'));
       });
 
@@ -923,8 +954,8 @@ linter:
           '--dry-run',
           '.',
         ], workingDir: p!.dirPath);
-        expect(result.exitCode, 0);
         expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
         expect(result.stdout, contains('1 proposed fix in 1 file.'));
       });
     });
@@ -946,8 +977,8 @@ linter:
 ''',
       );
       var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
-      expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
+      expect(result.exitCode, 0);
       expect(
         result.stdout,
         stringContainsInOrderWithVariableBullets([
@@ -991,11 +1022,11 @@ class B extends A {
         '--compare-to-golden',
         'lib/main.dart.expect',
       ], workingDir: p!.dirPath);
-      expect(result.exitCode, 64);
       expect(
         result.stderr,
         startsWith('Golden comparison requires a directory argument.'),
       );
+      expect(result.exitCode, 64);
     });
 
     test('applied fixes do not match expected', () async {

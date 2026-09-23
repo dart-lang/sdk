@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/analyzer_public_api.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -53,6 +56,45 @@ class AnalyzerPublicApiTest extends LintRuleTest {
   @override
   String get testPackageRootPath => '$workspaceRootPath/analyzer';
 
+  /// Overrides [LintRuleTest.assertDiagnosticsFromMarkup] because:
+  ///
+  /// * the `analyzer_public_api` rule emits multiple specific diagnostic codes
+  ///   (e.g., [badType], [badPartDirective]) rather than a single lint code
+  ///   matching [lintRule], so [name] must be specified
+  /// * tests target various files (e.g., [libFile], [libSrcFile], or
+  ///   `nonAnalyzer` package files) rather than the default [testFile]
+  /// * some tests require mixed diagnostic types (such as lints alongside
+  ///   analyzer errors like [diag.experimentalMemberUse]), supported via
+  ///   [expectedDiagnostics]
+  /// * passing [content] through [normalizeSource] before [TestCode.parse]
+  ///   ensures that range offsets match the file written by [newFile]
+  ///   regardless of platform line endings.
+  @override
+  Future<void> assertDiagnosticsFromMarkup(
+    String content, {
+    DiagnosticCode? code,
+    String? filePath,
+    String? name,
+    List<ExpectedDiagnostic> Function(TestCode)? expectedDiagnostics,
+  }) async {
+    var testCode = TestCode.parse(normalizeSource(content));
+    newFile(filePath ?? libFile, testCode.code);
+    var diagnostics = expectedDiagnostics != null
+        ? expectedDiagnostics(testCode)
+        : [
+            for (var range in testCode.ranges)
+              if (code != null)
+                error(code, range.sourceRange.offset, range.sourceRange.length)
+              else
+                lint(
+                  range.sourceRange.offset,
+                  range.sourceRange.length,
+                  name: name,
+                ),
+          ];
+    await assertDiagnosticsInFile(filePath ?? libFile, diagnostics);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -71,12 +113,10 @@ class AnalyzerPublicApiTest extends LintRuleTest {
     newFile(libSrcFile, '''
 part of '../file.dart';
 ''');
-    newFile(libFile, '''
-part 'src/file.dart';
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 21, name: badPartDirective),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!part 'src/file.dart';!]
+''', name: badPartDirective);
   }
 
   test_badPartDirective_ignoredIfPublicPart() async {
@@ -103,45 +143,45 @@ part 'file.dart';
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(B b);
+  [!C!](B b);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_constructor_parameter_fieldFormal_withExplicitType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(B this.b);
+  [!C!](B this.b);
   Object b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_constructor_parameter_fieldFormal_withImplicitType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._b);
+  [!C!](this._b);
   // ignore: unused_field
   B _b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_constructor_parameter_ignoredInPrivateConstructor() async {
@@ -162,74 +202,74 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C.named(B b);
+  C.[!named!](B b);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(39, 5, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_constructor_parameter_superFormal_withExplicitType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C extends D {
-  C(B super.x);
+  [!C!](B super.x);
 }
 class D {
   D(Object x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(47, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_constructor_parameter_superFormal_withImplicitType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C extends D {
-  C(super.x) : super._();
+  [!C!](super.x) : super._();
 }
 class D {
   D._(B x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(47, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_extends() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C extends B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+class [!C!] extends B {}
+''', name: badType);
   }
 
   test_badType_class_field_type() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  B? f;
+  B? [!f!];
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(40, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_field_type_ignoredInPrivateField() async {
@@ -251,28 +291,28 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  static final b = B();
+  static final [!b!] = B();
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(50, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_getter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  B get g => throw '';
+  B get [!g!] => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(43, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_ignoredForInternalDeclarations() async {
@@ -300,12 +340,12 @@ class _C extends B {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C implements B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+class [!C!] implements B {}
+''', name: badType);
   }
 
   test_badType_class_method_ignoredIfPrivate() async {
@@ -327,162 +367,161 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  void f(B b) {}
+  void [!f!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_method_parameter_functionTyped_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  void f(void g(B b)) {}
+  void [!f!](void g(B b)) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_method_parameter_functionTyped_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  void f(B g()) {}
+  void [!f!](B g()) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_method_parameter_withDefaultValue() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  void f({B? b = null}) {}
+  void [!f!]({B? b = null}) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_method_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  B f() => throw '';
+  B [!f!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(39, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_method_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  void f<T extends B>() {}
+  void [!f!]<T extends B>() {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-class C extends B {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(96, 1, name: badType)]);
+class [!C!] extends B {}
+''', name: badType);
   }
 
   test_badType_class_operator() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  B operator-() => throw '';
+  B operator[!-!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(47, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_setter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  set s(B b) {}
+  set [!s!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(41, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_class_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C<T extends B> {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+class [!C!]<T extends B> {}
+''', name: badType);
   }
 
   test_badType_class_with() async {
     newFile(libSrcFile, '''
 mixin B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C with B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+class [!C!] with B {}
+''', name: badType);
   }
 
   test_badType_classTypeAlias_extends() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C = B with M;
+class [!C!] = B with M;
 mixin M {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_classTypeAlias_ignoredForInternalDeclarations() async {
@@ -512,51 +551,50 @@ mixin M {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C = Object with M implements B;
+class [!C!] = Object with M implements B;
 mixin M {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_classTypeAlias_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 @AnalyzerPublicApi()
-class C = Object with M;
+class [!C!] = Object with M;
 mixin M {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(85, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_classTypeAlias_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C<T extends B> = Object with M;
+class [!C!]<T extends B> = Object with M;
 mixin M {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_classTypeAlias_with() async {
     newFile(libSrcFile, '''
 mixin B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-class C = Object with B;
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+class [!C!] = Object with B;
+''', name: badType);
   }
 
   test_badType_enum_constructor_parameter() async {
@@ -634,16 +672,16 @@ enum E {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1(null), e2(null);
   const E(this.f);
-  final B? f;
+  final B? [!f!];
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(86, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_field_type_ignoredInPrivateField() async {
@@ -693,14 +731,14 @@ enum _E implements B {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-enum E implements B {
+enum [!E!] implements B {
   e1, e2
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(30, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_ignoredIfPrivate() async {
@@ -723,137 +761,132 @@ enum E {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  void f(B b) {}
+  void [!f!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_parameter_functionTyped_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  void f(void g(B b)) {}
+  void [!f!](void g(B b)) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_parameter_functionTyped_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  void f(B g()) {}
+  void [!f!](B g()) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_parameter_withDefaultValue() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  void f({B? b = null}) {}
+  void [!f!]({B? b = null}) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  B f() => throw '';
+  B [!f!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(48, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_method_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 enum E {
   e1, e2;
-  void f<T extends B>() {}
+  void [!f!]<T extends B>() {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-enum E implements B {
+enum [!E!] implements B {
   e1, e2
 }
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(95, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_enum_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-enum E<T extends B> {
-  e1, e2
+enum /*[0*/E/*0]*/<T extends B> {
+  /*[1*/e1/*1]*/, /*[2*/e2/*2]*/
 }
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(30, 1, name: badType),
-      lint(49, 2, name: badType),
-      lint(53, 2, name: badType),
-    ]);
+''', name: badType);
   }
 
   test_badType_enum_with() async {
     newFile(libSrcFile, '''
 mixin B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-enum E with B {
+enum [!E!] with B {
   e1, e2
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(30, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_dynamicType_ok() async {
@@ -869,56 +902,56 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(void Function(B) f);
+  [!C!](void Function(B) f);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_functionType_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(B Function() f);
+  [!C!](B Function() f);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_functionType_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(void Function<T extends B>(T) f);
+  [!C!](void Function<T extends B>(T) f);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_interfaceType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(B x);
+  [!C!](B x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_interfaceType_ok() async {
@@ -953,14 +986,14 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(List<B> x);
+  [!C!](List<B> x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_neverType_ok() async {
@@ -976,28 +1009,28 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(({B b, int i}) x);
+  [!C!](({B b, int i}) x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_recordType_unnamedField() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C((B, int) x);
+  [!C!]((B, int) x);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_explicit_typeParameterType_ok() async {
@@ -1071,135 +1104,134 @@ extension E on int {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  void f(B b) {}
+  void [!f!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(53, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_method_parameter_functionTyped_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  void f(void g(B b)) {}
+  void [!f!](void g(B b)) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(53, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_method_parameter_functionTyped_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  void f(B g()) {}
+  void [!f!](B g()) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(53, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_method_parameter_withDefaultValue() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  void f({B? b = null}) {}
+  void [!f!]({B? b = null}) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(53, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_method_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  B f() => throw '';
+  B [!f!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(50, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_method_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension E on int {
-  void f<T extends B>() {}
+  void [!f!]<T extends B>() {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(53, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extension_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-extension E on B {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(100, 1, name: badType)]);
+extension [!E!] on B {}
+''', name: badType);
   }
 
   test_badType_extension_on() async {
     newFile(libSrcFile, '''
 mixin B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension E on B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(35, 1, name: badType)]);
+extension [!E!] on B {}
+''', name: badType);
   }
 
   test_badType_extension_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension E<T extends B> on List<T> {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(35, 1, name: badType)]);
+extension [!E!]<T extends B> on List<T> {}
+''', name: badType);
   }
 
   test_badType_extensionType_constructor_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C._(int i) {
-  C(B b) : this._(0);
+  [!C!](B b) : this._(0);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(55, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_constructor_parameter_ignoredInPrivateConstructor() async {
@@ -1221,14 +1253,14 @@ extension type C(int i) {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  C.named(B b) : this(0);
+  C.[!named!](B b) : this(0);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(55, 5, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_ignoredForInternalDeclarations() async {
@@ -1256,13 +1288,13 @@ extension type _C(B b) {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension type C._(_D _d) implements B {}
+extension type [!C!]._(_D _d) implements B {}
 class _D implements B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(40, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_ignoredIfPrivate() async {
@@ -1284,100 +1316,96 @@ extension type C(int i) {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  void f(B b) {}
+  void [!f!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(58, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_parameter_functionTyped_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  void f(void g(B b)) {}
+  void [!f!](void g(B b)) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(58, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_parameter_functionTyped_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  void f(B g()) {}
+  void [!f!](B g()) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(58, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_parameter_withDefaultValue() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  void f({B? b = null}) {}
+  void [!f!]({B? b = null}) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(58, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  B f() => throw '';
+  B [!f!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(55, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_method_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 extension type C(int i) {
-  void f<T extends B>() {}
+  void [!f!]<T extends B>() {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(58, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_extensionType_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-extension type C(B b) {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [
-      lint(105, 1, name: badType),
-      lint(109, 1, name: badType),
-    ]);
+extension type /*[0*/C/*0]*/(B /*[1*/b/*1]*/) {}
+''', name: badType);
   }
 
   test_badType_extensionType_representation_type_ignoredIfFullyPrivate() async {
@@ -1396,48 +1424,48 @@ extension type C._(B? _f) {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension type C(B? _f) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(40, 1, name: badType)]);
+extension type [!C!](B? _f) {}
+''', name: badType);
   }
 
   test_badType_extensionType_representation_type_publicConstructorName() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension type C.named(B? _f) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 5, name: badType)]);
+extension type C.[!named!](B? _f) {}
+''', name: badType);
   }
 
   test_badType_extensionType_representation_type_publicFieldName() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension type C._(B? f) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(47, 1, name: badType)]);
+extension type C._(B? [!f!]) {}
+''', name: badType);
   }
 
   test_badType_extensionType_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-extension type C<T extends B>(int i) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(40, 1, name: badType)]);
+extension type [!C!]<T extends B>(int i) {}
+''', name: badType);
   }
 
   test_badType_functionDeclaration_ignoredForInternalDeclarations() async {
@@ -1477,52 +1505,51 @@ f() {
   }
 
   test_badType_functionDeclaration_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-B F() => B();
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(92, 1, name: badType)]);
+B [!F!]() => B();
+''', name: badType);
   }
 
   test_badType_functionDeclaration_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-void F(B b) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(30, 1, name: badType)]);
+void [!F!](B b) {}
+''', name: badType);
   }
 
   test_badType_functionDeclaration_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-B F() => B();
-''');
-    await assertDiagnosticsInFile(libFile, [lint(27, 1, name: badType)]);
+B [!F!]() => B();
+''', name: badType);
   }
 
   test_badType_functionDeclaration_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-void F<T extends B>(T t) {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(30, 1, name: badType)]);
+void [!F!]<T extends B>(T t) {}
+''', name: badType);
   }
 
   test_badType_functionTypeAlias_ignoredForInternalDeclarations() async {
@@ -1547,52 +1574,51 @@ typedef B _F();
   }
 
   test_badType_functionTypeAlias_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-typedef B F();
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(100, 1, name: badType)]);
+typedef B [!F!]();
+''', name: badType);
   }
 
   test_badType_functionTypeAlias_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef void F(B b);
-''');
-    await assertDiagnosticsInFile(libFile, [lint(38, 1, name: badType)]);
+typedef void [!F!](B b);
+''', name: badType);
   }
 
   test_badType_functionTypeAlias_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef B F();
-''');
-    await assertDiagnosticsInFile(libFile, [lint(35, 1, name: badType)]);
+typedef B [!F!]();
+''', name: badType);
   }
 
   test_badType_functionTypeAlias_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef void F<T extends B>(T t);
-''');
-    await assertDiagnosticsInFile(libFile, [lint(38, 1, name: badType)]);
+typedef void [!F!]<T extends B>(T t);
+''', name: badType);
   }
 
   test_badType_genericTypeAlias_ignoredForInternalDeclarations() async {
@@ -1617,52 +1643,51 @@ typedef _F = B Function();
   }
 
   test_badType_genericTypeAlias_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-typedef F = B Function();
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(98, 1, name: badType)]);
+typedef [!F!] = B Function();
+''', name: badType);
   }
 
   test_badType_genericTypeAlias_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef F = void Function(B b);
-''');
-    await assertDiagnosticsInFile(libFile, [lint(33, 1, name: badType)]);
+typedef [!F!] = void Function(B b);
+''', name: badType);
   }
 
   test_badType_genericTypeAlias_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef F = B Function();
-''');
-    await assertDiagnosticsInFile(libFile, [lint(33, 1, name: badType)]);
+typedef [!F!] = B Function();
+''', name: badType);
   }
 
   test_badType_genericTypeAlias_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-typedef F = void Function<T extends B>(T t);
-''');
-    await assertDiagnosticsInFile(libFile, [lint(33, 1, name: badType)]);
+typedef [!F!] = void Function<T extends B>(T t);
+''', name: badType);
   }
 
   test_badType_ignoredInNonAnalyzerLib() async {
@@ -1692,64 +1717,64 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._f);
+  [!C!](this._f);
   // ignore: unused_field
   void Function(B) _f;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_functionType_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._f);
+  [!C!](this._f);
   // ignore: unused_field
   B Function() _f;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_functionType_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._f);
+  [!C!](this._f);
   // ignore: unused_field
   void Function<T extends B>(T) _f;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_interfaceType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._b);
+  [!C!](this._b);
   // ignore: unused_field
   B _b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_interfaceType_ok() async {
@@ -1788,16 +1813,16 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._b);
+  [!C!](this._b);
   // ignore: unused_field
   List<B> _b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_neverType_ok() async {
@@ -1815,32 +1840,32 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._b);
+  [!C!](this._b);
   // ignore: unused_field
   ({B b, int i}) _b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_recordType_unnamedField() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 class C {
-  C(this._b);
+  [!C!](this._b);
   // ignore: unused_field
   (B, int) _b;
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(37, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_implicit_typeParameterType_ok() async {
@@ -1869,14 +1894,14 @@ class C {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  B? f;
+  B? [!f!];
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(40, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_field_type_ignoredInPrivateField() async {
@@ -1919,12 +1944,12 @@ mixin _M implements B {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-mixin M implements B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+mixin [!M!] implements B {}
+''', name: badType);
   }
 
   test_badType_mixin_method_ignoredIfPrivate() async {
@@ -1946,133 +1971,132 @@ mixin M {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  void f(B b) {}
+  void [!f!](B b) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_method_parameter_functionTyped_parameter() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  void f(void g(B b)) {}
+  void [!f!](void g(B b)) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_method_parameter_functionTyped_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  void f(B g()) {}
+  void [!f!](B g()) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_method_parameter_withDefaultValue() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  void f({B? b = null}) {}
+  void [!f!]({B? b = null}) {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_method_returnType() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  B f() => throw '';
+  B [!f!]() => throw '';
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(39, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_method_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
 mixin M {
-  void f<T extends B>() {}
+  void [!f!]<T extends B>() {}
 }
-''');
-    await assertDiagnosticsInFile(libFile, [lint(42, 1, name: badType)]);
+''', name: badType);
   }
 
   test_badType_mixin_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 class B {}
 @AnalyzerPublicApi()
-mixin C implements B {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(96, 1, name: badType)]);
+mixin [!C!] implements B {}
+''', name: badType);
   }
 
   test_badType_mixin_on() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-mixin M on B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+mixin [!M!] on B {}
+''', name: badType);
   }
 
   test_badType_mixin_typeParameterBound() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-mixin M<T extends B> {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+mixin [!M!]<T extends B> {}
+''', name: badType);
   }
 
   test_badType_nonAnalyzer() async {
     newFile(libNonAnalyzerSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'package:nonAnalyzer/src/file.dart';
 
-class C extends B {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(51, 1, name: badType)]);
+class [!C!] extends B {}
+''', name: badType);
   }
 
   test_badType_nonAnalyzer_ignoredIfAnnotatedPublic() async {
@@ -2123,24 +2147,24 @@ class C extends B {}
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-final b = B();
-''');
-    await assertDiagnosticsInFile(libFile, [lint(31, 1, name: badType)]);
+final [!b!] = B();
+''', name: badType);
   }
 
   test_badType_topLevelVariableDeclaration() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
+
+    await assertDiagnosticsFromMarkup('''
 import 'src/file.dart';
 
-B? v;
-''');
-    await assertDiagnosticsInFile(libFile, [lint(28, 1, name: badType)]);
+B? [!v!];
+''', name: badType);
   }
 
   test_badType_topLevelVariableDeclaration_ignoredForInternalDeclarations() async {
@@ -2166,7 +2190,7 @@ B? _v;
   }
 
   test_badType_topLevelVariableDeclaration_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
@@ -2174,26 +2198,35 @@ class AnalyzerPublicApi {
 class B {}
 
 @AnalyzerPublicApi()
-B? v;
-''');
-    await assertDiagnosticsInFile(libSrcFile, [lint(94, 1, name: badType)]);
+B? [!v!];
+''', name: badType);
   }
 
   test_experimentalInconsistency_class_constructor_parameter() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
 class C {
-  C(B b);
+  /*[0*/C/*0]*/(/*[1*/B/*1]*/ b);
 }
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(72, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 74, 1),
-    ]);
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_class_constructor_parameter_ok() async {
@@ -2212,18 +2245,28 @@ class C {
   }
 
   test_experimentalInconsistency_class_extends() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-class C extends B {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(66, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 76, 1),
-    ]);
+class /*[0*/C/*0]*/ extends /*[1*/B/*1]*/ {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_class_extends_ok() async {
@@ -2240,18 +2283,28 @@ class C extends B {}
   }
 
   test_experimentalInconsistency_class_implements() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-class C implements B {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(66, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 79, 1),
-    ]);
+class /*[0*/C/*0]*/ implements /*[1*/B/*1]*/ {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_class_implements_ok() async {
@@ -2268,18 +2321,28 @@ class C implements B {}
   }
 
   test_experimentalInconsistency_class_typeParameterBound() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-class C<T extends B> {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(66, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 78, 1),
-    ]);
+class /*[0*/C/*0]*/<T extends /*[1*/B/*1]*/> {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_class_typeParameterBound_ok() async {
@@ -2296,18 +2359,28 @@ class C<T extends B> {}
   }
 
   test_experimentalInconsistency_class_with() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin B {}
 
-class C with B {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(66, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 73, 1),
-    ]);
+class /*[0*/C/*0]*/ with /*[1*/B/*1]*/ {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_class_with_ok() async {
@@ -2324,18 +2397,28 @@ class C with B {}
   }
 
   test_experimentalInconsistency_extension_on() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 mixin B {}
 
-extension E on B {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(70, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 75, 1),
-    ]);
+extension /*[0*/E/*0]*/ on /*[1*/B/*1]*/ {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_extension_on_ok() async {
@@ -2352,18 +2435,28 @@ extension E on B {}
   }
 
   test_experimentalInconsistency_functionDeclaration_parameter() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-void F(B b) {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(65, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 67, 1),
-    ]);
+void /*[0*/F/*0]*/(/*[1*/B/*1]*/ b) {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_functionDeclaration_parameter_ok() async {
@@ -2380,18 +2473,28 @@ void F(B b) {}
   }
 
   test_experimentalInconsistency_functionTypeAlias_parameter() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-typedef void F(B b);
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(73, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 75, 1),
-    ]);
+typedef void /*[0*/F/*0]*/(/*[1*/B/*1]*/ b);
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_functionTypeAlias_parameter_ok() async {
@@ -2408,18 +2511,28 @@ typedef void F(B b);
   }
 
   test_experimentalInconsistency_functionTypeAlias_typeParameterBound() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-typedef void F<T extends B>(T t);
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(73, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 85, 1),
-    ]);
+typedef void /*[0*/F/*0]*/<T extends /*[1*/B/*1]*/>(T t);
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_functionTypeAlias_typeParameterBound_ok() async {
@@ -2436,18 +2549,28 @@ typedef void F<T extends B>(T t);
   }
 
   test_experimentalInconsistency_mixin_on() async {
-    newFile(libFile, '''
+    await assertDiagnosticsFromMarkup(
+      '''
 import 'package:meta/meta.dart';
 
 @experimental
 class B {}
 
-mixin M on B {}
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(66, 1, name: experimentalInconsistency),
-      error(diag.experimentalMemberUse, 71, 1),
-    ]);
+mixin /*[0*/M/*0]*/ on /*[1*/B/*1]*/ {}
+''',
+      expectedDiagnostics: (testCode) => [
+        lint(
+          testCode.ranges[0].sourceRange.offset,
+          testCode.ranges[0].sourceRange.length,
+          name: experimentalInconsistency,
+        ),
+        error(
+          diag.experimentalMemberUse,
+          testCode.ranges[1].sourceRange.offset,
+          testCode.ranges[1].sourceRange.length,
+        ),
+      ],
+    );
   }
 
   test_experimentalInconsistency_mixin_on_ok() async {
@@ -2558,12 +2681,10 @@ class B {}
     newFile(libNonAnalyzerSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
-export 'package:nonAnalyzer/src/file.dart';
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 43, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'package:nonAnalyzer/src/file.dart';!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_nonAnalyzer_ignoredIfAnnotatedPublic() async {
@@ -2585,12 +2706,10 @@ export 'package:nonAnalyzer/src/file.dart' show B;
     newFile(libNonAnalyzerFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
-export 'package:nonAnalyzer/file.dart';
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 39, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'package:nonAnalyzer/file.dart';!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_notIgnoredIfNotHidden() async {
@@ -2598,48 +2717,40 @@ export 'package:nonAnalyzer/file.dart';
 class B {}
 class C {}
 ''');
-    newFile(libFile, '''
-export 'src/file.dart' hide C;
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 30, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'src/file.dart' hide C;!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_notIgnoredIfShown() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
-export 'src/file.dart' show B;
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 30, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'src/file.dart' show B;!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_topLevelVariable() async {
     newFile(libSrcFile, '''
 Object? v;
 ''');
-    newFile(libFile, '''
-export 'src/file.dart';
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 23, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'src/file.dart';!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_type() async {
     newFile(libSrcFile, '''
 class B {}
 ''');
-    newFile(libFile, '''
-export 'src/file.dart';
-''');
-    await assertDiagnosticsInFile(libFile, [
-      lint(0, 23, name: exportsNonPublicName),
-    ]);
+
+    await assertDiagnosticsFromMarkup('''
+[!export 'src/file.dart';!]
+''', name: exportsNonPublicName);
   }
 
   test_exportsNonPublicName_type_ignoredIfExportingFromAnotherPublicLib() async {
@@ -2653,10 +2764,9 @@ export 'file.dart';
   }
 
   test_implInPublicApi() async {
-    newFile(libFile, '''
-class FooImpl {}
-''');
-    await assertDiagnosticsInFile(libFile, [lint(6, 7, name: implInPublicApi)]);
+    await assertDiagnosticsFromMarkup('''
+class [!FooImpl!] {}
+''', name: implInPublicApi);
   }
 
   test_implInPublicApi_ignoredForInternalDeclarations() async {
@@ -2675,16 +2785,13 @@ class _FooImpl {}
   }
 
   test_implInPublicApi_notIgnoredIfAnnotatedPublic() async {
-    newFile(libSrcFile, '''
+    await assertDiagnosticsFromMarkup(filePath: libSrcFile, '''
 class AnalyzerPublicApi {
   const AnalyzerPublicApi();
 }
 
 @AnalyzerPublicApi()
-class FooImpl {}
-''');
-    await assertDiagnosticsInFile(libSrcFile, [
-      lint(85, 7, name: implInPublicApi),
-    ]);
+class [!FooImpl!] {}
+''', name: implInPublicApi);
   }
 }

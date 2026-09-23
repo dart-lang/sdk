@@ -58,7 +58,10 @@ class RecordTypeMask extends TypeMask {
     // If any field is empty then this record is not instantiable and we
     // simplify to an empty mask.
     if (types.any((e) => e.isEmpty)) {
-      return domain.emptyType;
+      return FlatTypeMask._emptyOrSpecial(
+        domain,
+        _specialValueDomain.restrict(powerset),
+      );
     }
     return RecordTypeMask._(types, shape, powerset);
   }
@@ -383,17 +386,18 @@ class RecordTypeMask extends TypeMask {
               hasLateSentinel: hasLateSentinel,
             );
     } else {
-      return isNullable
-          ? FlatTypeMask.exact(
-              recordClass,
-              domain,
-              hasLateSentinel: hasLateSentinel,
-            )
-          : FlatTypeMask.nonNullExact(
-              recordClass,
-              domain,
-              hasLateSentinel: hasLateSentinel,
-            );
+      return (isNullable
+              ? TypeMask.exactOrEmpty(
+                  recordClass,
+                  domain,
+                  hasLateSentinel: hasLateSentinel,
+                )
+              : TypeMask.nonNullExactOrEmpty(
+                  recordClass,
+                  domain,
+                  hasLateSentinel: hasLateSentinel,
+                ))
+          as FlatTypeMask;
     }
   }
 

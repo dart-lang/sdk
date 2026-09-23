@@ -313,7 +313,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // to allow those values flow seamlessly through shared static fields.
         node.addAnnotation(
           ConstantExpression(
-            InstanceConstant(pragmaClass.reference, [], {
+            InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
               pragmaName.fieldReference: StringConstant(
                 vmDeeplyImmutablePragmaName,
               ),
@@ -644,7 +644,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         type: InterfaceType(
           typedDataClass,
           Nullability.nonNullable,
-          const <DartType>[],
+          DartTypeList.empty,
         ),
         isSynthesized: true,
       );
@@ -978,27 +978,30 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant(vmFfiStructFields),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiStructLayoutClass.reference, [], {
-                ffiStructLayoutTypesField.fieldReference: ListConstant(
-                  InterfaceType(typeClass, Nullability.nonNullable),
-                  constants,
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiStructLayoutClass.reference,
+            DartTypeList.empty,
+            {
+              ffiStructLayoutTypesField.fieldReference: ListConstant(
+                InterfaceType(typeClass, Nullability.nonNullable),
+                constants,
+              ),
+              ffiStructLayoutPackingField.fieldReference: packing == null
+                  ? NullConstant()
+                  : IntConstant(packing),
+              ffiStructLayoutFieldNamesField.fieldReference: ListConstant(
+                InterfaceType(
+                  coreTypes.stringNonNullableRawType.classNode,
+                  Nullability.nonNullable,
                 ),
-                ffiStructLayoutPackingField.fieldReference: packing == null
-                    ? NullConstant()
-                    : IntConstant(packing),
-                ffiStructLayoutFieldNamesField.fieldReference: ListConstant(
-                  InterfaceType(
-                    coreTypes.stringNonNullableRawType.classNode,
-                    Nullability.nonNullable,
-                  ),
-                  fieldNames.map((n) => StringConstant(n)).toList(),
-                ),
-              }),
+                fieldNames.map((n) => StringConstant(n)).toList(),
+              ),
+            },
+          ),
         }),
-        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+        InterfaceType(pragmaClass, Nullability.nonNullable),
       ),
     );
   }
@@ -1016,18 +1019,21 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     ];
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
-          pragmaOptions.fieldReference:
-              InstanceConstant(ffiAbiSpecificMappingClass.reference, [], {
-                ffiAbiSpecificMappingNativeTypesField.fieldReference:
-                    ListConstant(
-                      InterfaceType(typeClass, Nullability.nullable),
-                      constants,
-                    ),
-              }),
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiAbiSpecificMappingClass.reference,
+            DartTypeList.empty,
+            {
+              ffiAbiSpecificMappingNativeTypesField.fieldReference:
+                  ListConstant(
+                    InterfaceType(typeClass, Nullability.nullable),
+                    constants,
+                  ),
+            },
+          ),
         }),
-        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+        InterfaceType(pragmaClass, Nullability.nonNullable),
       ),
     );
   }

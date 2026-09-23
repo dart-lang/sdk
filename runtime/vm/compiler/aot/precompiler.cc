@@ -1221,6 +1221,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).function_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).delayed_type_arguments()));
+
+    if (!consts_to_retain_.HasKey(&instance)) {
+      consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.ptr()));
+    }
     return;
   }
 
@@ -3431,6 +3435,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
                                   pool_attachment, /*optimized=*/true, stats));
   code.set_is_optimized(true);
+  code.set_can_be_deoptimized(false);
   code.set_owner(function);
 
   graph_compiler->FinalizePcDescriptors(code);

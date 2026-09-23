@@ -4,9 +4,6 @@
 
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library int32x4_sign_mask;
-
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
@@ -21,7 +18,7 @@ void testImmediates() {
 }
 
 void testZero() {
-  Expect.equals(0x0, Int32x4(0, 0, 0, 0).signMask);
+  Expect.equals(0x0, Int32x4.zero().signMask);
   Expect.equals(0x0, Int32x4(-0, -0, -0, -0).signMask);
 }
 

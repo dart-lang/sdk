@@ -114,6 +114,12 @@ class _ContextLocator {
   /// A parse session for one context-location operation.
   final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
 
+  /// Cache of enabled legacy plugin names by source factory and options file.
+  ///
+  /// Plugin names depend on the source factory because package includes can
+  /// resolve differently for the same options file in different workspaces.
+  final Map<(SourceFactory, File), Set<String>> _legacyPlugins = {};
+
   /// Parsed package configurations reused by this operation.
   final Map<File, Packages> _packagesByFile = {};
 
@@ -562,26 +568,29 @@ class _ContextLocator {
     return null;
   }
 
-  /// Gets the set of enabled legacy plugins for [optionsFile], taking into
-  /// account any includes.
+  /// Gets an unmodifiable set of enabled legacy plugins for [optionsFile],
+  /// taking into account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
     if (optionsFile == null) {
       return const {};
     }
     try {
-      var options = _analysisOptionsParseSession
-          .parse(
-            sourceFactory: workspace.partialSourceFactory,
-            contextRoot: optionsFile.parent,
-            file: optionsFile,
-          )
-          .analysisOptions;
-
-      return options.enabledLegacyPluginNames.toSet();
+      var sourceFactory = workspace.partialSourceFactory;
+      var key = (sourceFactory, optionsFile);
+      return _legacyPlugins[key] ??= Set.unmodifiable(
+        _analysisOptionsParseSession
+            .parse(
+              sourceFactory: sourceFactory,
+              contextRoot: optionsFile.parent,
+              file: optionsFile,
+            )
+            .analysisOptions
+            .enabledLegacyPluginNames,
+      );
     } catch (_) {
       // No legacy plugins will be enabled if the file doesn't parse or cannot
       // be read for any reason.
-      return {};
+      return const {};
     }
   }
 

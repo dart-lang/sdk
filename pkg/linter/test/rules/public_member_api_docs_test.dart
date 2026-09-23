@@ -331,6 +331,37 @@ class [!A!] { }
 ''');
   }
 
+  test_primaryConstructor_abstractFinalClass() async {
+    await assertNoDiagnostics(r'''
+/// Doc.
+abstract final class Primary(final int value);
+''');
+  }
+
+  test_primaryConstructor_abstractInterfaceClass() async {
+    await assertNoDiagnostics(r'''
+/// Doc.
+abstract interface class Primary(final int value);
+''');
+  }
+
+  test_primaryConstructor_bodyInternalClass() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+@internal
+class Primary(final int value) {
+  this : assert(value >= 0);
+}
+''',
+      [
+        // Technically not in the private API but we can ignore that for testing.
+        error(diag.invalidInternalAnnotation, 35, 8),
+      ],
+    );
+  }
+
   test_primaryConstructor_bodyPartNoDoc() async {
     await assertDiagnosticsFromMarkup(r'''
 /// Doc.
@@ -350,6 +381,15 @@ class C(int x) {
 ''');
   }
 
+  test_primaryConstructor_bodySealedClass() async {
+    await assertNoDiagnostics(r'''
+/// Doc.
+sealed class Primary(final int value) {
+  this : assert(value >= 0);
+}
+''');
+  }
+
   test_primaryConstructor_classNoDoc() async {
     await assertDiagnosticsFromMarkup(r'''
 class [!C!](var int x);
@@ -360,6 +400,61 @@ class [!C!](var int x);
     await assertDiagnosticsFromMarkup(r'''
 /// Doc.
 class [!C!](var int x);
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/64043
+  test_primaryConstructor_internalClass() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+@internal
+class Primary(final int value) {
+  int get doubled => value * 2;
+  void method() {}
+}
+''',
+      [
+        // Technically not in the private API but we can ignore that for testing.
+        error(diag.invalidInternalAnnotation, 35, 8),
+      ],
+    );
+  }
+
+  test_primaryConstructor_namedInternalClass() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+@internal
+class Primary.named(final int value);
+''',
+      [
+        // Technically not in the private API but we can ignore that for testing.
+        error(diag.invalidInternalAnnotation, 35, 8),
+      ],
+    );
+  }
+
+  test_primaryConstructor_namedSealedClass() async {
+    await assertNoDiagnostics(r'''
+/// Doc.
+sealed class Primary.named(final int value);
+''');
+  }
+
+  test_primaryConstructor_notEffectivelyPrivateClass() async {
+    await assertDiagnosticsFromMarkup(r'''
+/// Doc.
+class [!Primary!](final int value);
+''');
+  }
+
+  test_primaryConstructor_sealedClass() async {
+    await assertNoDiagnostics(r'''
+/// Doc.
+sealed class Primary(final int value);
 ''');
   }
 

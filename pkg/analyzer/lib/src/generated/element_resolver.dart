@@ -99,6 +99,34 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
+  void resolveCascadeInvocation(
+    ParsedValueArgumentsImpl node,
+    CascadeExpressionImpl cascade, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveCascade(
+      node,
+      cascade,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
+  void resolveParsedReceiverInvocation(
+    ParsedValueArgumentsImpl node,
+    NamedReceiverImpl receiver, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveReceiver(
+      node,
+      receiver,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
+
   void visitClassDeclaration(ClassDeclaration node) {}
 
   void visitClassTypeAlias(ClassTypeAlias node) {}
@@ -149,20 +177,6 @@ class ElementResolver {
 
   void visitDeclaredIdentifier(DeclaredIdentifier node) {}
 
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    var invokedConstructor = node.element;
-    var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(
-      argumentList,
-      invokedConstructor,
-    );
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
-    }
-  }
-
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -173,26 +187,6 @@ class ElementResolver {
     if (parameters != null) {
       node.argumentList.correspondingStaticParameters = parameters;
     }
-  }
-
-  /// Resolves the dot shorthand invocation, [node].
-  ///
-  /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation2] in the process, then returns that new
-  /// node. Otherwise, returns `null`.
-  ExpressionImpl? visitDotShorthandInvocation(
-    covariant DotShorthandInvocationImpl node, {
-    List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-    required TypeImpl contextType,
-    required DotShorthandContextResolutionImpl shorthandContext,
-  }) {
-    whyNotPromotedArguments ??= [];
-    return _methodInvocationResolver.resolveDotShorthand(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
   }
 
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
@@ -232,6 +226,18 @@ class ElementResolver {
         _resolveCombinators(library, node.combinators);
       }
     }
+  }
+
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocationImpl node, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveImportPrefixed(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
   }
 
   void visitLibraryDirective(LibraryDirective node) {}
@@ -287,7 +293,7 @@ class ElementResolver {
       // associate with the node.
       return;
     }
-    selector?.name.element = element;
+    selector?.element = element;
     node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
@@ -342,7 +348,7 @@ class ElementResolver {
         );
       }
     }
-    selector?.name.element = element;
+    selector?.element = element;
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
@@ -370,7 +376,7 @@ class ElementResolver {
     }
   }
 
-  void visitSuperExpression(SuperExpression node) {
+  void visitSuperReference(SuperReference node) {
     var context = SuperContext.of(node);
     switch (context) {
       case SuperContext.annotation:
@@ -387,6 +393,18 @@ class ElementResolver {
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {}
 
   void visitTypeParameter(TypeParameter node) {}
+
+  void visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocationImpl node, {
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+    required TypeImpl contextType,
+  }) {
+    _methodInvocationResolver.resolveUnqualified(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+  }
 
   void visitVariableDeclarationList(VariableDeclarationList node) {}
 

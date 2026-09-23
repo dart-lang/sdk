@@ -33,7 +33,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -41,8 +46,17 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: SimpleIdentifier
+      expression2: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: y
+          operator: .
+          name: bar
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: SimpleIdentifier
           token: y
         operator: .
         methodName: SimpleIdentifier
@@ -71,7 +85,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: <empty> <synthetic>
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -81,8 +100,17 @@ Block
     ExpressionStatement
       expression2: AwaitExpression
         awaitKeyword: await
-        expression2: MethodInvocation
-          target2: SimpleIdentifier
+        expression2: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: y
+            operator: .
+            name: foo
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        expression(v1): MethodInvocation
+          target: SimpleIdentifier
             token: y
           operator: .
           methodName: SimpleIdentifier
@@ -111,7 +139,12 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .

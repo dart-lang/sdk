@@ -102,8 +102,16 @@ void main() {
   // typedef G = foo;
   // F == G
   testEquals(
-    new TypedefTearOffConstant([], tearOffConstant1a, []),
-    new TypedefTearOffConstant([], tearOffConstant1b, []),
+    new TypedefTearOffConstant(
+      StructuralParameterList.empty,
+      tearOffConstant1a,
+      DartTypeList.empty,
+    ),
+    new TypedefTearOffConstant(
+      StructuralParameterList.empty,
+      tearOffConstant1b,
+      DartTypeList.empty,
+    ),
   );
 
   // foo() {} // from lib1;
@@ -112,8 +120,16 @@ void main() {
   // typedef G = lib2.foo;
   // F != G
   testNotEquals(
-    new TypedefTearOffConstant([], tearOffConstant1a, []),
-    new TypedefTearOffConstant([], tearOffConstant2, []),
+    new TypedefTearOffConstant(
+      StructuralParameterList.empty,
+      tearOffConstant1a,
+      DartTypeList.empty,
+    ),
+    new TypedefTearOffConstant(
+      StructuralParameterList.empty,
+      tearOffConstant2,
+      DartTypeList.empty,
+    ),
   );
 
   // foo() {}
@@ -122,14 +138,18 @@ void main() {
   // F == G
   testEquals(
     new TypedefTearOffConstant(
-      [new StructuralParameter('T', const DynamicType(), const DynamicType())],
+      new StructuralParameterList(
+        new StructuralParameter('T', const DynamicType(), const DynamicType()),
+      ),
       tearOffConstant1a,
-      [],
+      DartTypeList.empty,
     ),
     new TypedefTearOffConstant(
-      [new StructuralParameter('S', const DynamicType(), const DynamicType())],
+      new StructuralParameterList(
+        new StructuralParameter('S', const DynamicType(), const DynamicType()),
+      ),
       tearOffConstant1b,
-      [],
+      DartTypeList.empty,
     ),
   );
 
@@ -139,17 +159,19 @@ void main() {
   // F != G
   testNotEquals(
     new TypedefTearOffConstant(
-      [
+      new StructuralParameterList(
         new StructuralParameter('T1', const DynamicType(), const DynamicType()),
         new StructuralParameter('T2', const DynamicType(), const DynamicType()),
-      ],
+      ),
       tearOffConstant1a,
-      [],
+      DartTypeList.empty,
     ),
     new TypedefTearOffConstant(
-      [new StructuralParameter('S', const DynamicType(), const DynamicType())],
+      new StructuralParameterList(
+        new StructuralParameter('S', const DynamicType(), const DynamicType()),
+      ),
       tearOffConstant1b,
-      [],
+      DartTypeList.empty,
     ),
   );
 
@@ -159,14 +181,18 @@ void main() {
   // F != G
   testNotEquals(
     new TypedefTearOffConstant(
-      [new StructuralParameter('T', const VoidType(), const DynamicType())],
+      new StructuralParameterList(
+        new StructuralParameter('T', const VoidType(), const DynamicType()),
+      ),
       tearOffConstant1a,
-      [],
+      DartTypeList.empty,
     ),
     new TypedefTearOffConstant(
-      [new StructuralParameter('S', const DynamicType(), const DynamicType())],
+      new StructuralParameterList(
+        new StructuralParameter('S', const DynamicType(), const DynamicType()),
+      ),
       tearOffConstant1b,
-      [],
+      DartTypeList.empty,
     ),
   );
   {
@@ -187,24 +213,24 @@ void main() {
     // F == G
     testEquals(
       new TypedefTearOffConstant(
-        [structuralParameter1],
+        new StructuralParameterList(structuralParameter1),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter1,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
       new TypedefTearOffConstant(
-        [structuralParameter2],
+        new StructuralParameterList(structuralParameter2),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter2,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
     );
   }
@@ -236,24 +262,30 @@ void main() {
     // F == G
     testEquals(
       new TypedefTearOffConstant(
-        [structuralParameter1a, structuralParameter1b],
+        new StructuralParameterList(
+          structuralParameter1a,
+          structuralParameter1b,
+        ),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter1a,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
       new TypedefTearOffConstant(
-        [structuralParameter2a, structuralParameter2b],
+        new StructuralParameterList(
+          structuralParameter2a,
+          structuralParameter2b,
+        ),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter2a,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
     );
 
@@ -263,24 +295,30 @@ void main() {
     // F != G
     testNotEquals(
       new TypedefTearOffConstant(
-        [structuralParameter1a, structuralParameter1b],
+        new StructuralParameterList(
+          structuralParameter1a,
+          structuralParameter1b,
+        ),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter1a,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
       new TypedefTearOffConstant(
-        [structuralParameter2a, structuralParameter2b],
+        new StructuralParameterList(
+          structuralParameter2a,
+          structuralParameter2b,
+        ),
         tearOffConstant3,
-        [
+        new DartTypeList(
           new StructuralParameterType(
             structuralParameter2b,
             Nullability.nullable,
           ),
-        ],
+        ),
       ),
     );
 

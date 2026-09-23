@@ -632,7 +632,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
-          [node.arguments.types[0]],
+          DartTypeList(node.arguments.types[0]),
         );
         final DartType dartType = node.arguments.types[1];
 
@@ -663,7 +663,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final InterfaceType nativeType = InterfaceType(
           nativeFunctionClass,
           Nullability.nonNullable,
-          [node.arguments.types[0]],
+          DartTypeList(node.arguments.types[0]),
         );
 
         _ensureIsLeafIsConst(node);
@@ -689,9 +689,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceAsFunction(
           functionPointer: node.arguments.positional[0],
-          pointerType: InterfaceType(pointerClass, Nullability.nonNullable, [
-            nativeType,
-          ]),
+          pointerType: InterfaceType(
+            pointerClass,
+            Nullability.nonNullable,
+            DartTypeList(nativeType),
+          ),
           nativeSignature: nativeSignature,
           dartSignature: dartType,
           isLeaf: isLeaf,
@@ -716,7 +718,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
-          [node.arguments.types[0]],
+          DartTypeList(node.arguments.types[0]),
         );
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -885,16 +887,20 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isSynthesized: true,
       )..addAnnotation(
         ConstantExpression(
-          InstanceConstant(coreTypes.pragmaClass.reference, [], {
-            coreTypes.pragmaName.fieldReference: StringConstant(
-              'vm:ffi:call-closure',
-            ),
-            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-              ffiCallClass.reference,
-              [nativeSignature],
-              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-            ),
-          }),
+          InstanceConstant(
+            coreTypes.pragmaClass.reference,
+            DartTypeList.empty,
+            {
+              coreTypes.pragmaName.fieldReference: StringConstant(
+                'vm:ffi:call-closure',
+              ),
+              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+                ffiCallClass.reference,
+                DartTypeList(nativeSignature),
+                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+              ),
+            },
+          ),
         ),
       ),
       FunctionNode(
@@ -953,11 +959,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
-    final List<DartType> lookupTypeArgs = [
-      InterfaceType(nativeFunctionClass, currentLibrary.nonNullable, [
-        nativeSignature,
-      ]),
-    ];
+    final DartTypeList lookupTypeArgs = DartTypeList(
+      InterfaceType(
+        nativeFunctionClass,
+        currentLibrary.nonNullable,
+        DartTypeList(nativeSignature),
+      ),
+    );
     final Arguments lookupArgs = Arguments([
       node.arguments.positional[1],
     ], types: lookupTypeArgs);
@@ -1012,15 +1020,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      node.arguments.types,
+      DartTypeList.from(node.arguments.types),
     );
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
     var getterReference = currentLibraryIndex?.lookupGetterReference(name);
     final Field field = Field.immutable(
       name,
-      type: InterfaceType(pointerClass, currentLibrary.nonNullable, [
-        nativeFunctionType,
-      ]),
+      type: InterfaceType(
+        pointerClass,
+        currentLibrary.nonNullable,
+        DartTypeList(nativeFunctionType),
+      ),
       initializer: StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
         Arguments(
@@ -1068,7 +1078,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      node.arguments.types,
+      DartTypeList.from(node.arguments.types),
     );
     final target = node.arguments.positional[0];
     late StaticInvocation pointerValue;
@@ -1122,13 +1132,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      node.arguments.types,
+      DartTypeList.from(node.arguments.types),
     );
     final listType = InterfaceType(listClass, currentLibrary.nonNullable);
     final nativeCallableType = InterfaceType(
       nativeCallableClass,
       currentLibrary.nonNullable,
-      node.arguments.types,
+      DartTypeList.from(node.arguments.types),
     );
     final targetType = node.arguments.types[0] as FunctionType;
 
@@ -1246,7 +1256,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final nativeFunctionType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      node.arguments.types,
+      DartTypeList.from(node.arguments.types),
     );
     final target = node.arguments.positional[0];
     late StaticInvocation pointerValue;
@@ -1301,7 +1311,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final DartType nativeType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      [node.arguments.types[0]],
+      DartTypeList(node.arguments.types[0]),
     );
     final Expression func = node.arguments.positional[0];
     final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -1703,7 +1713,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final arrayLoadVar = PositionalParameter(
       parameterName: "#array",
-      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      type: InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        DartTypeList(typeArg),
+      ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexLoadVar = PositionalParameter(
@@ -1735,7 +1749,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final arrayStoreVar = PositionalParameter(
       parameterName: "#array",
-      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      type: InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        DartTypeList(typeArg),
+      ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexStoreVar = PositionalParameter(
@@ -2274,7 +2292,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       final typedDataType = InterfaceType(
         typedDataClass,
         Nullability.nonNullable,
-        const <DartType>[],
+        DartTypeList.empty,
       );
       return ('T', typedDataType, subExpression);
     }
@@ -2445,7 +2463,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,
-      const <DartType>[],
+      DartTypeList.empty,
     );
 
     final valueVar = SyntheticVariable(

@@ -47,18 +47,32 @@ final Map<Version, List<String>> preparatoryLintsRegistry = {
   ],
 };
 
-/// Returns the next sequential SDK version after [currentVersion] from
-/// [knownSdkVersions], or `null` if [currentVersion] is at or beyond the latest
-/// known version.
+/// Returns the supported SDK version after [currentVersion] in
+/// [knownSdkVersions], or `null` if there isn't one: [currentVersion] is
+/// outside the supported range, or already at the latest.
 Version? nextSdkVersion(Version currentVersion) {
-  var normalizedVersion = Version(
-    currentVersion.major,
-    currentVersion.minor,
-    0,
-  );
-  var index = knownSdkVersions.indexOf(normalizedVersion);
-  if (index >= 0 && index + 1 < knownSdkVersions.length) {
+  var supported = supportedSdkVersion(currentVersion);
+  if (supported == null) return null;
+
+  var index = knownSdkVersions.indexOf(supported);
+  if (index + 1 < knownSdkVersions.length) {
     return knownSdkVersions[index + 1];
   }
   return null;
+}
+
+/// Returns the supported SDK version that [version] belongs to, or `null` if
+/// migration doesn't support it.
+///
+/// Migrations work at minor-version granularity, so `3.12.5` belongs to
+/// `3.12.0`.
+Version? supportedSdkVersion(Version version) {
+  var minorVersion = version.truncatedToMinor;
+  return knownSdkVersions.contains(minorVersion) ? minorVersion : null;
+}
+
+extension VersionExtension on Version {
+  /// The minor release that this version belongs to, which is the granularity
+  ///  migrations work at.
+  Version get truncatedToMinor => Version(major, minor, 0);
 }

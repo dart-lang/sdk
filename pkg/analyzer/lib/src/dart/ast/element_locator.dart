@@ -299,11 +299,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitAssignmentExpression(AssignmentExpression node) {
-    return node.element;
-  }
-
-  @override
   Element? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     return node.element;
   }
@@ -384,22 +379,10 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    return node.constructorName.element;
-  }
-
-  @override
   Element? visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
     return node.element;
-  }
-
-  @override
-  Element? visitDotShorthandInvocation(DotShorthandInvocation node) {
-    return node.memberName.element;
   }
 
   @override
@@ -413,11 +396,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       element,
     _ => null,
   };
-
-  @override
-  Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    return node.propertyName.element;
-  }
 
   @override
   Element? visitDottedName(DottedName node) {
@@ -434,17 +412,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitExtensionOverride(ExtensionOverride node) {
+  Element? visitExtensionOverride2(ExtensionOverride2 node) {
     return node.element;
   }
 
   @override
   Element? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    return switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      _ => node.write?.element,
-    };
+    return node.write?.elementOrRecovery;
   }
 
   @override
@@ -456,7 +430,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {
-    return node.write?.element ?? node.read.elementOrRecovery;
+    return node.write?.element ?? node.read?.elementOrRecovery;
   }
 
   @override
@@ -468,11 +442,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitIndexExpression(IndexExpression node) {
     return node.element;
   }
 
@@ -516,7 +485,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return switch (node) {
       IncrementOrDecrementExpression(:var element) => element,
       Identifier() => _visitIdentifier(node),
-      NameExpression(:var resolution) => resolution.elementOrRecovery,
+      ReceiverPropertyExtraction(
+        resolution: FunctionCallTearOffResolution(),
+        :var receiver,
+      ) =>
+        receiver.accept2(this),
+      NameExpression(:var resolution) => resolution?.elementOrRecovery,
+      StaticQualifier(:var element) => element,
       StringLiteral() => _visitStringLiteral(node),
       _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
     };
@@ -584,6 +559,10 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.receiver case NameExpression receiver
+        when node.resolution is FunctionCallInvocationResolution) {
+      return receiver.resolution?.elementOrRecovery;
+    }
     return _visitNamedFunctionInvocation(node);
   }
 
@@ -660,25 +639,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   Element? _visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return node.write?.elementOrRecovery;
   }
 
   Element? _visitIndexExpression2(IndexExpression2 node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return node.resolution?.elementOrRecovery;
   }
 
   Element? _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

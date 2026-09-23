@@ -1639,6 +1639,21 @@ void f() {}
 ''');
   }
 
+  /// See https://github.com/dart-lang/sdk/issues/42645.
+  Future<void> test_withClass_extendsClause() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {}
+''');
+    await resolveTestCode('''
+class A extends Test {}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+class A extends Test {}
+''');
+  }
+
   Future<void> test_withClass_hasOtherLibraryWithPrefix() async {
     newFile('$testPackageLibPath/a.dart', '''
 class One {}

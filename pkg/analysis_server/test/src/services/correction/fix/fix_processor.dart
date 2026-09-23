@@ -19,17 +19,16 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_testing/src/single_unit.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
-
-import '../../../../abstract_single_unit.dart';
-import '../../../../utils/test_instrumentation_service.dart';
 
 export 'package:linter/src/lint_names.dart';
 
 typedef DiagnosticFilter = bool Function(Diagnostic diagnostic);
 
-abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
+abstract class BaseFixProcessorTest extends SingleUnitTest {
   /// The source change associated with the fix that was found.
   late SourceChange change;
 
@@ -107,7 +106,7 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 /// Tests using this base class validate that if there is more than one place to
 /// apply a fix, then the code is valid after applying as many fixes as possible
 /// in a single pass.
-abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
+abstract class BulkFixProcessorTest extends SingleUnitTest {
   final ByteStore _byteStore = MemoryByteStore();
 
   /// The source change associated with the fix that was found, or `null` if

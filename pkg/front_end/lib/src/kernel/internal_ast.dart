@@ -8021,7 +8021,6 @@ class InternalThisVariable extends InternalVariable {
   bool get isWildcard => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType get type => _astVariable.type;
 
   @override

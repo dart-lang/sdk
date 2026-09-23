@@ -5,10 +5,9 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,7 +24,7 @@ void main() {
   });
 }
 
-class PostfixCompletionTest extends AbstractSingleUnitTest {
+class PostfixCompletionTest extends SingleUnitTest {
   late TestCode testCodeCode;
   late PostfixCompletionProcessor processor;
   late SourceChange change;

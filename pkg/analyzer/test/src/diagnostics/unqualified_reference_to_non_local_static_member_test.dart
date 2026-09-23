@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -62,6 +63,25 @@ class B extends A {
   }
 }
 ''');
+  }
+
+  test_method_classWithModifiers() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+abstract base class A {
+  static void a() {}
+}
+final class B extends A {
+  void b() {
+    a();
+//  ^
+// [diag.unqualifiedReferenceToNonLocalStaticMember] Static members from supertypes must be qualified by the name of the defining type.
+  }
+}
+''');
+    expect(
+      result.diagnostics.single.correctionMessage,
+      "Try adding 'A.' before the name.",
+    );
   }
 
   test_methodTearoff() async {

@@ -226,14 +226,20 @@ class Resolver {
         fileOffset: fileOffset,
         hasInferredTypeArguments: false,
       );
+      InternalThisVariable? internalThisVariable = bodyBuilderContext
+          .createInternalThisVariable();
       ExpressionInferenceResult inferenceResult = context.typeInferrer
           .inferFieldInitializer(
             fileUri: fileUri,
             declaredType: const UnknownType(),
             initializer: internalInitializer,
             inferenceDefaultType: InferenceDefaultType.Dynamic,
-            internalThisVariable: bodyBuilderContext
-                .createInternalThisVariable(),
+            internalThisVariable: internalThisVariable,
+            thisType:
+                internalThisVariable
+                    // Coverage-ignore(suite): Not run.
+                    ?.type ??
+                bodyBuilderContext.thisType,
           )
           .expressionInferenceResult;
       initializer = inferenceResult.expression;
@@ -295,6 +301,7 @@ class Resolver {
           initializer: result.initializer,
           inferenceDefaultType: inferenceDefaultType,
           internalThisVariable: internalThisVariable,
+          thisType: internalThisVariable?.type ?? bodyBuilderContext.thisType,
         );
     context.performBacklog(result.annotations);
     return inferredFieldInitializer;
@@ -358,6 +365,7 @@ class Resolver {
         fileUri: fileUri,
         initializer: initializer,
         internalThisVariable: bodyBuilderContext.createInternalThisVariable(),
+        bodyBuilderContext: bodyBuilderContext,
       );
     }
     context.performBacklog(result.annotations);
@@ -1044,6 +1052,10 @@ class Resolver {
                     libraryBuilder.loader.isClosureContextLoweringEnabled,
               ),
           constructorContext: null,
+          thisType:
+              extensionThis?.type ??
+              internalThisVariable?.type ??
+              bodyBuilderContext.thisType,
         );
     ReturnStatement returnStatement =
         inferredFunctionBody.body as ReturnStatement;
@@ -1563,6 +1575,10 @@ class Resolver {
         body: body,
         contextAllocationStrategy: contextAllocationStrategy,
         constructorContext: bodyBuilderContext.constructorContext,
+        thisType:
+            thisVariable?.type ??
+            internalThisVariable?.type ??
+            bodyBuilderContext.thisType,
       );
       inferredBody = inferredFunctionBody.body;
     } else {

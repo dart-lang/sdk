@@ -400,7 +400,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     /* TreeNode | StructuralParameter */
     Object declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;
-    List<DartType> kernelArguments = new List<DartType>.filled(
+    DartTypeList kernelArguments = DartTypeList.filled(
       arguments.length,
       dummyDartType,
     );
@@ -421,7 +421,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       }
       List<TypeParameter> typeVariables = declaration.typeParameters;
       if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
-        kernelArguments = new List<DartType>.filled(
+        kernelArguments = DartTypeList.filled(
           typeVariables.length,
           dummyDartType,
         );
@@ -653,10 +653,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     }
     namedParameters.sort();
     return new FunctionType(
-      positionalParameters,
+      DartTypeList.from(positionalParameters),
       returnType,
       interpretParsedNullability(node.parsedNullability),
-      namedParameters: namedParameters,
+      namedParameters: NamedDartTypeList.from(namedParameters),
       requiredParameterCount: node.arguments.required.length,
       typeParameters: parameterEnvironment.parameters,
     );
@@ -684,8 +684,8 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     }
     named.sort();
     return new RecordType(
-      positional,
-      named,
+      DartTypeList.from(positional),
+      NamedDartTypeList.from(named),
       interpretParsedNullability(node.parsedNullability),
     );
   }
@@ -746,7 +746,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..bound = new InterfaceType(
             objectClass,
             Nullability.nullable,
-            const <DartType>[],
+            DartTypeList.empty,
           )
           ..defaultType = const DynamicType();
       } else {
@@ -781,11 +781,10 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
     List<ParsedTypeVariable> typeVariables,
     TypeParserEnvironment environment,
   ) {
-    List<StructuralParameter> typeParameters =
-        new List<StructuralParameter>.filled(
-          typeVariables.length,
-          dummyStructuralParameter,
-        );
+    StructuralParameterList typeParameters = StructuralParameterList.filled(
+      typeVariables.length,
+      dummyStructuralParameter,
+    );
     Map<String, StructuralParameter> typeParametersByName =
         <String, StructuralParameter>{};
     for (int i = 0; i < typeVariables.length; i++) {
@@ -806,7 +805,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           ..bound = new InterfaceType(
             objectClass,
             Nullability.nullable,
-            const <DartType>[],
+            DartTypeList.empty,
           )
           ..defaultType = const DynamicType();
       } else {
@@ -864,7 +863,7 @@ class ParameterEnvironment {
 }
 
 class FunctionTypeParameterEnvironment {
-  final List<StructuralParameter> parameters;
+  final StructuralParameterList parameters;
   final TypeParserEnvironment environment;
 
   const new(this.parameters, this.environment);

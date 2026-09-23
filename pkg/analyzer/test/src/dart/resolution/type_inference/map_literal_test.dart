@@ -103,7 +103,6 @@ SetOrMapLiteral
     DotShorthandNameExpression
       period: .
       name: one
-      isDotShorthand: true
       shorthandContext: ValidDotShorthandContextResolution
         contextType: E
         lookupType: E
@@ -119,7 +118,6 @@ SetOrMapLiteral
         token: one
         element: <testLibrary>::@enum::E::@getter::one
         staticType: E
-      isDotShorthand: true
       staticType: E
   rightBracket: }
   isMap: true
@@ -147,14 +145,11 @@ SetOrMapLiteral
     DotShorthandNameExpression
       period: .
       name: <empty> <synthetic>
-      isDotShorthand: true
       shorthandContext: ValidDotShorthandContextResolution
         contextType: E
         lookupType: E
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
   elements(v1)
     DotShorthandPropertyAccess
@@ -163,7 +158,6 @@ SetOrMapLiteral
         token: <empty> <synthetic>
         element: <null>
         staticType: InvalidType
-      isDotShorthand: true
       staticType: InvalidType
   rightBracket: }
   isMap: true

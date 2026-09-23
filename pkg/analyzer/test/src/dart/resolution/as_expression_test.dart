@@ -91,7 +91,11 @@ class A<T> {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A<T>
   asOperator: as

@@ -12,13 +12,16 @@ cd "$(dirname "$0")/../../.."
 # Build DartPad worker and Dart SDK assets
 ./tools/build.py -m release -a x64 dartpad
 
+# Use Dart we just built!
+DART="$PWD/out/ReleaseX64/dart-sdk/bin/dart"
+
 # Build Flutter SDK assets (fails if Flutter is not available)
 echo "Building Flutter assets..."
-dart pkg/dartpad_worker/tool/setup_local_flutter.dart
+"$DART" pkg/dartpad_worker/tool/setup_local_flutter.dart --web-sdk=build
 
 # Run integration tests before copying files to web/
 echo "Running integration tests..."
-(cd pkg/dartpad_worker && dart test)
+(cd pkg/dartpad_worker && "$DART" test)
 
 # Clean and recreate pkg/dartpad/web/
 rm -rf pkg/dartpad/web
@@ -34,6 +37,10 @@ if [ -d "$ASSET_DIR" ]; then
   echo "Copying extra assets to web/..."
   cp -R "$ASSET_DIR"/* pkg/dartpad/web/
 fi
+
+# Drop the worker source maps, these are big
+echo "Removing worker source maps..."
+rm -f pkg/dartpad/web/dart/worker.wasm.map pkg/dartpad/web/flutter/worker.wasm.map
 
 # Publish package:dartpad
 cd pkg/dartpad

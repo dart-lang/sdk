@@ -32,9 +32,7 @@ main() {
 UnqualifiedNameExpression
   name: dynamic
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: dynamic
@@ -407,9 +405,7 @@ extension E on ({int foo}) {
 UnqualifiedNameExpression
   name: bar
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: bar
@@ -507,9 +503,7 @@ extension E on (int, String) {
 UnqualifiedNameExpression
   name: $3
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: $3

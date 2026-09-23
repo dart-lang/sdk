@@ -40,7 +40,7 @@ f() {
     var node = result.findNode.binaryOperatorInvocation('+ 1');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -50,7 +50,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: String
-    staticType: null
   operator: +
   rightOperand: IntegerLiteral
     literal: 1

@@ -81,11 +81,11 @@ main() {
     final InterfaceType t2Generic = new InterfaceType(
       c2,
       Nullability.nullable,
-      [t1],
+      new DartTypeList(t1),
     );
     final DartType t3 = const NullType();
     final FunctionType f1 = new FunctionType(
-      [t1],
+      new DartTypeList(t1),
       const VoidType(),
       Nullability.nullable,
     );

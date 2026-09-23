@@ -38,7 +38,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<dynamic>
     lookupType: Foo<dynamic>
@@ -57,7 +56,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<dynamic>
 ''');
   }
@@ -95,7 +93,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -116,7 +113,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: dynamic
 ''');
   }
@@ -164,7 +160,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -193,7 +188,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: dynamic
 ''');
   }
@@ -226,7 +220,6 @@ DotShorthandConstructorInvocation2
           substitution: {T: int}
         staticType: List<int>
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Stream<_>
     lookupType: Stream<_>
@@ -253,7 +246,6 @@ V1: DotShorthandConstructorInvocation
         element: iter@26
         staticType: List<int>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Stream<int>
 ''');
   }
@@ -282,7 +274,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<T>
     lookupType: Foo<T>
@@ -302,7 +293,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<Never>
 ''');
   }
@@ -341,7 +331,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<int>
     lookupType: Foo<int>
@@ -369,7 +358,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<int>
 ''');
   }
@@ -407,7 +395,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<T>
     lookupType: Foo<T>
@@ -434,7 +421,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<T>
 ''');
   }
@@ -456,7 +442,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Function
     lookupType: Function
@@ -471,7 +456,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Function
 ''');
   }
@@ -505,7 +489,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<dynamic>
     lookupType: Foo<dynamic>
@@ -532,7 +515,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<int>
 ''');
   }
@@ -551,10 +533,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('method();');
+    var node = result.findNode.receiverMethodInvocation('method();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: DotShorthandConstructorInvocation2
+ReceiverMethodInvocation
+  receiver: DotShorthandConstructorInvocation2
     period: .
     name: new
     argumentList: ArgumentList
@@ -565,13 +547,23 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
-  target(v1): DotShorthandConstructorInvocation
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: MethodInvocation
+  target: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -585,7 +577,6 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -614,10 +605,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('method();');
+    var node = result.findNode.receiverMethodInvocation('method();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: DotShorthandConstructorInvocation2
+ReceiverMethodInvocation
+  receiver: DotShorthandConstructorInvocation2
     constKeyword: const
     period: .
     name: new
@@ -629,13 +620,23 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
-  target(v1): DotShorthandConstructorInvocation
+  operator: .
+  name: method
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::method
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: MethodInvocation
+  target: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -650,7 +651,6 @@ MethodInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -679,10 +679,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: DotShorthandConstructorInvocation2
+ReceiverPropertyExtraction
+  receiver: DotShorthandConstructorInvocation2
     period: .
     name: new
     argumentList: ArgumentList
@@ -693,13 +693,20 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
-  target(v1): DotShorthandConstructorInvocation
+  operator: .
+  name: property
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::property
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
+  target: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -713,7 +720,6 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
@@ -738,10 +744,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: DotShorthandConstructorInvocation2
+ReceiverPropertyExtraction
+  receiver: DotShorthandConstructorInvocation2
     constKeyword: const
     period: .
     name: new
@@ -753,13 +759,20 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
-  target(v1): DotShorthandConstructorInvocation
+  operator: .
+  name: property
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::property
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: PropertyAccess
+  target: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -774,7 +787,6 @@ PropertyAccess
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           staticType: int
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   operator: .
   propertyName: SimpleIdentifier
@@ -810,7 +822,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: A
     lookupType: A
@@ -830,7 +841,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -861,7 +871,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: A
     lookupType: A
@@ -881,7 +890,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -908,7 +916,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: A
     lookupType: A
@@ -923,7 +930,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -958,7 +964,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: A
     lookupType: A
@@ -978,7 +983,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: A
 ''');
   }
@@ -1010,7 +1014,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1032,7 +1035,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -1064,7 +1066,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1084,7 +1085,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1116,7 +1116,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1137,7 +1136,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1180,7 +1178,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
         staticType: D
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1209,7 +1206,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
         staticType: D
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1243,7 +1239,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1264,7 +1259,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1299,7 +1293,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1320,7 +1313,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: dynamic
 ''');
   }
@@ -1351,7 +1343,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1371,7 +1362,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1406,7 +1396,6 @@ DotShorthandConstructorInvocation2
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: FutureOr<C<dynamic>?>?
     lookupType: C<dynamic>?
@@ -1432,7 +1421,6 @@ V1: DotShorthandConstructorInvocation
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<dynamic>
 ''');
   }
@@ -1461,7 +1449,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: E
     lookupType: E
@@ -1476,7 +1463,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: E
 ''');
   }
@@ -1508,7 +1494,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1529,7 +1514,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
@@ -1556,7 +1540,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -1573,7 +1556,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticInvokeType: InvalidType
   staticType: InvalidType
@@ -1601,7 +1583,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -1618,7 +1599,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticInvokeType: InvalidType
   staticType: InvalidType
@@ -1650,7 +1630,6 @@ DotShorthandConstructorInvocation2
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: List<int>
     lookupType: List<int>
@@ -1679,7 +1658,6 @@ V1: DotShorthandConstructorInvocation
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: List<String>
 ''');
@@ -1712,7 +1690,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -1733,7 +1710,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -1760,7 +1736,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -1777,7 +1752,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticInvokeType: InvalidType
   staticType: InvalidType
@@ -1806,7 +1780,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -1823,7 +1796,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticInvokeType: InvalidType
   staticType: InvalidType
@@ -1853,7 +1825,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<T>
     lookupType: Foo<T>
@@ -1872,7 +1843,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<T>
 ''');
   }
@@ -1901,7 +1871,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<T>
     lookupType: Foo<T>
@@ -1921,7 +1890,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<Never>
 ''');
   }
@@ -1960,7 +1928,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<int>
     lookupType: Foo<int>
@@ -1988,7 +1955,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<int>
 ''');
   }
@@ -2026,7 +1992,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: Foo<T>
     lookupType: Foo<T>
@@ -2053,7 +2018,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: Foo<T>
 ''');
   }
@@ -2077,7 +2041,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -2092,7 +2055,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -2117,7 +2079,6 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2141,7 +2102,6 @@ V1: FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2172,7 +2132,6 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2201,7 +2160,6 @@ V1: FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2239,7 +2197,6 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2263,7 +2220,6 @@ V1: FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2294,7 +2250,6 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2335,7 +2290,6 @@ V1: FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2384,7 +2338,6 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2408,7 +2361,6 @@ V1: FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2447,7 +2399,6 @@ CallInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          isDotShorthand: true
           shorthandContext: ValidDotShorthandContextResolution
             contextType: C
             lookupType: C
@@ -2455,7 +2406,6 @@ CallInvocation
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    isDotShorthand: false
     shorthandContext: ValidDotShorthandContextResolution
       contextType: C
       lookupType: C
@@ -2488,11 +2438,9 @@ V1: FunctionExpressionInvocation
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          isDotShorthand: true
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2531,7 +2479,6 @@ DotShorthandConstructorInvocation2
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        isDotShorthand: true
         shorthandContext: ValidDotShorthandContextResolution
           contextType: C
           lookupType: C
@@ -2539,7 +2486,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
         staticType: C
     rightParenthesis: )
-  isDotShorthand: false
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -2563,11 +2509,9 @@ V1: DotShorthandConstructorInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        isDotShorthand: true
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
         staticType: C
     rightParenthesis: )
-  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -2600,7 +2544,6 @@ DotShorthandConstructorInvocation2
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        isDotShorthand: true
         shorthandContext: ValidDotShorthandContextResolution
           contextType: C<dynamic>
           lookupType: C<dynamic>
@@ -2613,7 +2556,6 @@ DotShorthandConstructorInvocation2
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C<C<dynamic>>
     lookupType: C<C<dynamic>>
@@ -2641,14 +2583,12 @@ V1: DotShorthandConstructorInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        isDotShorthand: true
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -2678,7 +2618,6 @@ DotShorthandConstructorInvocation2
       DotShorthandNameExpression
         period: .
         name: member
-        isDotShorthand: true
         shorthandContext: ValidDotShorthandContextResolution
           contextType: C<dynamic>
           lookupType: C<dynamic>
@@ -2691,7 +2630,6 @@ DotShorthandConstructorInvocation2
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C<C<dynamic>>
     lookupType: C<C<dynamic>>
@@ -2716,13 +2654,11 @@ V1: DotShorthandConstructorInvocation
           token: member
           element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
-        isDotShorthand: true
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -2753,7 +2689,6 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -2773,7 +2708,6 @@ V1: DotShorthandConstructorInvocation
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -2800,7 +2734,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -2816,7 +2749,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticInvokeType: InvalidType
   staticType: InvalidType
 ''');
@@ -2844,7 +2776,6 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   resolution: InvalidInvocationResolution
@@ -2860,7 +2791,6 @@ V1: DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticInvokeType: InvalidType
   staticType: InvalidType
 ''');
@@ -2896,7 +2826,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -2913,7 +2842,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: dynamic
 ''');
@@ -2954,13 +2882,10 @@ DotShorthandConstructorInvocation2
       UnqualifiedNameExpression
         name: unknown
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         correspondingParameter: <null>
         staticType: InvalidType
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
@@ -2983,7 +2908,6 @@ V1: DotShorthandConstructorInvocation
         element: <null>
         staticType: InvalidType
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: dynamic
 ''');
@@ -3014,7 +2938,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: _Private
       alias: <testLibrary>::@typeAlias::Public
@@ -3033,7 +2956,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: <null>
   staticType: _Private
 ''');
@@ -3062,7 +2984,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -3077,7 +2998,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -3112,7 +3032,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -3135,7 +3054,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -3171,7 +3089,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -3195,7 +3112,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -3227,7 +3143,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: null
   element: <null>
@@ -3250,7 +3165,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: dynamic
 ''');
   }
@@ -3271,7 +3185,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: int
     lookupType: int
@@ -3287,7 +3200,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: dynamic
 ''');
   }
@@ -3310,7 +3222,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: int
     lookupType: int
@@ -3327,7 +3238,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other
   staticType: dynamic
 ''');
@@ -3358,7 +3268,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -3381,7 +3290,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -3411,7 +3319,6 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   shorthandContext: ValidDotShorthandContextResolution
     contextType: C
     lookupType: C
@@ -3435,7 +3342,6 @@ V1: DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');

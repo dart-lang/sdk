@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/util/platform_info.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -189,7 +190,7 @@ final class CorrectionUtils {
   /// comments.
   String getNodeText(AstNode node, {bool withLeadingComments = false}) {
     var firstToken = withLeadingComments
-        ? node.beginToken.precedingComments ?? node.beginToken
+        ? node.beginToken.precedingCommentOrThis
         : node.beginToken;
     var offset = firstToken.offset;
     var end = node.endToken.end;

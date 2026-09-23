@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithVarTest extends AssistProcessorTest {
+class ReplaceWithVarTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.replaceWithVar;
 

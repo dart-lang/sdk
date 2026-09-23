@@ -7,11 +7,10 @@ import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart'
 import 'package:analysis_server/src/services/snippets/snippet.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
-
-abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
+abstract class DartSnippetProducerTest extends SingleUnitTest {
   SnippetProducerGenerator get generator;
   String get label;
   String get prefix;

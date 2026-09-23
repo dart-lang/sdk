@@ -74,7 +74,7 @@ import 'b.dart' as p;
 void f() {
   p.value;
 //  ^^^^^
-// [diag.ambiguousImport] The name 'value' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
+// [diag.ambiguousImport] The getter 'value' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
     assertResolvedNodeText(
@@ -87,12 +87,9 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::p
   name: value
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: multiplyDefinedElement
-        package:test/a.dart::@getter::value
-        package:test/b.dart::@getter::value
-    recovery: <null>
+    recoveryElement: multiplyDefinedElement
+      package:test/a.dart::@getter::value
+      package:test/b.dart::@getter::value
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -326,17 +323,15 @@ void f() {
 ''');
     assertResolvedNodeText(result.findNode.functionInstantiation('p.id'), r'''
 FunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: p
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
       element: <testLibraryFragment>::@prefix::p
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: id
+    name: id
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@function::id
-      staticType: T Function<T>(T)
-    element: package:test/a.dart::@function::id
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -396,9 +391,7 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::p
   name: missing
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -427,9 +420,22 @@ void f() {
 // [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
 }
 ''');
-    assertResolvedNodeText(result.findNode.propertyAccess('p?.value'), r'''
-PropertyAccess
-  target2: SimpleIdentifier
+    assertResolvedNodeText(
+      result.findNode.receiverPropertyExtraction('p?.value'),
+      r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: p
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <testLibraryFragment>::@prefix::p
+    staticType: InvalidType
+  operator: ?.
+  name: value
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: p
     element: <testLibraryFragment>::@prefix::p
     staticType: InvalidType
@@ -439,7 +445,8 @@ PropertyAccess
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
-''');
+''',
+    );
   }
 
   test_receiver() async {
@@ -608,12 +615,7 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::prefix
   name: foo
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: package:test/a.dart::@setter::foo
-    recovery: ExecutableTearOffResolution
-      element: package:test/a.dart::@setter::foo
-      type: void Function(int)
+    recoveryElement: package:test/a.dart::@setter::foo
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier

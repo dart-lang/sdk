@@ -91,26 +91,6 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
   );
-  argParser.addOption(
-    evalOption,
-    abbr: 'e',
-    help: 'Evaluate a Dart code snippet.',
-    valueHelp: 'code',
-  );
-  argParser.addMultiOption(
-    packageConstraintOption,
-    abbr: 'P',
-    help:
-        'Specific constraints for resolution of a single package '
-        '(e.g. "http", "path:^1.8.0").\n'
-        'See https://dart.dev/to/package-descriptors for more details.',
-    valueHelp: 'package-spec',
-  );
-  argParser.addFlag(
-    offlineOption,
-    negatable: false,
-    help: 'Run offline without querying network services.',
-  );
   argParser.addFlag(
     'verbose',
     abbr: 'v',

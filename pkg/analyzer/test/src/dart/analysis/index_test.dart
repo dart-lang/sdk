@@ -3407,6 +3407,64 @@ void useField(E e) {
     );
   }
 
+  test_FieldElement_ofEnum_instance_fieldDeclaration_final_invalidWrite() async {
+    var result = await _indexTestCode('''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+//  ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+  e..foo = 2;
+//   ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+  d.foo = 3;
+  d..foo = 4;
+}
+''');
+
+    var field = result.findElement.field('foo');
+    assertElementsIndexText(
+      result,
+      {'field': field, 'getter': field.getter!},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+    ^^^ getter IS_REFERENCED_BY qualified
+  e..foo = 2;
+     ^^^ getter IS_REFERENCED_BY qualified
+  d.foo = 3;
+  d..foo = 4;
+}
+''',
+    );
+
+    assertNamesIndexText(
+      result,
+      {'foo'},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+  e..foo = 2;
+  d.foo = 3;
+    ^^^ IS_WRITTEN_BY qualified
+  d..foo = 4;
+     ^^^ IS_WRITTEN_BY qualified
+}
+''',
+    );
+  }
+
   test_FieldElement_ofEnum_instance_getterDeclaration() async {
     var result = await _indexTestCode('''
 enum E {
@@ -6892,7 +6950,9 @@ class A {
     item;
     ^^^^ IS_REFERENCED_BY
     this.item;
+         ^^^^ IS_REFERENCED_BY qualified
     (this).item;
+           ^^^^ IS_REFERENCED_BY qualified
   }
 }
 ''');
@@ -6906,9 +6966,7 @@ class A {
   void f() {
     item;
     this.item;
-         ^^^^ IS_READ_BY qualified
     (this).item;
-           ^^^^ IS_READ_BY qualified
   }
 }
 ''',

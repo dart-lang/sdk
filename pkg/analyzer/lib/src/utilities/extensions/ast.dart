@@ -33,7 +33,7 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(parent: var parent)
+        case FunctionExpression(:var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
@@ -223,6 +223,12 @@ extension ExtensionElementExtension on ExtensionElement {
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension TokenExtension on Token {
+  /// The first preceding comment before this token, or this token if there are
+  /// no preceding comments.
+  Token get precedingCommentOrThis => precedingComments ?? this;
 }
 
 extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {

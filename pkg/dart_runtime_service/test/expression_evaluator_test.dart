@@ -7,26 +7,71 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:test/test.dart';
 
 base class TestExpressionEvaluator extends ExpressionEvaluator {
-  TestExpressionEvaluator()
-    : super(clients: UnmodifiableClientNamedLookup(ClientNamedLookup()));
+  TestExpressionEvaluator({UnmodifiableClientNamedLookup? clients})
+    : super(
+        clients: clients ?? UnmodifiableClientNamedLookup(ClientNamedLookup()),
+      );
 
   Map<String, Object?> testBuildCompileParams({
-    required String isolateId,
     required String expression,
+    required String isolateId,
     required Map<String, Object?> scope,
   }) => buildCompileParams(
-    isolateId: isolateId,
     expression: expression,
+    isolateId: isolateId,
     scope: scope,
   );
 
   @override
-  Future<RpcResponse> evaluate(json_rpc.Parameters parameters) =>
-      throw UnimplementedError();
+  Future<Map<String, Object?>> buildScope({
+    required String isolateId,
+    int? frameIndex,
+    Map<String, String>? scope,
+    String? targetId,
+  }) async {
+    return <String, Object?>{
+      'isolateId': isolateId,
+      'klass': 'MyClass',
+      'libraryUri': 'file:///test.dart',
+      'param_names': <String>['x'],
+      'param_types': <String>['int'],
+      'tokenPos': 123,
+    };
+  }
 
   @override
-  Future<RpcResponse> evaluateInFrame(json_rpc.Parameters parameters) =>
-      throw UnimplementedError();
+  Future<RpcResponse> evaluateCompiledExpression({
+    required String expression,
+    required String isolateId,
+    required String kernelBase64,
+    bool? disableBreakpoints,
+    int? frameIndex,
+    String? idZoneId,
+    Map<String, String>? scope,
+    String? targetId,
+  }) async {
+    return <String, Object?>{
+      'type': 'InstanceRef',
+      'valueAsString': 'evaluated:$expression:$kernelBase64',
+    };
+  }
+
+  @override
+  Future<RpcResponse> fallbackCompileAndEvaluate({
+    required String expression,
+    required String isolateId,
+    required String method,
+    bool? disableBreakpoints,
+    int? frameIndex,
+    String? idZoneId,
+    Map<String, String>? scope,
+    String? targetId,
+  }) async {
+    return <String, Object?>{
+      'type': 'InstanceRef',
+      'valueAsString': 'fallback:$method:$expression',
+    };
+  }
 }
 
 void main() {
@@ -48,8 +93,8 @@ void main() {
       };
 
       final result = evaluator.testBuildCompileParams(
-        isolateId: 'isolates/1',
         expression: 'x + 1',
+        isolateId: 'isolates/1',
         scope: scope,
       );
 
@@ -60,5 +105,40 @@ void main() {
       expect(result['klass'], equals('MyClass'));
       expect(result['scriptUri'], equals('file:///test.dart'));
     });
+
+    test('evaluate falls back when no external compiler is present', () async {
+      final evaluator = TestExpressionEvaluator();
+      final response = await evaluator.evaluate(
+        json_rpc.Parameters('evaluate', {
+          'isolateId': 'isolates/1',
+          'targetId': 'targets/1',
+          'expression': '1 + 2',
+        }),
+      );
+
+      expect(response, {
+        'type': 'InstanceRef',
+        'valueAsString': 'fallback:evaluate:1 + 2',
+      });
+    });
+
+    test(
+      'evaluateInFrame falls back when no external compiler is present',
+      () async {
+        final evaluator = TestExpressionEvaluator();
+        final response = await evaluator.evaluateInFrame(
+          json_rpc.Parameters('evaluateInFrame', {
+            'isolateId': 'isolates/1',
+            'frameIndex': 0,
+            'expression': 'myVar',
+          }),
+        );
+
+        expect(response, {
+          'type': 'InstanceRef',
+          'valueAsString': 'fallback:evaluateInFrame:myVar',
+        });
+      },
+    );
   });
 }

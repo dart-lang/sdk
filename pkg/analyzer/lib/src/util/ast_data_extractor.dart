@@ -235,6 +235,13 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    var name = node.name;
+    computeForToken(name, NodeId(name.offset, IdKind.node));
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     // The property name is token-valued, but is a source location to which
     // `IdKind.node` annotations can be attached.
@@ -293,6 +300,8 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
       offset = node.argumentList.leftParenthesis.offset;
     } else if (node is PrefixedIdentifier) {
       offset = node.identifier.offset;
+    } else if (node is ReceiverPropertyExtraction) {
+      offset = node.name.offset;
     } else if (node is SwitchExpressionCase) {
       offset = node.arrow.offset;
     } else {

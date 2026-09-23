@@ -38,6 +38,8 @@ class IncrementalJavaScriptBundler {
     this._fileSystem,
     this._loadedLibraries,
     this._fileSystemScheme, {
+    Map<Library, Component> loadedLibraryToSummary = const {},
+    Map<Component, String> loadedSummaryToLibraryBundleName = const {},
     this.useDebuggerModuleNames = false,
     this.emitDebugMetadata = false,
     this.emitDebugSymbols = false,
@@ -45,7 +47,11 @@ class IncrementalJavaScriptBundler {
     this.canaryFeatures = false,
     String? moduleFormat,
     this.extraDdcOptions = const [],
-  }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd');
+  }) : _moduleFormat = parseModuleFormat(moduleFormat ?? 'amd') {
+    // Libraries already loaded from --import-dill
+    _libraryToSummary.addAll(loadedLibraryToSummary);
+    _summaryToLibraryBundleName.addAll(loadedSummaryToLibraryBundleName);
+  }
 
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
@@ -91,9 +97,9 @@ class IncrementalJavaScriptBundler {
       initialLibraryUris =
           _strongComponents.libraryBundleImportToLibraries.keys;
     } else {
-      initialLibraryUris = fullComponent.libraries.map(
-        (library) => library.importUri,
-      );
+      initialLibraryUris = fullComponent.libraries
+          .where((lib) => shouldCompileToJavaScript(lib, _loadedLibraries))
+          .map((library) => library.importUri);
     }
     _updateSummaries(initialLibraryUris, packageConfig);
   }
@@ -148,9 +154,11 @@ class IncrementalJavaScriptBundler {
               .importUri],
       };
     } else {
-      invalidatedLibraryUris = partialComponent.libraries.map(
-        (library) => library.importUri,
-      );
+      invalidatedLibraryUris = <Uri>[
+        for (Library library in partialComponent.libraries)
+          if (shouldCompileToJavaScript(library, _loadedLibraries))
+            library.importUri,
+      ];
     }
     _updateSummaries(invalidatedLibraryUris, packageConfig);
   }
@@ -261,8 +269,7 @@ class IncrementalJavaScriptBundler {
     final Map<String, Compiler> kernel2JsCompilers = {};
 
     for (Library library in _currentComponent.libraries) {
-      if (_loadedLibraries.contains(library) ||
-          library.importUri.isScheme('dart')) {
+      if (!shouldCompileToJavaScript(library, _loadedLibraries)) {
         continue;
       }
 

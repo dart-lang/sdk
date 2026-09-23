@@ -648,7 +648,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandConstructorInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -661,7 +660,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandConstructorInvocation2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -679,7 +677,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
@@ -694,7 +691,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandMethodInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -715,7 +711,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandNameExpression');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
         _writeDotShorthandContextResolution(
           'shorthandContext',
@@ -735,7 +730,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DotShorthandPropertyAccess');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -882,6 +876,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeElement('element', node.element);
       _writeType('extendedType', node.extendedType);
       _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    _sink.writeln('ExtensionOverride2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
+      _writeType('extendedType', node.extendedType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
@@ -1337,19 +1342,69 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       if (_withResolution) {
         switch (node.read) {
           case InvalidReadResolutionImpl(:var type):
+            expect(type, isA<InvalidType>());
             _sink.writelnWithIndent('read: InvalidReadResolution');
-            _sink.withIndent(() {
-              _writeType('type', type);
-            });
         }
         switch (node.write) {
           case InvalidWriteResolutionImpl(:var acceptedType):
+            expect(acceptedType, isA<InvalidType>());
             _sink.writelnWithIndent('write: InvalidWriteResolution');
-            _sink.withIndent(() {
-              _writeType('acceptedType', acceptedType);
-            });
         }
       }
+    });
+  }
+
+  @override
+  void visitInvalidExtensionOverrideAssignmentTarget(
+    InvalidExtensionOverrideAssignmentTarget node,
+  ) {
+    _sink.writeln('InvalidExtensionOverrideAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        if (node.read != null) {
+          _sink.writelnWithIndent('read: InvalidReadResolution');
+        }
+        if (node.write != null) {
+          _sink.writelnWithIndent('write: InvalidWriteResolution');
+        }
+      }
+    });
+  }
+
+  @override
+  void visitInvalidExtensionOverrideExpression(
+    InvalidExtensionOverrideExpression node,
+  ) {
+    _sink.writeln('InvalidExtensionOverrideExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitInvalidSuperAssignmentTarget(InvalidSuperAssignmentTarget node) {
+    _sink.writeln('InvalidSuperAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        if (node.read != null) {
+          _sink.writelnWithIndent('read: InvalidReadResolution');
+        }
+        if (node.write != null) {
+          _sink.writelnWithIndent('write: InvalidWriteResolution');
+        }
+      }
+    });
+  }
+
+  @override
+  void visitInvalidSuperExpression(InvalidSuperExpression node) {
+    _sink.writeln('InvalidSuperExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeType('staticType', node.staticType);
     });
   }
 
@@ -1637,6 +1692,67 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _writePatternMatchedValueType(node);
     });
+  }
+
+  @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    _sink.writeln('ParsedCascadeName');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedDotShorthandExpression(ParsedDotShorthandExpression node) {
+    _sink.writeln('ParsedDotShorthandExpression');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    _sink.writeln('ParsedDotShorthandName');
+    _sink.withIndent(() {
+      _writeToken('period', node.period);
+      _writeToken('name', node.name);
+    });
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    _sink.writeln('ParsedNameAccess');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    _sink.writeln('ParsedNameAccessAssignmentTarget');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedTypeArguments(ParsedTypeArguments node) {
+    _sink.writeln('ParsedTypeArguments');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _sink.writeln('ParsedUnqualifiedName');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _sink.writeln('ParsedUnqualifiedNameAssignmentTarget');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
+  }
+
+  @override
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    _sink.writeln('ParsedValueArguments');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override
@@ -2037,6 +2153,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _sink.writeln('StaticQualifier');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('element', node.element);
+      }
+    });
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation node) {
     _sink.writeln('StringInterpolation');
     _sink.withIndent(() {
@@ -2074,6 +2201,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _assertFormalParameterDeclaredElement(node);
       _writeDeclaredFragment(node.declaredFragment);
     });
+  }
+
+  @override
+  void visitSuperReference(SuperReference node) {
+    _sink.writeln('SuperReference');
+    _sink.withIndent(() => _writeNamedChildEntities(node));
   }
 
   @override
@@ -2686,11 +2819,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.withIndent(() {
           _writeType('type', resolution.type);
         });
-      case InvalidIndexReadResolutionImpl(:var recovery):
+      case InvalidIndexReadResolutionImpl(:var recoveryElement):
+        expect(resolution.type, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidIndexReadResolution');
         _sink.withIndent(() {
-          _writeType('type', resolution.type);
-          _writeIndexReadResolution('recovery', recovery);
+          _writeElement('recoveryElement', recoveryElement);
         });
       case MethodIndexReadResolutionImpl():
         _sink.writelnWithIndent('$name: MethodIndexReadResolution');
@@ -2714,11 +2847,11 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.withIndent(() {
           _writeType('acceptedType', resolution.acceptedType);
         });
-      case InvalidIndexWriteResolutionImpl(:var recovery):
+      case InvalidIndexWriteResolutionImpl(:var recoveryElement):
+        expect(resolution.acceptedType, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidIndexWriteResolution');
         _sink.withIndent(() {
-          _writeType('acceptedType', resolution.acceptedType);
-          _writeIndexWriteResolution('recovery', recovery);
+          _writeElement('recoveryElement', recoveryElement);
         });
       case MethodIndexWriteResolutionImpl():
         _sink.writelnWithIndent('$name: MethodIndexWriteResolution');
@@ -2927,16 +3060,10 @@ Expected parent: (${parent.runtimeType}) $parent
           _writeType('type', resolution.type);
         });
       case InvalidNamedReadResolutionImpl():
+        expect(resolution.type, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidNamedReadResolution');
         _sink.withIndent(() {
-          _writeType('type', resolution.type);
-          _sink.writelnWithIndent('candidates');
-          _sink.withIndent(() {
-            for (var candidate in resolution.candidates) {
-              _writeElement('candidate', candidate);
-            }
-          });
-          _writeNamedReadResolution('recovery', resolution.recovery);
+          _writeElement('recoveryElement', resolution.recoveryElement);
         });
       case RecordFieldReadResolutionImpl():
         _sink.writelnWithIndent('$name: RecordFieldReadResolution');
@@ -2960,21 +3087,10 @@ Expected parent: (${parent.runtimeType}) $parent
       case null:
         _sink.writelnWithIndent('$name: <null>');
       case InvalidNamedWriteResolutionImpl():
+        expect(resolution.acceptedType, isA<InvalidType>());
         _sink.writelnWithIndent('$name: InvalidNamedWriteResolution');
         _sink.withIndent(() {
-          _writeType('acceptedType', resolution.acceptedType);
-          _sink.writelnWithIndent('candidates');
-          _sink.withIndent(() {
-            for (var candidate in resolution.candidates) {
-              _writeElement('candidate', candidate);
-            }
-          });
-          var recovery = resolution.recovery;
-          if (recovery == null) {
-            _sink.writelnWithIndent('recovery: <null>');
-          } else {
-            _writeNamedWriteResolution('recovery', recovery);
-          }
+          _writeElement('recoveryElement', resolution.recoveryElement);
         });
       case SetterInvocationResolutionImpl():
         _sink.writelnWithIndent('$name: SetterInvocationResolution');

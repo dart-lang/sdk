@@ -310,7 +310,12 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable2: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: <empty> <synthetic>
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    iterable(v1): SimpleIdentifier
       token: <empty> <synthetic>
       element: <null>
       staticType: InvalidType
@@ -466,9 +471,13 @@ ForStatement
       name: v
       declaredFragment: isPublic v@70
         element: hasImplicitType isPublic
-          type: int
+          type: InvalidType
     inKeyword: in
-    iterable2: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
   rightParenthesis: )
@@ -1175,7 +1184,11 @@ ForStatement
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
-    iterable2: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
     write: VariableWriteResolution
@@ -2539,12 +2552,16 @@ ForStatement
         name: a
         declaredFragment: isPublic a@71
           element: hasImplicitType isPublic
-            type: int
-        matchedValueType: int
+            type: InvalidType
+        matchedValueType: InvalidType
       rightParenthesis: )
-      matchedValueType: int
+      matchedValueType: InvalidType
     inKeyword: in
-    iterable2: SuperExpression
+    iterable2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+      staticType: InvalidType
+    iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
   rightParenthesis: )
@@ -3528,9 +3545,11 @@ ForStatement
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
     condition2: CallInvocation
-      receiver: SimpleIdentifier
-        token: b
-        element: <testLibrary>::@function::f::@formalParameter::b
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::b
+          type: bool Function()
         staticType: bool Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -3740,6 +3759,11 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
     updaters2
+      InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+        staticType: InvalidType
+    updaters(v1)
       SuperExpression
         superKeyword: super
         staticType: A

@@ -142,7 +142,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
   ) {
     if (parent.childrenArgument case var childrenArgument?) {
       if (childrenArgument.argumentExpression case ListLiteral list) {
-        if (list.elements case NodeList(length: 1, first: var first)) {
+        if (list.elements case NodeList(length: 1, :var first)) {
           if (first is InstanceCreationExpression) {
             return first;
           }

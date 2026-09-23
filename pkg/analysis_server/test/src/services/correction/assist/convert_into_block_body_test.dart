@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodyTest extends AssistProcessorTest {
+class ConvertIntoBlockBodyTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoBlockBody;
 
@@ -83,6 +83,13 @@ class C {}
   Future<void> test_container_class_block() async {
     await resolveTestCode('''
 class C ^{}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_container_class_block_onKeyword() async {
+    await resolveTestCode('''
+^class C {}
 ''');
     await assertNoAssist();
   }

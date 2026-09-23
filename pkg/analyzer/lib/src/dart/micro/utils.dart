@@ -179,14 +179,14 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   // prepare used element
   Element? usedElement;
   var parent = prefixNode.parent2;
-  if (parent is ExtensionOverride) {
+  if (parent is ExtensionOverride2) {
     usedElement = parent.element;
   } else if (parent is NamedType) {
     usedElement = parent.element;
   } else if (parent is ImportPrefixedAssignmentTarget) {
     usedElement = switch (parent.write) {
-      InvalidNamedWriteResolution(:var candidates) => candidates.firstOrNull,
-      _ => parent.write?.element ?? parent.read.elementOrRecovery,
+      InvalidNamedWriteResolution(:var recoveryElement) => recoveryElement,
+      _ => parent.write?.element ?? parent.read?.elementOrRecovery,
     };
   }
   if (usedElement == null) {
@@ -403,52 +403,6 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   ReferencesCollector(this.element);
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var writeElement = node.writeElement;
-    if (writeElement is PropertyAccessorElement) {
-      var kind = MatchKind.WRITE;
-      if (writeElement.variable == element || writeElement == element) {
-        if (node.leftHandSide2 is SimpleIdentifier) {
-          references.add(
-            MatchInfo(
-              node.leftHandSide2.offset,
-              node.leftHandSide2.length,
-              kind,
-            ),
-          );
-        } else if (node.leftHandSide2 is PrefixedIdentifier) {
-          var prefixIdentifier = node.leftHandSide2 as PrefixedIdentifier;
-          references.add(
-            MatchInfo(
-              prefixIdentifier.identifier.offset,
-              prefixIdentifier.identifier.length,
-              kind,
-            ),
-          );
-        } else if (node.leftHandSide2 is PropertyAccess) {
-          var accessor = node.leftHandSide2 as PropertyAccess;
-          references.add(
-            MatchInfo(accessor.propertyName.offset, accessor.length, kind),
-          );
-        }
-      }
-    }
-
-    var readElement = node.readElement;
-    if (readElement is PropertyAccessorElement) {
-      if (readElement.variable == element) {
-        references.add(
-          MatchInfo(
-            node.rightHandSide2.offset,
-            node.rightHandSide2.length,
-            MatchKind.READ,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     _visitNamedFunctionInvocation(node);
   }
@@ -483,23 +437,10 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     var target = node.target;
-    if (target is PropertyAssignmentTarget ||
-        target is UnqualifiedNameAssignmentTarget) {
-      var readMatches = _matches(target.read?.element);
-      var writeMatches = _matches(target.write?.element);
-      if (readMatches || writeMatches) {
-        var kind = readMatches && writeMatches
-            ? MatchKind.READ_WRITE
-            : readMatches
-            ? MatchKind.READ
-            : MatchKind.WRITE;
-        var entity = switch (target) {
-          PropertyAssignmentTarget() => target.propertyName,
-          UnqualifiedNameAssignmentTarget() => target,
-          _ => target,
-        };
-        references.add(MatchInfo(entity.offset, entity.length, kind));
-      }
+    // Import-prefixed targets are recorded by their own visitor.
+    if (target is NamedAssignmentTarget &&
+        target is! ImportPrefixedAssignmentTarget) {
+      _recordNamedReadWriteTarget(target);
     }
     super.visitCompoundAssignment(node);
   }
@@ -597,15 +538,15 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       case WriteResolution(element: PropertyAccessorElement writeElement):
         if (_matches(writeElement)) {
           var entity = switch (target) {
-            PropertyAssignmentTarget() => target.propertyName,
+            PropertyAssignmentTarget() => target.name,
             _ => target,
           };
           references.add(
             MatchInfo(entity.offset, entity.length, MatchKind.WRITE),
           );
         }
-      case InvalidNamedWriteResolution(:var candidates):
-        if (candidates.any(_matches)) {
+      case InvalidNamedWriteResolution(:var recoveryElement):
+        if (_matches(recoveryElement)) {
           references.add(
             MatchInfo(target.offset, target.length, MatchKind.REFERENCE),
           );
@@ -639,23 +580,9 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     var target = node.target;
-    if (target is PropertyAssignmentTarget ||
-        target is UnqualifiedNameAssignmentTarget) {
-      var readMatches = _matches(target.read?.element);
-      var writeMatches = _matches(target.write?.element);
-      if (readMatches || writeMatches) {
-        var kind = readMatches && writeMatches
-            ? MatchKind.READ_WRITE
-            : readMatches
-            ? MatchKind.READ
-            : MatchKind.WRITE;
-        var entity = switch (target) {
-          PropertyAssignmentTarget() => target.propertyName,
-          UnqualifiedNameAssignmentTarget() => target,
-          _ => target,
-        };
-        references.add(MatchInfo(entity.offset, entity.length, kind));
-      }
+    if (target is NamedAssignmentTarget &&
+        target is! ImportPrefixedAssignmentTarget) {
+      _recordNamedReadWriteTarget(target);
     }
     super.visitIfNullAssignment(node);
   }
@@ -673,8 +600,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       (false, false) => null,
     };
     if (node.write case InvalidNamedWriteResolution(
-      :var candidates,
-    ) when kind == null && candidates.any(_matches)) {
+      :var recoveryElement,
+    ) when kind == null && _matches(recoveryElement)) {
       kind = MatchKind.REFERENCE;
     }
     if (kind != null) {
@@ -731,6 +658,12 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedRead(node.name, node.resolution);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -768,6 +701,16 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       }
       references.add(MatchInfo(node.offset, node.length, kind));
     }
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    if (node.element == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+    node.importPrefix?.accept2(this);
   }
 
   @override
@@ -813,7 +756,16 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     SyntacticEntity entity,
     NamedReadResolution? resolution,
   ) {
-    var readElement = resolution.elementOrRecovery;
+    if (resolution case InvalidNamedReadResolution(:var recoveryElement)) {
+      if (_matches(recoveryElement)) {
+        references.add(
+          MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
+        );
+      }
+      return;
+    }
+
+    var readElement = resolution?.element;
     if (readElement == element) {
       references.add(
         MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
@@ -821,6 +773,20 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     } else if (readElement is GetterElement &&
         readElement.variable == element) {
       references.add(MatchInfo(entity.offset, entity.length, MatchKind.READ));
+    }
+  }
+
+  void _recordNamedReadWriteTarget(NamedAssignmentTarget target) {
+    var readMatches = _matches(target.read?.element);
+    var writeMatches = _matches(target.write?.element);
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => MatchKind.READ_WRITE,
+      (true, false) => MatchKind.READ,
+      (false, true) => MatchKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      references.add(MatchInfo(target.name.offset, target.name.length, kind));
     }
   }
 

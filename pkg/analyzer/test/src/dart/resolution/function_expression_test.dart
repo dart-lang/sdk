@@ -123,9 +123,7 @@ FormalParameterList
           value2: UnqualifiedNameExpression
             name: x
             resolution: InvalidNamedReadResolution
-              type: InvalidType
-              candidates
-              recovery: <null>
+              recoveryElement: <null>
             staticType: InvalidType
           value(v1): SimpleIdentifier
             token: x

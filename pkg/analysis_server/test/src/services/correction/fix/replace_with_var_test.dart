@@ -575,6 +575,52 @@ String f() {
     await assertNoFix();
   }
 
+  Future<void> test_simple_dotShorthand_chain_method() async {
+    await resolveTestCode('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  A a = .named().method();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named();
+  A method() => this;
+}
+void f() {
+  var a = A.named().method();
+  print(a);
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_chain_property() async {
+    await resolveTestCode('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  A a = .value.self;
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A get value => A();
+  A get self => this;
+}
+void f() {
+  var a = A.value.self;
+  print(a);
+}
+''');
+  }
+
   Future<void> test_simple_dotShorthand_constructorInvocation() async {
     await resolveTestCode('''
 class E {}

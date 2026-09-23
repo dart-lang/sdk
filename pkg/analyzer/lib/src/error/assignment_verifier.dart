@@ -51,9 +51,9 @@ class AssignmentVerifier {
     required DartType receiverType,
   }) {
     _verify(
-      node: node.propertyName,
-      name: node.propertyName.lexeme,
-      isSynthetic: node.propertyName.isSynthetic,
+      node: node.name,
+      name: node.name.lexeme,
+      isSynthetic: node.name.isSynthetic,
       requested: requested,
       recovery: recovery,
       receiverType: receiverType,

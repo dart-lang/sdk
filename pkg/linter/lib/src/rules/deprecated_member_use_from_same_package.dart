@@ -16,7 +16,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show DeprecatedElementUsageSet, normalizeDeprecationMessage;
 import 'package:analyzer/src/error/element_usage_detector.dart' // ignore: implementation_imports
-    show ElementUsageReporter, UsageSetAndReporter;
+    show ElementUsageKind, ElementUsageReporter, UsageSetAndReporter;
 import 'package:analyzer/src/error/element_usage_frontier_detector.dart' // ignore: implementation_imports
     show ElementUsageFrontierDetector;
 import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
@@ -63,7 +63,7 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     if (!isInSamePackage) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.

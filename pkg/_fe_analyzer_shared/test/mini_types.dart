@@ -1795,8 +1795,13 @@ class UnknownType extends Type implements SharedUnknownType {
   int get hashCode => Object.hash(runtimeType, isQuestionType);
 
   @override
-  bool operator ==(Object other) =>
-      other is UnknownType && isQuestionType == other.isQuestionType;
+  bool operator ==(Object other) {
+    // TODO(cstefantsova): Find a way to avoid testing for the specific
+    // [runtimeType].
+    return other is UnknownType &&
+        other.runtimeType == UnknownType &&
+        isQuestionType == other.isQuestionType;
+  }
 
   @override
   Type asQuestionType(bool isQuestionType) =>
@@ -1817,6 +1822,151 @@ class UnknownType extends Type implements SharedUnknownType {
 
   @override
   String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) => '_';
+}
+
+/// Representation of the invocation structural context type suitable for unit
+/// testing of code in the `_fe_analyzer_shared` package.
+class InvocationStructuralContextType extends UnknownType
+    implements SharedInvocationStructuralContextType {
+  @override
+  final Type returnType;
+
+  InvocationStructuralContextType({
+    required this.returnType,
+    super.isQuestionType = false,
+  });
+
+  @override
+  int get hashCode => Object.hash(runtimeType, isQuestionType, returnType);
+
+  @override
+  bool operator ==(Object other) =>
+      other is InvocationStructuralContextType &&
+      isQuestionType == other.isQuestionType &&
+      returnType == other.returnType;
+
+  @override
+  Type asQuestionType(bool isQuestionType) => InvocationStructuralContextType(
+    returnType: returnType,
+    isQuestionType: isQuestionType,
+  );
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    returnType.gatherUsedIdentifiers(identifiers);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? demotedReturnType = returnType.recursivelyDemote(
+      covariant: covariant,
+    );
+    if (demotedReturnType == null) {
+      return null;
+    } else {
+      return InvocationStructuralContextType(
+        returnType: demotedReturnType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    Type? substitutedReturnType = returnType.substitute(substitution);
+    if (substitutedReturnType == null) {
+      return null;
+    } else {
+      return InvocationStructuralContextType(
+        returnType: substitutedReturnType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) {
+    return _parenthesizeIf(
+      parenthesizeIfComplex,
+      '(...) -> ${returnType.toString(parenthesizeIfComplex: true)}',
+    );
+  }
+}
+
+/// Representation of the lookup structural context type suitable for unit
+/// testing of code in the `_fe_analyzer_shared` package.
+class LookupStructuralContextType extends UnknownType
+    implements SharedLookupStructuralContextType {
+  @override
+  final String lookupName;
+
+  @override
+  final Type lookupType;
+
+  LookupStructuralContextType({
+    required this.lookupName,
+    required this.lookupType,
+    super.isQuestionType = false,
+  });
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, isQuestionType, lookupName, lookupType);
+
+  @override
+  bool operator ==(Object other) =>
+      other is LookupStructuralContextType &&
+      isQuestionType == other.isQuestionType &&
+      lookupName == other.lookupName &&
+      lookupType == other.lookupType;
+
+  @override
+  Type asQuestionType(bool isQuestionType) => LookupStructuralContextType(
+    lookupName: lookupName,
+    lookupType: lookupType,
+    isQuestionType: isQuestionType,
+  );
+
+  @override
+  void gatherUsedIdentifiers(Set<String> identifiers) {
+    // Since there's no risk of confusion between generated type names
+    // and lookup names, [lookupName] isn't added to [identifiers].
+    lookupType.gatherUsedIdentifiers(identifiers);
+  }
+
+  @override
+  Type? recursivelyDemote({required bool covariant}) {
+    Type? demotedLookupType = lookupType.recursivelyDemote(
+      covariant: covariant,
+    );
+    if (demotedLookupType == null) {
+      return null;
+    } else {
+      return LookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: demotedLookupType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  Type? substitute(Map<TypeParameter, Type> substitution) {
+    Type? substitutedLookupType = lookupType.substitute(substitution);
+    if (substitutedLookupType == null) {
+      return null;
+    } else {
+      return LookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: substitutedLookupType,
+        isQuestionType: isQuestionType,
+      );
+    }
+  }
+
+  @override
+  String _toStringWithoutSuffix({required bool parenthesizeIfComplex}) =>
+      '{$lookupName: $lookupType}';
 }
 
 /// Representation of the type `void` suitable for unit testing of code in the
@@ -2070,6 +2220,41 @@ class _PreUnknownType extends _PreType {
       const UnknownType();
 }
 
+/// Representation of a [LookupStructuralContextType] that has been parsed but
+/// hasn't had meaning assigned to its identifiers yet.
+class _PreLookupStructuralContextType extends _PreType {
+  final String lookupName;
+  final _PreType lookupType;
+
+  _PreLookupStructuralContextType({
+    required this.lookupName,
+    required this.lookupType,
+  });
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    return LookupStructuralContextType(
+      lookupName: lookupName,
+      lookupType: lookupType.materialize(typeFormalScope: typeFormalScope),
+    );
+  }
+}
+
+/// Representation of an [InvocationStructuralContextType] that has been parsed
+/// but hasn't had meaning assigned to its identifiers yet.
+class _PreInvocationStructuralContextType extends _PreType {
+  final _PreType returnType;
+
+  _PreInvocationStructuralContextType({required this.returnType});
+
+  @override
+  Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
+    return InvocationStructuralContextType(
+      returnType: returnType.materialize(typeFormalScope: typeFormalScope),
+    );
+  }
+}
+
 /// Shared implementation of the types `void`, `dynamic`, `null`, `Never`, and
 /// the invalid type.
 ///
@@ -2105,7 +2290,7 @@ abstract class _Substitutable<T extends _Substitutable<T>> {
 
 class _TypeParser {
   static final _typeTokenizationRegexp = RegExp(
-    _identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]',
+    _identifierPattern + r'|\(|\)|<|>|,|\?|\*|&|{|}|\[|\]|:|\.\.\.|->',
   );
 
   static const _identifierPattern = '[_a-zA-Z][_a-zA-Z0-9]*';
@@ -2314,6 +2499,8 @@ class _TypeParser {
     //                   | `(` recordTypeFields `,` recordTypeNamedFields `)`
     //                   | `(` recordTypeFields `,`? `)`
     //                   | `(` recordTypeNamedFields? `)`
+    //                   | `{` identifier `:` type `}`
+    //                   | `(` `...` `)` `->` type
     //   recordTypeFields := type (`,` type)*
     //   recordTypeNamedFields := `{` recordTypeNamedField
     //                            (`,` recordTypeNamedField)* `,`? `}`
@@ -2382,6 +2569,19 @@ class _TypeParser {
       if (_currentToken == ')' || _currentToken == '{') {
         return _parseRecordTypeRest([]);
       }
+      if (_currentToken == '...') {
+        _next();
+        if (_currentToken != ')') {
+          _parseFailure('Expected `)`');
+        }
+        _next();
+        if (_currentToken != '->') {
+          _parseFailure('Expected `->`');
+        }
+        _next();
+        var returnType = _parseType();
+        return _PreInvocationStructuralContextType(returnType: returnType);
+      }
       var type = _parseType();
       if (_currentToken == ',') {
         _next();
@@ -2392,6 +2592,27 @@ class _TypeParser {
       }
       _next();
       return type;
+    }
+    if (_currentToken == '{') {
+      _next();
+      var lookupName = _currentToken;
+      if (_identifierRegexp.matchAsPrefix(lookupName) == null) {
+        _parseFailure('Expected an identifier');
+      }
+      _next();
+      if (_currentToken != ':') {
+        _parseFailure('Expected `:`');
+      }
+      _next();
+      var lookupType = _parseType();
+      if (_currentToken != '}') {
+        _parseFailure('Expected `}`');
+      }
+      _next();
+      return _PreLookupStructuralContextType(
+        lookupName: lookupName,
+        lookupType: lookupType,
+      );
     }
     var typeName = _currentToken;
     if (_identifierRegexp.matchAsPrefix(typeName) == null) {

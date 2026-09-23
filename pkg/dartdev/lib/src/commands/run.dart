@@ -23,6 +23,7 @@ import 'package:yaml/yaml.dart';
 
 import '../core.dart';
 import '../eval_packages.dart';
+import '../executable_compiler.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
@@ -38,6 +39,10 @@ class RunCommand extends DartdevCommand {
   static const gitRefOption = 'git-ref';
   static const gitPathOption = 'git-path';
 
+  // kDartFrontendErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const dartFrontendErrorExitCode = 252;
+  // kCompilationErrorExitCode, as defined in runtime/bin/error_exit.h
+  static const compilationErrorExitCode = 254;
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
 
@@ -55,11 +60,13 @@ class RunCommand extends DartdevCommand {
 
   final bool nativeAssetsExperimentEnabled;
   final bool dataAssetsExperimentEnabled;
+  final List<String> vmArgs;
 
   RunCommand({
     bool verbose = false,
     this.nativeAssetsExperimentEnabled = false,
     this.dataAssetsExperimentEnabled = false,
+    this.vmArgs = const <String>[],
   }) : super(cmdName, '''
 Run a Dart program from a file or a local or remote package.
 
@@ -391,13 +398,13 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   /// [shouldRetryOnFrontendCompilerException] is true, when a
   /// [FrontendCompilerException] is encountered during compilation, the
   /// Resident Frontend Compiler will be restarted, and compilation will be
-  /// retried. This method returns the compiled kernel file if compilation
-  /// succeeds, otherwise it returns null.
-  static Future<DartExecutableWithPackageConfig?>
-  _compileToKernelUsingResidentCompiler({
+  /// retried. This method returns [_CompileToKernelResult] with the compiled
+  /// kernel file in `goodResult` if compilation succeeds, or the given
+  /// [CompilationIssue] in `error` otherwise.
+  static Future<_CompileToKernelResult> _compileToKernelUsingResidentCompiler({
     required DartExecutableWithPackageConfig executable,
     required File residentCompilerInfoFile,
-    required ArgResults args,
+    required GenerateKernelArguments args,
     required bool shouldRetryOnFrontendCompilerException,
     required bool quiet,
     String? nativeAssetsYaml,
@@ -411,14 +418,16 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     );
 
     try {
-      return await generateKernel(
-        executable,
-        residentCompilerInfoFile,
-        args,
-        createCompileJitJson,
-        quiet: quiet,
-        nativeAssetsYaml: nativeAssetsYaml,
-        progressUpdatesOnStderr: progressUpdatesOnStderr,
+      return _CompileToKernelResult.good(
+        await generateKernel(
+          executable,
+          residentCompilerInfoFile,
+          args,
+          createCompileJitJson,
+          quiet: quiet,
+          nativeAssetsYaml: nativeAssetsYaml,
+          progressUpdatesOnStderr: progressUpdatesOnStderr,
+        ),
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
@@ -451,14 +460,14 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           await shutDownOrForgetResidentFrontendCompiler(
             residentCompilerInfoFile,
           );
-          return null;
+          return _CompileToKernelResult.bad(e.issue);
         }
       } else {
         log.stderr(
           '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}',
         );
         log.stderr(e.message);
-        return null;
+        return _CompileToKernelResult.bad(e.issue);
       }
     }
   }
@@ -616,19 +625,51 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     DartExecutableWithPackageConfig executable;
-    final hasExperiments = args.enabledExperiments.isNotEmpty;
+    final String sourceExecutable;
     try {
       executable = await getExecutableForCommand(
         mainCommand,
-        allowSnapshot: !(useResidentCompiler || hasExperiments),
+        allowSnapshot: false,
       );
+      sourceExecutable = executable.executable;
+      if (!useResidentCompiler) {
+        executable = await ExecutableCompiler.compile(
+          resolvedExecutable: executable,
+          enabledExperiments: enabledExperiments,
+          quiet: args.option('verbosity') == Verbosity.error.name,
+        );
+      }
     } on CommandResolutionFailedException catch (e) {
       log.stderr(e.message);
       return errorExitCode;
+    } on CompilationException catch (e) {
+      log.stderr(e.message);
+      return errorExitCode;
     }
-    DartExecutableWithPackageConfig executableOriginal = executable;
 
     if (useResidentCompiler) {
+      // We need to merge the vm given arguments and the `dart run` given
+      // arguments because `dart -Dfoo=bar run -Dbar=baz file.dart` will have
+      // both `foo=bar` and `bar=baz` as defines, so `run -r` should too.
+      // We filter because we don't want the parser to throw on other things.
+      var vmArgsResult = argParser.parse(
+        vmArgs.where(
+          (s) {
+            // The arg parser supports "--define foo=bar", but the VM doesn't,
+            // so filtering like this for the vm arguments is fine.
+            return s.startsWith('--define=') ||
+                s.startsWith('-D') ||
+                s == '--enable-asserts' ||
+                s == '--no-enable-asserts' ||
+                s.startsWith('--enable-experiment=') ||
+                s.startsWith('--verbosity=');
+          },
+        ),
+      );
+
+      GenerateKernelArguments generateKernelArguments =
+          GenerateKernelArguments.fromArgResults([vmArgsResult, args]);
+
       final File? residentCompilerInfoFile =
           getResidentCompilerInfoFileConsideringArgs(args);
       if (residentCompilerInfoFile == null) {
@@ -670,19 +711,26 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         }
       } else if (!await isFileAppJitSnapshot(executableFile) &&
           !await isFileAotSnapshot(executableFile)) {
-        final compiledKernelFile = await _compileToKernelUsingResidentCompiler(
+        final compilationResult = await _compileToKernelUsingResidentCompiler(
           executable: executable,
           residentCompilerInfoFile: residentCompilerInfoFile,
-          args: args,
+          args: generateKernelArguments,
           shouldRetryOnFrontendCompilerException: true,
           quiet: args[quietOption] ?? false,
           nativeAssetsYaml: nativeAssets,
           progressUpdatesOnStderr: true,
         );
-        if (compiledKernelFile == null) {
-          return errorExitCode;
+        if (compilationResult.goodResult != null) {
+          executable = compilationResult.goodResult!;
         } else {
-          executable = compiledKernelFile;
+          switch (compilationResult.error!) {
+            case CompilationIssue.serverError:
+              return dartFrontendErrorExitCode;
+            case CompilationIssue.serverCreationError:
+              return dartFrontendErrorExitCode;
+            case CompilationIssue.compilationError:
+              return compilationErrorExitCode;
+          }
         }
       }
     } else if (nativeAssets != null) {
@@ -709,9 +757,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       packageConfigOverride:
           args.option('packages') ?? executable.packageConfig,
       useExecProcess: true,
-      scriptUriOverride: identical(executable, executableOriginal)
-          ? null
-          : executableOriginal.executable,
+      scriptUriOverride: executable.executable != sourceExecutable
+          ? sourceExecutable
+          : null,
       deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
     );
     return 0;
@@ -894,4 +942,13 @@ String? getPackageForCommand(String descriptor) {
     return null; // Root package.
   }
   return package;
+}
+
+class _CompileToKernelResult {
+  final DartExecutableWithPackageConfig? goodResult;
+  final CompilationIssue? error;
+
+  _CompileToKernelResult.good(DartExecutableWithPackageConfig this.goodResult)
+    : error = null;
+  _CompileToKernelResult.bad(CompilationIssue this.error) : goodResult = null;
 }

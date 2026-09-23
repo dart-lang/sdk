@@ -1502,7 +1502,7 @@ test() {
   return f;
 }
 ''');
-    assertType(result.findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.directAssignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
@@ -2371,7 +2371,7 @@ void test(Object x) {
       result.findNode.unqualifiedNameExpression('x; // promoted'),
       'Object Function()',
     );
-    assertType(result.findNode.assignment('x = B()'), 'B');
+    assertType(result.findNode.directAssignment('x = B()'), 'B');
     assertType(
       result.findNode.unqualifiedNameExpression('x; // demoted'),
       'Object',

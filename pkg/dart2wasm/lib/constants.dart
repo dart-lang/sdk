@@ -214,9 +214,11 @@ class Constants {
   }
 
   Constant makeWasmI32(int value) {
-    return InstanceConstant(translator.wasmI32Class.reference, const [], {
-      translator.wasmI32Value.fieldReference: IntConstant(value),
-    });
+    return InstanceConstant(
+      translator.wasmI32Class.reference,
+      DartTypeList.empty,
+      {translator.wasmI32Value.fieldReference: IntConstant(value)},
+    );
   }
 
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
@@ -231,7 +233,7 @@ class Constants {
   InstanceConstant makeNamedParameterConstant(NamedType n) {
     return InstanceConstant(
       translator.namedParameterClass.reference,
-      const [],
+      DartTypeList.empty,
       {
         translator.namedParameterNameField.fieldReference: translator.symbols
             .symbolForNamedParameter(n.name),
@@ -261,7 +263,7 @@ class Constants {
     mutable
         ? translator.wasmArrayClass.reference
         : translator.immutableWasmArrayClass.reference,
-    [elementType],
+    DartTypeList(elementType),
     {
       mutable
               ? translator.wasmArrayValueField.fieldReference
@@ -353,6 +355,7 @@ class Constants {
     Constant constant,
     w.ValueType expectedType, {
     w.ModuleBuilder? deferredModuleGuard,
+    bool dummyValueIfIncompatible = false,
   }) {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(
@@ -360,6 +363,7 @@ class Constants {
       b,
       expectedType,
       deferredModuleGuard,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     ).instantiate(constant);
   }
 
@@ -550,7 +554,11 @@ class Constants {
         nullability == Nullability.nullable
         ? _cachedTrueConstant
         : _cachedFalseConstant;
-    return InstanceConstant(classNode.reference, const [], fieldValues);
+    return InstanceConstant(
+      classNode.reference,
+      DartTypeList.empty,
+      fieldValues,
+    );
   }
 }
 
@@ -560,13 +568,15 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   final w.InstructionsBuilder b;
   final w.ValueType expectedType;
   final w.ModuleBuilder? deferredModuleGuard;
+  final bool dummyValueIfIncompatible;
 
   ConstantInstantiator(
     this.constants,
     this.b,
     this.expectedType,
-    this.deferredModuleGuard,
-  );
+    this.deferredModuleGuard, {
+    this.dummyValueIfIncompatible = false,
+  });
 
   Translator get translator => constants.translator;
 
@@ -576,6 +586,16 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       if (expectedType == const w.RefType.extern(nullable: true)) {
         assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
         b.extern_convert_any();
+      } else if (dummyValueIfIncompatible) {
+        // In a dispatch table call, an optional parameter may be declared by
+        // some targets in the selector (where it is always explicitly passed at
+        // call sites reaching those targets, giving it a narrower inferred type
+        // in the selector signature than its declared default value), while the
+        // targets actually reachable from this call site do not declare the
+        // parameter at all. Any reachable callee will ignore this parameter, so
+        // we can pass a dummy value of the expected signature type.
+        b.drop();
+        constants.instantiateDummyValueConstant(b, expectedType);
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.
@@ -1133,14 +1153,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitListConstant(ListConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableListClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         translator.listBaseLengthField.fieldReference: IntConstant(
           constant.entries.length,
         ),
         translator.listBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1162,7 +1182,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
     final instanceConstant = InstanceConstant(
       translator.immutableMapClass.reference,
-      [constant.keyType, constant.valueType],
+      DartTypeList(constant.keyType, constant.valueType),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1174,7 +1194,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1200,7 +1220,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitSetConstant(SetConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableSetClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1212,7 +1232,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,

@@ -148,6 +148,62 @@ bool Options::ProcessVMOptions(const char* arg,
   return false;
 }
 
+// Matches [arg] against an exact long option name (e.g. `--eval` or
+// `--eval=...`) and sets [*takes_separate_value] to true when the option value
+// is supplied in the next argv element rather than attached via `=`.
+static bool MatchesLongOption(const char* arg,
+                              const char* option_name,
+                              bool* takes_separate_value) {
+  const size_t len = strlen(option_name);
+  if (strncmp(arg, option_name, len) != 0) {
+    return false;
+  }
+  if (arg[len] == '\0') {
+    if (takes_separate_value != nullptr) {
+      *takes_separate_value = true;
+    }
+    return true;
+  }
+  if (arg[len] == '=') {
+    if (takes_separate_value != nullptr) {
+      *takes_separate_value = false;
+    }
+    return true;
+  }
+  return false;
+}
+
+// Returns true if [arg] is a `dart run` inline evaluation (`-e` / `--eval`) or
+// package constraint (`-P` / `--package-constraint`) option. Sets
+// [*takes_separate_value] to true if the option's value is in the next argv
+// element rather than attached via `=` or short-flag concatenation (`-eCODE`).
+//
+// `ParseDartDevArguments` scans arguments after `run` to extract VM flags
+// (`--enable-asserts`, `--observe`, `-D`, etc.) into `dart_vm_options` until
+// it sees the first non-flag token (`script_seen = true`). Without consuming
+// the space-separated value of `-P <pkg>` or `-e <code>`, `<pkg>` or `<code>`
+// (which do not start with `-`) would be mistaken for the positional
+// `<dart-file>` script, prematurely setting `script_seen = true` and ignoring
+// any VM flags passed after `-P` or `-e`.
+static bool IsDartDevEvalOrPackageOption(const char* arg,
+                                         bool* takes_separate_value = nullptr) {
+  bool is_match = false;
+  bool separate = false;
+  // Short forms `-e` and `-P` deliberately match both space-separated (`-e`)
+  // and attached (`-eCODE`, `-Pspec`) forms.
+  if (strncmp(arg, "-e", 2) == 0 || strncmp(arg, "-P", 2) == 0) {
+    is_match = true;
+    separate = (arg[2] == '\0');
+  } else if (MatchesLongOption(arg, "--eval", &separate) ||
+             MatchesLongOption(arg, "--package-constraint", &separate)) {
+    is_match = true;
+  }
+  if (takes_separate_value != nullptr) {
+    *takes_separate_value = is_match && separate;
+  }
+  return is_match;
+}
+
 bool Options::ParseDartDevArguments(int argc,
                                     char** argv,
                                     CommandLineOptions* vm_options,
@@ -275,6 +331,8 @@ bool Options::ParseDartDevArguments(int argc,
   USE(disable_dartdev_analytics);
   USE(packages_argument);
 
+  const bool is_run_command = (strcmp(argv[i], "run") == 0);
+
   // Record the dartdev command.
   dart_options->AddArgument(argv[i++]);
 
@@ -292,17 +350,30 @@ bool Options::ParseDartDevArguments(int argc,
   while (i < argc) {
     if (!IsOption(argv[i], "disable-dart-dev")) {
       if (!script_seen) {
+        bool separate_value = false;
         // We scan for VM options that are passed to the 'run' and 'test'
         // command. These options are accepted by both the VM and dartdev
         // commands and need to be carried over to the VM running the app for
         // these commands.
-        if (Options::ProcessVMOptions(argv[i], dart_vm_options)) {
+        if (is_run_command && strcmp(argv[i], "--") == 0) {
+          script_seen = true;
+          dart_options->AddArgument(argv[i]);
+        } else if (Options::ProcessVMOptions(argv[i], dart_vm_options)) {
           // dartdev isn't able to parse these options properly. Since it
           // doesn't need to use the values from these options, just strip them
           // from the argument list passed to dartdev.
           if (!IsOption(argv[i], "observe") &&
               !IsOption(argv[i], "enable-vm-service")) {
             dart_options->AddArgument(argv[i]);
+          }
+        } else if (is_run_command &&
+                   IsDartDevEvalOrPackageOption(argv[i], &separate_value)) {
+          // Consume both the `-e`/`-P` option and its space-separated value
+          // without setting `script_seen = true`, so any VM flags following
+          // `-P <pkg>` or `-e <code>` are still processed as VM options.
+          dart_options->AddArgument(argv[i]);
+          if (separate_value && (i + 1 < argc)) {
+            dart_options->AddArgument(argv[++i]);
           }
         } else {
           if (!OptionProcessor::IsValidFlag(argv[i]) &&

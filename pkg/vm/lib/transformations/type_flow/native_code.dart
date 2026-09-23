@@ -229,6 +229,9 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
           break;
         case PragmaEntryPointType.CanBeUsedAsType:
           throw "Error: only class or extension type can be used-as-type";
+        case PragmaEntryPointType.InitializerOnly:
+          throw "Error: 'init' is not a valid entry-point pragma annotation "
+              "argument for the procedure $proc.\n$_referenceToDocumentation";
       }
     }
 
@@ -299,6 +302,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
                 "$_referenceToDocumentation";
           }
           addSelector(CallKind.PropertySet);
+          break;
+        case PragmaEntryPointType.InitializerOnly:
+          entryPoints.addRawCall(
+            new DirectSelector(field, callKind: CallKind.SetFieldInConstructor),
+          );
           break;
         case PragmaEntryPointType.Default:
           addSelector(CallKind.PropertyGet);

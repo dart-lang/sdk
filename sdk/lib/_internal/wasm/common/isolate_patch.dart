@@ -4,8 +4,6 @@
 
 import "dart:_internal" show patch;
 
-import "dart:async" show Future, Stream;
-
 import "dart:typed_data" show TypedData;
 
 @patch
@@ -125,46 +123,6 @@ class Isolate {
   static Never exit([SendPort? finalMessagePort, Object? message]) {
     throw UnsupportedError("Isolate.exit");
   }
-
-  @patch
-  static Isolate create({String? debugName}) {
-    throw UnsupportedError("Isolate.create");
-  }
-
-  @patch
-  void shutdownSync() {
-    throw UnsupportedError("Isolate.shutdownSync");
-  }
-
-  @patch
-  R runSync<R>(R Function() f) {
-    throw UnsupportedError("Isolate.runSync");
-  }
-
-  @patch
-  static bool pinToCurrentThread() {
-    throw UnsupportedError("Isolate.pintToCurrentThread");
-  }
-
-  @patch
-  bool get isPinnedToCurrentThread {
-    throw UnsupportedError("Isolate.isPinnedToCurrentThread");
-  }
-
-  @patch
-  void runEventLoopSync() {
-    throw UnsupportedError("Isolate.runEventLoopSync");
-  }
-
-  @patch
-  void set onEvent(void Function(Isolate) callback) {
-    throw UnsupportedError("Isolate.onEvent");
-  }
-
-  @patch
-  void handleEvent() {
-    throw UnsupportedError("Isolate.handleEvent");
-  }
 }
 
 @patch
@@ -185,6 +143,14 @@ abstract class RawReceivePort {
   @patch
   factory RawReceivePort([Function? handler, String debugName = '']) {
     throw UnsupportedError("RawReceivePort");
+  }
+}
+
+@patch
+class Capability {
+  @patch
+  factory Capability() {
+    throw UnsupportedError("Capability");
   }
 }
 

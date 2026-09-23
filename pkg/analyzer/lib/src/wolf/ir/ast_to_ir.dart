@@ -20,8 +20,11 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ImportPrefixedFunctionInvocationImpl,
         ImportPrefixedNameExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
+        InvalidExtensionOverrideAssignmentTargetImpl,
+        InvalidSuperAssignmentTargetImpl,
         NamedFunctionInvocationImpl,
         NamedReadResolutionImpl,
+        ParsedAssignmentTargetImpl,
         ReceiverIndexAssignmentTargetImpl,
         ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
@@ -31,6 +34,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         UnqualifiedNameExpressionImpl,
         VariableReadResolutionImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
@@ -331,72 +335,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitAssignmentExpression(AssignmentExpression node) {
-    var previousNestingLevel = ir.nestingLevel;
-    var lValueTemplates = dispatchLValue(node.leftHandSide2);
-    // Stack: lValue
-    switch (node.operator.type) {
-      case TokenType.EQ:
-        dispatchNode(node.rightHandSide2);
-        // Stack: lValue rhs
-        eventListener.onEnterNode(node.leftHandSide2);
-        lValueTemplates.write(this);
-        // Stack: rhs
-        eventListener.onExitNode();
-      // Stack: result
-      case TokenType.QUESTION_QUESTION_EQ:
-        lValueTemplates.readForCompoundAssignment(this);
-        // Stack: lValue oldValue
-        nullShortingCheck(
-          previousNestingLevel: previousNestingLevel,
-          nonNull: true,
-          additionalDiscardDepth: lValueTemplates.subexpressionCount,
-        );
-        // Stack: BLOCK(1)? lvalue oldValue
-        ir.drop();
-        // Stack: BLOCK(1)? lvalue
-        dispatchNode(node.rightHandSide2);
-        // Stack: lValue rhs
-        eventListener.onEnterNode(node.leftHandSide2);
-        lValueTemplates.write(this);
-        // Stack: rhs
-        eventListener.onExitNode();
-      case TokenType.AMPERSAND_EQ:
-      case TokenType.BAR_EQ:
-      case TokenType.CARET_EQ:
-      case TokenType.GT_GT_EQ:
-      case TokenType.GT_GT_GT_EQ:
-      case TokenType.LT_LT_EQ:
-      case TokenType.MINUS_EQ:
-      case TokenType.PERCENT_EQ:
-      case TokenType.PLUS_EQ:
-      case TokenType.SLASH_EQ:
-      case TokenType.STAR_EQ:
-      case TokenType.TILDE_SLASH_EQ:
-        lValueTemplates.readForCompoundAssignment(this);
-        // Stack: lValue oldValue
-        dispatchNode(node.rightHandSide2);
-        // Stack: lValue oldValue rhs
-        var lexeme = node.operator.lexeme;
-        assert(lexeme.endsWith('='));
-        instanceCall(
-          node.element,
-          lexeme.substring(0, lexeme.length - 1),
-          const [],
-          twoArguments,
-        );
-        // Stack: lValue newValue
-        eventListener.onEnterNode(node.leftHandSide2);
-        lValueTemplates.write(this);
-        // Stack: newValue
-        eventListener.onExitNode();
-      // Stack: result
-      case var tokenType:
-        throw UnimplementedError('TODO(paulberry): $tokenType');
-    }
-  }
-
-  @override
   Null visitAwaitExpression(AwaitExpression node) {
     dispatchNode(node.expression2);
     // Stack: expression
@@ -495,6 +433,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -567,6 +509,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -764,6 +710,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade property assignment target');
       case ReceiverIndexAssignmentTargetImpl():
         lValueTemplates = _receiverIndexAssignmentTarget(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+      case InvalidSuperAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -1090,7 +1040,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       _visitDirectNamedFunctionInvocation(
         node as ReceiverMethodInvocationImpl,
-        receiver: node.receiver,
+        receiver: node.receiver.tryCast<Expression>(),
         isNullAware: node.operator.type == TokenType.QUESTION_PERIOD,
       );
 
@@ -1355,7 +1305,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       _ => throw StateError('Unexpected property write resolution'),
     };
     return _PropertyAccessTemplates.direct(
-      name: node.propertyName.lexeme,
+      name: node.name.lexeme,
       readElement: readElement,
       writeElement: writeElement,
     );

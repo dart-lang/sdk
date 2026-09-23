@@ -38,8 +38,15 @@ class DiagnosticFactory {
     required Token name,
     required MultiplyDefinedElementImpl element,
   }) {
+    var conflictingElements = element.conflictingElements;
+    assert(conflictingElements.isNotEmpty);
+    var kind = switch (conflictingElements) {
+      var elements when elements.every((e) => e is GetterElement) => 'getter',
+      var elements when elements.every((e) => e is SetterElement) => 'setter',
+      _ => 'name',
+    };
     var libraryNames = [
-      for (var conflictingElement in element.conflictingElements)
+      for (var conflictingElement in conflictingElements)
         _getLibraryName(
           currentUnit: element.libraryFragment,
           element: conflictingElement,
@@ -47,6 +54,7 @@ class DiagnosticFactory {
     ]..sort();
     return diag.ambiguousImport
         .withArguments(
+          kind: kind,
           name: name.lexeme,
           libraries: libraryNames.quotedAndCommaSeparatedWithAnd,
         )

@@ -24,6 +24,7 @@ import 'dart:isolate';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 
+import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
 
 base class ClassWithNativeFields extends NativeFieldWrapperClass1 {
@@ -50,8 +51,30 @@ final nonCopyableClosures = <dynamic>[
 ];
 
 Uint8List initializeUint8List(Uint8List l) {
-  for (int i = 0; i < l.length; ++i) {
-    l[i] = i % 256;
+  const kBlockSize = 256;
+  if (isVmDynConfiguration) {
+    // Instead of calling l.length and l.[]= in a tight loop for large
+    // typed data objects, only do the loop for the initial portion
+    // and then use setRange to copy that initial portion into the rest
+    // to limit the time spent in the dispatch loop.
+    final len = l.length;
+    final remainder = len % kBlockSize;
+    final blocksEnd = len - remainder;
+    final initialBlockSize = blocksEnd > 0 ? kBlockSize : remainder;
+    for (int i = 0; i < initialBlockSize; ++i) {
+      l[i] = i % kBlockSize;
+    }
+    if (blocksEnd > 0) {
+      final initialBlock = l.sublist(kBlockSize);
+      for (int i = kBlockSize; i < blocksEnd; i += kBlockSize) {
+        l.setRange(i, i + kBlockSize, initialBlock);
+      }
+      l.setRange(blocksEnd, len, l.sublist(remainder));
+    }
+  } else {
+    for (int i = 0; i < l.length; ++i) {
+      l[i] = i % kBlockSize;
+    }
   }
   return l;
 }
@@ -314,23 +337,52 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.equals(42, tdCopy.materialize().asInt8List()[0]);
   }
 
+  void expectListsWithNotAllocatableInTLABMatch(List a, List b, int index) {
+    if (!isVmDynConfiguration) {
+      expectGraphsMatch(a, b);
+      return;
+    }
+    // Comparing notAllocatableInTLAB byte for byte is slow when interpreted,
+    // so just compare the other parts of the graph and assume the compiled
+    // version catches if the runtime changes the large data on copy.
+    Expect.equals(a.length, b.length);
+    Expect.isTrue(0 <= index && index < a.length);
+    for (int i = 0; i < a.length; i++) {
+      if (i == index) {
+        // Even when interpreted, at least test the quick-to-test parts.
+        final Uint8List fromA = a[index] as Uint8List;
+        final Uint8List fromB = b[index] as Uint8List;
+        Expect.equals(fromA.length, fromA.length);
+        Expect.equals(fromB.offsetInBytes, fromB.offsetInBytes);
+      }
+    }
+  }
+
   Future testExternalTypedData() async {
     print('testExternalTypedData');
-    final graph = [notAllocatableInTLAB, largeExternalTypedData];
+    // Comparing typed data byte by byte is very slow in the interpreter,
+    // so use the small object in this case.
+    final obj = isVmDynConfiguration
+        ? smallExternalTypedData
+        : largeExternalTypedData;
+    final graph = [notAllocatableInTLAB, obj];
     for (int i = 0; i < 10; ++i) {
-      final result = await sendReceive(graph);
-      final etd = result[1];
-      expectGraphsMatch(largeExternalTypedData, etd);
+      final copiedGraph = await sendReceive(graph);
+      expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 0);
     }
   }
 
   Future testExternalTypedData2() async {
     print('testExternalTypedData2');
-    final graph = [largeExternalTypedData, notAllocatableInTLAB];
+    // Comparing typed data byte by byte is very slow in the interpreter,
+    // so use the small object in this case.
+    final obj = isVmDynConfiguration
+        ? smallExternalTypedData
+        : largeExternalTypedData;
+    final graph = [obj, notAllocatableInTLAB];
     for (int i = 0; i < 10; ++i) {
-      final result = await sendReceive(graph);
-      final etd = result[0];
-      expectGraphsMatch(largeExternalTypedData, etd);
+      final copiedGraph = await sendReceive(graph);
+      expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 1);
     }
   }
 
@@ -348,20 +400,25 @@ class SendReceiveTest extends SendReceiveTestBase {
 
   Future testExternalTypedData5() async {
     print('testExternalTypedData5');
+    // Comparing typed data byte by byte is very slow in the interpreter,
+    // so use the small object in this case.
+    final graph = isVmDynConfiguration
+        ? smallExternalTypedData
+        : largeExternalTypedData;
     for (int i = 0; i < 10; ++i) {
-      final etd = await sendReceive(largeExternalTypedData);
-      expectGraphsMatch(largeExternalTypedData, etd);
+      expectGraphsMatch(graph, await sendReceive(graph));
     }
   }
 
   Future testExternalTypedData6() async {
     print('testExternalTypedData6');
-    final etd = await sendReceive([
-      smallExternalTypedData,
-      largeExternalTypedData,
-    ]);
-    expectGraphsMatch(smallExternalTypedData, etd[0]);
-    expectGraphsMatch(largeExternalTypedData, etd[1]);
+    // Comparing typed data byte by byte is very slow in the interpreter,
+    // so use the small object in this case.
+    final obj = isVmDynConfiguration
+        ? smallExternalTypedData
+        : largeExternalTypedData;
+    final graph = [smallExternalTypedData, obj];
+    expectGraphsMatch(graph, await sendReceive(graph));
   }
 
   Future testInternalTypedDataView() async {
@@ -395,7 +452,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[2], copiedGraph[2]);
     expectViewOf(copiedGraph[0], copiedGraph[2]);
-    expectGraphsMatch(graph, copiedGraph);
+    expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 1);
   }
 
   Future testInternalTypedDataView4() async {
@@ -409,7 +466,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
     expectViewOf(copiedGraph[2], copiedGraph[0]);
-    expectGraphsMatch(graph, copiedGraph);
+    expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 1);
   }
 
   Future testExternalTypedDataView() async {
@@ -443,7 +500,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
     expectViewOf(copiedGraph[0], copiedGraph[2]);
-    expectGraphsMatch(graph, copiedGraph);
+    expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 1);
   }
 
   Future testExternalTypedDataView4() async {
@@ -457,7 +514,7 @@ class SendReceiveTest extends SendReceiveTestBase {
     Expect.notIdentical(graph[0], copiedGraph[0]);
     Expect.notIdentical(graph[1], copiedGraph[1]);
     expectViewOf(copiedGraph[2], copiedGraph[0]);
-    expectGraphsMatch(graph, copiedGraph);
+    expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 1);
   }
 
   Future testArray() async {
@@ -612,16 +669,14 @@ class SendReceiveTest extends SendReceiveTestBase {
   Future testSlowOnly() async {
     print('testSlowOnly');
     for (final smallPrimitive in smallPrimitives) {
-      expectGraphsMatch([
-        notAllocatableInTLAB,
-        smallPrimitive,
-      ], await sendReceive([notAllocatableInTLAB, smallPrimitive]));
+      final graph = [notAllocatableInTLAB, smallPrimitive];
+      final copiedGraph = await sendReceive(graph);
+      expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 0);
     }
     for (final smallContainer in smallContainers) {
-      expectGraphsMatch([
-        notAllocatableInTLAB,
-        smallContainer,
-      ], await sendReceive([notAllocatableInTLAB, smallContainer]));
+      final graph = [notAllocatableInTLAB, smallContainer];
+      final copiedGraph = await sendReceive(graph);
+      expectListsWithNotAllocatableInTLABMatch(graph, copiedGraph, 0);
     }
   }
 

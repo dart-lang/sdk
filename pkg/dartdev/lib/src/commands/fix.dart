@@ -3,14 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io' as io;
 
-import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
+import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:cli_util/cli_logging.dart' show Progress;
 import 'package:collection/collection.dart';
+import 'package:dartdev/src/commands/utils/lsp_workspace_edits.dart';
+import 'package:dartdev/src/lsp_analysis_server.dart';
+import 'package:language_server_protocol/protocol_custom_generated.dart' as lsp;
+import 'package:language_server_protocol/protocol_generated.dart' as lsp;
 import 'package:path/path.dart' as path;
 
-import '../analysis_server.dart';
 import '../core.dart';
 import '../experiments.dart';
 import '../sdk.dart';
@@ -29,8 +33,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   /// The maximum number of times that fixes will be requested from the server.
   static const maxPasses = 4;
 
-  /// A map from the absolute path of a file to the updated content of the file.
-  final Map<String, String> fileContentCache = {};
+  /// A map from the canonicalized absolute path of a file to the updated
+  /// content of the file.
+  final Map<String, String> fileContentCache = LinkedHashMap<String, String>(
+    equals: (key1, key2) => path.canonicalize(key1) == path.canonicalize(key2),
+    hashCode: (key) => path.canonicalize(key).hashCode,
+  );
 
   /// The target (path) specified on the command line.
   late String argsTarget;
@@ -125,7 +133,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       'Computing fixes in ${log.ansi.emphasized(targetName)}$modeText',
     );
 
-    var server = AnalysisServer(
+    var server = LspAnalysisServer(
       null,
       io.Directory(sdk.sdkPath),
       [target],
@@ -139,7 +147,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       useAotSnapshot: args.flag(useAotSnapshotFlag),
     );
 
-    await server.start(setAnalysisRoots: false);
+    await server.start();
 
     server.onExit.then((int exitCode) {
       if (computeFixesProgress != null && exitCode != 0) {
@@ -155,42 +163,25 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       io.exit(1);
     });
 
-    Future<_FixRequestResult> applyAllEdits() async {
-      var detailsMap = <String, BulkFix>{};
-      List<SourceFileEdit> edits;
-      var pass = 0;
-      do {
-        var fixes = await server.requestBulkFixes(fixPath, inTestMode, codes);
-        var message = fixes.message;
-        if (message.isNotEmpty) {
-          return _FixRequestResult(message: message);
-        }
-        _mergeDetails(detailsMap, fixes.details);
-        edits = fixes.edits;
-        _applyEdits(server, edits);
-        pass++;
-        // TODO(brianwilkerson) Be more intelligent about detecting infinite
-        //  loops so that we can increase [maxPasses].
-      } while (pass < maxPasses && edits.isNotEmpty);
-      // If there are no more dart edits, check if there are any changes
-      // to pubspec
-      if (edits.isEmpty) {
-        var fixes = await server.requestBulkFixes(
-          fixPath,
-          inTestMode,
-          codes,
-          updatePubspec: true,
-        );
-        _mergeDetails(detailsMap, fixes.details);
-        edits = fixes.edits;
-        _applyEdits(server, edits);
-      }
-      return _FixRequestResult(details: detailsMap);
+    lsp.DartGetWorkspaceFixesResult result;
+    try {
+      await server.workspaceAnalysisComplete();
+      result = await server.getFixes(codes);
+    } on LspRequestError catch (error) {
+      log.stdout('Unable to compute fixes: ${error.error.message}');
+      // todo(pq): consider another code
+      // (also consider encoding this in the server result)
+      return 3;
+    } finally {
+      await server.shutdown();
     }
 
-    var result = await applyAllEdits();
-    var detailsMap = result.details;
-    await server.shutdown();
+    var edit = result.edit;
+    var details = result.details;
+
+    if (edit != null) {
+      _applyEdits(edit);
+    }
 
     if (computeFixesProgress != null) {
       computeFixesProgress!.finish(showTiming: true);
@@ -202,18 +193,11 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       var result = _compareFixesInDirectory(dir);
       log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
       return result.failCount > 0 ? 1 : 0;
-    } else if (detailsMap.isEmpty) {
-      var message = result.message;
-      if (message.isNotEmpty) {
-        log.stdout('Unable to compute fixes: $message');
-        // todo(pq): consider another code
-        // (also consider encoding this in the server result)
-        return 3;
-      }
+    } else if (edit == null || !edit.hasEdits) {
       log.stdout('Nothing to fix!');
     } else {
-      var fileCount = detailsMap.length;
-      var fixCount = detailsMap.values
+      var fileCount = details.length;
+      var fixCount = details
           .expand((detail) => detail.fixes)
           .fold<int>(
             0,
@@ -226,13 +210,13 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
           '$fixCount proposed ${_pluralFix(fixCount)} '
           'in $fileCount ${pluralize("file", fileCount)}.',
         );
-        _printDetails(detailsMap, dir);
-        _printApplyFixDetails(detailsMap);
+        _printDetails(details, dir);
+        _printApplyFixDetails(details);
       } else {
         var applyFixesProgress = log.progress('Applying fixes');
         _writeFiles();
         applyFixesProgress.finish(showTiming: true);
-        _printDetails(detailsMap, dir);
+        _printDetails(details, dir);
         log.stdout(
           '$fixCount ${_pluralFix(fixCount)} made in '
           '$fileCount ${pluralize("file", fileCount)}.',
@@ -243,19 +227,19 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     return 0;
   }
 
-  void _applyEdits(AnalysisServer server, List<SourceFileEdit> edits) {
-    var overlays = <String, AddContentOverlay>{};
-    for (var edit in edits) {
-      var filePath = edit.file;
-      var content = fileContentCache.putIfAbsent(filePath, () {
+  void _applyEdits(lsp.WorkspaceEdit edit) {
+    String? readFile(String filePath) {
+      return fileContentCache.putIfAbsent(filePath, () {
         var file = io.File(filePath);
         return file.existsSync() ? file.readAsStringSync() : '';
       });
-      var newContent = SourceEdit.applySequence(content, edit.edits);
-      fileContentCache[filePath] = newContent;
-      overlays[filePath] = AddContentOverlay(newContent);
     }
-    server.updateContent(overlays);
+
+    void writeFile(String filePath, String content) {
+      fileContentCache[filePath] = content;
+    }
+
+    applyWorkspaceEdit(edit, readFile, writeFile);
   }
 
   /// Return `true` if any of the fixes fail to create the same content as is
@@ -340,44 +324,11 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   String _compressWhitespace(String code) =>
       code.replaceAll(RegExp(r'\s+'), ' ');
 
-  /// Merge the fixes from the current round's [details] into the [detailsMap].
-  void _mergeDetails(Map<String, BulkFix> detailsMap, List<BulkFix> details) {
-    for (var detail in details) {
-      var previousDetail = detailsMap[detail.path];
-      if (previousDetail != null) {
-        _mergeFixCounts(previousDetail.fixes, detail.fixes);
-      } else {
-        detailsMap[detail.path] = detail;
-      }
-    }
-  }
-
-  void _mergeFixCounts(
-    List<BulkFixDetail> oldFixes,
-    List<BulkFixDetail> newFixes,
-  ) {
-    var originalOldLength = oldFixes.length;
-    newFixLoop:
-    for (var newFix in newFixes) {
-      var newCode = newFix.code;
-      // Iterate over the original content of the list, not any of the newly
-      // added fixes, because the newly added fixes can't be a match.
-      for (var i = 0; i < originalOldLength; i++) {
-        var oldFix = oldFixes[i];
-        if (oldFix.code == newCode) {
-          oldFix.occurrences += newFix.occurrences;
-          continue newFixLoop;
-        }
-      }
-      oldFixes.add(newFix);
-    }
-  }
-
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 
-  void _printApplyFixDetails(Map<String, BulkFix> detailsMap) {
+  void _printApplyFixDetails(List<LspBulkFix> details) {
     var codes = <String>{};
-    for (var fixes in detailsMap.values) {
+    for (var fixes in details) {
       for (var fix in fixes.fixes) {
         codes.add(fix.code);
       }
@@ -393,7 +344,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     log.stdout('  dart fix --apply $argsTarget');
   }
 
-  void _printDetails(Map<String, BulkFix> detailsMap, io.Directory workingDir) {
+  void _printDetails(List<LspBulkFix> details, io.Directory workingDir) {
     String relative(String absolutePath) {
       return path.relative(absolutePath, from: workingDir.path);
     }
@@ -402,13 +353,12 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
     final bullet = log.ansi.bullet;
 
-    var modifiedFilePaths = detailsMap.keys.toList();
-    modifiedFilePaths.sort(
-      (first, second) => relative(first).compareTo(relative(second)),
+    details.sort(
+      (first, second) =>
+          relative(first.uri.path).compareTo(relative(second.uri.path)),
     );
-    for (var filePath in modifiedFilePaths) {
-      var detail = detailsMap[filePath]!;
-      log.stdout(relative(detail.path));
+    for (var detail in details) {
+      log.stdout(relative(detail.uri.toFilePath()));
       final fixes = detail.fixes.toList();
       fixes.sort((a, b) => a.code.compareTo(b.code));
       for (var fix in fixes) {
@@ -448,13 +398,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       file.writeAsStringSync(entry.value);
     }
   }
-}
-
-class _FixRequestResult {
-  String message;
-  Map<String, BulkFix> details;
-  _FixRequestResult({this.message = '', Map<String, BulkFix>? details})
-    : details = details ?? {};
 }
 
 /// The result of running tests in a given directory.

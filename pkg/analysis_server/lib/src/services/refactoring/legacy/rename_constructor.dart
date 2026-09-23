@@ -195,11 +195,17 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
-    var element = reference.element;
-    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
-    return unitResult?.unit
-        .select(offset: reference.range.offset, length: 0)
-        ?.coveringNode;
+    CompilationUnit unit;
+    if (reference.file == resolvedUnit.path) {
+      unit = resolvedUnit.unit;
+    } else {
+      var unitResult = await sessionHelper.getResolvedUnitByElement(
+        reference.element,
+      );
+      if (unitResult == null) return null;
+      unit = unitResult.unit;
+    }
+    return unit.select(offset: reference.range.offset, length: 0)?.coveringNode;
   }
 
   Future<void> _replaceSynthetic({required ChangeBuilder builder}) async {

@@ -192,7 +192,7 @@ class BuilderMixinInferrer {
   }
 
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
-    List<DartType>? arguments = classHierarchyBase.getTypeArgumentsAsInstanceOf(
+    DartTypeList? arguments = classHierarchyBase.getTypeArgumentsAsInstanceOf(
       type.asInterfaceType,
       superclass,
     );

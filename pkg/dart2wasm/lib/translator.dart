@@ -4,6 +4,9 @@
 
 import 'dart:typed_data';
 
+import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
@@ -19,6 +22,8 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import 'cfg/code_generator.dart';
+import 'cfg/ir_log.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
@@ -46,6 +51,8 @@ import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool useCfg = false;
+  String? dumpCfg;
   bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
@@ -95,6 +102,7 @@ class TranslatorOptions {
 class Translator with KernelNodes {
   // Options for the translation.
   final TranslatorOptions options;
+  late final CfgLog? cfgLog = options.dumpCfg != null ? CfgLog() : null;
 
   final Symbols symbols;
 
@@ -156,6 +164,10 @@ class Translator with KernelNodes {
   late final ExceptionTags _exceptionTags;
   late final CompilationQueue compilationQueue;
   late final FunctionCollector functions;
+  late final FunctionRegistry functionRegistry = FunctionRegistry();
+  late final RecognizedMethods recognizedMethods = CommonRecognizedMethods(
+    requireMethods: false,
+  );
 
   late final DeferredModuleLoadingMap loadingMap;
 
@@ -528,7 +540,12 @@ class Translator with KernelNodes {
     dynamicDispatchTable.build(dynamicCallShapes);
     functions.initialize();
 
-    drainCompletionQueue();
+    GlobalContext.withContext(
+      GlobalContext(typeEnvironment: typeEnvironment, coreLibraries: index),
+      () {
+        drainCompletionQueue();
+      },
+    );
 
     assert(compilationQueue.isEmpty);
     for (final action in linkingActions) {
@@ -949,13 +966,15 @@ class Translator with KernelNodes {
       Nullability.nonNullable,
     );
 
-    final positionalParameters = List.of(staticType.positionalParameters);
+    final positionalParameters = DartTypeList.from(
+      staticType.positionalParameters,
+    );
     assert(
       positionalParameters.length ==
           method.function.positionalParameters.length,
     );
 
-    final namedParameters = List.of(staticType.namedParameters);
+    final namedParameters = NamedDartTypeList.from(staticType.namedParameters);
     assert(namedParameters.length == method.function.namedParameters.length);
 
     for (int i = 0; i < positionalParameters.length; i++) {
@@ -2012,9 +2031,10 @@ class Translator with KernelNodes {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
-      return isRequired
-          ? inferredType
-          : inferredType.withDeclaredNullability(Nullability.nullable);
+      // See below for explanation about NSM special case.
+      return (!isRequired && isNoSuchMethodForwarder)
+          ? inferredType.withDeclaredNullability(Nullability.nullable)
+          : inferredType;
     }
 
     final isCovariant =
@@ -2111,6 +2131,7 @@ class Translator with KernelNodes {
   }
 
   DartType? _inferredTypeOfReturnValue(Member node) {
+    if (node == invokeNoSuchMethod) return null;
     return _filterInferredType(
       node.function!.returnType,
       inferredReturnTypeMetadata[node],
@@ -2145,7 +2166,7 @@ class Translator with KernelNodes {
   ) {
     if (inferredType == null) return null;
 
-    if (defaultType is VoidType) {
+    if (defaultType is VoidType || defaultType is DynamicType) {
       defaultType = coreTypes.objectNullableRawType;
     }
 
@@ -2165,7 +2186,13 @@ class Translator with KernelNodes {
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.
-    if (concreteClass == defaultType.classNode) return null;
+    if (concreteClass == defaultType.classNode) {
+      if (defaultType.nullability == Nullability.nullable &&
+          !inferredType.nullable) {
+        return defaultType.withDeclaredNullability(Nullability.nonNullable);
+      }
+      return null;
+    }
 
     // Sometimes we get inferred types that violate soundness (and would result
     // in a runtime error, e.g. in a dynamic invocation forwarder passing an
@@ -2177,9 +2204,7 @@ class Translator with KernelNodes {
     if (concreteClass == coreTypes.deprecatedNullClass) return const NullType();
 
     final typeParameters = concreteClass.typeParameters;
-    final typeArguments = typeParameters.isEmpty
-        ? const <DartType>[]
-        : List<DartType>.filled(typeParameters.length, const DynamicType());
+    final typeArguments = DartTypeList.filledWithDynamic(typeParameters.length);
     final nullability = inferredType.nullable
         ? Nullability.nullable
         : Nullability.nonNullable;
@@ -2189,6 +2214,12 @@ class Translator with KernelNodes {
   InliningDecision shouldInline(Reference target, w.FunctionType signature) {
     if (!options.inlining) return InliningDecision(false, 'inlining disabled');
 
+    final member = target.asMember;
+    if (member.isExternal) return InliningDecision(false, 'external');
+    if (mayUseCfgToCompileMember(this, member)) {
+      return InliningDecision(false, 'CFG inlining disabled');
+    }
+
     // Unchecked entry point functions perform very little, mainly optional
     // parameter handling and then call the real body function.
     //
@@ -2197,9 +2228,6 @@ class Translator with KernelNodes {
     if (target.isUncheckedEntryReference) {
       return InliningDecision(true, 'unchecked entry');
     }
-
-    final member = target.asMember;
-    if (member.isExternal) return InliningDecision(false, 'external');
     if (util.getWasmNeverInlinePragma(coreTypes, member) ?? false) {
       return InliningDecision(false, '@pragma("wasm:never-inline")');
     }
@@ -2411,6 +2439,7 @@ class Translator with KernelNodes {
     }
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
+    if (mayUseCfgToCompileMember(this, member)) return false;
     return true;
   }
 
@@ -2580,7 +2609,7 @@ class Translator with KernelNodes {
 
   w.Memory _findMemoryForMainModule(Procedure topLevelExternalMemoryGetter) {
     return _memories.putIfAbsent(topLevelExternalMemoryGetter, () {
-      final limits = MemoryLimits.readAnnotation(
+      final memoryType = WasmMemoryType.readAnnotation(
         this,
         topLevelExternalMemoryGetter,
       )!;
@@ -2597,15 +2626,15 @@ class Translator with KernelNodes {
         memory = mainModule.memories.import(
           import.moduleName,
           import.itemName,
-          false,
-          limits.minSize,
-          limits.maxSize,
+          memoryType.shared,
+          memoryType.minSize,
+          memoryType.maxSize,
         );
       } else {
         memory = mainModule.memories.define(
-          false,
-          limits.minSize,
-          limits.maxSize,
+          memoryType.shared,
+          memoryType.minSize,
+          memoryType.maxSize,
         );
       }
 

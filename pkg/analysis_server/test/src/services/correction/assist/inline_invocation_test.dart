@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class InlineInvocationTest extends AssistProcessorTest {
+class InlineInvocationTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.inlineInvocation;
 

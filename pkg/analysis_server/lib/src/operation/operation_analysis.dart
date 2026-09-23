@@ -37,13 +37,13 @@ Future<void> scheduleImplementedNotification(
           params.toNotification(clientUriConverter: server.uriConverter),
         );
       } catch (exception, stackTrace) {
-        server.instrumentationService.logException(
-          CaughtException.withMessage(
-            'Failed to send analysis.implemented notification.',
-            exception,
-            stackTrace,
-          ),
+        var caughtException = CaughtException.withMessage(
+          'Failed to send analysis.implemented notification.',
+          exception,
+          stackTrace,
         );
+        server.instrumentationService.logException(caughtException);
+        server.sessionLogger.logException(exception: caughtException);
       }
     }
   }
@@ -200,12 +200,12 @@ void _sendNotification(LegacyAnalysisServer server, void Function() f) {
   try {
     f();
   } catch (exception, stackTrace) {
-    server.instrumentationService.logException(
-      CaughtException.withMessage(
-        'Failed to send notification',
-        exception,
-        stackTrace,
-      ),
+    var caughtException = CaughtException.withMessage(
+      'Failed to send notification',
+      exception,
+      stackTrace,
     );
+    server.instrumentationService.logException(caughtException);
+    server.sessionLogger.logException(exception: caughtException);
   }
 }

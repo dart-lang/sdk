@@ -67,7 +67,7 @@ class VariableDeclarationResolver {
 
     var beforeInitializerOffset = node.equals!.offset;
     if (isTopLevel) {
-      _resolver.flowAnalysis.bodyOrInitializer_enter(
+      _resolver.flowAnalysis.flowAnalysisRoot_enter(
         node,
         inScopePrimaryConstructorParameters,
         offset: beforeInitializerOffset,
@@ -120,7 +120,7 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.thisBinding_end(offset: initializer.end);
     }
     if (isTopLevel) {
-      _resolver.flowAnalysis.bodyOrInitializer_exit();
+      _resolver.flowAnalysis.flowAnalysisRoot_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_end(offset: node.end);

@@ -1036,9 +1036,11 @@ class FfiTransformer extends Transformer {
       coreTypes,
       Nullability.nonNullable,
     );
-    pointerVoidType = InterfaceType(pointerClass, Nullability.nonNullable, [
-      voidType,
-    ]);
+    pointerVoidType = InterfaceType(
+      pointerClass,
+      Nullability.nonNullable,
+      DartTypeList(voidType),
+    );
     nativeTypeType = nativeTypesClasses[NativeType.kNativeType]!.getThisType(
       coreTypes,
       Nullability.nonNullable,
@@ -1046,7 +1048,7 @@ class FfiTransformer extends Transformer {
     pointerNativeTypeType = InterfaceType(
       pointerClass,
       Nullability.nonNullable,
-      [nativeTypeType],
+      DartTypeList(nativeTypeType),
     );
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
@@ -1058,7 +1060,7 @@ class FfiTransformer extends Transformer {
     compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,
-      const <DartType>[],
+      DartTypeList.empty,
     );
   }
 
@@ -1244,7 +1246,11 @@ class FfiTransformer extends Transformer {
       );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
-    return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+    return FunctionType(
+      DartTypeList.from(argumentTypes),
+      returnType,
+      Nullability.nonNullable,
+    );
   }
 
   /// Finds a native type for the given [dartType] if there is only one possible
@@ -1291,7 +1297,11 @@ class FfiTransformer extends Transformer {
         );
       }
       if (argumentTypes.contains(dummyDartType)) return null;
-      return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+      return FunctionType(
+        DartTypeList.from(argumentTypes),
+        returnType,
+        Nullability.nonNullable,
+      );
     }
 
     return null;
@@ -1331,7 +1341,7 @@ class FfiTransformer extends Transformer {
         for (final paramDartType in typeArgument.positional) paramDartType,
       ];
       return FunctionType(
-        positionalParameters,
+        DartTypeList.from(positionalParameters),
         functionTypeWithPossibleVarArgs.returnType,
         functionTypeWithPossibleVarArgs.declaredNullability,
         namedParameters: functionTypeWithPossibleVarArgs.namedParameters,
@@ -1351,7 +1361,7 @@ class FfiTransformer extends Transformer {
   InterfaceType _listOfIntType(Nullability elementNullability) => InterfaceType(
     listClass,
     Nullability.nonNullable,
-    [coreTypes.intRawType(elementNullability)],
+    DartTypeList(coreTypes.intRawType(elementNullability)),
   );
 
   ConstantExpression intListConstantExpression(
@@ -1439,7 +1449,11 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
       type,
-      InterfaceType(arrayClass, Nullability.nonNullable, [nativeTypeType]),
+      InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        DartTypeList(nativeTypeType),
+      ),
     );
   }
 
@@ -2020,7 +2034,7 @@ class FfiTransformer extends Transformer {
     assert(node is Procedure || node is Constructor);
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
           pragmaOptions.fieldReference: NullConstant(),
         }),

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddLateTest extends AssistProcessorTest {
+class AddLateTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.addLate;
 

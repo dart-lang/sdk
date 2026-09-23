@@ -1953,12 +1953,14 @@ final class _ByteBuffer implements ByteBuffer {
   bool operator ==(Object other) =>
       (other is _ByteBuffer) && identical(_data, other._data);
 
+  @pragma("vm:prefer-inline")
   ByteData asByteData([int offsetInBytes = 0, int? length]) {
     length ??= this.lengthInBytes - offsetInBytes;
     _rangeCheck(this._data.lengthInBytes, offsetInBytes, length);
     return _ByteDataView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int8List asInt8List([int offsetInBytes = 0, int? length]) {
     length ??= (this.lengthInBytes - offsetInBytes) ~/ Int8List.bytesPerElement;
     _rangeCheck(
@@ -1969,6 +1971,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int8ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint8List asUint8List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint8List.bytesPerElement;
@@ -1980,6 +1983,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint8ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/
@@ -1992,6 +1996,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint8ClampedArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int16List asInt16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int16List.bytesPerElement;
@@ -2004,6 +2009,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int16ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint16List asUint16List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint16List.bytesPerElement;
@@ -2016,6 +2022,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint16ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int32List asInt32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32List.bytesPerElement;
@@ -2028,6 +2035,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint32List asUint32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint32List.bytesPerElement;
@@ -2040,6 +2048,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int64List asInt64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int64List.bytesPerElement;
@@ -2052,6 +2061,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Uint64List.bytesPerElement;
@@ -2064,6 +2074,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Uint64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32List.bytesPerElement;
@@ -2076,6 +2087,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float32ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float64List asFloat64List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64List.bytesPerElement;
@@ -2088,6 +2100,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float64ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
@@ -2100,6 +2113,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Float32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
@@ -2112,6 +2126,7 @@ final class _ByteBuffer implements ByteBuffer {
     return _Int32x4ArrayView._(this._data, offsetInBytes, length);
   }
 
+  @pragma("vm:prefer-inline")
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     length ??=
         (this.lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
@@ -3965,30 +3980,24 @@ final class _Float32x4 implements Float32x4 {
 @pragma('vm:deeply-immutable')
 class Int32x4 {
   @patch
-  @pragma("vm:prefer-inline")
-  factory Int32x4(int x, int y, int z, int w) {
-    return _Int32x4FromInts(x, y, z, w);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromInts")
-  external static _Int32x4 _Int32x4FromInts(int x, int y, int z, int w);
+  external factory Int32x4(int x, int y, int z, int w);
 
   @patch
-  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
   factory Int32x4.splat(int value) => Int32x4(value, value, value, value);
 
   @patch
   @pragma("vm:prefer-inline")
-  factory Int32x4.bool(bool x, bool y, bool z, bool w) {
-    return _Int32x4FromBools(x, y, z, w);
-  }
+  factory Int32x4.zero() => Int32x4.splat(0);
 
+  @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_fromBools")
-  external static _Int32x4 _Int32x4FromBools(bool x, bool y, bool z, bool w);
+  @pragma("vm:prefer-inline")
+  factory Int32x4.bool(bool x, bool y, bool z, bool w) =>
+      Int32x4(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0);
 
   @patch
   @pragma("vm:recognized", "other")
@@ -4001,39 +4010,54 @@ class Int32x4 {
 @pragma("vm:entry-point")
 final class _Int32x4 implements Int32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_or")
-  external Int32x4 operator |(Int32x4 other);
+  Int32x4 operator |(Int32x4 other) =>
+      Int32x4(x | other.x, y | other.y, z | other.z, w | other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_and")
-  external Int32x4 operator &(Int32x4 other);
+  Int32x4 operator &(Int32x4 other) =>
+      Int32x4(x & other.x, y & other.y, z & other.z, w & other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_xor")
-  external Int32x4 operator ^(Int32x4 other);
+  Int32x4 operator ^(Int32x4 other) =>
+      Int32x4(x ^ other.x, y ^ other.y, z ^ other.z, w ^ other.w);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_not")
-  external Int32x4 operator ~();
+  Int32x4 operator ~() => Int32x4(~x, ~y, ~z, ~w);
+  Int32x4 andNot(Int32x4 other) =>
+      Int32x4(x & ~other.x, y & ~other.y, z & ~other.z, w & ~other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_add")
-  external Int32x4 operator +(Int32x4 other);
+  Int32x4 operator +(Int32x4 other) =>
+      Int32x4(x + other.x, y + other.y, z + other.z, w + other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_sub")
-  external Int32x4 operator -(Int32x4 other);
+  Int32x4 operator -(Int32x4 other) =>
+      Int32x4(x - other.x, y - other.y, z - other.z, w - other.w);
+
+  Int32x4 operator -() => Int32x4(-x, -y, -z, -w);
+
+  Int32x4 abs() => Int32x4(x.abs(), y.abs(), z.abs(), w.abs());
+
+  Int32x4 operator <<(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return Int32x4(x << n, y << n, z << n, w << n);
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return Int32x4(x >> n, y >> n, z >> n, w >> n);
+  }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_equal")
-  external Int32x4 equal(Int32x4 other);
+  Int32x4 equal(Int32x4 other) => Int32x4(
+    x == other.x ? -1 : 0,
+    y == other.y ? -1 : 0,
+    z == other.z ? -1 : 0,
+    w == other.w ? -1 : 0,
+  );
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_notEqual")
-  external Int32x4 notEqual(Int32x4 other);
+  Int32x4 notEqual(Int32x4 other) => Int32x4(
+    x != other.x ? -1 : 0,
+    y != other.y ? -1 : 0,
+    z != other.z ? -1 : 0,
+    w != other.w ? -1 : 0,
+  );
 
   Int32x4 lessThan(Int32x4 other) => Int32x4(
     x < other.x ? -1 : 0,
@@ -4063,6 +4087,20 @@ final class _Int32x4 implements Int32x4 {
     w >= other.w ? -1 : 0,
   );
 
+  Int32x4 min(Int32x4 other) => Int32x4(
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+    z < other.z ? z : other.z,
+    w < other.w ? w : other.w,
+  );
+
+  Int32x4 max(Int32x4 other) => Int32x4(
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+    z > other.z ? z : other.z,
+    w > other.w ? w : other.w,
+  );
+
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;
@@ -4076,117 +4114,97 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:external-name", "Int32x4_getW")
   external int get w;
   @pragma("vm:recognized", "other")
-  @pragma("vm:external-name", "Int32x4_getSignMask")
-  external int get signMask;
+  int get signMask {
+    final int mx = (x >> 31) & 1;
+    final int my = (y >> 31) & 1;
+    final int mz = (z >> 31) & 1;
+    final int mw = (w >> 31) & 1;
+    return mx | my << 1 | mz << 2 | mw << 3;
+  }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getAnyTrue")
-  external bool get anyTrue;
+  bool get anyTrue => (x | y | z | w) != 0;
 
   bool get allTrue => flagX && flagY && flagZ && flagW;
 
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_shuffle")
-  external Int32x4 shuffle(int mask);
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_shuffleMix")
-  external Int32x4 shuffleMix(Int32x4 zw, int mask);
-
   @pragma("vm:prefer-inline")
-  Int32x4 withX(int x) {
-    return _withX(x);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setX")
-  external Int32x4 _withX(int x);
-
-  @pragma("vm:prefer-inline")
-  Int32x4 withY(int y) {
-    return _withY(y);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setY")
-  external Int32x4 _withY(int y);
-
-  @pragma("vm:prefer-inline")
-  Int32x4 withZ(int z) {
-    return _withZ(z);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setZ")
-  external Int32x4 _withZ(int z);
-
-  @pragma("vm:prefer-inline")
-  Int32x4 withW(int w) {
-    return _withW(w);
-  }
-
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setW")
-  external Int32x4 _withW(int w);
+  static int _lane(int index, int x, int y, int z, int w) => switch (index) {
+    0 => x,
+    1 => y,
+    2 => z,
+    _ => w,
+  };
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagX")
-  external bool get flagX;
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagY")
-  external bool get flagY;
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagZ")
-  external bool get flagZ;
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", bool)
-  @pragma("vm:external-name", "Int32x4_getFlagW")
-  external bool get flagW;
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagX(bool x) {
-    return _withFlagX(x);
+  Int32x4 shuffle(int mask) {
+    if (mask < 0 || mask > 255) {
+      throw RangeError.range(mask, 0, 255, "mask");
+    }
+    final int l0 = x;
+    final int l1 = y;
+    final int l2 = z;
+    final int l3 = w;
+    return Int32x4(
+      _lane(mask & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 2) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 4) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 6) & 0x3, l0, l1, l2, l3),
+    );
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagX")
-  external Int32x4 _withFlagX(bool x);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagY(bool y) {
-    return _withFlagY(y);
+  Int32x4 shuffleMix(Int32x4 zw, int mask) {
+    if (mask < 0 || mask > 255) {
+      throw RangeError.range(mask, 0, 255, "mask");
+    }
+    final int l0 = x;
+    final int l1 = y;
+    final int l2 = z;
+    final int l3 = w;
+    final int r0 = zw.x;
+    final int r1 = zw.y;
+    final int r2 = zw.z;
+    final int r3 = zw.w;
+    return Int32x4(
+      _lane(mask & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 2) & 0x3, l0, l1, l2, l3),
+      _lane((mask >> 4) & 0x3, r0, r1, r2, r3),
+      _lane((mask >> 6) & 0x3, r0, r1, r2, r3),
+    );
   }
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagY")
-  external Int32x4 _withFlagY(bool y);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagZ(bool z) {
-    return _withFlagZ(z);
-  }
+  Int32x4 withX(int newX) => Int32x4(newX, y, z, w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagZ")
-  external Int32x4 _withFlagZ(bool z);
-
-  @pragma("vm:prefer-inline", _Int32x4)
-  Int32x4 withFlagW(bool w) {
-    return _withFlagW(w);
-  }
+  Int32x4 withY(int newY) => Int32x4(x, newY, z, w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Int32x4_setFlagW")
-  external Int32x4 _withFlagW(bool w);
+  Int32x4 withZ(int newZ) => Int32x4(x, y, newZ, w);
+
+  @pragma("vm:recognized", "other")
+  Int32x4 withW(int newW) => Int32x4(x, y, z, newW);
+
+  @pragma("vm:recognized", "other")
+  bool get flagX => x != 0;
+  @pragma("vm:recognized", "other")
+  bool get flagY => y != 0;
+  @pragma("vm:recognized", "other")
+  bool get flagZ => z != 0;
+  @pragma("vm:recognized", "other")
+  bool get flagW => w != 0;
+
+  @pragma("vm:recognized", "other")
+  Int32x4 withFlagX(bool newFlagX) => Int32x4(newFlagX ? -1 : 0, y, z, w);
+
+  @pragma("vm:recognized", "other")
+  Int32x4 withFlagY(bool newFlagY) => Int32x4(x, newFlagY ? -1 : 0, z, w);
+
+  @pragma("vm:recognized", "other")
+  Int32x4 withFlagZ(bool newFlagZ) => Int32x4(x, y, newFlagZ ? -1 : 0, w);
+
+  @pragma("vm:recognized", "other")
+  Int32x4 withFlagW(bool newFlagW) => Int32x4(x, y, z, newFlagW ? -1 : 0);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
@@ -6053,3 +6071,143 @@ final class _UnmodifiableByteBufferView extends _ByteBuffer {
   ByteData asByteData([int offsetInBytes = 0, int? length]) =>
       _UnmodifiableByteDataView(super.asByteData(offsetInBytes, length));
 }
+
+@pragma('vm:prefer-inline')
+bool _listRangeEquals<T extends List<int>>(
+  T a,
+  int aStart,
+  T b,
+  int bStart,
+  int count,
+) {
+  if (count <= 32) {
+    for (int i = 0; i < count; i++) {
+      if (a[aStart + i] != b[bStart + i]) return false;
+    }
+    return true;
+  }
+  return _typedDataMemEquals(
+    unsafeCast<TypedData>(a),
+    aStart,
+    unsafeCast<TypedData>(b),
+    bStart,
+    count,
+  );
+}
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _uint64ListRangeEquals(
+  Uint64List a,
+  int aStart,
+  Uint64List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _int64ListRangeEquals(
+  Int64List a,
+  int aStart,
+  Int64List b,
+  int bStart,
+  int count,
+) => _listRangeEquals(a, aStart, b, bStart, count);
+
+@patch
+@pragma('vm:prefer-inline')
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  if (count <= 32) {
+    for (int i = 0; i < count; i++) {
+      if (a.getUint8(aStart + i) != b.getUint8(bStart + i)) return false;
+    }
+    return true;
+  }
+  return _typedDataMemEquals(a, aStart, b, bStart, count);
+}
+
+@pragma("vm:external-name", "TypedDataBase_memEquals")
+external bool _typedDataMemEquals(
+  TypedData a,
+  int aStart,
+  TypedData b,
+  int bStart,
+  int count,
+);

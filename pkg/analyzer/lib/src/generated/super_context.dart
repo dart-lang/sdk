@@ -4,39 +4,39 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
-/// An indication of the kind of context in which a super expression was found.
+/// An indication of the kind of context in which a super reference was found.
 class SuperContext {
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an annotation.
   static const SuperContext annotation = SuperContext._('annotation');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an instance member of an extension.
   static const SuperContext extension = SuperContext._('extension');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an instance member of an extension type.
   static const SuperContext extensionType = SuperContext._('extensionType');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is not in an instance member.
   static const SuperContext static = SuperContext._('static');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in the body of a parameterless anonymous method.
   static const SuperContext anonymousMethod = SuperContext._('anonymousMethod');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// valid.
   static const SuperContext valid = SuperContext._('valid');
 
   /// The name of the context.
   final String name;
 
-  /// Return an indication of the context in which the super [expression] is
+  /// Return an indication of the context in which the super [reference] is
   /// being used.
-  factory SuperContext.of(SuperExpression expression) {
-    for (AstNode? node = expression; node != null; node = node.parent2) {
+  factory SuperContext.of(SuperReference reference) {
+    for (AstNode? node = reference; node != null; node = node.parent2) {
       if (node is Annotation) {
         return SuperContext.annotation;
       } else if (node is AnonymousMethodBody &&

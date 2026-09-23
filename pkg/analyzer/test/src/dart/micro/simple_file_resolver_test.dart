@@ -1994,7 +1994,9 @@ void f(A a) {
 
     var result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
 
@@ -2003,7 +2005,9 @@ void f(A a) {
     createFileResolver();
     result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
   }

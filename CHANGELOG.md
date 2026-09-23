@@ -14,6 +14,13 @@
 
 #### `dart:typed_data`
 
+- Added `rangeEquals` extension methods on all integer typed data lists
+  (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
+  `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
+  efficient range equality comparisons.
+  For more details, see SDK issue [#64095][]
+
+[#64095]: https://github.com/dart-lang/sdk/issues/64095
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
 - Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
@@ -29,6 +36,20 @@
   `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
   `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
   comparison holds and `0` elsewhere.
+- Added the `Int32x4.zero()` constructor, which creates an `Int32x4` with all
+  four lanes set to zero.
+- Added the unary negation operator `-` to `Int32x4`, which arithmetically
+  negates each lane using two's complement.
+- Added `Int32x4.abs`, which replaces each lane with its absolute value using
+  two's complement, so the absolute value of the minimum 32-bit integer yields
+  itself.
+- Added the lane-wise shift operators `<<` (left) and `>>` (arithmetic right) to
+  `Int32x4`.
+- Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
+- Added `Int32x4.min`, which selects the smaller of each pair of lanes,
+  compared as signed 32-bit integers.
+- Added `Int32x4.max`, which selects the larger of each pair of lanes,
+  compared as signed 32-bit integers.
 
 #### `dart:js_interop`
 
@@ -92,6 +113,35 @@
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
 ### Tools
+
+#### Analyzer
+
+- Report an error (`js_interop_extension_constructor_js_annotation_has_no_effect`)
+  when an `@JS` annotation is placed on an `external` constructor or factory of a
+  `dart:js_interop` extension type, matching the CFE. Move the `@JS` annotation to
+  the extension type declaration itself to rename non-object literal constructors.
+  For more details, see SDK issue [#54366][].
+
+[#54366]: https://github.com/dart-lang/sdk/issues/54366
+
+#### Dart CLI
+
+- `dart run <package>:<command>` and `dart test` now cache the precompiled
+  executable in `.dart_tool/dartdev/bin/` instead of `.dart_tool/pub/bin/`, and
+  recompile it when any of its source files change. Previously the snapshot was
+  rebuilt on every run for packages depended on by path, and could be stale for
+  hosted packages with a path `dependency_override`.
+
+- When `dart run <package>:<command>` and `dart test` run a precompiled
+  executable, `Platform.script` now points at the Dart source file instead of
+  the kernel snapshot. Resolving paths relative to `Platform.script` now works
+  as it does when running from source.
+
+- `dart run --enable-experiment=<experiment>` and
+  `dart test --enable-experiment=<experiment>` now run from a snapshot compiled
+  with those experiments, instead of falling back to running from source. The
+  requested experiments still take effect, but startup is no longer slower than
+  without them.
 
 #### Formatter
 

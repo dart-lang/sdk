@@ -76,7 +76,12 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
     }
 
     return buildInteractiveForm().mapResultSync((form) {
-      form.processResponse(command.formAnswers ?? []);
+      // Only process answers if they are non-null. Otherwise this is the very
+      // first resolve, and we don't want to trigger errors on mandatory fields
+      // that had no defaults yet.
+      if (command.formAnswers case var answers?) {
+        form.processResponse(answers);
+      }
 
       return success(
         InteractiveExecuteCommandParams(

@@ -121,7 +121,6 @@ class A {
     while (super) {}
 //         ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -131,7 +130,11 @@ class A {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition2: SuperExpression
+  condition2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  condition(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )

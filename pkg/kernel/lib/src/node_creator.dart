@@ -306,10 +306,10 @@ class NodeCreator {
             _addDartType(
               statements,
               FunctionType(
-                [],
+                DartTypeList.empty,
                 _createDartType(),
                 Nullability.nonNullable,
-                namedParameters: [node as NamedType],
+                namedParameters: NamedDartTypeList(node as NamedType),
               ),
             );
             break;
@@ -1264,16 +1264,22 @@ class NodeCreator {
       case ExpressionKind.RecordIndexGet:
         return RecordIndexGet(
           _createExpression(),
-          new RecordType([_createDartType()], [], Nullability.nonNullable),
+          new RecordType(
+            DartTypeList(_createDartType()),
+            NamedDartTypeList.empty,
+            Nullability.nonNullable,
+          ),
           0,
         )..fileOffset = _needFileOffset();
       case ExpressionKind.RecordNameGet:
         String name = _createName().text;
         return RecordNameGet(
           _createExpression(),
-          new RecordType([], [
-            new NamedType(name, _createDartType()),
-          ], Nullability.nonNullable),
+          new RecordType(
+            DartTypeList.empty,
+            NamedDartTypeList(new NamedType(name, _createDartType())),
+            Nullability.nonNullable,
+          ),
           name,
         )..fileOffset = _needFileOffset();
       case ExpressionKind.RecordLiteral:
@@ -1281,23 +1287,29 @@ class NodeCreator {
           () => RecordLiteral(
             [_createExpression()],
             [],
-            RecordType([_createDartType()], [], Nullability.nonNullable),
+            RecordType(
+              DartTypeList(_createDartType()),
+              NamedDartTypeList.empty,
+              Nullability.nonNullable,
+            ),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
             [],
             [NamedExpression('foo', _createExpression())],
-            RecordType([], [
-              NamedType('foo', _createDartType()),
-            ], Nullability.nonNullable),
+            RecordType(
+              DartTypeList.empty,
+              NamedDartTypeList(NamedType('foo', _createDartType())),
+              Nullability.nonNullable,
+            ),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
             [_createExpression()],
             [NamedExpression('foo', _createExpression())],
             RecordType(
-              [_createDartType()],
-              [NamedType('foo', _createDartType())],
+              DartTypeList(_createDartType()),
+              NamedDartTypeList(NamedType('foo', _createDartType())),
               Nullability.nonNullable,
             ),
             isConst: false,
@@ -1305,7 +1317,11 @@ class NodeCreator {
           () => RecordLiteral(
             [_createExpression()],
             [],
-            RecordType([_createDartType()], [], Nullability.nonNullable),
+            RecordType(
+              DartTypeList(_createDartType()),
+              NamedDartTypeList.empty,
+              Nullability.nonNullable,
+            ),
             isConst: true,
           )..fileOffset = _needFileOffset(),
         ]);
@@ -1878,19 +1894,31 @@ class NodeCreator {
       case DartTypeKind.FunctionType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           // TODO(johnniwinther): Create non-trivial cases.
-          () => FunctionType([], _createDartType(), Nullability.nonNullable),
+          () => FunctionType(
+            DartTypeList.empty,
+            _createDartType(),
+            Nullability.nonNullable,
+          ),
         ]);
       case DartTypeKind.RecordType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           // TODO(cstefantsova): Create non-trivial cases.
-          () => RecordType([], [], Nullability.nonNullable),
+          () => RecordType(
+            DartTypeList.empty,
+            NamedDartTypeList.empty,
+            Nullability.nonNullable,
+          ),
         ]);
       case DartTypeKind.FutureOrType:
         return FutureOrType(_createDartType(), Nullability.nonNullable);
       case DartTypeKind.InterfaceType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           // TODO(johnniwinther): Create non-trivial cases.
-          () => InterfaceType(_needClass(), Nullability.nonNullable, []),
+          () => InterfaceType(
+            _needClass(),
+            Nullability.nonNullable,
+            DartTypeList.empty,
+          ),
         ]);
       case DartTypeKind.InvalidType:
         return InvalidType();
@@ -1920,7 +1948,11 @@ class NodeCreator {
       case DartTypeKind.TypedefType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           // TODO(johnniwinther): Create non-trivial cases.
-          () => TypedefType(_needTypedef(), Nullability.nonNullable, []),
+          () => TypedefType(
+            _needTypedef(),
+            Nullability.nonNullable,
+            DartTypeList.empty,
+          ),
         ]);
       case DartTypeKind.ExtensionType:
         return ExtensionType(
@@ -1969,10 +2001,11 @@ class NodeCreator {
         return DoubleConstant(42.5);
       case ConstantKind.InstanceConstant:
         return _createOneOf(_pendingConstants, kind, index, [
-          () => InstanceConstant(_needClass().reference, [], {}),
+          () =>
+              InstanceConstant(_needClass().reference, DartTypeList.empty, {}),
           () => InstanceConstant(
             _needClass().reference,
-            [_createDartType()],
+            DartTypeList(_createDartType()),
             {
               _needField(isStatic: false, hasSetter: false).getterReference:
                   _createConstant(),
@@ -1980,7 +2013,7 @@ class NodeCreator {
           ),
           () => InstanceConstant(
             _needClass().reference,
-            [_createDartType()],
+            DartTypeList(_createDartType()),
             {
               _needField(
                 index: 0,
@@ -1996,7 +2029,10 @@ class NodeCreator {
           ),
         ]);
       case ConstantKind.InstantiationConstant:
-        return InstantiationConstant(_createConstant(), [_createDartType()]);
+        return InstantiationConstant(
+          _createConstant(),
+          DartTypeList(_createDartType()),
+        );
       case ConstantKind.IntConstant:
         return IntConstant(42);
       case ConstantKind.ListConstant:
@@ -2024,31 +2060,39 @@ class NodeCreator {
           () => RecordConstant(
             [],
             {},
-            RecordType([], [], Nullability.nonNullable),
+            RecordType(
+              DartTypeList.empty,
+              NamedDartTypeList.empty,
+              Nullability.nonNullable,
+            ),
           ),
           () => RecordConstant(
             [_createConstant(), _createConstant()],
             {},
             RecordType(
-              [_createDartType(), _createDartType()],
-              [],
+              DartTypeList(_createDartType(), _createDartType()),
+              NamedDartTypeList.empty,
               Nullability.nonNullable,
             ),
           ),
           () => RecordConstant(
             [],
             {'a': _createConstant(), 'b': _createConstant()},
-            RecordType([], [
-              NamedType('a', _createDartType()),
-              NamedType('b', _createDartType()),
-            ], Nullability.nonNullable),
+            RecordType(
+              DartTypeList.empty,
+              NamedDartTypeList(
+                NamedType('a', _createDartType()),
+                NamedType('b', _createDartType()),
+              ),
+              Nullability.nonNullable,
+            ),
           ),
           () => RecordConstant(
             [_createConstant()],
             {'a': _createConstant()},
             RecordType(
-              [_createDartType()],
-              [NamedType('a', _createDartType())],
+              DartTypeList(_createDartType()),
+              NamedDartTypeList(NamedType('a', _createDartType())),
               Nullability.nonNullable,
             ),
           ),
@@ -2080,10 +2124,10 @@ class NodeCreator {
       case ConstantKind.TypedefTearOffConstant:
         // TODO(johnniwinther): Add non-trivial cases.
         return TypedefTearOffConstant(
-          [],
+          StructuralParameterList.empty,
           _createConstantFromKind(ConstantKind.ConstructorTearOffConstant)
               as TearOffConstant,
-          [],
+          DartTypeList.empty,
         );
       case ConstantKind.UnevaluatedConstant:
         return UnevaluatedConstant(_createExpression());
@@ -2346,9 +2390,12 @@ class NodeCreator {
         return NamedType('foo', _createDartType());
       case NodeKind.Supertype:
         return _createOneOf(_pendingNodes, kind, index, [
-          () => Supertype(_needClass(), []),
-          () => Supertype(_needClass(), [_createDartType()]),
-          () => Supertype(_needClass(), [_createDartType(), _createDartType()]),
+          () => Supertype(_needClass(), DartTypeList.empty),
+          () => Supertype(_needClass(), DartTypeList(_createDartType())),
+          () => Supertype(
+            _needClass(),
+            DartTypeList(_createDartType(), _createDartType()),
+          ),
         ]);
       case NodeKind.SwitchCase:
         // TODO(johnniwinther): Add non-trivial cases.

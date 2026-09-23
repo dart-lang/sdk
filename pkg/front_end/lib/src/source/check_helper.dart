@@ -368,7 +368,7 @@ extension CheckHelper on ProblemReporting {
     DartType constructedType = new InterfaceType(
       klass,
       klass.enclosingLibrary.nonNullable,
-      explicitOrInferredTypeArguments,
+      new DartTypeList.from(explicitOrInferredTypeArguments),
     );
     checkBoundsInType(
       libraryFeatures: libraryFeatures,

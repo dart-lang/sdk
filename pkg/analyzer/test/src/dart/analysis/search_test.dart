@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -4126,6 +4127,32 @@ main() {
 ''');
   }
 
+  test_searchReferences_ExtensionElement_invalidRead() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  p.E;
+}
+''');
+    var element = result.findElement.extension_('E');
+    await assertElementReferencesText(element, r'''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  ^ REFERENCE
+  p.E;
+    ^ REFERENCE qualified
+}
+''');
+  }
+
   test_searchReferences_ExtensionTypeElement_reference_annotation() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;
@@ -5055,6 +5082,10 @@ enum E {
     foo = 1;
   }
 }
+void g(E e) {
+  e.foo = 2;
+  e..foo = 3;
+}
 ''');
     var field = result.findElement.field('foo');
 
@@ -5069,6 +5100,14 @@ enum E {
     ^^^ field REFERENCE
     ^^^ getter REFERENCE
   }
+}
+void g(E e) {
+  e.foo = 2;
+    ^^^ field REFERENCE qualified
+    ^^^ getter REFERENCE qualified
+  e..foo = 3;
+     ^^^ field REFERENCE qualified
+     ^^^ getter REFERENCE qualified
 }
 ''',
     );
@@ -10778,4 +10817,11 @@ class _SearchAnnotation {
     this.order = 0,
     required this.text,
   });
+}
+
+extension on FindNode2 {
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    var node = declaredVariablePattern(search);
+    return node.declaredFragment!.element;
+  }
 }

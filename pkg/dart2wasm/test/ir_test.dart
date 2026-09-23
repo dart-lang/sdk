@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:args/args.dart';
+import 'package:dart2wasm/cfg/ir_log.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:wasm_builder/source_map.dart'
@@ -19,6 +20,19 @@ import 'package:wasm_builder/src/serialize/printer.dart';
 import 'util.dart';
 
 void main(List<String> args) async {
+  await runIrTestSuite(
+    args,
+    testDirectory: 'pkg/dart2wasm/test/ir_tests',
+    watExtension: '.wat',
+  );
+}
+
+Future<void> runIrTestSuite(
+  List<String> args, {
+  required String testDirectory,
+  required String watExtension,
+  bool isCfgTest = false,
+}) async {
   final result = argParser.parse(args);
   final help = result.flag('help');
   final write = result.flag('write');
@@ -38,7 +52,7 @@ void main(List<String> args) async {
   final filterRegExp = filter != null ? RegExp(filter) : null;
 
   await withTempDir((String tempDir) async {
-    for (final dartFilename in listIrTests()) {
+    for (final dartFilename in listTests(testDirectory)) {
       // Ignore helper files (e.g. tests may use deferred modules which requires
       // multiple dart files to test).
       if (dartFilename.contains('.h.')) {
@@ -55,20 +69,30 @@ void main(List<String> args) async {
       }
 
       final dartCode = File(dartFilename).readAsStringSync();
-      final wasmFile = File(
-        path.join(
-          tempDir,
-          path.setExtension(path.basename(dartFilename), '.wasm'),
-        ),
-      );
+      final baseName = path.basenameWithoutExtension(dartFilename);
+      final wasmFile = File(path.join(tempDir, '$baseName.wasm'));
+      final cfgTxtTempFile = File(path.join(tempDir, '$baseName.cfg.txt'));
 
-      final (settings, compilerOptions) = parseSettings(dartCode);
+      List<String>? cfgLines;
+      final (settings, compilerOptions) = parseSettings(
+        dartCode,
+        isCfgTest: isCfgTest,
+        cfgLinesProvider: () => cfgLines,
+      );
+      final hasOptLevel = compilerOptions.any(
+        (opt) => opt.startsWith('-O') || opt.startsWith('--optimization-level'),
+      );
 
       print('\nTesting $dartFilename');
 
       final result = await Process.run('/usr/bin/env', [
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
+        if (isCfgTest) ...[
+          '--extra-compiler-option=--cfg',
+          '--extra-compiler-option=--dump-cfg=${cfgTxtTempFile.path}',
+          if (!hasOptLevel) '--extra-compiler-option=-O0',
+        ],
         '--extra-compiler-option=--unique-types',
         '--no-strip-toolchain-annotations',
         '--extra-compiler-option=--no-unique-constant-names',
@@ -93,6 +117,22 @@ void main(List<String> args) async {
         print('stderr:\n${result.stderr}\n');
         failTest();
         continue;
+      }
+
+      if (isCfgTest) {
+        final actualCfgTxt = cfgTxtTempFile.readAsStringSync();
+        cfgLines = actualCfgTxt.split('\n');
+        final cfgTxtFile = File(
+          path.join(path.dirname(dartFilename), '$baseName.cfg.txt'),
+        );
+        if (!checkExpectationFile(
+          file: cfgTxtFile,
+          actual: actualCfgTxt,
+          write: write,
+          failTest: failTest,
+        )) {
+          continue;
+        }
       }
 
       final deferredModulePrefix =
@@ -124,30 +164,16 @@ void main(List<String> args) async {
         final watFile = File(
           path.join(
             path.dirname(dartFilename),
-            path.setExtension(path.basename(file.path), '.wat'),
+            path.setExtension(path.basename(file.path), watExtension),
           ),
         );
 
-        if (write) {
-          print('-> Updated expectation file: ${watFile.path}');
-          watFile.writeAsStringSync(wat);
-          continue;
-        }
-        if (!watFile.existsSync()) {
-          print('Expected "${watFile.path}" to exist.');
-          failTest();
-          continue;
-        }
-
-        final oldWat = watFile.readAsStringSync();
-        if (oldWat != wat) {
-          print('-> Expectation of ${path.basename(watFile.path)} mismatch: ');
-          print('Expected:\n  ${oldWat.split('\n').join('\n  ')}');
-          print('Actual:\n  ${wat.split('\n').join('\n  ')}');
-          print('-> Run with `-w` to update expectation file.');
-          failTest();
-          continue;
-        }
+        checkExpectationFile(
+          file: watFile,
+          actual: wat,
+          write: write,
+          failTest: failTest,
+        );
       }
     }
   });
@@ -173,8 +199,10 @@ final argParser = ArgParser()
     help: 'Writes new expectation files.',
   );
 
-Iterable<String> listIrTests() {
-  return Directory('pkg/dart2wasm/test/ir_tests')
+Iterable<String> listTests(String testDirectory) {
+  final dir = Directory(testDirectory);
+  if (!dir.existsSync()) return const [];
+  return dir
       .listSync(recursive: true)
       .whereType<File>()
       .map((file) => file.path)
@@ -192,24 +220,31 @@ Module parseModule(
   );
 }
 
-(ModulePrintSettings, List<String>) parseSettings(String dartCode) {
+(ModulePrintSettings, List<String>) parseSettings(
+  String dartCode, {
+  required bool isCfgTest,
+  List<String>? Function()? cfgLinesProvider,
+}) {
   const functionFilter = '// functionFilter=';
   const tableFilter = '// tableFilter=';
   const globalFilter = '// globalFilter=';
   const typeFilter = '// typeFilter=';
   const compilerOption = '// compilerOption=';
   const printSourcePositionsPrefix = '// printSourcePositions';
+  const noPrintSourcePositionsPrefix = '// noPrintSourcePositions';
 
   final functionFilters = <RegExp>[];
   final tableFilters = <RegExp>[];
   final globalFilters = <RegExp>[];
   final typeFilters = <RegExp>[];
   final compilerOptions = <String>[];
-  bool printSourcePositions = false;
+  bool printSourcePositions = isCfgTest;
 
   for (final line in dartCode.split('\n')) {
     if (line.startsWith(printSourcePositionsPrefix)) {
       printSourcePositions = true;
+    } else if (line.startsWith(noPrintSourcePositionsPrefix)) {
+      printSourcePositions = false;
     }
     for (final (prefix, regexpList) in [
       (functionFilter, functionFilters),
@@ -243,7 +278,9 @@ Module parseModule(
       scrubAbsoluteUris: true,
       printInSortedOrder: true,
       printSourcePositions: printSourcePositions,
+      printUrl: !isCfgTest,
       sourceFileProvider: (uri) {
+        if (uri == CfgLog.defaultUri) return cfgLinesProvider?.call();
         if (!uri.isScheme('file')) return null;
         final file = File(uri.toFilePath());
         return file.existsSync() ? file.readAsLinesSync() : null;
@@ -251,4 +288,33 @@ Module parseModule(
     ),
     compilerOptions,
   );
+}
+
+bool checkExpectationFile({
+  required File file,
+  required String actual,
+  required bool write,
+  required void Function() failTest,
+}) {
+  if (write) {
+    print('-> Updated expectation file: ${file.path}');
+    file.writeAsStringSync(actual);
+    return true;
+  }
+  if (!file.existsSync()) {
+    print('Expected "${file.path}" to exist.');
+    failTest();
+    return false;
+  }
+
+  final expected = file.readAsStringSync();
+  if (expected != actual) {
+    print('-> Expectation of ${path.basename(file.path)} mismatch: ');
+    print('Expected:\n  ${expected.split('\n').join('\n  ')}');
+    print('Actual:\n  ${actual.split('\n').join('\n  ')}');
+    print('-> Run with `-w` to update expectation file.');
+    failTest();
+    return false;
+  }
+  return true;
 }

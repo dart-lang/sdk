@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterConvertToStatelessWidgetTest extends AssistProcessorTest {
+class FlutterConvertToStatelessWidgetTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

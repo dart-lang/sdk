@@ -17,4 +17,11 @@ final class MessagePort {
 
 extension MessagePortExt on MessagePort {
   StreamChannel<Object?> jsonRpcChannel() => _jsonRpcChannel();
+
+  // Below are stubs only needed for compilation when running in the vm.
+
+  Never asTransferableMessagePort() => throw UnsupportedError('Not supported');
+
+  static MessagePort fromMessagePort(Object? port) =>
+      throw UnsupportedError('Not supported');
 }

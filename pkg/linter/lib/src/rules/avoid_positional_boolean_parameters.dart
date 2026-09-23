@@ -66,22 +66,20 @@ class _Visitor(final AnalysisRule _rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    if (_isInFixedSignature(node)) return;
+
     _checkParams(node.parameters.parameters);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // Don't lint augmentations.
-    if (node.isAugmentation) return;
     if (node.isGetter) return;
     if (node.isSetter) return;
     if (node.isOperator) return;
-    if (node.hasInheritedMethod) return;
+    if (node.hasFixedSignature) return;
 
     var declaredElement = node.declaredFragment?.element;
-    if (declaredElement != null &&
-        !declaredElement.isPrivate &&
-        !declaredElement.isOverridingMember) {
+    if (declaredElement != null && !declaredElement.isPrivate) {
       _checkParams(node.parameters?.parameters);
     }
   }
@@ -108,6 +106,34 @@ class _Visitor(final AnalysisRule _rule) extends SimpleAstVisitor<void> {
     if (positionalBooleanParameters case [_, var second, ...]) {
       _rule.reportAtNode(second);
     }
+  }
+
+  /// Whether [node] is written in the signature of a method with a fixed
+  /// signature.
+  ///
+  /// A function type in such a signature cannot be changed to take named
+  /// parameters, but one in a method body can.
+  bool _isInFixedSignature(GenericFunctionType node) {
+    for (
+      var ancestor = node.parent;
+      ancestor != null;
+      ancestor = ancestor.parent
+    ) {
+      if (ancestor is FunctionBody) return false;
+      if (ancestor is MethodDeclaration) return ancestor.hasFixedSignature;
+    }
+    return false;
+  }
+}
+
+extension on MethodDeclaration {
+  /// Whether the signature of this method is fixed by the declaration it
+  /// augments or by a member it overrides.
+  bool get hasFixedSignature {
+    if (isAugmentation) return true;
+    if (hasInheritedMethod) return true;
+    var element = declaredFragment?.element;
+    return element != null && element.isOverridingMember;
   }
 }
 

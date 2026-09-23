@@ -1982,7 +1982,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (Expression, Pattern)
 
-    flow.forEach_bodyBegin(node, offset: bodyBeginOffset);
+    flow.patternForIn_bodyBegin(node, offset: bodyBeginOffset);
     dispatchBody();
     flow.forEach_end(offset: endOffset);
     flow.patternForIn_end(offset: endOffset);
@@ -2915,11 +2915,11 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
   getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
-  /// Called after visiting the pattern in `if-case` statement.
-  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
-
   /// Called after visiting the pattern in `if-case` element.
   void handle_ifCaseElement_afterPattern(Node node) {}
+
+  /// Called after visiting the pattern in `if-case` statement.
+  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
 
   /// Called after visiting the expression of an `if` element.
   void handle_ifElement_conditionEnd(Node node) {}
@@ -3127,6 +3127,10 @@ mixin TypeAnalyzer<
   void setVariableType(Variable variable, SharedTypeView type);
 
   /// Gets the offset of the end of a statement.
+  ///
+  /// Typically, this is the offset of the statement's terminating token (e.g.
+  /// `;` or `}`), so that positions immediately following the statement are
+  /// considered to be outside of it.
   int statementEndOffset(Statement statement);
 
   /// Computes the type that should be inferred for an implicitly typed variable
@@ -3550,8 +3554,9 @@ class TypeAnalyzerOptions {
   final bool inferenceUpdate3Enabled;
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
@@ -3564,6 +3569,8 @@ class TypeAnalyzerOptions {
 
   final bool soundFlowAnalysisEnabled;
 
+  final bool promotionChainIntersectionJoinEnabled;
+
   TypeAnalyzerOptions({
     required this.patternsEnabled,
     required this.inferenceUpdate3Enabled,
@@ -3572,5 +3579,6 @@ class TypeAnalyzerOptions {
     required this.inferenceUpdate4Enabled,
     required this.thisPromotionEnabled,
     required this.soundFlowAnalysisEnabled,
+    required this.promotionChainIntersectionJoinEnabled,
   });
 }

@@ -9,10 +9,13 @@ resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  args: any
+  browser_launcher: any
   dart_runtime_service: any
   dds_service_extensions: any
   devtools_shared: any
   dtd: any
+  http_multi_server: any
   json_rpc_2: any
   logging: any
   meta: any

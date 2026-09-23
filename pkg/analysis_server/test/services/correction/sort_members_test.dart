@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class SortMembersTest extends AbstractSingleUnitTest {
+class SortMembersTest extends SingleUnitTest {
   @override
   void setUp() {
     registerLintRules();

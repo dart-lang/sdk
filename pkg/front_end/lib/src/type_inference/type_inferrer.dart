@@ -65,6 +65,7 @@ abstract class TypeInferrer {
     required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
+    required DartType? thisType,
   });
 
   /// Performs type inference on the given function body.
@@ -77,6 +78,7 @@ abstract class TypeInferrer {
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
+    DartType? thisType,
   });
 
   /// Performs type inference on the given constructor initializer.
@@ -193,6 +195,10 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.thisPromotion.isEnabled,
         soundFlowAnalysisEnabled:
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
+        promotionChainIntersectionJoinEnabled: libraryBuilder
+            .libraryFeatures
+            .promotionChainIntersectionJoin
+            .isEnabled,
       );
 
   bool get isClosureContextLoweringEnabled =>
@@ -230,6 +236,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
+    required DartType? thisType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -244,11 +251,20 @@ class TypeInferrerImpl implements TypeInferrer {
         internalThisVariable: internalThisVariable,
       );
     }
+    if (thisType != null) {
+      flowAnalysis.thisBinding_begin(
+        null,
+        thisType: new SharedTypeView(thisType),
+      );
+    }
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
       initializer,
       declaredType ?? const UnknownType(),
       isVoidAllowed: true,
     );
+    if (thisType != null) {
+      flowAnalysis.thisBinding_end();
+    }
     if (scopeProviderInfo != null) {
       visitor.endFieldInference(scopeProviderInfo);
     }
@@ -285,6 +301,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
+    DartType? thisType,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
@@ -299,7 +316,16 @@ class TypeInferrerImpl implements TypeInferrer {
       needToInferReturnType: false,
       isRoot: true,
     );
+    if (thisType != null) {
+      flowAnalysis.thisBinding_begin(
+        null,
+        thisType: new SharedTypeView(thisType),
+      );
+    }
     StatementInferenceResult result = visitor.inferStatement(body, bodyContext);
+    if (thisType != null) {
+      flowAnalysis.thisBinding_end();
+    }
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       if (!flowAnalysis.isReachable) {
@@ -589,6 +615,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required InternalExpression initializer,
     required InferenceDefaultType inferenceDefaultType,
     required InternalThisVariable? internalThisVariable,
+    required DartType? thisType,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
     InferredFieldInitializer result = impl.inferFieldInitializer(
@@ -597,6 +624,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       initializer: initializer,
       inferenceDefaultType: inferenceDefaultType,
       internalThisVariable: internalThisVariable,
+      thisType: thisType,
     );
     benchmarker.endSubdivide();
     return result;
@@ -612,6 +640,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required ContextAllocationStrategy contextAllocationStrategy,
     required ConstructorContext? constructorContext,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
+    DartType? thisType,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
     InferredFunctionBody result = impl.inferFunctionBody(
@@ -623,6 +652,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       expressionEvaluationHelper: expressionEvaluationHelper,
       contextAllocationStrategy: contextAllocationStrategy,
       constructorContext: constructorContext,
+      thisType: thisType,
     );
     benchmarker.endSubdivide();
     return result;

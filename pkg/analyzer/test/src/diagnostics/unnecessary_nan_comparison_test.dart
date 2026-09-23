@@ -48,6 +48,23 @@ void f(double d) {
 ''');
   }
 
+  /// The left operand of `super == e` is a `SuperReference`, not an
+  /// `Expression`, so it can never be `double.nan`; the right operand is still
+  /// checked.
+  test_equal_superReceiver() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+class B extends A {
+  void f() {
+    super == double.nan;
+//        ^^^^^^^^^^^^^
+// [diag.unnecessaryNanComparisonFalse] A double can't equal 'double.nan', so the condition is always 'false'.
+  }
+}
+''');
+  }
+
   test_notEqual() async {
     await resolveTestCodeWithDiagnostics('''
 void f(double d) {
@@ -64,6 +81,20 @@ void f(double d) {
   double.nan != d;
 //^^^^^^^^^^^^^
 // [diag.unnecessaryNanComparisonTrue] A double can't equal 'double.nan', so the condition is always 'true'.
+}
+''');
+  }
+
+  test_notEqual_superReceiver() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+class B extends A {
+  void f() {
+    super != double.nan;
+//        ^^^^^^^^^^^^^
+// [diag.unnecessaryNanComparisonTrue] A double can't equal 'double.nan', so the condition is always 'true'.
+  }
 }
 ''');
   }

@@ -366,6 +366,9 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                  arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -432,6 +435,9 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                  arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -498,6 +504,9 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                  arguments(v1)
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -547,6 +556,13 @@ CompilationUnit
                 arguments: ArgumentList
                   leftParenthesis: (
                   arguments2
+                    ParsedUnqualifiedName
+                      name: int
+                    ParsedUnqualifiedName
+                      name: get
+                    ParsedUnqualifiedName
+                      name: a
+                  arguments(v1)
                     SimpleIdentifier
                       token: int
                     SimpleIdentifier
@@ -929,7 +945,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1216,7 +1234,9 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1349,8 +1369,8 @@ CompilationUnit
                         leftParenthesis: (
                         arguments2
                           CallInvocation
-                            receiver: SimpleIdentifier
-                              token: assert
+                            receiver: ParsedUnqualifiedName
+                              name: assert
                             argumentList: ArgumentList
                               leftParenthesis: (
                               arguments2
@@ -1457,6 +1477,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1506,6 +1529,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1554,6 +1580,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1651,6 +1680,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1666,7 +1698,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1710,6 +1744,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1915,6 +1952,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1960,6 +2000,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2007,7 +2050,9 @@ CompilationUnit
                           SwitchExpression
                             switchKeyword: switch
                             leftParenthesis: (
-                            expression2: SimpleIdentifier
+                            expression2: ParsedUnqualifiedName
+                              name: x
+                            expression(v1): SimpleIdentifier
                               token: x
                             rightParenthesis: )
                             leftBracket: {
@@ -2055,6 +2100,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2109,6 +2157,9 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2430,7 +2481,9 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer2: SimpleIdentifier
+            initializer2: ParsedUnqualifiedName
+              name: B
+            initializer(v1): SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
@@ -2570,6 +2623,9 @@ CompilationUnit
           arguments: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>
@@ -2708,6 +2764,9 @@ CompilationUnit
           arguments: ArgumentList
             leftParenthesis: (
             arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>

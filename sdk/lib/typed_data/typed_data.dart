@@ -479,6 +479,7 @@ abstract final class ByteData implements TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory ByteData.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -787,6 +788,7 @@ abstract final class Int8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int8List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -911,6 +913,7 @@ abstract final class Uint8List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint8List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1043,6 +1046,7 @@ abstract final class Uint8ClampedList implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint8ClampedList.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1176,6 +1180,7 @@ abstract final class Int16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int16List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1315,6 +1320,7 @@ abstract final class Uint16List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint16List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1453,6 +1459,7 @@ abstract final class Int32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1592,6 +1599,7 @@ abstract final class Uint32List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1730,6 +1738,7 @@ abstract final class Int64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -1869,6 +1878,7 @@ abstract final class Uint64List implements _TypedIntList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Uint64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2008,6 +2018,7 @@ abstract final class Float32List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float32List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2140,6 +2151,7 @@ abstract final class Float64List implements _TypedFloatList {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float64List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2272,6 +2284,7 @@ abstract final class Float32x4List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float32x4List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2412,6 +2425,7 @@ abstract final class Int32x4List implements TypedDataList<Int32x4>, TypedData {
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Int32x4List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2562,6 +2576,7 @@ abstract final class Float64x2List
   /// (The third argument is an end index rather than a length, so if
   /// you start from a position greater than zero, you need not
   /// reduce the count correspondingly).
+  @pragma("vm:prefer-inline")
   factory Float64x2List.view(
     ByteBuffer buffer, [
     int offsetInBytes = 0,
@@ -2683,8 +2698,8 @@ abstract final class Float32x4 {
 
   /// Creates a `Float32x4` with all values being zero.
   ///
-  /// The created value has the same [Float32x4.x], [Float32x4.y], [Float32x4.z]
-  /// and [Float32x4.w] value, which is the 32-bit floating point zero value.
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// 32-bit floating point zero value.
   external factory Float32x4.zero();
 
   /// Creates a `Float32x4` with 32-bit float values from the provided bits.
@@ -4342,7 +4357,15 @@ abstract final class Int32x4 {
   ///
   /// The created value has the same [x], [y], [z] and [w] value, which is the
   /// low 32 bits of [value].
+  @Since("3.14")
   external factory Int32x4.splat(int value);
+
+  /// Creates an `Int32x4` with all values being zero.
+  ///
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// 32-bit integer zero value.
+  @Since("3.14")
+  external factory Int32x4.zero();
 
   external factory Int32x4.bool(bool x, bool y, bool z, bool w);
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
@@ -4359,13 +4382,64 @@ abstract final class Int32x4 {
   /// Negation of each lane.
   ///
   /// Returns a new [Int32x4] with every bit of every lane inverted.
+  @Since("3.14")
   Int32x4 operator ~();
+
+  /// The bit-wise and-not operator.
+  ///
+  /// Returns a new [Int32x4] where each lane is the bit-wise and of the
+  /// corresponding lane of this value and the inverted corresponding lane
+  /// of [other], as if by `this & ~other`.
+  @Since("3.14")
+  Int32x4 andNot(Int32x4 other);
 
   /// Addition operator.
   Int32x4 operator +(Int32x4 other);
 
   /// Subtraction operator.
   Int32x4 operator -(Int32x4 other);
+
+  /// Returns a new [Int32x4] value where each lane is the negation of
+  /// the value of the corresponding lane of this `Int32x4`.
+  ///
+  /// Negating a value is equivalent to subtracting it from zero,
+  /// which leaves the zero value unchanged and changes the sign of all
+  /// other values _if the negated value can be represented in the result_.
+  ///
+  /// An [Int32x4] represents its values as two's complement 32-bit integers,
+  /// so the result of negating a value `n` is effectively the same as
+  /// `(-n).toSigned(32)`, so negating the minimal value, -0x80000000,
+  /// yields the same value again.
+  /// For all values other than zero and -0x80000000, negating changes the sign
+  /// of the value.
+  @Since("3.14")
+  Int32x4 operator -();
+
+  /// Returns a new [Int32x4] where each lane's value is the [int.abs()]
+  /// of the corresponding lane in this value, converted to 32-bits
+  /// as by `.toSigned(32)` ([int.toSigned]).
+  /// _That makes the `abs` of the minimal 32-bit signed value, -0x80000000,
+  /// be the same negative value again._
+  @Since("3.14")
+  Int32x4 abs();
+
+  /// Lane-wise left shift by [shiftAmount] bits.
+  ///
+  /// Returns a new [Int32x4] where each 32-bit lane is shifted left by
+  /// `shiftAmount % 32` bits, shifting in zero bits from the low end. A
+  /// negative [shiftAmount] is also taken modulo 32, so it is a valid shift
+  /// rather than an error.
+  @Since("3.14")
+  Int32x4 operator <<(int shiftAmount);
+
+  /// Lane-wise arithmetic (sign-extending) right shift by [shiftAmount] bits.
+  ///
+  /// Returns a new [Int32x4] where each 32-bit lane is shifted right by
+  /// `shiftAmount % 32` bits, shifting in copies of the sign bit from the high
+  /// end. A negative [shiftAmount] is also taken modulo 32, so it is a valid
+  /// shift rather than an error.
+  @Since("3.14")
+  Int32x4 operator >>(int shiftAmount);
 
   /// Lane-wise integer equality comparison.
   ///
@@ -4374,6 +4448,7 @@ abstract final class Int32x4 {
   /// the value from [other], and the result is 0 (all bits cleared) if not.
   ///
   /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
   Int32x4 equal(Int32x4 other);
 
   /// Lane-wise integer inequality comparison.
@@ -4383,6 +4458,7 @@ abstract final class Int32x4 {
   /// the value from [other], and the result is 0 (all bits cleared) if it is.
   ///
   /// Returns four values that are always either 0 or -1.
+  @Since("3.14")
   Int32x4 notEqual(Int32x4 other);
 
   /// Lane-wise signed integer less-than comparison.
@@ -4426,6 +4502,22 @@ abstract final class Int32x4 {
   /// Returns four values that are always either 0 or -1.
   @Since("3.14")
   Int32x4 greaterThanOrEqual(Int32x4 other);
+
+  /// Lane-wise signed integer minimum.
+  ///
+  /// Returns a new [Int32x4] where each lane is the smaller of the
+  /// corresponding lanes of this object and [other], compared as signed
+  /// 32-bit integers.
+  @Since("3.14")
+  Int32x4 min(Int32x4 other);
+
+  /// Lane-wise signed integer maximum.
+  ///
+  /// Returns a new [Int32x4] where each lane is the larger of the
+  /// corresponding lanes of this object and [other], compared as signed
+  /// 32-bit integers.
+  @Since("3.14")
+  Int32x4 max(Int32x4 other);
 
   /// Extract 32-bit mask from x lane.
   int get x;
@@ -4782,6 +4874,11 @@ abstract final class Int32x4 {
 abstract final class Float64x2 {
   external factory Float64x2(double x, double y);
   external factory Float64x2.splat(double v);
+
+  /// Creates a `Float64x2` with all values being zero.
+  ///
+  /// The created value has the same [x] and [y] value, which is the 64-bit
+  /// floating point zero value.
   external factory Float64x2.zero();
 
   /// Uses the "x" and "y" lanes from [v].
@@ -4841,3 +4938,485 @@ abstract final class Float64x2 {
   /// The lane-wise square root of this [Float64x2].
   Float64x2 sqrt();
 }
+
+// Note: Range equality comparison is supported on integer typed data lists
+// and ByteData where element equality corresponds directly to bitwise equality.
+// Floating-point types (Float32List, Float64List, etc.) are intentionally
+// omitted to avoid discrepancies between IEEE-754 equality (where NaN != NaN
+// and -0.0 == +0.0) and bitwise memory equality.
+
+/// Range comparison operation on [Uint8List].
+@Since("3.14")
+extension Uint8ListComparison on Uint8List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint8List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint8ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int8List].
+@Since("3.14")
+extension Int8ListComparison on Int8List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int8List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int8ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint8ClampedList].
+@Since("3.14")
+extension Uint8ClampedListComparison on Uint8ClampedList {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(
+    int start,
+    int end,
+    Uint8ClampedList other, [
+    int otherStart = 0,
+  ]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint8ClampedListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint16List].
+@Since("3.14")
+extension Uint16ListComparison on Uint16List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint16List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint16ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int16List].
+@Since("3.14")
+extension Int16ListComparison on Int16List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int16List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int16ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint32List].
+@Since("3.14")
+extension Uint32ListComparison on Uint32List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint32List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint32ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int32List].
+@Since("3.14")
+extension Int32ListComparison on Int32List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int32List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int32ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Uint64List].
+@Since("3.14")
+extension Uint64ListComparison on Uint64List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Uint64List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _uint64ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [Int64List].
+@Since("3.14")
+extension Int64ListComparison on Int64List {
+  /// Whether elements in a range of this list equal corresponding elements in
+  /// [other].
+  ///
+  /// Compares elements of this list from [start] (inclusive) to [end]
+  /// (exclusive) with elements of [other] starting at [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of elements are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ length` and `0 ≤ otherStart`
+  /// with `otherStart + (end - start) ≤ other.length`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, Int64List other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      length,
+      start,
+      end,
+      other.length,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _int64ListRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+/// Range comparison operation on [ByteData].
+@Since("3.14")
+extension ByteDataComparison on ByteData {
+  /// Whether bytes in a range of this byte data equal corresponding bytes in
+  /// [other].
+  ///
+  /// Compares bytes of this byte data from byte offset [start] (inclusive) to
+  /// [end] (exclusive) with bytes of [other] starting at byte offset
+  /// [otherStart].
+  ///
+  /// Returns whether all corresponding pairs of bytes are equal.
+  /// An empty range (`start == end`) returns `true`.
+  ///
+  /// The ranges must satisfy `0 ≤ start ≤ end ≤ lengthInBytes` and
+  /// `0 ≤ otherStart` with `otherStart + (end - start) ≤ other.lengthInBytes`.
+  @pragma('vm:prefer-inline')
+  @pragma('wasm:prefer-inline')
+  @pragma('dart2js:prefer-inline')
+  bool rangeEquals(int start, int end, ByteData other, [int otherStart = 0]) {
+    final count = _rangeEqualsBoundsCheck(
+      lengthInBytes,
+      start,
+      end,
+      other.lengthInBytes,
+      otherStart,
+    );
+    if (count == 0) return true;
+    if (identical(this, other) && start == otherStart) return true;
+    return _byteDataRangeEquals(this, start, other, otherStart, count);
+  }
+}
+
+@pragma('vm:prefer-inline')
+@pragma('wasm:prefer-inline')
+@pragma('dart2js:prefer-inline')
+int _rangeEqualsBoundsCheck(
+  int length,
+  int start,
+  int end,
+  int otherLength,
+  int otherStart,
+) {
+  final count = end - start;
+  if (start >= 0 &&
+      count >= 0 &&
+      end <= length &&
+      otherStart >= 0 &&
+      count <= otherLength - otherStart) {
+    return count;
+  }
+  return _rangeEqualsError(start, end, length, otherStart, otherLength);
+}
+
+Never _rangeEqualsError(
+  int start,
+  int end,
+  int length,
+  int otherStart,
+  int otherLength,
+) {
+  RangeError.checkValidRange(start, end, length);
+  RangeError.checkNotNegative(otherStart, "otherStart");
+  final count = end - start;
+  if (otherStart > otherLength) {
+    throw RangeError.range(otherStart, 0, otherLength, "otherStart");
+  }
+  if (otherLength - otherStart < count) {
+    throw RangeError.range(
+      otherStart + count,
+      0,
+      otherLength,
+      "otherStart",
+      "Range in other exceeds its length",
+    );
+  }
+  throw StateError("Unreachable");
+}
+
+bool _defaultListRangeEquals<T extends TypedDataList<int>>(
+  T a,
+  int aStart,
+  T b,
+  int bStart,
+  int count,
+) {
+  for (int i = 0; i < count; i++) {
+    if (a[aStart + i] != b[bStart + i]) return false;
+  }
+  return true;
+}
+
+bool _defaultByteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) {
+  int i = 0;
+  final limit32 = count - 4;
+  for (; i <= limit32; i += 4) {
+    if (a.getUint32(aStart + i, Endian.little) !=
+        b.getUint32(bStart + i, Endian.little)) {
+      return false;
+    }
+  }
+  for (; i < count; i++) {
+    if (a.getUint8(aStart + i) != b.getUint8(bStart + i)) return false;
+  }
+  return true;
+}
+
+bool _uint8ListRangeEquals(
+  Uint8List a,
+  int aStart,
+  Uint8List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int8ListRangeEquals(
+  Int8List a,
+  int aStart,
+  Int8List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint8ClampedListRangeEquals(
+  Uint8ClampedList a,
+  int aStart,
+  Uint8ClampedList b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint16ListRangeEquals(
+  Uint16List a,
+  int aStart,
+  Uint16List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int16ListRangeEquals(
+  Int16List a,
+  int aStart,
+  Int16List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint32ListRangeEquals(
+  Uint32List a,
+  int aStart,
+  Uint32List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int32ListRangeEquals(
+  Int32List a,
+  int aStart,
+  Int32List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _uint64ListRangeEquals(
+  Uint64List a,
+  int aStart,
+  Uint64List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _int64ListRangeEquals(
+  Int64List a,
+  int aStart,
+  Int64List b,
+  int bStart,
+  int count,
+) => _defaultListRangeEquals(a, aStart, b, bStart, count);
+
+bool _byteDataRangeEquals(
+  ByteData a,
+  int aStart,
+  ByteData b,
+  int bStart,
+  int count,
+) => _defaultByteDataRangeEquals(a, aStart, b, bStart, count);

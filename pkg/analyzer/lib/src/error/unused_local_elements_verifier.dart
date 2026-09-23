@@ -47,13 +47,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
@@ -187,11 +180,8 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       super.visitDirectAssignment(node);
       return;
     }
-    if (write case InvalidNamedWriteResolution(:var candidates)) {
-      for (var candidate in candidates) {
-        candidate = candidate.baseElement;
-        _useIdentifierElement(candidate);
-      }
+    if (write case InvalidNamedWriteResolution(:var recoveryElement)) {
+      _useIdentifierElement(recoveryElement?.baseElement);
       super.visitDirectAssignment(node);
       return;
     }
@@ -200,15 +190,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     }
 
     super.visitDirectAssignment(node);
-  }
-
-  @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    usedElements.addElement(node.element?.enclosingElement);
-    _addParametersForArguments(node.argumentList);
-    super.visitDotShorthandConstructorInvocation(node);
   }
 
   @override
@@ -222,22 +203,9 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    usedElements.addElement(node.memberName.element?.enclosingElement);
-    _addParametersForArguments(node.argumentList);
-    super.visitDotShorthandInvocation(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    usedElements.addElement(node.propertyName.element?.enclosingElement);
-    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
@@ -310,13 +278,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       readCountsAsUse: node.parent2 is! ExpressionStatement,
     );
     super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
-    usedElements.addMember(element);
-    super.visitIndexExpression(node);
   }
 
   @override
@@ -472,6 +433,12 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitStaticQualifier(StaticQualifier node) {
+    _useIdentifierElement(node.element);
+    super.visitStaticQualifier(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.element;
     usedElements.addElement(element);
@@ -617,15 +584,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   void _useIndexReadResolution(IndexReadResolution? resolution) {
-    var element = switch (resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
+    usedElements.addMember(resolution?.elementOrRecovery);
   }
 
   void _useNamedReadResolution(
@@ -704,6 +663,10 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   void _visitNameExpression(NameExpression node) {
+    if (node is PropertyExtraction &&
+        node.resolution?.elementOrRecovery == null) {
+      usedElements.unresolvedReadMembers.add(node.name.lexeme);
+    }
     // The omitted qualifier also refers to the enclosing declaration.
     if (node is DotShorthandNameExpression) {
       usedElements.addElement(node.resolution?.element?.enclosingElement);

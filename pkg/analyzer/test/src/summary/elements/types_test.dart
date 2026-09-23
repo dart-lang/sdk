@@ -1884,12 +1884,9 @@ library
                 UnqualifiedNameExpression
                   name: V @44
                   resolution: InvalidNamedReadResolution
-                    type: InvalidType
-                    candidates
-                      candidate: multiplyDefinedElement
-                        package:test/a.dart::@function::V
-                        package:test/b.dart::@function::V
-                    recovery: <null>
+                    recoveryElement: multiplyDefinedElement
+                      package:test/a.dart::@function::V
+                      package:test/b.dart::@function::V
                   staticType: InvalidType
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo

@@ -4219,6 +4219,10 @@ DEFINE_EMIT(
   __ vinsw(result, 3, v3);
 }
 
+DEFINE_EMIT(Int32x4Splat, (VRegister result, Register value)) {
+  __ vdupw(result, value);
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (VRegister result,
              Register v0,
@@ -4317,6 +4321,17 @@ DEFINE_EMIT(Int32x4Select,
   __ vorr(out, temp1, temp2);
 }
 
+DEFINE_EMIT(Int32x4WithLane,
+            (SameAsFirstInput, VRegister value, Register newLaneValue)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ vinsw(value, lane_index, newLaneValue);
+}
+
 DEFINE_EMIT(Int32x4WithFlag,
             (SameAsFirstInput, VRegister mask, Register flag)) {
   const VRegister result = mask;
@@ -4347,7 +4362,7 @@ DEFINE_EMIT(Int32x4WithFlag,
 //     CASE(OpA) CASE(OpB) ____(Emitter) - Emitter is used to emit OpA and OpB.
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
-#define SIMD_OP_VARIANTS(CASE, ____)                                           \
+#define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \
@@ -4358,8 +4373,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
-  CASE(Int32x4NotEqual)                                                        \
-  ____(Int32x4NotEqual)                                                        \
+  SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4377,15 +4391,12 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4GetSignMask)                                                   \
   CASE(Int32x4GetSignMask)                                                     \
   ____(Simd32x4GetSignMask)                                                    \
-  CASE(Float32x4FromDoubles)                                                   \
-  ____(Float32x4FromDoubles)                                                   \
+  SIMPLE(Float32x4FromDoubles)                                                 \
   CASE(Float32x4Zero)                                                          \
   CASE(Float64x2Zero)                                                          \
   ____(SimdZero)                                                               \
-  CASE(Float32x4Clamp)                                                         \
-  ____(Float32x4Clamp)                                                         \
-  CASE(Float64x2Clamp)                                                         \
-  ____(Float64x2Clamp)                                                         \
+  SIMPLE(Float32x4Clamp)                                                       \
+  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
@@ -4394,15 +4405,13 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4)                                                     \
-  CASE(Float64x2GetSignMask)                                                   \
-  ____(Float64x2GetSignMask)                                                   \
+  SIMPLE(Float64x2GetSignMask)                                                 \
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
   ____(Float64x2With)                                                          \
-  CASE(Int32x4FromInts)                                                        \
-  ____(Int32x4FromInts)                                                        \
-  CASE(Int32x4FromBools)                                                       \
-  ____(Int32x4FromBools)                                                       \
+  SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
+  SIMPLE(Int32x4FromBools)                                                     \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \
   CASE(Int32x4GetZ)                                                            \
@@ -4413,10 +4422,13 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4AnyTrue)                                                         \
-  ____(Int32x4AnyTrue)                                                         \
-  CASE(Int32x4Select)                                                          \
-  ____(Int32x4Select)                                                          \
+  SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -4428,9 +4440,11 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #define CASE(Name, ...) case k##Name:
 #define EMIT(Name)                                                             \
   return MakeLocationSummaryFromEmitter(zone, this, &Emit##Name);
-    SIMD_OP_VARIANTS(CASE, EMIT)
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
 #undef CASE
 #undef EMIT
+#undef SIMPLE
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4445,9 +4459,11 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #define EMIT(Name)                                                             \
   InvokeEmitter(compiler, this, &Emit##Name);                                  \
   break;
-    SIMD_OP_VARIANTS(CASE, EMIT)
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
 #undef CASE
 #undef EMIT
+#undef SIMPLE
     case kIllegalSimdOp:
       UNREACHABLE();
       break;

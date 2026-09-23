@@ -70,10 +70,14 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 
@@ -90,8 +94,18 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PropertyAccess
-    target2: SuperExpression
+  expression2: ReceiverPropertyExtraction
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: hashCode
+    resolution: GetterInvocationResolution
+      element: dart:core::@class::Object::@getter::hashCode
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: A
     operator: .
@@ -120,9 +134,7 @@ AwaitExpression
   expression2: UnqualifiedNameExpression
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): SimpleIdentifier
     token: unresolved
@@ -154,9 +166,7 @@ AwaitExpression
       element: <testLibraryFragment>::@prefix::prefix
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -202,9 +212,7 @@ AwaitExpression
     operator: .
     name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): PropertyAccess
     target: PropertyAccess

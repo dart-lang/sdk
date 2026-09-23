@@ -385,6 +385,16 @@ class NullSafetyDeadCodeVerifier {
     }
   }
 
+  /// Records a dead interval structurally anchored at [node] and beginning at
+  /// [firstToken].
+  ///
+  /// Canonical property nodes store the selected name as a token, so unlike
+  /// their V1 projections they have no name child at which dead-code
+  /// traversal can begin.
+  void recordDeadIntervalAt(AstNode node, Token firstToken) {
+    _visitNode(node, firstToken);
+  }
+
   void tryStatementEnter(TryStatement node) {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
@@ -445,21 +455,13 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
+    if (node.receiver case Expression receiver) {
+      _verifyUnassignedSimpleIdentifier(node, receiver, node.question);
+    }
   }
 
   void visitNode(AstNode node) {
     _visitNode(node, node.beginToken);
-  }
-
-  /// Records a dead interval structurally anchored at [node] and beginning at
-  /// [firstToken].
-  ///
-  /// Canonical property nodes store the selected name as a token, so unlike
-  /// their V1 projections they have no name child at which dead-code
-  /// traversal can begin.
-  void visitNullAwareAccess(AstNode node, Token firstToken) {
-    _visitNode(node, firstToken);
   }
 
   bool _containsFirstDeadNode(AstNode parent) {
@@ -501,6 +503,8 @@ class NullSafetyDeadCodeVerifier {
       if (flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent2;
         while (parent is MethodInvocation ||
+            parent is FunctionInvocation ||
+            parent is ParsedExpression ||
             parent is PropertyAccess ||
             parent is PropertyExtraction ||
             parent is IndexExpression2 ||

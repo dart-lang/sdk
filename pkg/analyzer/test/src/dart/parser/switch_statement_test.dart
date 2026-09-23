@@ -34,7 +34,9 @@ SwitchCase
   keyword: case
   expression2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: ParsedUnqualifiedName
+      name: int
+    expression(v1): SimpleIdentifier
       token: int
     rightParenthesis: )
   colon: :

@@ -4426,6 +4426,11 @@ DEFINE_EMIT(Int32x4FromInts,
   __ AddImmediate(RSP, compiler::Immediate(kSimd128Size));
 }
 
+DEFINE_EMIT(Int32x4Splat, (XmmRegister result, Register value)) {
+  __ movd(result, value);
+  __ shufps(result, result, compiler::Immediate(0x00));
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (XmmRegister result,
              Register,
@@ -4505,6 +4510,22 @@ DEFINE_EMIT(Int32x4AnyTrue, (Register out, XmmRegister value)) {
           compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
 }
 
+DEFINE_EMIT(Int32x4WithLane,
+            (SameAsFirstInput, XmmRegister value, Register newLaneValue)) {
+  // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has pinsrd.
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ SubImmediate(RSP, compiler::Immediate(kSimd128Size));
+  __ movups(compiler::Address(RSP, 0), value);
+  __ movl(compiler::Address(RSP, lane_index * kInt32Size), newLaneValue);
+  __ movups(value, compiler::Address(RSP, 0));
+  __ AddImmediate(RSP, compiler::Immediate(kSimd128Size));
+}
+
 DEFINE_EMIT(
     Int32x4WithFlag,
     (SameAsFirstInput, XmmRegister mask, Register flag, Temp<Register> temp)) {
@@ -4574,8 +4595,7 @@ DEFINE_EMIT(Int32x4NotEqual,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
-  CASE(Int32x4NotEqual)                                                        \
-  ____(Int32x4NotEqual)                                                        \
+  SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4598,6 +4618,7 @@ DEFINE_EMIT(Int32x4NotEqual,
   ____(SimdGetSignMask)                                                        \
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
@@ -4613,8 +4634,12 @@ DEFINE_EMIT(Int32x4NotEqual,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4AnyTrue)                                                         \
-  ____(Int32x4AnyTrue)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \

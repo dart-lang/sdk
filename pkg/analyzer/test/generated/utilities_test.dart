@@ -1282,24 +1282,6 @@ class A {
     );
   }
 
-  void test_methodInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo<int>(0);
-  b.bar<double>(1);
-}
-''');
-    _assertReplacementForChildren<MethodInvocation>(
-      destination: parseResult.findNode.methodInvocation('foo'),
-      source: parseResult.findNode.methodInvocation('bar'),
-      childAccessors: [
-        (node) => node.target2!,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
-    );
-  }
-
   void test_mixinDeclaration() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1385,6 +1367,82 @@ void f() {
     );
   }
 
+  void test_parsedNameAccess() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a.foo;
+  b.bar;
+}
+''');
+    _assertReplacementForChildren<ParsedNameAccess>(
+      destination:
+          parseResult.findNode.parsedExpression('a.foo') as ParsedNameAccess,
+      source:
+          parseResult.findNode.parsedExpression('b.bar') as ParsedNameAccess,
+      childAccessors: [(node) => node.operand],
+    );
+  }
+
+  void test_parsedTypeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedTypeArguments>(
+      destination:
+          (parseResult.findNode.expressionStatement('(a)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      source:
+          (parseResult.findNode.expressionStatement('(b)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      childAccessors: [(node) => node.operand, (node) => node.typeArguments],
+    );
+  }
+
+  void test_parsedValueArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.expressionStatement('(a)').expression2
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.expressionStatement('(b)').expression2
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
+  void test_parsedValueArguments_cascade() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    a..foo<int>(0);
+    c..bar<double>(1);
+  }
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.cascade('a..').sections.single.body
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.cascade('c..').sections.single.body
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
   void test_partDirective() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1457,20 +1515,6 @@ void f() {
       destination: parseResult.findNode.incrementOrDecrement('a++'),
       source: parseResult.findNode.incrementOrDecrement('b++'),
       childAccessors: [(node) => node.target],
-    );
-  }
-
-  void test_prefixedIdentifier() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo;
-  b.bar;
-}
-''');
-    _assertReplacementForChildren<PrefixedIdentifier>(
-      destination: parseResult.findNode.prefixed('a.foo'),
-      source: parseResult.findNode.prefixed('b.bar'),
-      childAccessors: [(node) => node.prefix, (node) => node.identifier],
     );
   }
 

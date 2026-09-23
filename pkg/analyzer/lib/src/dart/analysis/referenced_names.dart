@@ -232,12 +232,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   });
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _addCompoundAssignmentOperator(node.operator);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -252,7 +246,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
   }
 
   @override
@@ -322,6 +316,14 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitDotShorthandConstructorInvocation2(node);
   }
 
   @override
@@ -423,6 +425,42 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    names.add(node.name.lexeme);
+    super.visitParsedNameAccess(node);
+  }
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitParsedNameAccessAssignmentTarget(node);
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    ParsedUnqualifiedNameAssignmentTarget node,
+  ) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     if (node.effectiveName case var name?) {
       names.add(name);
@@ -435,7 +473,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyAssignmentTarget(node);
   }
 

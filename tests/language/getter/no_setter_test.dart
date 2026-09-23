@@ -27,8 +27,6 @@ class Example {
     // [error column 5, length 4]
     // [analyzer] COMPILE_TIME_ERROR.INVALID_REFERENCE_TO_THIS
     // [cfe] Expected identifier, but got 'this'.
-    //   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
   }
 }
 

@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
+import '../../find_node.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -15,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class VariableNameSuggestionTest extends AbstractSingleUnitTest {
+class VariableNameSuggestionTest extends SingleUnitTest
+    with FindElementMixin, FindNodeMixin {
   Future<void> test_forExpression_cast() async {
     await resolveTestCode('''
 void f(Object sortedNodes) {

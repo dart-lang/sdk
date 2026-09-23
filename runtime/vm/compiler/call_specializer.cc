@@ -2396,6 +2396,11 @@ class SimdLowering : public ValueObject {
         Gather(4);
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4Splat:
+        UnboxScalar(0, kUnboxedInt32, 4);
+        Splat(4);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
       case MethodRecognizer::kInt32x4FromBools:
         UnboxBool(0, 4);
         UnboxBool(1, 4);
@@ -2439,6 +2444,30 @@ class SimdLowering : public ValueObject {
         UnboxVector(0, kUnboxedInt32, kMintCid, 4);
         IntToBool();
         Return(3);
+        return true;
+      case MethodRecognizer::kInt32x4WithX:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(0);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithY:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(1);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithZ:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(2);
+        BoxVector(kUnboxedInt32, 4);
+        return true;
+      case MethodRecognizer::kInt32x4WithW:
+        UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+        UnboxScalar(1, kUnboxedInt32, 4);
+        With(3);
+        BoxVector(kUnboxedInt32, 4);
         return true;
       case MethodRecognizer::kInt32x4WithFlagX:
         UnboxVector(0, kUnboxedInt32, kMintCid, 4);
@@ -3093,11 +3122,18 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     }
 
     case MethodRecognizer::kFloat32x4Zero:
-    case MethodRecognizer::kFloat32x4ToFloat64x2:
-    case MethodRecognizer::kFloat64x2ToFloat32x4:
-    case MethodRecognizer::kFloat32x4ToInt32x4:
-    case MethodRecognizer::kInt32x4ToFloat32x4:
     case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kFloat32x4FromDoubles:
+    case MethodRecognizer::kFloat64x2FromDoubles:
+    case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4FromBools:
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kFloat32x4Splat:
+    case MethodRecognizer::kFloat64x2Splat:
+    case MethodRecognizer::kInt32x4Splat:
       *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
       break;
     case MethodRecognizer::kFloat32x4Mul:
@@ -3474,6 +3510,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Zero:
     case MethodRecognizer::kInt32x4FromBools:
     case MethodRecognizer::kInt32x4FromInts:
+    case MethodRecognizer::kInt32x4Splat:
     case MethodRecognizer::kInt32x4GetW:
     case MethodRecognizer::kInt32x4GetX:
     case MethodRecognizer::kInt32x4GetY:
@@ -3485,6 +3522,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4GetSignMask:
     case MethodRecognizer::kInt32x4Select:
     case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kInt32x4WithW:
+    case MethodRecognizer::kInt32x4WithX:
+    case MethodRecognizer::kInt32x4WithY:
+    case MethodRecognizer::kInt32x4WithZ:
     case MethodRecognizer::kInt32x4WithFlagW:
     case MethodRecognizer::kInt32x4WithFlagX:
     case MethodRecognizer::kInt32x4WithFlagY:

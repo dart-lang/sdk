@@ -6,9 +6,11 @@ import 'package:kernel/ast.dart'
     show
         Class,
         DartType,
+        DartTypeList,
         DynamicType,
         InterfaceType,
         Library,
+        NamedDartTypeList,
         NamedType,
         Nullability,
         RecordType,
@@ -288,7 +290,11 @@ class ParsedType {
             named.add(new NamedType(name, type));
           }
         }
-        return new RecordType(positional, named, _getDartNullability());
+        return new RecordType(
+          new DartTypeList.from(positional),
+          new NamedDartTypeList.from(named),
+          _getDartNullability(),
+        );
       case ParsedTypeKind.Interface:
         Class? classNode = libraryIndex.tryGetClass(uri!, className!);
         if (classNode == null) return new DynamicType();
@@ -296,9 +302,12 @@ class ParsedType {
         return new InterfaceType(
           classNode,
           _getDartNullability(),
-          arguments
-              ?.map((e) => e.createDartType(libraryIndex))
-              .toList(growable: false),
+          arguments == null
+              ? null
+              : new DartTypeList.generate(
+                  arguments!.length,
+                  (i) => arguments![i].createDartType(libraryIndex),
+                ),
         );
     }
   }

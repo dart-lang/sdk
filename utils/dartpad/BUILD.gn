@@ -56,6 +56,14 @@ copy("copy_ddc_module_loader") {
   outputs = [ "$root_out_dir/dartpad/ddc_module_loader.js" ]
 }
 
+copy("copy_stack_trace_mapper") {
+  deps = [ "../../utils/ddc:stack_trace_mapper" ]
+  dart_out =
+      get_label_info("../../utils/ddc:stack_trace_mapper", "root_out_dir")
+  sources = [ "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js" ]
+  outputs = [ "$root_out_dir/dartpad/dart_stack_trace_mapper.js" ]
+}
+
 group("dartpad") {
   deps = [
     ":build_sdk_tar",
@@ -63,6 +71,7 @@ group("dartpad") {
     ":copy_dart_sdk_js_map",
     ":copy_ddc_module_loader",
     ":copy_sandbox_js",
+    ":copy_stack_trace_mapper",
     ":copy_worker_js",
     ":worker",
   ]

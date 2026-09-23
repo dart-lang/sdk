@@ -73,9 +73,8 @@ class ConstructorInvocationResolver {
       lookupType: InterfaceTypeImpl(element: var contextElement),
     )) {
       // This branch will be true if we're resolving an explicitly marked
-      // const constructor invocation. It's completely unresolved, unlike a
-      // rewritten [DotShorthandConstructorInvocation2] that resulted from
-      // resolving a [DotShorthandInvocation].
+      // const constructor invocation. Other shorthand constructor invocations
+      // already have an element selected from the parsed invocation head.
       if (node.element == null) {
         if (contextElement.getNamedConstructor(node.name.lexeme)
             case ConstructorElementImpl element?
@@ -131,6 +130,22 @@ class ConstructorInvocationResolver {
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorReference = node.constructorReference;
+    var typeReference = constructorReference.typeReference;
+    if (constructorReference.selector case var selector?
+        when typeReference.type is FunctionTypeImpl) {
+      var aliasName = switch (typeReference.importPrefix) {
+        var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+        _ => typeReference.name.lexeme,
+      };
+      _resolver.diagnosticReporter.report(
+        diag.undefinedMethodOnFunctionType
+            .withArguments(
+              methodName: selector.name2.lexeme,
+              functionTypeAliasName: aliasName,
+            )
+            .at(selector.name2),
+      );
+    }
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       typeElement: constructorReference.typeReference.element,
       constructorName: constructorReference.selector?.name2,
@@ -155,7 +170,9 @@ class ConstructorInvocationResolver {
       target: target,
     ).resolveInvocation();
     node.recordStaticType(
-      node.constructorReference.typeReference.type!,
+      typeReference.type is FunctionTypeImpl
+          ? InvalidTypeImpl.instance
+          : typeReference.type!,
       resolver: _resolver,
     );
     _resolver.checkForArgumentTypesNotAssignableInList(

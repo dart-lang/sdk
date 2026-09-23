@@ -441,12 +441,16 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
 
   @override
   Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
-    InterfaceType(transformer.pointerClass, Nullability.nonNullable, [
-      InterfaceType(
-        transformer.pointerClass.superclass!,
-        Nullability.nonNullable,
+    InterfaceType(
+      transformer.pointerClass,
+      Nullability.nonNullable,
+      DartTypeList(
+        InterfaceType(
+          transformer.pointerClass.superclass!,
+          Nullability.nonNullable,
+        ),
       ),
-    ]),
+    ),
   );
 
   /// Sample output:
@@ -839,16 +843,19 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
 
   // Note that we flatten multi dimensional arrays.
   @override
-  Constant generateConstant(FfiTransformer transformer) =>
-      InstanceConstant(transformer.ffiInlineArrayClass.reference, [], {
-        transformer.ffiInlineArrayElementTypeField.fieldReference:
-            singleElementType.generateConstant(transformer),
-        transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
-          dimensionsFlattened,
-        ),
-        transformer.ffiInlineArrayVariableLengthField.fieldReference:
-            BoolConstant(variableLength),
-      });
+  Constant generateConstant(FfiTransformer transformer) => InstanceConstant(
+    transformer.ffiInlineArrayClass.reference,
+    DartTypeList.empty,
+    {
+      transformer.ffiInlineArrayElementTypeField.fieldReference:
+          singleElementType.generateConstant(transformer),
+      transformer.ffiInlineArrayLengthField.fieldReference: IntConstant(
+        dimensionsFlattened,
+      ),
+      transformer.ffiInlineArrayVariableLengthField.fieldReference:
+          BoolConstant(variableLength),
+    },
+  );
 
   /// Sample output for `Array<Int8>`:
   ///

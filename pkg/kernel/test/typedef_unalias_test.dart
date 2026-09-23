@@ -26,20 +26,24 @@ void main() {
     var param = harness.makeTypeParameter('T');
     var foo = new Typedef(
       'Foo',
-      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
-        new TypeParameterType(param, Nullability.nonNullable),
-      ]),
+      new InterfaceType(
+        harness.otherClass,
+        Nullability.nonNullable,
+        new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
+      ),
       typeParameters: [param],
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);
-    var input = new TypedefType(foo, Nullability.nonNullable, [
-      harness.objectRawType,
-    ]);
+    var input = new TypedefType(
+      foo,
+      Nullability.nonNullable,
+      new DartTypeList(harness.objectRawType),
+    );
     var expected = new InterfaceType(
       harness.otherClass,
       Nullability.nonNullable,
-      [harness.objectRawType],
+      new DartTypeList(harness.objectRawType),
     );
     expect(input.unalias, equals(expected));
   });
@@ -49,30 +53,40 @@ void main() {
     var fooParam = harness.makeTypeParameter('T');
     var foo = new Typedef(
       'Foo',
-      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
-        new TypeParameterType(fooParam, Nullability.nonNullable),
-      ]),
+      new InterfaceType(
+        harness.otherClass,
+        Nullability.nonNullable,
+        new DartTypeList(
+          new TypeParameterType(fooParam, Nullability.nonNullable),
+        ),
+      ),
       typeParameters: [fooParam],
       fileUri: dummyUri,
     );
     var barParam = harness.makeTypeParameter('T');
     var bar = new Typedef(
       'Bar',
-      new TypedefType(foo, Nullability.nonNullable, [
-        new TypeParameterType(barParam, Nullability.nonNullable),
-      ]),
+      new TypedefType(
+        foo,
+        Nullability.nonNullable,
+        new DartTypeList(
+          new TypeParameterType(barParam, Nullability.nonNullable),
+        ),
+      ),
       typeParameters: [barParam],
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);
     harness.enclosingLibrary.addTypedef(bar);
-    var input = new TypedefType(bar, Nullability.nonNullable, [
-      harness.objectRawType,
-    ]);
+    var input = new TypedefType(
+      bar,
+      Nullability.nonNullable,
+      new DartTypeList(harness.objectRawType),
+    );
     var expected = new InterfaceType(
       harness.otherClass,
       Nullability.nonNullable,
-      [harness.objectRawType],
+      new DartTypeList(harness.objectRawType),
     );
     expect(input.unalias, equals(expected));
   });
@@ -82,22 +96,36 @@ void main() {
     var param = harness.makeTypeParameter('T');
     var foo = new Typedef(
       'Foo',
-      new InterfaceType(harness.otherClass, Nullability.nonNullable, [
-        new TypeParameterType(param, Nullability.nonNullable),
-      ]),
+      new InterfaceType(
+        harness.otherClass,
+        Nullability.nonNullable,
+        new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
+      ),
       typeParameters: [param],
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);
-    var input = new TypedefType(foo, Nullability.nonNullable, [
-      new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType]),
-    ]);
+    var input = new TypedefType(
+      foo,
+      Nullability.nonNullable,
+      new DartTypeList(
+        new TypedefType(
+          foo,
+          Nullability.nonNullable,
+          new DartTypeList(harness.objectRawType),
+        ),
+      ),
+    );
     var expected = new InterfaceType(
       harness.otherClass,
       Nullability.nonNullable,
-      [
-        new TypedefType(foo, Nullability.nonNullable, [harness.objectRawType]),
-      ],
+      new DartTypeList(
+        new TypedefType(
+          foo,
+          Nullability.nonNullable,
+          new DartTypeList(harness.objectRawType),
+        ),
+      ),
     );
     expect(input.unalias, equals(expected));
   });

@@ -44,9 +44,11 @@ LogicalAnd
       bool
   operator: &&
   rightOperand: CallInvocation
-    receiver: SimpleIdentifier
-      token: b
-      element: <testLibrary>::@function::f::@formalParameter::b
+    receiver: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: dynamic
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
@@ -158,9 +160,11 @@ LogicalOr
       bool
   operator: ||
   rightOperand: CallInvocation
-    receiver: SimpleIdentifier
-      token: b
-      element: <testLibrary>::@function::f::@formalParameter::b
+    receiver: UnqualifiedNameExpression
+      name: b
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::b
+        type: dynamic
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (

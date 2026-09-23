@@ -1012,9 +1012,6 @@ mixin TypeAnalyzerOperationsMixin<
           AstNode
         > {
   @override
-  bool get disableThisTypeAssertion => false;
-
-  @override
   SharedType chooseTypeFromConstraint(
     MergedTypeConstraint<
       Variable,

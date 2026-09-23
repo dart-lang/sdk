@@ -22,6 +22,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MigrateDependencyConflictTest);
+    defineReflectiveTests(MigrateLockstepTest);
     defineReflectiveTests(MigrateMultiVersionTest);
     defineReflectiveTests(MigratePackageValidationTest);
     defineReflectiveTests(MigrateProgressTest);
@@ -369,6 +370,488 @@ test_project:
 }
 
 @reflectiveTest
+class MigrateLockstepTest extends AbstractMigrateTest {
+  /// Packages joined by a dependency take each version step together.
+  Future<void> test_round_interdependentPackages() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+>>>>>>>>>> ../core/pubspec.yaml
+name: core
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+
+    // Both packages take each version step before either starts the next, so
+    // their floors are only ever equal.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'core: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'core: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'core: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A package behind the rest takes a round on its own until it catches up,
+  /// after which the two move together.
+  Future<void> test_round_laggingPackage() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.12.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+>>>>>>>>>> ../core/pubspec.yaml
+name: core
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+
+    // The first round belongs to `app` alone, which is the only package at
+    // 3.11.0; once it has caught up the two move together.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A constraint carrying a patch counts as the SDK version it belongs to, so
+  /// it lands in the same round as a package on that version.
+  Future<void> test_round_patchVersionConstraint() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.2',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+    );
+
+    // Comparing declared versions would put `core` in a round of its own and
+    // raise it to 3.12.0 while `app`, which depends on it, sat at 3.11.2.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'core: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'core: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'core: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A dependency cycle terminates the cascade rather than looping, since a
+  /// dev dependency can point back at a package that depends on it.
+  Future<void> test_stop_cyclicDevDependencies() async {
+    // `app` has no package config, so its bump fails and holds back `core`,
+    // whose dev dependency points back at `app`.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var core = _createPackageFolder(
+      'core',
+      sdkConstraint: '^3.11.0',
+      devDependencies: ['app'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+core:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
+  /// A stopped package holds back what it depends on, so that dependency
+  /// can't be left above it. A package with no edge to either is unaffected.
+  Future<void> test_stop_dependencies() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails partway through the
+    // first round.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var unrelated = _createPackageFolder('unrelated', sdkConstraint: '^3.11.0');
+    await initialize(workspaceFolders: [app, core, unrelated]);
+
+    await _assertMigrationResult(
+      uris: [app, core, unrelated],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+core:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+unrelated:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      0 changes made in 0 files.''',
+      // `core` produces no edit at all, so it keeps the floor `app` is stuck
+      // at, while a package with no edge to either is untouched by the stop.
+      expectedEdit: '''
+>>>>>>>>>> ../unrelated/pubspec.yaml
+name: unrelated
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  /// The same packages as [test_stop_dependencies], with the dependency
+  /// requested before the package that fails.
+  ///
+  /// Held back or not, `core` must produce no edit: the order packages are
+  /// requested in can't be what decides where their SDK floors end up.
+  // TODO(kallentu): Stage edits per package and discard them when the package
+  // stops, so a round produces no edits for a package held back part-way
+  // through it.
+  @FailingTest(
+    reason:
+        'The runner collects edits globally as each package finishes a step, '
+        'so the bump `core` completes before `app` fails is still emitted '
+        'once `core` is held back. Need to discard those edits.',
+  )
+  Future<void> test_stop_dependencies_requestedFirst() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails partway through the
+    // first round.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var unrelated = _createPackageFolder('unrelated', sdkConstraint: '^3.11.0');
+    await initialize(workspaceFolders: [app, core, unrelated]);
+
+    await _assertMigrationResult(
+      uris: [core, app, unrelated],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedEdit: '''
+>>>>>>>>>> ../unrelated/pubspec.yaml
+name: unrelated
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  /// A dependency that isn't being migrated is already fixed where it is, so
+  /// a stop has nothing to hold back.
+  Future<void> test_stop_dependencyOutsideMigration() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    // Only `app` migrates, so `core` is never scheduled and never reported.
+    await _assertMigrationResult(
+      uris: [app],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
+    );
+  }
+
+  /// A stopped package leaves its dependents running, since a dependent
+  /// sitting above its dependency is ordinary.
+  Future<void> test_stop_dependents() async {
+    // `core` has no package config, so its bump fails.
+    var core = _createPackageFolder(
+      'core',
+      sdkConstraint: '^3.11.0',
+      writePackageConfig: false,
+    );
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    // A dependent may sit above its dependency, so `app` carries on to the
+    // target while `core` stays where it failed.
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+core:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "core". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+''',
+    );
+  }
+
+  /// The stop walk follows every dependency of a package, and carries on to
+  /// their dependencies. A package reachable by two paths is held back once,
+  /// not twice.
+  Future<void> test_stop_diamondDependencies() async {
+    var base = _createPackageFolder('base', sdkConstraint: '^3.11.0');
+    var left = _createPackageFolder(
+      'left',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['base'],
+    );
+    var right = _createPackageFolder(
+      'right',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['base'],
+    );
+    // `app` has no package config, so its bump fails.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['left', 'right'],
+      writePackageConfig: false,
+    );
+    await initialize(workspaceFolders: [app, left, right, base]);
+
+    await _assertMigrationResult(
+      uris: [app, left, right, base],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+left:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+right:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+base:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
+  /// Collects the stage messages the server reports against [token] as they
+  /// arrive.
+  ///
+  /// The order of these messages is what shows which packages moved together.
+  List<String> _collectStageMessages(ProgressToken token) {
+    var messages = <String>[];
+    notificationsFromServer
+        .where((n) => n.method == Method.progress)
+        .map((n) => ProgressParams.fromJson(n.params as Map<String, Object?>))
+        .where((params) => params.token == token)
+        .listen((params) {
+          var value = params.value as Map<String, Object?>;
+          if (value['kind'] == 'report') {
+            messages.add(value['message'] as String);
+          }
+        });
+    return messages;
+  }
+
+  /// Writes a package [name] under `/home` that declares [sdkConstraint] and
+  /// path dependencies on [dependencies] and [devDependencies], and returns
+  /// its directory URI for the test to open as an analysis root.
+  ///
+  /// Dependencies must be created first: their folders have to exist for the
+  /// package config to point at them.
+  ///
+  /// Pass `writePackageConfig: false` to leave the package without a
+  /// `.dart_tool/package_config.json`, which is what makes its bump step fail.
+  Uri _createPackageFolder(
+    String name, {
+    required String sdkConstraint,
+    List<String> dependencies = const [],
+    List<String> devDependencies = const [],
+    bool writePackageConfig = true,
+  }) {
+    var pubspec = StringBuffer('''
+name: $name
+environment:
+  sdk: '$sdkConstraint'
+''');
+    for (var (section, names) in [
+      ('dependencies', dependencies),
+      ('dev_dependencies', devDependencies),
+    ]) {
+      if (names.isEmpty) continue;
+      pubspec.writeln('$section:');
+      for (var dependency in names) {
+        pubspec.writeln('  $dependency:');
+        pubspec.writeln('    path: ../$dependency');
+      }
+    }
+
+    var packagePath = convertPath('/home/$name');
+    var pubspecPath = join(packagePath, 'pubspec.yaml');
+    if (writePackageConfig) {
+      var config = PackageConfigFileBuilder();
+      for (var dependency in [...dependencies, ...devDependencies]) {
+        config.add(
+          name: dependency,
+          rootFolder: resourceProvider.getFolder(
+            convertPath('/home/$dependency'),
+          ),
+        );
+      }
+      writePubspecFile(
+        pubspecPath,
+        pubspec.toString(),
+        packageConfigBuilder: config,
+      );
+    } else {
+      newFile(pubspecPath, pubspec.toString());
+    }
+    newFile(join(packagePath, 'lib', '$name.dart'), 'void f() {}\n');
+
+    return toUri(packagePath);
+  }
+}
+
+@reflectiveTest
 class MigrateMultiVersionTest extends AbstractMigrateTest {
   Future<void> test_alreadyAtTargetSdk() async {
     writePubspecFile(pubspecFilePath, '''
@@ -382,6 +865,25 @@ class C {
 }
 ''');
 
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+test_project:
+  Skipped (Already at target SDK version 3.13.0.)''',
+    );
+  }
+
+  /// A prerelease constraint counts as the version it belongs to.
+  Future<void> test_alreadyAtTargetSdk_prerelease() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0-dev.1'
+''');
     await initialize();
 
     await _assertMigrationResult(
@@ -1180,8 +1682,7 @@ resolution: workspace
     );
   }
 
-  Future<void> test_internalError_unableToCalculateNextSdkVersion() async {
-    failTestOnAnyErrorNotification = false;
+  Future<void> test_targetSdkAboveKnownRange() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
@@ -1199,9 +1700,6 @@ environment:
       steps: [MigrationStep.All],
     );
 
-    // Target a version higher than knownSdkVersions.last directly in
-    // MigrationRunner to simulate an internal error where nextSdkVersion
-    // returns null.
     var targetSdk = Version(
       knownSdkVersions.last.major,
       knownSdkVersions.last.minor + 1,
@@ -1219,7 +1717,9 @@ environment:
     expect(
       summaryBuilder.generate(),
       contains(
-        'Skipped (Internal error: Unable to calculate next SDK version.)',
+        'Skipped (The target SDK version "$targetSdk" is not supported for '
+        'migration. It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.)',
       ),
     );
   }
@@ -1839,6 +2339,30 @@ class C {
   new name();
 }
 ''',
+    );
+  }
+
+  /// Cleanup does not advance the SDK version, so a package that is already at
+  /// the latest known version is still eligible for it.
+  Future<void> test_cleanup_atLatestKnownSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary:
+          '''
+test_project:
+  ${knownSdkVersions.last}:
+    Cleanup changes:
+      0 changes made in 0 files.''',
     );
   }
 

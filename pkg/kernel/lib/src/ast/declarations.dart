@@ -505,7 +505,7 @@ class Class extends NamedNode implements TypeDeclaration {
   Supertype get asRawSupertype {
     return new Supertype(
       this,
-      new List<DartType>.filled(typeParameters.length, const DynamicType()),
+      DartTypeList.filledWithDynamic(typeParameters.length),
     );
   }
 

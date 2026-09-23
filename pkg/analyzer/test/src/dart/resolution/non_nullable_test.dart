@@ -80,7 +80,10 @@ f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_local_interfaceType() async {
@@ -134,7 +137,7 @@ f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
@@ -676,7 +679,10 @@ void f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_parameter_interfaceType() async {
@@ -712,7 +718,7 @@ void f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {

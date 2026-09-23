@@ -317,10 +317,27 @@ A f(A p) {
   return p;
 }''');
 
-    var node = result.findNode.methodInvocation('p.m()');
+    var node = result.findNode.receiverMethodInvocation('p.m()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: p
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::p
+      type: B
+    staticType: B
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::B::@method::m
+    invokeType: B Function()
+    type: B
+  staticType: B
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: p
     element: <testLibrary>::@function::f::@formalParameter::p
     staticType: B
@@ -411,9 +428,17 @@ main() {
   toString(); // marker
 }''');
 
-    var node = result.findNode.simple('toString(); // marker');
+    var node = result.findNode.unqualifiedNameExpression(
+      'toString(); // marker',
+    );
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: toString
+  resolution: VariableReadResolution
+    element: toString@19
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: toString
   element: toString@19
   staticType: dynamic

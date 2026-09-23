@@ -112,7 +112,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 702;
+  static const int DATA_VERSION = 730;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -3032,6 +3032,10 @@ class OwnedFiles {
   /// This map does not contain any files that are in [addedFiles].
   final Map<File, AnalysisDriver> knownFiles = {};
 
+  /// Key: the folder from the collection's resource provider.
+  /// Value: the driver discovering this package folder.
+  final Map<Folder, AnalysisDriver> knownFolders = {};
+
   void addAdded(File file, AnalysisDriver analysisDriver) {
     addedFiles[file] ??= analysisDriver;
     knownFiles.remove(file);
@@ -3136,6 +3140,14 @@ class _DiscoverAvailableFilesJob {
   }
 
   void _addFile(File file) {
+    if (filter == null) {
+      if (driver.ownedFiles case var ownedFiles?) {
+        var owner = ownedFiles.ownerOf(file);
+        if (owner != null && !identical(owner, driver)) {
+          return;
+        }
+      }
+    }
     if (_seenFiles.add(file)) {
       _files.addLast(file);
     }
@@ -3203,6 +3215,11 @@ class _DiscoverAvailableFilesJob {
             );
           }
         } else {
+          var owner = driver.ownedFiles?.knownFolders[folder];
+          if (owner != null && !identical(owner, driver)) {
+            continue;
+          }
+          driver.ownedFiles?.knownFolders[folder] ??= driver;
           _addFolder(folder, excludeSrc: false);
         }
       }

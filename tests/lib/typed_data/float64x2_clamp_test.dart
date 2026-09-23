@@ -5,9 +5,6 @@
 // VMOptions=--intrinsify --optimization-counter-threshold=10 --no-background-compilation
 // VMOptions=--no-intrinsify --optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library float64x2_clamp_test;
-
 import 'dart:math';
 import 'dart:typed_data';
 

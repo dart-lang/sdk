@@ -13,6 +13,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'async.dart';
+import 'cfg/code_generator.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'functions.dart';
@@ -98,7 +99,9 @@ abstract class AstCodeGenerator
   final LinkedHashMap<LabeledStatement, List<w.Label>> breakFinalizers =
       LinkedHashMap();
 
-  final List<({w.Local exceptionLocal, w.Local stackTraceLocal})>
+  final List<
+    ({w.Local exceptionLocal, w.Local stackTraceLocal, w.Local exnRefLocal})
+  >
   tryBlockLocals = [];
 
   final Map<SwitchCase, w.Label> switchLabels = {};
@@ -932,37 +935,68 @@ abstract class AstCodeGenerator
 
     final w.RefType exceptionType = translator.topTypeNonNullable;
     final w.RefType stackTraceType = translator.stackTraceType;
+    final w.RefType exnRefType = w.RefType.exn(nullable: true);
 
-    final w.Label wrapperBlock = b.block();
+    // Jump target when `try_table` block exits without exceptions.
+    final w.Label afterTryBlock = b.block();
 
     // Create a block target for each Dart `catch` block, to be able to share
-    // code when generating a `catch` and `catch_all` for the same Dart `catch`
-    // block, when the block can catch both Dart and JS exceptions.
-    // The `end` for the Wasm `try` block works as the first exception handler
-    // target.
+    // code when generating a `catch` for Dart and JS exceptions for the same
+    // Dart `catch` block.
     List<w.Label> catchBlockLabels = List.generate(
-      node.catches.length - 1,
+      node.catches.length,
       (i) => b.block([], [exceptionType, stackTraceType]),
       growable: true,
     );
 
-    w.Label try_ = b.try_legacy([], [exceptionType, stackTraceType]);
-    catchBlockLabels.add(try_);
-
     catchBlockLabels = catchBlockLabels.reversed.toList();
-
-    translateStatement(node.body);
-    b.br(wrapperBlock);
 
     // Stash the original exception in a local so we can push it back onto the
     // stack after each type test. Also, store the stack trace in a local.
     w.Local thrownException = addLocal(exceptionType);
     w.Local thrownStackTrace = addLocal(stackTraceType);
+    w.Local thrownExnRef = addLocal(exnRefType);
 
     tryBlockLocals.add((
       exceptionLocal: thrownException,
       stackTraceLocal: thrownStackTrace,
+      exnRefLocal: thrownExnRef,
     ));
+
+    final bool canCatchJSException =
+        !translator.options.standalone &&
+        node.catches.any((c) => guardCanMatchJSException(translator, c.guard));
+
+    w.Label? catchJsRefJumpLabel;
+    if (canCatchJSException) {
+      catchJsRefJumpLabel = b.block([], [
+        w.RefType.extern(nullable: true),
+        w.RefType.exn(nullable: false),
+      ]);
+    }
+
+    final w.Label catchRefJumpLabel = b.block([], [
+      exceptionType,
+      stackTraceType,
+      w.RefType.exn(nullable: false),
+    ]);
+
+    b.try_table([
+      w.CatchRef(
+        translator.getDartExceptionTag(b.moduleBuilder),
+        catchRefJumpLabel,
+      ),
+      if (catchJsRefJumpLabel != null)
+        w.CatchRef(
+          translator.getJsExceptionTag(b.moduleBuilder),
+          catchJsRefJumpLabel,
+        ),
+    ]);
+
+    translateStatement(node.body);
+    b.br(afterTryBlock);
+    b.end(); // end try_table
+    b.unreachable();
 
     void emitCatchBlock(
       w.Label catchBlockTarget,
@@ -998,12 +1032,12 @@ abstract class AstCodeGenerator
       b.end(); // end catchBlock.
     }
 
-    // Insert a catch instruction which will catch any thrown Dart
-    // exceptions.
-    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
-
+    // Handle Dart exceptions.
+    b.end(); // catchRefJumpLabel
+    b.local_set(thrownExnRef);
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
+
     for (
       int catchBlockIndex = 0;
       catchBlockIndex < node.catches.length;
@@ -1025,19 +1059,18 @@ abstract class AstCodeGenerator
       }
     }
 
-    // Rethrow if all the catch blocks fall through
-    b.rethrow_(try_);
+    // Rethrow if all the catch blocks fall through.
+    b.local_get(thrownExnRef);
+    b.throw_ref();
 
-    if (node.catches.any(
-      (c) => guardCanMatchJSException(translator, c.guard),
-    )) {
-      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-
+    if (catchJsRefJumpLabel != null) {
+      b.end(); // catchJsRefJumpLabel
+      b.local_set(thrownExnRef);
       final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
       b.local_tee(jsExceptionLocal);
 
       call(translator.boxJsException.reference);
-      b.local_tee(thrownException); // ref null #Top
+      b.local_set(thrownException);
 
       b.local_get(jsExceptionLocal);
       call(translator.jsExceptionStackTrace.reference);
@@ -1071,11 +1104,12 @@ abstract class AstCodeGenerator
       }
 
       // Rethrow if the catch block falls through
-      b.rethrow_(try_);
+      b.local_get(thrownExnRef);
+      b.throw_ref();
     }
 
     for (Catch catch_ in node.catches) {
-      b.end();
+      b.end(); // catchBlockLabels[i]
       b.local_set(thrownStackTrace);
       b.local_set(thrownException);
 
@@ -1101,11 +1135,11 @@ abstract class AstCodeGenerator
       }
 
       translateStatement(catch_.body);
-      b.br(wrapperBlock);
+      b.br(afterTryBlock);
     }
 
     tryBlockLocals.removeLast();
-    b.end(); // end tryWrapper
+    b.end(); // end afterTryBlock
   }
 
   @override
@@ -1113,10 +1147,10 @@ abstract class AstCodeGenerator
     // We lower a [TryFinally] to a number of nested blocks, depending on how
     // many different code paths we have that run the finally block.
     //
-    // We emit the finalizer once in a catch, to handle the case where the try
-    // throws. Once outside of the catch, to handle the case where the try does
-    // not throw. If there is a return within the try block, then we emit the
-    // finalizer one more time along with logic to continue walking up the
+    // We emit the finalizer once in a catch block, to handle the case where the
+    // try throws. Once outside of the catch, to handle the case where the try
+    // does not throw. If there is a return within the try block, then we emit
+    // the finalizer one more time along with logic to continue walking up the
     // stack.
     //
     // A `break L` can run more than one finalizer, and each of those
@@ -1139,8 +1173,13 @@ abstract class AstCodeGenerator
     w.Label returnFinalizerBlock = b.block();
     returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
 
-    w.Label tryBlock = b.try_legacy();
+    w.Label normalExecutionBlock = b.block();
+    w.Label catchBlock = b.block(const [], [w.RefType.exn(nullable: false)]);
+
+    b.try_table([w.CatchAllRef(catchBlock)]);
     translateStatement(node.body);
+    b.end(); // try_table
+    b.br(normalExecutionBlock);
 
     final bool mustHandleReturn = returnFinalizers
         .removeLast()
@@ -1154,19 +1193,15 @@ abstract class AstCodeGenerator
           .removeLast();
     }
 
-    // Handle Dart exceptions.
-    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
+    // Handle exceptions caught by `catch_all_ref`.
+    b.end(); // catchBlock
+    w.Local caughtExn = addLocal(w.RefType.exn(nullable: true));
+    b.local_set(caughtExn);
     translateStatement(node.finalizer);
-    b.rethrow_(tryBlock);
+    b.local_get(caughtExn);
+    b.throw_ref();
 
-    // Handle JS exceptions.
-    if (!translator.options.standalone) {
-      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-      translateStatement(node.finalizer);
-      b.rethrow_(tryBlock);
-    }
-
-    b.end(); // tryBlock
+    b.end(); // normalExecutionBlock
 
     // Run finalizer on normal execution (no breaks, throws, or returns).
     translateStatement(node.finalizer);
@@ -2863,7 +2898,11 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      instantiateConstantBackendUse(paramInfo.positional[i]!, type);
+      instantiateConstantBackendUse(
+        paramInfo.positional[i]!,
+        type,
+        dummyValueIfIncompatible: true,
+      );
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2886,7 +2925,11 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        instantiateConstantBackendUse(paramInfo.named[name]!, type);
+        instantiateConstantBackendUse(
+          paramInfo.named[name]!,
+          type,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
   }
@@ -2960,9 +3003,8 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
     final exceptionLocals = tryBlockLocals.last;
-    b.local_get(exceptionLocals.exceptionLocal);
-    b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
+    b.local_get(exceptionLocals.exnRefLocal);
+    b.throw_ref();
     return expectedType;
   }
 
@@ -3444,13 +3486,15 @@ abstract class AstCodeGenerator
   /// It should therefore not use a `deferredModuleGuard`.
   void instantiateConstantBackendUse(
     Constant constant,
-    w.ValueType expectedType,
-  ) {
+    w.ValueType expectedType, {
+    bool dummyValueIfIncompatible = false,
+  }) {
     translator.constants.instantiateConstant(
       b,
       constant,
       expectedType,
       deferredModuleGuard: null,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     );
   }
 }
@@ -3585,13 +3629,17 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   }
 
   if (member is Procedure && asyncMarker == AsyncMarker.Sync) {
-    return SynchronousProcedureCodeGenerator(
+    final codeGenerator = SynchronousProcedureCodeGenerator(
       translator,
       functionType,
       member,
       reference,
       reference.entryKind,
     );
+    if (mayUseCfgToCompileMember(translator, member)) {
+      return CfgProcedureCodeGenerator(codeGenerator);
+    }
+    return codeGenerator;
   }
 
   assert(
@@ -3954,7 +4002,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 
@@ -3996,7 +4048,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 

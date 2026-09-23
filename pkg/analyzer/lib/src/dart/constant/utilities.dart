@@ -37,17 +37,6 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.isConst) {
-      _find(node);
-    } else {
-      super.visitDotShorthandConstructorInvocation(node);
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -272,19 +261,6 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    if (node.isConst) {
-      var constructor = node.constructorName.element?.baseElement;
-      if (constructor is ConstructorElementImpl && constructor.isConst) {
-        _callback(constructor);
-      }
-    }
-    super.visitDotShorthandConstructorInvocation(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -320,6 +296,12 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     // don't want to visit the SimpleIdentifier for the label because that's a
     // reference to a function parameter that needs to be filled in; it's not a
     // constant whose value we depend on.
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedReadDependency(node.resolution);
+    node.receiver.accept2(this);
   }
 
   @override
@@ -362,7 +344,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   void _recordNamedReadDependency(NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
     if (element is GetterElementImpl) {
       element = element.variable;
     }

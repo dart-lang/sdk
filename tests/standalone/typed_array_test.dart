@@ -5,9 +5,6 @@
 // Dart test program for testing native float and int arrays.  64-bit int arrays
 // are in a separate test.
 
-// Library tag to be able to run in html test framework.
-library TypedArray;
-
 import 'package:expect/async_helper.dart';
 import "package:expect/expect.dart";
 

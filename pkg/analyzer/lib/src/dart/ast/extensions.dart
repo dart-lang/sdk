@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
@@ -366,20 +367,32 @@ extension IndexExpressionExtension on IndexExpression {
   }
 }
 
+extension IndexReadResolutionImplExtension on IndexReadResolutionImpl {
+  /// The method selected by successful resolution or error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []`.
+  InternalMethodElement? get elementOrRecovery => switch (this) {
+    MethodIndexReadResolutionImpl(:var element) => element,
+    InvalidIndexReadResolutionImpl(:var recoveryElement) => recoveryElement,
+    DynamicIndexReadResolutionImpl() => null,
+  };
+}
+
+extension IndexWriteResolutionImplExtension on IndexWriteResolutionImpl {
+  /// The method selected by successful resolution or error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []=`.
+  InternalMethodElement? get elementOrRecovery => switch (this) {
+    MethodIndexWriteResolutionImpl(:var element) => element,
+    InvalidIndexWriteResolutionImpl(:var recoveryElement) => recoveryElement,
+    DynamicIndexWriteResolutionImpl() => null,
+  };
+}
+
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
   }
-}
-
-extension NamedReadResolutionExtension on NamedReadResolution? {
-  /// The element selected by successful resolution or error recovery.
-  ///
-  /// Invalid candidates are not selected elements and are therefore ignored.
-  Element? get elementOrRecovery => switch (this) {
-    InvalidNamedReadResolution(:var recovery) => recovery?.element,
-    _ => this?.element,
-  };
 }
 
 extension NamedTypeExtension on NamedType {
@@ -421,6 +434,17 @@ extension PatternFieldImplExtension on PatternFieldImpl {
   }
 }
 
+extension ReadResolutionExtension on ReadResolution {
+  /// The element selected by successful resolution or error recovery.
+  ///
+  /// The recovery element need not support reading.
+  Element? get elementOrRecovery => switch (this) {
+    InvalidIndexReadResolution(:var recoveryElement) => recoveryElement,
+    InvalidNamedReadResolution(:var recoveryElement) => recoveryElement,
+    _ => element,
+  };
+}
+
 extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
   List<RecordTypeAnnotationField> get fields {
     return [...positionalFields, ...?namedFields?.fields];
@@ -449,4 +473,15 @@ extension TypeAnnotationImplExtension on TypeAnnotationImpl {
     }
     return type;
   }
+}
+
+extension WriteResolutionExtension on WriteResolution {
+  /// The element selected by successful resolution or error recovery.
+  ///
+  /// The recovery element need not support writing.
+  Element? get elementOrRecovery => switch (this) {
+    InvalidIndexWriteResolution(:var recoveryElement) => recoveryElement,
+    InvalidNamedWriteResolution(:var recoveryElement) => recoveryElement,
+    _ => element,
+  };
 }

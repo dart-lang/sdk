@@ -127,7 +127,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -143,7 +143,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -156,7 +156,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -172,7 +172,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -880,7 +880,7 @@ main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    var node = result.findNode.simple('myVar(42)');
+    var node = result.findNode.unqualifiedNameExpression('myVar(42)');
     assertType(node, 'String Function(int)');
   }
 

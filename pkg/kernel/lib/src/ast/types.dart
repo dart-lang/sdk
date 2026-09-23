@@ -8,6 +8,268 @@ part of '../../ast.dart';
 //                             TYPES
 // ------------------------------------------------------------------------
 
+/// A fixed-length list of [DartType]s.
+extension type const DartTypeList._(List<DartType> _list)
+    implements List<DartType> {
+  static const DartTypeList empty = DartTypeList._(const <DartType>[]);
+  static const DartTypeList dynamic1 = DartTypeList.constant([DynamicType()]);
+  static const DartTypeList dynamic2 = DartTypeList.constant([
+    DynamicType(),
+    DynamicType(),
+  ]);
+
+  /// Creates a constant list (must be invoked with `const` so [_list] is an
+  /// immutable list).
+  const new constant(this._list);
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  factory(DartType t1, [DartType? t2, DartType? t3, DartType? t4]) {
+    if (t2 == null) {
+      assert(t3 == null && t4 == null);
+      return DartTypeList._(List<DartType>.filled(1, t1));
+    }
+    if (t3 == null) {
+      assert(t4 == null);
+      final List<DartType> list = List<DartType>.filled(2, t1);
+      list[1] = t2;
+      return DartTypeList._(list);
+    }
+    if (t4 == null) {
+      final List<DartType> list = List<DartType>.filled(3, t1);
+      list[1] = t2;
+      list[2] = t3;
+      return DartTypeList._(list);
+    }
+    final List<DartType> list = List<DartType>.filled(4, t1);
+    list[1] = t2;
+    list[2] = t3;
+    list[3] = t4;
+    return DartTypeList._(list);
+  }
+
+  factory filledWithDynamic(int length) => switch (length) {
+    0 => empty,
+    1 => dynamic1,
+    2 => dynamic2,
+    _ => DartTypeList._(List<DartType>.filled(length, const DynamicType())),
+  };
+
+  factory filled(int length, DartType fill) {
+    if (length == 0) return empty;
+    return DartTypeList._(List<DartType>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, DartType Function(int index) generator) {
+    if (length == 0) return empty;
+    return DartTypeList._(
+      List<DartType>.generate(length, generator, growable: false),
+    );
+  }
+
+  /// Copies [types] into a new fixed-length list.
+  factory from(List<DartType> types) {
+    if (types.isEmpty) return empty;
+    return DartTypeList._(
+      List<DartType>.generate(types.length, (i) => types[i], growable: false),
+    );
+  }
+
+  DartTypeList skip(int count) {
+    assert(0 <= count);
+    if (count == 0) return this;
+    if (count >= _list.length) return empty;
+    return DartTypeList.generate(_list.length - count, (i) => _list[count + i]);
+  }
+}
+
+/// A fixed-length list of [NamedType]s.
+extension type const NamedDartTypeList._(List<NamedType> _list)
+    implements List<NamedType> {
+  static const NamedDartTypeList empty = NamedDartTypeList._(
+    const <NamedType>[],
+  );
+
+  /// Creates a constant list (must be invoked with `const` so [_list] is an
+  /// immutable list).
+  const new constant(this._list);
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  factory(NamedType t1, [NamedType? t2, NamedType? t3, NamedType? t4]) {
+    if (t2 == null) {
+      assert(t3 == null && t4 == null);
+      return NamedDartTypeList._(List<NamedType>.filled(1, t1));
+    }
+    if (t3 == null) {
+      assert(t4 == null);
+      final List<NamedType> list = List<NamedType>.filled(2, t1);
+      list[1] = t2;
+      return NamedDartTypeList._(list);
+    }
+    if (t4 == null) {
+      final List<NamedType> list = List<NamedType>.filled(3, t1);
+      list[1] = t2;
+      list[2] = t3;
+      return NamedDartTypeList._(list);
+    }
+    final List<NamedType> list = List<NamedType>.filled(4, t1);
+    list[1] = t2;
+    list[2] = t3;
+    list[3] = t4;
+    return NamedDartTypeList._(list);
+  }
+
+  factory filled(int length, NamedType fill) {
+    if (length == 0) return empty;
+    return NamedDartTypeList._(List<NamedType>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, NamedType Function(int index) generator) {
+    if (length == 0) return empty;
+    return NamedDartTypeList._(
+      List<NamedType>.generate(length, generator, growable: false),
+    );
+  }
+
+  /// Copies [types] into a new fixed-length list.
+  factory from(List<NamedType> types) {
+    if (types.isEmpty) return empty;
+    final List<NamedType> fixedList = List<NamedType>.filled(
+      types.length,
+      types[0],
+    );
+    for (int i = 1; i < types.length; ++i) {
+      fixedList[i] = types[i];
+    }
+    return NamedDartTypeList._(fixedList);
+  }
+
+  /// Wraps [fixedList] without copying; [fixedList] must already be a
+  /// fixed-length list.
+  factory wrap(List<NamedType> fixedList) {
+    return NamedDartTypeList._(fixedList);
+  }
+
+  /// Sorts non-empty lists in place.
+  ///
+  /// Assumes the list is mutable and therefore not a constant.
+  void sort([int Function(NamedType a, NamedType b)? compare]) {
+    if (_list.length > 1) {
+      _list.sort(compare);
+    }
+  }
+
+  NamedDartTypeList skip(int count) {
+    assert(0 <= count);
+    if (count == 0) return this;
+    if (count >= _list.length) return empty;
+    return NamedDartTypeList.generate(
+      _list.length - count,
+      (i) => _list[count + i],
+    );
+  }
+}
+
+/// A fixed-length list of [StructuralParameter]s.
+extension type const StructuralParameterList._(List<StructuralParameter> _list)
+    implements List<StructuralParameter> {
+  static const StructuralParameterList empty = StructuralParameterList._(
+    const <StructuralParameter>[],
+  );
+
+  /// Creates a constant list (must be invoked with `const` so [_list] is an
+  /// immutable list).
+  const new constant(this._list);
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a list
+  /// literal.
+  factory(
+    StructuralParameter t1, [
+    StructuralParameter? t2,
+    StructuralParameter? t3,
+    StructuralParameter? t4,
+  ]) {
+    if (t2 == null) {
+      assert(t3 == null && t4 == null);
+      return StructuralParameterList._(List<StructuralParameter>.filled(1, t1));
+    }
+    if (t3 == null) {
+      assert(t4 == null);
+      final List<StructuralParameter> list = List<StructuralParameter>.filled(
+        2,
+        t1,
+      );
+      list[1] = t2;
+      return StructuralParameterList._(list);
+    }
+    if (t4 == null) {
+      final List<StructuralParameter> list = List<StructuralParameter>.filled(
+        3,
+        t1,
+      );
+      list[1] = t2;
+      list[2] = t3;
+      return StructuralParameterList._(list);
+    }
+    final List<StructuralParameter> list = List<StructuralParameter>.filled(
+      4,
+      t1,
+    );
+    list[1] = t2;
+    list[2] = t3;
+    list[3] = t4;
+    return StructuralParameterList._(list);
+  }
+
+  factory filled(int length, StructuralParameter fill) {
+    if (length == 0) return empty;
+    return StructuralParameterList._(
+      List<StructuralParameter>.filled(length, fill),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(
+    int length,
+    StructuralParameter Function(int index) generator,
+  ) {
+    if (length == 0) return empty;
+    return StructuralParameterList._(
+      List<StructuralParameter>.generate(length, generator, growable: false),
+    );
+  }
+
+  /// Copies [types] into a new fixed-length list.
+  factory from(List<StructuralParameter> types) {
+    if (types.isEmpty) return empty;
+    final List<StructuralParameter> fixedList =
+        List<StructuralParameter>.filled(types.length, types[0]);
+    for (int i = 1; i < types.length; ++i) {
+      fixedList[i] = types[i];
+    }
+    return StructuralParameterList._(fixedList);
+  }
+
+  /// Wraps [fixedList] without copying; [fixedList] must already be a
+  /// fixed-length list.
+  factory wrap(List<StructuralParameter> fixedList) {
+    return StructuralParameterList._(fixedList);
+  }
+
+  StructuralParameterList skip(int count) {
+    assert(0 <= count);
+    if (count == 0) return this;
+    if (count >= _list.length) return empty;
+    return StructuralParameterList.generate(
+      _list.length - count,
+      (i) => _list[count + i],
+    );
+  }
+}
+
 /// Represents nullability of a type.
 enum Nullability {
   /// Non-legacy types not known to be nullable or non-nullable statically.
@@ -437,9 +699,9 @@ class StructuralParameter extends Node implements SharedTypeParameter {
 
 class Supertype extends Node {
   Reference className;
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
-  new(Class classNode, List<DartType> typeArguments)
+  new(Class classNode, DartTypeList typeArguments)
     : this.byReference(classNode.reference, typeArguments);
 
   new byReference(this.className, this.typeArguments);
@@ -654,7 +916,7 @@ sealed class TypeDeclarationType extends DartType {
   Reference get typeDeclarationReference;
 
   /// The type arguments used to instantiate this [TypeDeclarationType].
-  List<DartType> get typeArguments;
+  DartTypeList get typeArguments;
 
   /// The [TypeDeclaration] on which this [TypeDeclarationType] is built.
   TypeDeclaration get typeDeclaration =>
@@ -968,14 +1230,14 @@ class InterfaceType extends TypeDeclarationType {
   final Nullability declaredNullability;
 
   @override
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
   new(
     Class classNode,
     Nullability declaredNullability, [
-    List<DartType>? typeArguments,
+    DartTypeList? typeArguments,
   ]) : this.byReference(
          classNode.reference,
          declaredNullability,
@@ -986,7 +1248,7 @@ class InterfaceType extends TypeDeclarationType {
     this.classReference,
     this.declaredNullability,
     this.typeArguments,
-  );
+  ) {}
 
   @override
   Reference get typeDeclarationReference => classReference;
@@ -1006,17 +1268,8 @@ class InterfaceType extends TypeDeclarationType {
   @override
   DartType get nonTypeParameterBound => this;
 
-  static List<DartType> _defaultTypeArguments(Class classNode) {
-    if (classNode.typeParameters.length == 0) {
-      // Avoid allocating a list in this very common case.
-      return const <DartType>[];
-    } else {
-      return new List<DartType>.filled(
-        classNode.typeParameters.length,
-        const DynamicType(),
-      );
-    }
-  }
+  static DartTypeList _defaultTypeArguments(Class classNode) =>
+      DartTypeList.filledWithDynamic(classNode.typeParameters.length);
 
   @override
   R accept<R>(DartTypeVisitor<R> v) => v.visitInterfaceType(this);
@@ -1086,10 +1339,10 @@ class InterfaceType extends TypeDeclarationType {
 
 /// A possibly generic function type.
 class FunctionType extends DartType implements SharedFunctionType {
-  final List<StructuralParameter> typeParameters;
+  final StructuralParameterList typeParameters;
   final int requiredParameterCount;
-  final List<DartType> positionalParameters;
-  final List<NamedType> namedParameters; // Must be sorted.
+  final DartTypeList positionalParameters;
+  final NamedDartTypeList namedParameters; // Must be sorted.
 
   @override
   final Nullability declaredNullability;
@@ -1100,15 +1353,15 @@ class FunctionType extends DartType implements SharedFunctionType {
   late final int hashCode = _computeHashCode();
 
   new(
-    List<DartType> positionalParameters,
+    DartTypeList positionalParameters,
     this.returnType,
     this.declaredNullability, {
-    this.namedParameters = const <NamedType>[],
-    this.typeParameters = const <StructuralParameter>[],
+    this.namedParameters = NamedDartTypeList.empty,
+    this.typeParameters = StructuralParameterList.empty,
     int? requiredParameterCount,
   }) : this.positionalParameters = positionalParameters,
        this.requiredParameterCount =
-           requiredParameterCount ?? positionalParameters.length;
+           requiredParameterCount ?? positionalParameters.length {}
 
   @override
   Nullability get nullability => declaredNullability;
@@ -1333,13 +1586,13 @@ class TypedefType extends DartType {
   @override
   final Nullability declaredNullability;
   final Reference typedefReference;
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
-  new(Typedef typedef, Nullability nullability, [List<DartType>? typeArguments])
+  new(Typedef typedef, Nullability nullability, [DartTypeList? typeArguments])
     : this.byReference(
         typedef.reference,
         nullability,
-        typeArguments ?? const <DartType>[],
+        typeArguments ?? DartTypeList.empty,
       );
 
   new byReference(
@@ -1530,12 +1783,12 @@ class ExtensionType extends TypeDeclarationType {
   final Nullability declaredNullability;
 
   @override
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   new(
     ExtensionTypeDeclaration extensionTypeDeclaration,
     Nullability declaredNullability, [
-    List<DartType>? typeArguments,
+    DartTypeList? typeArguments,
   ]) : this.byReference(
          extensionTypeDeclaration.reference,
          declaredNullability,
@@ -1598,19 +1851,11 @@ class ExtensionType extends TypeDeclarationType {
     Nullability.nonNullable => true,
   };
 
-  static List<DartType> _defaultTypeArguments(
+  static DartTypeList _defaultTypeArguments(
     ExtensionTypeDeclaration extensionTypeDeclaration,
-  ) {
-    if (extensionTypeDeclaration.typeParameters.length == 0) {
-      // Avoid allocating a list in this very common case.
-      return const <DartType>[];
-    } else {
-      return new List<DartType>.filled(
-        extensionTypeDeclaration.typeParameters.length,
-        const DynamicType(),
-      );
-    }
-  }
+  ) => DartTypeList.filledWithDynamic(
+    extensionTypeDeclaration.typeParameters.length,
+  );
 
   static DartType _computeTypeErasure(
     Reference extensionTypeDeclarationReference,
@@ -2294,8 +2539,8 @@ class StructuralParameterType extends DartType {
 }
 
 class RecordType extends DartType implements SharedRecordType {
-  final List<DartType> positional;
-  final List<NamedType> named;
+  final DartTypeList positional;
+  final NamedDartTypeList named;
 
   @override
   final Nullability declaredNullability;

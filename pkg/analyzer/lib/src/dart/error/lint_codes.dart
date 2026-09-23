@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/error/codes.dart';
 /// @docImport 'package:analyzer/analysis_rule/analysis_rule.dart';
+/// @docImport 'package:analyzer/src/error/codes.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';

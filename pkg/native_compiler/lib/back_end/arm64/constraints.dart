@@ -280,32 +280,52 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
-      ]);
+      switch (instr.kind) {
+        .float32List ||
+        .float64List ||
+        .float32ListView ||
+        .float64ListView ||
+        .float32ByteData ||
+        .float64ByteData => InstructionConstraints(anyFpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+        ]),
+        _ => InstructionConstraints(anyCpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.inputDefAt(1)),
+        ]),
+      };
 
   @override
-  InstructionConstraints? visitStoreArrayElement(StoreArrayElement instr) {
-    if (instr.kind == .fixedLengthList) {
-      return InstructionConstraints(
-        null,
-        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        const [anyCpuRegister, anyCpuRegister],
-        Safepoint(), // For write barrier.
-      );
-    } else {
-      return InstructionConstraints(
-        null,
-        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
-        [
-          if (instr.kind == .uint8ClampedList ||
-              instr.kind == .uint8ClampedListView)
-            anyCpuRegister,
-        ],
-      );
-    }
-  }
+  InstructionConstraints? visitStoreArrayElement(StoreArrayElement instr) =>
+      switch (instr.kind) {
+        .fixedLengthList => InstructionConstraints(
+          null,
+          [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+          const [anyCpuRegister, anyCpuRegister, WriteBarrierStub.slotReg],
+          Safepoint(), // For write barrier.
+        ),
+        .uint8ClampedList || .uint8ClampedListView => InstructionConstraints(
+          null,
+          [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+          const [anyCpuRegister],
+        ),
+        .float32List ||
+        .float64List ||
+        .float32ListView ||
+        .float64ListView ||
+        .float32ByteData ||
+        .float64ByteData => InstructionConstraints(null, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.index),
+          anyFpuRegister,
+        ]),
+        _ => InstructionConstraints(null, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.index),
+          anyCpuRegister,
+        ]),
+      };
 
   @override
   InstructionConstraints? visitLoadExternalArrayElement(
@@ -544,21 +564,28 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
-  InstructionConstraints? visitBoxInt(BoxInt instr) => InstructionConstraints(
-    anyCpuRegister,
-    const [anyCpuRegister],
-    const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-    Safepoint(),
-  );
+  InstructionConstraints? visitBoxInt(BoxInt instr) {
+    final inputs = [allocatableRegisters.where((r) => r != returnReg).first];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(returnReg, inputs),
+      Safepoint(),
+    );
+  }
 
   @override
-  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
-      InstructionConstraints(
-        anyCpuRegister,
-        const [anyFpuRegister],
-        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
-        Safepoint(),
-      );
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) {
+    final inputs = [allocatableFPRegisters.first];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(returnReg, inputs),
+      Safepoint(),
+    );
+  }
 
   @override
   InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
@@ -619,14 +646,26 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryDoubleOp(UnaryDoubleOp instr) =>
       switch (instr.op) {
-        UnaryDoubleOpcode.round ||
-        UnaryDoubleOpcode.floor ||
-        UnaryDoubleOpcode.ceil ||
-        UnaryDoubleOpcode.truncate => const InstructionConstraints(
+        .isNegative || .isInfinite => const InstructionConstraints(
           anyCpuRegister,
           [anyFpuRegister],
         ),
-        _ => const InstructionConstraints(anyFpuRegister, [anyFpuRegister]),
+        .round || .floor || .ceil || .truncate => InstructionConstraints(
+          anyCpuRegister,
+          const [anyFpuRegister],
+          const [],
+          Safepoint(),
+        ),
+        .neg ||
+        .abs ||
+        .square ||
+        .sqrt ||
+        .roundToDouble ||
+        .floorToDouble ||
+        .ceilToDouble ||
+        .truncateToDouble => const InstructionConstraints(anyFpuRegister, [
+          anyFpuRegister,
+        ]),
       };
 
   @override

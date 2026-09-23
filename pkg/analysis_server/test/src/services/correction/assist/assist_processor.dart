@@ -14,16 +14,15 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
-import '../../../../abstract_single_unit.dart';
 import '../../../../selection_mixin.dart';
-import '../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing assist processor tests.
-abstract class AssistProcessorTest extends AbstractSingleUnitTest
-    with SelectionMixin {
+abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
   late SourceChange _change;
   late String _resultCode;
 
@@ -137,14 +136,6 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest
     }).toList();
   }
 
-  @override
-  void setUp() {
-    registerLintRules();
-    registerBuiltInAssistGenerators();
-    registerBuiltInFixGenerators();
-    super.setUp();
-  }
-
   /// Computes assists and verifies that there is an assist of the given kind.
   Future<Assist> _assertHasAssist() async {
     var assists = await _computeAssists();
@@ -179,5 +170,17 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest
       positions.add(Position(testFile.path, offset));
     }
     return positions;
+  }
+}
+
+/// A base class defining support for writing assist processor tests for
+/// built-in assist processors.
+abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
+  @override
+  void setUp() {
+    registerLintRules();
+    registerBuiltInAssistGenerators();
+    registerBuiltInFixGenerators();
+    super.setUp();
   }
 }

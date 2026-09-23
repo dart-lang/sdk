@@ -30,7 +30,18 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression2: PrefixedIdentifier
+  expression2: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -190,8 +201,23 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression2: PropertyAccess
-    target2: PrefixedIdentifier
+  expression2: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
         element: <testLibraryFragment>::@prefix::prefix

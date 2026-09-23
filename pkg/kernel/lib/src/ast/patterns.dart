@@ -2378,14 +2378,14 @@ final Pattern dummyPattern = new ConstantPattern.byReference(
 );
 
 final FunctionType dummyFunctionType = new FunctionType(
-  [],
+  DartTypeList.empty,
   dummyDartType,
   Nullability.nonNullable,
 );
 
 final RecordType dummyRecordType = new RecordType(
-  [],
-  [],
+  DartTypeList.empty,
+  NamedDartTypeList.empty,
   Nullability.nonNullable,
 );
 

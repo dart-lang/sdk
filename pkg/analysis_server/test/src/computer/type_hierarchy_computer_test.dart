@@ -6,10 +6,10 @@ import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,7 +19,7 @@ void main() {
   });
 }
 
-abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
+abstract class AbstractTypeHierarchyTest extends SingleUnitTest {
   /// Matches a [TypeHierarchyItem] for [Enum].
   Matcher get _isEnum => TypeMatcher<TypeHierarchyItem>()
       .having((e) => e.displayName, 'displayName', 'Enum')
@@ -306,9 +306,10 @@ class ^MyClass2 extends MyClass1 {}
     var target = await findTarget();
 
     // Update the content so that offsets have changed since we got `target`.
-    updateTestSource('''
+    var updated = TestCode.parseNormalized('''
 // extra
 $content''');
+    newFile(testFile.path, updated.code);
 
     var supertypes = await findSupertypes(target!);
     expect(supertypes, [
@@ -316,8 +317,8 @@ $content''');
         'MyClass1',
         testFile.path,
         relationship: TypeHierarchyItemRelationship.extends_,
-        codeRange: parsedTestCode.ranges[0].sourceRange,
-        nameRange: parsedTestCode.ranges[1].sourceRange,
+        codeRange: updated.ranges[0].sourceRange,
+        nameRange: updated.ranges[1].sourceRange,
       ),
     ]);
   }

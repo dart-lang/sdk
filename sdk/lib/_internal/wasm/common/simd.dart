@@ -614,6 +614,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   factory I32x4.splat(int value) =>
       I32x4.fromV128(WasmI32x4.splat(WasmI32.fromInt(value)));
 
+  factory I32x4.zero() => I32x4.fromV128(WasmI32x4.splat(WasmI32.fromInt(0)));
+
   factory I32x4.bool(bool x, bool y, bool z, bool w) => I32x4.fromV128(
     WasmI32x4.fromInts(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0).value,
   );
@@ -640,6 +642,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 operator ^(Int32x4 other) =>
       I32x4.fromV128(_bits ^ (other as I32x4)._bits);
   Int32x4 operator ~() => I32x4.fromV128(~_bits);
+  Int32x4 andNot(Int32x4 other) =>
+      I32x4.fromV128(_bits.andNot((other as I32x4)._bits));
   Int32x4 operator +(Int32x4 other) => I32x4.fromV128(
     (WasmI32x4(_bits) + WasmI32x4((other as I32x4)._bits)).value,
   );
@@ -647,6 +651,18 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
     (WasmI32x4(_bits) - WasmI32x4((other as I32x4)._bits)).value,
   );
   Int32x4 operator -() => I32x4.fromV128((-WasmI32x4(_bits)).value);
+
+  Int32x4 abs() => I32x4(x.abs(), y.abs(), z.abs(), w.abs());
+
+  Int32x4 operator <<(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return I32x4._truncated(x << n, y << n, z << n, w << n);
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return I32x4._truncated(x >> n, y >> n, z >> n, w >> n);
+  }
 
   int get signMask => WasmI32x4(_bits).bitmask.toIntUnsigned();
 
@@ -691,6 +707,20 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
       w >= other.w ? -1 : 0,
     );
   }
+
+  Int32x4 min(Int32x4 other) => I32x4._truncated(
+    x < other.x ? x : other.x,
+    y < other.y ? y : other.y,
+    z < other.z ? z : other.z,
+    w < other.w ? w : other.w,
+  );
+
+  Int32x4 max(Int32x4 other) => I32x4._truncated(
+    x > other.x ? x : other.x,
+    y > other.y ? y : other.y,
+    z > other.z ? z : other.z,
+    w > other.w ? w : other.w,
+  );
 
   bool get anyTrue => _bits.anyTrue;
 

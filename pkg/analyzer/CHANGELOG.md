@@ -1,6 +1,15 @@
-## 14.4.0-dev
+## 14.5.0-dev
 
 * Internal changes only
+
+## 14.4.0
+
+* Added experimental `CompilationUnit.lookupThisType`, which queries the type of
+  `this` at an arbitrary offset within the compilation unit.
+* Removed experimental `FunctionBody.lookupThisType`. Use
+  `CompilationUnit.lookupThisType` instead; unlike the removed method, it also
+  works at offsets that aren't inside a function body (for example inside the
+  initializer of a `late` instance field).
 
 ## 14.3.0
 

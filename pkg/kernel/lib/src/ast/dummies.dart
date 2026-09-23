@@ -280,7 +280,7 @@ final DartType dummyDartType = new DynamicType();
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Supertype dummySupertype = new Supertype(dummyClass, const []);
+final Supertype dummySupertype = new Supertype(dummyClass, DartTypeList.empty);
 
 /// Non-nullable [NamedType] dummy value.
 ///

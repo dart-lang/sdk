@@ -235,13 +235,13 @@ class FfiNativeTransformer extends FfiTransformer {
     FunctionType ffiFunctionType,
   ) {
     return FunctionType(
-      <DartType>[
-        for (var i = 0; i < dartFunctionType.positionalParameters.length; i++)
-          _wrapArgumentType(
-            dartFunctionType.positionalParameters[i],
-            ffiFunctionType.positionalParameters[i],
-          ),
-      ],
+      DartTypeList.generate(
+        dartFunctionType.positionalParameters.length,
+        (i) => _wrapArgumentType(
+          dartFunctionType.positionalParameters[i],
+          ffiFunctionType.positionalParameters[i],
+        ),
+      ),
       _wrapReturnType(dartFunctionType.returnType, ffiFunctionType.returnType),
       dartFunctionType.nullability,
     );
@@ -558,11 +558,11 @@ class FfiNativeTransformer extends FfiTransformer {
       overriddenAssetName: overriddenAssetName,
     );
     final pragmaConstant = ConstantExpression(
-      InstanceConstant(pragmaClass.reference, [], {
+      InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
         pragmaName.fieldReference: StringConstant(_vmFfiNative),
         pragmaOptions.fieldReference: resolvedNative,
       }),
-      InterfaceType(pragmaClass, Nullability.nonNullable, []),
+      InterfaceType(pragmaClass, Nullability.nonNullable),
     );
 
     // The marker annotation is always added to the original method so that the
@@ -570,11 +570,11 @@ class FfiNativeTransformer extends FfiTransformer {
     // Native.addressOf.
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant(nativeMarker),
           pragmaOptions.fieldReference: resolvedNative,
         }),
-        InterfaceType(pragmaClass, Nullability.nonNullable, []),
+        InterfaceType(pragmaClass, Nullability.nonNullable),
       ),
     );
 
@@ -668,18 +668,14 @@ class FfiNativeTransformer extends FfiTransformer {
     required bool isLeaf,
     StringConstant? overriddenAssetName,
   }) {
-    return InstanceConstant(
-      nativeClass.reference,
-      [nativeType],
-      {
-        nativeSymbolField.fieldReference: nativeName,
-        nativeAssetField.fieldReference:
-            overriddenAssetName ??
-            currentAsset ??
-            StringConstant(currentLibrary.importUri.toString()),
-        nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
-      },
-    );
+    return InstanceConstant(nativeClass.reference, DartTypeList(nativeType), {
+      nativeSymbolField.fieldReference: nativeName,
+      nativeAssetField.fieldReference:
+          overriddenAssetName ??
+          currentAsset ??
+          StringConstant(currentLibrary.importUri.toString()),
+      nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
+    });
   }
 
   // Transform Native instance methods.
@@ -715,11 +711,11 @@ class FfiNativeTransformer extends FfiTransformer {
     int annotationOffset,
   ) {
     final dartFunctionType = FunctionType(
-      [
+      DartTypeList.from([
         (node.parent as Class).getThisType(coreTypes, Nullability.nonNullable),
         for (final parameter in node.function.positionalParameters)
           parameter.type,
-      ],
+      ]),
       node.function.returnType,
       Nullability.nonNullable,
     );
@@ -902,7 +898,7 @@ class FfiNativeTransformer extends FfiTransformer {
       final nativeFunctionType = InterfaceType(
         nativeFunctionClass,
         Nullability.nonNullable,
-        [nativeType],
+        DartTypeList(nativeType),
       );
 
       if (!isNativeTypeValid(
@@ -992,7 +988,7 @@ class FfiNativeTransformer extends FfiTransformer {
         final nativeFunctionType = InterfaceType(
           nativeFunctionClass,
           Nullability.nonNullable,
-          [nativeType],
+          DartTypeList(nativeType),
         );
         ensureNativeTypeValid(
           nativeFunctionType,
@@ -1075,11 +1071,11 @@ class FfiNativeTransformer extends FfiTransformer {
         );
         node.annotations.add(
           ConstantExpression(
-            InstanceConstant(pragmaClass.reference, [], {
+            InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
               pragmaName.fieldReference: StringConstant(nativeMarker),
               pragmaOptions.fieldReference: resolved,
             }),
-            InterfaceType(pragmaClass, Nullability.nonNullable, []),
+            InterfaceType(pragmaClass, Nullability.nonNullable),
           ),
         );
       } else {
@@ -1143,7 +1139,7 @@ class FfiNativeTransformer extends FfiTransformer {
     final nativeType = InterfaceType(
       nativeFunctionClass,
       Nullability.nonNullable,
-      [ffiFunctionType],
+      DartTypeList(ffiFunctionType),
     );
 
     try {

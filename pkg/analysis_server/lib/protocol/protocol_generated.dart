@@ -14663,7 +14663,7 @@ class LspHandleResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspNotificationParams implements HasToJson {
-  /// The LSP NotificationMessage sent by the server.
+  /// The LSP NotificationMessage.
   Object lspNotification;
 
   LspNotificationParams(this.lspNotification);
@@ -18608,6 +18608,13 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   ///
   /// If LSP capabilities are not provided or no setClientCapabilities request
   /// is made, a very basic set of capabilities will be assumed.
+  ///
+  /// If the capabilities include `workspace.configuration`, the server
+  /// requests the user's configuration with a `workspace/configuration`
+  /// request after responding to this request. LSP messages received in the
+  /// meantime are not handled until the client has responded to it, so that
+  /// they see the user's configuration and not the defaults. Other requests
+  /// are not affected.
   Object? lspCapabilities;
 
   ServerSetClientCapabilitiesParams(
