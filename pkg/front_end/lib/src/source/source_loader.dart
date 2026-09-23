@@ -2714,7 +2714,14 @@ severity: $severity
     );
     ClassBuilder classBuilder =
         coreLibrary.lookupRequiredLocalMember(name) as ClassBuilder;
-    return new InterfaceType(classBuilder.cls, nullability, typeArguments);
+    DartTypeList finalTypeArguments;
+    if (typeArguments != null) {
+      // Coverage-ignore-block(suite): Not run.
+      finalTypeArguments = new DartTypeList.from(typeArguments);
+    } else {
+      finalTypeArguments = DartTypeList.empty;
+    }
+    return new InterfaceType(classBuilder.cls, nullability, finalTypeArguments);
   }
 
   void computeCoreTypes(Component component) {
@@ -2728,17 +2735,17 @@ severity: $severity
     _futureOfBottom = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      const DartTypeList.constant([const NeverType.nonNullable()]),
     );
     _iterableOfBottom = new InterfaceType(
       coreTypes.iterableClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      const DartTypeList.constant([const NeverType.nonNullable()]),
     );
     _streamOfBottom = new InterfaceType(
       coreTypes.streamClass,
       Nullability.nonNullable,
-      <DartType>[const NeverType.nonNullable()],
+      const DartTypeList.constant([const NeverType.nonNullable()]),
     );
 
     ticker.logMs("Computed core types");
@@ -3231,7 +3238,7 @@ severity: $severity
     DartType listOfString = new InterfaceType(
       coreTypes.listClass,
       Nullability.nonNullable,
-      [coreTypes.stringNonNullableRawType],
+      new DartTypeList(coreTypes.stringNonNullableRawType),
     );
 
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {

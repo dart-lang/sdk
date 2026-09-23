@@ -184,7 +184,7 @@ class TypeConstraintGatherer
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  DartTypeList? getTypeArgumentsAsInstanceOf(
     TypeDeclarationType type,
     TypeDeclaration typeDeclaration,
   ) {

@@ -2414,10 +2414,11 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
             ],
           ],
           objectTable.getHandle(
-            InterfaceType(coreTypes.mapClass, Nullability.nonNullable, [
-              node.keyType,
-              node.valueType,
-            ]),
+            InterfaceType(
+              coreTypes.mapClass,
+              Nullability.nonNullable,
+              DartTypeList(node.keyType, node.valueType),
+            ),
           ),
         ),
       );

@@ -115,7 +115,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return _nullableRawType ??= new InterfaceType(
       cls,
       Nullability.nullable,
-      new List<DartType>.filled(typeParametersCount, const DynamicType()),
+      new DartTypeList.filledWithDynamic(typeParametersCount),
     );
   }
 
@@ -123,7 +123,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return _nonNullableRawType ??= new InterfaceType(
       cls,
       Nullability.nonNullable,
-      new List<DartType>.filled(typeParametersCount, const DynamicType()),
+      new DartTypeList.filledWithDynamic(typeParametersCount),
     );
   }
 
@@ -157,7 +157,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
     LibraryBuilder library,
     Nullability nullability,
-    List<DartType> arguments,
+    DartTypeList arguments,
     TypeUse typeUse,
     Uri fileUri,
     int charOffset, {
@@ -260,21 +260,17 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     List<TypeBuilder>? arguments,
   ) {
     if (arguments != null) {
-      List<DartType> typeArguments = buildAliasedTypeArguments(
+      DartTypeList typeArguments = buildAliasedTypeArguments(
         library,
         arguments,
         /* hierarchy = */ null,
       );
-      typeArguments = unaliasTypes(typeArguments)!;
+      typeArguments = rawUnaliasTypes(typeArguments) ?? typeArguments;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(
         cls,
-        new List<DartType>.filled(
-          cls.typeParameters.length,
-          const UnknownType(),
-          growable: true,
-        ),
+        new DartTypeList.filled(cls.typeParameters.length, const UnknownType()),
       );
     }
   }

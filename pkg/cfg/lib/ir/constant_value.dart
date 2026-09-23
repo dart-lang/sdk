@@ -267,7 +267,10 @@ class const ConstantFolding() {
   ) {
     final types = (typeArguments as TypeArgumentsConstant).types;
     return ConstantValue(
-      ast.InstantiationConstant(closure as ast.TearOffConstant, types),
+      ast.InstantiationConstant(
+        closure as ast.TearOffConstant,
+        ast.DartTypeList.from(types),
+      ),
     );
   }
 }

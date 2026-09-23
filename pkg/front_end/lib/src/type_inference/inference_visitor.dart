@@ -992,7 +992,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType runtimeCheckType = new InterfaceType(
       coreTypes.futureClass,
       Nullability.nonNullable,
-      [flattenType],
+      new DartTypeList(flattenType),
     );
     bool includeRuntimeCheckType = false;
     if (!typeSchemaEnvironment.isSubtypeOf(operandType, runtimeCheckType)) {
@@ -2942,9 +2942,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
-    List<StructuralParameter> typedefTypeParametersCopy =
+    StructuralParameterList typedefTypeParametersCopy =
         freshTypeParameters.freshTypeParameters;
-    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
+    DartTypeList asTypeArguments = freshTypeParameters.freshTypeArguments;
     final TypedefType typedefType = new TypedefType(
       typedef,
       libraryBuilder.library.nonNullable,
@@ -2960,21 +2960,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    List<DartType> positional = function.positionalParameters
-        .map(
-          (PositionalParameter decl) => substitution.substituteType(decl.type),
-        )
-        .toList(growable: false);
-    List<NamedType> named = function.namedParameters
-        .map(
-          (NamedParameter decl) => new NamedType(
-            decl.parameterName,
-            substitution.substituteType(decl.type),
-            isRequired: decl.isRequired,
-          ),
-        )
-        .toList(growable: false);
-    named.sort();
+    DartTypeList positional = new DartTypeList.generate(
+      function.positionalParameters.length,
+      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    );
+    NamedDartTypeList named = new NamedDartTypeList.generate(
+      function.namedParameters.length,
+      (i) {
+        NamedParameter decl = function.namedParameters[i];
+        return new NamedType(
+          decl.parameterName,
+          substitution.substituteType(decl.type),
+          isRequired: decl.isRequired,
+        );
+      },
+    )..sort();
     return new FunctionType(
       positional,
       unaliasedTypedef,
@@ -3033,7 +3033,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType aliasedType = new TypedefType(
       node.typeAliasBuilder.typedef,
       Nullability.nonNullable,
-      explicitOrInferredTypeArguments,
+      new DartTypeList.from(explicitOrInferredTypeArguments),
     );
     problemReporting.checkBoundsInType(
       libraryFeatures: libraryFeatures,
@@ -3079,9 +3079,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     FreshStructuralParametersFromTypeParameters freshTypeParameters =
         getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
-    List<StructuralParameter> typedefTypeParametersCopy =
+    StructuralParameterList typedefTypeParametersCopy =
         freshTypeParameters.freshTypeParameters;
-    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
+    DartTypeList asTypeArguments = freshTypeParameters.freshTypeArguments;
     final TypedefType typedefType = new TypedefType(
       typedef,
       libraryBuilder.library.nonNullable,
@@ -3097,22 +3097,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    List<DartType> positional = function.positionalParameters
-        .map(
-          (PositionalParameter decl) => substitution.substituteType(decl.type),
-        )
-        .toList(growable: false);
-    List<NamedType> named = function.namedParameters
-        .map(
-          // Coverage-ignore(suite): Not run.
-          (NamedParameter decl) => new NamedType(
-            decl.parameterName,
-            substitution.substituteType(decl.type),
-            isRequired: decl.isRequired,
-          ),
-        )
-        .toList(growable: false);
-    named.sort();
+    DartTypeList positional = new DartTypeList.generate(
+      function.positionalParameters.length,
+      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    );
+    NamedDartTypeList named = new NamedDartTypeList.generate(
+      function.namedParameters.length,
+      // Coverage-ignore(suite): Not run.
+      (i) {
+        NamedParameter decl = function.namedParameters[i];
+        return new NamedType(
+          decl.parameterName,
+          substitution.substituteType(decl.type),
+          isRequired: decl.isRequired,
+        );
+      },
+    )..sort();
     return new FunctionType(
       positional,
       unaliasedTypedef,
@@ -3168,7 +3168,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType aliasedType = new TypedefType(
       node.typeAliasBuilder.typedef,
       Nullability.nonNullable,
-      explicitOrInferredTypeArguments,
+      new DartTypeList.from(explicitOrInferredTypeArguments),
     );
     problemReporting.checkBoundsInType(
       libraryFeatures: libraryFeatures,
@@ -4380,7 +4380,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType inferredType = new InterfaceType(
       listClass,
       Nullability.nonNullable,
-      [typeArgument],
+      new DartTypeList(typeArgument),
     );
 
     Expression result = new ListLiteralBuilder(
@@ -5361,7 +5361,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = new InterfaceType(
         coreTypes.mapClass,
         Nullability.nonNullable,
-        [keyType, valueType],
+        new DartTypeList(keyType, valueType),
       );
       result = new MapLiteralBuilder(
         engine,
@@ -5377,7 +5377,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = new InterfaceType(
         coreTypes.setClass,
         Nullability.nonNullable,
-        [typeArgument],
+        new DartTypeList(typeArgument),
       );
       result = new SetLiteralBuilder(
         engine,
@@ -7805,7 +7805,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           binaryName,
           new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
           functionType: new FunctionType(
-            [rightType],
+            new DartTypeList(rightType),
             binaryType,
             Nullability.nonNullable,
           ),
@@ -7976,7 +7976,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           unaryName,
           new Arguments(<Expression>[])..fileOffset = fileOffset,
           functionType: new FunctionType(
-            <DartType>[],
+            DartTypeList.empty,
             unaryType,
             Nullability.nonNullable,
           ),
@@ -8151,7 +8151,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           indexGetName,
           new Arguments(<Expression>[readIndex])..fileOffset = fileOffset,
           functionType: new FunctionType(
-            [indexType],
+            new DartTypeList(indexType),
             readType,
             Nullability.nonNullable,
           ),
@@ -8316,7 +8316,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           indexSetName,
           new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
           functionType: new FunctionType(
-            [indexType, valueType],
+            new DartTypeList(indexType, valueType),
             const VoidType(),
             Nullability.nonNullable,
           ),
@@ -10868,7 +10868,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     if (node.arguments != null) {
       FunctionType calleeType = new FunctionType(
-        [],
+        DartTypeList.empty,
         inferredType,
         Nullability.nonNullable,
       );
@@ -10896,7 +10896,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     DartType inferredType = new FunctionType(
-      [],
+      DartTypeList.empty,
       typeSchemaEnvironment.futureType(
         const DynamicType(),
         Nullability.nonNullable,
@@ -11266,8 +11266,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         positional,
         named ?? [],
         type = new RecordType(
-          positionalTypes,
-          namedTypes,
+          new DartTypeList.from(positionalTypes),
+          new NamedDartTypeList.from(namedTypes),
           Nullability.nonNullable,
         ),
         isConst: node.isConst,
@@ -13498,7 +13498,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (typedef != null) {
         List<TypeParameter> typedefTypeParameters = typedef.typeParameters;
         if (typedefTypeParameters.isNotEmpty) {
-          List<DartType> asTypeArguments = getAsTypeArguments(
+          DartTypeList asTypeArguments = getAsTypeArguments(
             typedefTypeParameters,
             libraryBuilder.library,
           );
@@ -13517,7 +13517,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           requiredType = new TypedefType(
             typedef,
             libraryBuilder.library.nonNullable,
-            inferredTypeArguments,
+            new DartTypeList.from(inferredTypeArguments),
           ).unalias;
         }
       } else if (requiredType is InterfaceType) {
@@ -13547,7 +13547,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           requiredType = new InterfaceType(
             requiredType.classNode,
             requiredType.declaredNullability,
-            inferredTypeArguments,
+            new DartTypeList.from(inferredTypeArguments),
           );
         }
       } else if (requiredType is ExtensionType) {
@@ -13577,7 +13577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           requiredType = new ExtensionType(
             requiredType.extensionTypeDeclaration,
             requiredType.declaredNullability,
-            inferredTypeArguments,
+            new DartTypeList.from(inferredTypeArguments),
           );
         }
       }

@@ -111,9 +111,13 @@ main() {
     Expect.equals(true, h2a.isCacheable);
     Expect.equals(false, h1a.shouldBeIncludedIntoIndexTable); // 2 uses
     objectTable.getHandle(
-      InterfaceType(coreTypes.listClass, Nullability.nonNullable, [
-        InterfaceType(coreTypes.intClass, Nullability.nonNullable),
-      ]),
+      InterfaceType(
+        coreTypes.listClass,
+        Nullability.nonNullable,
+        DartTypeList(
+          InterfaceType(coreTypes.intClass, Nullability.nonNullable),
+        ),
+      ),
     );
     Expect.equals(true, h1a.shouldBeIncludedIntoIndexTable); // 3 uses
   });

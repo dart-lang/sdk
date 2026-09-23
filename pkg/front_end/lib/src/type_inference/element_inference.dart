@@ -866,7 +866,7 @@ class const IterableSpreadContext({required final DartType typeArgument})
   DartType getSpreadTypeContext(CoreTypes coreTypes) => new InterfaceType(
     coreTypes.iterableClass,
     Nullability.nonNullable,
-    [typeArgument],
+    new DartTypeList(typeArgument),
   );
 }
 
@@ -879,6 +879,6 @@ class const MapSpreadContext({
   DartType getSpreadTypeContext(CoreTypes coreTypes) => new InterfaceType(
     coreTypes.mapClass,
     Nullability.nonNullable,
-    [keyType, valueType],
+    new DartTypeList(keyType, valueType),
   );
 }

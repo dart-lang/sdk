@@ -55,7 +55,7 @@ void main() {
     new ConstantExpression(
       new InstanceConstant(
         pragmaClass.reference,
-        <DartType>[],
+        DartTypeList.empty,
         <Reference, Constant>{
           pragmaNameField.fieldReference: new StringConstant(
             'track-creation-locations',
@@ -125,7 +125,7 @@ void main() {
     new ConstantExpression(
       new InstanceConstant(
         pragmaClass.reference,
-        <DartType>[],
+        DartTypeList.empty,
         <Reference, Constant>{
           pragmaNameField.fieldReference: new StringConstant(
             'track-creation-locations',

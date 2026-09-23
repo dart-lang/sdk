@@ -510,7 +510,7 @@ class BinaryBuilder {
 
   Constant _readInstanceConstant() {
     final Reference classReference = readNonNullClassReference();
-    final List<DartType> typeArguments = readDartTypeList();
+    final DartTypeList typeArguments = _readDartTypeListForDartType();
     final int fieldValueCount = readUInt30();
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     for (int i = 0; i < fieldValueCount; i++) {
@@ -523,16 +523,16 @@ class BinaryBuilder {
 
   Constant _readInstantiationConstant() {
     final Constant tearOffConstant = readConstantReference();
-    final List<DartType> types = readDartTypeList();
+    final DartTypeList types = _readDartTypeListForDartType();
     return new InstantiationConstant(tearOffConstant, types);
   }
 
   Constant _readTypedefTearOffConstant() {
-    final List<StructuralParameter> parameters =
-        readAndPushStructuralParameterList();
+    final StructuralParameterList parameters =
+        _readAndPushStructuralParameterListForFunctionType();
     final TearOffConstant tearOffConstant =
         readConstantReference() as TearOffConstant;
-    final List<DartType> types = readDartTypeList();
+    final DartTypeList types = _readDartTypeListForDartType();
     typeParameterStack.length -= parameters.length;
     return new TypedefTearOffConstant(parameters, tearOffConstant, types);
   }
@@ -4207,18 +4207,14 @@ class BinaryBuilder {
     );
   }
 
-  List<NamedType> readNamedTypeList() {
+  DartTypeList _readDartTypeListForDartType() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return emptyListOfNamedType;
-    }
-    return new List<NamedType>.generate(
-      length,
-      (_) => readNamedType(),
-      growable: useGrowableLists,
-    );
+    return DartTypeList.generate(length, (_) => readDartType());
+  }
+
+  NamedDartTypeList readNamedTypeList() {
+    int length = readUInt30();
+    return NamedDartTypeList.generate(length, (_) => readNamedType());
   }
 
   NamedType readNamedType() {
@@ -4292,7 +4288,7 @@ class BinaryBuilder {
     return new TypedefType.byReference(
       readNonNullTypedefReference(),
       Nullability.values[nullabilityIndex],
-      readDartTypeList(),
+      _readDartTypeListForDartType(),
     );
   }
 
@@ -4320,7 +4316,7 @@ class BinaryBuilder {
   DartType _readInterfaceType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullClassReference();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = _readDartTypeListForDartType();
     return new InterfaceType.byReference(
       reference,
       Nullability.values[nullabilityIndex],
@@ -4351,7 +4347,7 @@ class BinaryBuilder {
     final DartType result = new InterfaceType.byReference(
       classReference,
       Nullability.values[nullabilityIndex],
-      const <DartType>[],
+      DartTypeList.empty,
     );
     _cachedSimpleInterfaceTypes[cacheIndex] = result;
     return result;
@@ -4366,7 +4362,7 @@ class BinaryBuilder {
   DartType _readExtensionType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullExtensionTypeDeclarationReference();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = _readDartTypeListForDartType();
     readDartType(); // Read type erasure.
     return new ExtensionType.byReference(
       reference,
@@ -4378,12 +4374,12 @@ class BinaryBuilder {
   DartType _readFunctionType() {
     int typeParameterStackHeight = typeParameterStack.length;
     int nullabilityIndex = readByte();
-    List<StructuralParameter> typeParameters =
-        readAndPushStructuralParameterList();
+    StructuralParameterList typeParameters =
+        _readAndPushStructuralParameterListForFunctionType();
     int requiredParameterCount = readUInt30();
     int totalParameterCount = readUInt30();
-    List<DartType> positional = readDartTypeList();
-    List<NamedType> named = readNamedTypeList();
+    DartTypeList positional = _readDartTypeListForDartType();
+    NamedDartTypeList named = readNamedTypeList();
     assert(positional.length + named.length == totalParameterCount);
     DartType returnType = readDartType();
     typeParameterStack.length = typeParameterStackHeight;
@@ -4399,7 +4395,7 @@ class BinaryBuilder {
 
   DartType _readSimpleFunctionType() {
     int nullabilityIndex = readByte();
-    List<DartType> positional = readDartTypeList();
+    DartTypeList positional = _readDartTypeListForDartType();
     DartType returnType = readDartType();
     if (positional.isEmpty && returnType is VoidType) {
       // "FunctionType(void Function())" with different nullabilities.
@@ -4411,7 +4407,7 @@ class BinaryBuilder {
         return cached;
       }
       FunctionType result = new FunctionType(
-        const [],
+        DartTypeList.empty,
         const VoidType(),
         Nullability.values[nullabilityIndex],
       );
@@ -4451,8 +4447,8 @@ class BinaryBuilder {
 
   DartType _readRecordType() {
     int nullabilityIndex = readByte();
-    List<DartType> positional = readDartTypeList();
-    List<NamedType> named = readNamedTypeList();
+    DartTypeList positional = _readDartTypeListForDartType();
+    NamedDartTypeList named = readNamedTypeList();
     return new RecordType(
       positional,
       named,
@@ -4514,6 +4510,22 @@ class BinaryBuilder {
         list.add(new StructuralParameter(null, null));
       }
     }
+    typeParameterStack.addAll(list);
+    for (int i = 0; i < list.length; ++i) {
+      readStructuralParameter(list[i]);
+    }
+    return list;
+  }
+
+  StructuralParameterList _readAndPushStructuralParameterListForFunctionType() {
+    int length = readUInt30();
+    if (length == 0) {
+      return StructuralParameterList.empty;
+    }
+    StructuralParameterList list = StructuralParameterList.generate(
+      length,
+      (_) => StructuralParameter(null, null),
+    );
     typeParameterStack.addAll(list);
     for (int i = 0; i < list.length; ++i) {
       readStructuralParameter(list[i]);

@@ -52,14 +52,18 @@ class FutureOrNormalizer extends ReplacementVisitor {
         return typeArgument.withDeclaredNullability(nullability);
       case NeverType() when typeArgument.nullability == Nullability.nonNullable:
         // FutureOr<Never> --> Future<Never>
-        return InterfaceType(_coreTypes.futureClass, futureOr.nullability, [
-          typeArgument,
-        ]);
+        return InterfaceType(
+          _coreTypes.futureClass,
+          futureOr.nullability,
+          DartTypeList(typeArgument),
+        );
       case NullType():
         // FutureOr<Null> --> Future<Null>?
-        return InterfaceType(_coreTypes.futureClass, Nullability.nullable, [
-          typeArgument,
-        ]);
+        return InterfaceType(
+          _coreTypes.futureClass,
+          Nullability.nullable,
+          DartTypeList(typeArgument),
+        );
       case InterfaceType():
       case NeverType():
       case FunctionType():

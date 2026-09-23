@@ -30,7 +30,11 @@ class IncludesTypeParametersCovariantlyTest {
 
   bool checkContravariant(DartType type, List<TypeParameter> typeParameters) {
     return check(
-      new FunctionType([type], const VoidType(), Nullability.nonNullable),
+      new FunctionType(
+        new DartTypeList(type),
+        const VoidType(),
+        Nullability.nonNullable,
+      ),
       typeParameters,
     );
   }
@@ -41,7 +45,7 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -52,7 +56,7 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -63,7 +67,7 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -74,10 +78,13 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [T],
       ),
@@ -86,10 +93,13 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [U],
       ),
@@ -98,27 +108,36 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       check(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [],
       ),
       isFalse,
     );
     expect(
-      check(new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
+      check(
+        new FunctionType(DartTypeList.empty, tpt(T), Nullability.nonNullable),
+        [T],
+      ),
       isTrue,
     );
     expect(
-      check(new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
+      check(
+        new FunctionType(DartTypeList.empty, tpt(T), Nullability.nonNullable),
+        [U],
+      ),
       isFalse,
     );
     expect(
       checkContravariant(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -129,7 +148,7 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       checkContravariant(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -140,7 +159,7 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       checkContravariant(
         new FunctionType(
-          [tpt(T), tpt(U)],
+          new DartTypeList(tpt(T), tpt(U)),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -151,10 +170,13 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       checkContravariant(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [T],
       ),
@@ -163,10 +185,13 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       checkContravariant(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [U],
       ),
@@ -175,10 +200,13 @@ class IncludesTypeParametersCovariantlyTest {
     expect(
       checkContravariant(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+          namedParameters: new NamedDartTypeList(
+            named('a', tpt(T)),
+            named('b', tpt(U)),
+          ),
         ),
         [],
       ),
@@ -186,14 +214,14 @@ class IncludesTypeParametersCovariantlyTest {
     );
     expect(
       checkContravariant(
-        new FunctionType([], tpt(T), Nullability.nonNullable),
+        new FunctionType(DartTypeList.empty, tpt(T), Nullability.nonNullable),
         [T],
       ),
       isFalse,
     );
     expect(
       checkContravariant(
-        new FunctionType([], tpt(T), Nullability.nonNullable),
+        new FunctionType(DartTypeList.empty, tpt(T), Nullability.nonNullable),
         [U],
       ),
       isFalse,
@@ -203,41 +231,67 @@ class IncludesTypeParametersCovariantlyTest {
   void test_interface_type() {
     Class cls = new Class(name: 'C', typeParameters: [T, U], fileUri: dummyUri);
     expect(
-      check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]), [
-        T,
-      ]),
-      isTrue,
-    );
-    expect(
-      check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]), [
-        U,
-      ]),
+      check(
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
+        [T],
+      ),
       isTrue,
     );
     expect(
       check(
-        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
+        [U],
+      ),
+      isTrue,
+    );
+    expect(
+      check(
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
         [],
       ),
       isFalse,
     );
     expect(
       checkContravariant(
-        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
         [T],
       ),
       isFalse,
     );
     expect(
       checkContravariant(
-        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
         [U],
       ),
       isFalse,
     );
     expect(
       checkContravariant(
-        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        new InterfaceType(
+          cls,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(T), tpt(U)),
+        ),
         [],
       ),
       isFalse,
@@ -296,66 +350,76 @@ class IncludesTypeParametersCovariantlyTest {
     // typedef U F<T, U>(T x);
     var typedefNode = new Typedef(
       'F',
-      new FunctionType([tpt(T)], tpt(U), Nullability.nonNullable),
+      new FunctionType(
+        new DartTypeList(tpt(T)),
+        tpt(U),
+        Nullability.nonNullable,
+      ),
       typeParameters: [T, U],
       fileUri: dummyUri,
     );
     expect(
       check(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          const DynamicType(),
-          const DynamicType(),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          DartTypeList.dynamic2,
+        ),
         [V],
       ),
       isFalse,
     );
     expect(
       check(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          tpt(V),
-          const DynamicType(),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(V), const DynamicType()),
+        ),
         [V],
       ),
       isFalse,
     );
     expect(
       check(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          const DynamicType(),
-          tpt(V),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          new DartTypeList(const DynamicType(), tpt(V)),
+        ),
         [V],
       ),
       isTrue,
     );
     expect(
       checkContravariant(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          const DynamicType(),
-          const DynamicType(),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          DartTypeList.dynamic2,
+        ),
         [V],
       ),
       isFalse,
     );
     expect(
       checkContravariant(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          tpt(V),
-          const DynamicType(),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          new DartTypeList(tpt(V), const DynamicType()),
+        ),
         [V],
       ),
       isTrue,
     );
     expect(
       checkContravariant(
-        new TypedefType(typedefNode, Nullability.nonNullable, [
-          const DynamicType(),
-          tpt(V),
-        ]),
+        new TypedefType(
+          typedefNode,
+          Nullability.nonNullable,
+          new DartTypeList(const DynamicType(), tpt(V)),
+        ),
         [V],
       ),
       isFalse,

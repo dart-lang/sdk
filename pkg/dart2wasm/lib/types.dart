@@ -252,12 +252,14 @@ class Types {
       return InterfaceType(
         coreTypes.futureClass,
         Nullability.nonNullable,
-        const [NeverType.nonNullable()],
+        const DartTypeList.constant([NeverType.nonNullable()]),
       );
     } else if (s is NullType) {
-      return InterfaceType(coreTypes.futureClass, Nullability.nullable, const [
-        NullType(),
-      ]);
+      return InterfaceType(
+        coreTypes.futureClass,
+        Nullability.nullable,
+        const DartTypeList.constant([NullType()]),
+      );
     }
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
@@ -682,9 +684,10 @@ abstract class _TypeCheckers {
     // We only need to check whether the nullability and the class itself fits
     // (the [testedAgainstType] arguments are guaranteed to fit statically)
     final parameters = type.classNode.typeParameters;
-    final args = [
-      for (int i = 0; i < parameters.length; ++i) parameters[i].defaultType,
-    ];
+    final args = DartTypeList.generate(
+      parameters.length,
+      (i) => parameters[i].defaultType,
+    );
     return InterfaceType(type.classNode, type.nullability, args);
   }
 }
@@ -1364,7 +1367,7 @@ class RuntimeTypeInformation {
     final arrayOfType = InterfaceType(
       translator.wasmArrayClass,
       Nullability.nonNullable,
-      [typeType],
+      DartTypeList(typeType),
     );
     final wasmI16 = InterfaceType(
       translator.wasmI16Class,

@@ -673,11 +673,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         if (type is InterfaceType) {
           return new Supertype(type.classNode, type.typeArguments);
         } else if (type is FutureOrType) {
-          return new Supertype(declaration.cls, [type.typeArgument]);
+          return new Supertype(
+            declaration.cls,
+            new DartTypeList(type.typeArgument),
+          );
         }
         // Coverage-ignore(suite): Not run.
         else if (type is NullType) {
-          return new Supertype(declaration.cls, []);
+          return new Supertype(declaration.cls, DartTypeList.empty);
         }
       case TypeAliasBuilder():
         TypeAliasBuilder aliasBuilder = declaration;
@@ -707,7 +710,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
           return new Supertype(
             (unaliasedDeclaration as ClassBuilder).cls,
-            const <DartType>[],
+            DartTypeList.empty,
           );
         } else if (type is FutureOrType) {
           // Coverage-ignore-block(suite): Not run.
@@ -734,7 +737,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
           return new Supertype(
             (unaliasedDeclaration as ClassBuilder).cls,
-            <DartType>[type.typeArgument],
+            new DartTypeList(type.typeArgument),
           );
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);

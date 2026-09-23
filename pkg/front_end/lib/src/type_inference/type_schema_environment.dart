@@ -310,7 +310,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
     }
 
-    return inferredTypes;
+    return new DartTypeList.from(inferredTypes);
   }
 }
 

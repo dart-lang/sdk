@@ -24,7 +24,7 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
   int get typeParametersCount => typeParameterNodes.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -34,19 +34,17 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new List<DartType>.generate(
+      return new DartTypeList.generate(
         typeParameterNodes.length,
         (int i) => typeParameterNodes[i].defaultType,
-        growable: true,
       );
     }
 
     // [arguments] != null
-    return new List<DartType>.generate(
+    return new DartTypeList.generate(
       arguments.length,
       (int i) =>
           arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-      growable: true,
     );
   }
 }

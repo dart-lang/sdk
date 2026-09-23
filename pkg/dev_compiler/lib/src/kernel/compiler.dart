@@ -2093,7 +2093,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): do covariant type parameter bounds also need to be
       // reified as `Object`?
       result = FunctionType(
-        List<DartType>.generate(
+        DartTypeList.generate(
           f.positionalParameters.length,
           (index) => reifyParameter(
             f.positionalParameters[index],
@@ -2102,7 +2102,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ),
         f.returnType,
         Nullability.nonNullable,
-        namedParameters: List<NamedType>.generate(
+        namedParameters: NamedDartTypeList.generate(
           f.namedParameters.length,
           (index) => reifyNamedParameter(
             f.namedParameters[index],
@@ -7469,7 +7469,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var type = ctorClass.typeParameters.isEmpty
         ? _coreTypes.nonNullableRawType(ctorClass)
-        : InterfaceType(ctorClass, Nullability.nonNullable, args.types);
+        : InterfaceType(
+            ctorClass,
+            Nullability.nonNullable,
+            DartTypeList.from(args.types),
+          );
 
     if (isFromEnvironmentInvocation(_coreTypes, node)) {
       var value = _constants.evaluate(node);
@@ -7898,9 +7902,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var type = InterfaceType(_jsArrayClass, Nullability.nonNullable, [
-      itemType,
-    ]);
+    var type = InterfaceType(
+      _jsArrayClass,
+      Nullability.nonNullable,
+      DartTypeList(itemType),
+    );
     var arrayClass = _emitClassRef(type);
     var arrayRti = _emitType(type);
     return js.call('#.of(#, #)', [arrayClass, arrayRti, list]);
@@ -7922,9 +7928,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var type = InterfaceType(_linkedHashSetClass, Nullability.nonNullable, [
-        node.typeArgument,
-      ]);
+      var type = InterfaceType(
+        _linkedHashSetClass,
+        Nullability.nonNullable,
+        DartTypeList(node.typeArgument),
+      );
       var setClass = _emitClassRef(type);
       var rti = _emitType(type);
       if (node.expressions.isEmpty) {

@@ -2988,15 +2988,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType type,
   ) {
     return new FunctionType(
-      new List<DartType>.filled(arguments.positionalCount, type),
+      new DartTypeList.filled(arguments.positionalCount, type),
       type,
       Nullability.nonNullable,
       namedParameters: arguments.namedCount > 0
-          ? arguments.argumentList
-                .whereType<NamedArgument>()
-                .map((a) => new NamedType(a.name, type))
-                .toList()
-          : [],
+          ? (new NamedDartTypeList.wrap(
+              new List<NamedType>.of(
+                arguments.argumentList.whereType<NamedArgument>().map(
+                  (a) => new NamedType(a.name, type),
+                ),
+                growable: false,
+              )..sort(),
+            ))
+          : NamedDartTypeList.empty,
     );
   }
 
@@ -4097,7 +4101,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             // provide a context type.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
-                [const UnknownType()],
+                const DartTypeList.constant(<DartType>[const UnknownType()]),
                 functionType.returnType,
                 functionType.declaredNullability,
               ),
@@ -4107,10 +4111,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             // operator == always allows nullable arguments.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
-                [
+                new DartTypeList(
                   functionType.positionalParameters.single
                       .withDeclaredNullability(Nullability.nullable),
-                ],
+                ),
                 functionType.returnType,
                 functionType.declaredNullability,
               ),
@@ -5053,13 +5057,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   DartType wrapFutureType(DartType type, Nullability nullability) {
-    return new InterfaceType(coreTypes.futureClass, nullability, <DartType>[
-      type,
-    ]);
+    return new InterfaceType(
+      coreTypes.futureClass,
+      nullability,
+      new DartTypeList(type),
+    );
   }
 
   DartType wrapType(DartType type, Class class_, Nullability nullability) {
-    return new InterfaceType(class_, nullability, <DartType>[type]);
+    return new InterfaceType(class_, nullability, new DartTypeList(type));
   }
 
   /// Computes the `futureValueTypeSchema` for the type schema [type].
@@ -6367,9 +6373,8 @@ class _ObjectAccessDescriptor {
               "$interfaceMember.",
             );
             functionType = new FunctionType(
-              new List<DartType>.filled(
+              new DartTypeList.filledWithDynamic(
                 function.positionalParameters.length,
-                const DynamicType(),
               ),
               const NeverType.nonNullable(),
               Nullability.nonNullable,

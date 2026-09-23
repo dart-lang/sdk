@@ -1408,7 +1408,7 @@ class ExtensionIndex {
     var positionalParameters = functionType.positionalParameters;
     if (isInstanceInteropMember(node)) {
       // Ignore the instance parameter.
-      positionalParameters = positionalParameters.skip(1).toList();
+      positionalParameters = positionalParameters.skip(1);
     }
     return FunctionType(
       positionalParameters,

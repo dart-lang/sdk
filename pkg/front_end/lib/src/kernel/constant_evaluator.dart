@@ -5582,7 +5582,10 @@ class ConstantEvaluator
         assert(_gotError == null);
 
         return canonicalize(
-          new InstantiationConstant(constant, convertTypes(types)),
+          new InstantiationConstant(
+            constant,
+            new DartTypeList.from(convertTypes(types)),
+          ),
         );
       } else {
         // Coverage-ignore: Probably unreachable.
@@ -5624,12 +5627,11 @@ class ConstantEvaluator
     if (constant is TearOffConstant) {
       FreshStructuralParameters freshTypeParameters =
           getFreshStructuralParameters(node.structuralParameters);
-      List<StructuralParameter> typeParameters =
+      StructuralParameterList typeParameters =
           freshTypeParameters.freshTypeParameters;
-      List<DartType> typeArguments = new List<DartType>.generate(
+      DartTypeList typeArguments = new DartTypeList.generate(
         node.typeArguments.length,
         (int i) => freshTypeParameters.substitute(node.typeArguments[i]),
-        growable: false,
       );
       return canonicalize(
         new TypedefTearOffConstant(typeParameters, constant, typeArguments),
@@ -5799,7 +5801,7 @@ class ConstantEvaluator
           new InterfaceType(
             typeEnvironment.coreTypes.doubleClass,
             constantType.nullability,
-            const <DartType>[],
+            DartTypeList.empty,
           ),
           type,
         );
@@ -5809,7 +5811,7 @@ class ConstantEvaluator
           new InterfaceType(
             typeEnvironment.coreTypes.intClass,
             constantType.nullability,
-            const <DartType>[],
+            DartTypeList.empty,
           ),
           type,
         );
@@ -6586,7 +6588,11 @@ class InstanceBuilder {
       fieldValues[field.fieldReference] = value;
     });
     assert(unusedArguments.isEmpty);
-    return new InstanceConstant(klass.reference, typeArguments, fieldValues);
+    return new InstanceConstant(
+      klass.reference,
+      new DartTypeList.from(typeArguments),
+      fieldValues,
+    );
   }
 
   InstanceCreation buildUnevaluatedInstance() {

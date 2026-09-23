@@ -62,7 +62,7 @@ sealed class Expression extends TreeNode {
       );
     }
     if (type is TypeDeclarationType) {
-      List<DartType>? upcastTypeArguments = context.typeEnvironment
+      DartTypeList? upcastTypeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
         return new InterfaceType(
@@ -2951,7 +2951,7 @@ class ConstructorInvocation extends InvocationExpression {
         : new InterfaceType(
             target.enclosingClass,
             context.nonNullable,
-            arguments.types,
+            DartTypeList.from(arguments.types),
           );
   }
 
@@ -2986,17 +2986,11 @@ class ConstructorInvocation extends InvocationExpression {
     Class enclosingClass = target.enclosingClass;
     // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
-    return arguments.types.isEmpty
-        ? new InterfaceType(
-            enclosingClass,
-            target.enclosingLibrary.nonNullable,
-            const <DartType>[],
-          )
-        : new InterfaceType(
-            enclosingClass,
-            target.enclosingLibrary.nonNullable,
-            arguments.types,
-          );
+    return new InterfaceType(
+      enclosingClass,
+      target.enclosingLibrary.nonNullable,
+      DartTypeList.from(arguments.types),
+    );
   }
 
   @override
@@ -3695,7 +3689,11 @@ class InstanceCreation extends Expression {
             classNode,
             context.nonNullable,
           )
-        : new InterfaceType(classNode, context.nonNullable, typeArguments);
+        : new InterfaceType(
+            classNode,
+            context.nonNullable,
+            DartTypeList.from(typeArguments),
+          );
   }
 
   @override

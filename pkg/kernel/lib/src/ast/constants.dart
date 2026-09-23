@@ -590,16 +590,27 @@ class RecordConstant extends Constant {
     this.named,
     StaticTypeContext staticTypeContext,
   ) : recordType = new RecordType(
-        [
-          for (Constant constant in positional)
-            constant.getType(staticTypeContext),
-        ],
-        [
-          for (var MapEntry(key: name, value: constant) in named.entries)
-            new NamedType(name, constant.getType(staticTypeContext)),
-        ],
+        DartTypeList.generate(
+          positional.length,
+          (i) => positional[i].getType(staticTypeContext),
+        ),
+        _computeNamedTypes(named, staticTypeContext),
         staticTypeContext.nonNullable,
       );
+
+  static NamedDartTypeList _computeNamedTypes(
+    Map<String, Constant> named,
+    StaticTypeContext staticTypeContext,
+  ) {
+    if (named.isEmpty) return NamedDartTypeList.empty;
+    final Iterator<MapEntry<String, Constant>> iterator =
+        named.entries.iterator;
+    return NamedDartTypeList.generate(named.length, (_) {
+      iterator.moveNext();
+      final MapEntry<String, Constant> entry = iterator.current;
+      return new NamedType(entry.key, entry.value.getType(staticTypeContext));
+    });
+  }
 
   @override
   void visitChildren(Visitor v) {
@@ -674,7 +685,7 @@ class RecordConstant extends Constant {
 
 class InstanceConstant extends Constant {
   final Reference classReference;
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
   final Map<Reference, Constant> fieldValues;
 
   new(this.classReference, this.typeArguments, this.fieldValues);
@@ -751,7 +762,7 @@ class InstanceConstant extends Constant {
 
 class InstantiationConstant extends Constant {
   final Constant tearOffConstant;
-  final List<DartType> types;
+  final DartTypeList types;
 
   new(this.tearOffConstant, this.types);
 
@@ -999,9 +1010,9 @@ class RedirectingFactoryTearOffConstant extends Constant
 }
 
 class TypedefTearOffConstant extends Constant {
-  final List<StructuralParameter> parameters;
+  final StructuralParameterList parameters;
   final TearOffConstant tearOffConstant;
-  final List<DartType> types;
+  final DartTypeList types;
 
   @override
   late final int hashCode = _computeHashCode();

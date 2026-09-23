@@ -1999,7 +1999,7 @@ class _NonConstMapLiteralBuilder(
       final InterfaceType variableType = new InterfaceType(
         _engine.mapEntryClass,
         Nullability.nonNullable,
-        <DartType>[const DynamicType(), const DynamicType()],
+        DartTypeList.dynamic2,
       );
       DeclaredVariable variable = _createForInVariable(
         entry.fileOffset,
@@ -2246,7 +2246,7 @@ class _NonConstSetLiteralBuilder(
       receiverType = new InterfaceType(
         _coreTypes.setClass,
         Nullability.nonNullable,
-        [node.typeArgument],
+        new DartTypeList(node.typeArgument),
       ),
     );
 
