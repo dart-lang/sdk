@@ -914,6 +914,13 @@ class FrontendCompiler implements CompilerInterface {
       _compilerOptions.environmentDefines = _compilerOptions.target!
           .updateEnvironmentDefines(environmentDefines);
 
+      _additionalSources.addAll(
+        await getDynamicInterfaceUserLibraryUris(
+          _fileSystem,
+          dynamicInterfaceUri,
+        ),
+      );
+
       _compilerOptions.omitPlatform = false;
       if (importedDills.isNotEmpty) {
         // With a non-null uri the CFE uses `_InitializationFromUri`, which
