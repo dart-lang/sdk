@@ -32,7 +32,8 @@ final class Sandbox {
 
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
 
-  Stream<({String message})> get onConsole => _client.onConsole;
+  Stream<({String level, String source, String message})> get onConsole =>
+      _client.onConsole;
   Stream<({String message})> get onError => _client.onError;
   Stream<({String message})> get onUnhandledRejection =>
       _client.onUnhandledRejection;

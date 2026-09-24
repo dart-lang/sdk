@@ -9,10 +9,25 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    // Test console event
-    final consoleFuture = sandbox.console.first;
-    iframe.emitConsole('info', 'hello console');
-    check(await consoleFuture).equals('hello console');
+    // Both APIs receive the same messages, including multiline error reports.
+    for (final level in ConsoleLevel.values) {
+      final consoleFuture = sandbox.console.first;
+      final eventFuture = sandbox.consoleEvents.first;
+      final message = '${level.name} message\nsecond line';
+      iframe.emitConsole(level.name, message);
+      check(await consoleFuture).equals(message);
+      check(
+        await eventFuture,
+      ).equals((level: level, source: ConsoleSource.console, message: message));
+    }
+
+    final printFuture = sandbox.consoleEvents.first;
+    iframe.emitConsole('log', 'Dart print', source: 'dartPrint');
+    check(await printFuture).equals((
+      level: ConsoleLevel.log,
+      source: ConsoleSource.dartPrint,
+      message: 'Dart print',
+    ));
 
     // Test error event
     final errorFuture = sandbox.errors.first;

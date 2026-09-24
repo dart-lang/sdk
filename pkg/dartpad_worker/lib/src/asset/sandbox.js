@@ -298,12 +298,20 @@
     console[level] = function (...args) {
       // Format message as a single string
       const message = args.map(safeSerialize).join(' ');
-      sendNotification('console', { level, message });
+      sendNotification('console', { level, source: 'console', message });
 
       // Pass to actual browser console for DevTools debugging
       originalConsole[level].apply(console, args);
     };
   }
+
+  // DDC calls dartPrint before falling back to console.log. Keep Dart prints
+  // distinct from runtime status messages and direct JavaScript console calls.
+  self.dartPrint = function (message) {
+    sendNotification('console', { level: 'log', source: 'dartPrint', message });
+    // Bypass the console proxy to avoid sending the same message twice.
+    originalConsole.log.call(console, message);
+  };
 
   // Render an Javascript `Error` and map to Dart sources.
   function renderError(e) {

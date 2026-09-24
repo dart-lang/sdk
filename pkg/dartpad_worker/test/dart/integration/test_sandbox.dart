@@ -5,6 +5,8 @@
 @TestOn('browser')
 library;
 
+import 'package:dartpad/dartpad.dart';
+
 import '../../integration_harness.dart';
 
 void main() {
@@ -24,6 +26,57 @@ void main() {
     await ctx.sandbox.run('main.dart', mode: 'console');
 
     await ctx.checkConsole(.it()..contains('Hello World'));
+  });
+
+  testDartIntegration('Dart prints are distinct from console calls', (
+    ctx,
+  ) async {
+    await ctx.ws.writeFileFromText('main.dart', '''
+      import 'dart:js_interop';
+
+      @JS('console.log')
+      external void consoleLog(JSString message);
+
+      void main() {
+        print('same text');
+        consoleLog('same text'.toJS);
+        print('done');
+      }
+    ''');
+    await ctx.ws.writeFileFromText('pubspec.yaml', '''
+      name: pad
+      environment:
+        sdk: ^3.12.0
+    ''');
+    await ctx.ws.pub(command: 'get');
+
+    // Ignore DDC startup messages. The final print also catches duplicate
+    // notifications if dartPrint accidentally calls the proxied console.log.
+    final events = ctx.sandbox.consoleEvents
+        .where(
+          (event) => event.message == 'same text' || event.message == 'done',
+        )
+        .take(3)
+        .toList();
+    await ctx.sandbox.run('main.dart', mode: 'console');
+
+    check(await events).deepEquals([
+      (
+        level: ConsoleLevel.log,
+        source: ConsoleSource.dartPrint,
+        message: 'same text',
+      ),
+      (
+        level: ConsoleLevel.log,
+        source: ConsoleSource.console,
+        message: 'same text',
+      ),
+      (
+        level: ConsoleLevel.log,
+        source: ConsoleSource.dartPrint,
+        message: 'done',
+      ),
+    ]);
   });
 
   testDartIntegration('sandbox handles unhandled error', (ctx) async {

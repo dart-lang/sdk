@@ -160,8 +160,12 @@ final class FakeSandboxedIframe {
         );
   }
 
-  void emitConsole(String level, String message) {
-    _peer.sendNotification('console', {'level': level, 'message': message});
+  void emitConsole(String level, String message, {String source = 'console'}) {
+    _peer.sendNotification('console', {
+      'level': level,
+      'source': source,
+      'message': message,
+    });
   }
 
   void emitError(String message, String stackTrace) {

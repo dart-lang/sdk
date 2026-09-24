@@ -574,6 +574,8 @@ class _Workspace {
       _session._rpc.sendNotification('workspace/sandbox/console', {
         'workspaceId': _workspaceId,
         'sandboxId': sandboxId,
+        'level': e.level,
+        'source': e.source,
         'message': e.message,
       });
     });

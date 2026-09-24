@@ -25,6 +25,8 @@ export 'src/message_port/message_port.dart' show MessagePort;
 
 export 'src/worker_client.dart'
     show
+        ConsoleLevel,
+        ConsoleSource,
         FileAddedEvent,
         FileChangeEvent,
         FileModifiedEvent,

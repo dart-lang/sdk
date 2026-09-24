@@ -17,7 +17,10 @@ final class SandboxClient {
   final Peer _peer;
   final void Function() _onClosed;
 
-  final _consoleController = StreamController<({String message})>.broadcast();
+  final _consoleController =
+      StreamController<
+        ({String level, String source, String message})
+      >.broadcast();
   final _unhandledRejectionController =
       StreamController<({String message})>.broadcast();
   final _errorController = StreamController<({String message})>.broadcast();
@@ -34,8 +37,10 @@ final class SandboxClient {
     // Register notification handlers
     _peer.registerMethod('console', (Parameters params) {
       final message = params['message'].asString;
+      final level = params['level'].asStringOr('log');
+      final source = params['source'].asStringOr('console');
 
-      _consoleController.add((message: message));
+      _consoleController.add((level: level, source: source, message: message));
     });
 
     _peer.registerMethod('unhandledRejection', (Parameters params) {
@@ -98,7 +103,8 @@ final class SandboxClient {
   }
 
   /// Stream of console output from the sandbox.
-  Stream<({String message})> get onConsole => _consoleController.stream;
+  Stream<({String level, String source, String message})> get onConsole =>
+      _consoleController.stream;
 
   /// Stream of unhandled rejections from the sandbox.
   Stream<({String message})> get onUnhandledRejection =>
