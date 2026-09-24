@@ -372,6 +372,7 @@ abstract class AnalysisServer {
 
     pubPackageService = PubPackageService(
       instrumentationService,
+      sessionLogger,
       baseResourceProvider,
       pubApi,
       pubCommand,
@@ -761,6 +762,7 @@ abstract class AnalysisServer {
     surveyManager = SurveyManager(
       this,
       instrumentationService,
+      sessionLogger,
       analyticsManager.analytics,
     );
   }

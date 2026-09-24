@@ -668,6 +668,7 @@ final class DocCommentBuilder {
           secondToken,
           secondPeriod,
           token,
+          operatorKeyword: operatorKeyword,
           isSynthetic: isSynthetic,
         );
       }
@@ -726,6 +727,7 @@ final class DocCommentBuilder {
     Token? secondToken,
     Token? secondPeriod,
     Token identifierOrOperator, {
+    Token? operatorKeyword,
     required bool isSynthetic,
   }) {
     // Adjust the token offsets to match the enclosing comment token.
@@ -735,38 +737,28 @@ final class DocCommentBuilder {
       token = token.next!;
     } while (!token.isEof);
 
-    var identifier = SimpleIdentifierImpl(token: identifierOrOperator);
-    if (firstToken != null) {
-      var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(token: firstToken),
-        period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(token: secondToken!),
-      );
-      var expression = PropertyAccessImpl(
-        target2: target,
-        operator: secondPeriod!,
-        propertyName: identifier,
-      );
-      return CommentReferenceImpl(
-        expression2: expression,
-        isSynthetic: isSynthetic,
-      );
-    } else if (secondToken != null) {
-      var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(token: secondToken),
-        period: secondPeriod!,
-        identifier: identifier,
-      );
-      return CommentReferenceImpl(
-        expression2: expression,
-        isSynthetic: isSynthetic,
-      );
-    } else {
-      return CommentReferenceImpl(
-        expression2: identifier,
-        isSynthetic: isSynthetic,
-      );
-    }
+    return CommentReferenceImpl(
+      components: [
+        if (firstToken != null)
+          CommentReferenceComponentImpl(
+            period: null,
+            operatorKeyword: null,
+            name: firstToken,
+          ),
+        if (secondToken != null)
+          CommentReferenceComponentImpl(
+            period: firstPeriod,
+            operatorKeyword: null,
+            name: secondToken,
+          ),
+        CommentReferenceComponentImpl(
+          period: secondPeriod,
+          operatorKeyword: operatorKeyword,
+          name: identifierOrOperator,
+        ),
+      ],
+      isSynthetic: isSynthetic,
+    );
   }
 
   /// Parses the comment references in [content] which starts at [offset].

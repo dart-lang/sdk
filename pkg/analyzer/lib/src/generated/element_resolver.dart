@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -81,10 +80,7 @@ class ElementResolver {
 
   final MethodInvocationResolver _methodInvocationResolver;
 
-  late final _commentReferenceResolver = CommentReferenceResolver(
-    _typeProvider,
-    _resolver,
-  );
+  late final _commentReferenceResolver = CommentReferenceResolver(_resolver);
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
@@ -93,8 +89,6 @@ class ElementResolver {
       _methodInvocationResolver = MethodInvocationResolver(_resolver);
 
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
-
-  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
   void resolveCascadeInvocation(
     ParsedValueArgumentsImpl node,
@@ -128,7 +122,7 @@ class ElementResolver {
 
   void visitClassTypeAlias(ClassTypeAlias node) {}
 
-  void visitCommentReference(CommentReference node) {
+  void visitCommentReference(CommentReferenceImpl node) {
     _commentReferenceResolver.resolve(node);
   }
 

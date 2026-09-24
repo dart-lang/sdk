@@ -289,19 +289,6 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
       &variable.name(), *(variable.inferred_type()), kTagged);
 }
 
-const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
-  const intptr_t offset =
-      compiler::target::TypeArguments::type_at_offset(index);
-  return GetCanonicalSlot(
-      thread, Kind::kTypeArgumentsIndex,
-      IsImmutableBit::encode(true) |
-          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
-      offset, ":argument",
-      CompileType(CompileType::kCannotBeNull, CompileType::kCannotBeSentinel,
-                  kDynamicCid, nullptr),
-      kTagged);
-}
-
 const Slot& Slot::GetArrayElementSlot(Thread* thread,
                                       intptr_t offset_in_bytes) {
   return GetCanonicalSlot(
@@ -515,7 +502,6 @@ bool Slot::Equals(const Slot& other) const {
     NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
 #undef NATIVE_SLOT_CASE
     case Kind::kTypeArguments:
-    case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
     case Kind::kRecordField:
     case Kind::kClosureElement:

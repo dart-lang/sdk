@@ -91,6 +91,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         Comment,
         CommentReferableExpression,
         CommentReference,
+        CommentReferenceComponent,
         CompilationUnit,
         CompilationUnitMember,
         CompoundAssignment,

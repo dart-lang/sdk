@@ -297,6 +297,8 @@ class EnumTest {
         MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF:
             SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE:
+            SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,

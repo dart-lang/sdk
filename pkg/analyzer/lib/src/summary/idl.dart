@@ -373,6 +373,13 @@ enum IndexRelationKind {
   /// Right: location.
   IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
 
+  /// Left: a constructor.
+  ///   Is referenced by a documentation comment reference at, which is
+  ///   special because the name of the constructor is required (`new` for
+  ///   unnamed), and the location is the name, without the preceding period.
+  /// Right: location.
+  IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE,
+
   /// Left: a parameter.
   ///   Is referenced by a named argument.
   /// Right: named argument.

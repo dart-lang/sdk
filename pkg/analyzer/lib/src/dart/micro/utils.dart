@@ -409,27 +409,15 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   visitCommentReference(CommentReference node) {
-    var expression = node.expression2;
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is ConstructorElement) {
-        if (expression is PrefixedIdentifier) {
-          var offset = expression.prefix.end;
-          var length = expression.end - offset;
-          references.add(MatchInfo(offset, length, MatchKind.REFERENCE));
-          return;
-        } else {
-          var offset = expression.end;
-          references.add(MatchInfo(offset, 0, MatchKind.REFERENCE));
-          return;
-        }
-      }
-    } else if (expression is PropertyAccess) {
-      // Nothing to do?
-    } else {
-      throw UnimplementedError(
-        'Unhandled CommentReference expression type: '
-        '${expression.runtimeType}',
+    var components = node.components;
+    if (components.length == 2 && node.element is ConstructorElement) {
+      var offset = components.first.name.end;
+      references.add(
+        MatchInfo(
+          offset,
+          components.last.name.end - offset,
+          MatchKind.REFERENCE,
+        ),
       );
     }
   }

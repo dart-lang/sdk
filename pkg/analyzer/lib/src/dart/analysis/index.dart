@@ -784,44 +784,31 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  visitCommentReference(CommentReference node) {
-    var expression = node.expression2;
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is ConstructorElement) {
-        if (expression is PrefixedIdentifier) {
-          var offset = expression.prefix.end;
-          var length = expression.end - offset;
-          recordRelationOffset(
-            element,
-            IndexRelationKind.IS_REFERENCED_BY,
-            offset,
-            length,
-            true,
-          );
-          return;
-        } else {
-          var offset = expression.end;
-          recordRelationOffset(
-            element,
-            IndexRelationKind.IS_REFERENCED_BY,
-            offset,
-            0,
-            true,
-          );
-          return;
-        }
-      }
-    } else if (expression is PropertyAccess) {
-      // Nothing to do?
-    } else {
-      throw UnimplementedError(
-        'Unhandled CommentReference expression type: '
-        '${expression.runtimeType}',
-      );
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    var isQualified = node.period != null;
+    switch (node.element) {
+      case null:
+        assembler.addNameRelation(
+          node.name.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.name.offset,
+          isQualified,
+        );
+      case ConstructorElement element:
+        recordRelationToken(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE,
+          node.name,
+          isQualified: isQualified,
+        );
+      case var element:
+        recordRelationToken(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          node.name,
+          isQualified: isQualified,
+        );
     }
-
-    return super.visitCommentReference(node);
   }
 
   @override

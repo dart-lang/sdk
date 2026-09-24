@@ -41,6 +41,7 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     processRunner = MockProcessRunner();
     pubPackageService = PubPackageService(
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       resourceProvider,
       PubApi(
         InstrumentationService.NULL_SERVICE,

@@ -291,6 +291,12 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCommentReference(covariant CommentReferenceImpl node) {
+    var first = node.components.first;
+    first.scopeLookupResult = nameScope.lookup(first.name.lexeme);
+  }
+
+  @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     node.nameScope = nameScope;
     super.visitCompilationUnit(node);

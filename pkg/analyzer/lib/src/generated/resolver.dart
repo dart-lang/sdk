@@ -2688,11 +2688,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitCommentReference(CommentReference node) {
-    //
-    // We do not visit the expression because it needs to be visited in the
-    // context of the reference.
-    //
+  void visitCommentReference(covariant CommentReferenceImpl node) {
     elementResolver.visitCommentReference(node);
   }
 

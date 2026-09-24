@@ -837,6 +837,14 @@ class ContextManagerImpl implements ContextManager {
                   'Temporary watcher error; restarting context build.\n'
                   '$error\n$stackTrace',
                 );
+                if (error is Object) {
+                  _sessionLogger.logException(
+                    exception:
+                        'Temporary watcher error; restarting context build.\n'
+                        '$error',
+                    stackTrace: stackTrace as StackTrace?,
+                  );
+                }
               },
             ),
           )
@@ -1029,6 +1037,12 @@ class ContextManagerImpl implements ContextManager {
         'Watcher error; not refreshing contexts '
         'because PathNotFound.\n$error\n$stackTrace',
       );
+      _sessionLogger.logException(
+        exception:
+            'Watcher error; not refreshing contexts '
+            'because PathNotFound.\n$error',
+        stackTrace: stackTrace,
+      );
       return;
     }
 
@@ -1036,6 +1050,12 @@ class ContextManagerImpl implements ContextManager {
     _instrumentationService.logError(
       'Watcher error; refreshing contexts.\n$error\n$stackTrace',
     );
+    if (error != null) {
+      _sessionLogger.logException(
+        exception: 'Watcher error; refreshing contexts.\n$error',
+        stackTrace: stackTrace,
+      );
+    }
     // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();
   }

@@ -8901,7 +8901,10 @@ final class CommentImpl extends AstNodeImpl
   }
 }
 
-/// An interface for an [Expression] which can make up a [CommentReference].
+/// The expression-shaped V1 compatibility view of a [CommentReference].
+///
+/// Canonical documentation references consist of non-expression
+/// [CommentReferenceComponent] nodes.
 ///
 ///     commentReferableExpression ::=
 ///         [ConstructorReference]
@@ -8915,6 +8918,7 @@ final class CommentImpl extends AstNodeImpl
 /// This interface should align closely with dartdoc's notion of
 /// comment-referable expressions at:
 /// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
+@ToBeDeprecated('Use CommentReference.components instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReferableExpression implements Expression {}
 
@@ -8924,15 +8928,21 @@ sealed class CommentReferableExpressionImpl extends ExpressionImpl
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///     commentReference ::=
-///         '[' [CommentReferableExpression] ']'
+///         '[' [CommentReferenceComponent]
+///             ('.' [CommentReferenceComponent])* ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReference implements AstNode {
-  /// The comment-referable expression being referenced.
-  @ToBeDeprecated('Use expression2 instead.')
-  CommentReferableExpression get expression;
-
+  /// The written names or operators, in source order.
   @experimental
-  CommentReferableExpression get expression2;
+  NodeList<CommentReferenceComponent> get components;
+
+  /// The element selected by the final component, or `null` if unresolved.
+  @experimental
+  Element? get element;
+
+  /// The comment-referable expression being referenced.
+  @ToBeDeprecated('Use components instead.')
+  CommentReferableExpression get expression;
 
   /// Always `null`.
   ///
@@ -8943,68 +8953,242 @@ abstract final class CommentReference implements AstNode {
   Token? get newKeyword;
 }
 
+/// A written name or operator in a documentation comment reference.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class CommentReferenceComponent implements AstNode {
+  /// The declaration named by this component.
+  ///
+  /// This is `null` before resolution or when lookup fails.
+  Element? get element;
+
+  /// The identifier, `new`, or user-definable operator token.
+  Token get name;
+
+  /// The optional `operator` keyword preceding an operator name.
+  Token? get operatorKeyword;
+
+  /// The preceding period, or `null` for the first component.
+  Token? get period;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('operatorKeyword'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class CommentReferenceComponentImpl extends AstNodeImpl
+    implements CommentReferenceComponent {
+  @generated
+  @override
+  final Token? period;
+
+  @generated
+  @override
+  final Token? operatorKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  Element? _element;
+
+  ScopeLookupResult? scopeLookupResult;
+
+  SimpleIdentifierImpl? _v1Projection;
+
+  @generated
+  CommentReferenceComponentImpl({
+    required this.period,
+    required this.operatorKeyword,
+    required this.name,
+  });
+
+  @generated
+  @override
+  Token get beginToken {
+    if (period case var period?) {
+      return period;
+    }
+    if (operatorKeyword case var operatorKeyword?) {
+      return operatorKeyword;
+    }
+    return name;
+  }
+
+  @override
+  Element? get element => _element;
+
+  set element(Element? value) {
+    _element = value;
+    _v1Projection?.element = value;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  bool get isSynthetic => name.isSynthetic;
+
+  SimpleIdentifierImpl get v1Projection {
+    var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
+      token: name,
+    );
+    result.element = element;
+    return result;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('CommentReferenceComponent is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('operatorKeyword', operatorKeyword)
+    ..addToken('name', name);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('CommentReferenceComponent is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitCommentReferenceComponent(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('CommentReferenceComponent is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('CommentReferenceComponent is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty(
-      'expression2',
-      v1Name: 'expression',
-      v1Projection: V1Projection.commentReferableExpression,
-    ),
+    GenerateNodeProperty('components'),
     GenerateNodeProperty('isSynthetic'),
   ],
 )
 final class CommentReferenceImpl extends AstNodeImpl
     implements CommentReference {
   @generated
-  CommentReferableExpressionImpl _expression2;
+  @override
+  final NodeListImpl<CommentReferenceComponentImpl> components =
+      NodeListImpl._();
 
   @generated
   @override
   final bool isSynthetic;
 
+  CommentReferableExpressionImpl? _expression;
+
   @generated
   CommentReferenceImpl({
-    required CommentReferableExpressionImpl expression2,
+    required List<CommentReferenceComponentImpl> components,
     required this.isSynthetic,
-  }) : _expression2 = expression2 {
-    _becomeParentOf2AndExisting1(expression2);
+  }) {
+    this.components._initialize(this, components);
   }
 
   @generated
   @override
   Token get beginToken {
-    return expression2.beginToken;
+    if (components.beginToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
   }
+
+  @override
+  Element? get element => components.last.element;
 
   @generated
   @override
   Token get endToken {
-    return expression2.endToken;
+    if (components.endToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
   }
 
-  @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @ToBeDeprecated('Use components instead.')
   @override
-  CommentReferableExpressionImpl get expression => _becomeParentOf1(
-    V1Projection.toV1CommentReferableExpression(expression2),
-  );
-
-  @generated
-  @experimental
-  @override
-  CommentReferableExpressionImpl get expression2 => _expression2;
-
-  @generated
-  @experimental
-  set expression2(CommentReferableExpressionImpl expression2) {
-    _expression2 = _becomeParentOf2AndExisting1(expression2);
+  CommentReferableExpressionImpl get expression {
+    if (_expression case var expression?) {
+      return expression;
+    }
+    var first = components[0].v1Projection;
+    CommentReferableExpressionImpl result = first;
+    if (components.length >= 2) {
+      result = PrefixedIdentifierImpl.v1Projection(
+        prefix: first,
+        period: components[1].period!,
+        identifier: components[1].v1Projection,
+      );
+    }
+    if (components.length == 3) {
+      result = PropertyAccessImpl.v1ProjectionFromCommentReference(
+        this,
+        result,
+      );
+    }
+    _becomeParentOf1(result);
+    return _expression = result;
   }
 
   @Deprecated("Support for 'new' in comment references has been removed.")
   @override
   Token? get newKeyword => null;
 
-  @generated
+  @DoNotGenerate(reason: 'V1 traverses the projected expression')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('expression', expression);
@@ -9012,7 +9196,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   ChildEntities get _childEntities2 =>
-      ChildEntities()..addNode('expression2', expression2);
+      ChildEntities()..addNodeList('components', components);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -9034,8 +9218,10 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(expression2, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'expression2'.");
+    if (components.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'components' because NodeList cannot be resized.",
+      );
     }
     super.removeChild(oldNode);
   }
@@ -9043,14 +9229,13 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(expression2, oldNode)) {
-      expression2 = newNode as CommentReferableExpressionImpl;
+    if (components.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 traverses the projected expression')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9061,7 +9246,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    expression2.accept2(visitor);
+    components.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -9073,16 +9258,16 @@ final class CommentReferenceImpl extends AstNodeImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(CommentReferableExpressionImpl)? visitExpression2,
+    void Function(NodeListImpl<CommentReferenceComponentImpl>)? visitComponents,
   }) {
-    if (visitExpression2 != null) {
-      visitExpression2(expression2);
+    if (visitComponents != null) {
+      visitComponents(components);
     } else {
-      expression2.accept2(visitor);
+      components.accept2(visitor);
     }
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 searches the projected expression')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -9094,8 +9279,9 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (expression2._containsOffset(rangeOffset, rangeEnd)) {
-      return expression2;
+    if (components._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
     }
     return null;
   }
@@ -46007,6 +46193,16 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
+  PropertyAccessImpl.v1ProjectionFromCommentReference(
+    CommentReferenceImpl origin,
+    ExpressionImpl target,
+  ) : _target2 = target,
+      _operator = origin.components.last.period!,
+      _propertyName = origin.components.last.v1Projection,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
   PropertyAccessImpl.v1ProjectionFromImplicitFunctionInstantiation(
     ImplicitFunctionInstantiationImpl origin,
     PropertyAccessImpl operand,
@@ -57494,9 +57690,6 @@ enum V1Projection {
   /// Project a [CombinatorNameImpl] child to a V1 identifier.
   combinatorName,
 
-  /// Project a [CommentReferableExpressionImpl] child to its V1 view.
-  commentReferableExpression,
-
   /// Project an [ExpressionImpl] child to the V1 expression view.
   expression,
 
@@ -57521,12 +57714,6 @@ enum V1Projection {
 
   static SimpleIdentifierImpl toV1CombinatorName(CombinatorNameImpl node) {
     return node.v1Projection;
-  }
-
-  static CommentReferableExpressionImpl toV1CommentReferableExpression(
-    CommentReferableExpressionImpl node,
-  ) {
-    return toV1Expression(node) as CommentReferableExpressionImpl;
   }
 
   static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {

@@ -37,6 +37,7 @@ abstract class UserPromptPreferences {
     return _PersistableUserPromptPreferences(
       preferencesFile,
       instrumentationService,
+      sessionLogger,
     );
   }
 
@@ -77,6 +78,8 @@ class _NotPersistableUserPromptPreferences implements UserPromptPreferences {
 class _PersistableUserPromptPreferences implements UserPromptPreferences {
   final InstrumentationService _instrumentationService;
 
+  final SessionLogger _sessionLogger;
+
   final _jsonEncoder = JsonEncoder.withIndent('  ');
 
   /// The file for storing preferences.
@@ -84,7 +87,7 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
   @visibleForTesting
   final File preferencesFile;
 
-  new(this.preferencesFile, this._instrumentationService);
+  new(this.preferencesFile, this._instrumentationService, this._sessionLogger);
 
   @override
   bool get canPersist => true;
@@ -112,6 +115,10 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
     } on FormatException catch (e) {
       _instrumentationService.logError(
         'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
+      );
+      _sessionLogger.logException(
+        exception:
+            'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
       );
       return null;
     }
@@ -152,6 +159,9 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
       // Don't fail if we can't write (eg. file locked by another process).
       _instrumentationService.logError(
         'Failed to write prompt preferences: $e',
+      );
+      _sessionLogger.logException(
+        exception: 'Failed to write prompt preferences: $e',
       );
       return false;
     }

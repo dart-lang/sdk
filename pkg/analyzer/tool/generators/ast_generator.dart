@@ -1827,8 +1827,6 @@ class _Property {
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
-      _V1ProjectionKind.commentReferableExpression =>
-        'V1Projection.toV1CommentReferableExpression',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
       _V1ProjectionKind.recordLiteralField =>
         'V1Projection.toV1RecordLiteralField',
@@ -1858,7 +1856,6 @@ class _Property {
       _V1ProjectionKind.argument ||
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
-      _V1ProjectionKind.commentReferableExpression ||
       _V1ProjectionKind.expression ||
       _V1ProjectionKind.recordLiteralField =>
         '$v1ProjectionMethod($expression)',
@@ -1928,8 +1925,6 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
       'Argument' => _V1ProjectionKind.argument,
       'CollectionElement' => _V1ProjectionKind.collectionElement,
       'CombinatorName' => _V1ProjectionKind.combinatorName,
-      'CommentReferableExpression' =>
-        _V1ProjectionKind.commentReferableExpression,
       'Expression' => _V1ProjectionKind.expression,
       'RecordLiteralField' => _V1ProjectionKind.recordLiteralField,
       _ => null,
@@ -1959,7 +1954,6 @@ enum _V1ProjectionKind {
   argument,
   collectionElement,
   combinatorName,
-  commentReferableExpression,
   expression,
   recordLiteralField,
 }
