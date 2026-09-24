@@ -1420,6 +1420,13 @@ void Assembler::vpmaxu(OperandSize sz,
   EmitSIMDddd(B24 | B11 | B9, sz, dd, dn, dm);
 }
 
+void Assembler::vpminu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9 | B4, sz, dd, dn, dm);
+}
+
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B21 | B11 | B10 | B9 | B8, kSWord, qd, qn, qm);
 }
