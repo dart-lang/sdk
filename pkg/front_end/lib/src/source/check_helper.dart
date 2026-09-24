@@ -803,13 +803,12 @@ extension CheckHelper on ProblemReporting {
     required TypeEnvironment typeEnvironment,
     required bool isInstanceMember,
     required bool isLate,
+    required bool isAbstract,
     required bool isExternal,
     required bool hasInitializer,
     required DartType fieldType,
     required String name,
-    required int nameLength,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetLength uriOffset,
   }) {
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
@@ -818,18 +817,17 @@ extension CheckHelper on ProblemReporting {
     // checked elsewhere.
     if (!isInstanceMember &&
         !isLate &&
+        !isAbstract &&
         !isExternal &&
         fieldType is! InvalidType &&
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
-      addProblem(
+      addProblem2(
         diag.fieldNonNullableWithoutInitializerError.withArguments(
           fieldName: name,
           fieldType: fieldType,
         ),
-        nameOffset,
-        nameLength,
-        fileUri,
+        uriOffset,
       );
     }
   }

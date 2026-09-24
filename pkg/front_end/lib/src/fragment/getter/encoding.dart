@@ -144,7 +144,7 @@ sealed class GetterEncoding implements InferredTypeListener {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -274,7 +274,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -322,7 +322,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -555,7 +555,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -623,7 +623,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override

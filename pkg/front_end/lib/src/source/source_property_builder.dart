@@ -28,6 +28,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../util/reference_map.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
@@ -102,12 +103,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   int buildBodyNodes(BuildNodesCallback f) => 0;
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f) {
+  void buildOutlineNodes(BuildNodesCallback callback) {
     _fieldDeclaration?.buildFieldOutlineNode(
-      libraryBuilder,
-      _nameScheme,
-      f,
-      _references,
+      libraryBuilder: libraryBuilder,
+      nameScheme: _nameScheme,
+      callback: callback,
+      references: _references,
       classTypeParameters: classBuilder?.cls.typeParameters,
     );
 
@@ -116,7 +117,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       _getterDeclarations[index].buildGetterOutlineNode(
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
-        f: isLast ? f : noAddBuildNodesCallback,
+        callback: isLast ? callback : noAddBuildNodesCallback,
         // Augmented getters don't reuse references.
         references: isLast ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
@@ -129,7 +130,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         libraryBuilder: libraryBuilder,
         problemReporting: libraryBuilder,
         nameScheme: _nameScheme,
-        f: isLast ? f : noAddBuildNodesCallback,
+        callback: isLast ? callback : noAddBuildNodesCallback,
         // Augmented setters don't reuse references.
         references: isLast ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
@@ -198,11 +199,19 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       // hierarchy builder.
       setterBuilder = nameSpace.lookup(name)?.setable as SourcePropertyBuilder?;
     }
-    _fieldDeclaration?.checkFieldTypes(
-      problemReporting,
-      typeEnvironment,
-      setterBuilder,
-    );
+    if (_fieldDeclaration != null) {
+      problemReporting.checkTypesInField(
+        typeEnvironment: typeEnvironment,
+        isInstanceMember: isDeclarationInstanceMember,
+        isLate: isLate,
+        isAbstract: fieldQuality == FieldQuality.Abstract,
+        isExternal: fieldQuality == FieldQuality.External,
+        hasInitializer: hasInitializer,
+        fieldType: fieldType,
+        name: name,
+        uriOffset: _fieldDeclaration!.uriOffset,
+      );
+    }
     for (int index = 0; index < _getterDeclarations.length; index++) {
       _getterDeclarations[index].checkGetterTypes(
         problemReporting,

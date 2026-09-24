@@ -1,3 +1,13 @@
+## v0.0.9
+ - Add missing `MessagePort` VM compilation stubs (`asTransferableMessagePort`
+   and `fromMessagePort`).
+
+## v0.0.8
+ - Precompile and pin `package:material_ui`, `package:cupertino_ui`, and hosted
+   dependencies in the Flutter DartPad SDK.
+ - Load CanvasKit from Google CDN (`www.gstatic.com/flutter-canvaskit/`) and
+   trim unused files from `sdk.tar`.
+
 ## v0.0.7
  - Dart stack traces printed from a sandbox are now mapped back to Dart source
    locations instead of rendering as raw JavaScript frames.

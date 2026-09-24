@@ -257,7 +257,7 @@ class Resolver {
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required bool isLate,
-    DartType? declaredFieldType,
+    DartType? fieldType,
     required Token startToken,
     required InferenceDataForTesting? inferenceDataForTesting,
     required InferenceDefaultType inferenceDefaultType,
@@ -297,7 +297,7 @@ class Resolver {
     InferredFieldInitializer inferredFieldInitializer = context.typeInferrer
         .inferFieldInitializer(
           fileUri: fileUri,
-          declaredType: declaredFieldType,
+          declaredType: fieldType,
           initializer: result.initializer,
           inferenceDefaultType: inferenceDefaultType,
           internalThisVariable: internalThisVariable,

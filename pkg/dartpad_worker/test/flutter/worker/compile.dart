@@ -83,4 +83,34 @@ void main() {
     await iframe.checkEvent(.it()..isA<RunEvent>());
     await iframe.close();
   });
+
+  testFlutterWorkspace('ws.compile() package:material_ui/material_ui.dart', (
+    ws,
+  ) async {
+    await ws.writeFileFromText('bin/main.dart', '''
+        import 'package:flutter/widgets.dart';
+        import 'package:material_ui/material_ui.dart';
+
+        void main() => runApp(
+          const MaterialApp(home: Center(child: Text('Hello Material UI'))),
+        );
+      ''');
+
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModulesEvent>(
+        .it()
+          ..anyModuleContains('Hello Material UI')
+          ..anyModuleContains('MaterialApp'),
+      ),
+    );
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('flutter')),
+    );
+    await iframe.close();
+  });
 }

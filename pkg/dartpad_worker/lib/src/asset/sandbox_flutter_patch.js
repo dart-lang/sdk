@@ -3,7 +3,7 @@
 
   // Tell the Flutter engine where to find CanvasKit and assets
   const dartpadFlutterConfiguration = {
-    canvasKitBaseUrl: new URL('./canvaskit/', scriptUrl).href,
+    canvasKitBaseUrl: new URL('{{canvasKitBaseUrl}}', scriptUrl).href,
     assetBase: new URL('./', scriptUrl).href,
   };
 

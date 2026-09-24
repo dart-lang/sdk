@@ -17,7 +17,7 @@ DART="$PWD/out/ReleaseX64/dart-sdk/bin/dart"
 
 # Build Flutter SDK assets (fails if Flutter is not available)
 echo "Building Flutter assets..."
-"$DART" pkg/dartpad_worker/tool/setup_local_flutter.dart --web-sdk=build
+"$DART" pkg/dartpad_worker/tool/setup_local_flutter.dart --web-sdk=build --use-cdn
 
 # Run integration tests before copying files to web/
 echo "Running integration tests..."

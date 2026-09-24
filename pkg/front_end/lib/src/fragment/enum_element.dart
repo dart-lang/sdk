@@ -15,24 +15,12 @@ class EnumElementDeclaration
 
   Field? _field;
 
-  late DartType _type = new InferredType(
-    libraryBuilder: builder.libraryBuilder,
-    typeBuilder: type,
-    inferType: inferType,
-    computeType: _computeType,
-    fileUri: fileUri,
-    name: _fragment.name,
-    nameOffset: nameOffset,
-    nameLength: _fragment.name.length,
-    token: _fragment.argumentsBeginToken,
-  );
-
   late final int elementIndex;
 
   new(this._fragment) {
     _fragment.declaration = this;
-    type.registerInferable(this);
-    type.registerInferredTypeListener(this);
+    typeBuilder.registerInferable(this);
+    typeBuilder.registerInferredTypeListener(this);
   }
 
   @override
@@ -42,16 +30,13 @@ class EnumElementDeclaration
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  DartType get fieldType => _type;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldTypeInternal => _type;
-
-  @override
-  void set fieldTypeInternal(DartType value) {
-    _type = value;
-    _field?.type = value;
+  void registerInferredFieldTypeInternal({
+    required DartType inferredType,
+    required bool isCovariantByClass,
+  }) {
+    _field!
+      ..type = inferredType
+      ..isCovariantByClass = isCovariantByClass;
   }
 
   @override
@@ -104,10 +89,9 @@ class EnumElementDeclaration
   Member get readTarget => _field!;
 
   @override
-  TypeBuilder get type => _fragment.type;
+  TypeBuilder get typeBuilder => _fragment.type;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
@@ -135,22 +119,23 @@ class EnumElementDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
+    ensureDeclaredType(libraryBuilder);
     _field = extern.createImmutableField(
       dummyName,
-      type: _type,
+      type: fieldType,
       isFinal: false,
       isConst: true,
       isStatic: true,
       fileUri: fileUri,
-      fieldReference: references.fieldReference,
-      getterReference: references.getterReference,
+      fieldReference: references?.fieldReference,
+      getterReference: references?.getterReference,
       isEnumElement: true,
       fileOffset: nameOffset,
       fileEndOffset: nameOffset,
@@ -162,7 +147,7 @@ class EnumElementDeclaration
           isSynthesized: false,
         )
         .attachMember(_field!);
-    f(member: _field!, kind: BuiltMemberKind.Field);
+    callback(member: _field!, kind: BuiltMemberKind.Field);
   }
 
   @override
@@ -179,7 +164,7 @@ class EnumElementDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {}
@@ -209,13 +194,6 @@ class EnumElementDeclaration
       "${runtimeType}.takePrimaryConstructorFieldInitializer",
     );
   }
-
-  @override
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -261,6 +239,19 @@ class EnumElementDeclaration
   @override
   void createFieldEncoding(SourcePropertyBuilder builder) {
     _fragment.builder = builder;
+    registerFieldType(
+      new InferredType(
+        libraryBuilder: builder.libraryBuilder,
+        typeBuilder: typeBuilder,
+        inferType: inferType,
+        computeType: _computeType,
+        fileUri: fileUri,
+        name: _fragment.name,
+        nameOffset: nameOffset,
+        nameLength: _fragment.name.length,
+        token: _fragment.argumentsBeginToken,
+      ),
+    );
   }
 
   @override
@@ -296,12 +287,6 @@ class EnumElementDeclaration
     PropertyReferences references,
   ) {
     return [references.getterReference];
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void setCovariantByClassInternal() {
-    _field!.isCovariantByClass = true;
   }
 
   void _buildElement(
@@ -439,7 +424,7 @@ class EnumElementDeclaration
         _field!.initializer = initializer..parent = _field;
       }
     }
-    fieldType = inferredFieldType;
+    registerInferredFieldType(inferredFieldType);
   }
 
   (DartType, Expression?, ScopeProviderInfo?) _computeType(

@@ -47,6 +47,7 @@ createWorker = (_, _) =>
     throw StateError('createWorker function must be defined!');
 
 AssetServerClient? _serverClient;
+AssetServerClient get serverClient => _serverClient!;
 
 /// Define a test that uses a [WorkerClient].
 void testDartWorker(

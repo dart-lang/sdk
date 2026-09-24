@@ -12,6 +12,7 @@ import 'package:dartpad/src/dartpad_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
+import 'package:yaml/yaml.dart';
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
@@ -24,6 +25,12 @@ Future<void> main(List<String> args) async {
       allowed: ['copy', 'build'],
       defaultsTo: 'copy',
       help: 'Copy or build `ddc_outline.dill` + `dart_sdk.js` from Flutter SDK',
+    )
+    ..addFlag(
+      'use-cdn',
+      defaultsTo: false,
+      help:
+          'Use CanvasKit from Google CDN instead of bundling canvaskit/ locally.',
     );
 
   final results = parser.parse(args);
@@ -112,6 +119,7 @@ Future<void> main(List<String> args) async {
         packageDir: packageDir,
         bootstrapCode: bootstrapCode,
         buildWebSdk: results.option('web-sdk') == 'build',
+        useCdn: results.flag('use-cdn'),
       ),
     );
   } finally {
@@ -132,6 +140,7 @@ final class _BuildContext {
   final String packageDir;
   final String? bootstrapCode;
   final bool buildWebSdk;
+  final bool useCdn;
 
   _BuildContext({
     required this.dartSdkRoot,
@@ -146,6 +155,7 @@ final class _BuildContext {
     required this.packageDir,
     required this.bootstrapCode,
     required this.buildWebSdk,
+    required this.useCdn,
   });
 }
 
@@ -188,6 +198,14 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     '--sdk=flutter',
   ], myappDir);
 
+  print('Adding material_ui and cupertino_ui dependencies...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'material_ui',
+    'cupertino_ui',
+  ], myappDir);
+
   print('Running flutter pub get...');
   _runSync(ctx.flutterBin, ['pub', 'get'], myappDir);
 
@@ -205,9 +223,20 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     p.join(ctx.flutterAssetDir, 'flutter.js'),
   );
 
-  print('Scraping CanvasKit...');
-  final sourceCanvasKitDir = p.join(myappDir, 'build', 'web', 'canvaskit');
-  _copyDir(sourceCanvasKitDir, p.join(ctx.flutterAssetDir, 'canvaskit'));
+  final String canvasKitBaseUrl;
+  if (ctx.useCdn) {
+    canvasKitBaseUrl = await _resolveAndVerifyCanvasKitCdnUrl(
+      ctx.flutterRoot,
+      myappDir,
+    );
+  } else {
+    print('Scraping CanvasKit...');
+    final sourceCanvasKitDir = p.join(myappDir, 'build', 'web', 'canvaskit');
+    final destCanvasKitDir = p.join(ctx.flutterAssetDir, 'canvaskit');
+    _copyDir(sourceCanvasKitDir, destCanvasKitDir);
+    _verifyLocalCanvasKitFiles(destCanvasKitDir);
+    canvasKitBaseUrl = './canvaskit/';
+  }
 
   // 3. Compile flutter_web.js and flutter_web.dill
   print('Compiling flutter_web.js and flutter_web.dill...');
@@ -311,7 +340,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   print('Synthesizing sandbox.js...');
   final sandboxJsPatch = File(
     p.join(ctx.projectRoot, 'lib', 'src', 'asset', 'sandbox_flutter_patch.js'),
-  ).readAsStringSync();
+  ).readAsStringSync().replaceAll('{{canvasKitBaseUrl}}', canvasKitBaseUrl);
   final sandboxJs = File(
     p.join(ctx.dartDartPadSdk, 'sandbox.js'),
   ).readAsStringSync();
@@ -349,14 +378,29 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   );
 
   print('Adding Dart SDK lib...');
+  // Note: `lib/_internal/js_runtime/` MUST be retained because
+  // `sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart` maps
+  // `dart:_interceptors`, `dart:_native_typed_data`, and `dart:_js_helper`
+  // (used by `dart:js_interop` and `dart:html` in `FolderBasedDartSdk`)
+  // to `_internal/js_runtime/lib/...`. Conversely, `js_dev_runtime/` has
+  // zero entries in `libraries.dart` and DDC uses `ddc_outline.dill`.
+  const excludedInternalDirs = [
+    '_internal/vm/',
+    '_internal/vm_shared/',
+    '_internal/wasm/',
+    '_internal/js_dev_runtime/',
+  ];
   tar.addDirectory(
     target: '/sdk/bin/cache/dart-sdk/lib',
     source: p.join(webSdk.dartSdkRoot, 'lib'),
-    where: (f) =>
-        (f.endsWith('.dart') ||
-            f.endsWith('.json') ||
-            f.contains('${p.separator}_internal${p.separator}')) &&
-        !f.endsWith('.dill'),
+    where: (f) {
+      final posixPath = p.posix.joinAll(p.split(f));
+      if (excludedInternalDirs.any(posixPath.startsWith)) return false;
+      return (f.endsWith('.dart') ||
+              f.endsWith('.json') ||
+              f.contains('${p.separator}_internal${p.separator}')) &&
+          !f.endsWith('.dill');
+    },
   );
 
   print('Adding version and libraries');
@@ -428,15 +472,34 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
       source: p.join(ctx.flutterRoot, 'packages', pkg),
       where: (f) =>
           !f.startsWith('test/') &&
-          (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+          !f.endsWith('.arb') &&
+          ((pkg != 'flutter' && f == 'pubspec.yaml') || f.startsWith('lib/')),
     );
   }
+
+  // Rewrite /sdk/packages/flutter/pubspec.yaml with exact version pins for all
+  // hosted packages compiled into flutter_web.dill (including material_ui,
+  // cupertino_ui, vector_math, etc.) so pub get always resolves the exact
+  // versions baked into flutter_web.dill.
+  final hostedVersions = _extractHostedPackageVersions(depsJson);
+  final flutterPubspec = _yamlToJson(
+    File(
+      p.join(ctx.flutterRoot, 'packages', 'flutter', 'pubspec.yaml'),
+    ).readAsStringSync(),
+  );
+  flutterPubspec['dependencies'] = {
+    ...(flutterPubspec['dependencies'] as Map<String, Object?>? ?? {}),
+    ...hostedVersions,
+  };
+  tar.addJsonFile(
+    target: '/sdk/packages/flutter/pubspec.yaml',
+    json: flutterPubspec,
+  );
   tar.addDirectory(
     target: '/sdk/bin/cache/pkg/sky_engine',
     source: p.join(ctx.flutterRoot, 'bin', 'cache', 'pkg', 'sky_engine'),
     where: (f) =>
-        !f.startsWith('test') &&
-        (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+        !f.startsWith('test') && (f == 'pubspec.yaml' || f.startsWith('lib/')),
   );
 
   await tar.close();
@@ -598,28 +661,36 @@ void _copyDir(String source, String dest) {
   }
 }
 
-Future<void> _downloadHostedPackages(String depsJson, String dest) async {
+Map<String, String> _extractHostedPackageVersions(String depsJson) {
   final data = jsonDecode(depsJson) as Map<String, Object?>;
   final packages = data['packages'] as List<Object?>;
+  return {
+    for (final pkg in packages)
+      if (pkg is Map && pkg['source'] == 'hosted')
+        pkg['name'] as String: pkg['version'] as String,
+  };
+}
+
+Map<String, Object?> _yamlToJson(String yamlString) =>
+    jsonDecode(jsonEncode(loadYaml(yamlString))) as Map<String, Object?>;
+
+Future<void> _downloadHostedPackages(String depsJson, String dest) async {
+  final hostedVersions = _extractHostedPackageVersions(depsJson);
   final client = http.Client();
   try {
-    for (final pkg in packages) {
-      if (pkg is Map && pkg['source'] == 'hosted') {
-        final name = pkg['name'] as String;
-        final version = pkg['version'] as String;
-        final tarballName = '$name-$version.tar.gz';
-        final tarballFile = File(p.join(dest, tarballName));
+    for (final MapEntry(key: name, value: version) in hostedVersions.entries) {
+      final tarballName = '$name-$version.tar.gz';
+      final tarballFile = File(p.join(dest, tarballName));
 
-        if (tarballFile.existsSync()) continue;
+      if (tarballFile.existsSync()) continue;
 
-        print('Downloading $name $version...');
-        final url = 'https://pub.dev/api/archives/$tarballName';
-        final response = await client.get(Uri.parse(url));
-        if (response.statusCode == 200) {
-          tarballFile.writeAsBytesSync(response.bodyBytes);
-        } else {
-          print('Failed to download $name: ${response.statusCode}');
-        }
+      print('Downloading $name $version...');
+      final url = 'https://pub.dev/api/archives/$tarballName';
+      final response = await client.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        tarballFile.writeAsBytesSync(response.bodyBytes);
+      } else {
+        print('Failed to download $name: ${response.statusCode}');
       }
     }
   } finally {
@@ -668,6 +739,86 @@ Future<String> _resolveFlutterExecutable() async {
     throw Exception('Flutter not found in PATH');
   }
   return result.stdout.toString().split('\n').first.trim();
+}
+
+const _kRequiredCanvasKitFiles = [
+  'canvaskit.js',
+  'canvaskit.wasm',
+  'chromium/canvaskit.js',
+  'chromium/canvaskit.wasm',
+];
+
+void _verifyLocalCanvasKitFiles(String canvasKitDir) {
+  for (final relPath in _kRequiredCanvasKitFiles) {
+    final file = File(p.joinAll([canvasKitDir, ...relPath.split('/')]));
+    if (!file.existsSync() || file.lengthSync() == 0) {
+      throw StateError('Missing or empty local CanvasKit file: ${file.path}');
+    }
+  }
+}
+
+Future<String> _resolveAndVerifyCanvasKitCdnUrl(
+  String flutterRoot,
+  String myappDir,
+) async {
+  final versionFile = File(
+    p.join(flutterRoot, 'bin', 'cache', 'flutter.version.json'),
+  );
+  if (!versionFile.existsSync()) {
+    throw StateError('Missing ${versionFile.path}');
+  }
+  final versionJson =
+      jsonDecode(versionFile.readAsStringSync()) as Map<String, Object?>;
+  final engineRevision = versionJson['engineRevision'] as String?;
+  if (engineRevision == null ||
+      !RegExp(r'^[0-9a-f]{40}$').hasMatch(engineRevision)) {
+    throw StateError(
+      'Invalid or missing engineRevision in ${versionFile.path}: '
+      '$engineRevision',
+    );
+  }
+
+  // Cross-check against build/web/flutter_bootstrap.js generated by
+  // `flutter build web` to ensure flutter_tools agrees on engineRevision.
+  final bootstrapFile = File(
+    p.join(myappDir, 'build', 'web', 'flutter_bootstrap.js'),
+  );
+  if (bootstrapFile.existsSync()) {
+    final bootstrapContent = bootstrapFile.readAsStringSync();
+    final match = RegExp(
+      r'"engineRevision"\s*:\s*"([0-9a-f]{40})"',
+    ).firstMatch(bootstrapContent);
+    if (match != null && match.group(1) != engineRevision) {
+      throw StateError(
+        'Engine revision mismatch between flutter.version.json '
+        '($engineRevision) and flutter_bootstrap.js (${match.group(1)})',
+      );
+    }
+  }
+
+  final baseUrl = 'https://www.gstatic.com/flutter-canvaskit/$engineRevision/';
+  print('Verifying CanvasKit CDN resources at $baseUrl...');
+  final client = http.Client();
+  try {
+    for (final relPath in _kRequiredCanvasKitFiles) {
+      final uri = Uri.parse('$baseUrl$relPath');
+      final response = await client.head(uri);
+      final contentLength = int.tryParse(
+        response.headers['content-length'] ?? '',
+      );
+      if (response.statusCode != 200 ||
+          (contentLength != null && contentLength <= 0)) {
+        throw StateError(
+          'CanvasKit CDN verification failed for $uri '
+          '(HTTP ${response.statusCode}, content-length: $contentLength). '
+          'Pass --no-use-cdn to bundle local CanvasKit files instead.',
+        );
+      }
+    }
+  } finally {
+    client.close();
+  }
+  return baseUrl;
 }
 
 const kBootstrapFlutterCode = r'''
