@@ -2865,7 +2865,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypeArgumentsIndex:
 #define NATIVE_SLOT_CASE(ClassName, __, FieldName, ___, ____)                  \
   case Slot::Kind::k##ClassName##_##FieldName:
       NOT_INT_NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
