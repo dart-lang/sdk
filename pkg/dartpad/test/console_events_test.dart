@@ -49,66 +49,64 @@ void main() {
     addTearDown(sandbox.close);
   });
 
-  void emitConsole(String? level, String message, {String? source}) {
+  void emitConsole(String level, String message, {required String source}) {
     worker.sendNotification('workspace/sandbox/console', {
       'workspaceId': 1,
       'sandboxId': 1,
-      'level': ?level,
-      'source': ?source,
+      'level': level,
+      'source': source,
       'message': message,
     });
   }
 
-  test(
-    'consoleEvents preserves levels alongside legacy text listeners',
-    () async {
-      final events = sandbox.consoleEvents.take(4).toList();
-      final messages = sandbox.console.take(4).toList();
-      final secondListener = sandbox.consoleEvents.take(4).toList();
-      for (final level in ConsoleLevel.values) {
-        emitConsole(
-          level.name,
-          '${level.name} message\nsecond line',
-          source: 'console',
-        );
-      }
+  test('console preserves metadata for multiple listeners', () async {
+    final events = sandbox.console.take(4).toList();
+    final secondListener = sandbox.console.take(4).toList();
+    for (final level in ConsoleLevel.values) {
+      emitConsole(
+        level.name,
+        '${level.name} message\nsecond line',
+        source: 'console',
+      );
+    }
 
-      final expected = [
-        for (final level in ConsoleLevel.values)
-          (
-            level: level,
-            source: ConsoleSource.console,
-            message: '${level.name} message\nsecond line',
-          ),
-      ];
-      check(await events).deepEquals(expected);
-      check(await secondListener).deepEquals(expected);
-      check(await messages).deepEquals(expected.map((e) => e.message));
-    },
-  );
+    final expected = [
+      for (final level in ConsoleLevel.values)
+        (
+          level: level,
+          source: ConsoleSource.console,
+          message: '${level.name} message\nsecond line',
+        ),
+    ];
+    check(await events).deepEquals(expected);
+    check(await secondListener).deepEquals(expected);
+  });
 
-  test('missing and unknown metadata defaults to console log', () async {
-    final events = sandbox.consoleEvents.take(2).toList();
-    emitConsole(null, 'older worker');
-    emitConsole('future-level', 'newer worker', source: 'future-source');
+  test('console metadata is required and must be recognized', () async {
+    final received = <Object?>[];
+    final subscription = sandbox.console.listen(received.add);
+    addTearDown(subscription.cancel);
 
-    check(await events).deepEquals([
-      (
-        level: ConsoleLevel.log,
-        source: ConsoleSource.console,
-        message: 'older worker',
-      ),
-      (
-        level: ConsoleLevel.log,
-        source: ConsoleSource.console,
-        message: 'newer worker',
-      ),
-    ]);
+    for (final metadata in [
+      {'source': 'console'},
+      {'level': 'log'},
+      {'level': 'unknown', 'source': 'console'},
+      {'level': 'log', 'source': 'unknown'},
+    ]) {
+      await check(
+        worker.sendRequest('workspace/sandbox/console', {
+          'workspaceId': 1,
+          'sandboxId': 1,
+          'message': 'invalid event',
+          ...metadata,
+        }),
+      ).throws<RpcException>();
+    }
+    check(received).deepEquals([]);
   });
 
   test('Dart prints are distinct from identical console messages', () async {
-    final events = sandbox.consoleEvents.take(2).toList();
-    final messages = sandbox.console.take(2).toList();
+    final events = sandbox.console.take(2).toList();
     emitConsole('log', 'same text', source: 'dartPrint');
     emitConsole('log', 'same text', source: 'console');
 
@@ -124,14 +122,12 @@ void main() {
         message: 'same text',
       ),
     ]);
-    check(await messages).deepEquals(['same text', 'same text']);
   });
 
-  test('closing a sandbox closes both console streams', () async {
-    final events = sandbox.consoleEvents.toList();
-    final messages = sandbox.console.toList();
-    final firstEvent = sandbox.consoleEvents.first;
-    emitConsole('error', 'last message');
+  test('closing a sandbox closes the console stream', () async {
+    final events = sandbox.console.toList();
+    final firstEvent = sandbox.console.first;
+    emitConsole('error', 'last message', source: 'console');
     await firstEvent;
     await sandbox.close();
 
@@ -142,6 +138,5 @@ void main() {
         message: 'last message',
       ),
     ]);
-    check(await messages).deepEquals(['last message']);
   });
 }

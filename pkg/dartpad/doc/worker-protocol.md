@@ -665,15 +665,14 @@ Sent by the worker when a language server process terminates.
 ### Notification `workspace/sandbox/console`
 Sent by the worker when the sandbox produces a console message.
 
-`level` identifies the JavaScript console method: `log`, `info`, `warn`, or
-`error`. Older workers may omit it; clients should treat missing or
-unrecognized levels as `log`.
+`level` is required and identifies the JavaScript console method: `log`,
+`info`, `warn`, or `error`.
 
-`source` is `dartPrint` for output received through the Dart runtime's
-`dartPrint` hook (including Flutter's default `debugPrint`), or `console` for
-JavaScript console calls. Dart prints always use level `log`. Missing or
-unrecognized sources should be treated as `console`. The source does not
-distinguish application prints from library or framework prints.
+`source` is required and is `dartPrint` for output received through the Dart
+runtime's `dartPrint` hook (including Flutter's default `debugPrint`), or
+`console` for JavaScript console calls. Dart prints always use level `log`.
+The source does not distinguish application prints from library or framework
+prints.
 
 **Params:**
 ```js

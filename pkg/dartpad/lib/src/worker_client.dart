@@ -75,16 +75,8 @@ base class WorkerClient {
   void _handleSandboxConsole(rpc.Parameters params) {
     final id = (params['sandboxId'].value as num).toInt();
     final message = params['message'].asString;
-    final level = switch (params['level'].asStringOr('log')) {
-      'info' => ConsoleLevel.info,
-      'warn' => ConsoleLevel.warn,
-      'error' => ConsoleLevel.error,
-      _ => ConsoleLevel.log,
-    };
-    final source = switch (params['source'].asStringOr('console')) {
-      'dartPrint' => ConsoleSource.dartPrint,
-      _ => ConsoleSource.console,
-    };
+    final level = ConsoleLevel.values.byName(params['level'].asString);
+    final source = ConsoleSource.values.byName(params['source'].asString);
     _sandboxes[id]?._consoleController.add((
       level: level,
       source: source,
@@ -524,8 +516,6 @@ enum ConsoleLevel {
 /// How a sandbox console message was produced.
 enum ConsoleSource {
   /// Output from the JavaScript console API.
-  ///
-  /// Also used when an older worker does not identify the source.
   console,
 
   /// Output received through the Dart runtime's `dartPrint` hook.
@@ -572,22 +562,14 @@ final class Sandbox {
   final _extensionEventController =
       StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
-  /// A stream of console messages produced by the running application.
-  ///
-  /// Use [consoleEvents] to also receive the console level and source.
-  Stream<String> get console => consoleEvents.map((event) => event.message);
-
   /// Console messages with their level and source.
   ///
-  /// Older workers that do not send a level, and unrecognized levels, are
-  /// reported as [ConsoleLevel.log].
-  /// Missing or unrecognized sources are reported as [ConsoleSource.console].
   /// Dart prints have level [ConsoleLevel.log] and source
   /// [ConsoleSource.dartPrint].
   ///
-  /// Like [console], this is a broadcast stream.
+  /// This is a broadcast stream.
   Stream<({ConsoleLevel level, ConsoleSource source, String message})>
-  get consoleEvents => _consoleController.stream;
+  get console => _consoleController.stream;
 
   /// A stream of messages from `window.onerror`.
   // TODO(jonasfj): Consider folding errors and unhandledRejections into console

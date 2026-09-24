@@ -20,9 +20,9 @@ final class TestContext {
   final consoleLog = <String>[];
 
   TestContext._(this.server, this.dartpad, this.ws, this.sandbox) {
-    sandbox.console.listen((message) {
-      consoleLog.add(message);
-      printOnFailure('[sandbox] console: $message');
+    sandbox.console.listen((event) {
+      consoleLog.add(event.message);
+      printOnFailure('[sandbox] console: ${event.message}');
     });
   }
 
@@ -37,7 +37,7 @@ final class TestContext {
     }
 
     await sandbox.console
-        .firstWhere((message) => condition.softCheckSync(message) == null)
+        .firstWhere((event) => condition.softCheckSync(event.message) == null)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(

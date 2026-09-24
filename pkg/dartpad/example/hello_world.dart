@@ -37,7 +37,7 @@ Future<void> main() async {
   final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
   // Print console output
-  sandbox.console.forEach(print).ignore();
+  sandbox.console.forEach((event) => print(event.message)).ignore();
   // Run main.dart in the sanboxed iframe
   await sandbox.run('main.dart', mode: 'console');
 

@@ -37,8 +37,8 @@ final class SandboxClient {
     // Register notification handlers
     _peer.registerMethod('console', (Parameters params) {
       final message = params['message'].asString;
-      final level = params['level'].asStringOr('log');
-      final source = params['source'].asStringOr('console');
+      final level = params['level'].asString;
+      final source = params['source'].asString;
 
       _consoleController.add((level: level, source: source, message: message));
     });

@@ -26,7 +26,7 @@ void main() {
     addTearDown(iframe.close);
     addTearDown(client.close);
 
-    final events = client.onConsole.take(6).toList();
+    final events = client.onConsole.take(5).toList();
     for (final level in ['log', 'info', 'warn', 'error']) {
       iframe.sendNotification('console', {
         'level': level,
@@ -39,7 +39,6 @@ void main() {
       'source': 'dartPrint',
       'message': 'Dart print',
     });
-    iframe.sendNotification('console', {'message': 'without metadata'});
 
     check(await events).deepEquals([
       for (final level in ['log', 'info', 'warn', 'error'])
@@ -49,7 +48,6 @@ void main() {
           message: '$level message\nsecond line',
         ),
       (level: 'log', source: 'dartPrint', message: 'Dart print'),
-      (level: 'log', source: 'console', message: 'without metadata'),
     ]);
   });
 }

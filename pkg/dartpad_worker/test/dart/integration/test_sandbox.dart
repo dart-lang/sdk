@@ -52,7 +52,7 @@ void main() {
 
     // Ignore DDC startup messages. The final print also catches duplicate
     // notifications if dartPrint accidentally calls the proxied console.log.
-    final events = ctx.sandbox.consoleEvents
+    final events = ctx.sandbox.console
         .where(
           (event) => event.message == 'same text' || event.message == 'done',
         )
