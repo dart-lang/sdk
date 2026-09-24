@@ -195,12 +195,12 @@ Future<DtdInfo?> _startDtdProcess({
             },
             onDone: () {
               if (!completer.isCompleted) {
-                completer.complete(null);
+                completer.complete();
               }
             },
             onError: (_) {
               if (!completer.isCompleted) {
-                completer.complete(null);
+                completer.complete();
               }
             },
           );
@@ -268,7 +268,7 @@ Future<DtdInfo?> startDtd({
     final exitPort = ReceivePort()
       ..listen((_) {
         if (!completer.isCompleted) {
-          completer.complete(null);
+          completer.complete();
         }
       });
     final errorPort = ReceivePort()
@@ -279,7 +279,7 @@ Future<DtdInfo?> startDtd({
           _logger.warning('DTD isolate error: $message');
         }
         if (!completer.isCompleted) {
-          completer.complete(null);
+          completer.complete();
         }
       });
     final receivePort = ReceivePort()
