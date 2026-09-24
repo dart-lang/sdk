@@ -4291,6 +4291,68 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(PackedShiftLeft, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {1, 2, 3, 0x20000000};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(2));
+  __ movd(XMM1, RDX);
+  __ pslld(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftLeft, test) {
+  typedef void (*PackedShiftLeftCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftLeftCode>(test->entry())(result);
+  EXPECT_EQ(1u << 2, result[0]);
+  EXPECT_EQ(2u << 2, result[1]);
+  EXPECT_EQ(3u << 2, result[2]);
+  EXPECT_EQ(0x20000000u << 2, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pslld xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(PackedShiftRightArithmetic, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(1));
+  __ movd(XMM1, RDX);
+  __ psrad(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftRightArithmetic, test) {
+  typedef void (*PackedShiftRightArithmeticCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftRightArithmeticCode>(test->entry())(result);
+  EXPECT_EQ(0xFFFFFFFCu, result[0]);
+  EXPECT_EQ(4u, result[1]);
+  EXPECT_EQ(0xC0000000u, result[2]);
+  EXPECT_EQ(0x3FFFFFFFu, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "psrad xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   static const struct ALIGN16 {
     uint32_t a;
