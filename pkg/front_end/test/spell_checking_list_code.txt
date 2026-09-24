@@ -2108,6 +2108,7 @@ undoable
 unduly
 unequal
 unescape
+unescapes
 unexact
 unexpectedly
 unfilled
