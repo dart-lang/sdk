@@ -1538,14 +1538,7 @@ final class NativeFloat32x4 implements Float32x4 {
     : this.x = _truncate(x),
       this.y = _truncate(y),
       this.z = _truncate(z),
-      this.w = _truncate(w) {
-    // We would prefer to check for `double` but in dart2js we can't see the
-    // difference anyway.
-    if (x is! num) throw ArgumentError(x);
-    if (y is! num) throw ArgumentError(y);
-    if (z is! num) throw ArgumentError(z);
-    if (w is! num) throw ArgumentError(w);
-  }
+      this.w = _truncate(w);
 
   NativeFloat32x4.splat(double value) : this(value, value, value, value);
   NativeFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
@@ -1897,16 +1890,10 @@ final class NativeInt32x4 implements Int32x4 {
     : this.x = _truncate(x),
       this.y = _truncate(y),
       this.z = _truncate(z),
-      this.w = _truncate(w) {
-    if (x != this.x && x is! int) throw ArgumentError(x);
-    if (y != this.y && y is! int) throw ArgumentError(y);
-    if (z != this.z && z is! int) throw ArgumentError(z);
-    if (w != this.w && w is! int) throw ArgumentError(w);
-  }
+      this.w = _truncate(w);
 
   factory NativeInt32x4.splat(int v) {
     final t = _truncate(v);
-    if (v != t && v is! int) throw ArgumentError(v);
     return NativeInt32x4._truncated(t, t, t, t);
   }
 
@@ -2287,10 +2274,7 @@ final class NativeFloat64x2 implements Float64x2 {
   static NativeFloat64List _list = NativeFloat64List(2);
   static Uint32List _uint32View = _list.buffer.asUint32List();
 
-  NativeFloat64x2(this.x, this.y) {
-    if (x is! num) throw ArgumentError(x);
-    if (y is! num) throw ArgumentError(y);
-  }
+  NativeFloat64x2(this.x, this.y);
 
   NativeFloat64x2.splat(double v) : this(v, v);
 
@@ -2367,14 +2351,12 @@ final class NativeFloat64x2 implements Float64x2 {
   /// Returns a new [Float64x2] copied from this [Float64x2] with a new x
   /// value.
   Float64x2 withX(double x) {
-    if (x is! num) throw ArgumentError(x);
     return NativeFloat64x2._doubles(x, y);
   }
 
   /// Returns a new [Float64x2] copied from this [Float64x2] with a new y
   /// value.
   Float64x2 withY(double y) {
-    if (y is! num) throw ArgumentError(y);
     return NativeFloat64x2._doubles(x, y);
   }
 
