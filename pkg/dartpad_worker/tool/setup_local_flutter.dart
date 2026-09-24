@@ -12,6 +12,7 @@ import 'package:dartpad/src/dartpad_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
+import 'package:yaml/yaml.dart';
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
@@ -186,6 +187,14 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
     'add',
     'integration_test',
     '--sdk=flutter',
+  ], myappDir);
+
+  print('Adding material_ui and cupertino_ui dependencies...');
+  _runSync(ctx.flutterBin, [
+    'pub',
+    'add',
+    'material_ui',
+    'cupertino_ui',
   ], myappDir);
 
   print('Running flutter pub get...');
@@ -428,15 +437,33 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
       source: p.join(ctx.flutterRoot, 'packages', pkg),
       where: (f) =>
           !f.startsWith('test/') &&
-          (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+          ((pkg != 'flutter' && f == 'pubspec.yaml') || f.startsWith('lib/')),
     );
   }
+
+  // Rewrite /sdk/packages/flutter/pubspec.yaml with exact version pins for all
+  // hosted packages compiled into flutter_web.dill (including material_ui,
+  // cupertino_ui, vector_math, etc.) so pub get always resolves the exact
+  // versions baked into flutter_web.dill.
+  final hostedVersions = _extractHostedPackageVersions(depsJson);
+  final flutterPubspec = _yamlToJson(
+    File(
+      p.join(ctx.flutterRoot, 'packages', 'flutter', 'pubspec.yaml'),
+    ).readAsStringSync(),
+  );
+  flutterPubspec['dependencies'] = {
+    ...(flutterPubspec['dependencies'] as Map<String, Object?>? ?? {}),
+    ...hostedVersions,
+  };
+  tar.addJsonFile(
+    target: '/sdk/packages/flutter/pubspec.yaml',
+    json: flutterPubspec,
+  );
   tar.addDirectory(
     target: '/sdk/bin/cache/pkg/sky_engine',
     source: p.join(ctx.flutterRoot, 'bin', 'cache', 'pkg', 'sky_engine'),
     where: (f) =>
-        !f.startsWith('test') &&
-        (f.endsWith('pubspec.yaml') || f.startsWith('lib/')),
+        !f.startsWith('test') && (f == 'pubspec.yaml' || f.startsWith('lib/')),
   );
 
   await tar.close();
@@ -598,28 +625,36 @@ void _copyDir(String source, String dest) {
   }
 }
 
-Future<void> _downloadHostedPackages(String depsJson, String dest) async {
+Map<String, String> _extractHostedPackageVersions(String depsJson) {
   final data = jsonDecode(depsJson) as Map<String, Object?>;
   final packages = data['packages'] as List<Object?>;
+  return {
+    for (final pkg in packages)
+      if (pkg is Map && pkg['source'] == 'hosted')
+        pkg['name'] as String: pkg['version'] as String,
+  };
+}
+
+Map<String, Object?> _yamlToJson(String yamlString) =>
+    jsonDecode(jsonEncode(loadYaml(yamlString))) as Map<String, Object?>;
+
+Future<void> _downloadHostedPackages(String depsJson, String dest) async {
+  final hostedVersions = _extractHostedPackageVersions(depsJson);
   final client = http.Client();
   try {
-    for (final pkg in packages) {
-      if (pkg is Map && pkg['source'] == 'hosted') {
-        final name = pkg['name'] as String;
-        final version = pkg['version'] as String;
-        final tarballName = '$name-$version.tar.gz';
-        final tarballFile = File(p.join(dest, tarballName));
+    for (final MapEntry(key: name, value: version) in hostedVersions.entries) {
+      final tarballName = '$name-$version.tar.gz';
+      final tarballFile = File(p.join(dest, tarballName));
 
-        if (tarballFile.existsSync()) continue;
+      if (tarballFile.existsSync()) continue;
 
-        print('Downloading $name $version...');
-        final url = 'https://pub.dev/api/archives/$tarballName';
-        final response = await client.get(Uri.parse(url));
-        if (response.statusCode == 200) {
-          tarballFile.writeAsBytesSync(response.bodyBytes);
-        } else {
-          print('Failed to download $name: ${response.statusCode}');
-        }
+      print('Downloading $name $version...');
+      final url = 'https://pub.dev/api/archives/$tarballName';
+      final response = await client.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        tarballFile.writeAsBytesSync(response.bodyBytes);
+      } else {
+        print('Failed to download $name: ${response.statusCode}');
       }
     }
   } finally {

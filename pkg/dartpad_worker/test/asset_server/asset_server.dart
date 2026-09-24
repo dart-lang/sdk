@@ -79,6 +79,9 @@ final class AssetServer {
 
   /// Add [package] to this pub server.
   void addPackage(Package package) {
+    _packages.removeWhere(
+      (p) => p.name == package.name && p.version == package.version,
+    );
     _packages.add(package);
   }
 
