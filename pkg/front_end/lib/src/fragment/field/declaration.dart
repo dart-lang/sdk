@@ -28,7 +28,6 @@ import '../../kernel/internal_ast.dart';
 import '../../kernel/late_lowering.dart' as late_lowering;
 import '../../kernel/macro/metadata.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -45,7 +44,7 @@ import '../setter/declaration.dart';
 
 /// Common interface for fragments that can declare a field.
 abstract class FieldDeclaration {
-  UriOffsetLength? get uriOffset;
+  UriOffsetLength get uriOffset;
 
   FieldQuality get fieldQuality;
 
@@ -54,11 +53,11 @@ abstract class FieldDeclaration {
 
   /// Builds the core AST structures for this field declaration as needed for
   /// the outline.
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
 
@@ -74,12 +73,6 @@ abstract class FieldDeclaration {
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
 
   void createFieldEncoding(SourcePropertyBuilder builder);
-
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  );
 
   /// Checks the variance of type parameters [sourceClassBuilder] used in the
   /// type of this field declaration.
@@ -113,7 +106,7 @@ abstract class FieldDeclaration {
   bool get isConst;
 
   /// The [DartType] of this field declaration.
-  abstract DartType fieldType;
+  DartType get fieldType;
 
   /// Creates the AST node for this field as the default initializer.
   ///
@@ -199,9 +192,6 @@ class RegularFieldDeclaration
       : FieldQuality.Concrete;
 
   @override
-  DartType get fieldType => _encoding.type;
-
-  @override
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -268,18 +258,20 @@ class RegularFieldDeclaration
       : SetterQuality.Implicit;
 
   @override
-  TypeBuilder get type => _fragment.type;
+  TypeBuilder get typeBuilder => _fragment.type;
 
   @override
   Member? get writeTarget => _encoding.writeTarget;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldTypeInternal => _encoding.type;
-
-  @override
-  void set fieldTypeInternal(DartType value) {
-    _encoding.type = value;
+  void registerInferredFieldTypeInternal({
+    required DartType inferredType,
+    required bool isCovariantByClass,
+  }) {
+    _encoding.registerInferredFieldType(
+      inferredType: inferredType,
+      isCovariantByClass: isCovariantByClass,
+    );
   }
 
   @override
@@ -379,7 +371,7 @@ class RegularFieldDeclaration
             classHierarchy: classHierarchy,
             libraryBuilder: libraryBuilder,
             bodyBuilderContext: bodyBuilderContext,
-            declaredFieldType: fieldType,
+            fieldType: fieldType,
             token: token,
             inferenceDefaultType: inferenceDefaultType,
           );
@@ -397,7 +389,7 @@ class RegularFieldDeclaration
     required ClassHierarchyBase classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
-    DartType? declaredFieldType,
+    DartType? fieldType,
     required Token token,
     required InferenceDefaultType inferenceDefaultType,
   }) {
@@ -411,7 +403,7 @@ class RegularFieldDeclaration
           extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           scope: scope,
           isLate: isLate,
-          declaredFieldType: declaredFieldType,
+          fieldType: fieldType,
           startToken: token,
           inferenceDataForTesting: builder
               .dataForTesting
@@ -438,44 +430,24 @@ class RegularFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    _encoding.buildOutlineNode(
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildFieldOutlineNode(
       libraryBuilder,
       nameScheme,
       references,
+      type: fieldType,
+      isCovariantByClass: isCovariantByClass,
+      callback: callback,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
       classTypeParameters: classTypeParameters,
-    );
-    if (type is! InferableTypeBuilder) {
-      fieldType = type.build(libraryBuilder, TypeUse.fieldType);
-    }
-    _encoding.registerMembers(f);
-  }
-
-  @override
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  ) {
-    problemReporting.checkTypesInField(
-      typeEnvironment: typeEnvironment,
-      isInstanceMember: builder.isDeclarationInstanceMember,
-      isLate: isLate,
-      isExternal: _fragment.modifiers.isExternal,
-      hasInitializer: hasInitializer,
-      fieldType: fieldType,
-      name: _fragment.name,
-      nameLength: _fragment.name.length,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
     );
   }
 
@@ -497,9 +469,9 @@ class RegularFieldDeclaration
 
   @override
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
-    if (type is! OmittedTypeBuilder) {
-      context.reportInboundReferenceIssuesForType(type);
-      context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
+    if (typeBuilder is! OmittedTypeBuilder) {
+      context.reportInboundReferenceIssuesForType(typeBuilder);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(typeBuilder);
     }
     return 0;
   }
@@ -535,14 +507,23 @@ class RegularFieldDeclaration
     late_lowering.IsSetStrategy isSetStrategy = late_lowering
         .computeIsSetStrategy(libraryBuilder);
     if (isAbstract || isExternal) {
-      _encoding = new AbstractOrExternalFieldEncoding(
-        _fragment,
-        isExtensionInstanceMember: isExtensionMember && isInstanceMember,
-        isExtensionTypeInstanceMember:
-            isExtensionTypeMember && isInstanceMember,
-        isAbstract: isAbstract,
-        isExternal: isExternal,
-      );
+      bool isExtensionInstanceMember = isExtensionMember && isInstanceMember;
+      bool isExtensionTypeInstanceMember =
+          isExtensionTypeMember && isInstanceMember;
+      if (isExtensionInstanceMember || isExtensionTypeInstanceMember) {
+        _encoding = new ExtensionAbstractOrExternalInstanceFieldEncoding(
+          _fragment,
+          isExtensionInstanceMember: isExtensionInstanceMember,
+          isAbstract: isAbstract,
+          isExternal: isExternal,
+        );
+      } else {
+        _encoding = new RegularAbstractOrExternalFieldEncoding(
+          _fragment,
+          isAbstract: isAbstract,
+          isExternal: isExternal,
+        );
+      }
     } else if ((isExtensionMember || isExtensionTypeMember) &&
         isInstanceMember) {
       // Field on a extension or extension type. Encode as abstract.
@@ -604,19 +585,19 @@ class RegularFieldDeclaration
       _encoding = new RegularFieldEncoding(_fragment, isEnumElement: false);
     }
 
-    type.registerInferredTypeListener(this);
+    typeBuilder.registerInferredTypeListener(this);
     Token? token = _fragment.takeInitializerTokenForTopLevelInference();
-    if (type is InferableTypeBuilder) {
+    if (typeBuilder is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
         // to have type `dynamic`.
-        type.registerInferredType(const DynamicType());
+        typeBuilder.registerInferredType(const DynamicType());
       } else {
         // A field with no type and initializer or an instance field without
         // type and initializer need to have the type inferred.
-        _encoding.type = new InferredType(
+        _fieldType = new InferredType(
           libraryBuilder: libraryBuilder,
-          typeBuilder: type,
+          typeBuilder: typeBuilder,
           inferType: inferType,
           computeType: _computeInferredType,
           fileUri: fileUri,
@@ -625,7 +606,7 @@ class RegularFieldDeclaration
           nameLength: _fragment.name.length,
           token: token,
         );
-        type.registerInferable(this);
+        typeBuilder.registerInferable(this);
       }
     }
   }
@@ -640,7 +621,7 @@ class RegularFieldDeclaration
         setterOverrideDependencies != null) {
       membersBuilder.inferFieldType(
         builder.declarationBuilder as SourceClassBuilder,
-        type,
+        typeBuilder,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
         fileUri: fileUri,
@@ -650,7 +631,7 @@ class RegularFieldDeclaration
       );
     } else {
       // Coverage-ignore-block(suite): Not run.
-      type.build(
+      typeBuilder.build(
         builder.libraryBuilder,
         TypeUse.fieldType,
         hierarchy: membersBuilder.hierarchyBuilder,
@@ -682,11 +663,6 @@ class RegularFieldDeclaration
   }
 
   @override
-  void setCovariantByClassInternal() {
-    _encoding.setCovariantByClass();
-  }
-
-  @override
   void buildGetterOutlineExpressions({
     required ClassHierarchy classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
@@ -700,10 +676,22 @@ class RegularFieldDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
-  }) {}
+  }) {
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildGetterOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      type: fieldType,
+      callback: callback,
+      isAbstractOrExternal:
+          _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
+      classTypeParameters: classTypeParameters,
+    );
+  }
 
   @override
   void buildSetterOutlineExpressions({
@@ -720,10 +708,23 @@ class RegularFieldDeclaration
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
-  }) {}
+  }) {
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildSetterOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      type: fieldType,
+      isCovariantByClass: isCovariantByClass,
+      callback: callback,
+      isAbstractOrExternal:
+          _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
+      classTypeParameters: classTypeParameters,
+    );
+  }
 
   @override
   void checkGetterTypes(
@@ -825,15 +826,67 @@ mixin FieldDeclarationMixin
   bool get isConst;
 
   /// The [TypeBuilder] for the declared type of this field declaration.
-  TypeBuilder get type;
+  TypeBuilder get typeBuilder;
 
-  void setCovariantByClassInternal();
+  DartType? _fieldType;
+  bool _isCovariantByClass = false;
 
-  abstract DartType fieldTypeInternal;
+  /// Ensures the computation of [fieldType] if the [typeBuilder] is an explicit
+  /// type annotation.
+  void ensureDeclaredType(SourceLibraryBuilder libraryBuilder) {
+    if (_fieldType == null && typeBuilder is! InferableTypeBuilder) {
+      DartType declaredType = typeBuilder.build(
+        libraryBuilder,
+        TypeUse.fieldType,
+      );
+      _isCovariantByClass = _computeIsCovariantByClass(declaredType);
+      registerFieldType(declaredType);
+    }
+  }
+
+  /// Returns `true` if the [fieldType] implies that the field is
+  /// covariant-by-class.
+  bool get isCovariantByClass => _isCovariantByClass;
+
+  @override
+  DartType get fieldType {
+    assert(_fieldType != null, "Field type on $builder has not been set.");
+    return _fieldType!;
+  }
+
+  /// Register [type] as the currently known type of this field.
+  ///
+  /// If the field type is not explicit, this will initially by an
+  /// [InferredType], which is then later replaced by the inferred result.
+  void registerFieldType(DartType type) {
+    assert(_fieldType == null, "Field type on $builder has already been set.");
+    _fieldType = type;
+  }
+
+  /// Computes whether [type] implies that this field is covariant-by-class.
+  bool _computeIsCovariantByClass(DartType type) {
+    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
+    // TODO(johnniwinther): Should this be `hasSetter`?
+    if (!isFinal && !isConst && declarationBuilder is ClassBuilder) {
+      Class enclosingClass = declarationBuilder.cls;
+      if (enclosingClass.typeParameters.isNotEmpty) {
+        IncludesTypeParametersNonCovariantly needsCheckVisitor =
+            new IncludesTypeParametersNonCovariantly(
+              enclosingClass.typeParameters,
+              // We are checking the field type as if it is the type of the
+              // parameter of the implicit setter and this is a contravariant
+              // position.
+              initialVariance: Variance.contravariant,
+            );
+        return type.accept(needsCheckVisitor);
+      }
+    }
+    return false;
+  }
 
   @override
   void onInferredType(DartType type) {
-    fieldType = type;
+    registerInferredFieldType(type);
   }
 
   @override
@@ -863,28 +916,7 @@ mixin FieldDeclarationMixin
         if (fieldType is InferredType) {
           // `fieldType` may have changed if a circularity was detected when
           // [inferredType] was computed.
-          type.registerInferredType(inferredType);
-
-          // TODO(johnniwinther): Isn't this handled in the [fieldType] setter?
-          IncludesTypeParametersNonCovariantly? needsCheckVisitor;
-          DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-          if (declarationBuilder is ClassBuilder) {
-            Class enclosingClass = declarationBuilder.cls;
-            if (enclosingClass.typeParameters.isNotEmpty) {
-              needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
-                enclosingClass.typeParameters,
-                // We are checking the field type as if it is the type of the
-                // parameter of the implicit setter and this is a contravariant
-                // position.
-                initialVariance: Variance.contravariant,
-              );
-            }
-          }
-          if (needsCheckVisitor != null) {
-            if (fieldType.accept(needsCheckVisitor)) {
-              setCovariantByClassInternal();
-            }
-          }
+          typeBuilder.registerInferredType(inferredType);
           cacheFieldInitializer(initializer, scopeProviderInfo);
         }
         return fieldType;
@@ -910,32 +942,21 @@ mixin FieldDeclarationMixin
     ScopeProviderInfo? scopeProviderInfo,
   );
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldType => fieldTypeInternal;
-
-  @override
-  void set fieldType(DartType value) {
-    fieldTypeInternal = value;
-    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
-    // TODO(johnniwinther): Should this be `hasSetter`?
-    if (!isFinal && !isConst && declarationBuilder is ClassBuilder) {
-      Class enclosingClass = declarationBuilder.cls;
-      if (enclosingClass.typeParameters.isNotEmpty) {
-        IncludesTypeParametersNonCovariantly needsCheckVisitor =
-            new IncludesTypeParametersNonCovariantly(
-              enclosingClass.typeParameters,
-              // We are checking the field type as if it is the type of the
-              // parameter of the implicit setter and this is a contravariant
-              // position.
-              initialVariance: Variance.contravariant,
-            );
-        if (value.accept(needsCheckVisitor)) {
-          setCovariantByClassInternal();
-        }
-      }
-    }
+  /// Registers [inferredType] type as the actual field type as the result of
+  /// inference.
+  void registerInferredFieldType(DartType inferredType) {
+    _fieldType = inferredType;
+    _isCovariantByClass = _computeIsCovariantByClass(inferredType);
+    registerInferredFieldTypeInternal(
+      inferredType: inferredType,
+      isCovariantByClass: isCovariantByClass,
+    );
   }
+
+  void registerInferredFieldTypeInternal({
+    required DartType inferredType,
+    required bool isCovariantByClass,
+  });
 }
 
 abstract class FieldFragmentDeclaration {

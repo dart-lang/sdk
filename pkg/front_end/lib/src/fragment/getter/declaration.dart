@@ -59,7 +59,7 @@ abstract class GetterDeclaration {
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -186,14 +186,14 @@ class RegularGetterDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder: libraryBuilder,
       nameScheme: nameScheme,
-      f: f,
+      callback: callback,
       references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,

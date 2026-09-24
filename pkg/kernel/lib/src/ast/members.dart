@@ -284,6 +284,7 @@ class Field extends Member implements ScopeProvider {
     this.type = const DynamicType(),
     this.initializer,
     bool isCovariantByDeclaration = false,
+    bool isCovariantByClass = false,
     bool isFinal = false,
     bool isStatic = false,
     bool isLate = false,
@@ -301,6 +302,7 @@ class Field extends Member implements ScopeProvider {
     initializer?.parent = this;
     thisVariable?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
+    this.isCovariantByClass = isCovariantByClass;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
     this.isLate = isLate;

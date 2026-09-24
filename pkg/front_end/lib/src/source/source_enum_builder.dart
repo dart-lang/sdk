@@ -628,7 +628,7 @@ class _EnumValuesFieldDeclaration
 
   SourcePropertyBuilder? _builder;
 
-  DartType _type = const DynamicType();
+  late DartType _type;
 
   Field? _field;
 
@@ -702,14 +702,14 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
+    _type = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
     _field =
         new Field.immutable(
             dummyName,
@@ -718,8 +718,8 @@ class _EnumValuesFieldDeclaration
             isConst: true,
             isStatic: true,
             fileUri: uriOffset.fileUri,
-            fieldReference: references.fieldReference,
-            getterReference: references.getterReference,
+            fieldReference: references?.fieldReference,
+            getterReference: references?.getterReference,
             isEnumElement: false,
           )
           ..fileOffset = uriOffset.fileOffset
@@ -727,15 +727,8 @@ class _EnumValuesFieldDeclaration
     nameScheme
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
         .attachMember(_field!);
-    f(member: _field!, kind: BuiltMemberKind.Field);
+    callback(member: _field!, kind: BuiltMemberKind.Field);
   }
-
-  @override
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -802,17 +795,7 @@ class _EnumValuesFieldDeclaration
   Member get readTarget => _field!;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType get fieldType => _type;
-
-  @override
-  void set fieldType(DartType value) {
-    _type = value;
-    _field
-            // Coverage-ignore(suite): Not run.
-            ?.type =
-        value;
-  }
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
@@ -839,7 +822,7 @@ class _EnumValuesFieldDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {}

@@ -161,7 +161,7 @@ sealed class SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -274,7 +274,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -347,7 +347,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -573,7 +573,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -672,7 +672,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
