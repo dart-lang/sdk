@@ -498,6 +498,9 @@ abstract class AstVisitor2<R> {
 
   R? visitCommentReference(CommentReference node);
 
+  @experimental
+  R? visitCommentReferenceComponent(CommentReferenceComponent node);
+
   R? visitCompilationUnit(CompilationUnit node);
 
   @experimental

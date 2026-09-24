@@ -731,7 +731,13 @@ class C {}
     var node = parseResult.findNode.commentReference('C.new');
     assertParsedNodeText(node, r'''
 CommentReference
-  expression2: PrefixedIdentifier
+  components
+    CommentReferenceComponent
+      name: C
+    CommentReferenceComponent
+      period: .
+      name: new
+  expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
     period: .

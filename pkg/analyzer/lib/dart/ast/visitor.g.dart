@@ -2147,6 +2147,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCommentReferenceComponent(CommentReferenceComponent node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitCompilationUnit(CompilationUnit node) {
     node.visitChildren2(this);
@@ -4107,6 +4114,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCommentReference(CommentReference node) => null;
 
+  @experimental
+  @override
+  R? visitCommentReferenceComponent(CommentReferenceComponent node) => null;
+
   @override
   R? visitCompilationUnit(CompilationUnit node) => null;
 
@@ -5522,6 +5533,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCommentReference(CommentReference node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCommentReferenceComponent(CommentReferenceComponent node) =>
+      _throw(node);
 
   @override
   R? visitCompilationUnit(CompilationUnit node) => _throw(node);
@@ -8031,6 +8047,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCommentReferenceComponent(CommentReferenceComponent node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCommentReferenceComponent(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitCompilationUnit(CompilationUnit node) {
     stopwatch.start();
@@ -10430,6 +10455,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCommentReference(CommentReference node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitCommentReferenceComponent(CommentReferenceComponent node) =>
+      visitNode(node);
 
   @override
   R? visitCompilationUnit(CompilationUnit node) => visitNode(node);

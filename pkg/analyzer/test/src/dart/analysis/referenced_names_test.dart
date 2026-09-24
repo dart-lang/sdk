@@ -464,6 +464,15 @@ A f(B b) {}
     expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
   }
 
+  test_unit_function_doc_prefixed() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+/// [p.C.d]
+A f(B b) {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
+  }
+
   test_unit_function_dontHideQualified() {
     var names = _computeReferencedNames('''
 class U {

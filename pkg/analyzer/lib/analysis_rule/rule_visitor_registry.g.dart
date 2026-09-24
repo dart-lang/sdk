@@ -600,6 +600,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addCommentReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCommentReferenceComponent(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

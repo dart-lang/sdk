@@ -1848,7 +1848,7 @@ void f() {
 /// A [^B].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_beginning_qualified() async {
@@ -1856,7 +1856,7 @@ class C {}
 /// A [B.^b].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_end() async {
@@ -1864,7 +1864,7 @@ class C {}
 /// A [B.b^].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_middle() async {
@@ -1872,7 +1872,7 @@ class C {}
 /// A [B.b^b].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inName_class() async {

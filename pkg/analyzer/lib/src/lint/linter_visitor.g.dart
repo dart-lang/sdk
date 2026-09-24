@@ -1434,6 +1434,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    _runSubscriptions(node, _registry._forCommentReferenceComponent);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _runSubscriptions(node, _registry._forCompilationUnit);
@@ -4576,6 +4583,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<Comment>> _forComment = [];
 
+  final List<_Subscription2<CommentReferenceComponent>>
+  _forCommentReferenceComponent = [];
+
   final List<_Subscription2<CommentReference>> _forCommentReference = [];
 
   final List<_Subscription2<CompilationUnit>> _forCompilationUnit = [];
@@ -5302,6 +5312,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addCommentReference(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forCommentReference.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCommentReferenceComponent(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCommentReferenceComponent.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

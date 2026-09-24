@@ -322,11 +322,6 @@ class AstRewriter {
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
       return node;
     }
-    if (parent is CommentReferenceImpl) {
-      // TODO(srawlins): This probably should be allowed to be rewritten to a
-      // [ConstructorTearOff] at some point.
-      return node;
-    }
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       // A constructor cannot be assigned to, in some expression like
       // `C.new = foo`; do not rewrite.
@@ -404,11 +399,6 @@ class AstRewriter {
     if (node.isCascaded) {
       // For example, `List..filled`: this is a property access on an instance
       // `Type`.
-      return node;
-    }
-    if (node.parent2 is CommentReferenceImpl) {
-      // TODO(srawlins): This probably should be allowed to be rewritten to a
-      // [ConstructorTearOff] at some point.
       return node;
     }
     var receiver = node.target2!;

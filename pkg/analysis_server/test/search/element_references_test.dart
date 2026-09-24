@@ -115,7 +115,7 @@ void f() {
     await findElementReferences(search: 'named() {}', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(6));
-    assertHasResult(SearchResultKind.REFERENCE, '.named] 1', 6);
+    assertHasResult(SearchResultKind.REFERENCE, 'named] 1', 5);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 2', 6);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 3', 6);
     assertHasResult(SearchResultKind.REFERENCE, '.named; // 4', 6);
@@ -167,7 +167,7 @@ void f() {
     await findElementReferences(search: 'A() {}', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(6));
-    assertHasResult(SearchResultKind.REFERENCE, '.new] 2', 4);
+    assertHasResult(SearchResultKind.REFERENCE, 'new] 2', 3);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 4', 0);
     assertHasResult(SearchResultKind.REFERENCE, '; // 5', 0);
@@ -383,7 +383,7 @@ enum E {
     await findElementReferences(search: 'named(); // 3', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(3));
-    assertHasResult(SearchResultKind.REFERENCE, '.named] 1', 6);
+    assertHasResult(SearchResultKind.REFERENCE, 'named] 1', 5);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 2', 6);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 4', 6);
   }
@@ -402,7 +402,7 @@ enum E {
     await findElementReferences(search: 'E(); // 5', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.REFERENCE, '.new] 1', 4);
+    assertHasResult(SearchResultKind.REFERENCE, 'new] 1', 3);
     assertHasResult(SearchResultKind.INVOCATION, ', // 2', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(), // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '.new(); // 4', 4);
@@ -669,7 +669,7 @@ void f() {
     await findElementReferences(search: 'named() :', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(4));
-    assertHasResult(SearchResultKind.REFERENCE, '.named] 1', 6);
+    assertHasResult(SearchResultKind.REFERENCE, 'named] 1', 5);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 2', 6);
     assertHasResult(SearchResultKind.INVOCATION, '.named(); // 3', 6);
     assertHasResult(SearchResultKind.REFERENCE, '.named; // 4', 6);
@@ -691,7 +691,7 @@ void f() {
     await findElementReferences(search: 'A() :', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(4));
-    assertHasResult(SearchResultKind.REFERENCE, '.new] 2', 4);
+    assertHasResult(SearchResultKind.REFERENCE, 'new] 2', 3);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 4', 0);
     assertHasResult(SearchResultKind.REFERENCE, '.new; // 5', 4);

@@ -298,7 +298,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    _visitNode(prefix: '[', node.expression2, suffix: ']');
+    sink.write('[');
+    for (var component in node.components) {
+      component.accept2(this);
+    }
+    sink.write(']');
+  }
+
+  @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    _visitToken(node.period);
+    _visitToken(node.operatorKeyword, suffix: ' ');
+    _visitToken(node.name);
   }
 
   @override

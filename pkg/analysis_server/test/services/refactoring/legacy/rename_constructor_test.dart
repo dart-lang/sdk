@@ -165,6 +165,63 @@ class A {
     );
   }
 
+  Future<void> test_commentReference_prefixed_add() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.new]
+class A {
+  A^();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.newName]
+class A {
+  A.newName();
+}
+''');
+  }
+
+  Future<void> test_commentReference_prefixed_change() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.test]
+class A {
+  A.^test();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.newName]
+class A {
+  A.newName();
+}
+''');
+  }
+
+  Future<void> test_commentReference_prefixed_remove() async {
+    await indexTestUnit('''
+import '' as self;
+/// [self.A.test]
+class A {
+  A.^test();
+}
+''');
+    _createConstructorDeclarationRefactoring();
+    refactoring.newName = '';
+    return assertSuccessfulRefactoring('''
+import '' as self;
+/// [self.A.new]
+class A {
+  A();
+}
+''');
+  }
+
   Future<void> test_createChange_add() async {
     await indexTestUnit('''
 /// Documentation for [A.new]
@@ -552,7 +609,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// Documentation for [A]
+/// Documentation for [A.new]
 class A {
   A() {}
   factory A._() = A;
@@ -1123,7 +1180,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   new _();
   factory() => C._();
@@ -1220,7 +1277,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   new();
 }
@@ -1316,7 +1373,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [C]
+/// [C.new]
 class C {
   C();
 }
@@ -1417,7 +1474,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [E]
+/// [E.new]
 extension type E.named(int it) {
   E() : this.named(0);
   E.other() : this();
@@ -1514,7 +1571,7 @@ void f() {
     // validate change
     refactoring.newName = '';
     return assertSuccessfulRefactoring('''
-/// [E]
+/// [E.new]
 extension type E(int it) {
   E.other() : this(0);
 }

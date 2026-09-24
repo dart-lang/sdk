@@ -2676,7 +2676,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -2718,7 +2718,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ INVOCATION qualified
@@ -2760,7 +2760,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -2805,7 +2805,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [B.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -2875,7 +2875,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -2980,7 +2980,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -3051,7 +3051,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 INVOCATION qualified
@@ -3093,7 +3093,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -3136,7 +3136,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -3333,7 +3333,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [E.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3371,7 +3371,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [E.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3409,7 +3409,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [E.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3448,7 +3448,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
 /// [E.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3489,7 +3489,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
 /// [E.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3530,7 +3530,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
 /// [E.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E() {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3571,7 +3571,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
 /// [E.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3613,7 +3613,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
 /// [E.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3653,7 +3653,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -3688,7 +3688,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ INVOCATION qualified
@@ -3723,7 +3723,7 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
 /// [A.foo]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -3759,7 +3759,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -3794,7 +3794,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 INVOCATION qualified
@@ -3829,7 +3829,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -3865,7 +3865,7 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 /// [A.new]
-      ^^^^ REFERENCE qualified
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);

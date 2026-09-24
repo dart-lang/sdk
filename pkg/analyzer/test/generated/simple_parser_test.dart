@@ -1343,7 +1343,10 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: <empty> <synthetic>
+        expression: SimpleIdentifier
           token: <empty> <synthetic>
     tokens
       /** [ some text */
@@ -1541,7 +1544,10 @@ CompilationUnit
       documentationComment: Comment
         references
           CommentReference
-            expression2: SimpleIdentifier
+            components
+              CommentReferenceComponent
+                name: a
+            expression: SimpleIdentifier
               token: a
         tokens
           /** [a] */

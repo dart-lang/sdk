@@ -71,21 +71,19 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
 
+      // The range is the bare constructor name, not `.name`.
+      var isBareName =
+          reference.isDotShortHandsConstructor ||
+          reference.isConstructorCommentReference;
       String replacement;
       if (newName.isNotEmpty) {
-        if (reference.isDotShortHandsConstructor) {
-          replacement = newName;
-        } else {
-          replacement = '.$newName';
-        }
+        replacement = isBareName ? newName : '.$newName';
+      } else if (isBareName) {
+        replacement = 'new';
+      } else if (reference.isConstructorTearOff) {
+        replacement = '.new';
       } else {
-        if (reference.isDotShortHandsConstructor) {
-          replacement = 'new';
-        } else if (reference.isConstructorTearOff) {
-          replacement = '.new';
-        } else {
-          replacement = '';
-        }
+        replacement = '';
       }
       if (reference.isInvocationByEnumConstantWithoutArguments) {
         replacement += '()';

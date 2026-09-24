@@ -348,6 +348,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCommentReference(CommentReference node) => node.element;
+
+  @override
+  Element? visitCommentReferenceComponent(CommentReferenceComponent node) =>
+      node.element;
+
+  @override
   Element? visitCompoundAssignment(CompoundAssignment node) {
     return node.element;
   }

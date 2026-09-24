@@ -282,6 +282,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    var name = node.name.lexeme;
+    if (node.period != null ||
+        !localScope.contains(name) && !importPrefixNames.contains(name)) {
+      names.add(name);
+    }
+  }
+
+  @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);

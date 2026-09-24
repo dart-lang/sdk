@@ -47,6 +47,9 @@ enum MatchKind {
   /// A tear-off reference to a constructor.
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF(isReference: true),
 
+  /// A documentation comment reference to a constructor.
+  REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE(isReference: true),
+
   /// A named argument that refers to a formal parameter.
   REFERENCE_BY_NAMED_ARGUMENT(isReference: true),
 

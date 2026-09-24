@@ -901,6 +901,24 @@ void f() {}
     _assertSource(code, node);
   }
 
+  void test_visitCommentReference_new() {
+    var code = '[C.new]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+/// $code
+void f() {}
+''');
+    _assertSource(code, parseResult.findNode.singleCommentReference);
+  }
+
+  void test_visitCommentReference_operator() {
+    var code = '[p.C.operator +]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+/// $code
+void f() {}
+''');
+    _assertSource(code, parseResult.findNode.singleCommentReference);
+  }
+
   void test_visitCompilationUnit_declaration() {
     var code = 'var a;';
     var parseResult = parseTestCodeWithDiagnostics(code);

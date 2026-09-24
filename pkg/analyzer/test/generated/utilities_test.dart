@@ -416,7 +416,7 @@ void f() {}
     _assertReplacementForChildren<CommentReference>(
       destination: parseResult.findNode.commentReference('foo'),
       source: parseResult.findNode.commentReference('bar'),
-      childAccessors: [(node) => node.expression2],
+      childAccessors: [(node) => node.components.single],
     );
   }
 

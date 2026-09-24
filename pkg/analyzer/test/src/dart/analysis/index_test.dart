@@ -490,9 +490,21 @@ void f(B p) {
     var result = await _indexTestCode(r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  A.named();
+}
 
-/// [A] and [p.A].
+/// [A]
+/// [p.A]
+/// [new A]
+/// [A.new]
+/// [p.A.new]
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+/// [p.A.named]
+/// [new p.A.named]
 void f() {}
 ''');
 
@@ -501,11 +513,29 @@ void f() {}
     assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  ^ IS_REFERENCED_BY
+  A.named();
+  ^ IS_REFERENCED_BY
+}
 
-/// [A] and [p.A].
+/// [A]
      ^ IS_REFERENCED_BY
-               ^ IS_REFERENCED_BY qualified
+/// [p.A]
+       ^ IS_REFERENCED_BY qualified
+/// [new A]
+/// [A.new]
+     ^ IS_REFERENCED_BY
+/// [p.A.new]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+     ^ IS_REFERENCED_BY
+/// [p.A.named]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.named]
 void f() {}
 ''');
   }
@@ -831,7 +861,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -877,7 +907,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ IS_INVOKED_BY qualified
@@ -901,7 +931,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_typeName() async {
     var result = await _indexTestCode('''
+import 'test.dart' as p;
+
 /// [A.foo]
+/// [p.A.foo]
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -922,8 +955,12 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
+import 'test.dart' as p;
+
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.foo]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -971,7 +1008,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [B.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -1019,7 +1056,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -1139,7 +1176,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -1214,7 +1251,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 IS_INVOKED_BY qualified
@@ -1238,7 +1275,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_typeName() async {
     var result = await _indexTestCode('''
+import 'test.dart' as p;
+
 /// [A.new]
+/// [p.A.new]
 class A {
   A() {}
   A.bar() : this();
@@ -1259,8 +1299,12 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
+import 'test.dart' as p;
+
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.new]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -1307,7 +1351,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -1478,7 +1522,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1530,7 +1574,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1582,7 +1626,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1633,7 +1677,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1686,7 +1730,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1739,7 +1783,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E() {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1792,7 +1836,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1846,7 +1890,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [E.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1932,7 +1976,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -1971,7 +2015,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ IS_INVOKED_BY qualified
@@ -2010,7 +2054,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.foo]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -2050,7 +2094,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -2089,7 +2133,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 IS_INVOKED_BY qualified
@@ -2128,7 +2172,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -2168,7 +2212,7 @@ void useConstructor() {
 
     assertElementIndexText(result, element, r'''
 /// [A.new]
-      ^^^^ IS_REFERENCED_BY qualified
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);

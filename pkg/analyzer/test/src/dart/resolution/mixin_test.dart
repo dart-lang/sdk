@@ -63,10 +63,15 @@ mixin M {}
     var node = result.findNode.commentReference('a]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression2: SimpleIdentifier
+  components
+    CommentReferenceComponent
+      name: a
+      element: <testLibrary>::@getter::a
+  expression: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
+  element: <testLibrary>::@getter::a
 ''');
   }
 

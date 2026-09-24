@@ -441,6 +441,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('CommentReference');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      if (_view == _AstView.v2) {
+        _writeElement('element', node.element);
+      }
+    });
+  }
+
+  @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    _sink.writeln('CommentReferenceComponent');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeElement('element', node.element);
     });
   }
 
