@@ -50,10 +50,42 @@ typedef _Td = void Function();
 ''');
   }
 
+  test_private_genericFunctionTypeAlias_usedMultipleTimes_declaredInSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'part.dart';
+late _Td td1;
+''');
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'lib.dart';
+part 'test.dart';
+late _Td td2;
+''');
+    await assertNoDiagnostics(r'''
+part of 'part.dart';
+typedef _Td = void Function();
+''');
+  }
+
   test_private_genericFunctionTypeAlias_usedMultipleTimes_usedInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of 'test.dart';
 late _Td td1;
+late _Td td2;
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+typedef _Td = void Function();
+''');
+  }
+
+  test_private_genericFunctionTypeAlias_usedMultipleTimes_usedInSubpart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+late _Td td1;
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
 late _Td td2;
 ''');
     await assertNoDiagnostics(r'''
@@ -80,9 +112,39 @@ typedef [!_Td!] = void Function();
 ''');
   }
 
+  test_private_genericFunctionTypeAlias_usedOneTime_declaredInSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'part.dart';
+late _Td td;
+''');
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'lib.dart';
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'part.dart';
+typedef [!_Td!] = void Function();
+''');
+  }
+
   test_private_genericFunctionTypeAlias_usedOneTime_usedInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of 'test.dart';
+late _Td td;
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part 'part.dart';
+typedef [!_Td!] = void Function();
+''');
+  }
+
+  test_private_genericFunctionTypeAlias_usedOneTime_usedInSubpart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+part 'subpart.dart';
+''');
+    newFile('$testPackageLibPath/subpart.dart', r'''
+part of 'part.dart';
 late _Td td;
 ''');
     await assertDiagnosticsFromMarkup(r'''
