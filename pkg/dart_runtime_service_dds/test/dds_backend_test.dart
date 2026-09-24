@@ -42,6 +42,18 @@ class MockVmService {
         };
       });
 
+      peer.registerMethod('getObject', (json_rpc.Parameters params) {
+        return {'type': 'Instance', 'kind': 'Null', 'valueAsString': 'null'};
+      });
+
+      peer.registerMethod('_echo', (json_rpc.Parameters params) {
+        return {
+          'type': '_EchoResponse',
+          'customField': 'customValue',
+          '_privateField': 'secret',
+        };
+      });
+
       peer.registerMethod('_yieldControlToDDS', (json_rpc.Parameters params) {
         return vm.Success().toJson();
       });
@@ -77,6 +89,14 @@ class MockVmService {
     });
 
     return mock;
+  }
+
+  void registerHangingMethod(String method) {
+    for (final client in clients) {
+      client.registerMethod(method, (json_rpc.Parameters params) {
+        return Completer<Object?>().future;
+      });
+    }
   }
 
   Future<void> shutdown() async {
@@ -116,6 +136,36 @@ void main() {
     test('forward RPC request', () async {
       final vmResult = await ddsClient!.getVM();
       expect(vmResult.name, 'mock-vm');
+    });
+
+    test('forward RPC request returning null instance', () async {
+      final result = await ddsClient!.callMethod(
+        'getObject',
+        isolateId: 'isolates/1',
+        args: <String, Object?>{'objectId': 'objects/null'},
+      );
+      expect(result.json?['type'] ?? result.type, equals('Instance'));
+      expect(result.json?['kind'], equals('Null'));
+    });
+
+    test(
+      'forward RPC request preserving private fields and custom types',
+      () async {
+        final result = await ddsClient!.callMethod('_echo');
+        expect(result.json?['type'] ?? result.type, equals('_EchoResponse'));
+        expect(result.json?['customField'], equals('customValue'));
+        expect(result.json?['_privateField'], equals('secret'));
+      },
+    );
+
+    test('pending raw requests fail when VM service closes', () async {
+      mockVmService!.registerHangingMethod('hangingMethod');
+
+      final pendingCall = ddsClient!.callMethod('hangingMethod');
+
+      await mockVmService!.shutdown();
+
+      await expectLater(pendingCall, throwsA(isA<vm.RPCError>()));
     });
 
     test('getVersion returns VM Service version', () async {

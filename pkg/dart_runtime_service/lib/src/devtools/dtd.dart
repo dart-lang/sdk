@@ -26,16 +26,21 @@ List<String> _findDtdSnapshots(
   String snapshotDir, {
   required bool runFromBuildRoot,
 }) {
-  final isAot = const bool.fromEnvironment('dart.vm.aot');
+  // In product builds (e.g., prebuilt SDKs and google3), the AOT snapshot is
+  // built with the product-mode AOT runtime
+  // (`dart_tooling_daemon_aot_product.dart.snapshot`), whereas local
+  // non-product SDK builds produce `dart_tooling_daemon_aot.dart.snapshot`.
+  // Check the AOT snapshot matching the current runtime mode first, falling
+  // back to the other AOT variant if only one was built, and finally falling
+  // back to the JIT snapshot (`dart_tooling_daemon.dart.snapshot`) when running
+  // on a JIT VM.
   final isProduct = const bool.fromEnvironment('dart.vm.product');
 
   final aotSnapshots = isProduct
-      ? [_kDtdAotProductSnapshotName, _kDtdAotSnapshotName]
-      : [_kDtdAotSnapshotName, _kDtdAotProductSnapshotName];
+      ? <String>[_kDtdAotProductSnapshotName, _kDtdAotSnapshotName]
+      : <String>[_kDtdAotSnapshotName, _kDtdAotProductSnapshotName];
 
-  final candidateNames = isAot
-      ? [...aotSnapshots, _kDtdJitSnapshotName]
-      : [_kDtdJitSnapshotName, ...aotSnapshots];
+  final candidateNames = <String>[...aotSnapshots, _kDtdJitSnapshotName];
 
   final results = <String>[];
   for (final name in candidateNames) {

@@ -88,13 +88,19 @@ class DartRuntimeService {
   ///
   /// It's possible that the returned [Uri] is no longer valid if the server
   /// was recently shut down.
-  Uri get httpUri => uri.replace(
-    scheme: 'http',
-    pathSegments: [
+  Uri get httpUri {
+    final segments = <String>[
       ...uri.pathSegments,
       if (uri.pathSegments.isEmpty || uri.pathSegments.last.isNotEmpty) '',
-    ],
-  );
+    ];
+    if (segments.length == 1) {
+      segments.add('');
+    }
+    return uri.replace(
+      scheme: (uri.isScheme('wss') || uri.isScheme('https')) ? 'https' : 'http',
+      pathSegments: segments,
+    );
+  }
 
   /// The sse:// URI pointing to this [DartRuntimeService]'s server.
   ///
@@ -111,7 +117,10 @@ class DartRuntimeService {
       throw StateError('SSE handler path not configured.');
     }
     return uri.replace(
-      scheme: 'sse',
+      scheme:
+          (uri.isScheme('wss') || uri.isScheme('https') || uri.isScheme('sses'))
+          ? 'sses'
+          : 'sse',
       pathSegments: [...uri.pathSegments, config.sseHandlerPath!],
     );
   }

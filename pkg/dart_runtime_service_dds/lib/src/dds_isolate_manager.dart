@@ -97,14 +97,17 @@ final class DdsRunningIsolate {
   ///
   /// Checks whether:
   /// 1. The isolate is currently in a paused state that requires approval.
-  /// 2. If user permission is required (e.g. from VM flags
-  ///    `--pause-isolates-on-start` or `requireUserPermissionToResume`),
-  ///    [resumingClient] is recognized as a user permission client.
+  /// 2. User permission is not required (e.g. from VM flags
+  ///    `--pause-isolates-on-start` or `requireUserPermissionToResume`).
   /// 3. All named client groups registered via `requirePermissionToResume` have
-  ///    either previously sent `readyToResume` (stored in
-  ///    [_resumeApprovalsByName]) or [resumingClient] is currently issuing the
-  ///    `resume` request.
+  ///    previously sent `readyToResume` (stored in [_resumeApprovalsByName]) or
+  ///    [resumingClient] is currently issuing approval.
+  /// 4. At least one client has approved resuming.
   bool shouldResume({Client? resumingClient}) {
+    if (resumingClient != null) {
+      _resumeApprovalsByName.add(resumingClient.name);
+    }
+
     final pauseTypeMask = switch (_state) {
       IsolateState.pauseStart => PauseTypeMasks.pauseOnStartMask,
       IsolateState.pauseExit => PauseTypeMasks.pauseOnExitMask,
@@ -115,24 +118,22 @@ final class DdsRunningIsolate {
 
     if ((isolateManager.requireUserPermissionToResumeMask & pauseTypeMask) !=
         0) {
-      if (resumingClient == null ||
-          !isolateManager.userPermissionClients.contains(resumingClient)) {
-        return false;
-      }
+      return false;
     }
 
     final permissions = isolateManager.clientResumePermissions;
     for (final MapEntry(key: name, value: perm) in permissions.entries) {
       if ((perm.permissionsMask & pauseTypeMask) != 0) {
-        final clientApproved =
-            _resumeApprovalsByName.contains(name) ||
-            (resumingClient?.name == name);
+        final clientApproved = _resumeApprovalsByName.contains(name);
         if (!clientApproved) {
           return false;
         }
       }
     }
-    return true;
+
+    // We require at least a single client to resume, even if that client
+    // doesn't require resume approval.
+    return _resumeApprovalsByName.isNotEmpty;
   }
 
   @override
@@ -155,9 +156,6 @@ final class DdsIsolateManager extends IsolateManager {
 
   /// Registered resume permissions grouped by client name.
   final clientResumePermissions = <String, ClientResumePermissions>{};
-
-  /// Set of clients authorized to provide user resume permissions.
-  final userPermissionClients = <Client>{};
 
   /// Bitmask composed of [PauseTypeMasks] specifying pause types requiring
   /// user resume permission.
@@ -331,6 +329,10 @@ final class DdsIsolateManager extends IsolateManager {
     }
     entry.permissionsMask = mask;
 
+    // Check to see if any isolates should resume as a result of the
+    // resume permissions being updated.
+    await maybeResumeIsolates();
+
     return vm.Success().toJson();
   }
 
@@ -338,14 +340,16 @@ final class DdsIsolateManager extends IsolateManager {
   ///
   /// Configures whether DDS requires an explicit user resume command before
   /// resuming isolates paused on start (`onPauseStart`) or exit
-  /// (`onPauseExit`). Registers [client] as authorized to provide user resume
-  /// permission.
+  /// (`onPauseExit`).
   Future<RpcResponse> requireUserPermissionToResume(
     json_rpc.Parameters parameters,
     Client client,
   ) async {
     requireUserPermissionToResumeMask = _calculatePermissionsMask(parameters);
-    userPermissionClients.add(client);
+
+    // Check if isolates have been waiting for a user resume and resume any
+    // isolates that no longer need to wait for a user resume.
+    await maybeResumeIsolates();
 
     return vm.Success().toJson();
   }
@@ -386,34 +390,25 @@ final class DdsIsolateManager extends IsolateManager {
         'Invalid isolateId: $isolateId',
       );
     }
-    if (client.name case final name when name.isNotEmpty) {
-      isolate._resumeApprovalsByName.add(name);
-    }
     if (isolate.shouldResume(resumingClient: client)) {
-      await sendResumeRequest(isolateId: isolateId);
+      isolate.clearResumeApprovals();
+      await sendResumeRequest(isolateId: isolateId, parameters: parameters);
     }
     return vm.Success().toJson();
   }
 
   /// Handles the VM Service `resume` RPC.
   ///
-  /// Records the calling [client]'s approval to resume the isolate specified
-  /// by `isolateId`. If all required approvals are satisfied, forwards the
-  /// request to the VM via [sendResumeRequest]. Otherwise, acknowledges the
-  /// request with a success response while keeping the isolate paused until
-  /// remaining approvals are received.
+  /// Invocations of `resume` are considered to be resume requests made by the
+  /// user and are treated as a force resume, bypassing any resume permissions
+  /// set by tooling.
   Future<RpcResponse> resume(
     json_rpc.Parameters parameters,
     Client client,
   ) async {
     final isolateId = parameters['isolateId'].asString;
     if (ddsIsolates[isolateId] case final isolate?) {
-      if (client.name case final name when name.isNotEmpty) {
-        isolate._resumeApprovalsByName.add(name);
-      }
-      if (!isolate.shouldResume(resumingClient: client)) {
-        return vm.Success().toJson();
-      }
+      isolate.clearResumeApprovals();
     }
     return await sendResumeRequest(
       isolateId: isolateId,
@@ -444,28 +439,63 @@ final class DdsIsolateManager extends IsolateManager {
     return response.json ?? response.toJson();
   }
 
+  /// Called when a new [client] connects to track its resume permissions.
+  void handleClientAdded(Client client) {
+    clientResumePermissions
+        .putIfAbsent(client.name, ClientResumePermissions.new)
+        .clients
+        .add(client);
+  }
+
+  /// Called when a [client]'s name changes to update resume permissions and
+  /// approvals.
+  void handleClientNameChanged(
+    Client client, {
+    required String oldName,
+    required String newName,
+  }) {
+    _removeClientFromPermissions(client, oldName);
+    clientResumePermissions
+        .putIfAbsent(newName, ClientResumePermissions.new)
+        .clients
+        .add(client);
+  }
+
   /// Called when a [client] disconnects to remove its permissions and resume
   /// any isolates that were blocked solely waiting on this client.
   void handleClientDisconnected(Client client) {
-    userPermissionClients.remove(client);
-    final name = client.name;
+    _removeClientFromPermissions(client, client.name);
+  }
+
+  void _removeClientFromPermissions(Client client, String name) {
     if (clientResumePermissions[name] case final perm?) {
       perm.clients.remove(client);
       if (perm.clients.isEmpty) {
         clientResumePermissions.remove(name);
-        _maybeResumeAfterClientChange();
+        for (final isolate in ddsIsolates.values) {
+          isolate._resumeApprovalsByName.remove(name);
+        }
+        unawaited(maybeResumeIsolates());
       }
+    } else {
+      for (final isolate in ddsIsolates.values) {
+        isolate._resumeApprovalsByName.remove(name);
+      }
+      unawaited(maybeResumeIsolates());
     }
   }
 
-  void _maybeResumeAfterClientChange() {
+  /// Checks all tracked isolates and forwards a `resume` request to the VM
+  /// for any paused isolate that is now eligible to resume.
+  Future<void> maybeResumeIsolates() async {
     for (final isolate in ddsIsolates.values) {
       if (isolate.state
           case IsolateState.pauseStart ||
               IsolateState.pauseExit ||
               IsolateState.pausePostRequest) {
         if (isolate.shouldResume()) {
-          unawaited(sendResumeRequest(isolateId: isolate.id));
+          isolate.clearResumeApprovals();
+          await sendResumeRequest(isolateId: isolate.id);
         }
       }
     }

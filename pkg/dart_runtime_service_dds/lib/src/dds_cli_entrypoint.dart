@@ -214,9 +214,12 @@ ${parser.usage}''');
         _nameKey: ?appName,
       }),
     );
-    await stderr.flush();
+    // Always close stderr to notify tooling that DDS has finished writing
+    // launch details.
+    await stderr.close();
   } catch (e, st) {
     _writeErrorResponse(e, st);
+    await stderr.close();
     await ddsService?.shutdown();
     exit(1);
   }
