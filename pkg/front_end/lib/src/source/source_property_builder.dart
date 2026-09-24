@@ -58,7 +58,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   /// The declarations that introduces this property. Subsequent property of the
   /// same name must be augmentations.
-  FieldDeclaration? _fieldDeclaration;
+  List<FieldDeclaration> _fieldDeclarations;
   List<GetterDeclaration> _getterDeclarations;
   List<SetterDeclaration> _setterDeclarations;
 
@@ -73,7 +73,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     required this.libraryBuilder,
     required this.declarationBuilder,
     required NameScheme nameScheme,
-    required this._fieldDeclaration,
+    required this._fieldDeclarations,
     required this._getterDeclarations,
     required this._setterDeclarations,
     required this.isStatic,
@@ -81,17 +81,21 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   }) : _nameScheme = nameScheme,
        _references = references,
        _memberName = nameScheme.getDeclaredName(name);
+
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
 
   @override
-  bool get hasConstField => _fieldDeclaration?.isConst ?? false;
+  bool get hasConstField =>
+      _fieldDeclarations.isNotEmpty ? _fieldDeclarations.first.isConst : false;
 
   @override
   bool get isSynthesized => false;
 
   @override
-  bool get isEnumElement => _fieldDeclaration?.isEnumElement ?? false;
+  bool get isEnumElement => _fieldDeclarations.isNotEmpty
+      ? _fieldDeclarations.first.isEnumElement
+      : false;
 
   @override
   MemberBuilder? get getable => hasGetter ? this : null;
@@ -104,13 +108,17 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineNodes(BuildNodesCallback callback) {
-    _fieldDeclaration?.buildFieldOutlineNode(
-      libraryBuilder: libraryBuilder,
-      nameScheme: _nameScheme,
-      callback: callback,
-      references: _references,
-      classTypeParameters: classBuilder?.cls.typeParameters,
-    );
+    for (int index = 0; index < _fieldDeclarations.length; index++) {
+      bool isLast = index == _fieldDeclarations.length - 1;
+      _fieldDeclarations[index].buildFieldOutlineNode(
+        libraryBuilder: libraryBuilder,
+        nameScheme: _nameScheme,
+        callback: isLast ? callback : noAddBuildNodesCallback,
+        // Augmented fields don't reuse references.
+        references: isLast ? _references : null,
+        classTypeParameters: classBuilder?.cls.typeParameters,
+      );
+    }
 
     for (int index = 0; index < _getterDeclarations.length; index++) {
       bool isLast = index == _getterDeclarations.length - 1;
@@ -147,21 +155,23 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ) {
     DeclarationBuilder? declarationBuilder = this.declarationBuilder;
     if (!hasBuiltOutlineExpressions) {
-      _fieldDeclaration?.buildFieldOutlineExpressions(
-        classHierarchy: classHierarchy,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        annotatables: [
-          readTarget as Annotatable,
-          if (writeTarget != null && readTarget != writeTarget)
-            writeTarget as Annotatable,
-        ],
-        annotatablesFileUri: readTarget!.fileUri,
-        forConstantConstructor:
-            declarationBuilder is SourceClassBuilder &&
-            !isStatic &&
-            declarationBuilder.declaresConstConstructor,
-      );
+      for (int index = 0; index < _fieldDeclarations.length; index++) {
+        _fieldDeclarations[index].buildFieldOutlineExpressions(
+          classHierarchy: classHierarchy,
+          libraryBuilder: libraryBuilder,
+          declarationBuilder: declarationBuilder,
+          annotatables: [
+            readTarget as Annotatable,
+            if (writeTarget != null && readTarget != writeTarget)
+              writeTarget as Annotatable,
+          ],
+          annotatablesFileUri: readTarget!.fileUri,
+          forConstantConstructor:
+              declarationBuilder is SourceClassBuilder &&
+              !isStatic &&
+              declarationBuilder.declaresConstConstructor,
+        );
+      }
       for (int index = 0; index < _getterDeclarations.length; index++) {
         _getterDeclarations[index].buildGetterOutlineExpressions(
           classHierarchy: classHierarchy,
@@ -199,7 +209,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       // hierarchy builder.
       setterBuilder = nameSpace.lookup(name)?.setable as SourcePropertyBuilder?;
     }
-    if (_fieldDeclaration != null) {
+    if (_fieldDeclarations.isNotEmpty) {
       problemReporting.checkTypesInField(
         typeEnvironment: typeEnvironment,
         isInstanceMember: isDeclarationInstanceMember,
@@ -209,7 +219,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
         hasInitializer: hasInitializer,
         fieldType: fieldType,
         name: name,
-        uriOffset: _fieldDeclaration!.uriOffset,
+        uriOffset: _fieldDeclarations.last.uriOffset,
       );
     }
     for (int index = 0; index < _getterDeclarations.length; index++) {
@@ -234,7 +244,12 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     TypeEnvironment typeEnvironment,
   ) {
     if (!isClassInstanceMember) return;
-    _fieldDeclaration?.checkFieldVariance(sourceClassBuilder, typeEnvironment);
+    for (int index = 0; index < _fieldDeclarations.length; index++) {
+      _fieldDeclarations[index].checkFieldVariance(
+        sourceClassBuilder,
+        typeEnvironment,
+      );
+    }
     for (int index = 0; index < _getterDeclarations.length; index++) {
       _getterDeclarations[index].checkGetterVariance(
         sourceClassBuilder,
@@ -308,8 +323,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     required bool inErrorRecovery,
   }) {
     int count = 0;
-    if (_fieldDeclaration != null) {
-      count += _fieldDeclaration!.computeFieldDefaultTypes(context);
+    for (int index = 0; index < _fieldDeclarations.length; index++) {
+      count += _fieldDeclarations[index].computeFieldDefaultTypes(context);
     }
     for (int index = 0; index < _getterDeclarations.length; index++) {
       count += _getterDeclarations[index].computeGetterDefaultTypes(context);
@@ -384,11 +399,13 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             setterOverrideDependencies != null,
       );
 
-      _fieldDeclaration?.ensureTypes(
-        classMembersBuilder,
-        getterOverrideDependencies,
-        setterOverrideDependencies,
-      );
+      for (int index = 0; index < _fieldDeclarations.length; index++) {
+        _fieldDeclarations[index].ensureTypes(
+          classMembersBuilder,
+          getterOverrideDependencies,
+          setterOverrideDependencies,
+        );
+      }
 
       for (int index = 0; index < _getterDeclarations.length; index++) {
         _getterDeclarations[index].ensureGetterTypes(
@@ -459,14 +476,14 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   }
 
   DartType get fieldType {
-    return _fieldDeclaration!.fieldType;
+    return _fieldDeclarations.first.fieldType;
   }
 
   /// Creates the AST node for this field as the default initializer.
   ///
   /// This is only used for instance fields.
   void buildImplicitDefaultValue() {
-    _fieldDeclaration!.buildImplicitDefaultValue();
+    _fieldDeclarations.last.buildImplicitDefaultValue();
   }
 
   /// Create the [Initializer] for the implicit initialization of this field
@@ -474,7 +491,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ///
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer() {
-    return _fieldDeclaration!.buildImplicitInitializer();
+    return _fieldDeclarations.last.buildImplicitInitializer();
   }
 
   /// Builds the [Initializer]s for each field used to encode this field
@@ -487,7 +504,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return _fieldDeclaration!.buildInitializer(
+    return _fieldDeclarations.last.buildInitializer(
       fileOffset,
       value,
       isSynthetic: isSynthetic,
@@ -506,34 +523,35 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ///     }
   ///
   Initializer takePrimaryConstructorFieldInitializer() {
-    return _fieldDeclaration!.takePrimaryConstructorFieldInitializer();
+    return _fieldDeclarations.last.takePrimaryConstructorFieldInitializer();
   }
 
-  bool get hasInitializer => _fieldDeclaration!.hasInitializer;
+  bool get hasInitializer => _fieldDeclarations.last.hasInitializer;
 
   /// Returns `true` if the field of this property is not a valid declaration.
   ///
   /// For instance declaring an instance field in an extension or extension type
   /// is not allowed and cannot be encoded coherently in the AST.
-  bool get isInvalidField => _fieldDeclaration!.isInvalidField;
+  bool get isInvalidField => _fieldDeclarations.first.isInvalidField;
 
   @override
-  bool get isFinal => _fieldDeclaration!.isFinal;
+  bool get isFinal => _fieldDeclarations.first.isFinal;
 
-  bool get isLate => _fieldDeclaration!.isLate;
+  bool get isLate => _fieldDeclarations.first.isLate;
 
   DartType inferFieldType(ClassHierarchyBase hierarchy) {
     inferTypesFromOverrides();
-    return _fieldDeclaration!.inferType(hierarchy);
+    return _fieldDeclarations.first.inferType(hierarchy);
   }
 
   // Coverage-ignore(suite): Not run.
   shared.Expression? get initializerExpression =>
-      _fieldDeclaration?.initializerExpression;
+      _fieldDeclarations.last.initializerExpression;
 
   @override
-  FieldQuality get fieldQuality =>
-      _fieldDeclaration?.fieldQuality ?? FieldQuality.Absent;
+  FieldQuality get fieldQuality => _fieldDeclarations.isNotEmpty
+      ? _fieldDeclarations.last.fieldQuality
+      : FieldQuality.Absent;
 
   @override
   GetterQuality get getterQuality => _getterDeclarations.isNotEmpty
@@ -545,7 +563,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       ? _setterDeclarations.last.setterQuality
       : SetterQuality.Absent;
 
-  UriOffsetLength? get fieldUriOffset => _fieldDeclaration?.uriOffset;
+  UriOffsetLength? get fieldUriOffset =>
+      _fieldDeclarations.isNotEmpty ? _fieldDeclarations.last.uriOffset : null;
 
   @override
   UriOffsetLength? get getterUriOffset => _getterDeclarations.isNotEmpty

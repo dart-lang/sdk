@@ -1458,6 +1458,22 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
           Unknown(instr);
           break;
       }
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      switch (instr->Bits(20, 2)) {
+        case 0:
+          Format(instr, "vpmin.u8 'dd, 'dn, 'dm");
+          break;
+        case 1:
+          Format(instr, "vpmin.u16 'dd, 'dn, 'dm");
+          break;
+        case 2:
+          Format(instr, "vpmin.u32 'dd, 'dn, 'dm");
+          break;
+        default:
+          Unknown(instr);
+          break;
+      }
     } else {
       Unknown(instr);
     }
