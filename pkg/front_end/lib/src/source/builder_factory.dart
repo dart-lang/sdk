@@ -1191,7 +1191,7 @@ class BuilderFactory {
   void _createPropertyBuilder({
     required String name,
     required UriOffsetLength uriOffset,
-    required FieldDeclaration? fieldDeclaration,
+    required List<FieldDeclaration> fieldDeclarations,
     required List<GetterDeclaration> getterDeclarations,
     required List<SetterDeclaration> setterDeclarations,
     required bool isStatic,
@@ -1201,12 +1201,12 @@ class BuilderFactory {
         _containerType != ContainerType.Library && !isStatic;
 
     bool fieldIsLateWithLowering = false;
-    if (fieldDeclaration != null) {
+    if (fieldDeclarations.isNotEmpty) {
       fieldIsLateWithLowering =
-          fieldDeclaration.isLate &&
+          fieldDeclarations.first.isLate &&
           (_loader.target.backendTarget.isLateFieldLoweringEnabled(
-                hasInitializer: fieldDeclaration.hasInitializer,
-                isFinal: fieldDeclaration.isFinal,
+                hasInitializer: fieldDeclarations.first.hasInitializer,
+                isFinal: fieldDeclarations.first.isFinal,
                 isStatic: !isInstanceMember,
               ) ||
               (_loader.target.backendTarget.useStaticFieldLowering &&
@@ -1242,7 +1242,7 @@ class BuilderFactory {
       name: name,
       libraryBuilder: _enclosingLibraryBuilder,
       declarationBuilder: _declarationBuilder,
-      fieldDeclaration: fieldDeclaration,
+      fieldDeclarations: fieldDeclarations,
       getterDeclarations: getterDeclarations,
       setterDeclarations: setterDeclarations,
       isStatic: isStatic,
@@ -1250,7 +1250,9 @@ class BuilderFactory {
       references: references,
     );
 
-    fieldDeclaration?.createFieldEncoding(propertyBuilder);
+    for (FieldDeclaration fieldDeclaration in fieldDeclarations) {
+      fieldDeclaration.createFieldEncoding(propertyBuilder);
+    }
 
     for (GetterDeclaration getterDeclaration in getterDeclarations) {
       getterDeclaration.createGetterEncoding(
@@ -2103,6 +2105,7 @@ class _PropertyPreBuilder extends _PreBuilder {
   final bool isStatic;
   _PropertyDeclaration? _getterDeclaration;
   _PropertyDeclaration? _setterDeclaration;
+  List<FieldDeclaration> _fieldAugmentations = [];
   List<GetterDeclaration> _getterAugmentations = [];
   List<SetterDeclaration> _setterAugmentations = [];
 
@@ -2414,7 +2417,6 @@ class _PropertyPreBuilder extends _PreBuilder {
           assert(_getterDeclaration != null && _setterDeclaration != null);
           // We have both getter and setter
           if (declaration.isAugment) {
-            // Coverage-ignore-block(suite): Not run.
             if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
               // Example:
               //
@@ -2422,7 +2424,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               //    augment int foo = 87;
               //
               _PropertyDeclarations declarations = declaration.declarations;
-              // TODO(johnniwinther): Handle field augmentation.
+              _fieldAugmentations.add(declarations.field!);
               _getterAugmentations.add(declarations.getter!);
               _setterAugmentations.add(declarations.setter!);
               return true;
@@ -2528,7 +2530,6 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    final int bar = 87;
           //
           if (declaration.isAugment) {
-            // Coverage-ignore-block(suite): Not run.
             if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
               // Example:
               //
@@ -2541,7 +2542,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                 "Unexpected setter declaration from final field "
                 "${declaration}.",
               );
-              // TODO(johnniwinther): Handle field augmentation.
+              _fieldAugmentations.add(declarations.field!);
               _getterAugmentations.add(declarations.getter!);
               return true;
             } else {
@@ -2631,7 +2632,10 @@ class _PropertyPreBuilder extends _PreBuilder {
       inPatch: inPatch,
       isStatic: isStatic,
       uriOffset: uriOffset,
-      fieldDeclaration: _getterDeclaration?.declarations.field,
+      fieldDeclarations: [
+        ?_getterDeclaration?.declarations.field,
+        ..._fieldAugmentations,
+      ],
       getterDeclarations: [
         ?_getterDeclaration?.declarations.getter,
         ..._getterAugmentations,

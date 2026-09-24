@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Class extends core::Object {
+  field core::int instanceField1 = 0;
+  final field core::int finalInstanceField1 = 0;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get instanceField2() → core::int
+    return 0;
+  set instanceField2(core::int value) → void {}
+  abstract set instanceField3(synthesized core::int #externalFieldValue) → void;
+  get instanceField3() → core::int
+    return 0;
+  abstract get instanceField4() → core::int;
+  set instanceField4(core::int value) → void {}
+  get finalInstanceField2() → core::int
+    return 0;
+  get instanceGetter() → core::int
+    return 0;
+  set instanceSetter(core::int value) → void {}
+}
+static field core::int topLevelField1 = 0;
+static final field core::int finalTopLevelField1 = 0;
+static get topLevelField2() → core::int
+  return 0;
+static set topLevelField2(core::int value) → void {}
+static get finalTopLevelField2() → core::int
+  return 0;
+static get topLevelGetter() → core::int
+  return 0;
+static set topLevelSetter(core::int value) → void {}
