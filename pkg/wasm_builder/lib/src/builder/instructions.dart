@@ -84,15 +84,6 @@ class If extends Label {
   List<ir.ValueType> get targetTypes => outputs;
 }
 
-class Try extends Label {
-  bool hasCatch = false;
-
-  Try(super.inputs, super.outputs) : super._();
-
-  @override
-  List<ir.ValueType> get targetTypes => outputs;
-}
-
 class TryTable extends Label {
   final List<TryTableCatch> catches;
 
@@ -819,51 +810,11 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.Else());
   }
 
-  /// Emit a legacy `try` instruction.
-  Label try_legacy([
-    List<ir.ValueType> inputs = const [],
-    List<ir.ValueType> outputs = const [],
-  ]) => _beginBlock(
-    _pushLabel(Try(inputs, outputs), trace: const ['try']),
-    ir.BeginNoEffectTry.new,
-    ir.BeginOneOutputTry.new,
-    ir.BeginFunctionTry.new,
-  );
-
-  /// Emit a legacy `catch` instruction.
-  void catch_legacy(ir.Tag tag) {
-    assert(
-      _topOfLabelStack is Try ||
-          _reportError("Unexpected 'catch' (not in 'try' block)"),
-    );
-    final Try try_ = _topOfLabelStack as Try;
-    assert(
-      _verifyEndOfBlock(
-        tag.type.inputs,
-        trace: ['catch', tag],
-        reachableAfter: try_.reachable,
-        reindent: true,
-      ),
-    );
-    assert(tag.enclosingModule == module);
-    try_.hasCatch = true;
-    _reachable = try_.reachable;
-    _add(ir.CatchLegacy(tag));
-  }
-
   /// Emit a `throw` instruction.
   void throw_(ir.Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
     assert(tag.enclosingModule == module);
     _add(ir.Throw(tag));
-    _reachable = false;
-  }
-
-  /// Emit a `rethrow` instruction.
-  void rethrow_(Label label) {
-    assert(label is Try && label.hasCatch);
-    assert(_verifyTypes(const [], const [], trace: ['rethrow', label]));
-    _add(ir.Rethrow(_labelIndex(label)));
     _reachable = false;
   }
 
