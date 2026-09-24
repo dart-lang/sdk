@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -75,8 +74,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is MethodInvocationImpl ||
-        parent is PrefixedIdentifierImpl && parent.prefix == node ||
+    if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl ||
         parent is NamedTypeImpl) {
       return false;
@@ -93,9 +91,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifierImpl) {
       return true;
-    } else if (parent is MethodInvocationImpl) {
-      return identical(parent.target2, node) &&
-          parent.operator?.type == TokenType.PERIOD;
     }
     return false;
   }
@@ -240,8 +235,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       );
     } else if (element is PrefixElement) {
       var parent = node.parent2;
-      if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
-          parent is MethodInvocationImpl && parent.target2 == node) {
+      if (parent is PrefixedIdentifierImpl && parent.prefix == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
@@ -271,7 +265,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
     }
 
     if (parent is CommentReferenceImpl ||
-        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl && parent.target2 == node) {
       return;

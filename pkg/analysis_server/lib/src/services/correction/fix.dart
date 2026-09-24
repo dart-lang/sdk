@@ -1475,16 +1475,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Remove default value',
   );
-  static const removeDeprecatedNewInCommentReference = FixKind(
-    'dart.fix.remove.deprecatedNewInCommentReference',
-    DartFixKindPriority.standard,
-    "Remove deprecated 'new' keyword",
-  );
-  static const removeDeprecatedNewInCommentReferenceMulti = FixKind(
-    'dart.fix.remove.deprecatedNewInCommentReference.multi',
-    DartFixKindPriority.inFile,
-    "Remove deprecated 'new' keyword in file",
-  );
   static const removeDuplicateCase = FixKind(
     'dart.fix.remove.duplicateCase',
     DartFixKindPriority.standard,

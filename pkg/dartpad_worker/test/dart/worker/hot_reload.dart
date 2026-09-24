@@ -17,7 +17,7 @@ void main() {
     var result = await sandbox.run('main.dart', mode: 'console');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello World 1!')),
+      .it()..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello World 1!')),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
 
@@ -30,9 +30,7 @@ void main() {
     result = await sandbox.hotReload();
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<HotReloadEvent>(
-        .it()..code.isNotNull().contains('Hello World 2!'),
-      ),
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello World 2!')),
     );
 
     await iframe.close();
@@ -60,7 +58,7 @@ void main() {
     var result = await sandbox.run('bin/main.dart', mode: 'console');
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(.it()..code.contains('Hello 1!')),
+      .it()..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello 1!')),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());
 
@@ -71,7 +69,7 @@ void main() {
     result = await sandbox.hotReload();
     check(result.log).isEmpty;
     await iframe.checkEvent(
-      .it()..isA<HotReloadEvent>(.it()..code.isNotNull().contains('Hello 2!')),
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello 2!')),
     );
 
     await iframe.close();
@@ -88,7 +86,7 @@ void main() {
 
     var result = await sandbox.run('main.dart', mode: 'console');
     check(result.log).isEmpty;
-    await iframe.checkEvent(.it()..isA<LoadModuleEvent>());
+    await iframe.checkEvent(.it()..isA<LoadModulesEvent>());
     await iframe.checkEvent(.it()..isA<RunEvent>());
 
     // Recompilation is rejected, because this cannot be hot-reloaded
@@ -114,6 +112,59 @@ void main() {
     result = await sandbox.hotReload();
     check(result.log).isEmpty;
     await iframe.checkEvent(.it()..isA<HotReloadEvent>());
+
+    await iframe.close();
+  });
+
+  testDartWorkspace('recompile after importing a missing file', (ws) async {
+    await ws.writeFileFromText(
+      'main.dart',
+      "void main() => print('Hello 1!');",
+    );
+
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('main.dart', mode: 'console');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello 1!')),
+    );
+    await iframe.checkEvent(.it()..isA<RunEvent>());
+
+    // Import a file that hasn't been created yet. `frontend_server` reports it
+    // as a dependency of this failed compilation, and only reports it once.
+    await ws.writeFileFromText('main.dart', '''
+      import 'sayhello.dart';
+
+      void main() => sayHello();
+    ''');
+
+    await check(sandbox.hotReload()).throws<CompilationFailedException>();
+
+    // Creating it recovers, ...
+    await ws.writeFileFromText(
+      'sayhello.dart',
+      "void sayHello() => print('Hello 2!');",
+    );
+
+    result = await sandbox.hotReload();
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello 2!')),
+    );
+
+    // ... and it must be tracked, so that editing it is picked up.
+    await ws.writeFileFromText(
+      'sayhello.dart',
+      "void sayHello() => print('Hello 3!');",
+    );
+
+    result = await sandbox.hotReload();
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<HotReloadEvent>(.it()..anyModuleContains('Hello 3!')),
+    );
 
     await iframe.close();
   });

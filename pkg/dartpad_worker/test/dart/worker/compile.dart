@@ -18,10 +18,10 @@ void main() {
     check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello World')
-          ..code.contains('main'),
+          ..anyModuleContains('Hello World')
+          ..anyModuleContains('main'),
       ),
     );
     await iframe.checkEvent(
@@ -69,10 +69,10 @@ void main() {
     check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      .it()..isA<LoadModuleEvent>(
+      .it()..isA<LoadModulesEvent>(
         .it()
-          ..code.contains('Hello World')
-          ..code.contains('main'),
+          ..anyModuleContains('Hello World')
+          ..anyModuleContains('main'),
       ),
     );
     await iframe.checkEvent(.it()..isA<RunEvent>());

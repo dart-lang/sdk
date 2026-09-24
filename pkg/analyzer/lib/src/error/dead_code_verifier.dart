@@ -438,10 +438,6 @@ class NullSafetyDeadCodeVerifier {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
-  void verifyMethodInvocation(MethodInvocation node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
-  }
-
   void verifyNullAwareAccess(
     AstNode node,
     Expression receiver,

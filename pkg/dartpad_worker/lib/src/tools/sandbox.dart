@@ -8,18 +8,20 @@ import 'package:pool/pool.dart';
 
 import '../shared.dart';
 import '../util/message_port.dart';
-import 'hot_reload_compiler.dart';
+import 'frontend_server_compiler.dart';
 import 'sandbox_client.dart';
 
 typedef CompilerFactory =
-    FutureOr<HotReloadCompiler> Function(Uri path, DartPadRunMode mode);
+    FutureOr<FrontendServerCompiler> Function(Uri path, DartPadRunMode mode);
 
 final class Sandbox {
   final SandboxClient _client;
   final CompilerFactory _createCompiler;
   final _pool = Pool(1);
 
-  HotReloadCompiler? _compiler;
+  /// Compiler for the program running in this sandbox, `null` until [run] has
+  /// successfully started one. Doubles as the "already used" marker for [run].
+  FrontendServerCompiler? _compiler;
 
   Sandbox({
     required MessagePort port,
@@ -37,21 +39,38 @@ final class Sandbox {
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _client.onExtensionEvent;
 
+  /// Compiles [target] and starts running it in this sandbox.
+  ///
+  /// Can only be called once per sandbox: the program owns the one Dart runtime
+  /// the `<iframe>` has and cannot be stopped again. Use [hotReload] /
+  /// [hotRestart] to pick up changes, or a new sandbox for another program.
   Future<({String log})> run(String target, DartPadRunMode mode) async =>
       await _synced(() async {
         if (_compiler != null) {
-          _compiler = null;
-          await reset();
+          throw InvalidSandboxStateException(
+            'run() can only be called once per sandbox, use hotRestart() to '
+            'restart the program, or connect a new sandbox to run another '
+            'program',
+          );
         }
 
-        final c = _compiler = await _createCompiler(Uri.parse(target), mode);
+        final c = await _createCompiler(Uri.parse(target), mode);
+        try {
+          final r = await c.compile();
 
-        final r = await c.compile();
+          await _client.loadModules(modules: r.modules);
+          await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
 
-        await _client.loadModule(code: r.code!);
-        await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
+          // Only retain the compiler once the program is actually running, such
+          // that a failed run() -- most often a compilation error -- can be
+          // retried once the problem has been fixed.
+          _compiler = c;
 
-        return (log: r.log);
+          return (log: r.log);
+        } catch (_) {
+          await c.close().onError((_, _) {});
+          rethrow;
+        }
       });
 
   Future<({String log})> hotRestart() async => await _synced(() async {
@@ -62,8 +81,8 @@ final class Sandbox {
       );
     }
 
-    final r = await c.compile();
-    await _client.hotRestart(code: r.code!);
+    final r = await c.compile(restart: true);
+    await _client.hotRestart(modules: r.modules);
 
     return (log: r.log);
   });
@@ -76,10 +95,7 @@ final class Sandbox {
       );
     }
     final r = await c.compile();
-    await _client.hotReload(
-      code: r.code!,
-      librariesToReload: r.compiledLibraryUris.map(Uri.parse).toList(),
-    );
+    await _client.hotReload(modules: r.modules);
     return (log: r.log);
   });
 
@@ -88,13 +104,13 @@ final class Sandbox {
     Map<String, String> args,
   ) async => await _synced(() => _client.invokeExtension(method, args));
 
-  Future<void> reset() async => await _synced(() async {
-    _compiler = null;
-    await _client.hotRestart();
-  });
-
   Future<void> close() async {
     _pool.close().ignore();
-    await _client.close();
+    final c = _compiler;
+    _compiler = null;
+    await Future.wait([
+      if (c != null) Future.sync(c.close),
+      Future.sync(_client.close),
+    ]);
   }
 }

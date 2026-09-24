@@ -481,29 +481,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var element = node.methodName.element;
-    var invocation = _FfiInvocation(
-      node: node,
-      name: node.methodName.token,
-      target: node.realTarget2,
-      typeArguments: node.typeArguments,
-      argumentList: node.argumentList,
-      typeArgumentTypes: node.typeArgumentTypes,
-    );
-    if (element is InternalMethodElement) {
-      _validateFfiMethodInvocation(invocation, element);
-    } else if (element is TopLevelFunctionElement) {
-      if (element.library.name == 'dart.ffi') {
-        if (element.name == 'sizeOf') {
-          _validateSizeOf(invocation);
-        }
-      }
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var element = node.element;
     if (element != null) {

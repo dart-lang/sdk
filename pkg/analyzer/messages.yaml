@@ -23584,7 +23584,7 @@ ParserErrorCode:
   invalidCommentReference:
     type: syntacticError
     parameters: none
-    problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
+    problemMessage: "Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else."
     hasPublishedDocs: false
   invalidGenericFunctionType:
     type: syntacticError
@@ -26359,6 +26359,7 @@ WarningCode:
   deprecatedNewInCommentReference:
     type: staticWarning
     parameters: none
+    removedIn: "3.14"
     problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
     correctionMessage: Try referring to a constructor by its name.
     hasPublishedDocs: true

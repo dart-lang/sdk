@@ -13,11 +13,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [ConstructorInvocation] and
 /// [DotShorthandConstructorInvocation2] nodes.
-///
-/// This resolver is responsible for rewriting a given
-/// [ConstructorInvocation] as a [MethodInvocation] if the parsed
-/// [ConstructorTypeReference] denotes a [FunctionReference] or a
-/// [ConstructorReference2], instead of a type.
 class ConstructorInvocationResolver {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
@@ -28,33 +23,6 @@ class ConstructorInvocationResolver {
     ConstructorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    // The parser can parse certain code as [ConstructorInvocation] when it
-    // might be an invocation of a method on a [FunctionReference] or
-    // [ConstructorReference2]. In such a case, it is this resolver's
-    // responsibility to rewrite. For example, given:
-    //
-    //     a.m<int>.apply();
-    //
-    // the parser will give a ConstructorInvocation (`a.m<int>.apply()`) whose
-    // ConstructorReference2 has `a.m<int>` as its ConstructorTypeReference and
-    // `apply` as its ConstructorSelector. If `a.m<int>` is actually a function
-    // reference, then the ConstructorInvocation needs to be rewritten as a
-    // MethodInvocation with a target of `a.m<int>` and a name of `apply`.
-    if (node.keyword == null) {
-      var typeNameTypeArguments =
-          node.constructorReference.typeReference.typeArguments;
-      if (typeNameTypeArguments != null) {
-        // This could be a method call on a function reference or a constructor
-        // reference.
-        _resolveWithTypeNameWithTypeArguments(
-          node,
-          typeNameTypeArguments,
-          contextType: contextType,
-        );
-        return;
-      }
-    }
-
     _resolveConstructorInvocation(node, contextType: contextType);
   }
 
@@ -214,20 +182,5 @@ class ConstructorInvocationResolver {
       node.argumentList,
       whyNotPromotedArguments,
     );
-  }
-
-  /// Resolve [node] whose [ConstructorTypeReference] has type arguments (given
-  /// as [typeNameTypeArguments]).
-  ///
-  /// The constructor invocation may actually be a method call on a
-  /// type-instantiated function reference or constructor reference.
-  void _resolveWithTypeNameWithTypeArguments(
-    ConstructorInvocationImpl node,
-    TypeArgumentListImpl typeNameTypeArguments, {
-    required TypeImpl contextType,
-  }) {
-    // TODO(srawlins): Lookup the name and potentially rewrite `node` as a
-    // [MethodInvocation].
-    _resolveConstructorInvocation(node, contextType: contextType);
   }
 }

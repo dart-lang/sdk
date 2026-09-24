@@ -461,11 +461,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitMethodInvocation(MethodInvocation node) {
-    return node.methodName.element ?? _visitIdentifier(node.methodName);
-  }
-
-  @override
   Element? visitNamedArgument(NamedArgument node) {
     return node.correspondingParameter;
   }

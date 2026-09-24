@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show optional, Parser;
+    show Parser, optional;
 import 'package:_fe_analyzer_shared/src/parser/util.dart'
     show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -616,11 +616,6 @@ final class DocCommentBuilder {
     }
     var token = result.tokens;
     var begin = token;
-    Token? newKeyword;
-    if (optional('new', token)) {
-      newKeyword = token;
-      token = token.next!;
-    }
     Token? firstToken, firstPeriod, secondToken, secondPeriod;
     if (token.isIdentifier && optional('.', token.next!)) {
       secondToken = token;
@@ -651,7 +646,7 @@ final class DocCommentBuilder {
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion.
       token = _parser.rewriter.insertSyntheticIdentifier(
-        secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token),
+        secondPeriod ?? _parser.syntheticPreviousToken(token),
       );
       isSynthetic = true;
       if (begin == token.next!) {
@@ -668,7 +663,6 @@ final class DocCommentBuilder {
         return _parseOneCommentReferenceRest(
           begin,
           offset,
-          newKeyword,
           firstToken,
           firstPeriod,
           secondToken,
@@ -684,7 +678,6 @@ final class DocCommentBuilder {
           return _parseOneCommentReferenceRest(
             begin,
             offset,
-            newKeyword,
             firstToken,
             firstPeriod,
             secondToken,
@@ -694,8 +687,7 @@ final class DocCommentBuilder {
           );
         }
         var keyword = token.keyword;
-        if (newKeyword == null &&
-            secondToken == null &&
+        if (secondToken == null &&
             (keyword == Keyword.THIS ||
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
@@ -713,12 +705,8 @@ final class DocCommentBuilder {
 
   /// Parses the parameters into a [CommentReferenceImpl].
   ///
-  /// If the reference begins with `new `, then pass the Token associated with
-  /// that text as [newKeyword].
-  ///
-  /// If the reference contains a single identifier or operator (aside from the
-  /// optional [newKeyword]), then pass the associated Token as
-  /// [identifierOrOperator].
+  /// If the reference contains a single identifier or operator, then pass the
+  /// associated Token as [identifierOrOperator].
   ///
   /// If the reference contains two identifiers separated by a period, then pass
   /// the associated Tokens as [secondToken], [secondPeriod], and
@@ -733,7 +721,6 @@ final class DocCommentBuilder {
   CommentReferenceImpl _parseOneCommentReferenceRest(
     Token begin,
     int referenceOffset,
-    Token? newKeyword,
     Token? firstToken,
     Token? firstPeriod,
     Token? secondToken,
@@ -761,7 +748,6 @@ final class DocCommentBuilder {
         propertyName: identifier,
       );
       return CommentReferenceImpl(
-        newKeyword: newKeyword,
         expression2: expression,
         isSynthetic: isSynthetic,
       );
@@ -772,13 +758,11 @@ final class DocCommentBuilder {
         identifier: identifier,
       );
       return CommentReferenceImpl(
-        newKeyword: newKeyword,
         expression2: expression,
         isSynthetic: isSynthetic,
       );
     } else {
       return CommentReferenceImpl(
-        newKeyword: newKeyword,
         expression2: identifier,
         isSynthetic: isSynthetic,
       );

@@ -90,10 +90,7 @@ class ElementResolver {
   /// resolve the nodes in a compilation unit.
   ElementResolver(this._resolver)
     : _definingLibrary = _resolver.definingLibrary,
-      _methodInvocationResolver = MethodInvocationResolver(
-        _resolver,
-        inferenceHelper: _resolver.inferenceHelper,
-      );
+      _methodInvocationResolver = MethodInvocationResolver(_resolver);
 
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
@@ -243,20 +240,6 @@ class ElementResolver {
   void visitLibraryDirective(LibraryDirective node) {}
 
   void visitMethodDeclaration(MethodDeclaration node) {}
-
-  /// Resolves the method invocation, [node].
-  void visitMethodInvocation(
-    MethodInvocation node, {
-    List<WhyNotPromotedGetter>? whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    whyNotPromotedArguments ??= [];
-    _methodInvocationResolver.resolve(
-      node as MethodInvocationImpl,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
 
   void visitMixinDeclaration(MixinDeclaration node) {}
 

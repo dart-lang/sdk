@@ -47,13 +47,7 @@ class YieldStatementResolver {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      _diagnosticReporter.report(
-        diag.useOfVoidResult.at(expression.methodName),
-      );
-    } else {
-      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
-    }
+    _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
 
     return true;
   }

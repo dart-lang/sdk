@@ -114,11 +114,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _checkTearoff(node.identifier, node.element);
   }

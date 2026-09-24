@@ -599,20 +599,6 @@ class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   _InvocationVisitor({required this.lineInfo, required this.requestedLine});
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (result != null) {
-      return;
-    }
-
-    var nodeLine = lineInfo.getLocation(node.offset).lineNumber;
-    if (nodeLine == requestedLine) {
-      result = (name: node.methodName.name, argumentList: node.argumentList);
-    }
-
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitParsedValueArguments(ParsedValueArguments node) {
     if (result != null) return;
     if (lineInfo.getLocation(node.offset).lineNumber == requestedLine) {

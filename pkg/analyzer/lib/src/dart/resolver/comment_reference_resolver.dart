@@ -31,30 +31,18 @@ class CommentReferenceResolver {
     try {
       var expression = commentReference.expression2;
       if (expression is SimpleIdentifierImpl) {
-        _resolveSimpleIdentifierReference(
-          expression,
-          hasNewKeyword: commentReference.newKeyword != null,
-        );
+        _resolveSimpleIdentifierReference(expression);
       } else if (expression is PrefixedIdentifierImpl) {
-        _resolvePrefixedIdentifierReference(
-          expression,
-          hasNewKeyword: commentReference.newKeyword != null,
-        );
+        _resolvePrefixedIdentifierReference(expression);
       } else if (expression is PropertyAccessImpl) {
-        _resolvePropertyAccessReference(
-          expression,
-          hasNewKeyword: commentReference.newKeyword != null,
-        );
+        _resolvePropertyAccessReference(expression);
       }
     } finally {
       _resolver.diagnosticReporter.lockLevel--;
     }
   }
 
-  void _resolvePrefixedIdentifierReference(
-    PrefixedIdentifierImpl expression, {
-    required bool hasNewKeyword,
-  }) {
+  void _resolvePrefixedIdentifierReference(PrefixedIdentifierImpl expression) {
     var prefix = expression.prefix;
     var prefixElement = _resolveSimpleIdentifier(prefix);
     prefix.element = prefixElement;
@@ -78,41 +66,27 @@ class CommentReferenceResolver {
       return;
     }
 
-    if (!hasNewKeyword) {
-      if (prefixElement is InterfaceElement) {
-        name.element =
-            _resolver.inheritance.getMember(
-              prefixElement,
-              Name(prefixElement.library.uri, name.name),
-            ) ??
-            prefixElement.getMethod(name.name) ??
-            prefixElement.getGetter(name.name) ??
-            prefixElement.getSetter(name.name) ??
-            prefixElement.getNamedConstructor(name.name);
-      } else if (prefixElement is ExtensionElement) {
-        name.element =
-            prefixElement.getMethod(name.name) ??
-            prefixElement.getGetter(name.name) ??
-            prefixElement.getSetter(name.name);
-      } else {
-        // TODO(brianwilkerson): Report this error.
-      }
-    } else if (prefixElement is InterfaceElement) {
-      var constructor = prefixElement.getNamedConstructor(name.name);
-      if (constructor == null) {
-        // TODO(brianwilkerson): Report this error.
-      } else {
-        name.element = constructor;
-      }
+    if (prefixElement is InterfaceElement) {
+      name.element =
+          _resolver.inheritance.getMember(
+            prefixElement,
+            Name(prefixElement.library.uri, name.name),
+          ) ??
+          prefixElement.getMethod(name.name) ??
+          prefixElement.getGetter(name.name) ??
+          prefixElement.getSetter(name.name) ??
+          prefixElement.getNamedConstructor(name.name);
+    } else if (prefixElement is ExtensionElement) {
+      name.element =
+          prefixElement.getMethod(name.name) ??
+          prefixElement.getGetter(name.name) ??
+          prefixElement.getSetter(name.name);
     } else {
       // TODO(brianwilkerson): Report this error.
     }
   }
 
-  void _resolvePropertyAccessReference(
-    PropertyAccessImpl expression, {
-    required bool hasNewKeyword,
-  }) {
+  void _resolvePropertyAccessReference(PropertyAccessImpl expression) {
     var target = expression.target2;
     if (target is! PrefixedIdentifierImpl) {
       // A PropertyAccess with a target more complex than a
@@ -201,26 +175,10 @@ class CommentReferenceResolver {
     return element;
   }
 
-  void _resolveSimpleIdentifierReference(
-    SimpleIdentifierImpl expression, {
-    required bool hasNewKeyword,
-  }) {
+  void _resolveSimpleIdentifierReference(SimpleIdentifierImpl expression) {
     var element = _resolveSimpleIdentifier(expression);
-    if (element == null) {
-      return;
-    }
-    expression.element = element;
-    if (hasNewKeyword) {
-      if (element is InterfaceElement) {
-        var constructor = element.unnamedConstructor;
-        if (constructor == null) {
-          // TODO(brianwilkerson): Report this error.
-        } else {
-          expression.element = constructor;
-        }
-      } else {
-        // TODO(brianwilkerson): Report this error.
-      }
+    if (element != null) {
+      expression.element = element;
     }
   }
 }

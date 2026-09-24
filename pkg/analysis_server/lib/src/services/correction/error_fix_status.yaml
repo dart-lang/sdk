@@ -3655,8 +3655,6 @@ deprecated_mixin_function:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-deprecated_new_in_comment_reference:
-  status: hasFix
 deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:

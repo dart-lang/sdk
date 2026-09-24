@@ -43,20 +43,25 @@ extension DartPadExceptionChecks on Subject<DartPadException> {
   Subject<String> get message => has((e) => e.message, 'message');
 }
 
+extension CompiledModuleChecks on Subject<CompiledModule> {
+  Subject<String> get moduleName => has((m) => m.moduleName, 'moduleName');
+  Subject<String> get code => has((m) => m.code, 'code');
+  Subject<List<String>> get libraries => has((m) => m.libraries, 'libraries');
+}
+
 extension CompileResultChecks on Subject<CompileResult> {
-  Subject<String?> get code => has((s) => s.code, 'code');
+  Subject<List<CompiledModule>> get modules => has((s) => s.modules, 'modules');
 
   Subject<String> get log => has((s) => s.log, 'log');
 
-  Subject<List<String>> get compiledLibraryUris =>
-      has((s) => s.compiledLibraryUris, 'compiledLibraryUris');
-
-  void codeContains(Pattern pattern) => code.isNotNull().contains(pattern);
+  /// Some bundle contains [pattern].
+  void anyModuleContains(Pattern pattern) =>
+      modules.any(.it()..code.contains(pattern));
 
   /// Compilation was successful and logs are empty (indicating no warnings)
   void successEmptyLog() {
     log.isEmpty;
-    code.isNotNull();
+    modules.isNotEmpty;
   }
 }
 

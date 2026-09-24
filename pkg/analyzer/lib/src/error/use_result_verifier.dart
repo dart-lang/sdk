@@ -58,15 +58,6 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void checkNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution case ExecutableInvocationResolution(:var element)) {
       _check(node, element, nameToken: node.name);

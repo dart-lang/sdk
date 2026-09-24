@@ -96,7 +96,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
 
   Future<void> test_class_constructor_named() async {
     addTestFile('''
-/// [new A.named] 1
+/// [A.named] 1
 class A {
   A.named() {}
   A.other() : this.named(); // 2
@@ -148,7 +148,6 @@ f(x) {
 
   Future<void> test_class_constructor_unnamed() async {
     addTestFile('''
-/// [new A] 1
 /// [A.new] 2
 class A {
   A() {}
@@ -167,8 +166,7 @@ void f() {
 ''');
     await findElementReferences(search: 'A() {}', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
-    expect(results, hasLength(7));
-    assertHasResult(SearchResultKind.REFERENCE, '] 1', 0);
+    expect(results, hasLength(6));
     assertHasResult(SearchResultKind.REFERENCE, '.new] 2', 4);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 4', 0);
@@ -375,7 +373,7 @@ void f(A a) {
 
   Future<void> test_enum_constructor_named() async {
     addTestFile('''
-/// [new E.named] 1
+/// [E.named] 1
 enum E {
   v.named(); // 2
   const E.named(); // 3
@@ -392,7 +390,7 @@ enum E {
 
   Future<void> test_enum_constructor_unnamed() async {
     addTestFile('''
-/// [new E] 1
+/// [E.new] 1
 enum E {
   v1, // 2
   v2(), // 3
@@ -404,7 +402,7 @@ enum E {
     await findElementReferences(search: 'E(); // 5', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
     expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.REFERENCE, '] 1', 0);
+    assertHasResult(SearchResultKind.REFERENCE, '.new] 1', 4);
     assertHasResult(SearchResultKind.INVOCATION, ', // 2', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(), // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '.new(); // 4', 4);
@@ -657,7 +655,7 @@ void f() {
 
   Future<void> test_extensionType_constructor_named() async {
     addTestFile('''
-/// [new A.named] 1
+/// [A.named] 1
 extension type A(int it) {
   A.named() : this(0);
   A.other() : this.named(); // 2
@@ -679,7 +677,6 @@ void f() {
 
   Future<void> test_extensionType_constructor_unnamed() async {
     addTestFile('''
-/// [new A] 1
 /// [A.new] 2
 extension type A.named(int it) {
   A() : named(0);
@@ -693,8 +690,7 @@ void f() {
 ''');
     await findElementReferences(search: 'A() :', false);
     expect(searchElement!.kind, ElementKind.CONSTRUCTOR);
-    expect(results, hasLength(5));
-    assertHasResult(SearchResultKind.REFERENCE, '] 1', 0);
+    expect(results, hasLength(4));
     assertHasResult(SearchResultKind.REFERENCE, '.new] 2', 4);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 3', 0);
     assertHasResult(SearchResultKind.INVOCATION, '(); // 4', 0);

@@ -2171,15 +2171,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    node.target2?.accept2(this);
-    _tokenOrNull(node.operator);
-    node.methodName.accept2(this);
-    node.typeArguments?.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.colon);

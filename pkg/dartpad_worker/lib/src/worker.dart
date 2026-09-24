@@ -20,7 +20,7 @@ import 'resource_provider/resource_provider_ext.dart';
 import 'resource_provider/resource_provider_wrap_cwd.dart';
 import 'shared.dart' hide FileSystemException;
 import 'tools/file_watch.dart';
-import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
+import 'tools/frontend_server_compiler.dart' show FrontendServerCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
@@ -525,7 +525,7 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  HotReloadCompiler _createCompiler(Uri path, DartPadRunMode mode) {
+  FrontendServerCompiler _createCompiler(Uri path, DartPadRunMode mode) {
     var entrypoint = _resolvePath(path);
 
     // Test if the file we're compiling exists.
@@ -548,18 +548,13 @@ class _Workspace {
         entrypoint,
         content: entrypointWrapperTemplate.replaceAll(
           '{{entrypoint}}',
-          // Convert to a `file:` URI so the Common Front End (CFE) treats the
-          // import as an absolute file URI. Otherwise, entrypoints inside
-          // `lib/` match the package root prefix in `package_config.json` and
-          // resolve relatively, causing duplicated path segments and build
-          // failure.
-          _rp.pathContext.toUri(originalEntrypoint).toString(),
+          _rp.pathContext.basename(originalEntrypoint),
         ),
         modificationStamp: 0,
       );
     }
 
-    return HotReloadCompiler(
+    return FrontendServerCompiler(
       resourceProvider: rp,
       packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
       targetPath: entrypoint,

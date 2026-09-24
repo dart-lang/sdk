@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +24,24 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
 
     _notEqual(parseType('dynamic'), parseType('Never'));
     _notEqual(parseType('dynamic'), parseType('Never?'));
+  }
+
+  test_dynamic_typeAlias() {
+    buildTestLibrary(
+      typeAliases: [
+        TypeAliasSpec('typedef A = dynamic'),
+        TypeAliasSpec('typedef B = dynamic'),
+      ],
+    );
+
+    _equal2('A', 'A');
+    _equal2('A', 'B');
+    _equal2('A', 'dynamic');
+    _equal2('List<A>', 'List<dynamic>');
+    _equal2('A Function(A)', 'dynamic Function(dynamic)');
+    _equal2('(A,)', '(dynamic,)');
+    _notEqual2('A', 'void');
+    _notEqual2('A', 'int');
   }
 
   test_functionType_parameters() {
@@ -189,6 +208,24 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
 
     _notEqual(parseType('void'), parseType('Never'));
     _notEqual(parseType('void'), parseType('Never?'));
+  }
+
+  test_void_typeAlias() {
+    buildTestLibrary(
+      typeAliases: [
+        TypeAliasSpec('typedef A = void'),
+        TypeAliasSpec('typedef B = void'),
+      ],
+    );
+
+    _equal2('A', 'A');
+    _equal2('A', 'B');
+    _equal2('A', 'void');
+    _equal2('List<A>', 'List<void>');
+    _equal2('A Function(A)', 'void Function(void)');
+    _equal2('(A,)', '(void,)');
+    _notEqual2('A', 'dynamic');
+    _notEqual2('A', 'int');
   }
 
   void _check(TypeImpl T1, TypeImpl T2, bool expected) {

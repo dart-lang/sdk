@@ -415,17 +415,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.element case TopLevelFunctionElement element) {
-      if (element.isDartCoreIdentical) {
-        node.visitChildren2(this);
-        return;
-      }
-    }
-    isValid = false;
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     node.argumentExpression2.accept2(this);
   }

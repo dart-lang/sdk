@@ -198,10 +198,6 @@ class StaticTypeAnalyzer {
     node.recordStaticType(_typeProvider.boolType, resolver: _resolver);
   }
 
-  void visitMethodInvocation(MethodInvocation node) {
-    throw StateError('Should not be invoked');
-  }
-
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
   /// </blockquote>
   void visitNullLiteral(covariant NullLiteralImpl node) {

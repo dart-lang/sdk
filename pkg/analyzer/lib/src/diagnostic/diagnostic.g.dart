@@ -4023,19 +4023,6 @@ const DiagnosticWithoutArguments deprecatedMixinFunction =
       expectedTypes: [],
     );
 
-/// No parameters.
-const DiagnosticWithoutArguments deprecatedNewInCommentReference =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'deprecated_new_in_comment_reference',
-      problemMessage:
-          "Using the 'new' keyword in a comment reference is deprecated.",
-      correctionMessage: "Try referring to a constructor by its name.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'deprecated_new_in_comment_reference',
-      expectedTypes: [],
-    );
-
 /// Parameters:
 /// String parameterName: the name of the parameter
 const DiagnosticWithArguments<
@@ -8573,8 +8560,8 @@ const DiagnosticWithoutArguments
 invalidCommentReference = DiagnosticWithoutArgumentsImpl(
   name: 'invalid_comment_reference',
   problemMessage:
-      "Comment references should contain a possibly prefixed identifier and can "
-      "start with 'new', but shouldn't contain anything else.",
+      "Comment references should contain a possibly prefixed identifier, but "
+      "shouldn't contain anything else.",
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'invalid_comment_reference',
   expectedTypes: [],

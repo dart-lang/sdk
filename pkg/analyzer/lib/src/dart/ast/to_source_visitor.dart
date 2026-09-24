@@ -298,7 +298,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    sink.write(node.newKeyword?.lexeme ?? '');
     _visitNode(prefix: '[', node.expression2, suffix: ']');
   }
 
@@ -1138,15 +1137,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.typeParameters);
     _visitNode(node.formalParameters);
     _visitFunctionBody(node.body);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _visitNode(node.target2);
-    _visitToken(node.operator);
-    _visitNode(node.methodName);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
   }
 
   @override

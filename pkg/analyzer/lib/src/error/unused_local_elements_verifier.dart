@@ -304,17 +304,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    var function = node.methodName.element;
-    if (function is LocalFunctionElement ||
-        function is MethodElement ||
-        function is TopLevelFunctionElement) {
-      _addParametersForArguments(node.argumentList);
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitNamedType(NamedType node) {
     _useIdentifierElement(node.element);
     super.visitNamedType(node);

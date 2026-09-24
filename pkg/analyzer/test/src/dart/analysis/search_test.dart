@@ -2658,7 +2658,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -2675,9 +2675,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -2702,7 +2701,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_primary() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A.foo() {
   new bar() : this.foo();
   factory baz() = A.foo;
@@ -2718,9 +2717,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ INVOCATION qualified
@@ -2744,7 +2742,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -2761,9 +2759,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -2788,7 +2785,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_typeName_viaTypeAlias() async {
     var result = await resolveTestCode('''
-/// [new B.foo] and [B.foo]
+/// [B.foo]
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -2807,9 +2804,8 @@ void useConstructor() {
 
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new B.foo] and [B.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [B.foo]
+      ^^^^ REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -2861,7 +2857,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_implicit() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class B {
   B();
   factory B.baz() = A;
@@ -2878,9 +2874,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -2967,7 +2962,7 @@ class C extends A {}
 
   test_searchReferences_ConstructorElement_class_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   new () {}
   new bar() : this();
@@ -2984,9 +2979,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -3040,7 +3034,7 @@ void f() {
 
   test_searchReferences_ConstructorElement_class_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A() {
   new bar() : this();
   factory baz() = A;
@@ -3056,9 +3050,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 INVOCATION qualified
@@ -3082,7 +3075,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   A() {}
   A.bar() : this();
@@ -3099,9 +3092,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -3126,7 +3118,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -3143,9 +3135,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -3326,7 +3317,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E {
   v.foo();
   const new foo();
@@ -3341,9 +3332,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+      ^^^^ REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3366,7 +3356,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_primary() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E.foo() {
   v.foo();
   const new bar() : this.foo();
@@ -3380,9 +3370,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+      ^^^^ REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3404,7 +3393,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E {
   v.foo();
   const E.foo();
@@ -3419,9 +3408,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+      ^^^^ REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3444,7 +3432,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_implicit() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3459,9 +3447,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+      ^^^^ REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3485,7 +3472,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3501,9 +3488,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+      ^^^^ REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3528,7 +3514,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E() {
   v1,
   v2(),
@@ -3543,9 +3529,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+      ^^^^ REFERENCE qualified
 enum E() {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3569,7 +3554,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3585,9 +3570,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+      ^^^^ REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3612,7 +3596,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3628,9 +3612,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+      ^^^^ REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3655,7 +3638,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -3669,9 +3652,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -3692,7 +3674,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_primary() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A.foo(int it) {
   new bar() : this.foo(0);
   factory baz(int it) = A.foo;
@@ -3705,9 +3687,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ INVOCATION qualified
@@ -3727,7 +3708,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -3741,9 +3722,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+      ^^^^ REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -3764,7 +3744,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -3778,9 +3758,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -3801,7 +3780,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A(int it) {
   new bar() : this(0);
   factory baz(int it) = A.new;
@@ -3814,9 +3793,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 INVOCATION qualified
@@ -3836,7 +3814,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -3850,9 +3828,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -3873,7 +3850,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -3887,9 +3864,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+      ^^^^ REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);

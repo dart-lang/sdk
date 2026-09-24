@@ -26,17 +26,6 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (_usage == _Usage.reading) {
-      if (node.target2 is SuperExpression && node.methodName.name == name) {
-        hasSuperInvocation = true;
-        return;
-      }
-    }
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitParsedNameAccess(ParsedNameAccess node) {
     if (_usage == _Usage.reading &&
         node.operand is SuperReference &&

@@ -309,16 +309,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
-    var newNode = _astRewriter.constructorInvocation(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    super.visitConstructorInvocation(node);
-  }
-
-  @override
   void visitConstructorReference2(covariant ConstructorReference2Impl node) {
     node.typeReference.accept2(this);
   }
@@ -648,23 +638,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
-  }
-
-  @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var newNode = _astRewriter.methodInvocation(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(
-      this,
-      visitMethodName: (methodName) {
-        if (node.realTarget2 == null) {
-          methodName.accept2(this);
-        }
-      },
-    );
   }
 
   @override

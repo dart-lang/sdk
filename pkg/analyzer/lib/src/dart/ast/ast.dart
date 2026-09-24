@@ -8924,7 +8924,7 @@ sealed class CommentReferableExpressionImpl extends ExpressionImpl
 /// A reference to a Dart element that is found within a documentation comment.
 ///
 ///     commentReference ::=
-///         '[' 'new'? [CommentReferableExpression] ']'
+///         '[' [CommentReferableExpression] ']'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReference implements AstNode {
   /// The comment-referable expression being referenced.
@@ -8934,14 +8934,17 @@ abstract final class CommentReference implements AstNode {
   @experimental
   CommentReferableExpression get expression2;
 
-  /// The token representing the `new` keyword, or `null` if there was no `new`
-  /// keyword.
+  /// Always `null`.
+  ///
+  /// Comment references of the form `[new C]` are no longer recognized; such
+  /// text isn't a comment reference at all, so no [CommentReference] node is
+  /// created for it.
+  @Deprecated("Support for 'new' in comment references has been removed.")
   Token? get newKeyword;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('newKeyword'),
     GenerateNodeProperty(
       'expression2',
       v1Name: 'expression',
@@ -8953,10 +8956,6 @@ abstract final class CommentReference implements AstNode {
 final class CommentReferenceImpl extends AstNodeImpl
     implements CommentReference {
   @generated
-  @override
-  final Token? newKeyword;
-
-  @generated
   CommentReferableExpressionImpl _expression2;
 
   @generated
@@ -8965,7 +8964,6 @@ final class CommentReferenceImpl extends AstNodeImpl
 
   @generated
   CommentReferenceImpl({
-    required this.newKeyword,
     required CommentReferableExpressionImpl expression2,
     required this.isSynthetic,
   }) : _expression2 = expression2 {
@@ -8975,9 +8973,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   @generated
   @override
   Token get beginToken {
-    if (newKeyword case var newKeyword?) {
-      return newKeyword;
-    }
     return expression2.beginToken;
   }
 
@@ -9005,17 +9000,19 @@ final class CommentReferenceImpl extends AstNodeImpl
     _expression2 = _becomeParentOf2AndExisting1(expression2);
   }
 
-  @generated
+  @Deprecated("Support for 'new' in comment references has been removed.")
   @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('expression', expression);
+  Token? get newKeyword => null;
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('expression2', expression2);
+  ChildEntities get _childEntities =>
+      ChildEntities()..addNode('expression', expression);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('expression2', expression2);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -37397,12 +37394,10 @@ abstract final class MethodInvocation implements InvocationExpression {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty(
-      'target2',
-      v1Name: 'target',
-      v1Projection: V1Projection.expression,
-    ),
+    GenerateNodeProperty('target'),
     GenerateNodeProperty('operator', isTokenFinal: false),
     GenerateNodeProperty('methodName'),
     GenerateNodeProperty('typeArguments', isSuper: true),
@@ -37411,36 +37406,18 @@ abstract final class MethodInvocation implements InvocationExpression {
 )
 final class MethodInvocationImpl extends InvocationExpressionImpl
     implements MethodInvocation {
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  ExpressionImpl? _target2;
+  @DoNotGenerate(reason: 'Stores the projected target')
+  final ExpressionImpl? _target2;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  Token? _operator;
+  @DoNotGenerate(reason: 'Stores the projected operator')
+  final Token? _operator;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  SimpleIdentifierImpl _methodName;
+  @DoNotGenerate(reason: 'Stores the projected method name')
+  final SimpleIdentifierImpl _methodName;
 
-  NamedFunctionInvocationImpl? _v1ProjectionOrigin;
+  final NamedFunctionInvocationImpl? _v1ProjectionOrigin;
 
-  ParsedExpressionImpl? _parsedExpressionOrigin;
-
-  /// The invoke type of the [methodName] if the target element is a getter,
-  /// or `null` otherwise.
-  DartType? _methodNameType;
-
-  @DoNotGenerate(reason: 'Initializes fields shared with V1 projections')
-  MethodInvocationImpl({
-    required ExpressionImpl? target2,
-    required Token? operator,
-    required SimpleIdentifierImpl methodName,
-    required super.typeArguments,
-    required super.argumentList,
-  }) : _target2 = target2,
-       _operator = operator,
-       _methodName = methodName {
-    _becomeParentOf2AndExisting1(target2);
-    _becomeParentOf12(methodName);
-  }
+  final ParsedExpressionImpl? _parsedExpressionOrigin;
 
   MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(
     NamedFunctionInvocationImpl origin,
@@ -37453,6 +37430,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       },
       _methodName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin,
+      _parsedExpressionOrigin = null,
       super.v1Projection(
         typeArguments: origin.typeArguments,
         argumentList: origin.argumentList,
@@ -37470,6 +37448,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }) : _target2 = target,
        _operator = operator,
        _methodName = SimpleIdentifierImpl.v1Projection(token: name),
+       _v1ProjectionOrigin = null,
        _parsedExpressionOrigin = origin,
        super.v1Projection() {
     _becomeParentOf1(target);
@@ -37484,10 +37463,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   set argumentList(ArgumentListImpl argumentList) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    super.argumentList = argumentList;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @DoNotGenerate(reason: 'V1 projections have custom token ownership')
@@ -37572,25 +37548,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set methodName(SimpleIdentifierImpl methodName) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _methodName = _becomeParentOf12(methodName);
-  }
-
-  /// The invoke type of the [methodName].
-  ///
-  /// If the target element is a [MethodElement], this is the same as the
-  /// [staticInvokeType].
-  ///
-  /// If the target element is a getter, presumably returning an
-  /// [ExecutableElement] so that it can be invoked in this [MethodInvocation],
-  /// then this type is the type of the getter, and the [staticInvokeType] is
-  /// the invoked type of the returned element.
-  DartType? get methodNameType => _methodNameType ?? staticInvokeType;
-
-  set methodNameType(DartType? methodNameType) {
-    _methodNameType = methodNameType;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @DoNotGenerate(reason: 'V1 projections derive the written operator')
@@ -37608,10 +37566,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set operator(Token? operator) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _operator = operator;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
@@ -37630,9 +37585,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   ExpressionImpl? get realTarget2 {
     if (isCascaded) {
       var target = _ancestorCascade.target2;
-      return _v1ProjectionOrigin == null && _parsedExpressionOrigin == null
-          ? target
-          : V1Projection.toV1Expression(target);
+      return V1Projection.toV1Expression(target);
     }
     return _target2;
   }
@@ -37643,10 +37596,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   set staticInvokeType(TypeImpl? staticInvokeType) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    super.staticInvokeType = staticInvokeType;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
@@ -37676,10 +37626,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set target2(ExpressionImpl? target2) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _target2 = _becomeParentOf2AndExisting1(target2);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
@@ -37690,10 +37637,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   set typeArguments(TypeArgumentListImpl? typeArguments) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    super.typeArguments = typeArguments;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
@@ -37702,10 +37646,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    super.typeArgumentTypes = typeArgumentTypes;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   /// The cascade that contains this [MethodInvocation].
@@ -37713,16 +37654,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    var origin = _v1ProjectionOrigin ?? _parsedExpressionOrigin ?? this;
+    var origin = _v1ProjectionOrigin ?? _parsedExpressionOrigin!;
     return origin.thisOrAncestorOfType2<CascadeExpressionImpl>()!;
   }
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null && _parsedExpressionOrigin == null
-      ? AstNodeApi.shared
-      : AstNodeApi.v1;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -37733,18 +37671,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   ChildEntities get _childEntities2 {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is not in the V2 AST view.');
-    }
-    return ChildEntities()
-      ..addNode('target2', target2)
-      ..addToken('operator', operator)
-      ..addNode('methodName', methodName)
-      ..addNode('typeArguments', typeArguments)
-      ..addNode('argumentList', argumentList);
+    throw StateError('MethodInvocation is not in the V2 AST view.');
   }
 
   @generated
@@ -37752,14 +37682,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is not in the V2 AST view.');
-    }
-    return visitor.visitMethodInvocation(this);
+    throw StateError('MethodInvocation is not in the V2 AST view.');
   }
 
   @override
@@ -37772,68 +37699,25 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projection children are value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      return true;
-    }
-    assert(identical(child.parent2, this));
-    return false;
+    return true;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(target2, oldNode)) {
-      target2 = null;
-      return;
-    }
-    if (identical(methodName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'methodName'.");
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = null;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'argumentList'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(target2, oldNode)) {
-      target2 = newNode as ExpressionImpl?;
-      return;
-    }
-    if (identical(methodName, oldNode)) {
-      methodName = newNode as SimpleIdentifierImpl;
-      return;
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = newNode as TypeArgumentListImpl?;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      argumentList = newNode as ArgumentListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is a V1 projection.');
-    }
-    resolver.visitMethodInvocation(this, contextType: contextType);
+    throw StateError('MethodInvocation is a V1 projection.');
   }
 
   @override
@@ -37852,60 +37736,11 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     argumentList.accept(visitor);
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is not in the V2 AST view.');
-    }
-    target2?.accept2(visitor);
-    methodName.accept2(visitor);
-    typeArguments?.accept2(visitor);
-    argumentList.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitTarget2,
-    void Function(SimpleIdentifierImpl)? visitMethodName,
-    void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(ArgumentListImpl)? visitArgumentList,
-  }) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is not in the V2 AST view.');
-    }
-    if (target2 case var target2?) {
-      if (visitTarget2 != null) {
-        visitTarget2(target2);
-      } else {
-        target2.accept2(visitor);
-      }
-    }
-    if (visitMethodName != null) {
-      visitMethodName(methodName);
-    } else {
-      methodName.accept2(visitor);
-    }
-    if (typeArguments case var typeArguments?) {
-      if (visitTypeArguments != null) {
-        visitTypeArguments(typeArguments);
-      } else {
-        typeArguments.accept2(visitor);
-      }
-    }
-    if (visitArgumentList != null) {
-      visitArgumentList(argumentList);
-    } else {
-      argumentList.accept2(visitor);
-    }
+    throw StateError('MethodInvocation is not in the V2 AST view.');
   }
 
   void _attachV1Children() {
@@ -37937,29 +37772,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     return null;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_astNodeApi == AstNodeApi.v1) {
-      throw StateError('MethodInvocation is not in the V2 AST view.');
-    }
-    if (target2 case var target2?) {
-      if (target2._containsOffset(rangeOffset, rangeEnd)) {
-        return target2;
-      }
-    }
-    if (methodName._containsOffset(rangeOffset, rangeEnd)) {
-      return methodName;
-    }
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
-      return argumentList;
-    }
-    return null;
+    throw StateError('MethodInvocation is not in the V2 AST view.');
   }
 
   static CascadeSectionImpl _cascadeSectionOf(AstNodeImpl origin) {

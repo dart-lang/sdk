@@ -1256,25 +1256,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    SimpleIdentifier name = node.methodName;
-    var element = name.element;
-    // unresolved name invocation
-    bool isQualified = node.realTarget2 != null;
-    if (element == null) {
-      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
-    }
-    // element invocation
-    IndexRelationKind kind = element is InterfaceElement
-        ? IndexRelationKind.IS_REFERENCED_BY
-        : IndexRelationKind.IS_INVOKED_BY;
-    recordRelation(element, kind, name, isQualified);
-    node.target2?.accept2(this);
-    node.typeArguments?.accept2(this);
-    node.argumentList.accept2(this);
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     _addSubtypeForMixinDeclaration(node);
     super.visitMixinDeclaration(node);

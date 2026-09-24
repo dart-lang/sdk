@@ -978,12 +978,6 @@ class AstBinaryReader {
       ..write = write;
   }
 
-  void _readInvocationExpression(InvocationExpressionImpl node) {
-    node.staticInvokeType = _reader.readType();
-    node.typeArgumentTypes = _reader.readOptionalTypeList();
-    _readExpressionResolution(node);
-  }
-
   InvocationResolutionImpl _readInvocationResolution() {
     var tag = _reader.readEnum(InvocationResolutionTag.values);
     switch (tag) {
@@ -1102,35 +1096,6 @@ class AstBinaryReader {
           : null,
       value2: value,
     );
-  }
-
-  MethodInvocation _readMethodInvocation() {
-    var flags = _readByte();
-    var target = _readOptionalNode() as ExpressionImpl?;
-    var methodName = _readNode() as SimpleIdentifierImpl;
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var arguments = _readNode() as ArgumentListImpl;
-
-    Token? operator;
-    if (AstBinaryFlags.hasQuestion(flags)) {
-      operator = AstBinaryFlags.hasPeriod(flags)
-          ? Tokens.questionPeriod()
-          : Tokens.questionPeriodPeriod();
-    } else if (AstBinaryFlags.hasPeriod(flags)) {
-      operator = Tokens.period();
-    } else if (AstBinaryFlags.hasPeriod2(flags)) {
-      operator = Tokens.periodPeriod();
-    }
-
-    var node = MethodInvocationImpl(
-      target2: target,
-      operator: operator,
-      methodName: methodName,
-      typeArguments: typeArguments,
-      argumentList: arguments,
-    );
-    _readInvocationExpression(node);
-    return node;
   }
 
   NamedArgument _readNamedArgument() {
@@ -1350,8 +1315,6 @@ class AstBinaryReader {
         return _readLogicalAnd();
       case AstNodeTag.MapLiteralEntry:
         return _readMapLiteralEntry();
-      case AstNodeTag.MethodInvocation:
-        return _readMethodInvocation();
       case AstNodeTag.LogicalNot:
         return _readLogicalNot();
       case AstNodeTag.LogicalOr:

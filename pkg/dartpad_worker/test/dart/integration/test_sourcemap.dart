@@ -35,11 +35,13 @@ void main() {
     await ctx.sandbox.run('main.dart', mode: 'console');
     await ctx.checkConsole(.it()..contains('ExampleError'));
     await ctx.checkConsole(
-      .it()..like('''stackTrace:%
-%main.dart 14:% baz
-%main.dart 12:% bar
-%main.dart 10:% foo
-%main.dart %:% main%''', ignoreWhitespace: true),
+      .it()..like('''
+stackTrace:
+% throw_
+main.dart 14:% baz
+main.dart 12:% bar
+main.dart 10:% foo
+main.dart 3:% main%''', ignoreWhitespace: true),
     );
   });
 
@@ -71,8 +73,10 @@ void main() {
     await ctx.sandbox.run('main.dart', mode: 'console');
     await ctx.checkConsole(
       .it()..like('''
-catch in generation 1:%
-%main.dart 3:% thrower%''', ignoreWhitespace: true),
+catch in generation 1:
+% throw_
+main.dart 3:% thrower
+main.dart 7:% tick%''', ignoreWhitespace: true),
     );
 
     await ctx.ws.writeFileFromText('main.dart', '''
@@ -99,8 +103,10 @@ catch in generation 1:%
     await ctx.sandbox.hotReload();
     await ctx.checkConsole(
       .it()..like('''
-catch in generation 2:%
-%main.dart 8:% thrower%''', ignoreWhitespace: true),
+catch in generation 2:
+% throw_
+main.dart 8:% thrower
+main.dart 12:% tick%''', ignoreWhitespace: true),
     );
   });
 
@@ -127,8 +133,10 @@ catch in generation 2:%
     await ctx.sandbox.run('main.dart', mode: 'console');
     await ctx.checkConsole(
       .it()..like('''
-catch in generation 1:%
-%main.dart 1:% thrower%''', ignoreWhitespace: true),
+catch in generation 1:
+% throw_
+main.dart 1:% thrower
+main.dart 5:% main%''', ignoreWhitespace: true),
     );
 
     await ctx.ws.writeFileFromText('main.dart', '''
@@ -147,8 +155,10 @@ catch in generation 1:%
     await ctx.sandbox.hotRestart();
     await ctx.checkConsole(
       .it()..like('''
-catch in generation 2:%
-%main.dart 3:% thrower%''', ignoreWhitespace: true),
+catch in generation 2:
+% throw_
+main.dart 3:% thrower
+main.dart 7:% main%''', ignoreWhitespace: true),
     );
   });
 
@@ -174,9 +184,12 @@ catch in generation 2:%
     final firstError = ctx.sandbox.errors.first;
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(
-      firstError,
-    ).completes(.it()..like('%main.dart %:% boom%', ignoreWhitespace: true));
+    await check(firstError).completes(
+      .it()..like('''
+%uncaught boom
+% throw_
+main.dart 7:% boom%''', ignoreWhitespace: true),
+    );
   });
 
   testDartIntegration('unhandled rejections are mapped to Dart source', (
@@ -210,9 +223,9 @@ catch in generation 2:%
 
     await check(firstRejection).completes(
       .it()..like('''
-%rejected boom%
-%main.dart 13:% boom
-%main.dart 11:% main%''', ignoreWhitespace: true),
+%rejected boom
+main.dart 13:% boom
+main.dart 11:% main%''', ignoreWhitespace: true),
     );
   });
 
@@ -257,11 +270,11 @@ catch in generation 2:%
     await ctx.sandbox.run('main.dart', mode: 'console');
     await ctx.checkConsole(
       .it()..like('''
-stackTrace:%
-%thrower.dart %:% _boom
-%thrower.dart %:% throwFromPackage
-%main.dart %:% main%
-''', ignoreWhitespace: true),
+stackTrace:
+% throw_
+package:thrower/thrower.dart 3:% _boom
+package:thrower/thrower.dart 1:% throwFromPackage
+main.dart 5:% main%''', ignoreWhitespace: true),
     );
   });
 }

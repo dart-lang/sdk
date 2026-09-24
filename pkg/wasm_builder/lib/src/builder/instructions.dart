@@ -2586,18 +2586,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Eq());
   }
 
-  /// Emit an `f32.ne` instruction.
-  void f32_ne() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.ne'],
-      ),
-    );
-    _add(const ir.F32Ne());
-  }
-
   /// Emit an `f32.lt` instruction.
   void f32_lt() {
     assert(
@@ -2610,18 +2598,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Lt());
   }
 
-  /// Emit an `f32.gt` instruction.
-  void f32_gt() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.gt'],
-      ),
-    );
-    _add(const ir.F32Gt());
-  }
-
   /// Emit an `f32.le` instruction.
   void f32_le() {
     assert(
@@ -2632,18 +2608,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Le());
-  }
-
-  /// Emit an `f32.ge` instruction.
-  void f32_ge() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.ge'],
-      ),
-    );
-    _add(const ir.F32Ge());
   }
 
   /// Emit an `f64.eq` instruction.
@@ -3150,18 +3114,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I64Rotr());
   }
 
-  /// Emit an `f32.abs` instruction.
-  void f32_abs() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.abs'],
-      ),
-    );
-    _add(const ir.F32Abs());
-  }
-
   /// Emit an `f32.neg` instruction.
   void f32_neg() {
     assert(
@@ -3174,30 +3126,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Neg());
   }
 
-  /// Emit an `f32.ceil` instruction.
-  void f32_ceil() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.ceil'],
-      ),
-    );
-    _add(const ir.F32Ceil());
-  }
-
-  /// Emit an `f32.floor` instruction.
-  void f32_floor() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.floor'],
-      ),
-    );
-    _add(const ir.F32Floor());
-  }
-
   /// Emit an `f32.trunc` instruction.
   void f32_trunc() {
     assert(
@@ -3208,30 +3136,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Trunc());
-  }
-
-  /// Emit an `f32.nearest` instruction.
-  void f32_nearest() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.nearest'],
-      ),
-    );
-    _add(const ir.F32Nearest());
-  }
-
-  /// Emit an `f32.sqrt` instruction.
-  void f32_sqrt() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.sqrt'],
-      ),
-    );
-    _add(const ir.F32Sqrt());
   }
 
   /// Emit an `f32.add` instruction.
@@ -3256,78 +3160,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Sub());
-  }
-
-  /// Emit an `f32.mul` instruction.
-  void f32_mul() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.mul'],
-      ),
-    );
-    _add(const ir.F32Mul());
-  }
-
-  /// Emit an `f32.div` instruction.
-  void f32_div() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.div'],
-      ),
-    );
-    _add(const ir.F32Div());
-  }
-
-  /// Emit an `f32.min` instruction.
-  void f32_min() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.min'],
-      ),
-    );
-    _add(const ir.F32Min());
-  }
-
-  /// Emit an `f32.max` instruction.
-  void f32_max() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.max'],
-      ),
-    );
-    _add(const ir.F32Max());
-  }
-
-  /// Emit an `f32.copysign` instruction.
-  void f32_copysign() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.copysign'],
-      ),
-    );
-    _add(const ir.F32Copysign());
-  }
-
-  /// Emit an `f64.abs` instruction.
-  void f64_abs() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f64],
-        const [ir.NumType.f64],
-        trace: const ['f64.abs'],
-      ),
-    );
-    _add(const ir.F64Abs());
   }
 
   /// Emit an `f64.neg` instruction.
@@ -3376,18 +3208,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F64Trunc());
-  }
-
-  /// Emit an `f64.nearest` instruction.
-  void f64_nearest() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f64],
-        const [ir.NumType.f64],
-        trace: const ['f64.nearest'],
-      ),
-    );
-    _add(const ir.F64Nearest());
   }
 
   /// Emit an `f64.sqrt` instruction.
@@ -3618,30 +3438,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I64TruncF64U());
   }
 
-  /// Emit an `f32.convert_i32_s` instruction.
-  void f32_convert_i32_s() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i32],
-        const [ir.NumType.f32],
-        trace: const ['f32.convert_i32_s'],
-      ),
-    );
-    _add(const ir.F32ConvertI32S());
-  }
-
-  /// Emit an `f32.convert_i32_u` instruction.
-  void f32_convert_i32_u() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i32],
-        const [ir.NumType.f32],
-        trace: const ['f32.convert_i32_u'],
-      ),
-    );
-    _add(const ir.F32ConvertI32U());
-  }
-
   /// Emit an `f32.convert_i64_s` instruction.
   void f32_convert_i64_s() {
     assert(
@@ -3712,18 +3508,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F64ConvertI64S());
-  }
-
-  /// Emit an `f64.convert_i64_u` instruction.
-  void f64_convert_i64_u() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i64],
-        const [ir.NumType.f64],
-        trace: const ['f64.convert_i64_u'],
-      ),
-    );
-    _add(const ir.F64ConvertI64U());
   }
 
   /// Emit an `f64.promote_f32` instruction.
