@@ -204,7 +204,16 @@ class DtdServices {
     _server.instrumentationService.logError(
       ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
-
+    if (error != null && stack is StackTrace?) {
+      _server.sessionLogger.logException(
+        exception: [
+          'Failed to connect to/initialize DTD:',
+          error,
+          ?stack,
+        ].join('\n'),
+        stackTrace: stack,
+      );
+    }
     _close(DtdConnectionState.error);
   }
 

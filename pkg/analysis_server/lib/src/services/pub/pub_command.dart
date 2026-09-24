@@ -146,6 +146,9 @@ class PubCommand {
         _instrumentationService.logError(
           'pub command returned $exitCode exit code: $stderr.',
         );
+        _sessionLogger.logException(
+          exception: 'pub command returned $exitCode exit code: $stderr.',
+        );
         return null;
       }
 
@@ -158,10 +161,17 @@ class PubCommand {
         _instrumentationService.logError(
           'pub command returned invalid JSON: $e.',
         );
+        _sessionLogger.logException(
+          exception: 'pub command returned invalid JSON: $e.',
+        );
         return null;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       _instrumentationService.logError('pub command failed to run: $e.');
+      _sessionLogger.logException(
+        exception: 'pub command failed to run: $e.',
+        stackTrace: stackTrace,
+      );
       return null;
     } finally {
       completer.complete();

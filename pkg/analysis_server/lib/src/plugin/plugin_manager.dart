@@ -670,6 +670,7 @@ class PluginManager {
       buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
       instrumentationService.logError(exceptionReason);
+      sessionLogger.logException(exception: exceptionReason);
       throw PluginException(exceptionReason);
     }
 

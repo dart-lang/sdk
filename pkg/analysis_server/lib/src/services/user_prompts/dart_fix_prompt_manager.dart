@@ -227,6 +227,9 @@ class DartFixPromptManager {
         server.instrumentationService.logError(
           'Failed to perform bulk "dart fix" check: $e',
         );
+        server.sessionLogger.logException(
+          exception: 'Failed to perform bulk "dart fix" check: $e',
+        );
       }),
     );
   }

@@ -125,20 +125,36 @@ class PubApi {
             'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
             'for $url. Not retrying.',
           );
+          sessionLogger.logException(
+            exception:
+                'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
+                'for $url. Not retrying.',
+          );
           return null;
         }
         instrumentationService.logError(
           'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
           'for $url on attempt $requestCount',
         );
+        sessionLogger.logException(
+          exception:
+              'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
+              'for $url on attempt $requestCount',
+        );
       } catch (e) {
         if (e is! IOException && e is! FormatException) {
           instrumentationService.logError(
             'Error calling pub API for $url. Not retrying. $e',
           );
+          sessionLogger.logException(
+            exception: 'Error calling pub API for $url. Not retrying. $e',
+          );
           return null;
         }
         instrumentationService.logError('Error calling pub API for $url: $e');
+        sessionLogger.logException(
+          exception: 'Error calling pub API for $url: $e',
+        );
       }
       if (requestCount >= maxFailedRequests) {
         instrumentationService.logInfo(
