@@ -7,12 +7,16 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'dart.dart';
+import 'flutter.dart';
 
 Future<void> runSetup(List<String> args) async {
-  final runner = CommandRunner<void>(
-    'dart run dartpad:setup',
-    'Download or build DartPad SDK assets for Dart and Flutter.',
-  )..addCommand(SetupDartCommand());
+  final runner =
+      CommandRunner<void>(
+          'dart run dartpad:setup',
+          'Download or build DartPad SDK assets for Dart and Flutter.',
+        )
+        ..addCommand(SetupDartCommand())
+        ..addCommand(SetupFlutterCommand());
 
   try {
     await runner.run(args);

@@ -4,6 +4,7 @@
 
 import 'package:checks/checks.dart';
 import 'package:dartpad/src/setup/dart.dart';
+import 'package:dartpad/src/setup/flutter.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -56,6 +57,17 @@ void main() {
       check(
         () => resolveDartPadZipUrl(channel: 'main', revision: 'not-a-sha'),
       ).throws<FormatException>();
+    });
+  });
+
+  group('inferDartChannelFromVersion', () {
+    test('maps edge/dev/beta/stable version strings to archive channels', () {
+      check(
+        inferDartChannelFromVersion('3.14.0-edge.6a318e4f37b'),
+      ).equals('main');
+      check(inferDartChannelFromVersion('3.14.0-262.0.dev')).equals('dev');
+      check(inferDartChannelFromVersion('3.14.0-211.1.beta')).equals('beta');
+      check(inferDartChannelFromVersion('3.13.4')).equals('stable');
     });
   });
 }
