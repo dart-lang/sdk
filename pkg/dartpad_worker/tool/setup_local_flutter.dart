@@ -378,14 +378,29 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   );
 
   print('Adding Dart SDK lib...');
+  // Note: `lib/_internal/js_runtime/` MUST be retained because
+  // `sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart` maps
+  // `dart:_interceptors`, `dart:_native_typed_data`, and `dart:_js_helper`
+  // (used by `dart:js_interop` and `dart:html` in `FolderBasedDartSdk`)
+  // to `_internal/js_runtime/lib/...`. Conversely, `js_dev_runtime/` has
+  // zero entries in `libraries.dart` and DDC uses `ddc_outline.dill`.
+  const excludedInternalDirs = [
+    '_internal/vm/',
+    '_internal/vm_shared/',
+    '_internal/wasm/',
+    '_internal/js_dev_runtime/',
+  ];
   tar.addDirectory(
     target: '/sdk/bin/cache/dart-sdk/lib',
     source: p.join(webSdk.dartSdkRoot, 'lib'),
-    where: (f) =>
-        (f.endsWith('.dart') ||
-            f.endsWith('.json') ||
-            f.contains('${p.separator}_internal${p.separator}')) &&
-        !f.endsWith('.dill'),
+    where: (f) {
+      final posixPath = p.posix.joinAll(p.split(f));
+      if (excludedInternalDirs.any(posixPath.startsWith)) return false;
+      return (f.endsWith('.dart') ||
+              f.endsWith('.json') ||
+              f.contains('${p.separator}_internal${p.separator}')) &&
+          !f.endsWith('.dill');
+    },
   );
 
   print('Adding version and libraries');

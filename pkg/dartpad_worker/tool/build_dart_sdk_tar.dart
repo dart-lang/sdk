@@ -73,14 +73,28 @@ Future<void> main(List<String> args) async {
 }
 
 List<String> _requiredFilesFromSdk(Uri sdkPath) {
+  // Note: `lib/_internal/js_runtime/` MUST be retained because
+  // `sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart` maps
+  // `dart:_interceptors`, `dart:_native_typed_data`, and `dart:_js_helper`
+  // (used by `dart:js_interop` and `dart:html` in `FolderBasedDartSdk`)
+  // to `_internal/js_runtime/lib/...`. Conversely, `js_dev_runtime/` has
+  // zero entries in `libraries.dart` and DDC uses `ddc_outline.dill`.
+  const excludedInternalDirs = [
+    'lib/_internal/vm/',
+    'lib/_internal/vm_shared/',
+    'lib/_internal/wasm/',
+    'lib/_internal/js_dev_runtime/',
+  ];
   // TODO(jonasfj): We can use analyzer summaries instead, this is probably
   // faster, but requires a few changes to analyzer.
   final dartFilesForAnalyzer = Directory.fromUri(sdkPath.resolve('lib/'))
       .listSync(recursive: true)
       .whereType<File>()
       .where((f) => f.path.endsWith('.dart') || f.path.endsWith('.json'))
-      // TODO(jonasfj): Figure out exactly what we need from lib/_internal/
-      //.where((f) =>  !f.uri.path.substring(sdkPath.path.length).contains('lib/_internal/'))
+      .where((f) {
+        final rel = f.uri.path.substring(sdkPath.path.length);
+        return !excludedInternalDirs.any(rel.startsWith);
+      })
       .map((f) => f.uri)
       .followedBy([
         sdkPath.resolve('lib/_internal/allowed_experiments.json'),
