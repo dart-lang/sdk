@@ -103,4 +103,25 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
       isNotAlwaysExhaustive(scope.parseType('T & int'));
     });
   }
+
+  /// A type parameter whose bound cycles back to itself through `FutureOr`
+  /// must not recurse forever; treated as not always-exhaustive, matching
+  /// the same cyclic-bound handling `isNonNullable` uses (see
+  /// nullable_test.dart's `test_typeParameter_boundCyclic_futureOr`).
+  test_typeParameter_boundCyclic_futureOr() {
+    withTypeParameterScope('X extends FutureOr<X>', (scope) {
+      isNotAlwaysExhaustive(scope.parseType('X'));
+    });
+  }
+
+  /// Two type parameters whose bounds cycle through each other must also
+  /// terminate rather than recurse forever.
+  test_typeParameter_boundCyclic_mutual() {
+    withTypeParameterScope('X extends FutureOr<Y>, Y extends FutureOr<X>', (
+      scope,
+    ) {
+      isNotAlwaysExhaustive(scope.parseType('X'));
+      isNotAlwaysExhaustive(scope.parseType('Y'));
+    });
+  }
 }
