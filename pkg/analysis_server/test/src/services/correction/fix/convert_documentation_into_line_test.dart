@@ -66,7 +66,6 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.slash_for_doc_comments;
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39317')
   Future<void> test_noLeadingAsterisk() async {
     await resolveTestCode('''
 class A {
