@@ -1016,18 +1016,27 @@ abstract base class StoreField extends Instruction with HasSideEffects {
 /// For late fields, check if field is initialized if [checkInitialized].
 /// If it is not, then either call initializer or throw exception.
 final class LoadInstanceField extends LoadField {
+  @override
+  final CType type;
+
   LoadInstanceField(
     super.graph,
     super.sourcePosition,
     super.field,
     Definition object, {
     bool checkInitialized = false,
-  }) : super(inputCount: 1, checkInitialized: checkInitialized) {
+    CType? type,
+  }) : type = type ?? field.type,
+       super(inputCount: 1, checkInitialized: checkInitialized) {
     assert(field.isLate || !checkInitialized);
     setInputAt(0, object);
   }
 
   Definition get object => inputDefAt(0);
+
+  @override
+  bool attributesEqual(covariant LoadInstanceField other) =>
+      super.attributesEqual(other) && this.type == other.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadInstanceField(this);

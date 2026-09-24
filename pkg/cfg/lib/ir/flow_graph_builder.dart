@@ -360,6 +360,7 @@ class FlowGraphBuilder {
   LoadInstanceField addLoadInstanceField(
     CField field, {
     bool checkInitialized = false,
+    CType? type,
   }) {
     final object = pop();
     final instr = LoadInstanceField(
@@ -368,6 +369,7 @@ class FlowGraphBuilder {
       field,
       object,
       checkInitialized: checkInitialized,
+      type: type,
     );
     push(instr);
     appendInstruction(instr);

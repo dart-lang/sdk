@@ -2205,7 +2205,10 @@ class AstToIr extends ast.RecursiveVisitor {
     final shape = RecordType(node.receiverType).shape;
     _translateNode(node.receiver);
     // TODO: canonicalize record fields
-    builder.addLoadInstanceField(CField(RecordField(shape, node.index)));
+    builder.addLoadInstanceField(
+      CField(RecordField(shape, node.index)),
+      type: _staticType(node),
+    );
   }
 
   @override
@@ -2217,6 +2220,7 @@ class AstToIr extends ast.RecursiveVisitor {
     // TODO: canonicalize record fields
     builder.addLoadInstanceField(
       CField(RecordField(shape, shape.positional + namedIndex)),
+      type: _staticType(node),
     );
   }
 
