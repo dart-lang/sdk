@@ -76,6 +76,7 @@ basic_cq("homebrew-dart", [
     ),
 ])
 basic_cq("recipes")
+basic_cq("vibepad")
 
 def empty_cq(repository):
     luci.cq_group(
