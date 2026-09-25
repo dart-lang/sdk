@@ -11,6 +11,8 @@
 - update `public_member_api_docs` to no longer report the primary constructor
   of a class that is `sealed`, `abstract final`, `abstract interface`, or
   annotated with `@internal`.
+- update `public_member_api_docs` to report undocumented declaring parameters
+  of a primary constructor, which induce public fields.
 
 # 3.13.0
 
