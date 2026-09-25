@@ -3404,7 +3404,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!isAllowInterop(f)) {
         return StaticInvocation(
           _assertInteropMethod,
-          Arguments([f], types: DartTypeList(type)),
+          Arguments(ExpressionList(f), types: DartTypeList(type)),
         );
       }
     }

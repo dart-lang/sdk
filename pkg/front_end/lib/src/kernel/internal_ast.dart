@@ -543,15 +543,14 @@ class ActualArguments extends InternalNode {
 
   Arguments toArguments(
     List<DartType> typeArguments,
-    List<Expression> positionalArguments,
-    List<NamedExpression> namedArguments,
+    ExpressionList positionalArguments,
+    NamedExpressionList namedArguments,
   ) {
-    return extern.createArguments(
+    return new Arguments(
       positionalArguments,
-      types: typeArguments,
+      types: new DartTypeList.from(typeArguments),
       named: namedArguments,
-      fileOffset: fileOffset,
-    );
+    )..fileOffset = fileOffset;
   }
 
   @override
@@ -1657,7 +1656,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
         promotedType ?? type,
         new LocalFunctionInvocation(
           _lateGetter!,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          new Arguments.empty()..fileOffset = fileOffset,
           functionType: _lateGetter!.type as FunctionType,
         )..fileOffset = fileOffset,
       );
@@ -1676,7 +1675,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
     if (_lateSetter != null) {
       return new LocalFunctionInvocation(
         _lateSetter!,
-        new Arguments(<Expression>[value])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(value))..fileOffset = fileOffset,
         functionType: _lateSetter!.type as FunctionType,
       )..fileOffset = fileOffset;
     }

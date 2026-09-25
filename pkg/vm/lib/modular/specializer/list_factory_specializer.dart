@@ -121,12 +121,12 @@ class ListFactorySpecializer extends BaseSpecializer {
     if (growable) {
       return StaticInvocation(
         _growableListEmptyFactory,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       )..fileOffset = node.fileOffset;
     } else {
       return StaticInvocation(
         _fixedListEmptyFactory,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       )..fileOffset = node.fileOffset;
     }
   }
@@ -149,24 +149,24 @@ class ListFactorySpecializer extends BaseSpecializer {
       if (fillingWithNull) {
         return StaticInvocation(
           _growableListFactory,
-          Arguments([length], types: args.types),
+          Arguments(ExpressionList(length), types: args.types),
         )..fileOffset = node.fileOffset;
       } else {
         return StaticInvocation(
           _growableListFilledFactory,
-          Arguments([length, fill], types: args.types),
+          Arguments(ExpressionList(length, fill), types: args.types),
         )..fileOffset = node.fileOffset;
       }
     } else {
       if (fillingWithNull) {
         return StaticInvocation(
           _fixedListFactory,
-          Arguments([length], types: args.types),
+          Arguments(ExpressionList(length), types: args.types),
         )..fileOffset = node.fileOffset;
       } else {
         return StaticInvocation(
           _fixedListFilledFactory,
-          Arguments([length, fill], types: args.types),
+          Arguments(ExpressionList(length, fill), types: args.types),
         )..fileOffset = node.fileOffset;
       }
     }
@@ -184,12 +184,12 @@ class ListFactorySpecializer extends BaseSpecializer {
     if (growable) {
       return StaticInvocation(
         _growableListGenerateFactory,
-        Arguments([length, generator], types: args.types),
+        Arguments(ExpressionList(length, generator), types: args.types),
       )..fileOffset = node.fileOffset;
     } else {
       return StaticInvocation(
         _fixedListGenerateFactory,
-        Arguments([length, generator], types: args.types),
+        Arguments(ExpressionList(length, generator), types: args.types),
       )..fileOffset = node.fileOffset;
     }
   }

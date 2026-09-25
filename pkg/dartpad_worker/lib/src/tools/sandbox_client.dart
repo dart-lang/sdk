@@ -17,10 +17,8 @@ final class SandboxClient {
   final Peer _peer;
   final void Function() _onClosed;
 
-  final _consoleController = StreamController<({String message})>.broadcast();
-  final _unhandledRejectionController =
-      StreamController<({String message})>.broadcast();
-  final _errorController = StreamController<({String message})>.broadcast();
+  final _consoleController =
+      StreamController<({String level, String message})>.broadcast();
   final _extensionEventController =
       StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
@@ -33,21 +31,10 @@ final class SandboxClient {
       _onClosed = onClosed {
     // Register notification handlers
     _peer.registerMethod('console', (Parameters params) {
+      final level = params['level'].asString;
       final message = params['message'].asString;
 
-      _consoleController.add((message: message));
-    });
-
-    _peer.registerMethod('unhandledRejection', (Parameters params) {
-      final message = params['message'].asString;
-
-      _unhandledRejectionController.add((message: message));
-    });
-
-    _peer.registerMethod('error', (Parameters params) {
-      final message = params['message'].asString;
-
-      _errorController.add((message: message));
+      _consoleController.add((level: level, message: message));
     });
 
     _peer.registerMethod('extensionEvent', (Parameters params) {
@@ -98,14 +85,8 @@ final class SandboxClient {
   }
 
   /// Stream of console output from the sandbox.
-  Stream<({String message})> get onConsole => _consoleController.stream;
-
-  /// Stream of unhandled rejections from the sandbox.
-  Stream<({String message})> get onUnhandledRejection =>
-      _unhandledRejectionController.stream;
-
-  /// Stream of runtime errors from the sandbox.
-  Stream<({String message})> get onError => _errorController.stream;
+  Stream<({String level, String message})> get onConsole =>
+      _consoleController.stream;
 
   /// Stream of custom extension events from the sandbox.
   ///

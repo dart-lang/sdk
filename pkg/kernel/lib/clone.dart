@@ -1065,12 +1065,18 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitArguments(Arguments node) {
     return new Arguments(
-      node.positional.map(clone).toList(),
+      ExpressionList.generate(
+        node.positional.length,
+        (i) => clone(node.positional[i]),
+      ),
       types: DartTypeList.generate(
         node.types.length,
         (i) => visitType(node.types[i]),
       ),
-      named: node.named.map(clone).toList(),
+      named: NamedExpressionList.generate(
+        node.named.length,
+        (i) => clone(node.named[i]),
+      ),
     );
   }
 

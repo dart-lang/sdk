@@ -534,7 +534,7 @@ mixin FinalizableTransformer on Transformer {
           ExpressionStatement(
             StaticInvocation(
               reachabilityFenceFunction,
-              Arguments(<Expression>[declaration]),
+              Arguments(ExpressionList(declaration)),
             ),
           ),
       ];

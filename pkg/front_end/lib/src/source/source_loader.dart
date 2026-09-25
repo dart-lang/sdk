@@ -1059,9 +1059,9 @@ severity: $severity
 
   void addNativeAnnotation(Annotatable annotatable, String nativeMethodName) {
     MemberBuilder constructor = getNativeAnnotation();
-    Arguments arguments = new Arguments(<Expression>[
-      new StringLiteral(nativeMethodName),
-    ]);
+    Arguments arguments = new Arguments(
+      new ExpressionList(new StringLiteral(nativeMethodName)),
+    );
     Expression annotation;
     if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(

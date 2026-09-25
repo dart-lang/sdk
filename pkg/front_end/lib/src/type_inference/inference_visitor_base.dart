@@ -243,9 +243,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   // Coverage-ignore(suite): Not run.
   Expression createReachabilityError(int fileOffset, Message errorMessage) {
-    Arguments arguments = new Arguments([
-      new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset,
-    ])..fileOffset = fileOffset;
+    Arguments arguments = new Arguments(
+      new ExpressionList(
+        new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset,
+      ),
+    )..fileOffset = fileOffset;
     return new Throw(
         new ConstructorInvocation(
           coreTypes.reachabilityErrorConstructor,
@@ -826,8 +828,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeMember:
         tearOff = new StaticInvocation(
           target.tearoffTarget as Procedure,
-          new Arguments([expression], types: target.receiverTypeArguments)
-            ..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(expression),
+            types: target.receiverTypeArguments,
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.extensionTypeRepresentation:
@@ -2006,8 +2010,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       if (argMessage != null) {
         var (
-          List<Expression> positional,
-          List<NamedExpression> named,
+          ExpressionList positional,
+          NamedExpressionList named,
         ) = argumentsInfo.computeArguments(
           hoistedExpressions: hoistedExpressions,
           hoistingEndIndex: hoistingEndIndex,
@@ -2154,13 +2158,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       fileOffset: offset,
     );
     if (argMessage != null) {
-      var (
-        List<Expression> positional,
-        List<NamedExpression> named,
-      ) = argumentsInfo.computeArguments(
-        hoistedExpressions: hoistedExpressions,
-        hoistingEndIndex: hoistingEndIndex,
-      );
+      var (ExpressionList positional, NamedExpressionList named) = argumentsInfo
+          .computeArguments(
+            hoistedExpressions: hoistedExpressions,
+            hoistingEndIndex: hoistingEndIndex,
+          );
       return new WrapInProblemInferenceResult(
         message: argMessage,
         problemReporting: problemReporting,
@@ -2203,13 +2205,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       "Inferred function type: $calleeType.",
     );
 
-    var (
-      List<Expression> positional,
-      List<NamedExpression> named,
-    ) = argumentsInfo.computeArguments(
-      hoistedExpressions: hoistedExpressions,
-      hoistingEndIndex: hoistingEndIndex,
-    );
+    var (ExpressionList positional, NamedExpressionList named) = argumentsInfo
+        .computeArguments(
+          hoistedExpressions: hoistedExpressions,
+          hoistingEndIndex: hoistingEndIndex,
+        );
     return new SuccessfulInferenceResult(
       inferredType: inferredType,
       functionType: calleeType,
@@ -2506,8 +2506,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required ObjectAccessTarget target,
     required Expression receiver,
     required List<DartType> explicitOrInferredTypeArguments,
-    required List<Expression> positionalArguments,
-    required List<NamedExpression> namedArguments,
+    required ExpressionList positionalArguments,
+    required NamedExpressionList namedArguments,
   }) {
     assert(
       target.isExtensionMember ||
@@ -2517,7 +2517,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
     Procedure procedure = target.member as Procedure;
     Arguments extensionInvocationArguments = new Arguments(
-      [receiver, ...positionalArguments],
+      new ExpressionList.generate(
+        1 + positionalArguments.length,
+        (i) => i == 0 ? receiver : positionalArguments[i - 1],
+      ),
       named: namedArguments,
       types: new DartTypeList.from([
         ...target.receiverTypeArguments,
@@ -2694,8 +2697,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target: target,
         receiver: receiver,
         explicitOrInferredTypeArguments: [],
-        positionalArguments: [],
-        namedArguments: [],
+        positionalArguments: ExpressionList.empty,
+        namedArguments: NamedExpressionList.empty,
       );
       ExpressionInferenceResult result = inferMethodInvocation(
         visitor,
@@ -4676,7 +4679,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           write = new StaticInvocation(
             writeTarget.member as Procedure,
             new Arguments(
-              <Expression>[receiver, value],
+              new ExpressionList(receiver, value),
               types: writeTarget.receiverTypeArguments,
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset;
@@ -4688,11 +4691,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           CachedExpression assignmentCache = extern.createCachedExpression(
             expression: new StaticInvocation(
               writeTarget.member as Procedure,
-              new Arguments(<Expression>[
+              new Arguments(
+                new ExpressionList(
                   receiver,
                   extern.createVariableGet(valueCache.variable),
-                ], types: writeTarget.receiverTypeArguments)
-                ..fileOffset = fileOffset,
+                ),
+                types: writeTarget.receiverTypeArguments,
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             type: const VoidType(),
           );
@@ -5432,7 +5437,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             read = new StaticInvocation(
               readTarget.member as Procedure,
               new Arguments(
-                <Expression>[receiver],
+                new ExpressionList(receiver),
                 types: readTarget.receiverTypeArguments,
               )..fileOffset = fileOffset,
             )..fileOffset = fileOffset;
@@ -5441,7 +5446,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             read = new StaticInvocation(
               readTarget.tearoffTarget as Procedure,
               new Arguments(
-                <Expression>[receiver],
+                new ExpressionList(receiver),
                 types: readTarget.receiverTypeArguments,
               )..fileOffset = fileOffset,
             )..fileOffset = fileOffset;
@@ -5700,7 +5705,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         receiver,
         indexGetName,
-        new Arguments([index])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(index))..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5728,7 +5733,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         receiver,
         indexSetName,
-        new Arguments([index, value])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(index, value))
+          ..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5756,7 +5762,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         left,
         binaryName,
-        new Arguments([right])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(right))..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5782,7 +5788,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         expression,
         unaryName,
-        new Arguments([])..fileOffset = fileOffset,
+        new Arguments.empty()..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5849,8 +5855,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// This records the relation which data for testing.
   Arguments createArgumentsFromInternalNode(
     List<DartType> typeArguments,
-    List<Expression> positionalArguments,
-    List<NamedExpression> namedArguments,
+    ExpressionList positionalArguments,
+    NamedExpressionList namedArguments,
     ActualArguments node,
   ) {
     Arguments arguments = node.toArguments(
@@ -6278,12 +6284,34 @@ class _ArgumentInfo {
 }
 
 extension on List<_ArgumentInfo> {
-  (List<Expression> positional, List<NamedExpression> named) computeArguments({
+  (ExpressionList positional, NamedExpressionList named) computeArguments({
     required List<CachedExpression>? hoistedExpressions,
     required int hoistingEndIndex,
   }) {
-    List<Expression> positional = [];
-    List<NamedExpression> named = [];
+    int positionalCount = 0;
+    int namedCount = 0;
+    for (int index = 0; index < length; index++) {
+      _ArgumentInfo argumentInfo = this[index];
+      if (argumentInfo.isDuplicateNamed) {
+        continue;
+      }
+      switch (argumentInfo.argument) {
+        case PositionalArgument():
+          positionalCount++;
+        case NamedArgument():
+          namedCount++;
+      }
+    }
+    ExpressionList positional = new ExpressionList.filled(
+      positionalCount,
+      dummyExpression,
+    );
+    NamedExpressionList named = new NamedExpressionList.filled(
+      namedCount,
+      dummyNamedExpression,
+    );
+    int positionalIndex = 0;
+    int namedIndex = 0;
     for (int index = 0; index < length; index++) {
       _ArgumentInfo argumentInfo = this[index];
       if (argumentInfo.isDuplicateNamed) {
@@ -6301,14 +6329,12 @@ extension on List<_ArgumentInfo> {
       }
       switch (argument) {
         case PositionalArgument():
-          positional.add(argumentInfo.inferredExpression);
+          positional[positionalIndex++] = argumentInfo.inferredExpression;
         case NamedArgument():
-          named.add(
-            extern.createNamedExpression(
-              argument.name,
-              argumentInfo.inferredExpression,
-              fileOffset: argument.namedExpression.fileOffset,
-            ),
+          named[namedIndex++] = extern.createNamedExpression(
+            argument.name,
+            argumentInfo.inferredExpression,
+            fileOffset: argument.namedExpression.fileOffset,
           );
       }
     }

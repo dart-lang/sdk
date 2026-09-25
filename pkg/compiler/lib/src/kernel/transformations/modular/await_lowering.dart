@@ -25,8 +25,10 @@ class AwaitLowering {
     final operand = node.operand;
     final fileOffset = node.fileOffset;
     final helper = _coreTypes.wrapAwaitedExpression;
-    final arguments = Arguments([operand], types: DartTypeList(flattenType))
-      ..fileOffset = fileOffset;
+    final arguments = Arguments(
+      ExpressionList(operand),
+      types: DartTypeList(flattenType),
+    )..fileOffset = fileOffset;
     final wrappedOperand = StaticInvocation(helper, arguments)
       ..fileOffset = fileOffset;
     return AwaitExpression(wrappedOperand)..fileOffset = fileOffset;

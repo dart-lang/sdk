@@ -1269,15 +1269,14 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
       ),
       _methodName,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        new ExpressionList.generate(
+          _arguments.length,
+          (int i) => _arguments[i].createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
       )..fileOffset = fileOffset,
     )..fileOffset = fileOffset;
   }
@@ -1441,15 +1440,14 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
       ),
       _target.name,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        new ExpressionList.generate(
+          _arguments.length,
+          (int i) => _arguments[i].createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
       )..fileOffset = fileOffset,
       interfaceTarget: _target,
       functionType: _functionType,
@@ -1511,15 +1509,14 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
     return new StaticInvocation(
       _target,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        new ExpressionList.generate(
+          _arguments.length,
+          (int i) => _arguments[i].createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
         types: _typeArguments,
       )..fileOffset = fileOffset,
     )..fileOffset = fileOffset;

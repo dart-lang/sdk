@@ -1,3 +1,10 @@
+## v0.0.10
+ - Add `dart run dartpad setup` CLI (`dart` and `flutter` subcommands) to
+   download or build DartPad SDK assets.
+ - Stop bundling prebuilt `web/` assets inside the published package archive.
+ - Pre-populate `/pub-cache` in the Flutter DartPad SDK `sdk.tar` so `pub get`
+   does not need to download precompiled packages.
+
 ## v0.0.9
  - Add missing `MessagePort` VM compilation stubs (`asTransferableMessagePort`
    and `fromMessagePort`).

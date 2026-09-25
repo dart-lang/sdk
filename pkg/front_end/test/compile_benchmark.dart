@@ -338,7 +338,7 @@ Uri? busyWaitProcedure(
     new ExpressionStatement(
       new StaticInvocation(
         busyWaitProcedure,
-        new Arguments([new IntLiteral(2 /* 0.002 ms */)]),
+        new Arguments(new ExpressionList(new IntLiteral(2 /* 0.002 ms */))),
       ),
     ),
     orgBody,
@@ -455,7 +455,7 @@ class RegisterCallTransformer extends RecursiveVisitor {
       new ExpressionStatement(
         new StaticInvocation(
           registerCallProcedure,
-          new Arguments([new IntLiteral(procedureNum)]),
+          new Arguments(new ExpressionList(new IntLiteral(procedureNum))),
         ),
       ),
       orgBody,
@@ -500,7 +500,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
       new ExpressionStatement(
         new StaticInvocation(
           registerCallStartProcedure,
-          new Arguments([new IntLiteral(procedureNum)]),
+          new Arguments(new ExpressionList(new IntLiteral(procedureNum))),
         ),
       ),
       new TryFinally(
@@ -508,7 +508,7 @@ class RegisterTimeTransformer extends RecursiveVisitor {
         new ExpressionStatement(
           new StaticInvocation(
             registerCallEndProcedure,
-            new Arguments([new IntLiteral(procedureNum)]),
+            new Arguments(new ExpressionList(new IntLiteral(procedureNum))),
           ),
         ),
       ),

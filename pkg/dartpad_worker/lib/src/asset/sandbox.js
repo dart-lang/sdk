@@ -287,10 +287,11 @@
   }
 
   const originalConsole = {
+    debug: console.debug,
     log: console.log,
     info: console.info,
     warn: console.warn,
-    error: console.error
+    error: console.error,
   };
 
   // Proxy console over RPC
@@ -321,13 +322,13 @@
     return `${header}\n${firstFrame < 0 ? e.stack : e.stack.slice(firstFrame)}`;
   }
 
-  // Surface browser runtime failures on a dedicated channel instead of
-  // forcing the host to infer them from console text.
+  // Surface uncaught browser runtime failures and unhandled promise rejections
+  // as error-level console messages.
   window.addEventListener('error', (e) => {
     const message = e.error instanceof Error
       ? renderError(e.error)
       : `Uncaught: ${e.message}`;
-    sendNotification('error', { message });
+    sendNotification('console', { level: 'error', message });
 
     originalConsole.error.call(console, 'Uncaught sandbox error:', e.error || e.message || e);
   });
@@ -335,7 +336,7 @@
     const message = e.reason instanceof Error
       ? renderError(e.reason)
       : `Unhandled Rejection: ${safeSerialize(e.reason)}`;
-    sendNotification('unhandledRejection', { message });
+    sendNotification('console', { level: 'error', message });
 
     originalConsole.error.call(console, 'Unhandled sandbox rejection:', e.reason);
   });

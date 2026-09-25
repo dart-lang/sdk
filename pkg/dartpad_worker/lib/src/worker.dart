@@ -574,20 +574,7 @@ class _Workspace {
       _session._rpc.sendNotification('workspace/sandbox/console', {
         'workspaceId': _workspaceId,
         'sandboxId': sandboxId,
-        'message': e.message,
-      });
-    });
-    sandbox.onError.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/error', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
-        'message': e.message,
-      });
-    });
-    sandbox.onUnhandledRejection.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/unhandledRejection', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
+        'level': e.level,
         'message': e.message,
       });
     });

@@ -385,7 +385,7 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
       (unaligned && isFloat
           ? transformer.loadUnalignedMethods
           : transformer.loadMethods)[nativeType]!,
-      Arguments([typedDataBase, offsetInBytes]),
+      Arguments(ExpressionList(typedDataBase, offsetInBytes)),
     )..fileOffset = fileOffset;
   }
 
@@ -408,11 +408,13 @@ class PrimitiveNativeTypeCfe extends NativeTypeCfe {
       (unaligned && isFloat
           ? transformer.storeUnalignedMethods
           : transformer.storeMethods)[nativeType]!,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-        VariableGet(value)..fileOffset = fileOffset,
-      ]),
+      Arguments(
+        ExpressionList(
+          typedDataBase,
+          offsetInBytes,
+          VariableGet(value)..fileOffset = fileOffset,
+        ),
+      ),
     )..fileOffset = fileOffset;
   }
 
@@ -469,10 +471,10 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.loadMethods[NativeType.kPointer]!,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-      ], types: (dartType as InterfaceType).typeArguments),
+      Arguments(
+        ExpressionList(typedDataBase, offsetInBytes),
+        types: (dartType as InterfaceType).typeArguments,
+      ),
     )..fileOffset = fileOffset;
   }
 
@@ -497,11 +499,14 @@ class PointerNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.storeMethods[NativeType.kPointer]!,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-        VariableGet(value)..fileOffset = fileOffset,
-      ], types: (dartType as InterfaceType).typeArguments),
+      Arguments(
+        ExpressionList(
+          typedDataBase,
+          offsetInBytes,
+          VariableGet(value)..fileOffset = fileOffset,
+        ),
+        types: (dartType as InterfaceType).typeArguments,
+      ),
     )..fileOffset = fileOffset;
   }
 
@@ -572,7 +577,7 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
 
     return ConstructorInvocation(
       constructor,
-      Arguments([typedDataBase, offsetInBytes]),
+      Arguments(ExpressionList(typedDataBase, offsetInBytes)),
     )..fileOffset = fileOffset;
   }
 
@@ -593,19 +598,21 @@ abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.memCopy,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-        transformer.getCompoundTypedDataBaseField(
-          VariableGet(value)..fileOffset = fileOffset,
-          fileOffset,
+      Arguments(
+        ExpressionList(
+          typedDataBase,
+          offsetInBytes,
+          transformer.getCompoundTypedDataBaseField(
+            VariableGet(value)..fileOffset = fileOffset,
+            fileOffset,
+          ),
+          transformer.getCompoundOffsetInBytesField(
+            VariableGet(value)..fileOffset = fileOffset,
+            fileOffset,
+          ),
+          generateSize(transformer),
         ),
-        transformer.getCompoundOffsetInBytesField(
-          VariableGet(value)..fileOffset = fileOffset,
-          fileOffset,
-        ),
-        generateSize(transformer),
-      ]),
+      ),
     )..fileOffset = fileOffset;
   }
 }
@@ -874,16 +881,19 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   }) {
     return ConstructorInvocation(
       transformer.arrayConstructor,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-        ConstantExpression(IntConstant(length)),
-        ConstantExpression(BoolConstant(variableLength)),
-        transformer.intListConstantExpression(
-          nestedDimensions,
-          Nullability.nonNullable,
+      Arguments(
+        ExpressionList(
+          typedDataBase,
+          offsetInBytes,
+          ConstantExpression(IntConstant(length)),
+          ConstantExpression(BoolConstant(variableLength)),
+          transformer.intListConstantExpression(
+            nestedDimensions,
+            Nullability.nonNullable,
+          ),
         ),
-      ], types: (dartType as InterfaceType).typeArguments),
+        types: (dartType as InterfaceType).typeArguments,
+      ),
     )..fileOffset = fileOffset;
   }
 
@@ -904,19 +914,21 @@ class ArrayNativeTypeCfe extends NativeTypeCfe {
   }) {
     return StaticInvocation(
       transformer.memCopy,
-      Arguments([
-        typedDataBase,
-        offsetInBytes,
-        transformer.getCompoundTypedDataBaseField(
-          VariableGet(value)..fileOffset = fileOffset,
-          fileOffset,
+      Arguments(
+        ExpressionList(
+          typedDataBase,
+          offsetInBytes,
+          transformer.getCompoundTypedDataBaseField(
+            VariableGet(value)..fileOffset = fileOffset,
+            fileOffset,
+          ),
+          transformer.getCompoundOffsetInBytesField(
+            VariableGet(value)..fileOffset = fileOffset,
+            fileOffset,
+          ),
+          generateSize(transformer),
         ),
-        transformer.getCompoundOffsetInBytesField(
-          VariableGet(value)..fileOffset = fileOffset,
-          fileOffset,
-        ),
-        generateSize(transformer),
-      ]),
+      ),
     )..fileOffset = fileOffset;
   }
 

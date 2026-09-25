@@ -113,7 +113,7 @@ class ListFactorySpecializer extends BaseSpecializer {
 
     Expression allocation = StaticInvocation(
       growable ? _arrayAllocateGrowableFactory : _arrayAllocateFixedFactory,
-      Arguments([getLength()], types: args.types),
+      Arguments(ExpressionList(getLength()), types: args.types),
     )..fileOffset = node.fileOffset;
 
     final listVariable = SyntheticVariable(
@@ -139,7 +139,7 @@ class ListFactorySpecializer extends BaseSpecializer {
         InstanceAccessKind.Instance,
         VariableGet(indexVariable)..fileOffset = node.fileOffset,
         Name('<'),
-        Arguments([getLength()]),
+        Arguments(ExpressionList(getLength())),
         interfaceTarget: intLess,
         functionType: intLess.getterType as FunctionType,
       ),
@@ -151,7 +151,7 @@ class ListFactorySpecializer extends BaseSpecializer {
             InstanceAccessKind.Instance,
             VariableGet(indexVariable)..fileOffset = node.fileOffset,
             Name('+'),
-            Arguments([IntLiteral(1)]),
+            Arguments(ExpressionList(IntLiteral(1))),
             interfaceTarget: intPlus,
             functionType: FunctionType(
               DartTypeList(intType),
@@ -347,10 +347,12 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
           InstanceAccessKind.Instance,
           VariableGet(listVariable)..fileOffset = constructorFileOffset,
           Name('[]='),
-          Arguments([
-            VariableGet(argument)..fileOffset = node.fileOffset,
-            value,
-          ]),
+          Arguments(
+            ExpressionList(
+              VariableGet(argument)..fileOffset = node.fileOffset,
+              value,
+            ),
+          ),
           interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
           functionType:
               Substitution.fromInterfaceType(listVariable.type as InterfaceType)

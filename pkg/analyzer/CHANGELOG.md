@@ -1,5 +1,7 @@
 ## 14.5.0-dev
 
+* Added the `languageVersionOverride` parameter to `AnalysisContextCollection`
+  to override the default language version for non-SDK files.
 * Removed support for the `new` keyword in comment references. Text such as `[new C]` in a documentation comment is no
   longer a comment reference, so it  isn't resolved, indexed, or renamed. Use `[C.new]` instead.
 * Deprecated `CommentReference.newKeyword`. It now always returns `null`.

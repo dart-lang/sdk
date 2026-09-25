@@ -206,17 +206,15 @@ abstract class _ProcedureSpecializer extends _Specializer {
     final interopProcedure = _getOrCreateInteropProcedure();
     final interopProcedureType = interopProcedure
         .computeSignatureOrFunctionType();
-    final List<Expression> jsifiedArguments = [];
-    for (int i = 0; i < parameters.length; i += 1) {
-      jsifiedArguments.add(
-        jsifyValue(
-          parameters[i],
-          interopProcedureType.positionalParameters[i],
-          factory._util,
-          factory._staticTypeContext.typeEnvironment,
-        ),
-      );
-    }
+    final jsifiedArguments = ExpressionList.generate(
+      parameters.length,
+      (int i) => jsifyValue(
+        parameters[i],
+        interopProcedureType.positionalParameters[i],
+        factory._util,
+        factory._staticTypeContext.typeEnvironment,
+      ),
+    );
     final invocation = StaticInvocation(
       interopProcedure,
       Arguments(jsifiedArguments),
@@ -363,24 +361,21 @@ abstract class _PositionalInvocationSpecializer extends _InvocationSpecializer {
     final interopProcedure = _getOrCreateInteropProcedure();
     final interopProcedureType = interopProcedure
         .computeSignatureOrFunctionType();
-    final List<Expression> jsifiedArguments = [];
     final List<Expression> arguments = invocation.arguments.positional;
-    for (int i = 0; i < arguments.length; i += 1) {
+    final jsifiedArguments = ExpressionList.generate(arguments.length, (int i) {
       final cache = CachedExpression.fromValue(
         value: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
       );
-      jsifiedArguments.add(
-        cache.createLet(
-          body: jsifyValue(
-            cache.variable,
-            interopProcedureType.positionalParameters[i],
-            factory._util,
-            factory._staticTypeContext.typeEnvironment,
-          ),
+      return cache.createLet(
+        body: jsifyValue(
+          cache.variable,
+          interopProcedureType.positionalParameters[i],
+          factory._util,
+          factory._staticTypeContext.typeEnvironment,
         ),
       );
-    }
+    });
     final staticInvocation = StaticInvocation(
       interopProcedure,
       Arguments(jsifiedArguments),
@@ -521,23 +516,20 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
     final arguments = parameters
         .map<Expression>((decl) => namedArgs[decl.parameterName]!)
         .toList();
-    final List<Expression> jsifiedArguments = [];
-    for (int i = 0; i < arguments.length; i += 1) {
+    final jsifiedArguments = ExpressionList.generate(arguments.length, (int i) {
       final cache = CachedExpression.fromValue(
         value: arguments[i],
         type: arguments[i].getStaticType(factory._staticTypeContext),
       );
-      jsifiedArguments.add(
-        cache.createLet(
-          body: jsifyValue(
-            cache.variable,
-            interopProcedureType.positionalParameters[i],
-            factory._util,
-            factory._staticTypeContext.typeEnvironment,
-          ),
+      return cache.createLet(
+        body: jsifyValue(
+          cache.variable,
+          interopProcedureType.positionalParameters[i],
+          factory._util,
+          factory._staticTypeContext.typeEnvironment,
         ),
       );
-    }
+    });
     assert(factory._extensionIndex.isStaticInteropType(function.returnType));
     return invokeOneArg(
       _util.jsValueBoxTarget,

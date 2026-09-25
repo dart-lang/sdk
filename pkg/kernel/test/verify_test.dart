@@ -338,7 +338,12 @@ void main() {
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     test.enclosingClass.addProcedure(method);
-    test.addNode(StaticInvocation(method, new Arguments([new NullLiteral()])));
+    test.addNode(
+      StaticInvocation(
+        method,
+        new Arguments(new ExpressionList(new NullLiteral())),
+      ),
+    );
   });
   negative1Test(
     'StaticInvocation with too many parameters',
@@ -352,7 +357,10 @@ void main() {
       )..fileOffset = dummyFileOffset;
       test.enclosingClass.addProcedure(method);
       test.addNode(
-        StaticInvocation(method, new Arguments([new NullLiteral()])),
+        StaticInvocation(
+          method,
+          new Arguments(new ExpressionList(new NullLiteral())),
+        ),
       );
       return method;
     },
@@ -396,8 +404,10 @@ void main() {
         StaticInvocation(
           method,
           new Arguments(
-            [],
-            named: [new NamedExpression('p', new NullLiteral())],
+            ExpressionList.empty,
+            named: new NamedExpressionList(
+              new NamedExpression('p', new NullLiteral()),
+            ),
           ),
         ),
       );

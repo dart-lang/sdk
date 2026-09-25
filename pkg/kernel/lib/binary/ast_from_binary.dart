@@ -4525,8 +4525,16 @@ class BinaryBuilder {
   Arguments readArguments() {
     int numArguments = readUInt30();
     DartTypeList typeArguments = readDartTypeList();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    int numPositional = readUInt30();
+    ExpressionList positional = ExpressionList.generate(
+      numPositional,
+      (_) => readExpression(),
+    );
+    int numNamed = readUInt30();
+    NamedExpressionList named = NamedExpressionList.generate(
+      numNamed,
+      (_) => readNamedExpression(),
+    );
     assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }

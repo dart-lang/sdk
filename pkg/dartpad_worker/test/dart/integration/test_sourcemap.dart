@@ -181,14 +181,14 @@ main.dart 7:% main%''', ignoreWhitespace: true),
       void boom() => throw StateError('uncaught boom');
     ''');
 
-    final firstError = ctx.sandbox.errors.first;
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(firstError).completes(
+    await ctx.checkConsole(
       .it()..like('''
 %uncaught boom
 % throw_
 main.dart 7:% boom%''', ignoreWhitespace: true),
+      level: .error,
     );
   });
 
@@ -218,14 +218,14 @@ main.dart 7:% boom%''', ignoreWhitespace: true),
       void boom() => rejectPromise(JSError('rejected boom'.toJS)); // Line 13
     ''');
 
-    final firstRejection = ctx.sandbox.unhandledRejections.first;
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(firstRejection).completes(
+    await ctx.checkConsole(
       .it()..like('''
 %rejected boom
 main.dart 13:% boom
 main.dart 11:% main%''', ignoreWhitespace: true),
+      level: .error,
     );
   });
 

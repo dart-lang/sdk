@@ -293,7 +293,7 @@ class DevCompilerTarget extends Target {
     // (These method are synthetic. Also unclear if the offset will correspond
     // to the file where the class resides, or the file where the method we're
     // mocking resides).
-    Expression createInvocation(String name, List<Expression> positional) {
+    Expression createInvocation(String name, ExpressionList positional) {
       // TODO(jmesserly): this uses the implementation _Invocation class,
       // because the CFE does not resolve the redirecting factory constructors
       // like it would for user code. Our code generator expects all redirecting
@@ -306,29 +306,33 @@ class DevCompilerTarget extends Target {
     }
 
     if (name.startsWith('get:')) {
-      return createInvocation('getter', [SymbolLiteral(name.substring(4))]);
+      return createInvocation(
+        'getter',
+        ExpressionList(SymbolLiteral(name.substring(4))),
+      );
     }
     if (name.startsWith('set:')) {
-      return createInvocation('setter', [
-        SymbolLiteral(name.substring(4)),
-        arguments.positional.single,
-      ]);
+      return createInvocation(
+        'setter',
+        ExpressionList(
+          SymbolLiteral(name.substring(4)),
+          arguments.positional.single,
+        ),
+      );
     }
-    var ctorArgs = <Expression>[
+    var ctorArgs = ExpressionList(
       SymbolLiteral(name),
-      if (arguments.types.isNotEmpty)
-        ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
-      else
-        NullLiteral(),
+      arguments.types.isNotEmpty
+          ? ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
+          : NullLiteral(),
       ListLiteral(arguments.positional),
-      if (arguments.named.isNotEmpty)
-        MapLiteral([
-          for (var n in arguments.named)
-            MapLiteralEntry(SymbolLiteral(n.name), n.value),
-        ], keyType: coreTypes.symbolNonNullableRawType)
-      else
-        NullLiteral(),
-    ];
+      arguments.named.isNotEmpty
+          ? MapLiteral([
+              for (var n in arguments.named)
+                MapLiteralEntry(SymbolLiteral(n.name), n.value),
+            ], keyType: coreTypes.symbolNonNullableRawType)
+          : NullLiteral(),
+    );
     return createInvocation('method', ctorArgs);
   }
 

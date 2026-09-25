@@ -9,6 +9,7 @@ import 'package:web/web.dart' as web;
 
 import 'asset_server/asset_server_client.dart';
 
+export 'package:dartpad/dartpad.dart' show ConsoleLevel;
 export 'package:test/test.dart' show TestOn, printOnFailure;
 export 'checks_ext.dart';
 
@@ -17,12 +18,14 @@ final class TestContext {
   final DartPad dartpad;
   final Workspace ws;
   final Sandbox sandbox;
-  final consoleLog = <String>[];
+  final consoleLog = <({ConsoleLevel level, String message})>[];
 
   TestContext._(this.server, this.dartpad, this.ws, this.sandbox) {
-    sandbox.console.listen((message) {
-      consoleLog.add(message);
-      printOnFailure('[sandbox] console: $message');
+    sandbox.console.listen((entry) {
+      consoleLog.add(entry);
+      printOnFailure(
+        '[sandbox] console (${entry.level.name}): ${entry.message}',
+      );
     });
   }
 
@@ -30,14 +33,19 @@ final class TestContext {
   /// [condition].
   Future<void> checkConsole(
     Condition<String> condition, {
+    ConsoleLevel? level,
     Duration timeLimit = const Duration(seconds: 5),
   }) async {
-    if (consoleLog.any((line) => condition.softCheckSync(line) == null)) {
+    bool matches(({ConsoleLevel level, String message}) entry) =>
+        (level == null || entry.level == level) &&
+        condition.softCheckSync(entry.message) == null;
+
+    if (consoleLog.any(matches)) {
       return;
     }
 
     await sandbox.console
-        .firstWhere((message) => condition.softCheckSync(message) == null)
+        .firstWhere(matches)
         .timeout(
           timeLimit,
           onTimeout: () => throw TestFailure(

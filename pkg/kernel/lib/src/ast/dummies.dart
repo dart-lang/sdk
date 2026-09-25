@@ -575,7 +575,7 @@ final MapLiteralEntry dummyMapLiteralEntry = new MapLiteralEntry(
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Arguments dummyArguments = new Arguments(const []);
+final Arguments dummyArguments = new Arguments.empty();
 
 /// Non-nullable [AssertStatement] dummy value.
 ///

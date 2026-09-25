@@ -79,7 +79,10 @@ void _maybeAddCreationLocationArgument(
     creationLocation,
   );
   namedArgument.parent = arguments;
-  arguments.named.add(namedArgument);
+  arguments.named = NamedExpressionList.generate(
+    arguments.named.length + 1,
+    (i) => i < arguments.named.length ? arguments.named[i] : namedArgument,
+  );
 }
 
 /// Adds a named parameter to a function if the function does not already have
@@ -147,22 +150,23 @@ class _WidgetCallSiteTransformer extends Transformer {
   /// constructor call but it is convenient to bundle the location and names
   /// of the parameters passed in so that tools can show parameter locations
   /// without re-parsing the source code.
-
   ConstructorInvocation _constructLocation(
     Location location, {
     required Class locationClass,
     String? name,
   }) {
-    final List<NamedExpression> arguments = <NamedExpression>[
+    final NamedExpressionList arguments = NamedExpressionList(
       new NamedExpression('file', new StringLiteral(location.file.toString())),
       new NamedExpression('line', new IntLiteral(location.line)),
       new NamedExpression('column', new IntLiteral(location.column)),
-      if (name != null) new NamedExpression('name', new StringLiteral(name)),
-    ];
+      name != null
+          ? new NamedExpression('name', new StringLiteral(name))
+          : null,
+    );
 
     return new ConstructorInvocation(
       locationClass.constructors.first,
-      new Arguments(<Expression>[], named: arguments),
+      new Arguments(ExpressionList.empty, named: arguments),
       isConst: true,
     );
   }

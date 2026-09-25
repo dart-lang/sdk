@@ -710,7 +710,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             operand = new StaticInvocation(
               callMember.tearoffTarget as Procedure,
               new Arguments(
-                <Expression>[operand],
+                new ExpressionList(operand),
                 types: callMember.receiverTypeArguments,
               )..fileOffset = operand.fileOffset,
             )..fileOffset = operand.fileOffset;
@@ -1447,7 +1447,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation replacement = extern.createStaticInvocation(
       node.tearOff,
-      new Arguments([receiver], types: extensionTypeArguments)
+      new Arguments(new ExpressionList(receiver), types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
@@ -1530,7 +1530,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation replacement = extern.createStaticInvocation(
       node.getter,
-      new Arguments([receiver], types: extensionTypeArguments)
+      new Arguments(new ExpressionList(receiver), types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
@@ -1691,8 +1691,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation assignment = extern.createStaticInvocation(
       data.setter,
-      new Arguments([receiver, value], types: data.extensionTypeArguments)
-        ..fileOffset = fileOffset,
+      new Arguments(
+        new ExpressionList(receiver, value),
+        types: data.extensionTypeArguments,
+      )..fileOffset = fileOffset,
       fileOffset: fileOffset,
     );
 
@@ -1813,8 +1815,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation read = extern.createStaticInvocation(
       node.getter,
-      new Arguments([readReceiver], types: extensionTypeArguments)
-        ..fileOffset = node.fileOffset,
+      new Arguments(
+        new ExpressionList(readReceiver),
+        types: extensionTypeArguments,
+      )..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
 
@@ -1867,8 +1871,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation write = extern.createStaticInvocation(
       node.setter,
-      new Arguments([writeReceiver, binary], types: extensionTypeArguments)
-        ..fileOffset = node.fileOffset,
+      new Arguments(
+        new ExpressionList(writeReceiver, binary),
+        types: extensionTypeArguments,
+      )..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
 
@@ -1984,7 +1990,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation getterAccess = extern.createStaticInvocation(
       node.getter,
-      new Arguments([receiver], types: extensionTypeArguments)
+      new Arguments(new ExpressionList(receiver), types: extensionTypeArguments)
         ..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
@@ -2392,9 +2398,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression read = new StaticInvocation(
       readTarget.member as Procedure,
-      new Arguments(<Expression>[
-        readReceiver,
-      ], types: readTarget.receiverTypeArguments)..fileOffset = node.readOffset,
+      new Arguments(
+        new ExpressionList(readReceiver),
+        types: readTarget.receiverTypeArguments,
+      )..fileOffset = node.readOffset,
     )..fileOffset = node.readOffset;
 
     ObjectAccessTarget writeTarget = new ExtensionAccessTarget(
@@ -2440,7 +2447,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression write = new StaticInvocation(
       writeTarget.member as Procedure,
       new Arguments(
-        <Expression>[writeReceiver, value],
+        new ExpressionList(writeReceiver, value),
         types: writeTarget.receiverTypeArguments,
       )..fileOffset = node.writeOffset,
     )..fileOffset = node.writeOffset;
@@ -2685,8 +2692,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression? _resolveRedirectingFactoryTarget({
     required Procedure target,
     required List<DartType> explicitOrInferredTypeArguments,
-    required List<Expression> positional,
-    required List<NamedExpression> named,
+    required ExpressionList positional,
+    required NamedExpressionList named,
     required ActualArguments arguments,
     required int fileOffset,
     required bool isConst,
@@ -2743,8 +2750,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required Procedure? redirectingFactoryTarget,
     required Member effectiveTarget,
     required List<DartType> explicitOrInferredTypeArguments,
-    required List<Expression> positional,
-    required List<NamedExpression> named,
+    required ExpressionList positional,
+    required NamedExpressionList named,
     required ActualArguments arguments,
     required bool isConst,
     required int fileOffset,
@@ -3027,8 +3034,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _unaliasSingleTypeAliasedConstructorInvocation(
     TypeAliasedConstructorInvocation node,
     List<DartType> explicitOrInferredTypeArguments,
-    List<Expression> positional,
-    List<NamedExpression> named,
+    ExpressionList positional,
+    NamedExpressionList named,
   ) {
     DartType aliasedType = new TypedefType(
       node.typeAliasBuilder.typedef,
@@ -3161,8 +3168,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression? _unaliasSingleTypeAliasedFactoryInvocation(
     TypeAliasedFactoryInvocation node,
     List<DartType> explicitOrInferredTypeArguments,
-    List<Expression> positional,
-    List<NamedExpression> named,
+    ExpressionList positional,
+    NamedExpressionList named,
   ) {
     bool hasInferredTypeArguments = node.typeArguments == null;
     DartType aliasedType = new TypedefType(
@@ -6550,7 +6557,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression assignment = new SuperMethodInvocation(
       new ThisExpression(),
       indexSetName,
-      new Arguments(<Expression>[index, value])..fileOffset = node.fileOffset,
+      new Arguments(new ExpressionList(index, value))
+        ..fileOffset = node.fileOffset,
       indexSetTarget.classMember as Procedure,
     )..fileOffset = node.fileOffset;
 
@@ -6654,10 +6662,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation replacement = extern.createStaticInvocation(
       node.getter,
-      new Arguments(<Expression>[
-        receiver,
-        index,
-      ], types: extensionTypeArguments)..fileOffset = node.fileOffset,
+      new Arguments(
+        new ExpressionList(receiver, index),
+        types: extensionTypeArguments,
+      )..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
 
@@ -6787,11 +6795,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     StaticInvocation assignment = extern.createStaticInvocation(
       node.setter,
-      new Arguments(<Expression>[
-        receiver,
-        index,
-        value,
-      ], types: extensionTypeArguments)..fileOffset = node.fileOffset,
+      new Arguments(
+        new ExpressionList(receiver, index, value),
+        types: extensionTypeArguments,
+      )..fileOffset = node.fileOffset,
       fileOffset: node.fileOffset,
     );
 
@@ -7131,7 +7138,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = new SuperMethodInvocation(
       new ThisExpression(),
       indexGetName,
-      new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
+      new Arguments(new ExpressionList(readIndex))
+        ..fileOffset = node.readOffset,
       readTarget.classMember as Procedure,
     )..fileOffset = node.readOffset;
 
@@ -7178,7 +7186,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression write = new SuperMethodInvocation(
       new ThisExpression(),
       indexSetName,
-      new Arguments(<Expression>[writeIndex, value])
+      new Arguments(new ExpressionList(writeIndex, value))
         ..fileOffset = node.writeOffset,
       writeTarget.classMember as Procedure,
     )..fileOffset = node.writeOffset;
@@ -7763,7 +7771,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         binary = new StaticInvocation(
           binaryTarget.member as Procedure,
           new Arguments(
-            <Expression>[left, inferredRight],
+            new ExpressionList(left, inferredRight),
             types: binaryTarget.receiverTypeArguments,
           )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
@@ -7773,7 +7781,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Invalid,
           left,
           binaryName,
-          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(inferredRight))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
@@ -7783,7 +7792,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Dynamic,
           left,
           binaryName,
-          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(inferredRight))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
@@ -7791,7 +7801,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Never,
           left,
           binaryName,
-          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(inferredRight))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
@@ -7803,7 +7814,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           InstanceAccessKind.Instance,
           left,
           binaryName,
-          new Arguments(<Expression>[inferredRight])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(inferredRight))
+            ..fileOffset = fileOffset,
           functionType: new FunctionType(
             new DartTypeList(rightType),
             binaryType,
@@ -7934,9 +7946,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         assert(unaryTarget.declarationMethodKind != ClassMemberKind.Setter);
         unary = new StaticInvocation(
           unaryTarget.member as Procedure,
-          new Arguments(<Expression>[
-            expression,
-          ], types: unaryTarget.receiverTypeArguments)..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(expression),
+            types: unaryTarget.receiverTypeArguments,
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
@@ -7944,7 +7957,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Invalid,
           expression,
           unaryName,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          new Arguments.empty()..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
@@ -7952,7 +7965,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Never,
           expression,
           unaryName,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          new Arguments.empty()..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
@@ -7962,7 +7975,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Dynamic,
           expression,
           unaryName,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          new Arguments.empty()..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
@@ -7974,7 +7987,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           InstanceAccessKind.Instance,
           expression,
           unaryName,
-          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          new Arguments.empty()..fileOffset = fileOffset,
           functionType: new FunctionType(
             DartTypeList.empty,
             unaryType,
@@ -8092,10 +8105,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableExtensionTypeMember:
         read = new StaticInvocation(
           readTarget.member as Procedure,
-          new Arguments(<Expression>[
-            readReceiver,
-            readIndex,
-          ], types: readTarget.receiverTypeArguments)..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(readReceiver, readIndex),
+            types: readTarget.receiverTypeArguments,
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
@@ -8103,7 +8116,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Invalid,
           readReceiver,
           indexGetName,
-          new Arguments(<Expression>[readIndex])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(readIndex))..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
@@ -8111,7 +8124,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Never,
           readReceiver,
           indexGetName,
-          new Arguments(<Expression>[readIndex])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(readIndex))..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
@@ -8121,7 +8134,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Dynamic,
           readReceiver,
           indexGetName,
-          new Arguments(<Expression>[readIndex])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(readIndex))..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
@@ -8149,7 +8162,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           kind,
           readReceiver,
           indexGetName,
-          new Arguments(<Expression>[readIndex])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(readIndex))..fileOffset = fileOffset,
           functionType: new FunctionType(
             new DartTypeList(indexType),
             readType,
@@ -8256,11 +8269,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         assert(writeTarget.declarationMethodKind != ClassMemberKind.Setter);
         write = new StaticInvocation(
           writeTarget.member as Procedure,
-          new Arguments(<Expression>[
-            receiver,
-            index,
-            value,
-          ], types: writeTarget.receiverTypeArguments)..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(receiver, index, value),
+            types: writeTarget.receiverTypeArguments,
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.invalid:
@@ -8268,7 +8280,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Invalid,
           receiver,
           indexSetName,
-          new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(index, value))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.never:
@@ -8276,7 +8289,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Never,
           receiver,
           indexSetName,
-          new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(index, value))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.callFunction:
@@ -8286,7 +8300,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           DynamicAccessKind.Dynamic,
           receiver,
           indexSetName,
-          new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(index, value))
+            ..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
         break;
       case ObjectAccessTargetKind.instanceMember:
@@ -8314,7 +8329,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           kind,
           receiver,
           indexSetName,
-          new Arguments(<Expression>[index, value])..fileOffset = fileOffset,
+          new Arguments(new ExpressionList(index, value))
+            ..fileOffset = fileOffset,
           functionType: new FunctionType(
             new DartTypeList(indexType, valueType),
             const VoidType(),
@@ -8714,7 +8730,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression read = new SuperMethodInvocation(
       new ThisExpression(),
       indexGetName,
-      new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
+      new Arguments(new ExpressionList(readIndex))
+        ..fileOffset = node.readOffset,
       readTarget.classMember as Procedure,
     )..fileOffset = node.readOffset;
 
@@ -8786,7 +8803,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression write = new SuperMethodInvocation(
       new ThisExpression(),
       indexSetName,
-      new Arguments(<Expression>[writeIndex, valueExpression])
+      new Arguments(new ExpressionList(writeIndex, valueExpression))
         ..fileOffset = node.writeOffset,
       writeTarget.classMember as Procedure,
     )..fileOffset = node.writeOffset;

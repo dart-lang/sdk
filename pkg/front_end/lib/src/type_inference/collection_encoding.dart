@@ -788,7 +788,7 @@ class _NonConstListLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('add'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.listAdd,
       )
@@ -808,7 +808,7 @@ class _NonConstListLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.listAddAll,
       )
@@ -848,8 +848,10 @@ class _NonConstListLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.listOf,
-        new Arguments([spread], types: new DartTypeList(_elementType))
-          ..fileOffset = fileOffset,
+        new Arguments(
+          new ExpressionList(spread),
+          types: new DartTypeList(_elementType),
+        )..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -1413,7 +1415,7 @@ class _NonConstMapLiteralBuilder(
           new StaticInvocation(
             _engine.mapOf,
             new Arguments(
-              [value],
+              new ExpressionList(value),
               types: new DartTypeList(_keyType, _valueType),
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
@@ -1498,7 +1500,7 @@ class _NonConstMapLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.mapAddAll,
       )
@@ -1571,7 +1573,7 @@ class _NonConstMapLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('[]='),
-        new Arguments([key, value]),
+        new Arguments(new ExpressionList(key, value)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.mapPut,
       )
@@ -2114,7 +2116,7 @@ class _NonConstSetLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('add'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.setAdd,
       )
@@ -2134,7 +2136,7 @@ class _NonConstSetLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.setAddAll,
       )
@@ -2177,8 +2179,10 @@ class _NonConstSetLiteralBuilder(
       DeclaredVariable result = _createVariable(
         new StaticInvocation(
           _engine.setFactory,
-          new Arguments([], types: new DartTypeList(_elementType))
-            ..fileOffset = fileOffset,
+          new Arguments(
+            ExpressionList.empty,
+            types: new DartTypeList(_elementType),
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset,
         _receiverType,
       );
@@ -2204,8 +2208,10 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.setOf,
-        new Arguments([spread], types: new DartTypeList(_elementType))
-          ..fileOffset = fileOffset,
+        new Arguments(
+          new ExpressionList(spread),
+          types: new DartTypeList(_elementType),
+        )..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -2246,7 +2252,10 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable setVar = extern.createVariable(
       new StaticInvocation(
         _engine.setFactory,
-        new Arguments([], types: new DartTypeList(node.typeArgument)),
+        new Arguments(
+          ExpressionList.empty,
+          types: new DartTypeList(node.typeArgument),
+        ),
       ),
       receiverType = new InterfaceType(
         _coreTypes.setClass,
@@ -2268,7 +2277,7 @@ class _NonConstSetLiteralBuilder(
               InstanceAccessKind.Instance,
               new VariableGet(setVar),
               new Name("add"),
-              new Arguments([entry]),
+              new Arguments(new ExpressionList(entry)),
               functionType: functionType as FunctionType,
               interfaceTarget: _engine.setAddMethod,
             )

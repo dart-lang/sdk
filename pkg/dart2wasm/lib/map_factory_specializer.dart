@@ -34,7 +34,7 @@ class MapFactorySpecializer extends BaseSpecializer {
     if (args.named.isEmpty) {
       return ConstructorInvocation(
         _internalLinkedHashMapConstructor,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       )..fileOffset = node.fileOffset;
     }
 

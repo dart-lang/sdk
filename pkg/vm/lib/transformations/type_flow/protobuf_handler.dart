@@ -243,15 +243,18 @@ class _MetadataTransformer extends Transformer {
       InstanceAccessKind.Instance,
       node.receiver,
       ph._builderInfoAddMethod.name,
-      Arguments(<Expression>[
-        IntLiteral(0), // tagNumber
-        NullLiteral(), // name
-        NullLiteral(), // fieldType
-        NullLiteral(), // defaultOrMaker
-        NullLiteral(), // subBuilder
-        NullLiteral(), // valueOf
-        NullLiteral(), // enumValues
-      ], types: DartTypeList.null1),
+      Arguments(
+        ExpressionList(
+          IntLiteral(0), // tagNumber
+          NullLiteral(), // name
+          NullLiteral(), // fieldType
+          NullLiteral(), // defaultOrMaker
+          NullLiteral(), // subBuilder
+          NullLiteral(), // valueOf
+          NullLiteral(), // enumValues
+        ),
+        types: DartTypeList.null1,
+      ),
       interfaceTarget: ph._builderInfoAddMethod,
       functionType: ph._typeOfBuilderInfoAddOfNull,
     )..fileOffset = node.fileOffset;

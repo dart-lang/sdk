@@ -164,17 +164,6 @@ final class FakeSandboxedIframe {
     _peer.sendNotification('console', {'level': level, 'message': message});
   }
 
-  void emitError(String message, String stackTrace) {
-    _peer.sendNotification('error', {
-      'message': message,
-      'stackTrace': stackTrace,
-    });
-  }
-
-  void emitUnhandledRejection(String message) {
-    _peer.sendNotification('unhandledRejection', {'message': message});
-  }
-
   void emitExtensionEvent(String kind, Map<String, dynamic> data) {
     _peer.sendNotification('extensionEvent', {
       'kind': kind,

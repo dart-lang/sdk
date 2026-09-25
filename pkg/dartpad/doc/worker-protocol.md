@@ -663,38 +663,17 @@ Sent by the worker when a language server process terminates.
 ```
 
 ### Notification `workspace/sandbox/console`
-Sent by the worker when the sandbox produces a console message.
+Sent by the worker when the sandbox produces a console message (including
+uncaught errors and unhandled promise rejections, which are reported with
+`"level": "error"`).
 
 **Params:**
 ```js
 {
   "workspaceId": 42,
   "sandboxId": 1,
+  "level": "debug" | "log" | "info" | "warn" | "error",
   "message": "Hello world"
-}
-```
-
-### Notification `workspace/sandbox/error`
-Sent by the worker when the sandbox produces an error message.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "message": "Error details..."
-}
-```
-
-### Notification `workspace/sandbox/unhandledRejection`
-Sent by the worker when a Promise is unhandled in the sandbox.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "message": "Rejection details..."
 }
 ```
 
