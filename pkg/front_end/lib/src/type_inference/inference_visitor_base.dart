@@ -3358,8 +3358,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
       originalPropertyGet = checkedPropertyGet.operand as InstanceGet;
       var (
-        SharedTypeView? wrappedPromotedType,
-        ExpressionInfo? expressionInfo,
+        promotedType: SharedTypeView? wrappedPromotedType,
+        :ExpressionInfo? expressionInfo,
       ) = flowAnalysis.propertyGet(
         computePropertyTarget(originalReceiver),
         originalName.text,
@@ -3379,8 +3379,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset: fileOffset,
       );
       var (
-        SharedTypeView? wrappedPromotedType,
-        ExpressionInfo? expressionInfo,
+        promotedType: SharedTypeView? wrappedPromotedType,
+        :ExpressionInfo? expressionInfo,
       ) = flowAnalysis.propertyGet(
         computePropertyTarget(originalReceiver),
         originalName.text,
@@ -3902,13 +3902,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
-        var (SharedTypeView? wrappedPromotedType, _) = flowAnalysis.propertyGet(
-          computePropertyTarget(receiver),
-          name.text,
-          (target as ExtensionTypeRepresentationAccessTarget)
-              .representationField,
-          new SharedTypeView(type),
-        );
+        SharedTypeView? wrappedPromotedType = flowAnalysis
+            .propertyGet(
+              computePropertyTarget(receiver),
+              name.text,
+              (target as ExtensionTypeRepresentationAccessTarget)
+                  .representationField,
+              new SharedTypeView(type),
+            )
+            .promotedType;
         // Coverage-ignore(suite): Not run.
         type = wrappedPromotedType?.unwrapTypeView() ?? type;
         Expression read = new AsExpression(receiver, type)
@@ -4217,8 +4219,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     }
     var (
-      SharedTypeView? wrappedPromotedType,
-      ExpressionInfo? expressionInfo,
+      promotedType: SharedTypeView? wrappedPromotedType,
+      :ExpressionInfo? expressionInfo,
     ) = flowAnalysis.propertyGet(
       SuperPropertyTarget.singleton,
       name.text,
@@ -4378,7 +4380,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
       SharedTypeView? wrappedPromotedType;
-      (wrappedPromotedType, expressionInfo) = flowAnalysis.thisExpression();
+      (promotedType: wrappedPromotedType, :expressionInfo) = flowAnalysis
+          .thisExpression();
       promotedType =
           wrappedPromotedType
                   // Coverage-ignore(suite): Not run.
@@ -4387,9 +4390,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else if (variable is! InternalLocalFunctionVariable) {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;
-      (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
-        variable,
-      );
+      (promotedType: wrappedPromotedType, :expressionInfo) = flowAnalysis
+          .variableRead(variable);
       promotedType = wrappedPromotedType?.unwrapTypeView();
     }
     ExpressionInferenceResult result = readVariable(

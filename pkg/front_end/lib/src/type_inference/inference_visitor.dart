@@ -8403,8 +8403,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType readType = readTarget.getGetterType(this);
     var (
-      SharedTypeView? wrappedPromotedReadType,
-      ExpressionInfo? expressionInfo,
+      promotedType: SharedTypeView? wrappedPromotedReadType,
+      :ExpressionInfo? expressionInfo,
     ) = flowAnalysis.propertyGet(
       computePropertyTarget(receiver),
       propertyName.text,
@@ -10497,7 +10497,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalThisExpression node,
     DartType typeContext,
   ) {
-    var (SharedTypeView? promotedType, ExpressionInfo? expressionInfo) =
+    var (:SharedTypeView? promotedType, :ExpressionInfo? expressionInfo) =
         flowAnalysis.thisExpression();
     DartType? promotedTypeOfThis =
         promotedType
