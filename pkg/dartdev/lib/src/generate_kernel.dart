@@ -118,7 +118,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
       ? p.join(packageRoot, packageConfigName)
       : null;
 
-  final canonicalizedExecutablePath = p.canonicalize(executable.executable);
+  final canonicalizedExecutablePath = p.normalize(p.absolute(executable.executable));
   final cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
     canonicalizedExecutablePath,
   ).cachedDillPath;
@@ -227,7 +227,7 @@ Future<void> ensureCompilationServerIsRunning(
 /// if it is a standalone dart file.
 String? _packageRootFor(DartExecutableWithPackageConfig executable) {
   Directory currentDirectory = Directory(
-    p.dirname(p.canonicalize(executable.executable)),
+    p.dirname(p.normalize(p.absolute(executable.executable))),
   );
 
   while (currentDirectory.parent.path != currentDirectory.path) {
