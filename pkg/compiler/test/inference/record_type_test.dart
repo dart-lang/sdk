@@ -255,6 +255,23 @@ main() {
       shape2Mask,
       shape1FooMask,
     ]);
+    // (A, string) | [subclass=_Record_2] => [subclass=_Record_2]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask, domain),
+      shape2Class,
+    );
+    // (A, string) | [subclass=_Record_2|null] => [subclass=_Record_2|null]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.nullable(domain), domain),
+      shape2Class,
+      expectNullable: true,
+    );
+    // (A, string) | [subclass=_Record_2|late] => [subclass=_Record_2|late]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.withLateSentinel(domain), domain),
+      shape2Class,
+      expectHasLateSentinel: true,
+    );
     // (A, string) | [subclass=_Record2] => [subclass=_Record2]
     expectFlatRecordMask(
       recordAStringMask.union(record2ArityMask, domain),
