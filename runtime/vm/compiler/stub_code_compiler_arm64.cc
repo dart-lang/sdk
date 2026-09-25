@@ -586,8 +586,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
-  // CallbackMetadata::type either contains 0 (sync) or 1 (async). Async
-  // callbacks are run in a temporary isolate, so the epilogue is tail called.
+  ASSERT_EQUAL(target::CallbackMetadata::kCall, 0);
   __ cbnz(&tail, R11);
 
   {

@@ -391,6 +391,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
+  ASSERT_EQUAL(target::CallbackMetadata::kCall, 0);
   __ bnez(T3, &tail, Assembler::kNearJump);
 
   {

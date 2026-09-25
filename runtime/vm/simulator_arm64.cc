@@ -1908,8 +1908,20 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     DoCompiledFfiCallback(thread, ctxt, metadata);
   }
 
-  auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
-  epilogue(thread);
+  if (metadata->type == CallbackMetadata::kCall) {
+    auto* const caller_isolate =
+        reinterpret_cast<Isolate*>(metadata->caller_isolate);
+    auto* const caller_isolate_group =
+        reinterpret_cast<IsolateGroup*>(metadata->caller_isolate_group);
+    auto epilogue =
+        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
+            metadata->epilogue);
+    epilogue(thread, caller_isolate, caller_isolate_group);
+  } else {
+    ASSERT_EQUAL(metadata->type, CallbackMetadata::kTailCall);
+    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
+    epilogue(thread);
+  }
 }
 #endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 

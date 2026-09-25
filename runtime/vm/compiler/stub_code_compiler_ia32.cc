@@ -291,11 +291,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label call, call_ret4, tail;
-  __ cmpl(ECX, Immediate(0));
+  __ cmpl(ECX, Immediate(target::CallbackMetadata::kCall));
   __ j(EQUAL, &call);
-  __ cmpl(ECX, Immediate(1));
+  __ cmpl(ECX, Immediate(target::CallbackMetadata::kTailCall));
   __ j(EQUAL, &tail);
-  __ cmpl(ECX, Immediate(2));
+  __ cmpl(ECX, Immediate(target::CallbackMetadata::kCallRet4));
   __ j(EQUAL, &call_ret4);
   __ int3();
 

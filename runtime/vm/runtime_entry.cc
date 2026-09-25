@@ -5980,15 +5980,15 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
 
   switch (metadata.trampoline_type()) {
     default:
-      out->type = 0;  // Call
+      out->type = CallbackMetadata::kCall;
       break;
     case FfiCallbackMetadata::TrampolineType::kAsync:
-      out->type = 1;  // Tail call.
+      out->type = CallbackMetadata::kTailCall;
       break;
 #if defined(TARGET_ARCH_IA32)
     case FfiCallbackMetadata::TrampolineType::kSyncStackDelta4:
     case FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBoundStackDelta4:
-      out->type = 2;  // Call, ret4.
+      out->type = CallbackMetadata::kCallRet4;
       break;
 #endif
   }
