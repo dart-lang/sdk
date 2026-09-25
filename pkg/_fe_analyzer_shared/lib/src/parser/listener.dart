@@ -108,6 +108,14 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("Cascade");
   }
 
+  /// Called after the last section of a cascade expression.
+  ///
+  /// Each section is reported by a [beginCascade] and [endCascade] pair, and
+  /// [sectionCount] is the number of these pairs for the cascade expression.
+  /// So a listener can build the cascade expression once, instead of after
+  /// each section.
+  void handleCascadeExpressionEnd(int sectionCount) {}
+
   void beginCaseExpression(Token caseKeyword) {}
 
   void endCaseExpression(Token caseKeyword, Token? when, Token colon) {

@@ -7262,8 +7262,13 @@ class Parser {
     int level = tokenLevel;
     int lastBinaryExpressionLevel = -1;
     Token? lastCascade;
+    int cascadeSectionCount = 0;
     while (true) {
       Token operator = next;
+      if (cascadeSectionCount > 0 && tokenLevel != CASCADE_PRECEDENCE) {
+        listener.handleCascadeExpressionEnd(cascadeSectionCount);
+        cascadeSectionCount = 0;
+      }
       if (tokenLevel == CASCADE_PRECEDENCE) {
         if (!allowCascades) {
           return token;
@@ -7273,6 +7278,7 @@ class Parser {
         }
         lastCascade = next;
         token = parseCascadeExpression(token);
+        cascadeSectionCount++;
       } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
         // Right associative, so we recurse at the same precedence
         // level.
@@ -7445,15 +7451,15 @@ class Parser {
         if (type == TokenType.BANG) {
           if (tokenLevel == POSTFIX_PRECEDENCE) {
             // This is a suffixed ! which is a null assert pattern.
-            return token;
+            break;
           } else if (next.next!.isA(TokenType.QUESTION)) {
             // This is a suffixed !? which is a null assert pattern in a null
             // check pattern.
-            return token;
+            break;
           }
         } else if (type == TokenType.AS) {
           // This is a suffixed `as` which is a case pattern.
-          return token;
+          break;
         }
       }
 
@@ -7492,6 +7498,9 @@ class Parser {
       }
     }
 
+    if (cascadeSectionCount > 0) {
+      listener.handleCascadeExpressionEnd(cascadeSectionCount);
+    }
     return token;
   }
 

@@ -207,17 +207,12 @@ class AstBuilder extends StackListener {
     assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
 
-    var expression = _popExpression();
+    var targetOrCascade = pop();
     push(token);
-    if (expression is CascadeExpressionImpl) {
-      push(expression);
+    if (targetOrCascade is _CascadeBuilder) {
+      push(targetOrCascade);
     } else {
-      push(
-        CascadeExpressionImpl(
-          target2: expression,
-          sections: <CascadeSectionImpl>[],
-        ),
-      );
+      push(_CascadeBuilder(targetOrCascade as ExpressionImpl));
     }
     push(NullValues.CascadeReceiver);
   }
@@ -1274,17 +1269,12 @@ class AstBuilder extends StackListener {
     debugEvent("Cascade");
 
     var expression = pop() as ExpressionImpl;
-    var cascade = pop() as CascadeExpressionImpl;
+    var cascade = pop() as _CascadeBuilder;
     var operator = pop() as Token;
-    push(
-      CascadeExpressionImpl(
-        target2: cascade.target2,
-        sections: <CascadeSectionImpl>[
-          ...cascade.sections,
-          CascadeSectionImpl(operator: operator, body: expression),
-        ],
-      ),
+    cascade.sections.add(
+      CascadeSectionImpl(operator: operator, body: expression),
     );
+    push(cascade);
   }
 
   @override
@@ -3873,6 +3863,20 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    debugEvent("CascadeExpressionEnd");
+
+    var cascade = pop() as _CascadeBuilder;
+    assert(cascade.sections.length == sectionCount);
+    push(
+      CascadeExpressionImpl(
+        target2: cascade.target,
+        sections: cascade.sections,
+      ),
+    );
+  }
+
+  @override
   void handleCastPattern(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("CastPattern");
@@ -4673,7 +4677,7 @@ class AstBuilder extends StackListener {
     var target = pop() as ExpressionImpl?;
     reportErrorIfSuper(index);
     if (target == null) {
-      var receiver = pop() as CascadeExpressionImpl;
+      var receiver = pop() as _CascadeBuilder;
       push(receiver);
       var expression = CascadeIndexExpressionImpl(
         leftBracket: leftBracket,
@@ -6747,6 +6751,18 @@ class AstBuilder extends StackListener {
   static String _versionAsString(Version version) {
     return '${version.major}.${version.minor}.${version.patch}';
   }
+}
+
+/// Data structure placed on the stack to represent a cascade expression, while
+/// the parser reports its sections.
+///
+/// The [CascadeExpressionImpl] is built once, after the last section, because
+/// building it after each section is quadratic in the number of sections.
+class _CascadeBuilder {
+  final ExpressionImpl target;
+  final List<CascadeSectionImpl> sections = [];
+
+  _CascadeBuilder(this.target);
 }
 
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {

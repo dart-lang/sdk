@@ -217,6 +217,14 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    doPrint(
+      'handleCascadeExpressionEnd('
+      '$sectionCount)',
+    );
+  }
+
+  @override
   void beginCaseExpression(Token caseKeyword) {
     seen(caseKeyword);
     doPrint(

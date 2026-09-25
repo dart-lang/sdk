@@ -725,6 +725,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    listener?.handleCascadeExpressionEnd(sectionCount);
+  }
+
+  @override
   void endBlock(
     int count,
     Token beginToken,
