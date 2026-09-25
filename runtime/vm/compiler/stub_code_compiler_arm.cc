@@ -364,8 +364,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
-  CLOBBERS_LR(__ cmp(LR, Operand(0)));
-  __ b(&tail, NOT_ZERO);
+  CLOBBERS_LR(__ cmp(LR, Operand(target::CallbackMetadata::kCall)));
+  __ b(&tail, NOT_EQUAL);
 
   const RegisterSet return_registers(
       (1 << CallingConventions::kReturnReg) |

@@ -89,6 +89,9 @@
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(CallbackContext, kNumIntegerArguments)                              \
   CONSTANT(CallbackContext, kNumDoubleArguments)                               \
+  CONSTANT(CallbackMetadata, kCall)                                            \
+  CONSTANT(CallbackMetadata, kTailCall)                                        \
+  CONSTANT(CallbackMetadata, kCallRet4)                                        \
   CONSTANT(Context, kMaxElements)                                              \
   CONSTANT(Class, kNoTypeArguments)                                            \
   CONSTANT(Function, kKindBitsPos)                                             \

@@ -17,6 +17,9 @@ base class VMOffsets {
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get CallbackContext_kNumIntegerArguments => throw 'Unknown';
   int get CallbackContext_kNumDoubleArguments => throw 'Unknown';
+  int get CallbackMetadata_kCall => throw 'Unknown';
+  int get CallbackMetadata_kTailCall => throw 'Unknown';
+  int get CallbackMetadata_kCallRet4 => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
   int get Class_kNoTypeArguments => throw 'Unknown';
   int get Function_kKindBitsPos => throw 'Unknown';
@@ -672,6 +675,12 @@ final class Arm64VMOffsets extends VMOffsets {
   int get CallbackContext_kNumIntegerArguments => 0x8;
   @override
   int get CallbackContext_kNumDoubleArguments => 0x8;
+  @override
+  int get CallbackMetadata_kCall => 0x0;
+  @override
+  int get CallbackMetadata_kTailCall => 0x1;
+  @override
+  int get CallbackMetadata_kCallRet4 => 0x2;
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
@@ -1745,6 +1754,12 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get CallbackContext_kNumIntegerArguments => 0x8;
   @override
   int get CallbackContext_kNumDoubleArguments => 0x8;
+  @override
+  int get CallbackMetadata_kCall => 0x0;
+  @override
+  int get CallbackMetadata_kTailCall => 0x1;
+  @override
+  int get CallbackMetadata_kCallRet4 => 0x2;
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/args.dart';
-import 'package:dartpad/src/setup/main.dart';
+import 'package:dartpad/src/cli/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
@@ -60,7 +60,8 @@ Future<void> main(List<String> args) async {
   }
   final packageDir = p.join(dotDartTool, 'packages');
 
-  await runSetup([
+  await runDartPadCli([
+    'setup',
     'flutter',
     '--output',
     flutterAssetDir,

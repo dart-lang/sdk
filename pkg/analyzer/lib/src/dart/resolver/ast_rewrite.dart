@@ -499,8 +499,8 @@ class AstRewriter {
       return node;
     }
     if (_isTypeLiteralContext(parent, node)) {
-      var element = nameScope.lookup(node.name).getter;
-      switch (element) {
+      var lookup = nameScope.lookup(node.name);
+      switch (lookup.getter) {
         case DynamicElementImpl():
         case InterfaceElementImpl():
         case NeverElementImpl():
@@ -509,7 +509,8 @@ class AstRewriter {
           return _toTypeLiteral(node);
       }
 
-      var expression = UnqualifiedNameExpressionImpl(name: node.token);
+      var expression = UnqualifiedNameExpressionImpl(name: node.token)
+        ..scopeLookupResult = lookup;
       node.replaceWith(expression);
       return expression;
     }
@@ -697,7 +698,7 @@ class AstRewriter {
         operand.receiver = _parsedNameExpression(
           receiver.importPrefix,
           receiver.name,
-          receiver.element,
+          receiver.scopeLookupResult!,
         );
       }
     }
@@ -746,7 +747,7 @@ class AstRewriter {
       receiver = _parsedNameExpression(
         receiver.importPrefix,
         receiver.name,
-        receiver.element,
+        receiver.scopeLookupResult!,
       );
     }
     if (receiver is StaticQualifierImpl && !selector.name.isSynthetic) {
@@ -934,9 +935,9 @@ class AstRewriter {
   static ExpressionImpl _parsedNameExpression(
     ImportPrefixReferenceImpl? importPrefix,
     Token name,
-    Element? element,
+    ScopeLookupResult lookup,
   ) {
-    switch (element) {
+    switch (lookup.getter) {
       case DynamicElementImpl():
       case InterfaceElementImpl():
       case NeverElementImpl():
@@ -957,7 +958,8 @@ class AstRewriter {
             name: name,
           );
         }
-        return UnqualifiedNameExpressionImpl(name: name);
+        return UnqualifiedNameExpressionImpl(name: name)
+          ..scopeLookupResult = lookup;
     }
   }
 
@@ -980,7 +982,7 @@ class AstRewriter {
         ..element = element
         ..scopeLookupResult = lookup;
     }
-    return _parsedNameExpression(importPrefix, name, element);
+    return _parsedNameExpression(importPrefix, name, lookup);
   }
 
   static NamedReceiverImpl _parsedReceiverAccess(

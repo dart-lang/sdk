@@ -1675,6 +1675,10 @@ class FieldTable : public AllStatic {
 
 class CallbackMetadata : public AllStatic {
  public:
+  static const word kCall;
+  static const word kTailCall;
+  static const word kCallRet4;
+
   static word InstanceSize();
   static word entry_point_offset();
   static word type_offset();

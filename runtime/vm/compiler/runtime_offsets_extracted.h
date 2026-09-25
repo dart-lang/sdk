@@ -74,6 +74,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -931,6 +934,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -1796,6 +1802,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -2652,6 +2661,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -3520,6 +3532,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -4383,6 +4398,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -5247,6 +5265,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -6105,6 +6126,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -6968,6 +6992,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -7817,6 +7844,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -8674,6 +8704,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -9522,6 +9555,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -10382,6 +10418,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -11237,6 +11276,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -12093,6 +12135,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
@@ -12943,6 +12988,9 @@ static constexpr dart::compiler::target::word
     CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word CallbackMetadata_kTailCall = 0x1;
+static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
@@ -13805,6 +13853,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -14754,6 +14807,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -15714,6 +15772,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -16670,6 +16733,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -17626,6 +17694,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -18584,6 +18657,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -19534,6 +19612,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -20486,6 +20569,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -21426,6 +21514,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -22377,6 +22470,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -23324,6 +23422,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -24271,6 +24374,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -25220,6 +25328,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
@@ -26161,6 +26274,11 @@ static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumIntegerArguments = 0x8;
 static constexpr dart::compiler::target::word
     AOT_CallbackContext_kNumDoubleArguments = 0x8;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCall = 0x0;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kTailCall =
+    0x1;
+static constexpr dart::compiler::target::word AOT_CallbackMetadata_kCallRet4 =
+    0x2;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;

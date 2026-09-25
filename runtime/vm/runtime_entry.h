@@ -147,6 +147,12 @@ extern "C" void DLRT_DoInterpretedFfiCallback(
 // so the first-level trampoline can pass additional information to the
 // InterpretedFfiCallbackTrampoline stub.
 struct CallbackMetadata {
+  enum Type {
+    kCall,
+    kTailCall,
+    kCallRet4,  // Only used for IA32
+  };
+
 #define FOR_CALLBACK_METADATA_FIELDS(V)                                        \
   V(entry_point)                                                               \
   V(type)                                                                      \

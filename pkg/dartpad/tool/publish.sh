@@ -15,33 +15,15 @@ cd "$(dirname "$0")/../../.."
 # Use Dart we just built!
 DART="$PWD/out/ReleaseX64/dart-sdk/bin/dart"
 
-# Build Flutter SDK assets (fails if Flutter is not available)
+# Build Flutter SDK assets for integration tests (fails if Flutter is not available)
 echo "Building Flutter assets..."
 "$DART" pkg/dartpad_worker/tool/setup_local_flutter.dart --web-sdk=build --use-cdn
 
-# Run integration tests before copying files to web/
+# Run integration tests before publishing
 echo "Running integration tests..."
 (cd pkg/dartpad_worker && "$DART" test)
-
-# Clean and recreate pkg/dartpad/web/
-rm -rf pkg/dartpad/web
-mkdir -p pkg/dartpad/web
-
-# Copy compiled Dart SDK assets
-mkdir -p pkg/dartpad/web/dart/
-cp -R out/ReleaseX64/dartpad/* pkg/dartpad/web/dart/
-
-# Copy Flutter assets if available (from .dart_tool/dartpad_worker/asset/)
-ASSET_DIR="pkg/dartpad_worker/.dart_tool/dartpad_worker/asset"
-if [ -d "$ASSET_DIR" ]; then
-  echo "Copying extra assets to web/..."
-  cp -R "$ASSET_DIR"/* pkg/dartpad/web/
-fi
-
-# Drop the worker source maps, these are big
-echo "Removing worker source maps..."
-rm -f pkg/dartpad/web/dart/worker.wasm.map pkg/dartpad/web/flutter/worker.wasm.map
+(cd pkg/dartpad && "$DART" test)
 
 # Publish package:dartpad
 cd pkg/dartpad
-dart pub publish "$@"
+"$DART" pub publish "$@"

@@ -2,12 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:checks/checks.dart';
+import 'package:dartpad/src/cli/setup.dart';
 import 'package:dartpad/src/setup/dart.dart';
 import 'package:dartpad/src/setup/flutter.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('dartpad CLI', () {
+    test('registers setup subcommand with dart and flutter targets', () {
+      final setupCmd = SetupCommand();
+      check(setupCmd.name).equals('setup');
+      check(
+        setupCmd.subcommands.keys.toSet(),
+      ).unorderedEquals({'dart', 'flutter'});
+    });
+
+    test('bin/dartpad.dart --help and setup --help succeed', () async {
+      final helpResult = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        '--help',
+      ]);
+      check(helpResult.exitCode).equals(0);
+      check(helpResult.stdout.toString())
+        ..contains('CLI utilities for package:dartpad.')
+        ..contains('setup');
+
+      final setupHelpResult = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        '--help',
+      ]);
+      check(setupHelpResult.exitCode).equals(0);
+      check(setupHelpResult.stdout.toString())
+        ..contains('Download or build DartPad SDK assets for Dart and Flutter.')
+        ..contains('dart')
+        ..contains('flutter');
+    });
+  });
+
   group('resolveDartPadZipUrl', () {
     test('resolves latest on main from raw/latest', () {
       final url = resolveDartPadZipUrl(channel: 'main');

@@ -1,8 +1,0 @@
-# Intentionally empty of rules.
-#
-# For each directory, pub reads .pubignore *instead of* .gitignore -- see
-# `ignoreForDir` in pub's lib/src/package.dart. Without this file the `/web/`
-# rule in .gitignore would also apply when publishing, and the package would
-# ship without the worker and SDK assets it needs to run.
-#
-# See dart.dev/go/pubignore.

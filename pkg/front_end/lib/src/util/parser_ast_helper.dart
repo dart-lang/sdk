@@ -211,6 +211,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    CascadeExpressionEndHandle data = new CascadeExpressionEndHandle(
+      ParserAstType.HANDLE,
+      sectionCount: sectionCount,
+    );
+    seen(data);
+  }
+
+  @override
   void beginCaseExpression(Token caseKeyword) {
     CaseExpressionBegin data = new CaseExpressionBegin(
       ParserAstType.BEGIN,
@@ -4332,6 +4341,21 @@ class CascadeEnd extends ParserAstNode {
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeEnd(this);
+}
+
+class CascadeExpressionEndHandle extends ParserAstNode {
+  final int sectionCount;
+
+  new(ParserAstType type, {required this.sectionCount})
+    : super("CascadeExpressionEnd", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "sectionCount": sectionCount,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeExpressionEndHandle(this);
 }
 
 class CaseExpressionBegin extends ParserAstNode {
@@ -10632,6 +10656,7 @@ abstract class ParserAstVisitor<R> {
   R visitInvalidTopLevelBlockHandle(InvalidTopLevelBlockHandle node);
   R visitCascadeBegin(CascadeBegin node);
   R visitCascadeEnd(CascadeEnd node);
+  R visitCascadeExpressionEndHandle(CascadeExpressionEndHandle node);
   R visitCaseExpressionBegin(CaseExpressionBegin node);
   R visitCaseExpressionEnd(CaseExpressionEnd node);
   R visitClassOrMixinOrExtensionBodyBegin(
@@ -11090,6 +11115,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitCascadeEnd(CascadeEnd node) => node.visitChildren(this);
+
+  @override
+  void visitCascadeExpressionEndHandle(CascadeExpressionEndHandle node) =>
+      node.visitChildren(this);
 
   @override
   void visitCaseExpressionBegin(CaseExpressionBegin node) =>
@@ -12539,6 +12568,11 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitCascadeEnd(CascadeEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitCascadeExpressionEndHandle(
+    CascadeExpressionEndHandle node,
+  ) => defaultNode(node);
 
   @override
   Future<void> visitCaseExpressionBegin(CaseExpressionBegin node) =>
