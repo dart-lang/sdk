@@ -297,6 +297,75 @@ export 'foo.dart';
 ''');
   }
 
+  void test_exporterIsInNestedPart_lib() async {
+    newFile(testPackageImplementationFilePath, r'''
+import 'package:meta/meta.dart';
+@internal class One {}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'src/foo.dart';
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''',
+    });
+  }
+
+  void test_exporterIsInNestedPart_libSrc() async {
+    newFile(testPackageImplementationFilePath, r'''
+import 'package:meta/meta.dart';
+@internal class One {}
+''');
+
+    var a = getFile('$testPackageLibPath/src/a.dart');
+    var b = getFile('$testPackageLibPath/src/b.dart');
+    var c = getFile('$testPackageLibPath/src/c.dart');
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'foo.dart';
+''',
+    });
+  }
+
+  void test_exporterIsInPart_lib() async {
+    newFile(testPackageImplementationFilePath, r'''
+import 'package:meta/meta.dart';
+@internal class One {}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'src/foo.dart';
+// [diag.invalidExportOfInternalElement][column 1][length 22] The member 'One' can't be exported as a part of a package's public API.
+''',
+    });
+  }
+
   void test_exporterIsInTest() async {
     newFile(testPackageImplementationFilePath, r'''
 import 'package:meta/meta.dart';
