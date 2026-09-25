@@ -716,6 +716,31 @@ void main() async {
       });
     }
 
+    for (bool inMemory in [true, false]) {
+      test('bad import '
+          '(${inMemory ? 'in memory' : 'from disk'})', () async {
+        // This is a local version of standalone/package/invalid_uri_test/01
+        executable.writeAsStringSync(
+          "import 'package://lib1.dart'; void main() {}",
+        );
+
+        if (!inMemory) ResidentFrontendServer.compilers.clear();
+        Map<String, dynamic> compileResult = jsonDecode(
+          await ResidentFrontendServer.handleRequest(
+            createCompileJSON(
+              executable: executable.path,
+              packages: package.path,
+              outputDill: outputDill.path,
+              supportMirrors: true,
+              enableAsserts: true,
+              soundNullSafety: true,
+            ),
+          ),
+        );
+        expect(compileResult['success'], false);
+      });
+    }
+
     test('produces aot kernel', () async {
       final Map<String, dynamic> compileResult1 = jsonDecode(
         await ResidentFrontendServer.handleRequest(
