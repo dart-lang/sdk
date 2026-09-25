@@ -17,6 +17,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AdditionalEnabledCodesTest);
+    defineReflectiveTests(CannotBeAppliedAutomaticallyTest);
     defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(NoFixTest);
@@ -238,6 +239,44 @@ var a = new A();
         .map((rule) => rule.name)
         .toList();
     expect(originalLints, isNot(contains(LintNames.unnecessary_new)));
+  }
+}
+
+/// Regression test for https://github.com/dart-lang/sdk/issues/64331.
+///
+/// Running `dart fix --apply` on a file with `comment_references` violations
+/// used to apply ALL suggested import options at once (both `@docImport`
+/// variants and regular `import ... show` variants), corrupting the file.
+/// The fix ensures each generated producer is gated on
+/// [CorrectionApplicability.canBeAppliedAcrossFiles], which [ImportLibrary]
+/// does not satisfy, so no bulk change should be produced.
+@reflectiveTest
+class CannotBeAppliedAutomaticallyTest extends BulkFixProcessorTest {
+  @override
+  String? get lintCode => LintNames.comment_references;
+
+  Future<void> test_noFixApplied_whenMultipleCandidateLibraries() async {
+    // Create two libraries that both export classes referenced in doc comments
+    // so that the `comment_references` lint fires and [ImportLibrary] would
+    // have multiple candidates to suggest.
+    newFile('$testPackageLibPath/foo.dart', '''
+library foo;
+class Foo {}
+''');
+    newFile('$testPackageLibPath/src/bar.dart', '''
+library bar;
+class Bar {}
+''');
+
+    await resolveTestCode('''
+/// Reference to [Foo] and [Bar].
+class Clazz {}
+''');
+
+    // No changes should be applied in bulk for `comment_references` because
+    // [ImportLibrary] producers have [CorrectionApplicability.singleLocation]
+    // and are therefore not safe to apply automatically across files.
+    await assertNoFix();
   }
 }
 
