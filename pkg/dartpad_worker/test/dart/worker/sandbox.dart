@@ -9,20 +9,14 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    // Test console event
-    final consoleFuture = sandbox.console.first;
-    iframe.emitConsole('info', 'hello console');
-    check(await consoleFuture).equals('hello console');
-
-    // Test error event
-    final errorFuture = sandbox.errors.first;
-    iframe.emitError('hello error', 'stack trace details');
-    check(await errorFuture).equals('hello error');
-
-    // Test unhandledRejection
-    final unhandledRejectionFuture = sandbox.unhandledRejections.first;
-    iframe.emitUnhandledRejection('hello unhandledRejection');
-    check(await unhandledRejectionFuture).equals('hello unhandledRejection');
+    // Test console events across levels
+    for (final level in ConsoleLevel.values) {
+      final consoleFuture = sandbox.console.first;
+      iframe.emitConsole(level.protocolName, 'hello ${level.protocolName}');
+      check(
+        await consoleFuture,
+      ).equals((level: level, message: 'hello ${level.protocolName}'));
+    }
 
     // Test extensionEvent
     final extensionEventFuture = sandbox.extensionEvents.first;

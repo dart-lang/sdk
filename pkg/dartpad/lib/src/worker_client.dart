@@ -35,11 +35,6 @@ base class WorkerClient {
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
     _peer.registerMethod('workspace/sandbox/console', _handleSandboxConsole);
-    _peer.registerMethod('workspace/sandbox/error', _handleSandboxError);
-    _peer.registerMethod(
-      'workspace/sandbox/unhandledRejection',
-      _handleSandboxUnhandledRejection,
-    );
     _peer.registerMethod(
       'workspace/sandbox/extensionEvent',
       _handleSandboxExtensionEvent,
@@ -74,20 +69,9 @@ base class WorkerClient {
 
   void _handleSandboxConsole(rpc.Parameters params) {
     final id = (params['sandboxId'].value as num).toInt();
+    final level = ConsoleLevel._fromName(params['level'].asString);
     final message = params['message'].asString;
-    _sandboxes[id]?._consoleController.add(message);
-  }
-
-  void _handleSandboxError(rpc.Parameters params) {
-    final id = (params['sandboxId'].value as num).toInt();
-    final message = params['message'].asString;
-    _sandboxes[id]?._errorController.add(message);
-  }
-
-  void _handleSandboxUnhandledRejection(rpc.Parameters params) {
-    final id = (params['sandboxId'].value as num).toInt();
-    final message = params['message'].asString;
-    _sandboxes[id]?._unhandledRejectionController.add(message);
+    _sandboxes[id]?._consoleController.add((level: level, message: message));
   }
 
   void _handleSandboxExtensionEvent(rpc.Parameters params) {
@@ -492,6 +476,55 @@ extension on rpc.Peer {
   }
 }
 
+/// Severity level for messages emitted on [Sandbox.console].
+enum ConsoleLevel implements Comparable<ConsoleLevel> {
+  /// Output from [`console.debug`][1].
+  ///
+  /// [1]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug_static
+  debug('debug'),
+
+  /// Output from [`console.log`][1], includes `print`.
+  ///
+  /// [1]: https://developer.mozilla.org/en-US/docs/Web/API/console/log_static
+  log('log'),
+
+  /// Output from [`console.info`][1].
+  ///
+  /// [1]: https://developer.mozilla.org/en-US/docs/Web/API/console/info_static
+  info('info'),
+
+  /// Output from [`console.warn`][1].
+  ///
+  /// [1]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn_static
+  warn('warn'),
+
+  /// Output from [`console.error`][1], includes `unhandledrejection` and
+  /// `error` events from `window`.
+  ///
+  /// [1]: https://developer.mozilla.org/en-US/docs/Web/API/console/error_static
+  error('error');
+
+  /// Name of this level in the worker wire protocol.
+  final String protocolName;
+
+  const ConsoleLevel(this.protocolName);
+
+  @override
+  int compareTo(ConsoleLevel other) => index.compareTo(other.index);
+
+  bool operator <(ConsoleLevel other) => index < other.index;
+  bool operator <=(ConsoleLevel other) => index <= other.index;
+  bool operator >(ConsoleLevel other) => index > other.index;
+  bool operator >=(ConsoleLevel other) => index >= other.index;
+
+  static final _byProtocolName = {
+    for (final level in ConsoleLevel.values) level.protocolName: level,
+  };
+
+  static ConsoleLevel _fromName(String name) =>
+      _byProtocolName[name] ?? ConsoleLevel.log;
+}
+
 /// A client for running Dart code from a [Workspace] inside a
 /// [SandboxedIframe].
 ///
@@ -520,26 +553,18 @@ final class Sandbox {
 
   Sandbox._(this._workspace, this._id, this.modes);
 
-  final _consoleController = StreamController<String>.broadcast();
-  final _errorController = StreamController<String>.broadcast();
-  final _unhandledRejectionController = StreamController<String>.broadcast();
+  final _consoleController =
+      StreamController<({ConsoleLevel level, String message})>.broadcast();
   final _extensionEventController =
       StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
-  /// A stream of console messages produced by the running application.
-  Stream<String> get console => _consoleController.stream;
-
-  /// A stream of messages from `window.onerror`.
-  // TODO(jonasfj): Consider folding errors and unhandledRejections into console
-  //                output, and then instead wrap dart entrypoint in a Zone
-  //                that catches errors, pretty prints them and communicates
-  //                them out in a completely different unhandleException stream.
-  //                window.onerror doesn't get pretty messages.
-  Stream<String> get errors => _errorController.stream;
-
-  /// A stream of unhandled JS promise rejections from the running application.
-  Stream<String> get unhandledRejections =>
-      _unhandledRejectionController.stream;
+  /// A broadcast stream of console messages produced by the running
+  /// application.
+  ///
+  /// Subscribe to this stream before calling [run] to ensure initial console
+  /// output from `main()` is not missed.
+  Stream<({ConsoleLevel level, String message})> get console =>
+      _consoleController.stream;
 
   /// A stream of developer extension events fired by the running application.
   Stream<({String kind, Map<String, Object?> data})> get extensionEvents =>
@@ -622,8 +647,6 @@ final class Sandbox {
 
   void _cleanup() {
     _consoleController.close().ignore();
-    _errorController.close().ignore();
-    _unhandledRejectionController.close().ignore();
     _extensionEventController.close().ignore();
     _workspace._client._sandboxes.remove(_id);
   }

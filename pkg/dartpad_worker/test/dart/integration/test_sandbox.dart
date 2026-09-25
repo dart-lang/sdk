@@ -36,7 +36,6 @@ void main() {
       }
     ''');
 
-    final errorFuture = ctx.sandbox.errors.first;
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
       environment:
@@ -47,9 +46,10 @@ void main() {
 
     // The message of the Dart exception, not just the bare `Error` that V8
     // captured before DDC filled it in. See `renderError` in `sandbox.js`.
-    await check(
-      errorFuture,
-    ).completes(.it()..contains('Exception: uncaught error in sandbox'));
+    await ctx.checkConsole(
+      .it()..contains('Exception: uncaught error in sandbox'),
+      level: .error,
+    );
   });
 
   testDartIntegration('sandbox handles unhandled promise rejection', (
@@ -71,8 +71,6 @@ void main() {
       }
     ''');
 
-    final rejectionFuture = ctx.sandbox.unhandledRejections.first;
-
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
       environment:
@@ -81,9 +79,10 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(
-      rejectionFuture,
-    ).completes(.it()..contains('unhandled rejection in sandbox'));
+    await ctx.checkConsole(
+      .it()..contains('unhandled rejection in sandbox'),
+      level: .error,
+    );
   });
 
   testDartIntegration('sandbox handles extension event', (ctx) async {
