@@ -6,6 +6,8 @@
 
 #include "bin/secure_socket_filter.h"
 
+#include <errno.h>
+
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -14,12 +16,59 @@
 #include "bin/lockers.h"
 #include "bin/secure_socket_utils.h"
 #include "bin/security_context.h"
+#include "bin/socket.h"
 #include "bin/socket_base.h"
+#include "bin/utils.h"
 #include "platform/syslog.h"
-#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {
+
+static int GetLastSocketError(intptr_t fd) {
+#if defined(DART_HOST_OS_WINDOWS)
+  OSError os_error;
+  SocketBase::GetError(fd, &os_error);
+  return os_error.code();
+#else
+  static_cast<void>(fd);
+  return errno;
+#endif
+}
+
+// Determines whether an OS socket error (or return status) indicates a
+// non-fatal, retriable condition for BoringSSL custom socket BIO.
+//
+// BoringSSL custom BIO contract:
+// - Returning -1 (read) or 0 (write) WITHOUT setting BIO_set_retry_read/write
+//   causes BoringSSL to treat the condition as a fatal SSL_ERROR_SYSCALL (5),
+//   which invalidates the TLS session and corrupts the state machine.
+// - On Windows, non-blocking asynchronous I/O (Handle::Read / Handle::Write)
+//   returns -1 with last_error == NOERROR (0) when an overlapped operation
+//   is pending or no packet has completed yet.
+// - Furthermore, socket resets/closures (WSAECONNRESET, ERROR_OPERATION_ABORTED,
+//   etc.) must be flagged as retriable so that Dart EventHandler's stream
+//   events (RawSocketEvent.readClosed / closed) can deliver the termination
+//   gracefully instead of triggering an unhandled native SYSCALL exception.
+static bool IsRetrySocketError(int error) {
+  if (error == 0) {
+    // Windows non-blocking pending I/O: Handle::Read returns -1 with last_error
+    // == 0 when no data is ready, and Handle::Write returns -1 with last_error
+    // == 0 when a write is in progress.
+    return true;
+  }
+#if defined(DART_HOST_OS_WINDOWS)
+  return error == WSAEWOULDBLOCK || error == WSAEBADF ||
+         error == WSAENOTSOCK || error == ERROR_INVALID_HANDLE ||
+         error == WSAECONNRESET || error == WSAECONNABORTED ||
+         error == WSAESHUTDOWN || error == WSAENOTCONN ||
+         error == ERROR_NETNAME_DELETED || error == ERROR_OPERATION_ABORTED ||
+         error == ERROR_CONNECTION_ABORTED;
+#else
+  return error == EAGAIN || error == EWOULDBLOCK || error == EBADF ||
+         error == ECONNRESET || error == EPIPE || error == ENOTCONN ||
+         error == ECONNABORTED;
+#endif
+}
 
 bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
@@ -27,6 +76,7 @@ Mutex* SSLFilter::mutex_ = nullptr;
 int SSLFilter::filter_ssl_index;
 int SSLFilter::ssl_cert_context_index;
 Dart_Port SSLFilter::trust_evaluate_reply_port_ = ILLEGAL_PORT;
+BIO_METHOD* SSLFilter::socket_bio_method_ = nullptr;
 
 void SSLFilter::Init() {
   ASSERT(SSLFilter::mutex_ == nullptr);
@@ -35,14 +85,54 @@ void SSLFilter::Init() {
 
 void SSLFilter::Cleanup() {
   ASSERT(SSLFilter::mutex_ != nullptr);
+  if (socket_bio_method_ != nullptr) {
+    BIO_meth_free(socket_bio_method_);
+    socket_bio_method_ = nullptr;
+  }
   delete SSLFilter::mutex_;
   SSLFilter::mutex_ = nullptr;
   trust_evaluate_reply_port_ = ILLEGAL_PORT;
 }
 
-const intptr_t SSLFilter::kInternalBIOSize = 10 * KB;
 const intptr_t SSLFilter::kApproximateSize =
-    sizeof(SSLFilter) + (2 * SSLFilter::kInternalBIOSize);
+    sizeof(SSLFilter) + SSLFilter::kMaxPrefetchedData;
+
+SSLFilterBuffer::SSLFilterBuffer(int size)
+    : data_(new uint8_t[size]), size_(size) {
+  ASSERT(size >= 2);
+  ASSERT(data_ != nullptr);
+  memset(data_, 0, size_);
+}
+
+SSLFilterBuffer::~SSLFilterBuffer() {
+  delete[] data_;
+}
+
+static void ReleaseFilterBuffer(void* isolate_data, void* peer) {
+  static_cast<SSLFilterBuffer*>(peer)->Release();
+}
+
+static Dart_Handle NewUnhandledInternalError(const char* message) {
+  return Dart_NewUnhandledExceptionError(DartUtils::NewInternalError(message));
+}
+
+static Dart_Handle NewUnhandledArgumentError(const char* message) {
+  return Dart_NewUnhandledExceptionError(
+      DartUtils::NewDartArgumentError(message));
+}
+
+static Dart_Handle WrapFilterBuffer(SSLFilterBuffer* buffer) {
+  // The allocation's initial reference belongs to SSLFilter. Reserve a second
+  // reference for the ExternalUint8List before installing its finalizer.
+  buffer->Retain();
+  Dart_Handle data = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, buffer->data(), buffer->size(), buffer,
+      buffer->size() + sizeof(SSLFilterBuffer), ReleaseFilterBuffer);
+  if (Dart_IsError(data)) {
+    buffer->Release();
+  }
+  return data;
+}
 
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
   SSLFilter* filter = nullptr;
@@ -118,9 +208,17 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   // The protocols_handle is guaranteed to be a valid Uint8List.
   // It will have the correct length encoding of the protocols array.
   ASSERT(!Dart_IsNull(protocols_handle));
+  Dart_Handle native_socket = ThrowIfError(Dart_GetNativeArgument(args, 7));
+  Dart_Handle transport_read = ThrowIfError(Dart_GetNativeArgument(args, 8));
+  Dart_Handle transport_write = ThrowIfError(Dart_GetNativeArgument(args, 9));
+  Socket* socket = nullptr;
+  if (!Dart_IsNull(native_socket)) {
+    socket = Socket::GetSocketIdNativeField(native_socket);
+  }
   GetFilter(args)->Connect(host_name, context, is_server,
                            request_client_certificate,
-                           require_client_certificate, protocols_handle);
+                           require_client_certificate, protocols_handle, socket,
+                           transport_read, transport_write);
 }
 
 void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
@@ -144,8 +242,20 @@ void FUNCTION_NAME(SecureSocket_Handshake)(Dart_NativeArguments args) {
 
   Dart_Port port_id;
   ThrowIfError(Dart_SendPortGetId(port, &port_id));
-  int result = GetFilter(args)->Handshake(port_id);
-  Dart_SetReturnValue(args, Dart_NewInteger(result));
+  SSLFilter* filter = GetFilter(args);
+  int status = filter->Handshake(port_id);
+  Dart_Handle result = Dart_NewList(5);
+  ThrowIfError(result);
+  ThrowIfError(Dart_ListSetAt(result, 0, Dart_NewInteger(status)));
+  ThrowIfError(
+      Dart_ListSetAt(result, 1, Dart_NewBoolean(filter->HasPrefetchedData())));
+  ThrowIfError(Dart_ListSetAt(
+      result, 2, Dart_NewBoolean(filter->HasPendingSocketWrite())));
+  ThrowIfError(Dart_ListSetAt(result, 3,
+                              Dart_NewInteger(filter->TakeSocketReadBytes())));
+  ThrowIfError(Dart_ListSetAt(result, 4,
+                              Dart_NewInteger(filter->TakeSocketWriteBytes())));
+  Dart_SetReturnValue(args, result);
 }
 
 void FUNCTION_NAME(SecureSocket_MarkAsTrusted)(Dart_NativeArguments args) {
@@ -205,83 +315,342 @@ void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, cert);
 }
 
-void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_QueuePrefetchedData)(
+    Dart_NativeArguments args) {
   SSLFilter* filter = GetFilter(args);
-  // This filter pointer is passed to the IO Service thread. The IO Service
-  // thread must Release() the pointer when it is done with it.
-  filter->Retain();
-  intptr_t filter_pointer = reinterpret_cast<intptr_t>(filter);
-  Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
+  Dart_Handle data = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  intptr_t offset = DartUtils::GetNativeIntptrArgument(args, 2);
+  Dart_SetIntegerReturnValue(args, filter->QueuePrefetchedData(data, offset));
 }
 
-/**
- * Pushes data through the SSL filter, reading and writing from circular
- * buffers shared with Dart.
- *
- * The Dart _SecureFilterImpl class contains 4 ExternalByteArrays used to
- * pass encrypted and plaintext data to and from the C++ SSLFilter object.
- *
- * ProcessFilter is called with a CObject array containing the pointer to
- * the SSLFilter, encoded as an int, and the start and end positions of the
- * valid data in the four circular buffers.  The function only reads from
- * the valid data area of the input buffers, and only writes to the free
- * area of the output buffers.  The function returns the new start and end
- * positions in the buffers, but it only updates start for input buffers, and
- * end for output buffers.  Therefore, the Dart thread can simultaneously
- * write to the free space and end pointer of input buffers, and read from
- * the data space of output buffers, and modify the start pointer.
- *
- * When ProcessFilter returns, the Dart thread is responsible for combining
- * the updated pointers from Dart and C++, to make the new valid state of
- * the circular buffer.
- */
-CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
-  CObjectIntptr filter_object(request[0]);
-  SSLFilter* filter = reinterpret_cast<SSLFilter*>(filter_object.Value());
-  RefCntReleaseScope<SSLFilter> rs(filter);
-
-  bool in_handshake = CObjectBool(request[1]).Value();
-  int starts[SSLFilter::kNumBuffers];
-  int ends[SSLFilter::kNumBuffers];
-  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
-    starts[i] = CObjectInt32(request[2 * i + 2]).Value();
-    ends[i] = CObjectInt32(request[2 * i + 3]).Value();
+void FUNCTION_NAME(SecureSocket_Process)(Dart_NativeArguments args) {
+  SSLFilter* filter = GetFilter(args);
+  Dart_Handle positions = ThrowIfError(Dart_GetNativeArgument(args, 1));
+  intptr_t length = 0;
+  ThrowIfError(Dart_ListLength(positions, &length));
+  if (length != SSLFilter::kNumBuffers * 3) {
+    Dart_ThrowException(DartUtils::NewInternalError(
+        "Invalid SecureSocket buffer position list"));
   }
 
-  if (filter->ProcessAllBuffers(starts, ends, in_handshake)) {
-    CObjectArray* result =
-        new CObjectArray(CObject::NewArray(SSLFilter::kNumBuffers * 2));
-    for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
-      result->SetAt(2 * i, new CObjectInt32(CObject::NewInt32(starts[i])));
-      result->SetAt(2 * i + 1, new CObjectInt32(CObject::NewInt32(ends[i])));
+  int starts[SSLFilter::kNumBuffers];
+  int ends[SSLFilter::kNumBuffers];
+  int sizes[SSLFilter::kNumBuffers];
+  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
+    starts[i] = DartUtils::GetIntegerValue(
+        ThrowIfError(Dart_ListGetAt(positions, 3 * i)));
+    ends[i] = DartUtils::GetIntegerValue(
+        ThrowIfError(Dart_ListGetAt(positions, 3 * i + 1)));
+    sizes[i] = DartUtils::GetIntegerValue(
+        ThrowIfError(Dart_ListGetAt(positions, 3 * i + 2)));
+  }
+
+  if (!filter->ProcessAllBuffers(starts, ends, sizes)) {
+    filter->ThrowFilterError();
+  }
+
+  Dart_Handle result = Dart_NewList(SSLFilter::kNumBuffers * 2 + 6);
+  ThrowIfError(result);
+  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
+    ThrowIfError(Dart_ListSetAt(result, 2 * i, Dart_NewInteger(starts[i])));
+    ThrowIfError(Dart_ListSetAt(result, 2 * i + 1, Dart_NewInteger(ends[i])));
+  }
+  ThrowIfError(Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2,
+                              Dart_NewBoolean(filter->WantsWrite())));
+  ThrowIfError(Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2 + 1,
+                              Dart_NewBoolean(filter->HasPrefetchedData())));
+  ThrowIfError(
+      Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2 + 2,
+                     Dart_NewBoolean(filter->HasPendingSocketWrite())));
+  ThrowIfError(Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2 + 3,
+                              Dart_NewInteger(filter->TakeSocketReadBytes())));
+  ThrowIfError(Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2 + 4,
+                              Dart_NewInteger(filter->TakeSocketWriteBytes())));
+  ThrowIfError(
+      Dart_ListSetAt(result, SSLFilter::kNumBuffers * 2 + 5,
+                     Dart_NewBoolean(filter->HasPendingPlaintext())));
+  Dart_SetReturnValue(args, result);
+}
+
+void FUNCTION_NAME(SecureSocket_GrowBuffer)(Dart_NativeArguments args) {
+  SSLFilter* filter = GetFilter(args);
+  int buffer_index =
+      static_cast<int>(DartUtils::GetNativeIntptrArgument(args, 1));
+  int start = static_cast<int>(DartUtils::GetNativeIntptrArgument(args, 2));
+  int end = static_cast<int>(DartUtils::GetNativeIntptrArgument(args, 3));
+  int old_size = static_cast<int>(DartUtils::GetNativeIntptrArgument(args, 4));
+  int new_size = static_cast<int>(DartUtils::GetNativeIntptrArgument(args, 5));
+  Dart_SetReturnValue(args, ThrowIfError(filter->GrowBuffer(
+                                buffer_index, start, end, old_size, new_size)));
+}
+
+void SSLFilter::ThrowFilterError() {
+  if (last_ssl_error_ == SSL_ERROR_SYSCALL && last_os_error_ != 0) {
+    OSError os_error;
+    os_error.SetCodeAndMessage(OSError::kSystem, last_os_error_);
+    Dart_Handle dart_os_error = DartUtils::NewDartOSError(&os_error);
+    Dart_Handle exception = DartUtils::NewDartIOException(
+        "TlsException", "SecureSocket filter error", dart_os_error);
+    Dart_ThrowException(exception);
+    UNREACHABLE();
+  }
+  SecureSocketUtils::ThrowIOException(
+      last_ssl_error_ == SSL_ERROR_SSL ? 0 : last_ssl_status_, "TlsException",
+      "SecureSocket filter error", ssl_);
+}
+
+bool SSLFilter::HasPendingSocketWrite() const {
+#if defined(DART_HOST_OS_WINDOWS)
+  return socket_fd_ != Socket::kClosedFd &&
+         SocketBase::HasPendingWrite(socket_fd_);
+#else
+  return false;
+#endif
+}
+
+intptr_t SSLFilter::QueuePrefetchedData(Dart_Handle data, intptr_t offset) {
+  if (HasPrefetchedData()) {
+    return 0;
+  }
+  if (prefetched_data_ != nullptr) {
+    delete[] prefetched_data_;
+    prefetched_data_ = nullptr;
+  }
+  prefetched_data_offset_ = 0;
+  prefetched_data_length_ = 0;
+
+  intptr_t data_length = 0;
+  ThrowIfError(Dart_ListLength(data, &data_length));
+  intptr_t length = BoundedPrefetchedDataLength(data_length, offset);
+  if (length < 0) {
+    Dart_ThrowException(
+        DartUtils::NewDartArgumentError("Invalid prefetched data offset"));
+  }
+  if (length == 0) {
+    prefetched_data_has_tail_ = false;
+    return 0;
+  }
+
+  prefetched_data_ = new uint8_t[length];
+  ASSERT(prefetched_data_ != nullptr);
+  Dart_Handle result =
+      Dart_ListGetAsBytes(data, offset, prefetched_data_, length);
+  if (Dart_IsError(result)) {
+    delete[] prefetched_data_;
+    prefetched_data_ = nullptr;
+    prefetched_data_has_tail_ = false;
+    Dart_PropagateError(result);
+  }
+  prefetched_data_length_ = length;
+  prefetched_data_has_tail_ =
+      PrefetchedDataHasTail(data_length, offset, length);
+  return length;
+}
+
+int SSLFilter::SocketBIORead(BIO* bio, char* output, int length) {
+  BIO_clear_retry_flags(bio);
+  SSLFilter* filter = static_cast<SSLFilter*>(BIO_get_data(bio));
+  if (filter == nullptr || length <= 0) {
+    return -1;
+  }
+
+  if (filter->HasPrefetchedData()) {
+    intptr_t available =
+        filter->prefetched_data_length_ - filter->prefetched_data_offset_;
+    intptr_t to_read = available < length ? available : length;
+    memmove(output, filter->prefetched_data_ + filter->prefetched_data_offset_,
+            to_read);
+    filter->prefetched_data_offset_ += to_read;
+    if (!filter->HasPrefetchedData()) {
+      delete[] filter->prefetched_data_;
+      filter->prefetched_data_ = nullptr;
+      filter->prefetched_data_offset_ = 0;
+      filter->prefetched_data_length_ = 0;
     }
-    return result;
+    return static_cast<int>(to_read);
+  }
+
+  // The current bounded chunk is empty, but Dart still owns earlier transport
+  // bytes which have not been queued yet. Do not allow newer socket bytes to
+  // overtake that tail. Returning WANT_READ gives Dart a chance to queue the
+  // next chunk before BoringSSL reads again.
+  if (filter->prefetched_data_has_tail_) {
+    BIO_set_retry_read(bio);
+    return -1;
+  }
+
+  if (filter->socket_fd_ != Socket::kClosedFd) {
+    const intptr_t fd = filter->socket_fd_;
+    intptr_t requested = length;
+    if (Socket::short_socket_read()) {
+      requested = (requested + 1) / 2;
+    }
+    intptr_t read = SocketBase::Read(fd, output, requested, SocketBase::kAsync);
+    if (read > 0) {
+      filter->socket_read_bytes_ += read;
+      return static_cast<int>(read);
+    }
+    if (read == 0) {
+      BIO_set_retry_read(bio);
+      return -1;
+    }
+    const int socket_error = GetLastSocketError(fd);
+    if (IsRetrySocketError(socket_error)) {
+      BIO_set_retry_read(bio);
+      return -1;
+    }
+    filter->last_os_error_ = socket_error;
+    return -1;
+  }
+
+  if (filter->transport_read_ == nullptr) {
+    return -1;
+  }
+  Dart_Handle read_length = Dart_NewInteger(length);
+  if (Dart_IsError(read_length)) {
+    filter->SetCallbackError(read_length);
+    return -1;
+  }
+  Dart_Handle result = Dart_InvokeClosure(
+      Dart_HandleFromPersistent(filter->transport_read_), 1, &read_length);
+  if (Dart_IsError(result)) {
+    filter->SetCallbackError(result);
+    return -1;
+  }
+  if (Dart_IsNull(result)) {
+    BIO_set_retry_read(bio);
+    return -1;
+  }
+  intptr_t result_length = 0;
+  Dart_Handle status = Dart_ListLength(result, &result_length);
+  if (Dart_IsError(status)) {
+    filter->SetCallbackError(status);
+    return -1;
+  }
+  if (result_length < 0 || result_length > length) {
+    filter->SetCallbackError(NewUnhandledArgumentError(
+        "RawSocket.read returned an invalid byte count"));
+    return -1;
+  }
+  if (result_length == 0) {
+    BIO_set_retry_read(bio);
+    return -1;
+  }
+  status = Dart_ListGetAsBytes(result, 0, reinterpret_cast<uint8_t*>(output),
+                               result_length);
+  if (Dart_IsError(status)) {
+    filter->SetCallbackError(status);
+    return -1;
+  }
+  return static_cast<int>(result_length);
+}
+
+int SSLFilter::SocketBIOWrite(BIO* bio,
+                              const char* input,
+                              size_t length,
+                              size_t* written) {
+  BIO_clear_retry_flags(bio);
+  SSLFilter* filter = static_cast<SSLFilter*>(BIO_get_data(bio));
+  if (filter == nullptr) {
+    return 0;
+  }
+
+  intptr_t requested = length > static_cast<size_t>(INTPTR_MAX)
+                           ? INTPTR_MAX
+                           : static_cast<intptr_t>(length);
+  intptr_t result = 0;
+  if (filter->socket_fd_ != Socket::kClosedFd) {
+    const intptr_t fd = filter->socket_fd_;
+    if (Socket::short_socket_write()) {
+      requested = (requested + 1) / 2;
+    }
+    result = SocketBase::Write(fd, input, requested, SocketBase::kAsync);
+    if (result > 0) {
+      filter->socket_write_bytes_ += result;
+    } else if (result == 0) {
+      BIO_set_retry_write(bio);
+    } else {
+      const int socket_error = GetLastSocketError(fd);
+      if (IsRetrySocketError(socket_error)) {
+        BIO_set_retry_write(bio);
+      } else {
+        filter->last_os_error_ = socket_error;
+      }
+    }
   } else {
-    int32_t error_code = static_cast<int32_t>(ERR_peek_error());
-    TextBuffer error_string(SecureSocketUtils::SSL_ERROR_MESSAGE_BUFFER_SIZE);
-    SecureSocketUtils::FetchErrorString(filter->ssl_, &error_string);
-    CObjectArray* result = new CObjectArray(CObject::NewArray(2));
-    result->SetAt(0, new CObjectInt32(CObject::NewInt32(error_code)));
-    result->SetAt(1,
-                  new CObjectString(CObject::NewString(error_string.buffer())));
-    return result;
+    if (filter->transport_write_ == nullptr) {
+      return 0;
+    }
+    Dart_Handle data = DartUtils::MakeUint8Array(input, requested);
+    if (Dart_IsError(data)) {
+      filter->SetCallbackError(data);
+      return 0;
+    }
+    Dart_Handle write_result = Dart_InvokeClosure(
+        Dart_HandleFromPersistent(filter->transport_write_), 1, &data);
+    if (Dart_IsError(write_result)) {
+      filter->SetCallbackError(write_result);
+      return 0;
+    }
+    int64_t dart_result = 0;
+    Dart_Handle status = Dart_IntegerToInt64(write_result, &dart_result);
+    if (Dart_IsError(status)) {
+      filter->SetCallbackError(status);
+      return 0;
+    }
+    if (dart_result < 0 || dart_result > requested) {
+      filter->SetCallbackError(NewUnhandledArgumentError(
+          "RawSocket.write returned an invalid byte count"));
+      return 0;
+    }
+    result = static_cast<intptr_t>(dart_result);
+  }
+  if (result > 0) {
+    *written = static_cast<size_t>(result);
+    return 1;
+  }
+  if (result == 0) {
+    BIO_set_retry_write(bio);
+  }
+  return 0;
+}
+
+long SSLFilter::SocketBIOControl(BIO* bio,
+                                 int command,
+                                 long argument,
+                                 void* pointer) {
+  SSLFilter* filter = static_cast<SSLFilter*>(BIO_get_data(bio));
+  switch (command) {
+    case BIO_CTRL_EOF:
+      return 0;
+    case BIO_CTRL_PENDING:
+      return filter != nullptr && filter->HasPrefetchedData()
+                 ? filter->prefetched_data_length_ -
+                       filter->prefetched_data_offset_
+                 : 0;
+    case BIO_CTRL_WPENDING:
+      return 0;
+    case BIO_CTRL_FLUSH:
+      return 1;
+    default:
+      return 0;
   }
 }
 
 bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
                                   int ends[kNumBuffers],
-                                  bool in_handshake) {
+                                  int sizes[kNumBuffers]) {
   for (int i = 0; i < kNumBuffers; ++i) {
-    if (in_handshake && (i == kReadPlaintext || i == kWritePlaintext)) continue;
     int start = starts[i];
     int end = ends[i];
-    int size = IsBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
-    if (start < 0 || end < 0 || start >= size || end >= size) {
-      FATAL("Out-of-bounds internal buffer access in dart:io SecureSocket");
+    int size = sizes[i];
+    if (buffers_[i] == nullptr || size != buffers_[i]->size() ||
+        !IsValidBufferRange(start, end, size)) {
+      Dart_ThrowException(DartUtils::NewInternalError(
+          "Out-of-bounds internal buffer access in dart:io SecureSocket"));
     }
     switch (i) {
       case kReadPlaintext:
-      case kWriteEncrypted:
         // Write data to the circular buffer's free space.  If the buffer
         // is full, neither if statement is executed and nothing happens.
         if (start <= end) {
@@ -290,43 +659,34 @@ bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
           // Then, since the last free byte is at position start - 2,
           // the interval is [end, size - 1).
           int buffer_end = (start == 0) ? size - 1 : size;
-          int bytes = (i == kReadPlaintext)
-                          ? ProcessReadPlaintextBuffer(end, buffer_end)
-                          : ProcessWriteEncryptedBuffer(end, buffer_end);
+          int bytes = ProcessReadPlaintextBuffer(end, buffer_end);
           if (bytes < 0) return false;
           end += bytes;
           ASSERT(end <= size);
           if (end == size) end = 0;
         }
         if (start > end + 1) {
-          int bytes = (i == kReadPlaintext)
-                          ? ProcessReadPlaintextBuffer(end, start - 1)
-                          : ProcessWriteEncryptedBuffer(end, start - 1);
+          int bytes = ProcessReadPlaintextBuffer(end, start - 1);
           if (bytes < 0) return false;
           end += bytes;
           ASSERT(end < start);
         }
         ends[i] = end;
         break;
-      case kReadEncrypted:
       case kWritePlaintext:
         // Read/Write data from circular buffer.  If the buffer is empty,
         // neither if statement's condition is true.
         if (end < start) {
           // Data may be split into two segments.  In this case,
           // the first is [start, size).
-          int bytes = (i == kReadEncrypted)
-                          ? ProcessReadEncryptedBuffer(start, size)
-                          : ProcessWritePlaintextBuffer(start, size);
+          int bytes = ProcessWritePlaintextBuffer(start, size);
           if (bytes < 0) return false;
           start += bytes;
           ASSERT(start <= size);
           if (start == size) start = 0;
         }
         if (start < end) {
-          int bytes = (i == kReadEncrypted)
-                          ? ProcessReadEncryptedBuffer(start, end)
-                          : ProcessWritePlaintextBuffer(start, end);
+          int bytes = ProcessWritePlaintextBuffer(start, end);
           if (bytes < 0) return false;
           start += bytes;
           ASSERT(start <= end);
@@ -340,16 +700,58 @@ bool SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
   return true;
 }
 
+Dart_Handle SSLFilter::GrowBuffer(int buffer_index,
+                                  int start,
+                                  int end,
+                                  int old_size,
+                                  int new_size) {
+  if (buffer_index < 0 || buffer_index >= kNumBuffers) {
+    return NewUnhandledInternalError("Invalid SecureSocket buffer index");
+  }
+
+  SSLFilterBuffer* old_buffer = buffers_[buffer_index];
+  if (old_buffer == nullptr || old_size != old_buffer->size() ||
+      new_size <= old_size || new_size > max_buffer_size_ ||
+      !IsValidBufferRange(start, end, old_size)) {
+    return NewUnhandledInternalError(
+        "Invalid SecureSocket buffer growth request");
+  }
+
+  int used = start > end ? old_size + end - start : end - start;
+  if (used < 0 || used >= new_size) {
+    return NewUnhandledInternalError(
+        "Invalid SecureSocket buffer contents during growth");
+  }
+
+  SSLFilterBuffer* new_buffer = new SSLFilterBuffer(new_size);
+  int first_length = old_size - start;
+  if (first_length > used) first_length = used;
+  if (first_length > 0) {
+    memmove(new_buffer->data(), old_buffer->data() + start, first_length);
+  }
+  int second_length = used - first_length;
+  if (second_length > 0) {
+    memmove(new_buffer->data() + first_length, old_buffer->data(),
+            second_length);
+  }
+
+  Dart_Handle data = WrapFilterBuffer(new_buffer);
+  if (Dart_IsError(data)) {
+    new_buffer->Release();
+    return data;
+  }
+
+  // Commit only after both the native allocation and its Dart wrapper exist.
+  // The old ExternalUint8List owns the remaining reference to old_buffer.
+  buffers_[buffer_index] = new_buffer;
+  old_buffer->Release();
+  return data;
+}
+
 Dart_Handle SSLFilter::Init(Dart_Handle dart_this) {
   if (!library_initialized_) {
     InitializeLibrary();
   }
-  ASSERT(string_start_ == nullptr);
-  string_start_ = Dart_NewPersistentHandle(DartUtils::NewString("start"));
-  ASSERT(string_start_ != nullptr);
-  ASSERT(string_length_ == nullptr);
-  string_length_ = Dart_NewPersistentHandle(DartUtils::NewString("length"));
-  ASSERT(string_length_ != nullptr);
   ASSERT(bad_certificate_callback_ == nullptr);
   bad_certificate_callback_ = Dart_NewPersistentHandle(Dart_Null());
   ASSERT(bad_certificate_callback_ != nullptr);
@@ -375,58 +777,52 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   Dart_Handle err = Dart_IntegerToInt64(dart_buffer_size, &buffer_size);
   RETURN_IF_ERROR(err);
 
-  Dart_Handle encrypted_size_string = DartUtils::NewString("ENCRYPTED_SIZE");
-  RETURN_IF_ERROR(encrypted_size_string);
-
-  Dart_Handle dart_encrypted_buffer_size =
-      Dart_GetField(secure_filter_impl_type, encrypted_size_string);
-  RETURN_IF_ERROR(dart_encrypted_buffer_size);
-
-  int64_t encrypted_buffer_size = 0;
-  err = Dart_IntegerToInt64(dart_encrypted_buffer_size, &encrypted_buffer_size);
-  RETURN_IF_ERROR(err);
-
   if (buffer_size <= 0 || buffer_size > 1 * MB) {
     FATAL("Invalid buffer size in _ExternalBuffer");
   }
-  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1 * MB) {
-    FATAL("Invalid encrypted buffer size in _ExternalBuffer");
-  }
-  buffer_size_ = static_cast<int>(buffer_size);
-  encrypted_buffer_size_ = static_cast<int>(encrypted_buffer_size);
+  max_buffer_size_ = static_cast<int>(buffer_size);
 
   Dart_Handle data_identifier = DartUtils::NewString("data");
   RETURN_IF_ERROR(data_identifier);
 
-  for (int i = 0; i < kNumBuffers; i++) {
-    int size = IsBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
-    buffers_[i] = new uint8_t[size];
-    ASSERT(buffers_[i] != nullptr);
-    memset(buffers_[i], 0, size);
-    dart_buffer_objects_[i] = nullptr;
-  }
+  Dart_Handle current_size_identifier = DartUtils::NewString("size");
+  RETURN_IF_ERROR(current_size_identifier);
 
   Dart_Handle result = Dart_Null();
   for (int i = 0; i < kNumBuffers; ++i) {
-    int size = IsBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
-    result = Dart_ListGetAt(dart_buffers_object, i);
-    if (Dart_IsError(result)) {
+    Dart_Handle dart_buffer = Dart_ListGetAt(dart_buffers_object, i);
+    if (Dart_IsError(dart_buffer)) {
+      result = dart_buffer;
       break;
     }
 
-    dart_buffer_objects_[i] = Dart_NewPersistentHandle(result);
-    ASSERT(dart_buffer_objects_[i] != nullptr);
-    Dart_Handle data =
-        Dart_NewExternalTypedData(Dart_TypedData_kUint8, buffers_[i], size);
-    if (Dart_IsError(data)) {
-      result = data;
+    Dart_Handle dart_current_size =
+        Dart_GetField(dart_buffer, current_size_identifier);
+    if (Dart_IsError(dart_current_size)) {
+      result = dart_current_size;
       break;
     }
-    result = Dart_HandleFromPersistent(dart_buffer_objects_[i]);
+    int64_t current_size = 0;
+    result = Dart_IntegerToInt64(dart_current_size, &current_size);
     if (Dart_IsError(result)) {
       break;
     }
-    result = Dart_SetField(result, data_identifier, data);
+    if (current_size < 2 || current_size > max_buffer_size_) {
+      result =
+          NewUnhandledInternalError("Invalid initial SecureSocket buffer size");
+      break;
+    }
+
+    SSLFilterBuffer* buffer =
+        new SSLFilterBuffer(static_cast<int>(current_size));
+    Dart_Handle data = WrapFilterBuffer(buffer);
+    if (Dart_IsError(data)) {
+      buffer->Release();
+      result = data;
+      break;
+    }
+    buffers_[i] = buffer;
+    result = Dart_SetField(dart_buffer, data_identifier, data);
     if (Dart_IsError(result)) {
       break;
     }
@@ -466,6 +862,16 @@ void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
   if (!library_initialized_) {
     SSL_library_init();
+    const int socket_bio_type = BIO_get_new_index();
+    RELEASE_ASSERT(socket_bio_type >= 0);
+    socket_bio_method_ = BIO_meth_new(socket_bio_type, nullptr);
+    RELEASE_ASSERT(socket_bio_method_ != nullptr);
+    RELEASE_ASSERT(
+        BIO_meth_set_read(socket_bio_method_, SSLFilter::SocketBIORead));
+    RELEASE_ASSERT(
+        BIO_meth_set_write_ex(socket_bio_method_, SSLFilter::SocketBIOWrite));
+    RELEASE_ASSERT(
+        BIO_meth_set_ctrl(socket_bio_method_, SSLFilter::SocketBIOControl));
     filter_ssl_index =
         SSL_get_ex_new_index(0, nullptr, nullptr, nullptr, nullptr);
     ASSERT(filter_ssl_index >= 0);
@@ -492,25 +898,54 @@ void SSLFilter::Connect(const char* hostname,
                         bool is_server,
                         bool request_client_certificate,
                         bool require_client_certificate,
-                        Dart_Handle protocols_handle) {
+                        Dart_Handle protocols_handle,
+                        Socket* socket,
+                        Dart_Handle transport_read,
+                        Dart_Handle transport_write) {
   is_server_ = is_server;
-  if (in_handshake_) {
+  if (ssl_ != nullptr) {
     FATAL("Connect called twice on the same _SecureFilter.");
   }
 
   int status;
-  int error;
-  BIO* ssl_side;
-  status = BIO_new_bio_pair(&ssl_side, kInternalBIOSize, &socket_side_,
-                            kInternalBIOSize);
-  SecureSocketUtils::CheckStatusSSL(status, "TlsException", "BIO_new_bio_pair",
-                                    ssl_);
+  ASSERT(socket_ == nullptr);
+  ASSERT(socket_fd_ == Socket::kClosedFd);
+  ASSERT(transport_read_ == nullptr);
+  ASSERT(transport_write_ == nullptr);
+  if (socket != nullptr) {
+    socket_ = socket;
+    socket_->Retain();
+    socket_fd_ = socket->fd();
+    Socket::RetainFd(socket_fd_);
+  } else {
+    if (!Dart_IsClosure(transport_read) || !Dart_IsClosure(transport_write)) {
+      Dart_ThrowException(DartUtils::NewDartArgumentError(
+          "SecureSocket transport callbacks must be closures"));
+    }
+    transport_read_ = Dart_NewPersistentHandle(transport_read);
+    transport_write_ = Dart_NewPersistentHandle(transport_write);
+    ASSERT(transport_read_ != nullptr);
+    ASSERT(transport_write_ != nullptr);
+  }
+
+  BIO* socket_bio = BIO_new(socket_bio_method_);
+  if (socket_bio == nullptr) {
+    SecureSocketUtils::ThrowIOException(0, "TlsException",
+                                        "Failed to create socket BIO", ssl_);
+  }
+  BIO_set_data(socket_bio, this);
+  BIO_set_init(socket_bio, 1);
 
   ASSERT(context != nullptr);
   ASSERT(context->context() != nullptr);
   ssl_ = SSL_new(context->context());
-  SSL_set_bio(ssl_, ssl_side, ssl_side);
-  SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);  // TODO(whesse): Is this right?
+  if (ssl_ == nullptr) {
+    BIO_free(socket_bio);
+    SecureSocketUtils::ThrowIOException(
+        0, "TlsException", "Failed to create TLS connection", nullptr);
+  }
+  SSL_set_bio(ssl_, socket_bio, socket_bio);
+  SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
   SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
   if (context->allow_tls_renegotiation()) {
@@ -552,36 +987,12 @@ void SSLFilter::Connect(const char* hostname,
     SecureSocketUtils::CheckStatusSSL(
         status, "TlsException", "Set hostname for certificate checking", ssl_);
   }
-  // Make the connection:
   if (is_server_) {
-    status = SSL_accept(ssl_);
-    if (SSL_LOG_STATUS) {
-      Syslog::Print("SSL_accept status: %d\n", status);
-    }
-    if (status != 1) {
-      // TODO(whesse): expect a needs-data error here.  Handle other errors.
-      error = SSL_get_error(ssl_, status);
-      if (SSL_LOG_STATUS) {
-        Syslog::Print("SSL_accept error: %d\n", error);
-      }
-    }
+    SSL_set_accept_state(ssl_);
   } else {
-    status = SSL_connect(ssl_);
-    if (SSL_LOG_STATUS) {
-      Syslog::Print("SSL_connect status: %d\n", status);
-    }
-    if (status != 1) {
-      // TODO(whesse): expect a needs-data error here.  Handle other errors.
-      error = SSL_get_error(ssl_, status);
-      if (SSL_LOG_STATUS) {
-        Syslog::Print("SSL_connect error: %d\n", error);
-      }
-    }
+    SSL_set_connect_state(ssl_);
   }
-  // We don't expect certificate evaluation on first attempt,
-  // we expect requests for more bytes, therefore we could get away
-  // with passing illegal port.
-  Handshake(ILLEGAL_PORT);
+  in_handshake_ = true;
 }
 
 void SSLFilter::MarkAsTrusted(Dart_NativeArguments args) {
@@ -598,6 +1009,14 @@ void SSLFilter::MarkAsTrusted(Dart_NativeArguments args) {
 }
 
 int SSLFilter::Handshake(Dart_Port reply_port) {
+  if (ssl_ == nullptr) {
+    SecureSocketUtils::ThrowIOException(
+        0, "HandshakeException",
+        "TLS handshake started before the connection was initialized",
+        nullptr);
+    return SSL_ERROR_SSL;
+  }
+
   // Set reply port to be used by CertificateVerificationCallback
   // invoked by SSL_do_handshake: this is where results of
   // certificate evaluation will be communicated to.
@@ -606,19 +1025,19 @@ int SSLFilter::Handshake(Dart_Port reply_port) {
   // Try and push handshake along.
   int status = SSL_do_handshake(ssl_);
   int error = SSL_get_error(ssl_, status);
-  if (error == SSL_ERROR_WANT_CERTIFICATE_VERIFY) {
-    return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
-  }
   if (callback_error != nullptr) {
-    // The SSL_do_handshake will try performing a handshake and might call one
-    // or both of:
+    // The SSL_do_handshake will try performing a handshake and might call:
     //   SSLCertContext::KeyLogCallback
     //   SSLCertContext::CertificateCallback
+    //   the Dart RawSocket transport callbacks
     //
     // If either of those functions fail, and this.callback_error has not
     // already been set, then they will set this.callback_error to an error
     // handle i.e. only the first error will be captured and propagated.
     Dart_PropagateError(callback_error);
+  }
+  if (error == SSL_ERROR_WANT_CERTIFICATE_VERIFY) {
+    return SSL_ERROR_WANT_CERTIFICATE_VERIFY;
   }
   if (SSL_want_write(ssl_) || SSL_want_read(ssl_)) {
     in_handshake_ = true;
@@ -669,17 +1088,28 @@ void SSLFilter::FreeResources() {
     SSL_free(ssl_);
     ssl_ = nullptr;
   }
-  if (socket_side_ != nullptr) {
-    BIO_free(socket_side_);
-    socket_side_ = nullptr;
+  if (socket_fd_ != Socket::kClosedFd) {
+    Socket::ReleaseFd(socket_fd_);
+    socket_fd_ = Socket::kClosedFd;
   }
+  if (socket_ != nullptr) {
+    socket_->Release();
+    socket_ = nullptr;
+  }
+  if (prefetched_data_ != nullptr) {
+    delete[] prefetched_data_;
+    prefetched_data_ = nullptr;
+  }
+  prefetched_data_offset_ = 0;
+  prefetched_data_length_ = 0;
+  prefetched_data_has_tail_ = false;
   if (hostname_ != nullptr) {
     free(hostname_);
     hostname_ = nullptr;
   }
   for (int i = 0; i < kNumBuffers; ++i) {
     if (buffers_[i] != nullptr) {
-      delete[] buffers_[i];
+      buffers_[i]->Release();
       buffers_[i] = nullptr;
     }
   }
@@ -690,20 +1120,6 @@ SSLFilter::~SSLFilter() {
 }
 
 void SSLFilter::Destroy() {
-  for (int i = 0; i < kNumBuffers; ++i) {
-    if (dart_buffer_objects_[i] != nullptr) {
-      Dart_DeletePersistentHandle(dart_buffer_objects_[i]);
-      dart_buffer_objects_[i] = nullptr;
-    }
-  }
-  if (string_start_ != nullptr) {
-    Dart_DeletePersistentHandle(string_start_);
-    string_start_ = nullptr;
-  }
-  if (string_length_ != nullptr) {
-    Dart_DeletePersistentHandle(string_length_);
-    string_length_ = nullptr;
-  }
   if (handshake_complete_ != nullptr) {
     Dart_DeletePersistentHandle(handshake_complete_);
     handshake_complete_ = nullptr;
@@ -711,6 +1127,14 @@ void SSLFilter::Destroy() {
   if (bad_certificate_callback_ != nullptr) {
     Dart_DeletePersistentHandle(bad_certificate_callback_);
     bad_certificate_callback_ = nullptr;
+  }
+  if (transport_read_ != nullptr) {
+    Dart_DeletePersistentHandle(transport_read_);
+    transport_read_ = nullptr;
+  }
+  if (transport_write_ != nullptr) {
+    Dart_DeletePersistentHandle(transport_write_);
+    transport_write_ = nullptr;
   }
   FreeResources();
 }
@@ -724,10 +1148,14 @@ int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
                   length);
   }
   if (length > 0) {
+    last_os_error_ = 0;
     bytes_processed = SSL_read(
-        ssl_, reinterpret_cast<char*>((buffers_[kReadPlaintext] + start)),
+        ssl_, reinterpret_cast<char*>(buffers_[kReadPlaintext]->data() + start),
         length);
-    if (bytes_processed < 0) {
+    if (callback_error != nullptr) {
+      Dart_PropagateError(callback_error);
+    }
+    if (bytes_processed <= 0) {
       int error = SSL_get_error(ssl_, bytes_processed);
       if (SSL_LOG_DATA) {
         Syslog::Print("SSL_read returned error %d\n", error);
@@ -735,6 +1163,8 @@ int SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
       switch (error) {
         case SSL_ERROR_SYSCALL:
         case SSL_ERROR_SSL:
+          last_ssl_status_ = bytes_processed;
+          last_ssl_error_ = error;
           return -1;
         default:
           break;
@@ -755,71 +1185,30 @@ int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
     Syslog::Print("Entering ProcessWritePlaintextBuffer with %d bytes\n",
                   length);
   }
+  last_os_error_ = 0;
   int bytes_processed =
-      SSL_write(ssl_, buffers_[kWritePlaintext] + start, length);
-  if (bytes_processed < 0) {
+      SSL_write(ssl_, buffers_[kWritePlaintext]->data() + start, length);
+  if (callback_error != nullptr) {
+    Dart_PropagateError(callback_error);
+  }
+  if (bytes_processed <= 0) {
+    int error = SSL_get_error(ssl_, bytes_processed);
     if (SSL_LOG_DATA) {
-      Syslog::Print("SSL_write returned error %d\n", bytes_processed);
+      Syslog::Print("SSL_write returned error %d\n", error);
     }
-    return 0;
+    switch (error) {
+      case SSL_ERROR_SYSCALL:
+      case SSL_ERROR_SSL:
+        last_ssl_status_ = bytes_processed;
+        last_ssl_error_ = error;
+        return -1;
+      default:
+        return 0;
+    }
   }
   if (SSL_LOG_DATA) {
     Syslog::Print("Leaving ProcessWritePlaintextBuffer wrote %d bytes\n",
                   bytes_processed);
-  }
-  return bytes_processed;
-}
-
-/* Read encrypted data from the circular buffer to the filter */
-int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
-  int length = end - start;
-  if (SSL_LOG_DATA) {
-    Syslog::Print("Entering ProcessReadEncryptedBuffer with %d bytes\n",
-                  length);
-  }
-  int bytes_processed = 0;
-  if (length > 0) {
-    bytes_processed =
-        BIO_write(socket_side_, buffers_[kReadEncrypted] + start, length);
-    if (bytes_processed <= 0) {
-      bool retry = BIO_should_retry(socket_side_) != 0;
-      if (!retry) {
-        if (SSL_LOG_DATA) {
-          Syslog::Print("BIO_write failed in ReadEncryptedBuffer\n");
-        }
-      }
-      bytes_processed = 0;
-    }
-  }
-  if (SSL_LOG_DATA) {
-    Syslog::Print("Leaving ProcessReadEncryptedBuffer read %d bytes\n",
-                  bytes_processed);
-  }
-  return bytes_processed;
-}
-
-int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
-  int length = end - start;
-  int bytes_processed = 0;
-  if (SSL_LOG_DATA) {
-    Syslog::Print("Entering ProcessWriteEncryptedBuffer with %d bytes\n",
-                  length);
-  }
-  if (length > 0) {
-    bytes_processed =
-        BIO_read(socket_side_, buffers_[kWriteEncrypted] + start, length);
-    if (bytes_processed < 0) {
-      if (SSL_LOG_DATA) {
-        Syslog::Print("WriteEncrypted BIO_read returned error %d\n",
-                      bytes_processed);
-      }
-      return 0;
-    } else {
-      if (SSL_LOG_DATA) {
-        Syslog::Print("WriteEncrypted  BIO_read wrote %d bytes\n",
-                      bytes_processed);
-      }
-    }
   }
   return bytes_processed;
 }

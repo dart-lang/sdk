@@ -101,7 +101,9 @@ Future testClientCertificate({
         Expect.fail('Should not get data through');
       },
       onError: (e) {
-        Expect.isTrue(e is SocketException);
+        // The direct socket BIO can surface the peer's TLS alert before the
+        // transport reports its close.
+        Expect.isTrue(e is SocketException || e is TlsException);
       },
       onDone: () {
         clientDisconnected.complete();
