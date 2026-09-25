@@ -365,9 +365,29 @@ abstract class FixPriorityTest extends BaseFixProcessorTest {
     List<FixKind> fixKinds, {
     DiagnosticFilter? filter,
   }) async {
-    var diagnostic = await _findDiagnosticToFix(filter: filter);
-    var computedFixes = await _computeFixes(diagnostic);
-    var kinds = computedFixes.map((fix) => fix.kind).toList();
+    // Fails unless exactly one diagnostic passes the [filter].
+    await _findDiagnosticToFix(filter: filter);
+    await assertFixPriorityOrderForAllDiagnostics(fixKinds, filter: filter);
+  }
+
+  /// Asserts that the fixes for all of the diagnostics in the test file that
+  /// pass the [filter], combined and sorted by descending priority, contain the
+  /// [fixKinds] in order.
+  ///
+  /// This is useful when multiple diagnostics are reported at the same location
+  /// and their fixes are offered together.
+  Future<void> assertFixPriorityOrderForAllDiagnostics(
+    List<FixKind> fixKinds, {
+    DiagnosticFilter? filter,
+  }) async {
+    var diagnostics = testAnalysisResult.diagnostics;
+    if (filter != null) {
+      diagnostics = diagnostics.where(filter).toList();
+    }
+    var kinds = [
+      for (var diagnostic in diagnostics)
+        for (var fix in await _computeFixes(diagnostic)) fix.kind,
+    ];
     kinds.sort((a, b) => b.priority.compareTo(a.priority));
     expect(kinds, containsAllInOrder(fixKinds));
   }
