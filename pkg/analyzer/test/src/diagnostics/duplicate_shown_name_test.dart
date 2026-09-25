@@ -28,6 +28,28 @@ export 'lib1.dart' show A, B, A;
 ''');
   }
 
+  test_part_nested_shown() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'dart:math' show pi, Random, pi;
+//                                  ^^
+// [diag.duplicateShownName] Duplicate shown name.
+''',
+    });
+  }
+
   test_part_shown() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');
