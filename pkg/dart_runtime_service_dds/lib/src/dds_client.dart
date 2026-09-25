@@ -82,8 +82,37 @@ final class DdsClientManager
   }
 
   @override
+  Client addClient({
+    required StreamChannel<Object?> connection,
+    String? name,
+    bool artificial = false,
+  }) {
+    final client = super.addClient(
+      connection: connection,
+      name: name,
+      artificial: artificial,
+    );
+    backend.isolateManager.handleClientAdded(client);
+    return client;
+  }
+
+  @override
   void removeClient(Client client) {
     super.removeClient(client);
     backend.isolateManager.handleClientDisconnected(client);
+  }
+
+  @override
+  void onClientNameChanged(
+    Client client, {
+    required String oldName,
+    required String newName,
+  }) {
+    super.onClientNameChanged(client, oldName: oldName, newName: newName);
+    backend.isolateManager.handleClientNameChanged(
+      client,
+      oldName: oldName,
+      newName: newName,
+    );
   }
 }

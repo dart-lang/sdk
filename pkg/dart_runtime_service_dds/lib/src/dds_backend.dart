@@ -377,9 +377,15 @@ class DartRuntimeServiceDdsBackend
   }) async {
     try {
       final response = await _vmServiceClient.callMethod(method, args: args);
-      return response.toJson();
+      // Return the untouched raw JSON map (`response.json!`) rather than
+      // `response.toJson()`. `package:vm_service` model `toJson()` methods
+      // strip VM-private fields (such as `_heaps`, `_profiler`, and `_Zone`),
+      // omit nested `@Instance` (`kind: 'Null'`) fields that
+      // `createServiceObject` converts to `null`, and overwrite custom `type`
+      // values with `'Response'`.
+      return response.json!;
     } on vm.SentinelException catch (e) {
-      return e.sentinel.toJson();
+      return e.sentinel.json!;
     } on vm.RPCError catch (e) {
       throw json_rpc.RpcException(e.code, e.message, data: e.data);
     }

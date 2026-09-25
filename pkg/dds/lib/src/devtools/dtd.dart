@@ -34,14 +34,20 @@ String getDTDSnapshotDir() {
       runFromBuildRoot = true;
     }
 
-    // Try to locate the DDS snapshot to determine if we're able to find
+    // Try to locate the DTD snapshot to determine if we're able to find
     // the SDK snapshots with this SDK path. This is meant to handle
     // non-standard SDK layouts that can involve symlinks (e.g., Brew
-    // installations, google3 tests, etc).
-    if (!File(
-      path.join(snapshotsDir, 'dart_tooling_daemon_aot.dart.snapshot'),
-    ).existsSync()) {
-      // We do not have an AOT snpashot and hence look for the JIT snapshot.
+    // installations, google3 tests, etc). Check for either the product or
+    // non-product AOT snapshot first, falling back to the JIT snapshot.
+    const aotSnapshots = <String>[
+      'dart_tooling_daemon_aot_product.dart.snapshot',
+      'dart_tooling_daemon_aot.dart.snapshot',
+    ];
+    final hasAotSnapshot = aotSnapshots.any(
+      (s) => File(path.join(snapshotsDir, s)).existsSync(),
+    );
+    if (!hasAotSnapshot) {
+      // We do not have an AOT snapshot and hence look for the JIT snapshot.
       if (!File(
         path.join(snapshotsDir, 'dart_tooling_daemon.dart.snapshot'),
       ).existsSync()) {
@@ -69,12 +75,35 @@ Future<DtdInfo?> startDtd({
   required bool printDtdUri,
 }) async {
   final snapshotDir = getDTDSnapshotDir();
-  final dtdAotSnapshot = path.absolute(
-    snapshotDir,
-    'dart_tooling_daemon_aot.dart.snapshot',
-  );
+  // In product builds (e.g., prebuilt SDKs and google3), the AOT snapshot is
+  // built with the product-mode AOT runtime
+  // (`dart_tooling_daemon_aot_product.dart.snapshot`), whereas local
+  // non-product SDK builds produce `dart_tooling_daemon_aot.dart.snapshot`.
+  // Check the AOT snapshot matching the current runtime mode first, falling
+  // back to the other AOT variant if only one was built, and finally falling
+  // back to the JIT snapshot (`dart_tooling_daemon.dart.snapshot`) when running
+  // on a JIT VM.
+  final isProduct = const bool.fromEnvironment('dart.vm.product');
+  final aotSnapshots = isProduct
+      ? <String>[
+          'dart_tooling_daemon_aot_product.dart.snapshot',
+          'dart_tooling_daemon_aot.dart.snapshot',
+        ]
+      : <String>[
+          'dart_tooling_daemon_aot.dart.snapshot',
+          'dart_tooling_daemon_aot_product.dart.snapshot',
+        ];
+  final candidateSnapshots = <String>[
+    ...aotSnapshots,
+    'dart_tooling_daemon.dart.snapshot',
+  ];
+
   final completer = Completer<DtdInfo?>();
-  void completeForError([_]) => completer.complete(null);
+  void completeForError([_]) {
+    if (!completer.isCompleted) {
+      completer.complete(null);
+    }
+  }
 
   final exitPort = ReceivePort()..listen(completeForError);
   final errorPort = ReceivePort()..listen(completeForError);
@@ -100,39 +129,31 @@ Future<DtdInfo?> startDtd({
               machineMode: machineMode,
             );
           }
-          completer.complete(DtdInfo(Uri.parse(uri), secret: secret));
+          if (!completer.isCompleted) {
+            completer.complete(DtdInfo(Uri.parse(uri), secret: secret));
+          }
         }
       } catch (_) {
         completeForError();
       }
     });
 
-  try {
-    // Try to spawn an isolate using the AOT snapshot of the tooling daemon.
-    await Isolate.spawnUri(
-      Uri.file(dtdAotSnapshot),
-      ['--machine'],
-      receivePort.sendPort,
-      onExit: exitPort.sendPort,
-      onError: errorPort.sendPort,
-    );
-  } catch (_) {
-    // Spawning an isolate using the AOT snapshot of the tooling daemon failed,
-    // try again using the JIT snapshot of the tooling daemon.
-    final dtdSnapshot = path.absolute(
-      snapshotDir,
-      'dart_tooling_daemon.dart.snapshot',
-    );
+  for (final candidate in candidateSnapshots) {
+    final candidatePath = path.absolute(snapshotDir, candidate);
+    if (!File(candidatePath).existsSync()) {
+      continue;
+    }
     try {
       await Isolate.spawnUri(
-        Uri.file(dtdSnapshot),
+        Uri.file(candidatePath),
         ['--machine'],
         receivePort.sendPort,
         onExit: exitPort.sendPort,
         onError: errorPort.sendPort,
       );
+      break;
     } catch (_) {
-      completeForError();
+      // Spawning this snapshot failed, try the next candidate.
     }
   }
 

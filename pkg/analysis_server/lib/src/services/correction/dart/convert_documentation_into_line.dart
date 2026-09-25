@@ -66,14 +66,17 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
           linePrefix = eol + prefix;
         }
       } else {
-        line = line.trimLeft();
-        if (line.startsWith('*/')) {
+        line = line.trim();
+        if (_isTerminator(line)) {
           break;
         }
-        if (!line.startsWith('*')) {
-          return;
+        if (line.startsWith('*')) {
+          line = line.substring(1);
+        } else if (line.isNotEmpty) {
+          // Everything inside `/**` and `*/` is documentation, even when the
+          // line isn't prefixed with a `*`, so keep the whole line.
+          line = ' $line';
         }
-        line = line.substring(1);
         if (line.endsWith('*/')) {
           line = line.substring(0, line.length - 2).trimRight();
         }
@@ -89,5 +92,19 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
         }
       });
     });
+  }
+
+  /// Whether [line] consists only of the characters that can end a block
+  /// comment, such as `*/` or `**/`.
+  static bool _isTerminator(String line) {
+    if (!line.endsWith('*/')) {
+      return false;
+    }
+    for (var i = 0; i < line.length - 2; i++) {
+      if (line[i] != '*') {
+        return false;
+      }
+    }
+    return true;
   }
 }

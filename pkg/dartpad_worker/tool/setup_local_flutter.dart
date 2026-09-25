@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:args/args.dart';
-import 'package:dartpad/src/dartpad_config.dart';
+import 'package:dartpad/src/setup/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
-import 'package:yaml/yaml.dart';
 
+/// Sets up the Flutter DartPad SDK and cached pub package archives in
+/// `.dart_tool/dartpad_worker/` for local testing in `pkg/dartpad_worker`.
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption(
@@ -23,12 +23,12 @@ Future<void> main(List<String> args) async {
     ..addOption(
       'web-sdk',
       allowed: ['copy', 'build'],
-      defaultsTo: 'copy',
+      defaultsTo: 'build',
       help: 'Copy or build `ddc_outline.dill` + `dart_sdk.js` from Flutter SDK',
     )
     ..addFlag(
       'use-cdn',
-      defaultsTo: false,
+      defaultsTo: true,
       help:
           'Use CanvasKit from Google CDN instead of bundling canvaskit/ locally.',
     );
@@ -36,652 +36,102 @@ Future<void> main(List<String> args) async {
   final results = parser.parse(args);
 
   final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
-
-  // Locate Flutter
-  var flutterRoot = Platform.environment['FLUTTER_ROOT'];
-  if (flutterRoot == null) {
-    try {
-      final flutterExecutable = await _resolveFlutterExecutable();
-      flutterRoot = Directory(flutterExecutable).parent.parent.path;
-    } catch (e) {
-      print('Error: FLUTTER_ROOT not set and flutter not found in PATH.');
-      exit(1);
-    }
-  }
-  flutterRoot = p.canonicalize(flutterRoot);
-  if (!Directory(flutterRoot).existsSync()) {
-    print('Flutter SDK not found at $flutterRoot.');
+  final dartDartPadSdk = p.normalize(p.join(dartSdkRoot, '..', 'dartpad'));
+  if (!Directory(dartDartPadSdk).existsSync()) {
+    print(
+      'Error: Did not find a Dart DartPad SDK at $dartDartPadSdk.\n'
+      'Did you run the script with the `dart` binary from your build output '
+      'directory (e.g. out/ReleaseX64/dart-sdk/bin/dart)?',
+    );
     exit(1);
   }
-  final flutterBin = p.join(flutterRoot, 'bin', 'flutter');
 
-  // Find output folder
-  final workerPkgUri = await Isolate.resolvePackageUri(
-    Uri.parse('package:dartpad_worker/'),
+  final pkgUri = await Isolate.resolvePackageUri(
+    Uri.parse('package:dartpad_worker/dartpad_worker.dart'),
   );
-  if (workerPkgUri == null) {
-    print('Error: Could not resolve package:dartpad_worker/');
-    exit(1);
+  if (pkgUri == null) {
+    throw StateError('Unable to resolve package:dartpad_worker');
   }
-  final projectRoot = p.dirname(workerPkgUri.toFilePath());
-  final flutterAssetDir = p.join(
-    projectRoot,
-    '.dart_tool',
-    'dartpad_worker',
-    'asset',
+  final projectRoot = File.fromUri(pkgUri).parent.parent.path;
+  final dotDartTool = p.join(projectRoot, '.dart_tool', 'dartpad_worker');
+  final flutterAssetDir = p.join(dotDartTool, 'asset', 'flutter');
+  if (Directory(flutterAssetDir).existsSync()) {
+    Directory(flutterAssetDir).deleteSync(recursive: true);
+  }
+  final packageDir = p.join(dotDartTool, 'packages');
+
+  await runSetup([
     'flutter',
-  );
-  final packageDir = p.join(
-    projectRoot,
-    '.dart_tool',
-    'dartpad_worker',
-    'packages',
-  );
-
-  // Create empty output folders
-  final flutterAssetDirectory = Directory(flutterAssetDir);
-  if (flutterAssetDirectory.existsSync()) {
-    flutterAssetDirectory.deleteSync(recursive: true);
-  }
-  flutterAssetDirectory.createSync(recursive: true);
-  final packageDirectory = Directory(packageDir);
-  if (packageDirectory.existsSync()) {
-    packageDirectory.deleteSync(recursive: true);
-  }
-  packageDirectory.createSync(recursive: true);
-
-  print('Using Flutter SDK at: $flutterRoot');
-  print('Target asset directory: $flutterAssetDir');
-
-  String? bootstrapCode;
-  if (results.option('bootstrap-code-path') case final codePath?) {
-    final bootstrapFile = File(codePath);
-    if (!bootstrapFile.existsSync()) {
-      print('Error: Bootstrap code file not found: $codePath');
-      exit(1);
-    }
-    bootstrapCode = await bootstrapFile.readAsString();
-  }
-
-  final tempDir = Directory.systemTemp.createTempSync('dartpad_flutter_setup_');
-  try {
-    await _setupLocalFlutter(
-      _BuildContext(
-        dartSdkRoot: dartSdkRoot,
-        dartBin: p.join(dartSdkRoot, 'bin', 'dart'),
-        dartAotRuntimeBin: p.join(dartSdkRoot, 'bin', 'dartaotruntime'),
-        dartDartPadSdk: p.join(dartSdkRoot, '..', 'dartpad'),
-        flutterRoot: flutterRoot,
-        tempDir: tempDir.path,
-        flutterBin: flutterBin,
-        projectRoot: projectRoot,
-        flutterAssetDir: flutterAssetDir,
-        packageDir: packageDir,
-        bootstrapCode: bootstrapCode,
-        buildWebSdk: results.option('web-sdk') == 'build',
-        useCdn: results.flag('use-cdn'),
-      ),
-    );
-  } finally {
-    tempDir.deleteSync(recursive: true);
-  }
-}
-
-final class _BuildContext {
-  final String dartSdkRoot;
-  final String dartBin;
-  final String dartAotRuntimeBin;
-  final String dartDartPadSdk;
-  final String flutterRoot;
-  final String tempDir;
-  final String flutterBin;
-  final String projectRoot;
-  final String flutterAssetDir;
-  final String packageDir;
-  final String? bootstrapCode;
-  final bool buildWebSdk;
-  final bool useCdn;
-
-  _BuildContext({
-    required this.dartSdkRoot,
-    required this.dartBin,
-    required this.dartAotRuntimeBin,
-    required this.dartDartPadSdk,
-    required this.flutterRoot,
-    required this.tempDir,
-    required this.flutterBin,
-    required this.projectRoot,
-    required this.flutterAssetDir,
-    required this.packageDir,
-    required this.bootstrapCode,
-    required this.buildWebSdk,
-    required this.useCdn,
-  });
-}
-
-Future<void> _setupLocalFlutter(_BuildContext ctx) async {
-  // 1. Create & Build Dummy App
-  print('Creating dummy app...');
-  _runSync(ctx.flutterBin, [
-    'create',
-    'myapp',
-    '--empty',
-    '--platforms',
-    'web',
-  ], ctx.tempDir);
-  final myappDir = p.join(ctx.tempDir, 'myapp');
-
-  print('Pruning pubspec.yaml...');
-  _runSync(ctx.flutterBin, ['pub', 'remove', 'flutter_lints'], myappDir);
-
-  print('Adding flutter_web_plugins dependency...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'add',
-    'flutter_web_plugins',
-    '--sdk=flutter',
-  ], myappDir);
-
-  print('Adding flutter_localizations dependency...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'add',
-    'flutter_localizations',
-    '--sdk=flutter',
-  ], myappDir);
-
-  print('Adding integration_test dependency...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'add',
-    'integration_test',
-    '--sdk=flutter',
-  ], myappDir);
-
-  print('Adding material_ui and cupertino_ui dependencies...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'add',
-    'material_ui',
-    'cupertino_ui',
-  ], myappDir);
-
-  print('Running flutter pub get...');
-  _runSync(ctx.flutterBin, ['pub', 'get'], myappDir);
-
-  print('Building dummy app for web (to harvest assets)...');
-  _runSync(ctx.flutterBin, ['build', 'web', '--debug'], myappDir);
-
-  // 2. Scrape Assets (CanvasKit, Fonts)
-  print('Scraping assets...');
-  final sourceAssetsDir = p.join(myappDir, 'build', 'web', 'assets');
-  _copyDir(sourceAssetsDir, p.join(ctx.flutterAssetDir, 'assets'));
-
-  print('Copying flutter.js');
-  _copyFile(
-    p.join(myappDir, 'build', 'web', 'flutter.js'),
-    p.join(ctx.flutterAssetDir, 'flutter.js'),
-  );
-
-  final String canvasKitBaseUrl;
-  if (ctx.useCdn) {
-    canvasKitBaseUrl = await _resolveAndVerifyCanvasKitCdnUrl(
-      ctx.flutterRoot,
-      myappDir,
-    );
-  } else {
-    print('Scraping CanvasKit...');
-    final sourceCanvasKitDir = p.join(myappDir, 'build', 'web', 'canvaskit');
-    final destCanvasKitDir = p.join(ctx.flutterAssetDir, 'canvaskit');
-    _copyDir(sourceCanvasKitDir, destCanvasKitDir);
-    _verifyLocalCanvasKitFiles(destCanvasKitDir);
-    canvasKitBaseUrl = './canvaskit/';
-  }
-
-  // 3. Compile flutter_web.js and flutter_web.dill
-  print('Compiling flutter_web.js and flutter_web.dill...');
-  final pkgConfigPath = p.join(myappDir, '.dart_tool', 'package_config.json');
-  final pkgConfig =
-      jsonDecode(File(pkgConfigPath).readAsStringSync())
-          as Map<String, dynamic>;
-
-  final compileSources = <String>[];
-  for (final pkgEntry in pkgConfig['packages'] as List<dynamic>) {
-    final pkg = pkgEntry as Map<String, dynamic>;
-    final name = pkg['name'] as String;
-    if (name == 'sky_engine' || name == 'myapp') continue;
-
-    var rootUriStr = pkg['rootUri'] as String;
-    final rootUri = Uri.parse(rootUriStr);
-    final rootPath = rootUri.scheme == 'file'
-        ? rootUri.toFilePath()
-        : p.normalize(p.join(myappDir, '.dart_tool', rootUriStr));
-
-    final libDir = Directory(p.join(rootPath, pkg['packageUri'] as String));
-    if (libDir.existsSync()) {
-      final topLevelFiles = libDir
-          .listSync(recursive: false)
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.dart'));
-      for (final file in topLevelFiles) {
-        final relative = p.relative(file.path, from: libDir.path);
-        if (name == 'matcher' && relative == 'mirror_matchers.dart') {
-          continue;
-        }
-        compileSources.add('package:$name/${p.toUri(relative).path}');
-      }
-    }
-  }
-
-  final webSdk = ctx.buildWebSdk
-      ? _buildWebSdk(ctx, pkgConfigPath)
-      : _copyWebSdk(ctx);
-
-  final snapshotPath = p.join(
-    ctx.dartSdkRoot,
-    'bin',
-    'snapshots',
-    'dartdevc.dart.snapshot',
-  );
-  final outlinePath = webSdk.outlineDill;
-  final outputJsPath = p.join(ctx.flutterAssetDir, 'flutter_web.js');
-  final outputDillPath = p.join(ctx.tempDir, 'flutter_web.dill');
-
-  _runSync(ctx.dartBin, [
-    snapshotPath,
-    '-s',
-    outlinePath,
-    '--modules=ddc',
-    '--canary',
-    '--track-creation-locations',
-    '--module-name=flutter_web',
-    '--packages=$pkgConfigPath',
-    '-o',
-    outputJsPath,
-    ...compileSources,
-  ], myappDir);
-
-  // We don't want the full dill generated by DDC.
-  final fullDillPath = p.setExtension(outputJsPath, '.dill');
-  if (File(fullDillPath).existsSync()) {
-    File(fullDillPath).deleteSync();
-  }
-
-  final kernelWorkerPath = p.join(
-    ctx.dartSdkRoot,
-    'bin',
-    'snapshots',
-    'kernel_worker_aot.dart.snapshot',
-  );
-
-  _runSync(ctx.dartAotRuntimeBin, [
-    kernelWorkerPath,
-    '--target',
-    'ddc',
-    '--summary-only',
-    '--track-creation-locations',
-    '--packages-file',
-    pkgConfigPath,
-    '--dart-sdk-summary',
-    outlinePath,
     '--output',
-    outputDillPath,
-    ...compileSources.expand((s) => ['--source', s]),
-  ], myappDir);
+    flutterAssetDir,
+    '--dartpad-sdk',
+    dartDartPadSdk,
+    '--web-sdk',
+    results.option('web-sdk')!,
+    if (results.flag('use-cdn')) '--use-cdn' else '--no-use-cdn',
+    if (results.option('bootstrap-code-path') case final path?) ...[
+      '--bootstrap-code-path',
+      path,
+    ],
+  ]);
 
-  print('Copying dart_sdk.js...');
-  _copyFile(webSdk.dartSdkJs, p.join(ctx.flutterAssetDir, 'dart_sdk.js'));
-  _copyFile(
-    '${webSdk.dartSdkJs}.map',
-    p.join(ctx.flutterAssetDir, 'dart_sdk.js.map'),
-  );
-
-  // Synthesize sandbox.js
-  print('Synthesizing sandbox.js...');
-  final sandboxJsPatch = File(
-    p.join(ctx.projectRoot, 'lib', 'src', 'asset', 'sandbox_flutter_patch.js'),
-  ).readAsStringSync().replaceAll('{{canvasKitBaseUrl}}', canvasKitBaseUrl);
-  final sandboxJs = File(
-    p.join(ctx.dartDartPadSdk, 'sandbox.js'),
-  ).readAsStringSync();
-  File(
-    p.join(ctx.flutterAssetDir, 'sandbox.js'),
-  ).writeAsStringSync('$sandboxJsPatch\n$sandboxJs');
-
-  // Copy worker from Dart DartPad SDK.
-  print('Copying worker...');
-  for (final f in [
-    'dart_stack_trace_mapper.js',
-    'ddc_module_loader.js',
-    'worker.js',
-    'worker.mjs',
-    'worker.support.js',
-    'worker.wasm',
-    'worker.wasm.map',
-  ]) {
-    _copyFile(p.join(ctx.dartDartPadSdk, f), p.join(ctx.flutterAssetDir, f));
-  }
-
-  // Download Dependencies from Pub.dev
-  print('Downloading hosted dependencies...');
-  final depsJson = _runSync(ctx.flutterBin, [
-    'pub',
-    'deps',
-    '--json',
-  ], myappDir);
-  await _downloadHostedPackages(depsJson, ctx.packageDir);
-
-  // Build sdk.tar
-  print('Building sdk.tar...');
-  final tar = tarWritingSink(
-    File(p.join(ctx.flutterAssetDir, 'sdk.tar')).openWrite(),
-  );
-
-  print('Adding Dart SDK lib...');
-  // Note: `lib/_internal/js_runtime/` MUST be retained because
-  // `sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart` maps
-  // `dart:_interceptors`, `dart:_native_typed_data`, and `dart:_js_helper`
-  // (used by `dart:js_interop` and `dart:html` in `FolderBasedDartSdk`)
-  // to `_internal/js_runtime/lib/...`. Conversely, `js_dev_runtime/` has
-  // zero entries in `libraries.dart` and DDC uses `ddc_outline.dill`.
-  const excludedInternalDirs = [
-    '_internal/vm/',
-    '_internal/vm_shared/',
-    '_internal/wasm/',
-    '_internal/js_dev_runtime/',
-  ];
-  tar.addDirectory(
-    target: '/sdk/bin/cache/dart-sdk/lib',
-    source: p.join(webSdk.dartSdkRoot, 'lib'),
-    where: (f) {
-      final posixPath = p.posix.joinAll(p.split(f));
-      if (excludedInternalDirs.any(posixPath.startsWith)) return false;
-      return (f.endsWith('.dart') ||
-              f.endsWith('.json') ||
-              f.contains('${p.separator}_internal${p.separator}')) &&
-          !f.endsWith('.dill');
-    },
-  );
-
-  print('Adding version and libraries');
-  tar.addFile(
-    target: '/sdk/bin/cache/flutter.version.json',
-    source: p.join(ctx.flutterRoot, 'bin/cache/flutter.version.json'),
-  );
-  tar.addFile(
-    // TODO(jonasfj): Is it weird that we're taking flutters libraries.json and
-    //       sticking it into the Dart SDK? I don't think we have a config
-    //       option for getting the LSP to pick libraries.json from a path!
-    //       But maybe we should have two library.json files, the one we compile
-    //       with (which we can configure) and the one we feed to analyzer!
-    // TODO(jonasfj): Is this file even needed for anything?
-    target: '/sdk/bin/cache/libraries.json',
-    source: p.join(webSdk.dartSdkRoot, 'lib', 'libraries.json'),
-  );
-  tar.addFile(
-    target: '/sdk/bin/cache/dart-sdk/version',
-    source: p.join(webSdk.dartSdkRoot, 'version'),
-  );
-
-  // Add the ddc_outline.dill which contains dart:ui
-  tar.addFile(
-    target: '/sdk/bin/cache/dart-sdk/lib/_internal/ddc_outline.dill',
-    source: webSdk.outlineDill,
-  );
-
-  // Add the framework outline dill we just built
-  tar.addFile(
-    target: '/sdk/bin/cache/flutter_web_sdk/kernel/flutter_web.dill',
-    source: outputDillPath,
-  );
-
-  // Create dartpad-config.json
-  tar.addJsonFile(
-    target: DartPadConfig.defaultDartPadConfigPath,
-    json: DartPadConfig(
-      dartSdkPath: '/sdk/bin/cache/dart-sdk',
-      summaryModules: {
-        '/sdk/bin/cache/flutter_web_sdk/kernel/flutter_web.dill': 'flutter_web',
-      },
-      modes: [
-        DartPadRunMode(mode: 'console'),
-        DartPadRunMode(
-          mode: 'flutter',
-          entrypointWrapperTemplate: ctx.bootstrapCode ?? kBootstrapFlutterCode,
-        ),
-      ],
-      flutterSdkPath: '/sdk',
-      trackCreationLocations: true,
-    ),
-  );
-
-  // Add SDK packages for analyzer
-  final sdkPackages = [
-    'flutter',
-    'flutter_web_plugins',
-    'flutter_localizations',
-    'flutter_test',
-    'integration_test',
-    'flutter_driver',
-    'fuchsia_remote_debug_protocol',
-  ];
-  for (final pkg in sdkPackages) {
-    print('Adding package:$pkg for analysis...');
-    tar.addDirectory(
-      target: '/sdk/packages/$pkg',
-      source: p.join(ctx.flutterRoot, 'packages', pkg),
-      where: (f) =>
-          !f.startsWith('test/') &&
-          !f.endsWith('.arb') &&
-          ((pkg != 'flutter' && f == 'pubspec.yaml') || f.startsWith('lib/')),
-    );
-  }
-
-  // Rewrite /sdk/packages/flutter/pubspec.yaml with exact version pins for all
-  // hosted packages compiled into flutter_web.dill (including material_ui,
-  // cupertino_ui, vector_math, etc.) so pub get always resolves the exact
-  // versions baked into flutter_web.dill.
-  final hostedVersions = _extractHostedPackageVersions(depsJson);
-  final flutterPubspec = _yamlToJson(
-    File(
-      p.join(ctx.flutterRoot, 'packages', 'flutter', 'pubspec.yaml'),
-    ).readAsStringSync(),
-  );
-  flutterPubspec['dependencies'] = {
-    ...(flutterPubspec['dependencies'] as Map<String, Object?>? ?? {}),
-    ...hostedVersions,
-  };
-  tar.addJsonFile(
-    target: '/sdk/packages/flutter/pubspec.yaml',
-    json: flutterPubspec,
-  );
-  tar.addDirectory(
-    target: '/sdk/bin/cache/pkg/sky_engine',
-    source: p.join(ctx.flutterRoot, 'bin', 'cache', 'pkg', 'sky_engine'),
-    where: (f) =>
-        !f.startsWith('test') && (f == 'pubspec.yaml' || f.startsWith('lib/')),
-  );
-
-  await tar.close();
+  // Download the pinned hosted package tarballs from `/sdk/packages/flutter/pubspec.yaml`
+  // inside `sdk.tar` into `.dart_tool/dartpad_worker/packages` for PubTestServer.
+  print('Downloading hosted dependencies for PubTestServer...');
+  Directory(packageDir).createSync(recursive: true);
+  final sdkTarFile = File(p.join(flutterAssetDir, 'sdk.tar'));
+  final hostedVersions = await _readPinnedHostedVersionsFromSdkTar(sdkTarFile);
+  await _downloadHostedPackages(hostedVersions, packageDir);
 
   print('\nSuccessfully set up local Flutter assets!');
   print('Run your tests with PubTestServer reporting hasFlutter: true.');
 }
 
-/// The web SDK: the `dart:` libraries + `dart:ui` as DDC outline dill.
-final class _WebSdk {
-  /// Outline `.dill` used as `--dart-sdk-summary` when compiling.
-  final String outlineDill;
-
-  /// JavaScript implementing the libraries in [outlineDill], accompanied by a
-  /// sibling `.map` that is not inlined, so it can be loaded on demand.
-  final String dartSdkJs;
-
-  /// Dart SDK that the [outlineDill] was built from.
-  final String dartSdkRoot;
-
-  _WebSdk({
-    required this.outlineDill,
-    required this.dartSdkJs,
-    required this.dartSdkRoot,
-  });
-}
-
-/// Copy `ddc_outline.dill` and `dart_sdk.js` from Flutter SDK.
-///
-/// This may cause an issue if the engine in Flutter doesn't use the same
-/// git-hash as the Dart SDK.
-_WebSdk _copyWebSdk(_BuildContext ctx) {
-  final kernel = p.join(
-    ctx.flutterRoot,
-    'bin',
-    'cache',
-    'flutter_web_sdk',
-    'kernel',
-  );
-  return _WebSdk(
-    outlineDill: p.join(kernel, 'ddc_outline.dill'),
-    dartSdkJs: p.join(kernel, 'ddcLibraryBundle-canvaskit', 'dart_sdk.js'),
-    dartSdkRoot: p.join(ctx.flutterRoot, 'bin', 'cache', 'dart-sdk'),
-  );
-}
-
-/// Build `ddc_outline.dill` and `dart_sdk.js` from Flutter SDK.
-///
-/// There is some risk that this breaks when Flutter build system changes.
-_WebSdk _buildWebSdk(_BuildContext ctx, String pkgConfigPath) {
-  print('Building web SDK...');
-  final flutterWebSdk = p.join(
-    ctx.flutterRoot,
-    'bin',
-    'cache',
-    'flutter_web_sdk',
-  );
-  final outputDir = p.join(ctx.tempDir, 'websdk');
-  Directory(outputDir).createSync(recursive: true);
-
-  // Merge libraries from Flutter's `dart:ui` with `lib/libraries.json` from
-  // this Dart SDK. The --multi-root option is how `lib/libraries.json` can be
-  // found!
-  final flutterLibSpec = jsonDecode(
-    File(p.join(flutterWebSdk, 'libraries.json')).readAsStringSync(),
-  );
-  final flutterLibraries =
-      ((flutterLibSpec as Map)['dartdevc'] as Map)['libraries'] as Map;
-  File(p.join(outputDir, 'dartpad_libraries.json')).writeAsStringSync(
-    jsonEncode({
-      'dartdevc': {
-        'include': [
-          {'path': 'lib/libraries.json', 'target': 'dartdevc'},
-        ],
-        'libraries': flutterLibraries,
-      },
-    }),
-  );
-
-  final libraries = [
-    'dart:core',
-    ...flutterLibraries.keys.map((library) => 'dart:$library'),
-  ];
-
-  final fileSystem = [
-    '--multi-root=$outputDir${p.separator}',
-    '--multi-root=${ctx.dartSdkRoot}${p.separator}',
-    '--multi-root=$flutterWebSdk${p.separator}',
-    '--multi-root-scheme=org-dartlang-sdk',
-    '--libraries-file=org-dartlang-sdk:///dartpad_libraries.json',
-  ];
-
-  // Mirror flutter build process, see `web_sdk/BUILD.gn`.
-  final outlineDill = p.join(outputDir, 'ddc_outline.dill');
-  _runSync(ctx.dartAotRuntimeBin, [
-    p.join(
-      ctx.dartSdkRoot,
-      'bin',
-      'snapshots',
-      'kernel_worker_aot.dart.snapshot',
-    ),
-    '--target=ddc',
-    '--summary-only',
-    '--include-unsupported-platform-library-stubs',
-    ...fileSystem,
-    '--packages-file=$pkgConfigPath',
-    '--output=$outlineDill',
-    ...libraries.expand((library) => ['--source', library]),
-  ], ctx.tempDir);
-
-  final dartSdkJs = p.join(outputDir, 'dart_sdk.js');
-  _runSync(ctx.dartBin, [
-    p.join(ctx.dartSdkRoot, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
-    '--compile-sdk',
-    '--modules=ddc',
-    '--canary',
-    '--no-summarize',
-    '-DFLUTTER_WEB_USE_SKIA=true',
-    ...fileSystem,
-    '--packages=$pkgConfigPath',
-    '-o',
-    dartSdkJs,
-    ...libraries,
-  ], ctx.tempDir);
-
-  return _WebSdk(
-    outlineDill: outlineDill,
-    dartSdkJs: dartSdkJs,
-    dartSdkRoot: ctx.dartSdkRoot,
-  );
-}
-
-String _runSync(String command, List<String> args, String workingDir) {
-  final result = Process.runSync(command, args, workingDirectory: workingDir);
-  if (result.exitCode != 0) {
-    print('Command failed: $command ${args.join(' ')}');
-    print('stdout: ${result.stdout}');
-    print('stderr: ${result.stderr}');
-    throw Exception('Command failed');
+Future<Map<String, String>> _readPinnedHostedVersionsFromSdkTar(
+  File sdkTarFile,
+) async {
+  final reader = TarReader(sdkTarFile.openRead());
+  try {
+    while (await reader.moveNext()) {
+      final entry = reader.current;
+      if (entry.name == '/sdk/packages/flutter/pubspec.yaml' ||
+          entry.name == 'sdk/packages/flutter/pubspec.yaml') {
+        final content = await utf8.decodeStream(entry.contents);
+        final pubspec = jsonDecode(content) as Map<String, Object?>;
+        final deps = pubspec['dependencies'] as Map<String, Object?>? ?? {};
+        return {
+          for (final MapEntry(:key, :value) in deps.entries)
+            if (value is String) key: value,
+        };
+      }
+    }
+  } finally {
+    await reader.cancel();
   }
-  return result.stdout.toString();
+  throw StateError(
+    'Could not find /sdk/packages/flutter/pubspec.yaml in ${sdkTarFile.path}',
+  );
 }
 
-void _copyFile(String source, String dest) => File(source).copySync(dest);
-
-void _copyDir(String source, String dest) {
-  final s = Directory(source);
-  if (!s.existsSync()) {
-    throw Exception('Expected $source to exist!');
-  }
-  Directory(dest).createSync(recursive: true);
-  for (final entity in s.listSync(recursive: true)) {
-    if (entity is File) {
-      final relative = p.relative(entity.path, from: source);
-      final destFile = File(p.join(dest, relative));
-      destFile.parent.createSync(recursive: true);
-      entity.copySync(destFile.path);
+Future<void> _downloadHostedPackages(
+  Map<String, String> hostedVersions,
+  String dest,
+) async {
+  final expectedTarballs = {
+    for (final MapEntry(key: name, value: version) in hostedVersions.entries)
+      '$name-$version.tar.gz',
+  };
+  for (final entity in Directory(dest).listSync()) {
+    if (entity is File && !expectedTarballs.contains(p.basename(entity.path))) {
+      entity.deleteSync();
     }
   }
-}
 
-Map<String, String> _extractHostedPackageVersions(String depsJson) {
-  final data = jsonDecode(depsJson) as Map<String, Object?>;
-  final packages = data['packages'] as List<Object?>;
-  return {
-    for (final pkg in packages)
-      if (pkg is Map && pkg['source'] == 'hosted')
-        pkg['name'] as String: pkg['version'] as String,
-  };
-}
-
-Map<String, Object?> _yamlToJson(String yamlString) =>
-    jsonDecode(jsonEncode(loadYaml(yamlString))) as Map<String, Object?>;
-
-Future<void> _downloadHostedPackages(String depsJson, String dest) async {
-  final hostedVersions = _extractHostedPackageVersions(depsJson);
   final client = http.Client();
   try {
     for (final MapEntry(key: name, value: version) in hostedVersions.entries) {
       final tarballName = '$name-$version.tar.gz';
       final tarballFile = File(p.join(dest, tarballName));
-
       if (tarballFile.existsSync()) continue;
 
       print('Downloading $name $version...');
@@ -690,173 +140,12 @@ Future<void> _downloadHostedPackages(String depsJson, String dest) async {
       if (response.statusCode == 200) {
         tarballFile.writeAsBytesSync(response.bodyBytes);
       } else {
-        print('Failed to download $name: ${response.statusCode}');
-      }
-    }
-  } finally {
-    client.close();
-  }
-}
-
-extension on StreamSink<TarEntry> {
-  void addFile({required String target, required String source}) => add(
-    TarEntry.data(
-      TarHeader(name: target, mode: 420),
-      File(source).readAsBytesSync(),
-    ),
-  );
-
-  void addTextFile({required String target, required String text}) =>
-      add(TarEntry.data(TarHeader(name: target, mode: 420), utf8.encode(text)));
-
-  void addJsonFile({required String target, required Object? json}) =>
-      addTextFile(target: target, text: jsonEncode(json));
-
-  void addDirectory({
-    required String source,
-    required String target,
-    bool Function(String path)? where,
-  }) {
-    final s = Directory(source);
-    if (!s.existsSync()) return;
-    for (final f in s.listSync(recursive: true).whereType<File>()) {
-      final relative = p.relative(f.path, from: source);
-      if (where != null && !where(relative)) continue;
-      add(
-        TarEntry.data(
-          TarHeader(name: p.join(target, relative), mode: 420),
-          f.readAsBytesSync(),
-        ),
-      );
-    }
-  }
-}
-
-Future<String> _resolveFlutterExecutable() async {
-  final command = Platform.isWindows ? 'where' : 'which';
-  final result = await Process.run(command, ['flutter']);
-  if (result.exitCode != 0 || result.stdout.toString().trim().isEmpty) {
-    throw Exception('Flutter not found in PATH');
-  }
-  return result.stdout.toString().split('\n').first.trim();
-}
-
-const _kRequiredCanvasKitFiles = [
-  'canvaskit.js',
-  'canvaskit.wasm',
-  'chromium/canvaskit.js',
-  'chromium/canvaskit.wasm',
-];
-
-void _verifyLocalCanvasKitFiles(String canvasKitDir) {
-  for (final relPath in _kRequiredCanvasKitFiles) {
-    final file = File(p.joinAll([canvasKitDir, ...relPath.split('/')]));
-    if (!file.existsSync() || file.lengthSync() == 0) {
-      throw StateError('Missing or empty local CanvasKit file: ${file.path}');
-    }
-  }
-}
-
-Future<String> _resolveAndVerifyCanvasKitCdnUrl(
-  String flutterRoot,
-  String myappDir,
-) async {
-  final versionFile = File(
-    p.join(flutterRoot, 'bin', 'cache', 'flutter.version.json'),
-  );
-  if (!versionFile.existsSync()) {
-    throw StateError('Missing ${versionFile.path}');
-  }
-  final versionJson =
-      jsonDecode(versionFile.readAsStringSync()) as Map<String, Object?>;
-  final engineRevision = versionJson['engineRevision'] as String?;
-  if (engineRevision == null ||
-      !RegExp(r'^[0-9a-f]{40}$').hasMatch(engineRevision)) {
-    throw StateError(
-      'Invalid or missing engineRevision in ${versionFile.path}: '
-      '$engineRevision',
-    );
-  }
-
-  // Cross-check against build/web/flutter_bootstrap.js generated by
-  // `flutter build web` to ensure flutter_tools agrees on engineRevision.
-  final bootstrapFile = File(
-    p.join(myappDir, 'build', 'web', 'flutter_bootstrap.js'),
-  );
-  if (bootstrapFile.existsSync()) {
-    final bootstrapContent = bootstrapFile.readAsStringSync();
-    final match = RegExp(
-      r'"engineRevision"\s*:\s*"([0-9a-f]{40})"',
-    ).firstMatch(bootstrapContent);
-    if (match != null && match.group(1) != engineRevision) {
-      throw StateError(
-        'Engine revision mismatch between flutter.version.json '
-        '($engineRevision) and flutter_bootstrap.js (${match.group(1)})',
-      );
-    }
-  }
-
-  final baseUrl = 'https://www.gstatic.com/flutter-canvaskit/$engineRevision/';
-  print('Verifying CanvasKit CDN resources at $baseUrl...');
-  final client = http.Client();
-  try {
-    for (final relPath in _kRequiredCanvasKitFiles) {
-      final uri = Uri.parse('$baseUrl$relPath');
-      final response = await client.head(uri);
-      final contentLength = int.tryParse(
-        response.headers['content-length'] ?? '',
-      );
-      if (response.statusCode != 200 ||
-          (contentLength != null && contentLength <= 0)) {
         throw StateError(
-          'CanvasKit CDN verification failed for $uri '
-          '(HTTP ${response.statusCode}, content-length: $contentLength). '
-          'Pass --no-use-cdn to bundle local CanvasKit files instead.',
+          'Failed to download $url (HTTP ${response.statusCode})',
         );
       }
     }
   } finally {
     client.close();
   }
-  return baseUrl;
 }
-
-const kBootstrapFlutterCode = r'''
-import 'dart:ui_web' as ui_web;
-import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
-
-import 'package:flutter/foundation.dart';
-//import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-
-import '{{entrypoint}}' as entrypoint;
-
-@JS('window')
-external JSObject get _window;
-
-@JS('console.error')
-external void _consoleError(JSString message);
-
-Future<void> main() async {
-  // Disable URL strategy to prevent SecurityError in srcdoc iframes
-  ui_web.urlStrategy = null;
-
-  // Capture errors and pipe to console.error
-  FlutterError.onError = (details) {
-    _consoleError(details.toString().toJS);
-  };
-
-  // Mock DWDS indicators to allow Flutter to register hot reload 'reassemble'
-  // extension.
-  _window[r'$dwdsVersion'] = true.toJS;
-  _window[r'$emitRegisterEvent'] = ((String _) {}).toJS;
-  await ui_web.bootstrapEngine(
-    runApp: () {
-      entrypoint.main();
-    },
-    registerPlugins: () {
-      // pluginRegistrant.registerPlugins();
-    },
-  );
-}
-''';

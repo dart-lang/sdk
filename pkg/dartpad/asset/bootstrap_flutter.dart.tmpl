@@ -1,0 +1,41 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:ui_web' as ui_web;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
+
+import 'package:flutter/foundation.dart';
+//import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+
+import '{{entrypoint}}' as entrypoint;
+
+@JS('window')
+external JSObject get _window;
+
+@JS('console.error')
+external void _consoleError(JSString message);
+
+Future<void> main() async {
+  // Disable URL strategy to prevent SecurityError in srcdoc iframes
+  ui_web.urlStrategy = null;
+
+  // Capture errors and pipe to console.error
+  FlutterError.onError = (details) {
+    _consoleError(details.toString().toJS);
+  };
+
+  // Mock DWDS indicators to allow Flutter to register hot reload 'reassemble'
+  // extension.
+  _window[r'$dwdsVersion'] = true.toJS;
+  _window[r'$emitRegisterEvent'] = ((String _) {}).toJS;
+  await ui_web.bootstrapEngine(
+    runApp: () {
+      entrypoint.main();
+    },
+    registerPlugins: () {
+      // pluginRegistrant.registerPlugins();
+    },
+  );
+}
