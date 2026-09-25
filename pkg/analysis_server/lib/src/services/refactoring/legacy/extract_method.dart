@@ -1379,7 +1379,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     if (selectionPattern.isCompatible(nodePattern)) {
       var occurrence = _Occurrence(
         nodeRange,
-        ref._selectionRange.intersects(nodeRange),
+        ref._selectionRange.covers(nodeRange),
       );
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
@@ -1409,6 +1409,16 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
         statements[beginStatementIndex],
         statements[beginStatementIndex + selectionCount - 1],
       );
+      // A window that partially overlaps the selection can't be an
+      // occurrence; matching it would consume some of the selected
+      // statements, so the selection itself would never be found.
+      // https://github.com/dart-lang/sdk/issues/37297
+      var selectionRange = ref._selectionRange;
+      if (nodeRange.intersects(selectionRange) &&
+          !selectionRange.covers(nodeRange)) {
+        beginStatementIndex++;
+        continue;
+      }
       var found = _tryToFindOccurrence(nodeRange);
       // next statement
       if (found) {
