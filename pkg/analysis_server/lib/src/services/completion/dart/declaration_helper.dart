@@ -480,12 +480,12 @@ class DeclarationHelper {
       parent = parent.parent;
     }
     if (parent is CompilationUnit) {
-      var library = parent.declaredFragment?.element;
-      if (library != null) {
-        _addTopLevelDeclarations(library);
+      var libraryFragment = parent.declaredFragment;
+      if (libraryFragment != null) {
+        _addTopLevelDeclarations(libraryFragment.element);
         addImportPrefixes();
         if (!skipImports) {
-          _addImportedDeclarations(library);
+          _addImportedDeclarations(libraryFragment);
         }
         _recordOperation(StaticMembersOperation(declarationHelper: this));
       }
@@ -1033,11 +1033,15 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are imported into the
   /// [library].
-  void _addImportedDeclarations(LibraryElement library) {
+  void _addImportedDeclarations(LibraryFragment libraryFragment) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.firstFragment.libraryImports) {
+    var libraryImports = libraryFragment.withEnclosing2.expand(
+      (fragment) => fragment.libraryImports,
+    );
+    for (var importElement in libraryImports) {
+      // libraryFragment.libraryImports
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
