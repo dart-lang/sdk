@@ -66,6 +66,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// This function is used to test recording requirements during analysis.
 ///
@@ -150,6 +151,9 @@ class AnalysisDriver {
 
   /// The [Packages] object with packages and their language versions.
   final Packages _packages;
+
+  /// Replaces the discovered default language version for non-SDK files.
+  final Version? _languageVersionOverride;
 
   /// Whether fine-grained dependencies experiment is enabled.
   final bool withFineDependencies;
@@ -314,6 +318,7 @@ class AnalysisDriver {
     this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
+    Version? languageVersionOverride,
     bool retainDataForTesting = false,
     this.testView,
     bool enableLintRuleTiming = false,
@@ -325,6 +330,7 @@ class AnalysisDriver {
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
        _logger = logger,
        _packages = packages,
+       _languageVersionOverride = languageVersionOverride,
        _sourceFactory = sourceFactory,
        _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
@@ -1708,6 +1714,7 @@ class AnalysisDriver {
       _saltForElements,
       featureSetProvider,
       analysisOptionsMap,
+      languageVersionOverride: _languageVersionOverride,
       fileContentStrategy: _fileContentStrategy,
       unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
@@ -2017,6 +2024,7 @@ class AnalysisDriver {
       keyBuilder.addString(file.path);
       keyBuilder.addString(file.uriStr);
       keyBuilder.addString(file.contentHash);
+      keyBuilder.addLanguageVersion(file.packageLanguageVersion);
       file.kind.addDirectivesSignature(keyBuilder);
     }
 

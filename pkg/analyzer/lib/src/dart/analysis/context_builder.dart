@@ -34,6 +34,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A utility class used to build an analysis context based on a context root.
 class ContextBuilderImpl {
@@ -76,6 +77,7 @@ class ContextBuilderImpl {
     DeclaredVariables? declaredVariables,
     bool drainStreams = true,
     bool enableIndex = false,
+    Version? languageVersionOverride,
     List<String>? librarySummaryPaths,
     PerformanceLog? performanceLog,
     bool retainDataForTesting = false,
@@ -166,6 +168,7 @@ class ContextBuilderImpl {
       packages: _createPackageMap(contextRoot: contextRoot),
       analysisContext: analysisContext,
       enableIndex: enableIndex,
+      languageVersionOverride: languageVersionOverride,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,

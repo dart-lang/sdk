@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/util/sdk.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
@@ -41,6 +42,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
+    Version? languageVersionOverride,
     List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packageConfigFile,
@@ -96,6 +98,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
+        languageVersionOverride: languageVersionOverride,
         librarySummaryPaths: librarySummaryPaths,
         performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,

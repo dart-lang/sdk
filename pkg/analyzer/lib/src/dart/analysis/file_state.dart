@@ -1225,6 +1225,12 @@ class FileSystemState {
 
   final FeatureSetProvider featureSetProvider;
 
+  /// Overrides package and workspace language versions for non-SDK files.
+  ///
+  /// A file's `// @dart=` comment takes precedence over this value.
+  /// If `null`, the default version comes from the package, workspace, or SDK.
+  final Version? languageVersionOverride;
+
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
 
@@ -1292,6 +1298,7 @@ class FileSystemState {
     this._saltForElements,
     this.featureSetProvider,
     AnalysisOptionsMap analysisOptionsMap, {
+    this.languageVersionOverride,
     required this.fileContentStrategy,
     required this.unlinkedUnitStore,
     required this.prefetchFiles,
@@ -1404,6 +1411,9 @@ class FileSystemState {
     }
 
     var languageVersion = workspacePackage?.languageVersion;
+    if (!uri.isScheme('dart')) {
+      languageVersion = languageVersionOverride ?? languageVersion;
+    }
 
     if (featureSet != null && languageVersion != null) {
       return (featureSet, languageVersion);
