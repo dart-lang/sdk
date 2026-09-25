@@ -1895,6 +1895,46 @@ var s = 'begin \u{110000}';
 ''');
   }
 
+  void test_invalidCodePoint_interpolation_first() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}${0}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_interpolation_last() {
+    parseTestCodeWithDiagnostics(r'''
+var s = '${0}\u{110000}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+''');
+  }
+
+  void test_invalidCodePoint_interpolation_middle() {
+    parseTestCodeWithDiagnostics(r'''
+var s = '${0}\u{110000}${1}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+''');
+  }
+
+  void test_invalidCodePoint_multiLine() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_multiLine_leadingNewline() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''
+\u{110000}''';
+// [diag.invalidCodePoint][column 1][length 9] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
   @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''

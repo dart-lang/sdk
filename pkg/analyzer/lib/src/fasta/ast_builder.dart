@@ -2428,7 +2428,7 @@ class AstBuilder extends StackListener {
           elements.add(
             InterpolationStringImpl(
               contents: part,
-              value: unescape(part.lexeme, quote, part, this),
+              value: unescapeMiddleStringPart(part.lexeme, quote, part, this),
             ),
           );
         } else if (part is InterpolationExpressionImpl) {
