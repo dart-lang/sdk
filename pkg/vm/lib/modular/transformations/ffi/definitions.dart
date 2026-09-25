@@ -617,7 +617,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           node.superclass == structClass
               ? structFromTypedDataBase
               : unionFromTypedDataBase,
-          Arguments([VariableGet(typedDataBase), VariableGet(offsetInBytes)]),
+          Arguments(
+            ExpressionList(
+              VariableGet(typedDataBase),
+              VariableGet(offsetInBytes),
+            ),
+          ),
         ),
       ],
       fileUri: node.fileUri,
@@ -672,11 +677,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             node.superclass == structClass
                 ? structFromTypedData
                 : unionFromTypedData,
-            Arguments([
-              VariableGet(typedData),
-              VariableGet(offset),
-              VariableGet(sizeInBytes),
-            ]),
+            Arguments(
+              ExpressionList(
+                VariableGet(typedData),
+                VariableGet(offset),
+                VariableGet(sizeInBytes),
+              ),
+            ),
           ),
         ],
         fileUri: node.fileUri,

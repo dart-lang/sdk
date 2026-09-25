@@ -1121,28 +1121,34 @@ class KernelTarget {
         }
       }
     }
+    List<PositionalParameter> superPositional =
+        superConstructor.function.positionalParameters;
+    List<NamedParameter> superNamed = superConstructor.function.namedParameters;
     List<PositionalParameter> positionalParameters = [];
     List<NamedParameter> namedParameters = [];
-    List<Expression> positional = <Expression>[];
-    List<NamedExpression> named = <NamedExpression>[];
-
-    for (PositionalParameter formal
-        in superConstructor.function.positionalParameters) {
-      positionalParameters.add(
-        copyPositionalParameter(formal, isPositional: true),
-      );
-      positional.add(new VariableGet(positionalParameters.last));
-    }
-    for (NamedParameter formal in superConstructor.function.namedParameters) {
-      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-      namedParameters.add(clone);
-      named.add(
-        new NamedExpression(
+    ExpressionList positional = new ExpressionList.generate(
+      superPositional.length,
+      (int i) {
+        PositionalParameter clone = copyPositionalParameter(
+          superPositional[i],
+          isPositional: true,
+        );
+        positionalParameters.add(clone);
+        return new VariableGet(clone);
+      },
+    );
+    NamedExpressionList named = new NamedExpressionList.generate(
+      superNamed.length,
+      (int i) {
+        NamedParameter formal = superNamed[i];
+        NamedParameter clone = copyNamedParameter(formal, isPositional: false);
+        namedParameters.add(clone);
+        return new NamedExpression(
           formal.parameterName,
-          new VariableGet(namedParameters.last),
-        ),
-      );
-    }
+          new VariableGet(clone),
+        );
+      },
+    );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,

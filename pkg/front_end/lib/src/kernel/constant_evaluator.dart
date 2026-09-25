@@ -5955,11 +5955,11 @@ class ConstantEvaluator
     Map<String, Constant> namedArgs,
     DartTypeList types,
   ) {
-    final List<Expression> positional = new List<Expression>.filled(
+    final ExpressionList positional = new ExpressionList.filled(
       positionalArgs.length,
       dummyExpression,
     );
-    final List<NamedExpression> named = new List<NamedExpression>.filled(
+    final NamedExpressionList named = new NamedExpressionList.filled(
       namedArgs.length,
       dummyNamedExpression,
     );

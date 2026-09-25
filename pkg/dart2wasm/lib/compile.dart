@@ -820,10 +820,12 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
     invoke.function.body = ReturnStatement(
       StaticInvocation(
         p,
-        Arguments([
-          VariableGet(invoke.function.positionalParameters.single),
-          ConstantExpression(StaticTearOffConstant(mainMethod)),
-        ]),
+        Arguments(
+          ExpressionList(
+            VariableGet(invoke.function.positionalParameters.single),
+            ConstantExpression(StaticTearOffConstant(mainMethod)),
+          ),
+        ),
       ),
     )..parent = invoke.function;
   }

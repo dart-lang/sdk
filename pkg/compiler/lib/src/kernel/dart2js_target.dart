@@ -223,27 +223,31 @@ class Dart2jsTarget extends Target {
         'dart:core',
         '_createInvocationMirror',
       ),
-      ir.Arguments(<ir.Expression>[
-        ir.StringLiteral(name)..fileOffset = offset,
-        ir.ListLiteral(
-          arguments.types.map<ir.Expression>((t) => ir.TypeLiteral(t)).toList(),
+      ir.Arguments(
+        ir.ExpressionList(
+          ir.StringLiteral(name)..fileOffset = offset,
+          ir.ListLiteral(
+            arguments.types
+                .map<ir.Expression>((t) => ir.TypeLiteral(t))
+                .toList(),
+          ),
+          ir.ListLiteral(arguments.positional)..fileOffset = offset,
+          ir.MapLiteral(
+              List<ir.MapLiteralEntry>.of(
+                arguments.named.map((ir.NamedExpression arg) {
+                  return ir.MapLiteralEntry(
+                    ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
+                    arg.value,
+                  )..fileOffset = arg.fileOffset;
+                }),
+              ),
+              keyType: coreTypes.stringNonNullableRawType,
+            )
+            ..isConst = (arguments.named.isEmpty)
+            ..fileOffset = arguments.fileOffset,
+          ir.IntLiteral(kind.value)..fileOffset = offset,
         ),
-        ir.ListLiteral(arguments.positional)..fileOffset = offset,
-        ir.MapLiteral(
-            List<ir.MapLiteralEntry>.of(
-              arguments.named.map((ir.NamedExpression arg) {
-                return ir.MapLiteralEntry(
-                  ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
-                  arg.value,
-                )..fileOffset = arg.fileOffset;
-              }),
-            ),
-            keyType: coreTypes.stringNonNullableRawType,
-          )
-          ..isConst = (arguments.named.isEmpty)
-          ..fileOffset = arguments.fileOffset,
-        ir.IntLiteral(kind.value)..fileOffset = offset,
-      ]),
+      ),
     )..fileOffset = offset;
   }
 

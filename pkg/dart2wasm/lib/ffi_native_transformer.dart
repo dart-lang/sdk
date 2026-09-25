@@ -283,7 +283,10 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     // Convert return value
     final resultExpression = _ffiValueToDartValue(
       ffiFunctionType.returnType,
-      StaticInvocation(wasmImportProcedure, Arguments(ffiCallArgs)),
+      StaticInvocation(
+        wasmImportProcedure,
+        Arguments(ExpressionList.from(ffiCallArgs)),
+      ),
     );
     if (isVoidReturn) {
       node.function.body = Block([
@@ -316,31 +319,35 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     return switch (abiTypeNativeType) {
       NativeType.kInt8 => StaticInvocation(
         wasmI32Int8FromInt,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
       NativeType.kUint8 => StaticInvocation(
         wasmI32Uint8FromInt,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
       NativeType.kInt16 => StaticInvocation(
         wasmI32Int16FromInt,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
       NativeType.kUint16 => StaticInvocation(
         wasmI32Uint16FromInt,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
-      NativeType.kInt32 ||
-      NativeType.kUint32 => StaticInvocation(wasmI32FromInt, Arguments([expr])),
-      NativeType.kInt64 ||
-      NativeType.kUint64 => StaticInvocation(wasmI64FromInt, Arguments([expr])),
+      NativeType.kInt32 || NativeType.kUint32 => StaticInvocation(
+        wasmI32FromInt,
+        Arguments(ExpressionList(expr)),
+      ),
+      NativeType.kInt64 || NativeType.kUint64 => StaticInvocation(
+        wasmI64FromInt,
+        Arguments(ExpressionList(expr)),
+      ),
       NativeType.kFloat => StaticInvocation(
         wasmF32FromDouble,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
       NativeType.kDouble => StaticInvocation(
         wasmF64FromDouble,
-        Arguments([expr]),
+        Arguments(ExpressionList(expr)),
       ),
       NativeType.kPointer => InstanceGet(
         InstanceAccessKind.Instance,
@@ -349,7 +356,10 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         interfaceTarget: pointerAddressField,
         resultType: InterfaceType(wasmI32Class, Nullability.nonNullable),
       ),
-      NativeType.kBool => StaticInvocation(wasmI32FromBool, Arguments([expr])),
+      NativeType.kBool => StaticInvocation(
+        wasmI32FromBool,
+        Arguments(ExpressionList(expr)),
+      ),
       NativeType.kVoid => null,
       _ => throw '_dartValueToFfiValue: $abiTypeNativeType cannot be converted',
     };
@@ -371,7 +381,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
           InstanceAccessKind.Instance,
           receiver,
           converter.name,
-          Arguments([]),
+          Arguments.empty(),
           interfaceTarget: converter,
           functionType: converter.getterType as FunctionType,
         );
@@ -392,7 +402,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         assert(ffiType_.typeArguments.length == 1);
         return StaticInvocation(
           pointerFromAddressI32,
-          Arguments([expr], types: ffiType_.typeArguments),
+          Arguments(ExpressionList(expr), types: ffiType_.typeArguments),
         );
 
       case NativeType.kVoid:

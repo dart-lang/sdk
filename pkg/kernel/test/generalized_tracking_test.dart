@@ -82,7 +82,7 @@ void main() {
         new ExpressionStatement(
           new ConstructorInvocation(
             myWidgetClass.constructors.first,
-            new Arguments([]),
+            new Arguments.empty(),
           )..fileOffset = fileOffset,
         ),
       ]),
@@ -107,7 +107,7 @@ void main() {
               new ReturnStatement(
                 new ConstructorInvocation(
                   myWidgetClass.constructors.first,
-                  new Arguments([]),
+                  new Arguments.empty(),
                 )..fileOffset = fileOffset,
               ),
             ]),
@@ -149,11 +149,11 @@ void main() {
     new ExpressionStatement(
       new ConstructorInvocation(
         myWidgetClass.constructors.first,
-        new Arguments([]),
+        new Arguments.empty(),
       )..fileOffset = fileOffset,
     ),
     new ExpressionStatement(
-      new StaticInvocation(factoryMethod, new Arguments([]))
+      new StaticInvocation(factoryMethod, new Arguments.empty())
         ..fileOffset = fileOffset,
     ),
   ]);

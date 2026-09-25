@@ -2032,7 +2032,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
         return StaticInvocation(
           unsafeCast,
           Arguments(
-            [result],
+            ExpressionList(result),
             types: DartTypeList(
               visitDartType(node.staticType, cannotRemoveSentinel),
             ),
@@ -2109,7 +2109,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (check != null && check.alwaysPass) {
       return StaticInvocation(
         unsafeCast,
-        Arguments([node.operand], types: DartTypeList(node.type)),
+        Arguments(ExpressionList(node.operand), types: DartTypeList(node.type)),
       )..fileOffset = node.fileOffset;
     }
     return node;
@@ -2122,9 +2122,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (nullTest.isAlwaysNotNull) {
       return StaticInvocation(
         unsafeCast,
-        Arguments([
-          node.operand,
-        ], types: DartTypeList(node.getStaticType(staticTypeContext))),
+        Arguments(
+          ExpressionList(node.operand),
+          types: DartTypeList(node.getStaticType(staticTypeContext)),
+        ),
       )..fileOffset = node.fileOffset;
     }
     return node;

@@ -690,9 +690,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   void _addNativeDependency(Library library, String nativeImportPath) {
     MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments = new Arguments(<Expression>[
-      new StringLiteral(nativeImportPath),
-    ]);
+    Arguments arguments = new Arguments(
+      new ExpressionList(new StringLiteral(nativeImportPath)),
+    );
     Expression annotation;
     if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(

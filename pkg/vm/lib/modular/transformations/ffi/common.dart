@@ -1387,7 +1387,7 @@ class FfiTransformer extends Transformer {
         for (final abi in Abi.values) values[abi],
       ], elementNullability),
       listElementAt.name,
-      Arguments([StaticInvocation(abiMethod, Arguments([]))]),
+      Arguments(ExpressionList(StaticInvocation(abiMethod, Arguments.empty()))),
       interfaceTarget: listElementAt,
       functionType:
           Substitution.fromInterfaceType(
@@ -1405,7 +1405,7 @@ class FfiTransformer extends Transformer {
       StaticInvocation(
         checkAbiSpecificIntegerMappingFunction,
         Arguments(
-          [nullableExpression],
+          ExpressionList(nullableExpression),
           types: DartTypeList(InterfaceType(intClass, Nullability.nonNullable)),
         ),
       );
@@ -1687,7 +1687,7 @@ class FfiTransformer extends Transformer {
       InstanceAccessKind.Instance,
       a,
       numAddition.name,
-      Arguments([b]),
+      Arguments(ExpressionList(b)),
       interfaceTarget: numAddition,
       functionType: numAddition.getterType as FunctionType,
     );
@@ -1698,7 +1698,7 @@ class FfiTransformer extends Transformer {
       InstanceAccessKind.Instance,
       a,
       numMultiplication.name,
-      Arguments([b]),
+      Arguments(ExpressionList(b)),
       interfaceTarget: numMultiplication,
       functionType: numMultiplication.getterType as FunctionType,
     );
@@ -1787,12 +1787,12 @@ class FfiTransformer extends Transformer {
     return StaticInvocation(
       method,
       Arguments(
-        [
+        ExpressionList(
           typedDataBase,
           offsetInBytes ?? ConstantExpression(IntConstant(0)),
-          if (index != null) index,
-          if (value != null) value,
-        ],
+          index ?? value,
+          index != null ? value : null,
+        ),
         types: DartTypeList(
           InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable),
         ),
@@ -1814,18 +1814,24 @@ class FfiTransformer extends Transformer {
         ExpressionStatement(
           StaticInvocation(
             nativeEffectMethod,
-            Arguments([
-              ConstructorInvocation(
-                constructor,
-                Arguments([
-                  StaticInvocation(
-                    uint8ListFactory,
-                    Arguments([ConstantExpression(IntConstant(1))]),
-                  )..fileOffset = nestedExpression.fileOffset,
-                  ConstantExpression(IntConstant(0)),
-                ]),
-              )..fileOffset = nestedExpression.fileOffset,
-            ]),
+            Arguments(
+              ExpressionList(
+                ConstructorInvocation(
+                  constructor,
+                  Arguments(
+                    ExpressionList(
+                      StaticInvocation(
+                        uint8ListFactory,
+                        Arguments(
+                          ExpressionList(ConstantExpression(IntConstant(1))),
+                        ),
+                      )..fileOffset = nestedExpression.fileOffset,
+                      ConstantExpression(IntConstant(0)),
+                    ),
+                  ),
+                )..fileOffset = nestedExpression.fileOffset,
+              ),
+            ),
           ),
         ),
       ]),

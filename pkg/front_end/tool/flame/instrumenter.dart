@@ -383,33 +383,37 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
 
   @override
   Arguments createBeforeArguments(List<String> namesById) {
-    return new Arguments([
-      new IntLiteral(namesById.length),
-      new BoolLiteral(reportCandidates),
-    ]);
+    return new Arguments(
+      new ExpressionList(
+        new IntLiteral(namesById.length),
+        new BoolLiteral(reportCandidates),
+      ),
+    );
   }
 
   @override
   Arguments createAfterArguments(List<String> namesById) {
-    return new Arguments([
-      new ListLiteral(
-        List.generate(
-          namesById.length,
-          (i) => new StringLiteral(namesById[i]),
-          growable: false,
+    return new Arguments(
+      new ExpressionList(
+        new ListLiteral(
+          List.generate(
+            namesById.length,
+            (i) => new StringLiteral(namesById[i]),
+            growable: false,
+          ),
         ),
       ),
-    ]);
+    );
   }
 
   @override
   Arguments createEnterArguments(int id, Member member) {
-    return new Arguments([new IntLiteral(id)]);
+    return new Arguments(new ExpressionList(new IntLiteral(id)));
   }
 
   @override
   Arguments createExitArguments(int id, Member member) {
-    return new Arguments([new IntLiteral(id)]);
+    return new Arguments(new ExpressionList(new IntLiteral(id)));
   }
 
   bool _memberCallsCertainThings(Member m) {
@@ -738,7 +742,7 @@ void wrapConstructor(
     new ExpressionStatement(
       new StaticInvocation(
         instrumenterExit,
-        new Arguments([new IntLiteral(id)]),
+        new Arguments(new ExpressionList(new IntLiteral(id))),
       ),
     ),
   );

@@ -165,10 +165,10 @@ abstract class InvocationInferenceResult {
   List<DartType> get typeArguments;
 
   /// The positional arguments.
-  List<Expression> get positional;
+  ExpressionList get positional;
 
   /// The named arguments.
-  List<NamedExpression> get named;
+  NamedExpressionList get named;
 
   /// The flow analysis expression info for the invocation expression.
   ExpressionInfo? get expressionInfo;
@@ -221,10 +221,10 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
   final List<CachedExpression>? hoistedArguments;
 
   @override
-  final List<Expression> positional;
+  final ExpressionList positional;
 
   @override
-  final List<NamedExpression> named;
+  final NamedExpressionList named;
 
   @override
   final ExpressionInfo? expressionInfo;
@@ -369,10 +369,10 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   final List<CachedExpression>? hoistedArguments;
 
   @override
-  final List<Expression> positional;
+  final ExpressionList positional;
 
   @override
-  final List<NamedExpression> named;
+  final NamedExpressionList named;
 
   new({
     required this.message,

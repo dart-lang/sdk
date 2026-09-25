@@ -727,7 +727,13 @@ class _Transform extends RecursiveVisitor {
       }
     }
 
-    args.replaceWith(Arguments(positional, named: named, types: args.types));
+    args.replaceWith(
+      Arguments(
+        ExpressionList.from(positional),
+        named: NamedExpressionList.from(named),
+        types: args.types,
+      ),
+    );
   }
 
   @override

@@ -87,9 +87,9 @@ Arguments createArguments(
   required int fileOffset,
 }) {
   return new Arguments(
-    positional,
+    new ExpressionList.from(positional),
     types: types == null ? null : new DartTypeList.from(types),
-    named: named,
+    named: named == null ? null : new NamedExpressionList.from(named),
   )..fileOffset = fileOffset;
 }
 
@@ -794,7 +794,7 @@ Expression createIntLiteral(
       InstanceAccessKind.Instance,
       new IntLiteral(-value)..fileOffset = fileOffset,
       unaryMinusName,
-      new Arguments([])..fileOffset = fileOffset,
+      new Arguments.empty()..fileOffset = fileOffset,
       interfaceTarget: coreTypes.intUnaryMinus,
       functionType: coreTypes.intUnaryMinus.getterType as FunctionType,
     )..fileOffset = fileOffset;

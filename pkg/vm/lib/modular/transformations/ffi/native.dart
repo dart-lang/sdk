@@ -283,7 +283,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (_requiresPointerConversion(dartParameterType, ffiParameterType)) {
       Expression pointerAddress = StaticInvocation(
         getNativeFieldFunction,
-        Arguments(<Expression>[VariableGet(temporary)]),
+        Arguments(ExpressionList(VariableGet(temporary))),
       );
 
       if (checkForNullptr) {
@@ -300,24 +300,26 @@ class FfiNativeTransformer extends FfiTransformer {
                 InstanceAccessKind.Instance,
                 VariableGet(pointerAddressVar),
                 objectEquals.name,
-                Arguments([ConstantExpression(IntConstant(0))]),
+                Arguments(ExpressionList(ConstantExpression(IntConstant(0)))),
                 interfaceTarget: objectEquals,
                 functionType: objectEquals.getterType as FunctionType,
               ),
               ExpressionStatement(
                 StaticInvocation(
                   stateErrorThrowNewFunction,
-                  Arguments([
-                    ConstantExpression(
-                      StringConstant(
-                        'A Dart object attempted to access a native peer, '
-                        'but the native peer has been collected (nullptr). '
-                        'This is usually the result of calling methods on a '
-                        'native-backed object when the native resources have '
-                        'already been disposed.',
+                  Arguments(
+                    ExpressionList(
+                      ConstantExpression(
+                        StringConstant(
+                          'A Dart object attempted to access a native peer, '
+                          'but the native peer has been collected (nullptr). '
+                          'This is usually the result of calling methods on a '
+                          'native-backed object when the native resources have '
+                          'already been disposed.',
+                        ),
                       ),
                     ),
-                  ]),
+                  ),
                 ),
               ),
               EmptyStatement(),
@@ -329,7 +331,10 @@ class FfiNativeTransformer extends FfiTransformer {
 
       return StaticInvocation(
         fromAddressInternal,
-        Arguments(<Expression>[pointerAddress], types: DartTypeList(voidType)),
+        Arguments(
+          ExpressionList(pointerAddress),
+          types: DartTypeList(voidType),
+        ),
       );
     }
     return VariableGet(temporary);
@@ -362,32 +367,32 @@ class FfiNativeTransformer extends FfiTransformer {
     // Create lists of temporary variables for arguments potentially being
     // wrapped, and the (potentially) wrapped arguments to be passed.
     final temporariesForArguments = <Statement>[];
-    final callArguments = <Expression>[];
     final fencedArguments = [];
-    for (int i = 0; i < invocation.arguments.positional.length; i++) {
-      final temporary = _declareTemporary(
-        invocation.arguments.positional[i],
-        dartParameters[i],
-        ffiParameters[i],
-      );
-      // Note: We also evaluate, and assign temporaries for, non-wrapped
-      // arguments as we need to preserve the original evaluation order.
-      temporariesForArguments.add(
-        VariableStatement(VariableDeclaration(temporary)),
-      );
-      callArguments.add(
-        _getTemporary(
+    final callArguments = ExpressionList.generate(
+      invocation.arguments.positional.length,
+      (int i) {
+        final temporary = _declareTemporary(
+          invocation.arguments.positional[i],
+          dartParameters[i],
+          ffiParameters[i],
+        );
+        // Note: We also evaluate, and assign temporaries for, non-wrapped
+        // arguments as we need to preserve the original evaluation order.
+        temporariesForArguments.add(
+          VariableStatement(VariableDeclaration(temporary)),
+        );
+        final callArgument = _getTemporary(
           temporary,
           dartParameters[i],
           ffiParameters[i],
           checkForNullptr: checkReceiverForNullptr && i == 0,
-        ),
-      );
-      if (_requiresPointerConversion(dartParameters[i], ffiParameters[i])) {
-        fencedArguments.add(temporary);
-        continue;
-      }
-    }
+        );
+        if (_requiresPointerConversion(dartParameters[i], ffiParameters[i])) {
+          fencedArguments.add(temporary);
+        }
+        return callArgument;
+      },
+    );
 
     Expression resultInitializer = invocation;
     if (env.isSubtypeOf(
@@ -396,9 +401,10 @@ class FfiNativeTransformer extends FfiTransformer {
     )) {
       resultInitializer = StaticInvocation(
         unsafeCastMethod,
-        Arguments([
-          invocation,
-        ], types: DartTypeList(dartFunctionType.returnType)),
+        Arguments(
+          ExpressionList(invocation),
+          types: DartTypeList(dartFunctionType.returnType),
+        ),
       );
     }
 
@@ -425,7 +431,7 @@ class FfiNativeTransformer extends FfiTransformer {
           ExpressionStatement(
             StaticInvocation(
               reachabilityFenceFunction,
-              Arguments(<Expression>[VariableGet(argument)]),
+              Arguments(ExpressionList(VariableGet(argument))),
             ),
           ),
       ]),
@@ -535,7 +541,7 @@ class FfiNativeTransformer extends FfiTransformer {
     int annotationOffset,
     FunctionType dartFunctionType,
     FunctionType ffiFunctionType,
-    List<Expression> argumentList, {
+    ExpressionList argumentList, {
     required bool checkReceiverForNullptr,
   }) {
     final wrappedDartFunctionType = checkFfiType(
@@ -712,21 +718,25 @@ class FfiNativeTransformer extends FfiTransformer {
     bool isLeaf,
     int annotationOffset,
   ) {
+    final positionalParameters = node.function.positionalParameters;
+    final thisType = (node.parent as Class).getThisType(
+      coreTypes,
+      Nullability.nonNullable,
+    );
     final dartFunctionType = FunctionType(
-      DartTypeList.from([
-        (node.parent as Class).getThisType(coreTypes, Nullability.nonNullable),
-        for (final parameter in node.function.positionalParameters)
-          parameter.type,
-      ]),
+      DartTypeList.generate(
+        1 + positionalParameters.length,
+        (i) => i == 0 ? thisType : positionalParameters[i - 1].type,
+      ),
       node.function.returnType,
       Nullability.nonNullable,
     );
 
-    final argumentList = <Expression>[
-      ThisExpression(),
-      for (final parameter in node.function.positionalParameters)
-        VariableGet(parameter),
-    ];
+    final argumentList = ExpressionList.generate(
+      1 + positionalParameters.length,
+      (i) =>
+          i == 0 ? ThisExpression() : VariableGet(positionalParameters[i - 1]),
+    );
 
     return _transformProcedure(
       node,
@@ -775,10 +785,11 @@ class FfiNativeTransformer extends FfiTransformer {
       Nullability.nonNullable,
     );
 
-    final argumentList = <Expression>[
-      for (final parameter in node.function.positionalParameters)
-        VariableGet(parameter),
-    ];
+    final positionalParameters = node.function.positionalParameters;
+    final argumentList = ExpressionList.generate(
+      positionalParameters.length,
+      (i) => VariableGet(positionalParameters[i]),
+    );
 
     return _transformProcedure(
       node,
@@ -800,7 +811,10 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     return StaticInvocation(
       nativePrivateAddressOf,
-      Arguments([ConstantExpression(native)], types: DartTypeList(ffiType)),
+      Arguments(
+        ExpressionList(ConstantExpression(native)),
+        types: DartTypeList(ffiType),
+      ),
     )..fileOffset = node.fileOffset;
   }
 

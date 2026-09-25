@@ -23,29 +23,31 @@ class CallbackSpecializer {
     int requiredParameterCount, {
     required bool boxExternRef,
   }) {
-    List<Expression> callbackArguments = [];
-    for (int i = 0; i < requiredParameterCount; i++) {
-      DartType callbackParameterType =
-          instantiatedFunctionType.positionalParameters[i];
-      Expression expression;
-      VariableGet v = VariableGet(positionalParameters[i]);
-      if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
-        expression = _createJSValue(v);
-        final nullability =
-            callbackParameterType.extensionTypeErasure.nullability;
-        // Null-check if we can tell the nullability. If we can't, the cast
-        // closure handles the cast.
-        if (nullability == Nullability.nonNullable) {
-          expression = NullCheck(expression);
+    ExpressionList callbackArguments = ExpressionList.generate(
+      requiredParameterCount,
+      (int i) {
+        DartType callbackParameterType =
+            instantiatedFunctionType.positionalParameters[i];
+        Expression expression;
+        VariableGet v = VariableGet(positionalParameters[i]);
+        if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
+          expression = _createJSValue(v);
+          final nullability =
+              callbackParameterType.extensionTypeErasure.nullability;
+          // Null-check if we can tell the nullability. If we can't, the cast
+          // closure handles the cast.
+          if (nullability == Nullability.nonNullable) {
+            expression = NullCheck(expression);
+          }
+        } else {
+          expression = _util.convertAndCast(
+            callbackParameterType,
+            invokeOneArg(_util.dartifyRawTarget, v),
+          );
         }
-      } else {
-        expression = _util.convertAndCast(
-          callbackParameterType,
-          invokeOneArg(_util.dartifyRawTarget, v),
-        );
-      }
-      callbackArguments.add(expression);
-    }
+        return expression;
+      },
+    );
 
     final callExpr = FunctionInvocation(
       FunctionAccessKind.FunctionType,
@@ -140,7 +142,7 @@ class CallbackSpecializer {
         InstanceAccessKind.Instance,
         VariableGet(argumentsLengthWasmI32),
         Name('toIntSigned'),
-        Arguments([]),
+        Arguments.empty(),
         interfaceTarget: _util.wasmI32ToIntSigned,
         functionType: _util.wasmI32ToIntSigned.computeSignatureOrFunctionType(),
       ),
@@ -156,12 +158,15 @@ class CallbackSpecializer {
       type: instantiatedFunctionType,
       initializer: StaticInvocation(
         _util.unsafeCastOpaqueTarget,
-        Arguments([
-          StaticInvocation(
-            _util.wasmInternalizeNonNullable,
-            Arguments([VariableGet(callbackVariable)]),
+        Arguments(
+          ExpressionList(
+            StaticInvocation(
+              _util.wasmInternalizeNonNullable,
+              Arguments(ExpressionList(VariableGet(callbackVariable))),
+            ),
           ),
-        ], types: DartTypeList(instantiatedFunctionType)),
+          types: DartTypeList(instantiatedFunctionType),
+        ),
       ),
       isSynthesized: false,
     );
@@ -184,7 +189,7 @@ class CallbackSpecializer {
             FunctionInvocation(
               FunctionAccessKind.FunctionType,
               VariableGet(castClosure),
-              Arguments(castClosureArguments),
+              Arguments(ExpressionList.from(castClosureArguments)),
               functionType: null,
             ),
           ),
@@ -352,8 +357,10 @@ class CallbackSpecializer {
     return (dartProcedure, functionTrampoline);
   }
 
-  Expression _createJSValue(Expression value) =>
-      StaticInvocation(_util.jsValueBoxTarget, Arguments([value]));
+  Expression _createJSValue(Expression value) => StaticInvocation(
+    _util.jsValueBoxTarget,
+    Arguments(ExpressionList(value)),
+  );
 
   /// Whether a closure is needed to capture [type] so that the arguments to the
   /// callback can be casted to that [type].
@@ -432,28 +439,33 @@ class CallbackSpecializer {
     return _createJSValue(
       StaticInvocation(
         jsWrapperFunction,
-        Arguments([
-          StaticInvocation(
-            _util.wasmFunctionFromFunction,
-            Arguments(
-              [ConstantExpression(StaticTearOffConstant(exportedFunction))],
-              types: DartTypeList(
-                exportedFunction.function.computeFunctionType(
-                  Nullability.nonNullable,
+        Arguments(
+          ExpressionList(
+            StaticInvocation(
+              _util.wasmFunctionFromFunction,
+              Arguments(
+                ExpressionList(
+                  ConstantExpression(StaticTearOffConstant(exportedFunction)),
+                ),
+                types: DartTypeList(
+                  exportedFunction.function.computeFunctionType(
+                    Nullability.nonNullable,
+                  ),
                 ),
               ),
             ),
-          ),
-          StaticInvocation(
-            _util.jsObjectFromDartObjectTarget,
-            Arguments([argument]),
-          ),
-          if (castClosure != null)
             StaticInvocation(
               _util.jsObjectFromDartObjectTarget,
-              Arguments([castClosure]),
+              Arguments(ExpressionList(argument)),
             ),
-        ]),
+            castClosure != null
+                ? StaticInvocation(
+                    _util.jsObjectFromDartObjectTarget,
+                    Arguments(ExpressionList(castClosure)),
+                  )
+                : null,
+          ),
+        ),
       ),
     );
   }

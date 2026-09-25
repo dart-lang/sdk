@@ -89,9 +89,10 @@ class ForInLowering {
         cosmeticName: ForInVariables.forIterator,
         initializer: new ConstructorInvocation(
           coreTypes.streamIteratorDefaultConstructor,
-          new Arguments(<Expression>[
-            new VariableGet(streamVariable),
-          ], types: DartTypeList(valueVariable.type)),
+          new Arguments(
+            ExpressionList(new VariableGet(streamVariable)),
+            types: DartTypeList(valueVariable.type),
+          ),
         ),
         type: streamIteratorType,
       );
@@ -102,7 +103,7 @@ class ForInLowering {
           InstanceAccessKind.Instance,
           VariableGet(forIteratorVariable),
           coreTypes.streamIteratorMoveNext.name,
-          new Arguments([]),
+          new Arguments.empty(),
           interfaceTarget: coreTypes.streamIteratorMoveNext,
           functionType:
               coreTypes.streamIteratorMoveNext.getterType as FunctionType,
@@ -116,7 +117,7 @@ class ForInLowering {
         // _asyncStarMoveNextHelper(:stream)
         final asyncStarMoveNextCall = new StaticInvocation(
           coreTypes.asyncStarMoveNextHelper,
-          new Arguments([new VariableGet(streamVariable)]),
+          new Arguments(ExpressionList(new VariableGet(streamVariable))),
         )..fileOffset = stmt.fileOffset;
 
         // let _ = asyncStarMoveNextCall in (condition)
@@ -169,7 +170,7 @@ class ForInLowering {
               InstanceAccessKind.Instance,
               VariableGet(forIteratorVariable),
               coreTypes.streamIteratorCancel.name,
-              new Arguments(<Expression>[]),
+              new Arguments.empty(),
               interfaceTarget: coreTypes.streamIteratorCancel,
               functionType:
                   coreTypes.streamIteratorCancel.getterType as FunctionType,
@@ -257,7 +258,7 @@ class ForInLowering {
       InstanceAccessKind.Instance,
       VariableGet(syncForIteratorVariable),
       coreTypes.iteratorMoveNext.name,
-      Arguments([]),
+      Arguments.empty(),
       interfaceTarget: coreTypes.iteratorMoveNext,
       functionType: coreTypes.iteratorMoveNext.getterType as FunctionType,
     )..fileOffset = iterable.fileOffset;

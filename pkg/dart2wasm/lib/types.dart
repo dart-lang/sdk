@@ -323,13 +323,15 @@ class Types {
                 )
               : ConstructorInvocation(
                   namedParameterConstructor,
-                  Arguments([
-                    ConstantExpression(
-                      translator.symbols.symbolForNamedParameter(n.name),
+                  Arguments(
+                    ExpressionList(
+                      ConstantExpression(
+                        translator.symbols.symbolForNamedParameter(n.name),
+                      ),
+                      TypeLiteral(n.type),
+                      BoolLiteral(n.isRequired),
                     ),
-                    TypeLiteral(n.type),
-                    BoolLiteral(n.isRequired),
-                  ]),
+                  ),
                 ),
         );
       }

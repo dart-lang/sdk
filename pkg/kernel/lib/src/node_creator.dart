@@ -298,7 +298,10 @@ class NodeCreator {
                 DynamicAccessKind.Dynamic,
                 _createExpression(),
                 _createName(),
-                Arguments([], named: [node as NamedExpression]),
+                Arguments(
+                  ExpressionList.empty,
+                  named: NamedExpressionList(node as NamedExpression),
+                ),
               ),
             );
             break;
@@ -2303,7 +2306,7 @@ class NodeCreator {
       case NodeKind.Arguments:
         return _createOneOf(_pendingNodes, kind, index, [
           // TODO(johnniwinther): Add non-trivial cases.
-          () => Arguments([])..fileOffset = _needFileOffset(),
+          () => Arguments.empty()..fileOffset = _needFileOffset(),
         ]);
       case NodeKind.Catch:
         return _createOneOf(_pendingNodes, kind, index, [

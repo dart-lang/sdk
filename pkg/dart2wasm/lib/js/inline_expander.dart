@@ -20,7 +20,7 @@ class InlineExpander {
   /// external stub method that imports the JS function.
   Expression expand(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    List<Expression> originalArguments = arguments.positional.sublist(1);
+    ExpressionList originalArguments = arguments.positional.skip(1);
     List<PositionalParameter> dartPositionalParameters = [];
     for (int j = 0; j < originalArguments.length; j++) {
       Expression originalArgument = originalArguments[j];

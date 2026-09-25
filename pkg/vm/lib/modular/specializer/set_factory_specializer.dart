@@ -37,7 +37,7 @@ class SetFactorySpecializer extends BaseSpecializer {
     if (args.named.isEmpty) {
       return ConstructorInvocation(
         _internalLinkedHashSetConstructor,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       );
     }
     return node;

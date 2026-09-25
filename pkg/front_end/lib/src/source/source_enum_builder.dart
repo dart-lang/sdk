@@ -498,7 +498,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           new SuperMethodInvocation(
             new ThisExpression(),
             toStringName,
-            new Arguments([]),
+            new Arguments.empty(),
             toStringSuperTarget,
           ),
         ),

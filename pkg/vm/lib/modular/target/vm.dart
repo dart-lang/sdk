@@ -325,47 +325,49 @@ class VmTarget extends Target {
   ) {
     return new ConstructorInvocation(
       coreTypes.invocationMirrorWithTypeConstructor,
-      new Arguments(<Expression>[
-        new SymbolLiteral(name)..fileOffset = offset,
-        new IntLiteral(type)..fileOffset = offset,
-        _fixedLengthList(
-          coreTypes,
-          coreTypes.typeNonNullableRawType,
-          arguments.types.map<Expression>((t) => new TypeLiteral(t)).toList(),
-          arguments.fileOffset,
-        ),
-        _fixedLengthList(
-          coreTypes,
-          const DynamicType(),
-          arguments.positional,
-          arguments.fileOffset,
-        ),
-        new StaticInvocation(
-          coreTypes.mapUnmodifiable,
-          new Arguments(
-            [
-              new MapLiteral(
-                  new List<MapLiteralEntry>.from(
-                    arguments.named.map((NamedExpression arg) {
-                      return new MapLiteralEntry(
-                        new SymbolLiteral(arg.name)
-                          ..fileOffset = arg.fileOffset,
-                        arg.value,
-                      )..fileOffset = arg.fileOffset;
-                    }),
-                  ),
-                  keyType: coreTypes.symbolNonNullableRawType,
-                )
-                ..isConst = (arguments.named.isEmpty)
-                ..fileOffset = arguments.fileOffset,
-            ],
-            types: DartTypeList(
-              coreTypes.symbolNonNullableRawType,
-              new DynamicType(),
-            ),
+      new Arguments(
+        ExpressionList(
+          new SymbolLiteral(name)..fileOffset = offset,
+          new IntLiteral(type)..fileOffset = offset,
+          _fixedLengthList(
+            coreTypes,
+            coreTypes.typeNonNullableRawType,
+            arguments.types.map<Expression>((t) => new TypeLiteral(t)).toList(),
+            arguments.fileOffset,
           ),
-        )..fileOffset = offset,
-      ]),
+          _fixedLengthList(
+            coreTypes,
+            const DynamicType(),
+            arguments.positional,
+            arguments.fileOffset,
+          ),
+          new StaticInvocation(
+            coreTypes.mapUnmodifiable,
+            new Arguments(
+              ExpressionList(
+                new MapLiteral(
+                    new List<MapLiteralEntry>.from(
+                      arguments.named.map((NamedExpression arg) {
+                        return new MapLiteralEntry(
+                          new SymbolLiteral(arg.name)
+                            ..fileOffset = arg.fileOffset,
+                          arg.value,
+                        )..fileOffset = arg.fileOffset;
+                      }),
+                    ),
+                    keyType: coreTypes.symbolNonNullableRawType,
+                  )
+                  ..isConst = (arguments.named.isEmpty)
+                  ..fileOffset = arguments.fileOffset,
+              ),
+              types: DartTypeList(
+                coreTypes.symbolNonNullableRawType,
+                new DynamicType(),
+              ),
+            ),
+          )..fileOffset = offset,
+        ),
+      ),
     );
   }
 
@@ -462,10 +464,13 @@ class VmTarget extends Target {
 
     return new StaticInvocation(
       coreTypes.listUnmodifiableConstructor,
-      new Arguments([
-        new ListLiteral(elements, typeArgument: typeArgument)
-          ..fileOffset = offset,
-      ], types: DartTypeList(typeArgument)),
+      new Arguments(
+        ExpressionList(
+          new ListLiteral(elements, typeArgument: typeArgument)
+            ..fileOffset = offset,
+        ),
+        types: DartTypeList(typeArgument),
+      ),
     );
   }
 

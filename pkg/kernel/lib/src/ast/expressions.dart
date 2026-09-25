@@ -8,6 +8,250 @@ part of '../../ast.dart';
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
+/// A fixed-length list of [Expression]s.
+extension type const ExpressionList._(List<Expression> _list)
+    implements List<Expression> {
+  static const ExpressionList empty = ExpressionList._(const <Expression>[]);
+
+  /// Creates a fixed-length list of 1–7 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    Expression e1, [
+    Expression? e2,
+    Expression? e3,
+    Expression? e4,
+    Expression? e5,
+    Expression? e6,
+    Expression? e7,
+  ]) {
+    if (e2 == null) {
+      assert(
+        e3 == null && e4 == null && e5 == null && e6 == null && e7 == null,
+      );
+      return ExpressionList._1(e1);
+    }
+    if (e3 == null) {
+      assert(e4 == null && e5 == null && e6 == null && e7 == null);
+      return ExpressionList._2(e1, e2);
+    }
+    if (e4 == null) {
+      assert(e5 == null && e6 == null && e7 == null);
+      return ExpressionList._3(e1, e2, e3);
+    }
+    if (e5 == null) {
+      assert(e6 == null && e7 == null);
+      return ExpressionList._4(e1, e2, e3, e4);
+    }
+    if (e6 == null) {
+      assert(e7 == null);
+      return ExpressionList._5(e1, e2, e3, e4, e5);
+    }
+    if (e7 == null) {
+      return ExpressionList._6(e1, e2, e3, e4, e5, e6);
+    }
+    return ExpressionList._7(e1, e2, e3, e4, e5, e6, e7);
+  }
+
+  factory _1(Expression e1) => ExpressionList._(List<Expression>.filled(1, e1));
+
+  factory _2(Expression e1, Expression e2) =>
+      ExpressionList._(List<Expression>.filled(2, e1)..[1] = e2);
+
+  factory _3(Expression e1, Expression e2, Expression e3) => ExpressionList._(
+    List<Expression>.filled(3, e1)
+      ..[1] = e2
+      ..[2] = e3,
+  );
+
+  factory _4(Expression e1, Expression e2, Expression e3, Expression e4) =>
+      ExpressionList._(
+        List<Expression>.filled(4, e1)
+          ..[1] = e2
+          ..[2] = e3
+          ..[3] = e4,
+      );
+
+  factory _5(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+  ) => ExpressionList._(
+    List<Expression>.filled(5, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5,
+  );
+
+  factory _6(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+    Expression e6,
+  ) => ExpressionList._(
+    List<Expression>.filled(6, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5
+      ..[5] = e6,
+  );
+
+  factory _7(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+    Expression e6,
+    Expression e7,
+  ) => ExpressionList._(
+    List<Expression>.filled(7, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5
+      ..[5] = e6
+      ..[6] = e7,
+  );
+
+  factory filled(int length, Expression fill) {
+    if (length == 0) return empty;
+    return ExpressionList._(List<Expression>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, Expression Function(int index) generator) {
+    if (length == 0) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(length, generator, growable: false),
+    );
+  }
+
+  /// Copies [expressions] into a new fixed-length list.
+  factory from(List<Expression> expressions) {
+    if (expressions.isEmpty) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(
+        expressions.length,
+        (i) => expressions[i],
+        growable: false,
+      ),
+    );
+  }
+
+  /// Returns a fixed-length list containing the elements of [a] followed by
+  /// the elements of [b].
+  ///
+  /// May return the existing [a] / [b] if the other is empty. It's therefore
+  /// not guaranteed to return a new list.
+  factory concat(ExpressionList a, ExpressionList b) {
+    if (a.isEmpty) return b;
+    if (b.isEmpty) return a;
+    final int aLength = a.length;
+    return ExpressionList.generate(
+      aLength + b.length,
+      (i) => i < aLength ? a[i] : b[i - aLength],
+    );
+  }
+
+  ExpressionList skip(int count) {
+    assert(0 <= count);
+    if (count == 0) return this;
+    if (count >= _list.length) return empty;
+    return ExpressionList.generate(
+      _list.length - count,
+      (i) => _list[count + i],
+    );
+  }
+}
+
+/// A fixed-length list of [NamedExpression]s.
+extension type const NamedExpressionList._(List<NamedExpression> _list)
+    implements List<NamedExpression> {
+  static const NamedExpressionList empty = NamedExpressionList._(
+    const <NamedExpression>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    NamedExpression e1, [
+    NamedExpression? e2,
+    NamedExpression? e3,
+    NamedExpression? e4,
+  ]) {
+    if (e2 == null) {
+      assert(e3 == null && e4 == null);
+      return NamedExpressionList._1(e1);
+    }
+    if (e3 == null) {
+      assert(e4 == null);
+      return NamedExpressionList._2(e1, e2);
+    }
+    if (e4 == null) {
+      return NamedExpressionList._3(e1, e2, e3);
+    }
+    return NamedExpressionList._4(e1, e2, e3, e4);
+  }
+
+  factory _1(NamedExpression e1) =>
+      NamedExpressionList._(List<NamedExpression>.filled(1, e1));
+
+  factory _2(NamedExpression e1, NamedExpression e2) =>
+      NamedExpressionList._(List<NamedExpression>.filled(2, e1)..[1] = e2);
+
+  factory _3(NamedExpression e1, NamedExpression e2, NamedExpression e3) =>
+      NamedExpressionList._(
+        List<NamedExpression>.filled(3, e1)
+          ..[1] = e2
+          ..[2] = e3,
+      );
+
+  factory _4(
+    NamedExpression e1,
+    NamedExpression e2,
+    NamedExpression e3,
+    NamedExpression e4,
+  ) => NamedExpressionList._(
+    List<NamedExpression>.filled(4, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4,
+  );
+
+  factory filled(int length, NamedExpression fill) {
+    if (length == 0) return empty;
+    return NamedExpressionList._(List<NamedExpression>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, NamedExpression Function(int index) generator) {
+    if (length == 0) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(length, generator, growable: false),
+    );
+  }
+
+  /// Copies [expressions] into a new fixed-length list.
+  factory from(List<NamedExpression> expressions) {
+    if (expressions.isEmpty) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(
+        expressions.length,
+        (i) => expressions[i],
+        growable: false,
+      ),
+    );
+  }
+}
+
 sealed class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
@@ -1529,29 +1773,31 @@ class StaticSet extends Expression {
 /// positional arguments, and named arguments.
 class Arguments extends TreeNode {
   DartTypeList types;
-  final List<Expression> positional;
-  List<NamedExpression> named;
+  final ExpressionList positional;
+  NamedExpressionList named;
 
-  new(this.positional, {DartTypeList? types, List<NamedExpression>? named})
+  new(this.positional, {DartTypeList? types, NamedExpressionList? named})
     : this.types = types ?? DartTypeList.empty,
-      this.named = named ?? <NamedExpression>[] {
+      this.named = named ?? NamedExpressionList.empty {
     setParents(this.positional, this);
     setParents(this.named, this);
   }
 
   new empty()
     : types = DartTypeList.empty,
-      positional = <Expression>[],
-      named = <NamedExpression>[];
+      positional = ExpressionList.empty,
+      named = NamedExpressionList.empty;
 
   factory forwarded(FunctionNode function) {
     return new Arguments(
-      function.positionalParameters
-          .map<Expression>((p) => new VariableGet(p))
-          .toList(),
-      named: function.namedParameters
-          .map((p) => new NamedExpression(p.parameterName, new VariableGet(p)))
-          .toList(),
+      ExpressionList.generate(
+        function.positionalParameters.length,
+        (i) => new VariableGet(function.positionalParameters[i]),
+      ),
+      named: NamedExpressionList.generate(function.namedParameters.length, (i) {
+        NamedParameter p = function.namedParameters[i];
+        return new NamedExpression(p.parameterName, new VariableGet(p));
+      }),
       types: DartTypeList.generate(
         function.typeParameters.length,
         (i) => new TypeParameterType.withDefaultNullability(
