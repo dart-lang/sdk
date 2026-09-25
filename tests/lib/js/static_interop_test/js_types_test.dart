@@ -392,6 +392,11 @@ void syncTests() {
   );
   Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
 
+  // [JSDisposableProtocol]
+  final generator = getGenerator();
+  generator.dispose();
+  Expect.isTrue(generator.next().isDone);
+
   // Nullish errors should be caught and converted to Dart wrappers. These tests
   // are currently failing due to https://github.com/dart-lang/sdk/issues/63109.
 
@@ -956,6 +961,7 @@ void syncTests() {
   Expect.equals(JSSymbol.forKey('foo'), JSSymbol.forKey('foo'));
   Expect.equals(JSSymbol.forKey('foo').key, 'foo');
   Expect.isTrue(JSSymbol.asyncIterator is JSSymbol);
+  Expect.isTrue(JSSymbol.dispose is JSSymbol);
   Expect.isTrue(JSSymbol.hasInstance is JSSymbol);
   Expect.isTrue(JSSymbol.isConcatSpreadable is JSSymbol);
   Expect.isTrue(JSSymbol.iterator is JSSymbol);
