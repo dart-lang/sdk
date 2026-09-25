@@ -373,6 +373,7 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
           as Map<String, dynamic>;
 
   final compileSources = <String>[];
+  final packageRootPaths = <String, String>{};
   for (final pkgEntry in pkgConfig['packages'] as List<dynamic>) {
     final pkg = pkgEntry as Map<String, dynamic>;
     final name = pkg['name'] as String;
@@ -383,6 +384,7 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
     final rootPath = rootUri.scheme == 'file'
         ? rootUri.toFilePath()
         : p.normalize(p.join(ctx.myappDir, '.dart_tool', rootUriStr));
+    packageRootPaths[name] = rootPath;
 
     final libDir = Directory(p.join(rootPath, pkg['packageUri'] as String));
     if (libDir.existsSync()) {
@@ -598,8 +600,38 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
 
   // Pin all hosted dependencies baked into `flutter_web.dill` (including
   // `material_ui` and `cupertino_ui`) in `/sdk/packages/flutter/pubspec.yaml`
-  // so `pub get` in the worker resolves the exact precompiled versions.
+  // so `pub get` in the worker resolves the exact precompiled versions, and
+  // pre-populate `/pub-cache` so `package:pub` does not need to download them.
   final hostedVersions = _extractHostedPackageVersions(depsJson);
+  for (final MapEntry(key: name, value: version) in hostedVersions.entries) {
+    final rootPath = packageRootPaths[name];
+    if (rootPath == null) {
+      throw StateError(
+        'Missing package_config.json rootPath for hosted package $name',
+      );
+    }
+    final pubCacheRoot = p.dirname(p.dirname(p.dirname(rootPath)));
+    final hashFile = p.join(
+      pubCacheRoot,
+      'hosted-hashes',
+      'pub.dev',
+      '$name-$version.sha256',
+    );
+    if (!File(hashFile).existsSync()) {
+      throw StateError('Missing pub cache hash file at $hashFile');
+    }
+    print('Pre-populating /pub-cache with package:$name ($version)...');
+    tar.addDirectory(
+      target: '/pub-cache/hosted/pub.dev/$name-$version',
+      source: rootPath,
+      where: (f) =>
+          f == 'pubspec.yaml' || (f.startsWith('lib/') && f.endsWith('.dart')),
+    );
+    tar.addFile(
+      target: '/pub-cache/hosted-hashes/pub.dev/$name-$version.sha256',
+      source: hashFile,
+    );
+  }
   final flutterPubspec = _yamlToJson(
     File(
       p.join(ctx.flutterRoot, 'packages', 'flutter', 'pubspec.yaml'),
