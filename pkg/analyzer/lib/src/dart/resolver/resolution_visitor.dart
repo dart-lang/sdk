@@ -987,8 +987,9 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedNameExpression(
     covariant UnqualifiedNameExpressionImpl node,
   ) {
-    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
-    node.scopeLookupResult = scopeLookupResult;
+    var scopeLookupResult = node.scopeLookupResult ??= nameScope.lookup(
+      node.name.lexeme,
+    );
 
     if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
       element.references.add(node.name);
