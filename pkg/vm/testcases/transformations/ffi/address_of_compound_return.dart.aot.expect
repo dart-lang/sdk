@@ -1,0 +1,244 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+import "dart:_internal" as _in;
+import "dart:nativewrappers" as nat;
+
+import "dart:ffi";
+import "dart:nativewrappers";
+import "dart:typed_data";
+
+@#C3
+@#C10
+final class Result extends ffi::Struct {
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Result
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C12
+  get value() → core::int
+    return [@vm.inferred-type.metadata=int] ffi::_loadInt64([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=!] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Result::value#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C12
+  static synthetic get value#offsetOf() → core::int
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+}
+@#C3
+@#C10
+final class UnionResult extends ffi::Union {
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::UnionResult
+    : super ffi::Union::_fromTypedDataBase(#typedDataBase)
+    ;
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C12
+  get value() → core::int
+    return [@vm.inferred-type.metadata=int] ffi::_loadInt64([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=!] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::UnionResult::value#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C12
+  static synthetic get value#offsetOf() → core::int
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+}
+abstract class Natives extends core::Object {
+
+  [@vm.inferred-return-type.metadata=#lib::UnionResult]
+  @#C20
+  external static method #_makeUnion$Method$FfiNative#T([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t0) → self::UnionResult;
+
+  [@vm.inferred-return-type.metadata=#lib::UnionResult]
+  @#C22
+  @#C12
+  static method #makeUnion#T([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData a) → self::UnionResult
+    return block {
+      _in::_nativeEffect(new self::UnionResult::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+    } =>[@vm.inferred-type.metadata=#lib::UnionResult] self::Natives::#_makeUnion$Method$FfiNative#T(a);
+}
+base class Peer extends nat::NativeFieldWrapperClass1 {
+  synthetic constructor •() → self::Peer
+    : super nat::NativeFieldWrapperClass1::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C26
+@#C12
+static method makeResult([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> a, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } =>[@vm.inferred-type.metadata=#lib::Result] self::_makeResult$Method$FfiNative(a, b);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final typ::Uint8List data = [@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(2);
+  final self::Peer peer = new self::Peer::•();
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeWithPeer#TP(peer, data, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeWithPeer#TP(peer, data, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeWithPeer#PC(peer, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr, new ffi::_Compound::_fromTypedDataBase(data, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C23.{core::num::*}(1){(core::num) → core::num})).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeWithPeer#TC(peer, data, new ffi::_Compound::_fromTypedDataBase(data, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C23.{core::num::*}(1){(core::num) → core::num})).{self::Result::value}{core::int});
+  core::print([@vm.inferred-type.metadata=int] self::#integerWithPeer#T(peer, data));
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::makeResult([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeResult#TT(data, data).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeResult#TT(data, data).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeResult#PT([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr, data).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::Result.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::Result] self::#makeResult#CP(new ffi::_Compound::_fromTypedDataBase(data, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C23.{core::num::*}(1){(core::num) → core::num}), [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr).{self::Result::value}{core::int});
+  core::print([@vm.direct-call.metadata=#lib::UnionResult.value] [@vm.inferred-type.metadata=int] [@vm.inferred-type.metadata=#lib::UnionResult] self::Natives::#makeUnion#T(data).{self::UnionResult::value}{core::int});
+}
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C27
+external static method _makeResult$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t1) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C30
+external static method #_makeWithPeer$Method$FfiNative#TP([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t1, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t2) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C31
+@#C12
+static method #makeWithPeer#TP([@vm.inferred-arg-type.metadata=#lib::Peer] self::Peer peer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData a, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t1 = peer;
+    final typ::TypedData #t2 = a;
+    final ffi::Pointer<ffi::Uint8> #t3 = b;
+    final self::Result #t4 = [@vm.inferred-type.metadata=#lib::Result] self::#_makeWithPeer$Method$FfiNative#TP([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t1)), #t2, #t3);
+    _in::reachabilityFence(#t1);
+  } =>#t4;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C30
+external static method #_makeWithPeer$Method$FfiNative#PC([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t1, [@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound #t2) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C31
+@#C12
+static method #makeWithPeer#PC([@vm.inferred-arg-type.metadata=#lib::Peer] self::Peer peer, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> a, [@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t5 = peer;
+    final ffi::Pointer<ffi::Uint8> #t6 = a;
+    final ffi::_Compound #t7 = b;
+    final self::Result #t8 = [@vm.inferred-type.metadata=#lib::Result] self::#_makeWithPeer$Method$FfiNative#PC([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5)), #t6, #t7);
+    _in::reachabilityFence(#t5);
+  } =>#t8;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C30
+external static method #_makeWithPeer$Method$FfiNative#TC([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t1, [@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound #t2) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C31
+@#C12
+static method #makeWithPeer#TC([@vm.inferred-arg-type.metadata=#lib::Peer] self::Peer peer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData a, [@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } => block {
+    final nat::NativeFieldWrapperClass1 #t9 = peer;
+    final typ::TypedData #t10 = a;
+    final ffi::_Compound #t11 = b;
+    final self::Result #t12 = [@vm.inferred-type.metadata=#lib::Result] self::#_makeWithPeer$Method$FfiNative#TC([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t9)), #t10, #t11);
+    _in::reachabilityFence(#t9);
+  } =>#t12;
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b,b)->i]
+@#C34
+external static method #_integerWithPeer$Method$FfiNative#T([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t1) → core::int;
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b,b)->i]
+@#C35
+@#C12
+static method #integerWithPeer#T([@vm.inferred-arg-type.metadata=#lib::Peer] self::Peer peer, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData a) → core::int
+  return block {
+    final nat::NativeFieldWrapperClass1 #t13 = peer;
+    final typ::TypedData #t14 = a;
+    final core::int #t15 = [@vm.inferred-type.metadata=int] self::#_integerWithPeer$Method$FfiNative#T([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t13)), #t14);
+    _in::reachabilityFence(#t13);
+  } =>#t15;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C27
+external static method #_makeResult$Method$FfiNative#TT([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t0, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t1) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C26
+@#C12
+static method #makeResult#TT([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData a, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } =>[@vm.inferred-type.metadata=#lib::Result] self::#_makeResult$Method$FfiNative#TT(a, b);
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C27
+external static method #_makeResult$Method$FfiNative#PT([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t0, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData #t1) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C26
+@#C12
+static method #makeResult#PT([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> a, [@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] typ::TypedData b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } =>[@vm.inferred-type.metadata=#lib::Result] self::#_makeResult$Method$FfiNative#PT(a, b);
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C27
+external static method #_makeResult$Method$FfiNative#CP([@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> #t1) → self::Result;
+
+[@vm.inferred-return-type.metadata=#lib::Result]
+@#C26
+@#C12
+static method #makeResult#CP([@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound a, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Uint8> b) → self::Result
+  return block {
+    _in::_nativeEffect(new self::Result::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C23)));
+  } =>[@vm.inferred-type.metadata=#lib::Result] self::#_makeResult$Method$FfiNative#CP(a, b);
+constants  {
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Int64)
+  #C6 = <core::Type>[#C5]
+  #C7 = "value"
+  #C8 = <core::String>[#C7]
+  #C9 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2, fieldNames:#C8}
+  #C10 = core::pragma {name:#C4, options:#C9}
+  #C11 = "vm:prefer-inline"
+  #C12 = core::pragma {name:#C11, options:#C2}
+  #C13 = 0
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C15 = "vm:ffi:native"
+  #C16 = "makeUnion"
+  #C17 = "#lib"
+  #C18 = true
+  #C19 = ffi::Native<(ffi::Pointer<ffi::Uint8>) → self::UnionResult> {symbol:#C16, assetId:#C17, isLeaf:#C18}
+  #C20 = core::pragma {name:#C15, options:#C19}
+  #C21 = "cfe:ffi:native-marker"
+  #C22 = core::pragma {name:#C21, options:#C19}
+  #C23 = 1
+  #C24 = "makeResult"
+  #C25 = ffi::Native<(ffi::Pointer<ffi::Uint8>, ffi::Pointer<ffi::Uint8>) → self::Result> {symbol:#C24, assetId:#C17, isLeaf:#C18}
+  #C26 = core::pragma {name:#C21, options:#C25}
+  #C27 = core::pragma {name:#C15, options:#C25}
+  #C28 = "makeWithPeer"
+  #C29 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Pointer<ffi::Uint8>, ffi::Pointer<ffi::Uint8>) → self::Result> {symbol:#C28, assetId:#C17, isLeaf:#C18}
+  #C30 = core::pragma {name:#C15, options:#C29}
+  #C31 = core::pragma {name:#C21, options:#C29}
+  #C32 = "integerWithPeer"
+  #C33 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Pointer<ffi::Uint8>) → ffi::Int64> {symbol:#C32, assetId:#C17, isLeaf:#C18}
+  #C34 = core::pragma {name:#C15, options:#C33}
+  #C35 = core::pragma {name:#C21, options:#C33}
+}
