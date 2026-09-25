@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -45,43 +46,60 @@ class ReplaceCascadeWithDot extends ResolvedCorrectionProducer {
 
     var sections = cascadeExpression.cascadeSections;
     if (sections.length == 1) {
-      await _replaceFor(builder, sections[0]);
+      await _replaceFor(builder, cascadeExpression.target, sections[0]);
     }
   }
 
-  Future<void> _replaceFor(ChangeBuilder builder, Expression? section) async {
+  Future<void> _replaceFor(
+    ChangeBuilder builder,
+    Expression target,
+    Expression? section,
+  ) async {
     if (section is AssignmentExpression) {
-      return _replaceFor(builder, section.leftHandSide);
+      return _replaceFor(builder, target, section.leftHandSide);
     }
 
     if (section is IndexExpression) {
       var period = section.period;
       if (period != null) {
-        return _replaceToken(builder, period, _indexReplacement);
+        return _replaceToken(builder, target, period, _indexReplacement);
       }
-      return _replaceFor(builder, section.target);
+      return _replaceFor(builder, target, section.target);
     }
 
     if (section is MethodInvocation) {
       var operator = section.operator;
       if (operator != null) {
-        return _replaceToken(builder, operator, _propertyReplacement);
+        return _replaceToken(builder, target, operator, _propertyReplacement);
       }
     }
 
     if (section is PropertyAccess) {
-      return _replaceToken(builder, section.operator, _propertyReplacement);
+      return _replaceToken(
+        builder,
+        target,
+        section.operator,
+        _propertyReplacement,
+      );
     }
   }
 
   Future<void> _replaceToken(
     ChangeBuilder builder,
+    Expression target,
     Token token,
     Map<TokenType, String> map,
   ) async {
     var replacement = map[token.type];
     if (replacement != null) {
+      // A cascade's target can be any expression, but the operand of a
+      // selector must bind tighter than a prefix operator such as `await`.
+      var needsParentheses = target.precedence < Precedence.postfix;
       await builder.addDartFileEdit(file, (builder) {
+        if (needsParentheses) {
+          builder.addSimpleInsertion(target.offset, '(');
+          builder.addSimpleInsertion(target.end, ')');
+        }
         builder.addSimpleReplacement(range.token(token), replacement);
       });
     }
