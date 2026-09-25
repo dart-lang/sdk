@@ -24,11 +24,4 @@ dev_dependencies:
   checks: any
   test: any
 
-# the worker embeds `pub` which has a leak-detector that embeds some test
-# secrets. Obviously, these will trigger the leak-detector when we try to
-# publish something that embeds pub.
-false_secrets:
-- /web/dart/worker.wasm
-- /web/flutter/worker.wasm
-
 resolution: workspace
