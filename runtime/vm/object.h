@@ -5412,9 +5412,6 @@ class Library : public Object {
     set_flags(UntaggedLibrary::DartSchemeBit::update(value, untag()->flags_));
   }
 
-  // Includes 'dart:async', 'dart:typed_data', etc.
-  bool IsAnyCoreLibrary() const;
-
   inline intptr_t UrlHash() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
