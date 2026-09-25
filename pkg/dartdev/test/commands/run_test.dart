@@ -1975,34 +1975,40 @@ void main() async {
     expect(sawCFEMsg, false);
   });
 
-  test('custom package_config path', () async {
-    p = project(
-      name: 'foo',
-      mainSrc: '''
+  for (bool resident in [false, true]) {
+    for (bool relative in [false, true]) {
+      test(
+        'custom package_config path'
+        '${resident ? ' (resident)' : ''}'
+        '${relative ? ' (relative)' : ''}',
+        () async {
+          p = project(
+            name: 'foo',
+            mainSrc: '''
 import 'package:bar/main.dart';
 void main() {
   cmd();
 }
 ''',
-    );
-    final bar1 = project(
-      name: 'bar1',
-      mainSrc: '''
+          );
+          final bar1 = project(
+            name: 'bar1',
+            mainSrc: '''
 cmd() {
   print('hi');
 }
 ''',
-    );
-    final bar2 = project(
-      name: 'bar2',
-      mainSrc: '''
+          );
+          final bar2 = project(
+            name: 'bar2',
+            mainSrc: '''
 cmd() {
   print('bye');
 }
 ''',
-    );
+          );
 
-    p.file('custom_packages1.json', '''
+          p.file('custom_packages1.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -2014,7 +2020,7 @@ cmd() {
   ]
 }
 ''');
-    p.file('custom_packages2.json', '''
+          p.file('custom_packages2.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -2026,25 +2032,76 @@ cmd() {
   ]
 }
 ''');
-    final runResult1 = await p.run([
-      'run',
-      '--packages=${path.join(p.dirPath, 'custom_packages1.json')}',
-      p.relativeFilePath,
-    ]);
-    expect(runResult1.stderr, isEmpty);
-    expect(runResult1.stdout, contains('hi'));
-    expect(runResult1.exitCode, 0);
-    // Test that --packages can precede the command name
-    final runResult2 = await p.run([
-      '--packages=${path.join(p.dirPath, 'custom_packages2.json')}',
-      'run',
-      p.relativeFilePath,
-    ]);
+          String packagesPath = 'custom_packages1.json';
+          if (!relative) packagesPath = path.join(p.dirPath, packagesPath);
+          final runResult1 = await p.run([
+            'run',
+            if (resident) '--resident',
+            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            '--packages=$packagesPath',
+            p.relativeFilePath,
+          ]);
+          expect(runResult1.stderr, isEmpty);
+          expect(runResult1.stdout, contains('hi'));
+          expect(runResult1.exitCode, 0);
 
-    expect(runResult2.stderr, isEmpty);
-    expect(runResult2.stdout, contains('bye'));
-    expect(runResult2.exitCode, 0);
-  });
+          // Test that --packages can precede the command name
+          packagesPath = 'custom_packages2.json';
+          if (!relative) packagesPath = path.join(p.dirPath, packagesPath);
+          final runResult2 = await p.run([
+            '--packages=$packagesPath',
+            'run',
+            if (resident) '--resident',
+            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            p.relativeFilePath,
+          ]);
+          expect(runResult2.stderr, isEmpty);
+          expect(runResult2.stdout, contains('bye'));
+          expect(runResult2.exitCode, 0);
+        },
+      );
+    }
+  }
+
+  for (bool resident in [false, true]) {
+    test(
+      'bad package config relative path${resident ? ' (resident)' : ''}',
+      () async {
+        p = project(
+          name: 'foo',
+          mainSrc: 'void main() {}',
+        );
+        p.file('custom_packages.json', 'wrong package config content');
+
+        // Below we run each command several times because it's been observed
+        // to work correctly on the first run but not on subsequent runs.
+
+        // Test that --packages can be after run.
+        for (int i = 0; i < 3; i++) {
+          final runResult = await p.run([
+            'run',
+            if (resident) '-r',
+            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            '--packages=custom_packages1.json',
+            p.relativeFilePath,
+          ], workingDir: p.dirPath);
+          expect(runResult.exitCode, 254);
+        }
+
+        // Test that --packages can be before run.
+        for (int i = 0; i < 3; i++) {
+          final runResult = await p.run([
+            '--packages=custom_packages1.json',
+            'run',
+            if (resident) '-r',
+            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            p.relativeFilePath,
+          ], workingDir: p.dirPath);
+          expect(runResult.exitCode, 254);
+        }
+      },
+    );
+  }
 
   group('getPackageForCommand', () {
     test('returns null for empty string or test command', () {

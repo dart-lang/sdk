@@ -34,12 +34,14 @@ class GenerateKernelArguments {
   final String? verbosity;
   final List<String>? enabledExperiments;
   final bool? enableAsserts;
+  final String? packages;
 
   GenerateKernelArguments(
     this.defines,
     this.verbosity,
     this.enabledExperiments,
     this.enableAsserts,
+    this.packages,
   );
 
   factory GenerateKernelArguments.fromArgResults(List<ArgResults> listOfArgs) {
@@ -47,6 +49,7 @@ class GenerateKernelArguments {
     String? verbosity;
     List<String>? enabledExperiments;
     bool? enableAsserts;
+    String? packages;
 
     for (ArgResults args in listOfArgs) {
       if (args.wasParsed(defineOption)) {
@@ -67,6 +70,10 @@ class GenerateKernelArguments {
       if (args.wasParsed(verbosityOption)) {
         verbosity = args[verbosityOption];
       }
+
+      if (args.wasParsed('packages')) {
+        packages = args.option('packages');
+      }
     }
 
     return GenerateKernelArguments(
@@ -74,6 +81,7 @@ class GenerateKernelArguments {
       verbosity,
       enabledExperiments,
       enableAsserts,
+      packages,
     );
   }
 }
@@ -113,10 +121,15 @@ Future<DartExecutableWithPackageConfig> generateKernel(
     progressUpdatesOnStderr: progressUpdatesOnStderr,
   );
 
-  final packageRoot = _packageRootFor(executable);
-  final packageConfig = packageRoot != null
-      ? p.join(packageRoot, packageConfigName)
-      : null;
+  final String? packageConfig;
+  if (args.packages case final packages?) {
+    packageConfig = p.absolute(packages);
+  } else {
+    final packageRoot = _packageRootFor(executable);
+    packageConfig = packageRoot != null
+        ? p.join(packageRoot, packageConfigName)
+        : null;
+  }
 
   final canonicalizedExecutablePath = p.normalize(p.absolute(executable.executable));
   final cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
