@@ -28,11 +28,11 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     writeFile(pathname, text);
     await standardAnalysisSetup();
     await analysisFinished;
-    await sendAnalysisSetSubscriptions({
-      AnalysisService.HIGHLIGHTS: [pathname],
-    });
-    // Map from highlight type to highlighted text
+    // Set up the handler before we set the subscription because it appears that
+    // the implementation of setSubscriptions may trigger notifications before
+    // it returns if there are cached results.
     onAnalysisHighlights.listen((AnalysisHighlightsParams params) {
+      // Map from highlight type to highlighted text.
       expect(params.file, equals(pathname));
       highlights = <HighlightRegionType, Set<String>>{};
       for (var region in params.regions) {
@@ -42,6 +42,9 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
         var type = region.type;
         highlights.putIfAbsent(type, () => {}).add(highlightedText);
       }
+    });
+    await sendAnalysisSetSubscriptions({
+      AnalysisService.HIGHLIGHTS: [pathname],
     });
     await analysisFinished;
   }
