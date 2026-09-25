@@ -26,6 +26,7 @@ import 'commands/test_test.dart' as test;
 import 'core_test.dart' as core;
 import 'experiments_test.dart' as experiments;
 import 'fix_driver_test.dart' as fix_driver;
+import 'kernel_assets_test.dart' as kernel_assets;
 import 'load_from_dill_test.dart' as load_from_dill;
 import 'no_such_file_test.dart' as no_such_file;
 import 'regress_46364_test.dart' as regress_46364;
@@ -33,6 +34,7 @@ import 'sdk_test.dart' as sdk;
 import 'smoke/implicit_smoke_test.dart' as implicit_smoke;
 import 'smoke/invalid_smoke_test.dart' as invalid_smoke;
 import 'smoke/smoke_test.dart' as smoke;
+import 'target_test.dart' as target;
 import 'templates_test.dart' as templates;
 import 'utils_test.dart' as utils;
 
@@ -58,6 +60,7 @@ void main() {
     info.main();
     info_windows.main();
     invalid_smoke.main();
+    kernel_assets.main();
     language_server.main();
     load_from_dill.main();
     no_such_file.main();
@@ -66,6 +69,7 @@ void main() {
     run.main();
     sdk.main();
     smoke.main();
+    target.main();
     templates.main();
     test.main();
     utils.main();

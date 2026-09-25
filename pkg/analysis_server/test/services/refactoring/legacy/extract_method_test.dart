@@ -2392,6 +2392,90 @@ void res() {
 ''');
   }
 
+  Future<void> test_statements_duplicate_overlapping() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+}
+''');
+    // The unselected statements only partially overlap the selection, so
+    // they must not be matched in place of it.
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
+}
+''');
+  }
+
+  Future<void> test_statements_duplicate_overlapping_disabled() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+''');
+    refactoring.extractAll = false;
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
+}
+''');
+  }
+
+  Future<void> test_statements_duplicate_overlapping_enabled() async {
+    // https://github.com/dart-lang/sdk/issues/37297
+    await _createRefactoring('''
+void f() {
+  print('Test!');
+  [!print('Test!');
+  print('Test!');!]
+  print('Test!');
+  print('Test!');
+  print('Test!');
+}
+''');
+    // The selection is replaced, and the non-overlapping duplicate that
+    // follows it is still found.
+    return _assertSuccessfulRefactoring('''
+void f() {
+  print('Test!');
+  res();
+  res();
+  print('Test!');
+}
+
+void res() {
+  print('Test!');
+  print('Test!');
+}
+''');
+  }
+
   Future<void> test_statements_dynamic() async {
     await _createRefactoring('''
 dynaFunction(p) => 0;

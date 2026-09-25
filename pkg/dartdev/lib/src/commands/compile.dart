@@ -8,10 +8,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:code_assets/code_assets.dart' show Architecture, OS;
 import 'package:dart2native/generate.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';

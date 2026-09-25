@@ -86,7 +86,7 @@ vars = {
   "clang_version": "git_revision:3493720eca95cf844a8d7e58fdd12e0e5644e7d0",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:127dd2a6d582528d6d61c4d838dc17385ef31abd",
+  "gn_version": "git_revision:2dfb8cbd3b749242ee4492a7f15eba6889d52c7f",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -105,10 +105,10 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "1097261733d85c85147a5c96ff6ee835c90f5951",
+  "boringssl_rev": "62fb8ab5bd611e4a9fbc54151adb951af1d45c72",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "fd39ed6deeed50104b5262d8228f5ae3ceab7bfd",
+  "devtools_rev": "405689bc49f9c7ae0d7ca77b3d9b0f698745989b",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "175230c393efe0b6ed0cf08120e71c4b29aee52d",
   "icu_rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
@@ -597,7 +597,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "TVUpjuAV0GuqaM58OcxyJZOOtg7-P0_m7GHhpYkd4qgC",
+      "version": "whZAV1mfT-Rdc0rQ81s_IEef2L7kbGPFtiQPitjf_akC",
       }
     ],
     "condition": 'download_fuchsia_deps',

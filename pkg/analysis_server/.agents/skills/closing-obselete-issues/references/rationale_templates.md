@@ -38,9 +38,13 @@ When evaluating open GitHub issues for the Analysis Server, Analyzer, or Linter 
 *   **Agent Comment Template**: "This issue is specific to the legacy analysis server protocol which has been superseded by the Language Server Protocol (LSP). Modern editor clients have transitioned to LSP, where this behavior is standard or natively resolved. Thanks!"
 
 ### 7. Deprecated or Removed Lint Rules / Diagnostics
-*   **Criteria**: The issue relates to a lint rule or analyzer diagnostic code that has been deprecated, retired, or merged into another rule.
-*   **Verification**: Search the repository's `pkg/linter` or `pkg/analyzer` directories to confirm the rule (`lint_name`) no longer exists or is explicitly marked deprecated.
-*   **Agent Comment Template**: "The lint rule or diagnostic referenced in this issue (`{lint_name}`) has been deprecated or completely removed from newer versions of the Dart SDK, rendering this request obsolete. Thanks!"
+*   **Criteria**: The issue relates to a lint rule or analyzer diagnostic code that has been deprecated, retired, or merged into another rule. This includes false positives/negatives in the rule itself, and bugs in fixes or `dart fix` output for the rule.
+*   **Finding Candidates (Proactive Sweep)**: Don't wait to come across these in the age-sorted list. Start from the source of truth: list the rules whose `state` is `removed` or `deprecated` in `pkg/linter/tool/machine/rules.json`, then search open issues for each rule name (see step 1 of `SKILL.md`). In practice this finds far more closable issues than working through the oldest issues.
+*   **Verification**:
+    *   Confirm the rule's status: `state` in `rules.json`, the rule's file under `pkg/linter/lib/src/rules/` (a removed rule is a `RemovedAnalysisRule` with a `since` version), and the matching `removed lint:` / `deprecated lint:` entry in `pkg/linter/CHANGELOG.md`.
+    *   For **removed** rules: check that no fix producer for the rule remains in `pkg/analysis_server/lib`. Then confirm empirically with a locally built SDK: enable the rule in `analysis_options.yaml` of a scratch package and check that `dart analyze` reports nothing for it and that `dart fix --dry-run` has nothing to fix.
+    *   For **deprecated** rules: be more careful. A deprecated rule still runs, so a bug in it can still affect users. Only close if the issue isn't worth fixing given the deprecation (for example, the recommended replacement rule doesn't have the problem), and say so explicitly in the comment.
+*   **Agent Comment Template**: "The lint rule or diagnostic referenced in this issue (`{lint_name}`) has been deprecated or completely removed from newer versions of the Dart SDK (removed in Dart {version}; see the linter CHANGELOG), rendering this request obsolete. Verified on a local build of `main` ({sdk_version}): {what was observed, e.g. enabling the rule reports no diagnostics / `dart fix` has nothing to fix}. Thanks!"
 
 ### 8. Resolved Upstream / Outside SDK Repository
 *   **Criteria**: The root cause of the bug belongs to an IDE extension client wrapper (e.g., VS Code Dart/Flutter extension, IntelliJ Dart plugin) rather than the core SDK Analysis Server.
