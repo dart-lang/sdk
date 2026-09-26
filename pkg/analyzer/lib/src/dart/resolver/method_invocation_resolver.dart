@@ -307,7 +307,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
         type = element.type;
         if (element is PromotableElementImpl && flow != null) {
-          var (promotedType, expressionInfo) = flow.variableRead(
+          var (:promotedType, :expressionInfo) = flow.variableRead(
             element,
             offset: name.offset,
           );
@@ -322,7 +322,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element as InternalPropertyAccessorElement;
         type = element.returnType;
         if (!element.isStatic && flow != null) {
-          var (promotedType, expressionInfo) = flow.propertyGet(
+          var (:promotedType, :expressionInfo) = flow.propertyGet(
             ThisPropertyTarget.singleton,
             name.lexeme,
             element,
@@ -511,7 +511,7 @@ class MethodInvocationResolver with ScopeHelpers {
       InstanceReceiverImpl receiver,
       var flow?,
     )) {
-      var (promotedType, expressionInfo) = flow.propertyGet(
+      var (:promotedType, :expressionInfo) = flow.propertyGet(
         receiver is SuperReferenceImpl
             ? SuperPropertyTarget.singleton
             : ExpressionPropertyTarget(

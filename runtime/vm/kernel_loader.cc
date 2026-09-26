@@ -1748,7 +1748,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         }
         if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
           if (!FLAG_experimental_shared_data) {
-            if (!library.IsAnyCoreLibrary()) {
+            if (!library.is_dart_scheme()) {
               FATAL(
                   "Encountered vm:shared when functionality is disabled. "
                   "Pass --experimental-shared-data");

@@ -1909,7 +1909,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if (is_shared && !FLAG_experimental_shared_data &&
-        !Library::Handle(Z, cls.library()).IsAnyCoreLibrary()) {
+        !Library::Handle(Z, cls.library()).is_dart_scheme()) {
       // Keep synced with error in KernelLoader::ReadVMAnnotations.
       FATAL(
           "Encountered vm:shared when functionality is disabled. "

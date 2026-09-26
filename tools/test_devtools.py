@@ -140,8 +140,7 @@ def main():
 
         for pkg in [
                 'devtools_app_shared',
-                # TODO(srawlins): Enable devtools_extensions tests.
-                # 'devtools_extensions',
+                'devtools_extensions',
                 'devtools_shared',
         ]:
             jobs.append({

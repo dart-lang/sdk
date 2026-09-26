@@ -42,7 +42,8 @@ class FlowAnalysisLog {
 
   /// List of promotion keys bound to `this`, and the corresponding unpromoted
   /// types, corresponding to the offsets in [_thisBindingOffsets].
-  final List<(PromotionKey, SharedTypeView)?> _thisBindingValues = [];
+  final List<({PromotionKey promotionKey, SharedTypeView unpromotedType})?>
+  _thisBindingValues = [];
 
   /// [FlowLinkReader] object for efficiently looking up [PromotionModel]
   /// objects in [FlowModel.promotionInfo] structures.
@@ -73,12 +74,12 @@ class FlowAnalysisLog {
   /// [offset], the promotion key that is returned is the promotion key for
   /// `this` that was in effect just to the left of [offset].
   @visibleForTesting
-  (PromotionKey, SharedTypeView)? getThisBinding(int offset) {
-    return _lookupInList<(PromotionKey, SharedTypeView)?>(
-      values: _thisBindingValues,
-      offsets: _thisBindingOffsets,
-      offset: offset,
-    );
+  ({PromotionKey promotionKey, SharedTypeView unpromotedType})? getThisBinding(
+    int offset,
+  ) {
+    return _lookupInList<
+      ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+    >(values: _thisBindingValues, offsets: _thisBindingOffsets, offset: offset);
   }
 
   /// Retrieves the promoted type of `this` that was in effect at the given
@@ -90,14 +91,15 @@ class FlowAnalysisLog {
   /// [offset], the type that is returned is the promoted type of `this` that
   /// was in effect just to the left of [offset].
   SharedTypeView? lookupThisType({required int offset}) {
-    (PromotionKey, SharedTypeView)? thisBinding = getThisBinding(offset);
+    ({PromotionKey promotionKey, SharedTypeView unpromotedType})? thisBinding =
+        getThisBinding(offset);
     if (thisBinding == null) return null;
     return _reader
-            .get(getPromotionInfo(offset), thisBinding.$1.index)
+            .get(getPromotionInfo(offset), thisBinding.promotionKey.index)
             ?.model
             .promotedTypes
             .lastOrNull ??
-        thisBinding.$2;
+        thisBinding.unpromotedType;
   }
 
   /// Binary searches the sub-range `[minIndex, maxIndex)` of [offsets] and
@@ -215,7 +217,8 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   void beginOutOfOrderRegion({
     required int offset,
     required PromotionInfo? promotionInfo,
-    required (PromotionKey, SharedTypeView)? thisBinding,
+    required ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+    thisBinding,
   }) {
     _regionStack.add(
       new _OutOfOrderRegion(
@@ -286,7 +289,7 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
       endOffset: offset,
       valueAtStart: region.promotionInfoAtStart,
     );
-    _spliceRegion<(PromotionKey, SharedTypeView)>(
+    _spliceRegion<({PromotionKey promotionKey, SharedTypeView unpromotedType})>(
       offsets: _thisBindingOffsets,
       values: _thisBindingValues,
       enclosingRegionIndex: enclosingRegion?.thisBindingIndex ?? 0,
@@ -324,15 +327,15 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
 
   /// Records that at [offset], the binding for `this` changed to [binding].
   ///
-  /// [binding] should either be a pair consisting of the promotion key for
+  /// [binding] should either be a record consisting of the promotion key for
   /// `this` and the corresponding unpromoted type, or `null` in the case where
   /// there is no binding for `this` in effect.
   void thisBindingChanged(
-    (PromotionKey, SharedTypeView)? binding, {
+    ({PromotionKey promotionKey, SharedTypeView unpromotedType})? binding, {
     required int offset,
   }) {
     checkOffset(offset);
-    _record<(PromotionKey, SharedTypeView)>(
+    _record<({PromotionKey promotionKey, SharedTypeView unpromotedType})>(
       offsets: _thisBindingOffsets,
       values: _thisBindingValues,
       offset: offset,
@@ -481,7 +484,8 @@ class _OutOfOrderRegion {
   final PromotionInfo? promotionInfoAtStart;
 
   /// The binding for `this` that was in effect when the region was begun.
-  final (PromotionKey, SharedTypeView)? thisBindingAtStart;
+  final ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  thisBindingAtStart;
 
   /// The value of [FlowAnalysisLogBuilder._minValidOffset] that should be
   /// restored when the region ends.

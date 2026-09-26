@@ -6901,7 +6901,8 @@ class YieldStatement extends Statement {
 class _Checkpoint {
   final int offset;
   final PromotionInfo? expectedPromotionInfo;
-  final (PromotionKey, SharedTypeView)? expectedThisBinding;
+  final ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  expectedThisBinding;
   final String location;
 
   _Checkpoint({
@@ -7707,7 +7708,11 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var (wrappedPromotedTypeOfThis, flowAnalysisInfo) = flow.thisExpression();
+    var (
+      promotedType: wrappedPromotedTypeOfThis,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow
+        .thisExpression();
     var promotedTypeOfThis =
         wrappedPromotedTypeOfThis?.unwrapTypeView() as Type?;
     var thisType = promotedTypeOfThis ?? this.thisType;
@@ -7724,7 +7729,10 @@ class _MiniAstTypeAnalyzer
   }) {
     var member = _lookupMember(thisType, propertyName);
     var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       isSuperAccess
           ? SuperPropertyTarget.singleton
           : ThisPropertyTarget.singleton,
@@ -7837,7 +7845,7 @@ class _MiniAstTypeAnalyzer
     Var variable,
     void Function(Type?)? callback,
   ) {
-    var (promotedType, flowAnalysisInfo) = flow.variableRead(
+    var (:promotedType, expressionInfo: flowAnalysisInfo) = flow.variableRead(
       variable,
       offset: node._syntheticEndOffset!,
     );
@@ -8503,7 +8511,10 @@ class _MiniAstTypeAnalyzer
     var member = _lookupMember(targetType.unwrapTypeView(), propertyName);
     var memberType =
         member?._type ?? operations.dynamicType.unwrapTypeView<Type>();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       propertyTarget,
       propertyName,
       member,

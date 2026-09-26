@@ -875,7 +875,20 @@ class BulkFixProcessor {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
             for (var producer in await multiProducer.producers) {
-              await _generateFix(context, producer, codeName);
+              // Only apply multi-producers that support bulk fixes. This
+              // mirrors the check in [_bulkApply] for single producers.
+              // Without this guard, producers such as [ImportLibrary] (used
+              // by `comment_references`) would be applied for every candidate
+              // library at once, corrupting the file.
+              var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
+                  ? producer.canBeAppliedAutomatically
+                  : producer.canBeAppliedAcrossFiles;
+              if (shouldFix) {
+                await _generateFix(context, producer, codeName);
+              }
+            }
+            if (isCancelled) {
+              return;
             }
           }
         }
@@ -1114,6 +1127,14 @@ class BulkFixProcessor {
           return true;
         }
 
+        // We can't do detailed checks on multi-producers because the set of
+        // producers they generate may vary depending on the resolved unit (we
+        // must configure them before we can determine the producers). The
+        // actual bulk application is guarded by [canBeAppliedAcrossFiles]
+        // checks in [_fixSingleAnalysisError], so multi-producers whose
+        // individual producers are not bulk-applicable (e.g. [ImportLibrary]
+        // used for the `comment_references` lint) will produce no changes even
+        // when this method returns `true`.
         return registeredFixGenerators.lintMultiProducers.containsKey(
           diagnosticCode,
         );

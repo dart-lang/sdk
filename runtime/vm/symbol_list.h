@@ -70,7 +70,6 @@ namespace dart {
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
   V(DartScheme, "dart:")                                                       \
-  V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVM, "dart:_vm")                                                        \
   V(DartVMProduct, "dart.vm.product")                                          \

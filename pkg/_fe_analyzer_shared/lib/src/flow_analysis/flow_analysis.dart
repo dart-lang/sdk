@@ -863,13 +863,14 @@ abstract class FlowAnalysis<
   /// analysis.
   ///
   /// Return value is either `null` (if there is no binding for `this`) or a
-  /// pair consisting of the promotion key and the corresponding (unpromoted)
-  /// static type of `this`.
+  /// record consisting of the promotion key for `this` and the corresponding
+  /// (unpromoted) static type of `this`.
   ///
   /// This is used in tests to validate that the information stored in the flow
   /// analysis log is an accurate recording of flow analysis state changes.
   @visibleForTesting
-  (PromotionKey, SharedTypeView)? getCurrentThisBinding();
+  ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  getCurrentThisBinding();
 
   /// Retrieves the [FlowAnalysisLog].
   ///
@@ -1507,12 +1508,11 @@ abstract class FlowAnalysis<
   /// property get, this value can be retrieved from
   /// [PropertyNotPromoted.propertyMember].
   ///
-  /// Returns a pair:
-  /// - If the property's type is currently promoted, the first element of the
-  ///   pair is the promoted type. Otherwise it is `null`.
-  /// - The second element of the pair is the expression info for the property
-  ///   get.
-  (SharedTypeView?, ExpressionInfo?) propertyGet(
+  /// Returns a record:
+  /// - If the property's type is currently promoted, `promotedType` is the
+  ///   promoted type. Otherwise it is `null`.
+  /// - `expressionInfo` is the expression info for the property get.
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo}) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
@@ -1823,16 +1823,15 @@ abstract class FlowAnalysis<
 
   /// Call this method just after visiting the expression `this`.
   ///
-  /// Returns a pair:
-  /// - If `this` is currently promoted, the first element of the pair is the
-  ///   promoted type. Otherwise it is `null`.
-  /// - The second element of the pair is the expression info for the `this`
-  ///   expression.
+  /// Returns a record:
+  /// - If `this` is currently promoted, `promotedType` is the promoted type.
+  ///   Otherwise it is `null`.
+  /// - `expressionInfo` is the expression info for the `this` expression.
   ///
-  /// The second element of the pair is `null` in the event that there is no
-  /// binding for `this` (which should only happen in error recovery
-  /// scenarios).
-  (SharedTypeView?, ExpressionInfo?) thisExpression();
+  /// `expressionInfo` is `null` in the event that there is no binding for
+  /// `this` (which should only happen in error recovery scenarios).
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo})
+  thisExpression();
 
   /// Call this method just before visiting the body of a "try/catch" statement.
   ///
@@ -1957,16 +1956,15 @@ abstract class FlowAnalysis<
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
   ///
-  /// Returns a pair:
-  /// - If the variable's type is currently promoted, the first element of the
-  ///   pair is the promoted type. Otherwise it is `null`.
-  /// - The second element of the pair is the expression info for the variable
-  ///   read.
+  /// Returns a record:
+  /// - If the variable's type is currently promoted, `promotedType` is the
+  ///   promoted type. Otherwise it is `null`.
+  /// - `expressionInfo` is the expression info for the variable read.
   ///
   /// [offset] is the last source offset that should be considered to be prior
   /// to reading the variable. The offset of the identifier that names the
   /// variable is probably the best choice.
-  (SharedTypeView?, ExpressionInfo) variableRead(
+  ({SharedTypeView? promotedType, ExpressionInfo expressionInfo}) variableRead(
     Variable variable, {
     int offset = 0,
   });
@@ -2607,7 +2605,8 @@ class FlowAnalysisDebug<
   }
 
   @override
-  (PromotionKey, SharedTypeView)? getCurrentThisBinding() {
+  ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  getCurrentThisBinding() {
     return _wrap(
       'getCurrentThisBinding()',
       () => _wrapped.getCurrentThisBinding(),
@@ -3239,7 +3238,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo?) propertyGet(
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo}) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
@@ -3453,7 +3452,8 @@ class FlowAnalysisDebug<
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo?) thisExpression() {
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo})
+  thisExpression() {
     return _wrap(
       'thisExpression()',
       () => _wrapped.thisExpression(),
@@ -3545,7 +3545,7 @@ class FlowAnalysisDebug<
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo) variableRead(
+  ({SharedTypeView? promotedType, ExpressionInfo expressionInfo}) variableRead(
     Variable variable, {
     int offset = 0,
   }) {
@@ -4370,7 +4370,7 @@ class FlowModel {
         continue;
       }
       PromotionModel joined;
-      (joined, newFlowModel) = PromotionModel.join(
+      (model: joined, :newFlowModel) = PromotionModel.join(
         helper,
         firstModel,
         first.promotionInfo,
@@ -5066,7 +5066,12 @@ class PromotionModel {
   /// `first` and `second`. This avoids redundant join operations for
   /// properties, since properties are joined recursively when this method is
   /// used on local variables.
-  static (PromotionModel, FlowModel) join(
+  ///
+  /// Returns a record:
+  /// - `model` is the joined promotion model.
+  /// - `newFlowModel` is the promotion info map being built for the join point,
+  ///   updated to account for any properties that were joined.
+  static ({PromotionModel model, FlowModel newFlowModel}) join(
     FlowModelHelper helper,
     PromotionModel first,
     PromotionInfo? firstPromotionInfo,
@@ -5091,7 +5096,7 @@ class PromotionModel {
         : joinTested(first.tested, second.tested);
     ValueVersion? newVersion = propertyVersion;
     if (newVersion == null && !newWriteCaptured) {
-      (newVersion, newFlowModel) = ValueVersion._join(
+      (version: newVersion, :newFlowModel) = ValueVersion._join(
         helper,
         first.version!,
         firstPromotionInfo,
@@ -5109,7 +5114,7 @@ class PromotionModel {
       newUnassigned,
       newWriteCaptured ? null : newVersion,
     );
-    return (newPromotionModel, newFlowModel);
+    return (model: newPromotionModel, newFlowModel: newFlowModel);
   }
 
   /// Computes the greatest common subsequence of [chain1] and [chain2].
@@ -5841,7 +5846,7 @@ class ValueVersion {
         );
         if (secondPromotionModel != null) {
           PromotionModel newPromotionModel;
-          (newPromotionModel, newFlowModel) = PromotionModel.join(
+          (model: newPromotionModel, :newFlowModel) = PromotionModel.join(
             helper,
             firstPromotionModel,
             firstPromotionInfo,
@@ -5878,7 +5883,12 @@ class ValueVersion {
   /// for the two flow control paths being joined ([firstPromotionInfo] and
   /// [secondPromotionInfo]), as well as the promotion info map being built for
   /// the join point ([newFlowModel]).
-  static (ValueVersion, FlowModel) _join(
+  ///
+  /// Returns a record:
+  /// - `version` is the joined value version.
+  /// - `newFlowModel` is the promotion info map being built for the join point,
+  ///   updated to account for any properties that were joined.
+  static ({ValueVersion version, FlowModel newFlowModel}) _join(
     FlowModelHelper helper,
     ValueVersion first,
     PromotionInfo? firstPromotionInfo,
@@ -5900,7 +5910,7 @@ class ValueVersion {
         newFlowModel,
       );
     }
-    return (version, newFlowModel);
+    return (version: version, newFlowModel: newFlowModel);
   }
 }
 
@@ -6933,10 +6943,13 @@ class _FlowAnalysisImpl<
   PromotionInfo? getCurrentPromotionInfo() => _current.promotionInfo;
 
   @override
-  (PromotionKey, SharedTypeView)? getCurrentThisBinding() =>
-      _unpromotedThisTypes.isEmpty
+  ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  getCurrentThisBinding() => _unpromotedThisTypes.isEmpty
       ? null
-      : (_thisPromotionKeys.last, _unpromotedThisTypes.last);
+      : (
+          promotionKey: _thisPromotionKeys.last,
+          unpromotedType: _unpromotedThisTypes.last,
+        );
 
   @override
   FlowAnalysisLog? getLog() => _logBuilder?.finish();
@@ -7646,13 +7659,12 @@ class _FlowAnalysisImpl<
   ) {
     ValueVersion? targetVersion = target._getVersion(this);
     if (targetVersion == null) return null;
-    var (SharedTypeView? type, _) = _handleProperty(
+    return _handleProperty(
       targetVersion,
       propertyName,
       propertyMember,
       unpromotedType,
-    );
-    return type;
+    ).promotedType;
   }
 
   @override
@@ -7728,17 +7740,19 @@ class _FlowAnalysisImpl<
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo?) propertyGet(
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo}) propertyGet(
     PropertyTarget<Expression> target,
     String propertyName,
     Object? propertyMember,
     SharedTypeView unpromotedType,
   ) {
     ValueVersion? targetVersion = target._getVersion(this);
-    if (targetVersion == null) return (null, null);
+    if (targetVersion == null) {
+      return (promotedType: null, expressionInfo: null);
+    }
     var (
-      SharedTypeView? promotedType,
-      _PropertyValueVersion propertyVersion,
+      :SharedTypeView? promotedType,
+      :_PropertyValueVersion propertyVersion,
     ) = _handleProperty(
       targetVersion,
       propertyName,
@@ -7753,7 +7767,7 @@ class _FlowAnalysisImpl<
       type: promotedType ?? unpromotedType,
       version: propertyVersion,
     );
-    return (promotedType, propertyReference);
+    return (promotedType: promotedType, expressionInfo: propertyReference);
   }
 
   @override
@@ -7796,8 +7810,8 @@ class _FlowAnalysisImpl<
     _PatternContext context = _stack.last as _PatternContext;
     assert(_unmatched != null);
     var (
-      SharedTypeView? promotedType,
-      _PropertyValueVersion? propertyVersion,
+      :SharedTypeView? promotedType,
+      :_PropertyValueVersion propertyVersion,
     ) = _handleProperty(
       context._matchedValueInfo.version,
       propertyName,
@@ -8076,8 +8090,8 @@ class _FlowAnalysisImpl<
     _thisPromotionKeys.add(thisPromotionKey);
     _unpromotedThisTypes.add(thisType);
     _logBuilder?.thisBindingChanged((
-      thisPromotionKey,
-      thisType,
+      promotionKey: thisPromotionKey,
+      unpromotedType: thisType,
     ), offset: offset);
   }
 
@@ -8089,14 +8103,21 @@ class _FlowAnalysisImpl<
     _logBuilder?.thisBindingChanged(
       _unpromotedThisTypes.isEmpty
           ? null
-          : (_thisPromotionKeys.last, _unpromotedThisTypes.last),
+          : (
+              promotionKey: _thisPromotionKeys.last,
+              unpromotedType: _unpromotedThisTypes.last,
+            ),
       offset: offset,
     );
   }
 
   @override
-  (SharedTypeView?, ExpressionInfo?) thisExpression() {
-    return (promotedTypeOfThis, _thisOrSuperReference(isSuper: false));
+  ({SharedTypeView? promotedType, ExpressionInfo? expressionInfo})
+  thisExpression() {
+    return (
+      promotedType: promotedTypeOfThis,
+      expressionInfo: _thisOrSuperReference(isSuper: false),
+    );
   }
 
   @override
@@ -8234,7 +8255,7 @@ class _FlowAnalysisImpl<
       const [];
 
   @override
-  (SharedTypeView?, ExpressionInfo) variableRead(
+  ({SharedTypeView? promotedType, ExpressionInfo expressionInfo}) variableRead(
     Variable variable, {
     int offset = 0,
   }) {
@@ -8262,7 +8283,10 @@ class _FlowAnalysisImpl<
           this,
           _current,
         );
-    return (promotionModel.promotedTypes.lastOrNull, expressionInfo);
+    return (
+      promotedType: promotionModel.promotedTypes.lastOrNull,
+      expressionInfo: expressionInfo,
+    );
   }
 
   @override
@@ -8919,7 +8943,14 @@ class _FlowAnalysisImpl<
     }
   }
 
-  (SharedTypeView?, _PropertyValueVersion) _handleProperty(
+  /// Common logic for handling a property access.
+  ///
+  /// Returns a record:
+  /// - If the property's type is currently promoted, `promotedType` is the
+  ///   promoted type. Otherwise it is `null`.
+  /// - `propertyVersion` is the value version for the property.
+  ({SharedTypeView? promotedType, _PropertyValueVersion propertyVersion})
+  _handleProperty(
     ValueVersion targetVersion,
     String propertyName,
     Object? propertyMember,
@@ -8952,7 +8983,7 @@ class _FlowAnalysisImpl<
         promotedType = null;
       }
     }
-    return (promotedType, propertyVersion);
+    return (promotedType: promotedType, propertyVersion: propertyVersion);
   }
 
   void _initialize(

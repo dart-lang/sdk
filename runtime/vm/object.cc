@@ -4051,7 +4051,7 @@ bool Library::FindPragma(Thread* T,
     UNREACHABLE();
   }
 
-  if (only_core && !lib.IsAnyCoreLibrary()) {
+  if (only_core && !lib.is_dart_scheme()) {
     return false;
   }
 
@@ -13528,8 +13528,7 @@ StringPtr Script::Source() const {
 
 bool Script::IsPartOfDartColonLibrary() const {
   const String& script_url = String::Handle(url());
-  return (script_url.StartsWith(Symbols::DartScheme()) ||
-          script_url.StartsWith(Symbols::DartSchemePrivate()));
+  return script_url.StartsWith(Symbols::DartScheme());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -14084,13 +14083,6 @@ static void ReportTooManyImports(const Library& lib) {
                    TokenPosition::kNoSource, Report::AtLocation,
                    "too many imports in library '%s'", url.ToCString());
   UNREACHABLE();
-}
-
-bool Library::IsAnyCoreLibrary() const {
-  String& url_str = Thread::Current()->StringHandle();
-  url_str = url();
-  return url_str.StartsWith(Symbols::DartScheme()) ||
-         url_str.StartsWith(Symbols::DartSchemePrivate());
 }
 
 void Library::set_num_imports(intptr_t value) const {

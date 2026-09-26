@@ -236,8 +236,9 @@ class StaticTypeAnalyzer {
   /// The Dart Language Specification, 12.10: <blockquote>The static type of `this` is the
   /// interface of the immediately enclosing class.</blockquote>
   void visitThisExpression(covariant ThisExpressionImpl node) {
-    var (promotedType, expressionInfo) =
-        _resolver.flowAnalysis.flow?.thisExpression() ?? (null, null);
+    var (:promotedType, :expressionInfo) =
+        _resolver.flowAnalysis.flow?.thisExpression() ??
+        (promotedType: null, expressionInfo: null);
     _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
     var staticType =
         (_resolver.isThisAccessible

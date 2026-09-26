@@ -149,7 +149,7 @@ class RecordTypeMask extends TypeMask {
           // Other is the same shape (though possibly a specialization) with
           // dynamic fields so just use the flat mask of this shape. This treats
           // all the fields as dynamic.
-          return toFlatTypeMask(domain);
+          return toFlatTypeMask(domain).withPowerset(powerset, domain);
         } else if (domain.closedWorld.classHierarchy.isSubtypeOf(
           recordClass,
           otherBase,

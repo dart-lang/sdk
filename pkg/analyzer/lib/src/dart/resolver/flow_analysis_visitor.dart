@@ -1487,7 +1487,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       SharedTypeView? promotedType;
       if (isRead) {
         ExpressionInfo expressionInfo;
-        (promotedType, expressionInfo) = flow.variableRead(
+        (:promotedType, :expressionInfo) = flow.variableRead(
           variable,
           offset: node.offset,
         );
