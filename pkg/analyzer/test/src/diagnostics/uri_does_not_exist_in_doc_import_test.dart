@@ -50,4 +50,55 @@ class A {}
 library;
 ''');
   }
+
+  test_multipleLibraryDirectives_firstHasMoreDocImports() async {
+    await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+library;
+/// @docImport 'dart:collection';
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+''');
+  }
+
+  test_multipleLibraryDirectives_firstHasNoDocImports() async {
+    await resolveTestCodeWithDiagnostics(r'''
+library;
+/// @docImport 'missing.dart';
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+''');
+  }
+
+  test_multipleLibraryDirectives_firstUriDoesNotExist() async {
+    await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'missing.dart';
+//             ^^^^^^^^^^^^^^
+// [diag.uriDoesNotExistInDocImport] Target of URI doesn't exist: 'missing.dart'.
+library;
+/// @docImport 'dart:async';
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+''');
+  }
+
+  test_multipleLibraryDirectives_secondHasNoDocImports() async {
+    await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'dart:async';
+library;
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+''');
+  }
+
+  test_multipleLibraryDirectives_secondUriDoesNotExist() async {
+    await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'dart:async';
+library;
+/// @docImport 'missing.dart';
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+''');
+  }
 }
