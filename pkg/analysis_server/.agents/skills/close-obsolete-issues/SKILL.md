@@ -1,9 +1,9 @@
 ---
-name: closing-obsolete-issues
+name: close-obsolete-issues
 description: Find obsolete, stale, or not reproducible analysis-server issues in the dart-lang/sdk repository.
 ---
 
-# Closing Obsolete Issues
+# Close Obsolete Issues
 
 Use this skill to find old, outdated issues in the `dart-lang/sdk` repository that have been fixed, are stale, obsolete, or not reproducible.
 
@@ -87,7 +87,5 @@ Use this skill to find old, outdated issues in the `dart-lang/sdk` repository th
 - Use available file and content search tools (such as `grep`, `ripgrep`, or environment-specific
 search tools) to check the current codebase for references to the issue or relevant code.
 - Look for related Gerrit CLs that might have fixed the issue but didn't close it automatically.
-- **Pro Tip**: Use the `read_gerrit_cl` skill ([SKILL.md](../../../../../.agents/skills/read_gerrit_cl/SKILL.md)) to inspect the patchset diffs and comments of open or merged Gerrit CLs.
+- **Pro Tip**: Use the `read-gerrit-cl` skill ([SKILL.md](../../../../../.agents/skills/read-gerrit-cl/SKILL.md)) to inspect the patchset diffs and comments of open or merged Gerrit CLs.
 - **Always prioritize active verification on HEAD**: Regardless of how old an issue is or what version it specifies, always attempt to research and reproduce the reported issue against the current `HEAD` of the codebase before proposing closure. Never assume a bug is obsolete or fixed based solely on the passage of time or version discrepancies. If you cannot reproduce it, provide clear details of your reproduction attempt on the current codebase.
-
-

@@ -1,5 +1,5 @@
 ---
-name: read_gerrit_cl
+name: read-gerrit-cl
 description: Fetch and display the full patch/diff or comments for a Gerrit CL.
 ---
 
