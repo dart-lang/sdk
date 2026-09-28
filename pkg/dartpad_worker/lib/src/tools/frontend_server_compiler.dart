@@ -264,6 +264,8 @@ final class FrontendServerCompiler {
     '--dartdevc-canary',
     '--experimental-emit-debug-metadata',
     '--incremental',
+    '--no-incremental-serialization',
+    '--minimal-kernel',
     if (config.trackCreationLocations) '--track-creation-locations',
     '-Ddart.web.assertions_enabled=true',
   ];
