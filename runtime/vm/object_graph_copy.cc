@@ -386,6 +386,7 @@ void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
   obj.untag()->offset_in_bytes_ = Smi::New(0);
   obj.untag()->length_ = Smi::New(0);
+  obj.untag()->data_ = nullptr;
 }
 
 void FreeExternalTypedData(void* isolate_callback_data, void* buffer) {
