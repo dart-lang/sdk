@@ -10,6 +10,7 @@
 #include "vm/compiler/api/print_filter.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/linearscan.h"
+#include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/globals.h"
@@ -711,15 +712,19 @@ void Value::PrintTo(BaseTextBuffer* f) const {
 
 void ConstantInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   const char* cstr = value().ToCString();
-  const char* new_line = strchr(cstr, '\n');
-  if (new_line == nullptr) {
+
+  const char* first_non_printable = cstr;
+  while (isprint(static_cast<unsigned char>(*first_non_printable)) != 0) {
+    first_non_printable++;
+  }
+  if (*first_non_printable == 0) {
     f->Printf("#%s", cstr);
   } else {
-    const intptr_t pos = new_line - cstr;
+    const intptr_t pos = first_non_printable - cstr;
     char* buffer = Thread::Current()->zone()->Alloc<char>(pos + 1);
     strncpy(buffer, cstr, pos);
     buffer[pos] = '\0';
-    f->Printf("#%s\\n...", buffer);
+    f->Printf("#%s...", buffer);
   }
 }
 
@@ -1277,6 +1282,12 @@ void GraphEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
 }
 
+static void WriteLoopInfo(const BlockEntryInstr* entry, BaseTextBuffer* f) {
+  for (LoopInfo* l = entry->loop_info(); l != nullptr; l = l->outer()) {
+    f->Printf(" loop(%" Pd "%s)", l->id(), l->header() == entry ? ", h" : "");
+  }
+}
+
 void JoinEntryInstr::PrintTo(BaseTextBuffer* f) const {
   if (try_index() != kInvalidTryIndex) {
     f->Printf("B%" Pd "[join try_idx %" Pd "]:%" Pd " pred(", block_id(),
@@ -1289,6 +1300,7 @@ void JoinEntryInstr::PrintTo(BaseTextBuffer* f) const {
     f->Printf("B%" Pd, predecessors_[i]->block_id());
   }
   f->AddString(")");
+  WriteLoopInfo(this, f);
   if (phis_ != nullptr) {
     f->AddString(" {");
     for (intptr_t i = 0; i < phis_->length(); ++i) {
@@ -1386,6 +1398,7 @@ void TargetEntryInstr::PrintTo(BaseTextBuffer* f) const {
   } else {
     f->Printf("B%" Pd "[target]:%" Pd, block_id(), GetDeoptId());
   }
+  WriteLoopInfo(this, f);
   if (HasParallelMove()) {
     f->AddString(" ");
     parallel_move()->PrintTo(f);
