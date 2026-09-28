@@ -482,8 +482,6 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
   for (final f in [
     'sandbox_runtime.js',
     'worker.js',
-    'worker.mjs',
-    'worker.support.js',
     'worker.wasm',
     'worker.wasm.map',
   ]) {

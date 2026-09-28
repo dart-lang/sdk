@@ -7,7 +7,31 @@ import("compile_wasm.gni")
 
 compile_dart2wasm("worker") {
   main_dart = "../../pkg/dartpad_worker/bin/worker.dart"
-  output = "$root_out_dir/dartpad/worker.wasm"
+  output = "$target_gen_dir/worker.wasm"
+}
+
+copy("copy_worker_wasm") {
+  deps = [ ":worker" ]
+  sources = [
+    "$target_gen_dir/worker.wasm",
+    "$target_gen_dir/worker.wasm.map",
+  ]
+  outputs = [ "$root_out_dir/dartpad/{{source_file_part}}" ]
+}
+
+action("build_worker_js") {
+  deps = [ ":worker" ]
+  script = "concat_files.py"
+
+  inputs = [
+    "../../pkg/dartpad_worker/lib/src/asset/worker.js",
+    "$target_gen_dir/worker.mjs",
+  ]
+  output = "$root_out_dir/dartpad/worker.js"
+  outputs = [ output ]
+
+  args = [ "--output=" + rebase_path(output, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
 }
 
 # Action to build the sdk.tar file
@@ -32,11 +56,6 @@ prebuilt_dart_action("build_sdk_tar") {
 copy("copy_sandbox_js") {
   sources = [ "../../pkg/dartpad_worker/lib/src/asset/sandbox.js" ]
   outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
-}
-
-copy("copy_worker_js") {
-  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.js" ]
-  outputs = [ "$root_out_dir/dartpad/worker.js" ]
 }
 
 copy("copy_dart_sdk_js") {
@@ -72,10 +91,10 @@ group("dartpad") {
   deps = [
     ":build_sandbox_runtime",
     ":build_sdk_tar",
+    ":build_worker_js",
     ":copy_dart_sdk_js",
     ":copy_dart_sdk_js_map",
     ":copy_sandbox_js",
-    ":copy_worker_js",
-    ":worker",
+    ":copy_worker_wasm",
   ]
 }
