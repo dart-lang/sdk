@@ -40,12 +40,28 @@ extension FolderExt on Folder {
         final file = getFile(relPath);
         file.parent.createRecursively();
 
-        // Ensure that we copy the data, as TarReader may reuse buffers
-        final builder = BytesBuilder(copy: true);
-        await for (final chunk in entry.contents) {
-          builder.add(chunk);
+        // Pre-allocate exact entry size to copy once from TarReader's shared
+        // block buffer instead of copying twice via BytesBuilder(copy: true).
+        final expectedSize = entry.header.size;
+        if (expectedSize <= 0) {
+          await entry.contents.drain<void>();
+          file.writeAsBytesSync(Uint8List(0));
+        } else {
+          final bytes = Uint8List(expectedSize);
+          var offset = 0;
+          await entry.contents.forEach((chunk) {
+            final end = offset + chunk.length;
+            if (end <= bytes.length) {
+              bytes.setRange(offset, end, chunk);
+              offset = end;
+            }
+          });
+          file.writeAsBytesSync(
+            offset == bytes.length
+                ? bytes
+                : Uint8List.sublistView(bytes, 0, offset),
+          );
         }
-        file.writeAsBytesSync(builder.takeBytes());
       }
     }
   }
