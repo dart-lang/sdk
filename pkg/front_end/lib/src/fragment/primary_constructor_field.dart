@@ -427,22 +427,6 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) {
-    return hasSetter ? [references.setterReference] : const [];
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   void registerSuperCall() {
     _encoding.registerSuperCall();
   }
@@ -491,6 +475,9 @@ class PrimaryConstructorFieldDeclaration
       '$runtimeType.takePrimaryConstructorFieldInitializer()',
     );
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 class PrimaryConstructorFieldFragment implements Fragment {

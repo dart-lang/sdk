@@ -92,10 +92,6 @@ abstract class GetterDeclaration {
     required Set<ClassMember>? getterOverrideDependencies,
   });
 
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  );
-
   List<ClassMember> get localMembers;
 }
 
@@ -297,11 +293,6 @@ class RegularGetterDeclaration
   }
 
   @override
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) => [references.getterReference];
-
-  @override
   List<ClassMember> get localMembers => [
     new GetterClassMember(_fragment.builder),
   ];
@@ -335,6 +326,9 @@ class RegularGetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].

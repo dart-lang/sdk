@@ -61,7 +61,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   /// The declaration used as the implementation of this method.
   ///
   /// This is the last non-abstract declaration, if any. Otherwise it is the
-  /// first implementation.
+  /// first declaration.
   final MethodDeclaration _implementation;
 
   final Modifiers _modifiers;

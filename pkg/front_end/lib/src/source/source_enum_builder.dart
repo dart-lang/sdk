@@ -870,19 +870,14 @@ class _EnumValuesFieldDeclaration
   Uri get fileUri => _sourceEnumBuilder.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
   Initializer takePrimaryConstructorFieldInitializer() {
     throw new UnsupportedError(
       "${runtimeType}.takePrimaryConstructorFieldInitializer",
     );
   }
+
+  @override
+  String toString() => '$runtimeType($_sourceEnumBuilder)';
 }
 
 class _EnumValuesClassMember implements ClassMember {

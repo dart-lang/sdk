@@ -223,7 +223,7 @@ extension PropertyBuilderExtension on PropertyBuilder {
   bool get hasConcreteField => fieldQuality == FieldQuality.Concrete;
 
   /// Returns `true` if this property builder has an abstract field declaration.
-  bool get hasAbstractField => fieldQuality == FieldQuality.Abstract;
+  bool get hasAbstractField => fieldQuality.impliesAbstract;
 
   /// Returns `true` if this property builder has an external field declaration.
   bool get hasExternalField => fieldQuality == FieldQuality.External;
@@ -238,17 +238,11 @@ extension PropertyBuilderExtension on PropertyBuilder {
 
   /// Returns `true` if this property builder has an abstract getter
   /// declaration.
-  bool get hasAbstractGetter =>
-      getterQuality == GetterQuality.Abstract ||
-      getterQuality == GetterQuality.ImplicitAbstract;
+  bool get hasAbstractGetter => getterQuality.impliesAbstract;
 
   /// Returns `true` if this property builder has an explicit getter, i.e. is
   /// has a getter that is not an implicit getter from a field declaration.
-  bool get hasExplicitGetter =>
-      getterQuality != GetterQuality.Absent &&
-      getterQuality != GetterQuality.Implicit &&
-      getterQuality != GetterQuality.ImplicitAbstract &&
-      getterQuality != GetterQuality.ImplicitExternal;
+  bool get hasExplicitGetter => getterQuality.impliesExplicit;
 
   /// Returns `true` if this property builder has a setter.
   bool get hasSetter => setterQuality != SetterQuality.Absent;
@@ -260,17 +254,53 @@ extension PropertyBuilderExtension on PropertyBuilder {
 
   /// Returns `true` if this property builder has an abstract setter
   /// declaration.
-  bool get hasAbstractSetter =>
-      setterQuality == SetterQuality.Abstract ||
-      setterQuality == SetterQuality.ImplicitAbstract;
+  bool get hasAbstractSetter => setterQuality.impliesAbstract;
 
   /// Returns `true` if this property builder has an explicit setter, i.e. is
   /// has a setter that is not an implicit setter from a field declaration.
-  bool get hasExplicitSetter =>
-      setterQuality != SetterQuality.Absent &&
-      setterQuality != SetterQuality.Implicit &&
-      setterQuality != SetterQuality.ImplicitAbstract &&
-      setterQuality != SetterQuality.ImplicitExternal;
+  bool get hasExplicitSetter => setterQuality.impliesExplicit;
+}
+
+/// Helper extension with helpers that are derived from other properties of
+/// a [FieldQuality].
+extension FieldQualityExtension on FieldQuality {
+  /// Returns `true` if this field quality implies an abstract field
+  /// declaration.
+  bool get impliesAbstract => this == FieldQuality.Abstract;
+}
+
+/// Helper extension with helpers that are derived from other properties of
+/// a [GetterQuality].
+extension GetterQualityExtension on GetterQuality {
+  /// Returns `true` if this getter quality implies an abstract getter
+  /// declaration.
+  bool get impliesAbstract =>
+      this == GetterQuality.Abstract || this == GetterQuality.ImplicitAbstract;
+
+  /// Returns `true` if this getter quality implies an explicit getter, i.e. is
+  /// has a getter that is not an implicit getter from a field declaration.
+  bool get impliesExplicit =>
+      this != GetterQuality.Absent &&
+      this != GetterQuality.Implicit &&
+      this != GetterQuality.ImplicitAbstract &&
+      this != GetterQuality.ImplicitExternal;
+}
+
+/// Helper extension with helpers that are derived from other properties of
+/// a [SetterQuality].
+extension SetterQualityExtension on SetterQuality {
+  /// Returns `true` if this setter quality implies an abstract setter
+  /// declaration.
+  bool get impliesAbstract =>
+      this == SetterQuality.Abstract || this == SetterQuality.ImplicitAbstract;
+
+  /// Returns `true` if this setter quality implies an explicit setter, i.e. is
+  /// has a setter that is not an implicit setter from a field declaration.
+  bool get impliesExplicit =>
+      this != SetterQuality.Absent &&
+      this != SetterQuality.Implicit &&
+      this != SetterQuality.ImplicitAbstract &&
+      this != SetterQuality.ImplicitExternal;
 }
 
 /// Returns `true` is this builder should be contained in the setter map.

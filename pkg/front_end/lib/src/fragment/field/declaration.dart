@@ -795,23 +795,12 @@ class RegularFieldDeclaration
   }) {}
 
   @override
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) {
-    return hasSetter ? [references.setterReference] : const [];
-  }
-
-  @override
   Initializer takePrimaryConstructorFieldInitializer() {
     return _encoding.takePrimaryConstructorFieldInitializer();
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 mixin FieldDeclarationMixin

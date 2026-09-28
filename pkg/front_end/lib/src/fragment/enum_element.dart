@@ -281,14 +281,6 @@ class EnumElementDeclaration
     inferType(membersBuilder.hierarchyBuilder);
   }
 
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
   void _buildElement(
     SourceEnumBuilder sourceEnumBuilder,
     DartType selfType,
@@ -461,6 +453,9 @@ class EnumElementDeclaration
   ) {
     // Initializer is created through [_buildElement].
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 class EnumElementFragment implements Fragment {

@@ -1,0 +1,119 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part 'unordered_property_part1.dart';
+part 'unordered_property_part2.dart';
+
+const annotation1 = 1;
+const annotation2 = 2;
+
+int topLevelField1 = 0;
+
+@annotation1
+abstract int topLevelField2;
+
+@annotation1
+abstract int topLevelField3;
+
+int topLevelFieldGetter = 0;
+
+int topLevelFieldSetter = 0;
+
+int topLevelFieldGetterSetter = 0;
+
+int get topLevelGetter1 => 0;
+
+@annotation1
+int get topLevelGetter2;
+
+@annotation1
+int get topLevelGetter3;
+
+void set topLevelSetter1(int _) {
+  print("topLevelSetter1");
+}
+
+@annotation1
+void set topLevelSetter2(int _);
+
+@annotation1
+void set topLevelSetter3(int _);
+
+abstract class Class {
+  int instanceField1 = 0;
+
+  @annotation1
+  abstract int instanceField2;
+
+  @annotation1
+  abstract int instanceField3;
+
+  abstract int instanceField4;
+
+  int instanceFieldGetter1 = 0;
+
+  abstract int instanceFieldGetter2;
+
+  int instanceFieldSetter1 = 0;
+
+  abstract int instanceFieldSetter2;
+
+  int instanceFieldGetterSetter1 = 0;
+
+  abstract int instanceFieldGetterSetter2;
+
+  int get instanceGetter1 => 0;
+
+  @annotation1
+  int get instanceGetter2;
+
+  @annotation1
+  int get instanceGetter3;
+
+  int get instanceGetter4;
+
+  void set instanceSetter1(int _) {
+    print("instanceSetter1");
+  }
+
+  @annotation1
+  void set instanceSetter2(int _);
+
+  @annotation1
+  void set instanceSetter3(int _);
+
+  void set instanceSetter4(int _);
+
+  static int staticField1 = 0;
+
+  @annotation1
+  static abstract int staticField2;
+
+  @annotation1
+  static abstract int staticField3;
+
+  static int staticFieldGetter = 0;
+
+  static int staticFieldSetter = 0;
+
+  static int staticFieldGetterSetter = 0;
+
+  static int get staticGetter1 => 0;
+
+  @annotation1
+  static int get staticGetter2;
+
+  @annotation1
+  static int get staticGetter3;
+
+  static void set staticSetter1(int _) {
+    print("staticSetter1");
+  }
+
+  @annotation1
+  static void set staticSetter2(int _);
+
+  @annotation1
+  static void set staticSetter3(int _);
+}

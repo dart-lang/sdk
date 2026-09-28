@@ -4252,13 +4252,16 @@ class OutlineBuilder extends StackListenerImpl {
         /* metadata = */ ValueKinds.MetadataListOrNull,
       ]),
     );
-    if (staticToken != null && abstractToken != null) {
-      handleRecoverableError(
-        diag.abstractStaticField,
-        abstractToken,
-        abstractToken,
-      );
-      abstractToken = null;
+    if (!libraryFeatures.augmentations.isEnabled) {
+      // TODO(johnniwinther): Move this check after applying augmentations.
+      if (staticToken != null && abstractToken != null) {
+        handleRecoverableError(
+          diag.abstractStaticField,
+          abstractToken,
+          abstractToken,
+        );
+        abstractToken = null;
+      }
     }
     if (abstractToken != null && lateToken != null) {
       handleRecoverableError(

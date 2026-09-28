@@ -94,10 +94,6 @@ abstract class SetterDeclaration {
     required Set<ClassMember>? setterOverrideDependencies,
   });
 
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  );
-
   List<ClassMember> get localSetters;
 }
 
@@ -296,11 +292,6 @@ class RegularSetterDeclaration
   }
 
   @override
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) => [references.setterReference];
-
-  @override
   List<ClassMember> get localSetters => [
     new SetterClassMember(_fragment.builder),
   ];
@@ -358,6 +349,9 @@ class RegularSetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
