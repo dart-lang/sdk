@@ -335,12 +335,6 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
   final sourceAssetsDir = p.join(ctx.myappDir, 'build', 'web', 'assets');
   copyDirectoryContents(sourceAssetsDir, p.join(ctx.flutterAssetDir, 'assets'));
 
-  print('Copying flutter.js');
-  _copyFile(
-    p.join(ctx.myappDir, 'build', 'web', 'flutter.js'),
-    p.join(ctx.flutterAssetDir, 'flutter.js'),
-  );
-
   final String canvasKitBaseUrl;
   if (ctx.useCdn) {
     canvasKitBaseUrl = await _resolveAndVerifyCanvasKitCdnUrl(
@@ -477,14 +471,21 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
     p.join(ctx.flutterAssetDir, 'sandbox.js'),
   ).writeAsStringSync('$sandboxJsPatch\n$sandboxJs');
 
+  // Synthesize sandbox_runtime.js (bundling flutter.js).
+  print('Synthesizing sandbox_runtime.js...');
+  final flutterJs = File(
+    p.join(ctx.myappDir, 'build', 'web', 'flutter.js'),
+  ).readAsStringSync();
+  final sandboxRuntimeJs = File(
+    p.join(ctx.dartDartPadSdk, 'sandbox_runtime.js'),
+  ).readAsStringSync();
+  File(
+    p.join(ctx.flutterAssetDir, 'sandbox_runtime.js'),
+  ).writeAsStringSync('$flutterJs\n$sandboxRuntimeJs');
+
   // Copy worker from Dart DartPad SDK.
   print('Copying worker...');
-  for (final f in [
-    'sandbox_runtime.js',
-    'worker.js',
-    'worker.wasm',
-    'worker.wasm.map',
-  ]) {
+  for (final f in ['worker.js', 'worker.wasm', 'worker.wasm.map']) {
     _copyFile(p.join(ctx.dartDartPadSdk, f), p.join(ctx.flutterAssetDir, f));
   }
 

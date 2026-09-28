@@ -10,7 +10,6 @@
   self.$dartpadSandboxScripts = [
     './sandbox_runtime.js',
     './dart_sdk.js',
-    './flutter.js',
     './flutter_web.js',
   ];
 
