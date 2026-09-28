@@ -179,9 +179,8 @@ def main():
             }
         })
 
-        # TODO(srawlins): Enable benchmark_size tests.
-        # if platform == 'linux':
-        #     jobs.append({'script': 'tool/ci/benchmark_size.sh', 'env': {}})
+        if platform == 'linux':
+            jobs.append({'script': 'tool/ci/benchmark_size.sh', 'env': {}})
 
     if platform == 'macos':
         jobs.append({
