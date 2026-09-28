@@ -1236,6 +1236,49 @@ driver
 ''');
   }
 
+  test_newFile_library_docImports_multipleDirectives() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+library first;
+/// @docImport 'dart:collection';
+library second;
+''');
+
+    fileStateFor(a);
+
+    assertDriverStateString(testFile, r'''
+driver
+  workState
+    fileTracker
+      anyPendingFile: null
+      numberOfPendingFiles: 0
+    workPriority: nothing
+  fileSystemState
+    files
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        current
+          id: file_0
+          kind: library_0
+            name: first
+            libraryImports
+              library_1 dart:core synthetic
+            docLibraryImports
+              library_3 dart:async
+              library_6 dart:math
+            fileKinds: library_0
+            cycle_0
+              dependencies: dart:core
+              libraries: library_0
+              apiSignature_0
+          unlinkedKey: k00
+  libraryContext
+    libraryCycles
+    elementFactory
+''');
+  }
+
   test_newFile_library_exports_dart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 export 'dart:async';

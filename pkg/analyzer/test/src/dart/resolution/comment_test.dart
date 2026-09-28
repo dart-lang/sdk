@@ -3301,6 +3301,49 @@ CommentReference
 ''');
   }
 
+  test_docImport_onLibrary_multipleDirectives() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageLibPath/b.dart', 'class B {}');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a.dart';
+library;
+/// @docImport 'b.dart';
+library;
+// [diag.multipleLibraryDirectives][column 1][length 7] Only one library directive may be declared in a file.
+
+/// [A] and [B].
+void f() {}
+''');
+
+    var node = result.findNode.comment('/// [A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: A
+          element: package:test/a.dart::@class::A
+      expression: SimpleIdentifier
+        token: A
+        element: package:test/a.dart::@class::A
+        staticType: null
+      element: package:test/a.dart::@class::A
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: B
+          element: <null>
+      expression: SimpleIdentifier
+        token: B
+        element: <null>
+        staticType: null
+      element: <null>
+  tokens
+    /// [A] and [B].
+''');
+  }
+
   test_docImport_onLibrary_unqualified() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {}

@@ -992,7 +992,7 @@ class FileState {
             hasDartCoreImport = true;
           }
         case LibraryDirectiveImpl():
-          libraryDirective = UnlinkedLibraryDirective(
+          libraryDirective ??= UnlinkedLibraryDirective(
             docImports: buildDocImports(directive),
             name: directive.name?.tokens.map((e) => e.lexeme).join(),
           );
