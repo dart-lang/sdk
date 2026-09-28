@@ -23,7 +23,6 @@ import '../../../../selection_mixin.dart';
 
 /// A base class defining support for writing assist processor tests.
 abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
-  late SourceChange _change;
   late String _resultCode;
 
   /// Return the kind of assist expected by this class.
@@ -38,18 +37,6 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
   void addTestSource(String code) {
     super.addTestSource(code);
     setPositionOrRange(0);
-  }
-
-  void assertExitPosition({String? before, String? after}) {
-    var exitPosition = _change.selection!;
-    expect(exitPosition.file, testFile.path);
-    if (before != null) {
-      expect(exitPosition.offset, _resultCode.indexOf(before));
-    } else if (after != null) {
-      expect(exitPosition.offset, _resultCode.indexOf(after) + after.length);
-    } else {
-      fail("One of 'before' or 'after' expected.");
-    }
   }
 
   /// Asserts that there is an assist of the given [kind] at [offset] which
@@ -78,42 +65,29 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
     // otherwise empty line from having the leading whitespace be removed.
     expected = TestCode.parse(expected).code;
     var assist = await _assertHasAssist();
-    _change = assist.change;
-    expect(_change.id, kind.id);
+    var change = assist.change;
+    expect(change.id, kind.id);
     // apply to "file"
-    var fileEdits = _change.edits;
+    var fileEdits = change.edits;
     if (additionallyChangedFiles == null) {
       expect(fileEdits, hasLength(1));
-      expect(_change.edits[0].file, testFile.path);
-      _resultCode = SourceEdit.applySequence(testCode, _change.edits[0].edits);
+      expect(change.edits[0].file, testFile.path);
+      _resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
       expect(_resultCode, expected);
     } else {
       expect(fileEdits, hasLength(additionallyChangedFiles.length + 1));
-      var fileEdit = _change.getFileEdit(testFile.path)!;
+      var fileEdit = change.getFileEdit(testFile.path)!;
       _resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
       expect(_resultCode, expected);
       for (var additionalEntry in additionallyChangedFiles.entries) {
         var filePath = additionalEntry.key;
         var pair = additionalEntry.value;
-        var fileEdit = _change.getFileEdit(filePath)!;
+        var fileEdit = change.getFileEdit(filePath)!;
         var resultCode = SourceEdit.applySequence(pair[0], fileEdit.edits);
         expect(resultCode, pair[1]);
       }
     }
-    return _change;
-  }
-
-  void assertLinkedGroup(
-    int groupIndex,
-    List<String> expectedStrings, [
-    List<LinkedEditSuggestion>? expectedSuggestions,
-  ]) {
-    var group = _change.linkedEditGroups[groupIndex];
-    var expectedPositions = _findResultPositions(expectedStrings);
-    expect(group.positions, unorderedEquals(expectedPositions));
-    if (expectedSuggestions != null) {
-      expect(group.suggestions, unorderedEquals(expectedSuggestions));
-    }
+    return change;
   }
 
   /// Asserts that there is no [Assist] of the given [kind] at [offset].
@@ -125,15 +99,6 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
         fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
     }
-  }
-
-  List<LinkedEditSuggestion> expectedSuggestions(
-    LinkedEditSuggestionKind kind,
-    List<String> values,
-  ) {
-    return values.map((value) {
-      return LinkedEditSuggestion(value, kind);
-    }).toList();
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
@@ -176,6 +141,55 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
 /// A base class defining support for writing assist processor tests for
 /// built-in assist processors.
 abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
+  late SourceChange _change;
+
+  void assertExitPosition({String? before, String? after}) {
+    var exitPosition = _change.selection!;
+    expect(exitPosition.file, testFile.path);
+    if (before != null) {
+      expect(exitPosition.offset, _resultCode.indexOf(before));
+    } else if (after != null) {
+      expect(exitPosition.offset, _resultCode.indexOf(after) + after.length);
+    } else {
+      fail("One of 'before' or 'after' expected.");
+    }
+  }
+
+  @override
+  Future<SourceChange> assertHasAssist(
+    String expected, {
+    Map<String, List<String>>? additionallyChangedFiles,
+    int index = 0,
+  }) async {
+    return _change = await super.assertHasAssist(
+      expected,
+      additionallyChangedFiles: additionallyChangedFiles,
+      index: index,
+    );
+  }
+
+  void assertLinkedGroup(
+    int groupIndex,
+    List<String> expectedStrings, [
+    List<LinkedEditSuggestion>? expectedSuggestions,
+  ]) {
+    var group = _change.linkedEditGroups[groupIndex];
+    var expectedPositions = _findResultPositions(expectedStrings);
+    expect(group.positions, unorderedEquals(expectedPositions));
+    if (expectedSuggestions != null) {
+      expect(group.suggestions, unorderedEquals(expectedSuggestions));
+    }
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(
+    LinkedEditSuggestionKind kind,
+    List<String> values,
+  ) {
+    return values.map((value) {
+      return LinkedEditSuggestion(value, kind);
+    }).toList();
+  }
+
   @override
   void setUp() {
     registerLintRules();

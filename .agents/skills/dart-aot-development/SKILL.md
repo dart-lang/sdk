@@ -1,5 +1,5 @@
 ---
-name: dart_aot_development
+name: dart-aot-development
 description: Instructions on building and testing changes using Dart AOT mode. Use when working on Dart runtime, Dart AOT compiler or other related components.
 ---
 

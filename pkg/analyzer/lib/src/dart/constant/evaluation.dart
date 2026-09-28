@@ -35,6 +35,7 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ConstantEvaluationConfiguration {
@@ -3572,7 +3573,7 @@ class _ConstructorInvocationEvaluator {
               evaluationResult.locatableDiagnostic = evaluationResult
                   .locatableDiagnostic
                   .withContextMessages([
-                    _stackTraceContextMessage(superConstructor, _constructor),
+                    ?_stackTraceContextMessage(superConstructor, _constructor),
                   ]);
             }
             return InvalidConstant.copyWithEntity(
@@ -3583,7 +3584,7 @@ class _ConstructorInvocationEvaluator {
             evaluationResult.locatableDiagnostic = evaluationResult
                 .locatableDiagnostic
                 .withContextMessages([
-                  _stackTraceContextMessage(superConstructor, _constructor),
+                  ?_stackTraceContextMessage(superConstructor, _constructor),
                 ]);
             return evaluationResult;
         }
@@ -3639,20 +3640,16 @@ class _ConstructorInvocationEvaluator {
   }
 
   /// Returns a context message that mimics a stack trace where [superConstructor] is
-  /// called by [constructor]
-  DiagnosticMessageImpl _stackTraceContextMessage(
+  /// called by [constructor], or `null` if the location of [constructor] is
+  /// not known.
+  DiagnosticMessageImpl? _stackTraceContextMessage(
     InternalConstructorElement superConstructor,
     InternalConstructorElement constructor,
   ) {
-    return DiagnosticMessageImpl(
-      filePath: constructor.firstFragment.libraryFragment.source.fullName,
-      length: 1,
-      message:
-          "The evaluated constructor '${superConstructor.displayName}' "
-          "is called by '${constructor.displayName}' and "
-          "'${constructor.displayName}' is defined here.",
-      offset: constructor.firstFragment.offset,
-      url: null,
+    return constructor.firstFragment.contextMessageAt(
+      "The evaluated constructor '${superConstructor.displayName}' "
+      "is called by '${constructor.displayName}' and "
+      "'${constructor.displayName}' is defined here.",
     );
   }
 

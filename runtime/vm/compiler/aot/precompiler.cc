@@ -723,12 +723,6 @@ void Precompiler::AddRoots() {
 
   const String& name = Symbols::main();
   Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
-  if (main.IsNull()) {
-    const Object& obj = Object::Handle(lib.LookupReExport(name));
-    if (obj.IsFunction()) {
-      main ^= obj.ptr();
-    }
-  }
   if (!main.IsNull()) {
     AddApiUse(main);
     if (lib.LookupFunctionAllowPrivate(name) == Function::null()) {

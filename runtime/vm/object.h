@@ -5280,10 +5280,6 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(
-      const String& name,
-      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // These lookups are local within the library.
@@ -5523,7 +5519,6 @@ class Library : public Object {
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
-  bool HasExports() const;
   ArrayPtr loaded_scripts() const { return untag()->loaded_scripts(); }
   ArrayPtr metadata() const {
     DEBUG_ASSERT(

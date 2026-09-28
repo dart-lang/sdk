@@ -160,6 +160,35 @@ extension type C(Object? it) implements A, B {}
 ''');
   }
 
+  test_extensionType_inheritedMethodSetter_conflict_inSummary() async {
+    enableIndex = false;
+    librarySummaryFiles = [
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': r'''
+extension type A(Object? it) {
+  void foo() {}
+}
+
+extension type B(Object? it) {
+  set foo(int _) {}
+}
+''',
+        },
+      ),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    // No context messages, the locations in the summary are not known.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:foo/foo.dart';
+
+extension type C(Object? it) implements A, B {}
+//             ^
+// [diag.conflictingInheritedMethodAndSetter] The extension type 'C' can't inherit both a method and a setter named 'foo'.
+''');
+  }
+
   test_extensionType_inheritedMethodSetter_declaredGetter_noConflict() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}

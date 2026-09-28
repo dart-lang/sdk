@@ -96,6 +96,19 @@ library;
 ''');
   }
 
+  test_dartDirectivesGoFirst_docImports_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+/// @docImport 'dart:math';
+/// @docImport 'a.dart';
+/// @doc/*[0*/Import 'dart:html';/*0]*/
+/// @doc/*[1*/Import 'dart:isolate';/*1]*/
+part of 'a.dart';
+''');
+  }
+
   test_dartDirectivesGoFirst_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     await assertDiagnosticsFromMarkup(r'''
@@ -103,7 +116,6 @@ export 'dart:math';
 export 'a.dart';
 /*[0*/export 'dart:html';/*0]*/
 /*[1*/export 'dart:isolate';/*1]*/
-// ignore_for_file: unused_import
 ''');
   }
 
@@ -118,11 +130,50 @@ import 'a.dart';
 ''');
   }
 
+  test_dartDirectivesGoFirst_imports_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
+import 'dart:math';
+import 'a.dart';
+/*[0*/import 'dart:html';/*0]*/
+/*[1*/import 'dart:isolate';/*1]*/
+// ignore_for_file: unused_import
+''');
+  }
+
   test_importsGoBeforeExports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     newFile('$testPackageLibPath/c.dart', '');
     await assertDiagnosticsFromMarkup(r'''
+import 'a.dart';
+
+/*[0*/export 'a.dart';/*0]*/
+
+import 'b.dart';
+
+/*[1*/export 'b.dart';/*1]*/
+
+import 'c.dart';
+
+export 'c.dart';
+// ignore_for_file: unused_import
+''');
+  }
+
+  test_importsGoBeforeExports_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    newFile('$testPackageLibPath/c.dart', '');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
 import 'a.dart';
 
 /*[0*/export 'a.dart';/*0]*/
@@ -174,7 +225,7 @@ part 'bbb/bbb.dart';
 
 main() {}
 
-// ignore_for_file: unused_import, uri_does_not_exist
+// ignore_for_file: uri_does_not_exist
 ''');
   }
 
@@ -191,6 +242,21 @@ library;
 ''');
   }
 
+  test_packageDirectivesGoBeforeRelative_docImports_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    await assertDiagnosticsFromMarkup(r'''
+/// @docImport 'dart:math';
+/// @docImport 'package:foo/foo.dart';
+/// @docImport 'a.dart';
+/// @doc[!Import 'package:meta/meta.dart';!]
+/// @docImport 'b.dart';
+part of 'a.dart';
+''');
+  }
+
   test_packageDirectivesGoBeforeRelative_exports() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
@@ -200,7 +266,6 @@ export 'a.dart';
 /*[0*/export 'package:foo/foo.dart';/*0]*/
 /*[1*/export 'package:meta/meta.dart';/*1]*/
 export 'b.dart';
-// ignore_for_file: unused_import
 ''');
   }
 
@@ -208,6 +273,23 @@ export 'b.dart';
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
     await assertDiagnosticsFromMarkup(r'''
+import 'dart:math';
+import 'package:foo/foo.dart';
+import 'a.dart';
+[!import 'package:meta/meta.dart';!]
+import 'b.dart';
+// ignore_for_file: unused_import
+''');
+  }
+
+  test_packageDirectivesGoBeforeRelative_imports_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
 import 'dart:math';
 import 'package:foo/foo.dart';
 import 'a.dart';
@@ -232,7 +314,7 @@ import 'package:product.ui.api.aaa/manager2.dart';
 import 'package:product.ui.api.bbb/manager1.dart';
 import 'package:product2.client/entity.dart';
 
-// ignore_for_file: unused_import, uri_does_not_exist
+// ignore_for_file: uri_does_not_exist
 ''');
   }
 
@@ -311,7 +393,7 @@ import './foo1.dart';
 [!import '../../foo2.dart';!]
 import '../foo3.dart';
 import 'foo4.dart';
-// ignore_for_file: unused_import, uri_does_not_exist
+// ignore_for_file: uri_does_not_exist
 ''');
   }
 
@@ -322,7 +404,7 @@ import '../../foo4.dart';
 import '../foo3.dart';
 import './foo2.dart';
 import 'foo1.dart';
-// ignore_for_file: unused_import, uri_does_not_exist
+// ignore_for_file: uri_does_not_exist
 ''');
   }
 
@@ -357,6 +439,26 @@ import 'package:test/c.dart';
 ''');
   }
 
+  test_sortDirectiveSectionsAlphabetically_packageSchema_import_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    newFile('$testPackageLibPath/c.dart', '');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
+import 'package:foo/foo.dart';
+import 'package:meta/meta.dart';
+/*[0*/import 'package:flutter/widgets.dart';/*0]*/
+
+import 'package:test/a.dart';
+import 'package:test/c.dart';
+/*[1*/import 'package:test/b.dart';/*1]*/
+// ignore_for_file: unused_import
+''');
+  }
+
   test_sortDirectiveSectionsAlphabetically_relativePath_export() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/b.dart', '');
@@ -376,6 +478,28 @@ export 'c.dart';
     newFile('$testPackageLibPath/c.dart', '');
     newFile('$testPackageLibPath/d.dart', '');
     await assertDiagnosticsFromMarkup(r'''
+import 'd.dart';
+import 'd.dart';
+/*[0*/import 'c.dart';/*0]*/
+import 'c.dart';
+/*[1*/import 'b.dart';/*1]*/
+import 'b.dart';
+/*[2*/import 'a.dart';/*2]*/
+import 'a.dart';
+// ignore_for_file: duplicate_import, unused_import
+''');
+  }
+
+  test_sortDirectiveSectionsAlphabetically_relativePath_import_inPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    newFile('$testPackageLibPath/c.dart', '');
+    newFile('$testPackageLibPath/d.dart', '');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
 import 'd.dart';
 import 'd.dart';
 /*[0*/import 'c.dart';/*0]*/
