@@ -10,7 +10,7 @@ final class StdoutRecorder {
 }
 
 final class _ByteSink implements StreamSink<List<int>> {
-  final builder = BytesBuilder();
+  final builder = BytesBuilder(copy: false);
   final _completer = Completer<void>();
 
   /// Access the buffered bytes as a Uint8List
