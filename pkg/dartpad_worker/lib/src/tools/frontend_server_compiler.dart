@@ -236,7 +236,8 @@ final class FrontendServerCompiler {
   void _updateSourceStamps() {
     // The package config is not reported as a dependency, but invalidating it
     // is how `frontend_server` is told to reload it, e.g. after a `pub get`.
-    for (final path in [..._trackedSources.keys, packageConfig]) {
+    _trackedSources.putIfAbsent(packageConfig, () => null);
+    for (final path in _trackedSources.keys) {
       final file = resourceProvider.getFile(path);
       // A tracked source that no longer exists stays invalidated until
       // `frontend_server` reports that it stopped depending on it.
