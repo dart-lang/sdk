@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:package_config/package_config.dart';
@@ -317,7 +318,7 @@ final class FrontendServerCompiler {
     if (!manifestFile.exists) return const [];
 
     final manifest =
-        jsonDecode(manifestFile.readAsStringSync()) as Map<String, Object?>;
+        _decodeUtf8Json(manifestFile.readAsBytesSync()) as Map<String, Object?>;
     if (manifest.isEmpty) return const [];
 
     final sources = resourceProvider
@@ -333,13 +334,10 @@ final class FrontendServerCompiler {
           'code': [final int codeStart, final int codeEnd],
           'metadata': [final int metaStart, final int metaEnd],
         })
-          if (jsonDecode(
-                utf8.decoder.convert(metadataBytes, metaStart, metaEnd),
-              )
-              case {
-                'name': final String moduleName,
-                'libraries': final List<Object?> libraries,
-              })
+          if (_decodeUtf8Json(metadataBytes, metaStart, metaEnd) case {
+            'name': final String moduleName,
+            'libraries': final List<Object?> libraries,
+          })
             (
               moduleName: moduleName,
               code: utf8.decoder.convert(sources, codeStart, codeEnd),
@@ -365,3 +363,15 @@ final class FrontendServerCompiler {
     return modules;
   }
 }
+
+/// Fused UTF-8 and JSON decoder to avoid intermediate String allocations
+/// when parsing bundle manifests and metadata in
+/// [FrontendServerCompiler._readModules].
+final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
+
+Object? _decodeUtf8Json(Uint8List bytes, [int start = 0, int? end]) =>
+    _utf8JsonDecoder.convert(
+      start == 0 && end == null
+          ? bytes
+          : Uint8List.sublistView(bytes, start, end),
+    );
