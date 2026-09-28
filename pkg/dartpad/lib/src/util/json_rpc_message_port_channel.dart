@@ -5,13 +5,26 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web/web.dart' as web;
 
 import '../message_port/message_port.dart';
+
+const _isDart2Wasm = bool.fromEnvironment('dart.tool.dart2wasm');
+
+extension type _RpcMessage._(JSObject _) implements JSObject {
+  external factory _RpcMessage({
+    required JSString payload,
+    web.MessagePort? port,
+    JSUint8Array? bytes,
+  });
+
+  external JSAny? get payload;
+  external JSAny? get port;
+  external JSAny? get bytes;
+}
 
 /// Returns a [StreamChannel] adapter that communicates JSON-RPC 2.0 over a
 /// [web.MessagePort].
@@ -133,23 +146,34 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
     }
   }
 
-  return {'payload': jsonEncode(m), 'port': ?port, 'bytes': ?bytes}.jsify();
+  final jsPayload = jsonEncode(m).toJS;
+  final jsBytes = bytes?.toJS;
+  if (port == null && jsBytes == null) {
+    return _RpcMessage(payload: jsPayload);
+  }
+  if (jsBytes == null) {
+    return _RpcMessage(payload: jsPayload, port: port);
+  }
+  if (port == null) {
+    return _RpcMessage(payload: jsPayload, bytes: jsBytes);
+  }
+  return _RpcMessage(payload: jsPayload, port: port, bytes: jsBytes);
 }
 
 Object? _dartifyMessage(JSAny? data) {
   if (!data.isA<JSObject>()) {
     return null;
   }
-  data as JSObject;
-  if (!data['payload'].isA<JSString>()) {
+  final msg = _RpcMessage._(data as JSObject);
+  final rawPayload = msg.payload;
+  if (!rawPayload.isA<JSString>()) {
     return null;
   }
-  final payload = jsonDecode((data['payload'] as JSString).toDart);
+  final payload = jsonDecode((rawPayload as JSString).toDart);
 
-  if (data['port'].isA<web.MessagePort>()) {
-    final port = MessagePortExt.fromMessagePort(
-      data['port'] as web.MessagePort,
-    );
+  final rawPort = msg.port;
+  if (rawPort.isA<web.MessagePort>()) {
+    final port = MessagePortExt.fromMessagePort(rawPort as web.MessagePort);
     if (payload is! Map) {
       throw const FormatException('port not allowed in batch mode');
     }
@@ -161,8 +185,13 @@ Object? _dartifyMessage(JSAny? data) {
     }
   }
 
-  if (data['bytes'].isA<JSUint8Array>()) {
-    final bytes = (data['bytes'] as JSUint8Array).toDart;
+  final rawBytes = msg.bytes;
+  if (rawBytes.isA<JSUint8Array>()) {
+    // On dart2wasm, `.toDart` returns JSUint8ArrayImpl (a JS DataView view).
+    // Materializing a native WasmGC U8List once at ingress prevents storing
+    // JSUint8ArrayImpl in MemoryResourceProvider or slicing it in TarReader.
+    final dartBytes = (rawBytes as JSUint8Array).toDart;
+    final bytes = _isDart2Wasm ? Uint8List.fromList(dartBytes) : dartBytes;
     if (payload is! Map) {
       throw const FormatException('bytes not allowed in batch mode');
     }
