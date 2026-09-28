@@ -84,6 +84,10 @@ final class Arm64StackFrame extends StackFrame {
   int argumentsStackSlots(Instruction instr) {
     // TODO: pass arguments on registers
     switch (instr) {
+      case DynamicCall() when !instr.hasTypeArguments:
+        // Reserve extra slot to pass default type arguments (in case target method is generic).
+        // TODO: pass type arguments on register.
+        return instr.inputCount + 1;
       case CallInstruction():
         return instr.inputCount;
       case AllocateClosure():

@@ -578,7 +578,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000e)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000f)
 
 typedef struct {
   int32_t version;
@@ -587,6 +587,7 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   bool load_vmservice_library;
+  bool modular_aot_mode;
   bool null_safety;
   bool is_system_isolate;
   bool is_service_isolate;

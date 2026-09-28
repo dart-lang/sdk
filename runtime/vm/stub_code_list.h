@@ -195,6 +195,7 @@ namespace dart {
   V(CheckIsolateFieldAccess)                                                   \
   V(CheckedStoreIntoShared)                                                    \
   V(EnsureDeeplyImmutable)                                                     \
+  V(DynamicInvocationForwarder)                                                \
   V(UnknownDartCode)
 
 }  // namespace dart

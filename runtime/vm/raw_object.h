@@ -1913,6 +1913,7 @@ class UntaggedLibrary : public UntaggedObject {
 
   friend class Class;
   friend class Isolate;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 class UntaggedNamespace : public UntaggedObject {

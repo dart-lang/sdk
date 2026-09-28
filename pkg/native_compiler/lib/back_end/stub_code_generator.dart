@@ -20,6 +20,16 @@ abstract base class StubFactory {
   Map<(Register, Register, bool), Code> _writeBarrierStubs = {};
   List<Code?> _subtypeTestCacheStubs = List<Code?>.filled(8, null);
 
+  late final Code dynamicCallStub = _generateCode(
+    'DynamicCallStub',
+    dynamicCallStubGenerator(),
+  );
+
+  late final Code dynamicInvocationForwarderStub = _generateCode(
+    'DynamicInvocationForwarderStub',
+    dynamicInvocationForwarderStubGenerator(),
+  );
+
   StubFactory(this.consumeGeneratedCode);
 
   StubCodeGenerator allocationStubGenerator(ast.Class cls);
@@ -29,6 +39,10 @@ abstract base class StubFactory {
     Register valueReg,
     bool isArray,
   );
+
+  StubCodeGenerator dynamicCallStubGenerator();
+
+  StubCodeGenerator dynamicInvocationForwarderStubGenerator();
 
   StubCodeGenerator subtypeTestCacheStubGenerator(int n);
 

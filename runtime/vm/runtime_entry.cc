@@ -3074,8 +3074,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
                                      const String& target_name,
                                      const String& demangled,
                                      const Array& arguments_descriptor,
+                                     bool allow_add,
                                      Function* result) {
-  const bool create_if_absent = !FLAG_precompiled_mode;
   const String& getter_name = String::Handle(Field::GetterName(demangled));
   const int kTypeArgsLen = 0;
   const int kNumArguments = 1;
@@ -3083,7 +3083,7 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
       ArgumentsDescriptor::NewBoxed(kTypeArgsLen, kNumArguments)));
   const Function& getter =
       Function::Handle(Resolver::ResolveDynamicForReceiverClass(
-          receiver_class, getter_name, args_desc, create_if_absent));
+          receiver_class, getter_name, args_desc, allow_add));
   if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
@@ -3094,9 +3094,9 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
   const Function& target_function =
       Function::Handle(receiver_class.GetInvocationDispatcher(
           dispatcher_name, arguments_descriptor,
-          UntaggedFunction::kInvokeFieldDispatcher, create_if_absent,
-          getter.is_dynamically_callable()));
-  ASSERT(!create_if_absent || !target_function.IsNull());
+          UntaggedFunction::kInvokeFieldDispatcher,
+          /*create_if_absent=*/allow_add, getter.is_dynamically_callable()));
+  ASSERT(!allow_add || !target_function.IsNull());
   if (FLAG_trace_ic) {
     OS::PrintErr(
         "InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
@@ -3110,7 +3110,8 @@ static bool ResolveCallThroughGetter(const Class& receiver_class,
 // Handle other invocations (implicit closures, noSuchMethod).
 FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
                                   const Array& args_descriptor,
-                                  const String& target_name) {
+                                  const String& target_name,
+                                  bool allow_add) {
   // Create a demangled version of the target_name, if necessary, This is used
   // for the field getter in ResolveCallThroughGetter and as the target name
   // for the NoSuchMethod dispatcher (if needed).
@@ -3123,19 +3124,15 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
   const bool is_dyn_implicit_call =
       target_name.ptr() == Symbols::DynamicImplicitCall().ptr();
   Function& result = Function::Handle();
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const bool create_if_absent = false;
-#else
-  const bool create_if_absent = true;
-#endif
   if (is_getter || (is_dyn_implicit_call && !receiver_class.IsClosureClass()) ||
       !ResolveCallThroughGetter(receiver_class, target_name, *demangled,
-                                args_descriptor, &result)) {
+                                args_descriptor, allow_add, &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
             *demangled, args_descriptor,
-            UntaggedFunction::kNoSuchMethodDispatcher, create_if_absent,
+            UntaggedFunction::kNoSuchMethodDispatcher,
+            /*create_if_absent=*/allow_add,
             /* is_dynamically_callable = */ true));
     if (FLAG_trace_ic) {
       OS::PrintErr(
@@ -3147,7 +3144,7 @@ FunctionPtr InlineCacheMissHelper(const Class& receiver_class,
   }
   // May be null if in the precompiled runtime, in which case dispatch will be
   // handled by NoSuchMethodFromCallStub.
-  ASSERT(!create_if_absent || !result.IsNull());
+  ASSERT(!allow_add || !result.IsNull());
   return result.ptr();
 }
 
@@ -3259,12 +3256,12 @@ static FunctionPtr Resolve(
     const GrowableArray<const Instance*>& caller_arguments,
     const Class& receiver_class,
     const String& name,
-    const Array& descriptor) {
+    const Array& descriptor,
+    bool allow_add) {
   ASSERT(name.IsSymbol());
   auto& target_function = Function::Handle(zone);
   ArgumentsDescriptor args_desc(descriptor);
 
-  const bool allow_add = !FLAG_precompiled_mode;
   if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
     target_function = Resolver::ResolveDynamicForReceiverClass(
         receiver_class, name, args_desc, allow_add);
@@ -3280,7 +3277,8 @@ static FunctionPtr Resolve(
   }
 
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver_class, descriptor, name);
+    target_function =
+        InlineCacheMissHelper(receiver_class, descriptor, name, allow_add);
   }
   ASSERT(!allow_add || !target_function.IsNull());
   return target_function.ptr();
@@ -3657,7 +3655,7 @@ void PatchableCallHandler::DoMonomorphicMissAOT(
       Class::Handle(zone_, isolate_group_->class_table()->At(old_expected_cid));
   const auto& old_target = Function::Handle(
       zone_, Resolve(thread_, zone_, caller_arguments_, old_receiver_class,
-                     name_, args_descriptor_));
+                     name_, args_descriptor_, /*allow_add=*/false));
 
   const auto& ic_data = ICData::Handle(
       zone_, old_target.IsNull()
@@ -4066,7 +4064,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
   }
   const Class& cls = Class::Handle(zone_, receiver().clazz());
   return Resolve(thread_, zone_, caller_arguments_, cls, name_,
-                 args_descriptor_);
+                 args_descriptor_, /*allow_add=*/!FLAG_precompiled_mode);
 }
 
 void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
@@ -4290,7 +4288,8 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 
   if (target_function.IsNull()) {
     target_function =
-        InlineCacheMissHelper(receiver_class, arg_desc, target_name);
+        InlineCacheMissHelper(receiver_class, arg_desc, target_name,
+                              /*allow_add=*/!FLAG_precompiled_mode);
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(!target_function.IsNull());
@@ -4301,7 +4300,6 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
 // Used to find the correct receiver and function to invoke or to fall back to
 // invoking noSuchMethod when lazy dispatchers are disabled. Returns the
 // result of the invocation or an Error.
@@ -4457,7 +4455,6 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
                                     orig_arguments, orig_arguments_desc));
   return result.ptr();
 }
-#endif
 
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
@@ -4488,6 +4485,140 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   FATAL("Dispatcher for %s should have been lazily created",
         target_name.ToCString());
 #endif
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static ArrayPtr CollectArgumentsToArray(Thread* thread,
+                                        Zone* zone,
+                                        const Array& args_descriptor) {
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& args =
+      Array::Handle(zone, Array::New(args_desc.CountWithTypeArgs()));
+  auto& arg = Object::Handle(zone);
+  for (intptr_t i = args.Length() - 1; i >= 0; --i) {
+    arg = *argv++;
+    args.SetAt(i, arg);
+  }
+  return args.ptr();
+}
+
+static void PatchTypeArgumentsForDynamicCallModAOT(
+    Thread* thread,
+    Zone* zone,
+    const Array& args_descriptor,
+    const TypeArguments& default_type_args) {
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ObjectPtr* argv = reinterpret_cast<ObjectPtr*>(caller_frame->sp());
+  ArgumentsDescriptor args_desc(args_descriptor);
+  argv = argv + args_desc.Count();
+  // Dynamic calls in modular AOT always provide type arguments or
+  // reserve a slot for type arguments.
+  RELEASE_ASSERT(*argv == Object::null());
+  *argv = default_type_args.ptr();
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Handles inline cache misses in the modular AOT.
+// Resolves the target function and update the IC data array if found.
+// Also handles calls through getters and noSuchMethod.
+//   Arg0: Placeholder for the result of the call.
+//   Arg1: Receiver object.
+//   Arg2: IC data object.
+//   Returns: target function or null if call was handled.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerModAOT, 3) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(2));
+  RELEASE_ASSERT(!FLAG_precompiled_mode);
+  GrowableArray<const Instance*> args(1);
+  args.Add(&receiver);
+
+  const auto& name = String::Handle(zone, ic_data.target_name());
+  const auto& args_descriptor =
+      Array::Handle(zone, ic_data.arguments_descriptor());
+  const auto& cls = Class::Handle(zone, receiver.clazz());
+  const auto& target_function =
+      Function::Handle(zone, Resolve(thread, zone, args, cls, name,
+                                     args_descriptor, /*allow_add=*/true));
+  arguments.SetReturn(target_function);
+
+  if (!target_function.IsNull()) {
+    ic_data.EnsureHasReceiverCheck(cls.id(), target_function);
+    return;
+  }
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& orig_arguments = Array::Handle(
+      zone, CollectArgumentsToArray(thread, zone, args_descriptor));
+  ASSERT(orig_arguments.At(args_desc.FirstArgIndex()) == receiver.ptr());
+
+  const auto& result = Object::Handle(
+      zone, InvokeCallThroughGetterOrNoSuchMethod(
+                thread, zone, receiver, name, orig_arguments, args_descriptor));
+  ThrowIfError(result);
+  arguments.SetArgAt(0, result);
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+// Check that argument types are valid for the given dynamic invocation
+// forwarder function. Pass default type arguments if needed.
+// Arg0: dynamic invocation forwarder function
+// Arg1: arguments descriptor
+// Return value: target function.
+DEFINE_RUNTIME_ENTRY(DynamicInvocationForwarderModAOT, 2) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& args_descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& target = Function::Handle(zone, function.ForwardingTarget());
+
+  ArgumentsDescriptor args_desc(args_descriptor);
+  const Array& args = Array::Handle(
+      zone, CollectArgumentsToArray(thread, zone, args_descriptor));
+
+  // Ensured during resolution.
+  ASSERT(target.AreValidArguments(args_desc, nullptr));
+
+  const auto& result =
+      Object::Handle(zone, target.DoArgumentTypesMatch(args, args_desc));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+
+  if (target.IsGeneric() && (args_desc.TypeArgsLen() == 0)) {
+    // Adjust arguments descriptor to pass default type arguments.
+    auto& default_type_args =
+        TypeArguments::Handle(zone, target.DefaultTypeArguments(zone));
+    if (!default_type_args.IsNull() && !default_type_args.IsInstantiated()) {
+      ASSERT(!target.is_static());
+      const auto& receiver =
+          Object::Handle(zone, args.At(args_desc.FirstArgIndex()));
+      const auto& instantiator_type_arguments = TypeArguments::Handle(
+          zone, Instance::Cast(receiver).GetTypeArguments());
+      default_type_args = default_type_args.InstantiateFrom(
+          instantiator_type_arguments, Object::null_type_arguments(), kAllFree,
+          Heap::kOld);
+    }
+    const auto& arg_names = Array::Handle(zone, args_desc.GetArgumentNames());
+    const auto& new_args_desc = Array::Handle(
+        zone, ArgumentsDescriptor::NewBoxed(target.NumTypeArguments(),
+                                            args_desc.Count(), arg_names));
+    arguments.SetArgAt(1, new_args_desc);
+    PatchTypeArgumentsForDynamicCallModAOT(thread, zone, new_args_desc,
+                                           default_type_args);
+  }
+  arguments.SetReturn(target);
+#else
+  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Invoke appropriate noSuchMethod function.

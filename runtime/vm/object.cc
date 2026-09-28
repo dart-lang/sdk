@@ -4145,12 +4145,16 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  const bool attach_bytecode =
+      is_declared_in_bytecode() && !thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
   }
 #endif
+  if (thread->isolate_group()->modular_aot_mode()) {
+    forwarder.SetInstructionsSafe(StubCode::DynamicInvocationForwarder());
+  }
 
   return forwarder.ptr();
 }
@@ -4193,7 +4197,8 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
 }
 
 bool Function::NeedsDynamicInvocationForwarder() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   // Right now closures do not need a dyn:* forwarder.
   // See https://github.com/dart-lang/sdk/issues/40813
@@ -4249,6 +4254,13 @@ bool Function::NeedsDynamicInvocationForwarder() const {
 
   const auto& type_params = TypeParameters::Handle(zone, type_parameters());
   if (!type_params.IsNull()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (thread->isolate_group()->modular_aot_mode()) {
+      // Generic methods need dynamic invocation forwarder in order to
+      // pass default type arguments.
+      return true;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       bound = type_params.BoundAt(i);

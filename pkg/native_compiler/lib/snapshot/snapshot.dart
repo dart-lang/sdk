@@ -149,6 +149,7 @@ class SnapshotSerializer {
   );
   final Map<ast.Class, SerializationCluster> _instanceClusters = {};
   final SnapshotStreamWriter out = SnapshotStreamWriter();
+  final List<({StubCode stub, Code code})> _rootStubs = [];
 
   SnapshotSerializer(
     this.targetCPU,
@@ -228,6 +229,7 @@ class SnapshotSerializer {
     for (final cluster in clusters) {
       cluster.writePostLoad(this);
     }
+    writeRoots();
 
     fillHeader(SnapshotKind.module);
   }
@@ -236,6 +238,14 @@ class SnapshotSerializer {
     out.writeUint(Snapshot.moduleSnapshotFormatVersion);
     out.writeUint8List(utf8.encode(targetCPU.name));
     out.writeByte(0);
+  }
+
+  void writeRoots() {
+    writeUint(_rootStubs.length);
+    for (final e in _rootStubs) {
+      writeUint(e.stub.index);
+      writeRefId(e.code);
+    }
   }
 
   void fillHeader(SnapshotKind kind) {
@@ -254,6 +264,11 @@ class SnapshotSerializer {
     while (_stack.isNotEmpty) {
       trace(_stack.removeLast()!);
     }
+  }
+
+  void addRootStub(StubCode stub, Code code) {
+    _rootStubs.add((stub: stub, code: code));
+    addRoot(code);
   }
 
   Object? preprocess(Object? obj) => switch (obj) {
@@ -1795,6 +1810,7 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               entry.selector,
             );
             serializer.push(icData);
+            serializer.push(entry.dispatcherCode);
           case SubtypeTestCacheWithName():
             serializer.push(entry.stc);
             serializer.push(entry.name);
@@ -1838,9 +1854,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case InterfaceCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
               serializer.writeRefId(icDatas[entry]);
+              serializer.writeRefId(entry.dispatcherCode);
             case DynamicCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
+              serializer.writeRefId(entry.dispatcherCode);
             case SubtypeTestCacheWithName():
               serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
               serializer.writeRefId(entry.stc);

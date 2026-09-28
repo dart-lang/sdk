@@ -533,33 +533,58 @@ void main() {
     test('loadClassId', () {
       asm.loadClassId(R0, R0, canBeSmi: false);
       asm.loadClassId(R1, R5, canBeSmi: false);
+      asm.loadClassId(R0, R0, canBeSmi: false, asTagged: true);
       asm.loadClassId(R1, R0, canBeSmi: true);
       asm.loadClassId(R0, R0, canBeSmi: true);
+      asm.loadClassId(R1, R2, canBeSmi: true, asTagged: true);
       asm.loadClassId(R1, R1, canBeSmi: true, scratch: R2);
+      asm.loadClassId(R3, R3, canBeSmi: true, asTagged: true, scratch: R2);
       final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
       final highBit =
           vmOffsets.UntaggedObject_kClassIdTagPos +
           vmOffsets.UntaggedObject_kClassIdTagSize -
           1;
       expectDisassembly(
+        // R0, R0, canBeSmi: false
         'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
+        // R1, R5, canBeSmi: false
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R0, R0, canBeSmi: false, asTagged: true
+        'ldr r0, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r0, r0, #$lowBit, #$highBit\n'
+        'lsl r0, r0, #${smiShift}\n'
+        // R1, R0, canBeSmi: true
         'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r0, #${smiBit}, +12\n'
         'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R0, R0, canBeSmi: true
         'mov r17, r0\n'
         'movz r0, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r17, #${smiBit}, +12\n'
         'ldr r0, [r17, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
+        // R1, R2, canBeSmi: true, asTagged: true
+        'movz r1, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +16\n'
+        'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        'lsl r1, r1, #${smiShift}\n'
+        // R1, R1, canBeSmi: true, scratch: R2
         'mov r2, r1\n'
         'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
         'tbzw r2, #${smiBit}, +12\n'
         'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
-        'ubfm r1, r1, #$lowBit, #$highBit\n',
+        'ubfm r1, r1, #$lowBit, #$highBit\n'
+        // R3, R3, canBeSmi: true, asTagged: true, scratch: R2
+        'mov r2, r3\n'
+        'movz r3, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'tbzw r2, #${smiBit}, +16\n'
+        'ldr r3, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r3, r3, #$lowBit, #$highBit\n'
+        'lsl r3, r3, #${smiShift}\n',
       );
     });
     test('loadIsolateGroup', () {

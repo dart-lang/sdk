@@ -219,6 +219,7 @@ abstract base class Assembler {
     Register result,
     Register object, {
     required bool canBeSmi,
+    bool asTagged = false,
     Register scratch,
   });
   void loadIsolateGroup(Register rd);
