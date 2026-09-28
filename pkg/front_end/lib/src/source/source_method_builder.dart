@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -22,6 +23,7 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
+import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
@@ -64,8 +66,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   final Modifiers _modifiers;
 
-  final Reference _reference;
-  final Reference? _tearOffReference;
+  final MethodReferences _references;
 
   final MemberName _memberName;
 
@@ -83,13 +84,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     required NameScheme nameScheme,
     required this._declarations,
     required this._implementation,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required this._references,
   }) : _nameScheme = nameScheme,
        _modifiers = modifiers,
        isOperator = _declarations.first.isOperator,
-       _reference = reference ?? new Reference(),
-       _tearOffReference = tearOffReference,
        _memberName = nameScheme.getDeclaredName(name);
 
   @override
@@ -127,8 +125,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
         problemReporting: libraryBuilder,
         nameScheme: _nameScheme,
         callback: isImplementation ? callback : noAddBuildNodesCallback,
-        reference: isImplementation ? _reference : null,
-        tearOffReference: isImplementation ? _tearOffReference : null,
+        references: isImplementation ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
       );
     }
@@ -185,7 +182,9 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  Iterable<Reference> get exportedMemberReferences => [_reference];
+  Iterable<Reference> get exportedMemberReferences => [
+    _references.methodReference,
+  ];
 
   List<ClassMember>? _localMembers;
 
@@ -206,13 +205,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference => _tearOffReference ?? _reference;
+  Reference? get readTargetReference => _references.tearOffReference;
 
   @override
   Member get invokeTarget => _invokeTarget;
 
   @override
-  Reference get invokeTargetReference => _reference;
+  Reference get invokeTargetReference => _references.methodReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -422,4 +421,97 @@ class _MethodClassMember implements ClassMember {
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
+}
+
+/// [Reference]s used for the [Member] nodes created for a method.
+class MethodReferences {
+  Reference? _methodReference;
+  Reference? _tearOffReference;
+
+  /// Whether there is an explicit tear off reference for this method.
+  ///
+  /// This is only needed for extension (type) methods whose lowering produce
+  /// a separate tear-off member.
+  final bool _hasTearOffReference;
+
+  /// Creates a [MethodReferences] object preloaded with the
+  /// [preExistingMethodReference] and [preExistingTearOffReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same method and tear-off in the previous compilation.
+  new _({
+    required Reference? preExistingMethodReference,
+    required Reference? preExistingTearOffReference,
+    required this._hasTearOffReference,
+  }) : _methodReference = preExistingMethodReference,
+       _tearOffReference = preExistingTearOffReference;
+
+  /// Creates a [MethodReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
+  factory(
+    String name,
+    NameScheme nameScheme,
+    IndexedContainer? indexedContainer, {
+    required ProcedureKind kind,
+  }) {
+    bool isExtensionMember =
+        nameScheme.containerType == ContainerType.Extension;
+    bool isExtensionTypeMember =
+        nameScheme.containerType == ContainerType.ExtensionType;
+    bool hasTearOffReference =
+        kind == ProcedureKind.Method &&
+        (isExtensionMember || isExtensionTypeMember);
+
+    Reference? preExistingReference;
+    Reference? preExistingTearOffReference;
+    if (indexedContainer != null) {
+      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
+      preExistingReference = indexedContainer.lookupGetterReference(
+        nameToLookup,
+      );
+      if (hasTearOffReference) {
+        preExistingTearOffReference = indexedContainer.lookupGetterReference(
+          nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name,
+        );
+      }
+    }
+    return new MethodReferences._(
+      preExistingMethodReference: preExistingReference,
+      preExistingTearOffReference: preExistingTearOffReference,
+      hasTearOffReference: hasTearOffReference,
+    );
+  }
+
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [MethodReferences._].
+  ///
+  /// This must be called before [methodReference] and [tearOffReference] are
+  /// accessed.
+  void registerReference(
+    ReferenceMap referenceMap,
+    SourceMethodBuilder builder,
+  ) {
+    if (_methodReference != null) {
+      referenceMap.registerNamedBuilder(_methodReference!, builder);
+    }
+    if (_tearOffReference != null) {
+      referenceMap.registerNamedBuilder(_tearOffReference!, builder);
+    }
+  }
+
+  /// The [Reference] used to refer the [Procedure] node created for this
+  /// method.
+  Reference get methodReference => _methodReference ??= new Reference();
+
+  /// The [Reference] used to refer to the [Procedure] node created for the
+  /// tear-off of this method.
+  ///
+  /// If the lowering does not produce an explicit tear-off procedure, this
+  /// is the same as [methodReference].
+  Reference get tearOffReference => _tearOffReference ??= _hasTearOffReference
+      ? new Reference()
+      :
+        // Coverage-ignore(suite): Not run.
+        methodReference;
 }

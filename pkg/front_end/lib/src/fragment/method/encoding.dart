@@ -70,8 +70,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -219,8 +218,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
@@ -265,7 +263,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       _procedureKind,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -562,8 +560,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -628,7 +625,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       ProcedureKind.Method,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -646,7 +643,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       _extensionTearOff = _buildExtensionTearOff(
         procedure,
         nameScheme,
-        tearOffReference,
+        references?.tearOffReference,
       );
     }
 

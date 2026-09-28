@@ -64,8 +64,7 @@ abstract class MethodDeclaration {
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
 
@@ -170,8 +169,7 @@ class MethodDeclarationImpl
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
@@ -179,8 +177,7 @@ class MethodDeclarationImpl
       problemReporting: problemReporting,
       nameScheme: nameScheme,
       callback: callback,
-      reference: reference,
-      tearOffReference: tearOffReference,
+      references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
       classTypeParameters: classTypeParameters,

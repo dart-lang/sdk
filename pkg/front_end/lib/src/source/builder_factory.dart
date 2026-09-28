@@ -984,10 +984,6 @@ class BuilderFactory {
         ? ProcedureKind.Operator
         : ProcedureKind.Method;
 
-    final bool isExtensionMember = _containerType == ContainerType.Extension;
-    final bool isExtensionTypeMember =
-        _containerType == ContainerType.ExtensionType;
-
     NameScheme nameScheme = new NameScheme(
       containerName: _containerName,
       containerType: _containerType,
@@ -997,20 +993,12 @@ class BuilderFactory {
           : _enclosingLibraryBuilder.libraryName,
     );
 
-    Reference? procedureReference;
-    Reference? tearOffReference;
-    IndexedContainer? indexedContainer = _indexedContainer ?? _indexedLibrary;
-
-    if (indexedContainer != null) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      procedureReference = indexedContainer.lookupGetterReference(nameToLookup);
-      if ((isExtensionMember || isExtensionTypeMember) &&
-          kind == ProcedureKind.Method) {
-        tearOffReference = indexedContainer.lookupGetterReference(
-          nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name,
-        );
-      }
-    }
+    MethodReferences methodReferences = new MethodReferences(
+      name,
+      nameScheme,
+      _indexedContainer ?? _indexedLibrary,
+      kind: kind,
+    );
 
     Modifiers modifiers = fragment.modifiers;
     MethodDeclaration introductoryDeclaration = new MethodDeclarationImpl(
@@ -1055,8 +1043,7 @@ class BuilderFactory {
       declarations: declarations,
       implementation: implementation,
       nameScheme: nameScheme,
-      reference: procedureReference,
-      tearOffReference: tearOffReference,
+      references: methodReferences,
     );
     fragment.builder = methodBuilder;
     if (augmentations != null) {
@@ -1077,12 +1064,7 @@ class BuilderFactory {
       );
     }
 
-    if (procedureReference != null) {
-      _loader.referenceMap.registerNamedBuilder(
-        procedureReference,
-        methodBuilder,
-      );
-    }
+    methodReferences.registerReference(_loader.referenceMap, methodBuilder);
     _builderRegistry.registerBuilder(
       declaration: methodBuilder,
       uriOffset: fragment.uriOffset,

@@ -170,12 +170,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ? new LibraryName(indexedClass!.library.reference)
         : libraryBuilder.libraryName;
 
-    Reference? toStringReference;
-    if (indexedClass != null) {
-      toStringReference = indexedClass!.lookupGetterReference(
-        new Name("_enumToString", coreLibrary.library),
-      );
-    }
+    String toStringName = "_enumToString";
+    NameScheme toStringNameScheme = new NameScheme(
+      isInstanceMember: true,
+      containerName: new ClassName(name),
+      containerType: ContainerType.Class,
+      libraryName: new LibraryName(coreLibrary.library.reference),
+    );
+    MethodReferences toStringReferences = new MethodReferences(
+      toStringName,
+      toStringNameScheme,
+      indexedClass,
+      kind: ProcedureKind.Method,
+    );
 
     for (String restrictedInstanceMemberName in const [
       "index",
@@ -321,23 +328,17 @@ class SourceEnumBuilder extends SourceClassBuilder {
       fileOffset: fileOffset,
     );
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
-      name: "_enumToString",
+      name: toStringName,
       fileUri: fileUri,
       fileOffset: fileOffset,
       libraryBuilder: libraryBuilder,
       declarationBuilder: this,
-      nameScheme: new NameScheme(
-        isInstanceMember: true,
-        containerName: new ClassName(name),
-        containerType: ContainerType.Class,
-        libraryName: new LibraryName(coreLibrary.library.reference),
-      ),
+      nameScheme: toStringNameScheme,
       declarations: [toStringDeclaration],
       implementation: toStringDeclaration,
       isStatic: false,
       modifiers: Modifiers.empty,
-      reference: toStringReference,
-      tearOffReference: null,
+      references: toStringReferences,
     );
     addMemberInternal(toStringBuilder, addToNameSpace: true);
     nameSpaceBuilder.checkTypeParameterConflict(
@@ -542,8 +543,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback callback,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     FunctionNode function =
@@ -562,7 +562,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
             ProcedureKind.Method,
             function,
             fileUri: fileUri,
-            reference: reference,
+            reference: references?.methodReference,
           )
           ..fileOffset = _fileOffset
           ..fileEndOffset = _fileOffset
