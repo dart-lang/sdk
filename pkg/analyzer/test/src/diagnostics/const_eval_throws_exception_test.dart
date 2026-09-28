@@ -156,6 +156,57 @@ main() {
 ''');
   }
 
+  test_assertInitializer_indirect_inSummary() async {
+    enableIndex = false;
+    librarySummaryFiles = [
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': r'''
+class A {
+  const A(int i) : assert(i == 1);
+}
+
+class B extends A {
+  const B(int i) : super(i);
+}
+''',
+        },
+      ),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    // No 'is called by' context message, the location of `B.new` in the
+    // summary is not known. The 'occurs here' context message has a wrong
+    // location, see `evaluateAndFormatErrorsInConstructorCall`.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:foo/foo.dart';
+// [context 1][column 1][length 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
+
+void f() {
+  print(const B(2));
+//      ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+}
+''');
+  }
+
+  test_assertInitializer_indirect_mixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int i) : assert(i == 1);
+//                 ^^^^^^^^^^^^^^
+// [context 2] The exception is 'The assertion in this constant expression failed.' and occurs here.
+}
+mixin M {}
+class B = A with M;
+//    ^
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
+const b = B(2);
+//        ^^^^
+// [diag.constEvalThrowsException][context 1][context 2] Evaluation of this constant expression throws an exception.
+''');
+  }
+
   test_assertInitializer_withMessage() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

@@ -4019,8 +4019,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                     memberName: conflict.name.name,
                   )
                   .withContextMessages([
-                    method.diagnosticMessage(
-                      message: formatList(
+                    ?method.contextMessageAt(
+                      formatList(
                         "The method is inherited from the {0} '{1}'.",
                         [
                           method.enclosingElement!.kind.displayName,
@@ -4028,8 +4028,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                         ],
                       ),
                     ),
-                    setter.diagnosticMessage(
-                      message: formatList(
+                    ?setter.contextMessageAt(
+                      formatList(
                         "The setter is inherited from the {0} '{1}'.",
                         [
                           setter.enclosingElement.kind.displayName,
@@ -4179,23 +4179,17 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                   memberName: methodName.name,
                 )
                 .withContextMessages([
-                  method.diagnosticMessage(
-                    message: formatList(
-                      "The method is inherited from the {0} '{1}'.",
-                      [
-                        method.enclosingElement!.kind.displayName,
-                        method.enclosingElement!.name,
-                      ],
-                    ),
+                  ?method.contextMessageAt(
+                    formatList("The method is inherited from the {0} '{1}'.", [
+                      method.enclosingElement!.kind.displayName,
+                      method.enclosingElement!.name,
+                    ]),
                   ),
-                  setter.diagnosticMessage(
-                    message: formatList(
-                      "The setter is inherited from the {0} '{1}'.",
-                      [
-                        setter.enclosingElement.kind.displayName,
-                        setter.enclosingElement.name,
-                      ],
-                    ),
+                  ?setter.contextMessageAt(
+                    formatList("The setter is inherited from the {0} '{1}'.", [
+                      setter.enclosingElement.kind.displayName,
+                      setter.enclosingElement.name,
+                    ]),
                   ),
                 ])
                 .atSourceRange(element.diagnosticRange(_currentUnit.source)),
@@ -5419,18 +5413,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     required ExtensionTypeDeclaration node,
     required ExtensionTypeElementImpl element,
   }) {
-    void report(String memberName, List<ExecutableElement> candidates) {
-      var contextMessages = candidates.map<DiagnosticMessage>((executable) {
-        var nonSynthetic = executable.nonSynthetic;
-        var container = executable.enclosingElement as InterfaceElement;
-        return DiagnosticMessageImpl(
-          filePath: executable.firstFragment.libraryFragment.source.fullName,
-          offset: nonSynthetic.firstFragment.offset,
-          length: nonSynthetic.firstFragment.name!.length,
-          message: "Inherited from '${container.name}'",
-          url: null,
-        );
-      }).toList();
+    void report(String memberName, List<InternalExecutableElement> candidates) {
+      var contextMessages = [
+        for (var executable in candidates)
+          ?executable.contextMessageAt(
+            "Inherited from '${executable.enclosingElement!.name}'",
+          ),
+      ];
       diagnosticReporter.report(
         diag.extensionTypeInheritedMemberConflict
             .withArguments(
