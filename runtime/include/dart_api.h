@@ -2812,7 +2812,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
  * 'target' is an object, then this function will invoke an instance
  * method.  If 'target' is a type, then this function will invoke a
  * static method.  If 'target' is a library, then this function will
- * invoke a top-level function from that library.
+ * invoke a top-level function declared in that library (but not re-exported).
  * NOTE: This API call cannot be used to invoke methods of a type object.
  *
  * This function ignores visibility (leading underscores in names).

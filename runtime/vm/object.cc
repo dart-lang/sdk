@@ -14385,42 +14385,6 @@ void Library::AddObject(const Object& obj, const String& name) const {
   }
 }
 
-// Lookup a name in the library's re-export namespace.
-// This lookup can occur from two different threads: background compiler and
-// mutator thread.
-ObjectPtr Library::LookupReExport(const String& name,
-                                  ZoneGrowableArray<intptr_t>* trail) const {
-  if (!HasExports()) {
-    return Object::null();
-  }
-
-  if (trail == nullptr) {
-    trail = new ZoneGrowableArray<intptr_t>();
-  }
-  Object& obj = Object::Handle();
-
-  const intptr_t lib_id = this->index();
-  ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
-  trail->Add(lib_id);
-  const Array& exports = Array::Handle(this->exports());
-  Namespace& ns = Namespace::Handle();
-  for (int i = 0; i < exports.Length(); i++) {
-    ns ^= exports.At(i);
-    obj = ns.Lookup(name, trail);
-    if (!obj.IsNull()) {
-      // The Lookup call above may return a setter x= when we are looking
-      // for the name x. Make sure we only return when a matching name
-      // is found.
-      String& obj_name = String::Handle(obj.DictionaryName());
-      if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
-        break;
-      }
-    }
-  }
-  trail->RemoveLast();
-  return obj.ptr();
-}
-
 ObjectPtr Library::LookupEntry(const String& name, intptr_t* index) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
@@ -14598,16 +14562,6 @@ ObjectPtr Library::LookupLocalObject(const String& name) const {
   return LookupEntry(name, &index);
 }
 
-ObjectPtr Library::LookupLocalOrReExportObject(const String& name) const {
-  intptr_t index;
-  EnsureTopLevelClassIsFinalized();
-  const Object& result = Object::Handle(LookupEntry(name, &index));
-  if (!result.IsNull() && !result.IsLibraryPrefix()) {
-    return result.ptr();
-  }
-  return LookupReExport(name);
-}
-
 FieldPtr Library::LookupFieldAllowPrivate(const String& name) const {
   EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
@@ -14718,12 +14672,6 @@ void Library::AddImport(const Namespace& ns) const {
   intptr_t index = num_imports();
   imports.SetAt(index, ns);
   set_num_imports(index + 1);
-}
-
-// Convenience function to determine whether the export list is
-// non-empty.
-bool Library::HasExports() const {
-  return exports() != Object::empty_array().ptr();
 }
 
 // We add one namespace at a time to the exports array and don't
@@ -14890,7 +14838,8 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable,
                                 bool for_invocation) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(getter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(getter_name));
   Function& getter = Function::Handle();
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
@@ -14910,13 +14859,13 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
     // No field found. Check for a getter in the lib.
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    obj = LookupLocalOrReExportObject(internal_getter_name);
+    obj = LookupLocalObject(internal_getter_name);
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).ptr();
     } else if (!for_invocation) {
       // No need to re-lookup the getter name if coming from Invoke(), since
       // it already failed there.
-      obj = LookupLocalOrReExportObject(getter_name);
+      obj = LookupLocalObject(getter_name);
       if (obj.IsFunction()) {
         const auto& function = Function::Cast(obj);
         if (function.SafeToClosurize()) {
@@ -14960,7 +14909,8 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
                                 const Instance& value,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
   AbstractType& setter_type = AbstractType::Handle();
@@ -14991,7 +14941,7 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
   }
 
   Function& setter = Function::Handle();
-  obj = LookupLocalOrReExportObject(internal_setter_name);
+  obj = LookupLocalObject(internal_setter_name);
   if (obj.IsFunction()) {
     setter ^= obj.ptr();
   }
@@ -15025,6 +14975,7 @@ ObjectPtr Library::Invoke(const String& function_name,
                           bool respect_reflectable) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  EnsureTopLevelClassIsFinalized();
 
   // We don't pass any explicit type arguments, which will be understood as
   // using dynamic for any function type arguments by lower layers.
@@ -15035,8 +14986,7 @@ ObjectPtr Library::Invoke(const String& function_name,
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   auto& function = Function::Handle(zone);
-  auto& result =
-      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  auto& result = Object::Handle(zone, LookupLocalObject(function_name));
   if (result.IsFunction()) {
     function ^= result.ptr();
   }
@@ -15561,20 +15511,6 @@ ObjectPtr Namespace::Lookup(const String& name,
     }
   }
 
-  // Library prefixes are not exported.
-  if (obj.IsNull() || obj.IsLibraryPrefix()) {
-    // Lookup in the re-exported symbols.
-    obj = lib.LookupReExport(name, trail);
-    if (obj.IsNull() && !Field::IsSetterName(name)) {
-      // LookupReExport() only returns objects that match the given name.
-      // If there is no field/func/getter, try finding a setter.
-      const String& setter_name =
-          String::Handle(zone, Field::LookupSetterSymbol(name));
-      if (!setter_name.IsNull()) {
-        obj = lib.LookupReExport(setter_name, trail);
-      }
-    }
-  }
   if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
