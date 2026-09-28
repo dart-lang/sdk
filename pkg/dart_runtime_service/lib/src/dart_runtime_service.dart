@@ -38,15 +38,19 @@ class DartRuntimeService {
     // environment variables specified at runtime when the service is compiled
     // to a snapshot. This behavior is somewhat undefined and doesn't work
     // in AOT, but is maintained for backwards compatibility.
+    // We use const bool.fromEnvironment('dart.library.io'), because web
+    // compilers don't support non-const bool.fromEnvironment.
     silenceServiceOutput =
+        const bool.fromEnvironment('dart.library.io') &&
+        (
         // TODO(48602): deprecate SILENT_OBSERVATORY in favor of
         // SILENT_VM_SERVICE
         // ignore: prefer_const_constructors
         bool.fromEnvironment('SILENT_OBSERVATORY') ||
-        // ignore: prefer_const_constructors
-        bool.fromEnvironment('SILENT_VM_SERVICE') ||
-        // ignore: prefer_const_constructors
-        bool.fromEnvironment('SILENT_SERVICE');
+            // ignore: prefer_const_constructors
+            bool.fromEnvironment('SILENT_VM_SERVICE') ||
+            // ignore: prefer_const_constructors
+            bool.fromEnvironment('SILENT_SERVICE'));
   }
 
   static Future<DartRuntimeService> initialize({
