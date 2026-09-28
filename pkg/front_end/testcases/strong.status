@@ -130,6 +130,7 @@ augmentations/extension_type_declarations: SemiFuzzFailure
 augmentations/mixin_declarations: SemiFuzzFailure
 augmentations/property_declarations: SemiFuzzFailure
 augmentations/top_level_declarations: SemiFuzzFailure
+augmentations/unordered_method: semiFuzzFailureOnForceRebuildBodies
 
 # Unclear exactly what is going on here - but target none isn't super important.
 none/issue_63440: SemiFuzzFailure

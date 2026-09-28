@@ -59,12 +59,12 @@ abstract class MethodDeclaration {
     required Uri annotatableFileUri,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -165,20 +165,20 @@ class MethodDeclarationImpl
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
-      libraryBuilder,
-      problemReporting,
-      nameScheme,
-      f,
+      libraryBuilder: libraryBuilder,
+      problemReporting: problemReporting,
+      nameScheme: nameScheme,
+      callback: callback,
       reference: reference,
       tearOffReference: tearOffReference,
       isAbstractOrExternal:

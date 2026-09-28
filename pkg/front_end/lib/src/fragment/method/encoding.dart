@@ -65,12 +65,12 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Uri annotatableFileUri,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -214,12 +214,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
@@ -279,7 +279,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -557,12 +557,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -650,7 +650,11 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
     }
 
-    f(kind: _builtMemberKind, member: procedure, tearOff: _extensionTearOff);
+    callback(
+      kind: _builtMemberKind,
+      member: procedure,
+      tearOff: _extensionTearOff,
+    );
   }
 
   @override

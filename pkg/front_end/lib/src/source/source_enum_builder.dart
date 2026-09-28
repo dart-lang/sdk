@@ -313,6 +313,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
       );
     }
 
+    MethodDeclaration toStringDeclaration = new _EnumToStringMethodDeclaration(
+      this,
+      libraryBuilder.loader.target.stringType,
+      _underscoreEnumTypeBuilder,
+      fileUri: fileUri,
+      fileOffset: fileOffset,
+    );
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
       name: "_enumToString",
       fileUri: fileUri,
@@ -325,14 +332,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
         containerType: ContainerType.Class,
         libraryName: new LibraryName(coreLibrary.library.reference),
       ),
-      introductory: new _EnumToStringMethodDeclaration(
-        this,
-        libraryBuilder.loader.target.stringType,
-        _underscoreEnumTypeBuilder,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-      ),
-      augmentations: const [],
+      declarations: [toStringDeclaration],
+      implementation: toStringDeclaration,
       isStatic: false,
       modifiers: Modifiers.empty,
       reference: toStringReference,
@@ -536,12 +537,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required Reference? reference,
     required Reference? tearOffReference,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -566,7 +567,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           ..fileOffset = _fileOffset
           ..fileEndOffset = _fileOffset
           ..containsSuperCalls = true;
-    f(kind: BuiltMemberKind.Method, member: _procedure);
+    callback(kind: BuiltMemberKind.Method, member: _procedure);
   }
 
   @override

@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part unordered_method_part1.dart;
+part unordered_method_part2.dart;
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+  method instanceMethod1() → void
+    ;
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+  abstract method instanceMethod4() → void;
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+  static method staticMethod1() → void
+    ;
+  @/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+  method /* from org-dartlang-testcase:///unordered_method_part1.dart */ instanceMethod2() → void
+    ;
+  @/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+  static method /* from org-dartlang-testcase:///unordered_method_part1.dart */ staticMethod2() → void
+    ;
+  @/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation2
+  method /* from org-dartlang-testcase:///unordered_method_part2.dart */ instanceMethod3() → void
+    ;
+  @/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation2
+  static method /* from org-dartlang-testcase:///unordered_method_part2.dart */ staticMethod3() → void
+    ;
+}
+static const field core::int annotation1 = 1;
+static const field core::int annotation2 = 2;
+@/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation1
+@/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+static method topLevelMethod1() → void
+  ;
+@/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+@/* from org-dartlang-testcase:///unordered_method_part2.dart */ self::annotation2
+static method /* from org-dartlang-testcase:///unordered_method_part1.dart */ topLevelMethod2() → void
+  ;
+@/* from org-dartlang-testcase:///unordered_method.dart */ self::annotation1
+@/* from org-dartlang-testcase:///unordered_method_part1.dart */ self::annotation2
+static method /* from org-dartlang-testcase:///unordered_method_part2.dart */ topLevelMethod3() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:18:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:18:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:28:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:28:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:31:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:31:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:26:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:21:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:38:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:34:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:29:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:25:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:41:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:38:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:7:1 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:7:1 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:15:1 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part2.dart:10:1 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method.dart:18:1 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_method_part1.dart:14:1 -> IntConstant(2)
+Extra constant evaluation: evaluated: 20, effectively constant: 20

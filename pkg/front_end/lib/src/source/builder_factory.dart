@@ -1016,14 +1016,21 @@ class BuilderFactory {
     MethodDeclaration introductoryDeclaration = new MethodDeclarationImpl(
       fragment,
     );
+    List<MethodDeclaration> declarations = [introductoryDeclaration];
+    MethodDeclaration implementation = introductoryDeclaration;
 
-    List<MethodDeclaration> augmentationDeclarations = [];
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
         // Promote [augmentation] to [MethodFragment].
         augmentation as MethodFragment;
 
-        augmentationDeclarations.add(new MethodDeclarationImpl(augmentation));
+        MethodDeclaration augmentingDeclaration = new MethodDeclarationImpl(
+          augmentation,
+        );
+        declarations.add(augmentingDeclaration);
+        if (!augmentation.modifiers.isAbstract) {
+          implementation = augmentingDeclaration;
+        }
 
         _typeParameterFactory.createNominalParameterBuilders(
           augmentation.declaredTypeParameters,
@@ -1045,8 +1052,8 @@ class BuilderFactory {
       declarationBuilder: _declarationBuilder,
       isStatic: modifiers.isStatic,
       modifiers: modifiers,
-      introductory: introductoryDeclaration,
-      augmentations: augmentationDeclarations,
+      declarations: declarations,
+      implementation: implementation,
       nameScheme: nameScheme,
       reference: procedureReference,
       tearOffReference: tearOffReference,
@@ -1061,14 +1068,8 @@ class BuilderFactory {
       }
       augmentations.clear();
     }
-    introductoryDeclaration.createEncoding(
-      _problemReporting,
-      methodBuilder,
-      encodingStrategy,
-      _typeParameterFactory,
-    );
-    for (MethodDeclaration augmentation in augmentationDeclarations) {
-      augmentation.createEncoding(
+    for (MethodDeclaration declaration in declarations) {
+      declaration.createEncoding(
         _problemReporting,
         methodBuilder,
         encodingStrategy,
