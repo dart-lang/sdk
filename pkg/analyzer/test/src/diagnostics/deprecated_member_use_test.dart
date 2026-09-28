@@ -932,6 +932,51 @@ export 'lib2.dart';
 ''');
   }
 
+  test_export_inPart() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+library a;
+''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'package:aaa/a.dart';
+// [diag.deprecatedMemberUse][column 1][length 28] 'package:aaa/a.dart' is deprecated and shouldn't be used.
+''',
+    });
+  }
+
+  test_export_inPart_nested() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+library a;
+''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'package:aaa/a.dart';
+// [diag.deprecatedMemberUse][column 1][length 28] 'package:aaa/a.dart' is deprecated and shouldn't be used.
+''',
+    });
+  }
+
   test_extensionOverride() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
