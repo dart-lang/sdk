@@ -424,12 +424,30 @@ then that is used instead.''',
         await DartNativeAssetsBuilder.findPubspec(
           executables.first.sourceEntryPoint,
         );
+    final runPackage = packageConfig[resolvedRunPackageName];
+    final includeDevDependencies =
+        runPackage == null ||
+        executables.any((e) {
+          final packageRoot = runPackage.root.toFilePath();
+          final entryPointPath = path.canonicalize(
+            e.sourceEntryPoint.toFilePath(),
+          );
+          final inBin = path.isWithin(
+            path.canonicalize(path.join(packageRoot, 'bin')),
+            entryPointPath,
+          );
+          final inLib = path.isWithin(
+            path.canonicalize(path.join(packageRoot, 'lib')),
+            entryPointPath,
+          );
+          return !inBin && !inLib;
+        });
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
       packageConfigUri: packageConfigUri,
       packageConfig: packageConfig,
       runPackageName: resolvedRunPackageName,
-      includeDevDependencies: false,
+      includeDevDependencies: includeDevDependencies,
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       progressUpdatesOnStderr: progressUpdatesOnStderr,

@@ -170,12 +170,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ? new LibraryName(indexedClass!.library.reference)
         : libraryBuilder.libraryName;
 
-    Reference? toStringReference;
-    if (indexedClass != null) {
-      toStringReference = indexedClass!.lookupGetterReference(
-        new Name("_enumToString", coreLibrary.library),
-      );
-    }
+    String toStringName = "_enumToString";
+    NameScheme toStringNameScheme = new NameScheme(
+      isInstanceMember: true,
+      containerName: new ClassName(name),
+      containerType: ContainerType.Class,
+      libraryName: new LibraryName(coreLibrary.library.reference),
+    );
+    MethodReferences toStringReferences = new MethodReferences(
+      toStringName,
+      toStringNameScheme,
+      indexedClass,
+      kind: ProcedureKind.Method,
+    );
 
     for (String restrictedInstanceMemberName in const [
       "index",
@@ -313,30 +320,25 @@ class SourceEnumBuilder extends SourceClassBuilder {
       );
     }
 
+    MethodDeclaration toStringDeclaration = new _EnumToStringMethodDeclaration(
+      this,
+      libraryBuilder.loader.target.stringType,
+      _underscoreEnumTypeBuilder,
+      fileUri: fileUri,
+      fileOffset: fileOffset,
+    );
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
-      name: "_enumToString",
+      name: toStringName,
       fileUri: fileUri,
       fileOffset: fileOffset,
       libraryBuilder: libraryBuilder,
       declarationBuilder: this,
-      nameScheme: new NameScheme(
-        isInstanceMember: true,
-        containerName: new ClassName(name),
-        containerType: ContainerType.Class,
-        libraryName: new LibraryName(coreLibrary.library.reference),
-      ),
-      introductory: new _EnumToStringMethodDeclaration(
-        this,
-        libraryBuilder.loader.target.stringType,
-        _underscoreEnumTypeBuilder,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-      ),
-      augmentations: const [],
+      nameScheme: toStringNameScheme,
+      declarations: [toStringDeclaration],
+      implementation: toStringDeclaration,
       isStatic: false,
       modifiers: Modifiers.empty,
-      reference: toStringReference,
-      tearOffReference: null,
+      references: toStringReferences,
     );
     addMemberInternal(toStringBuilder, addToNameSpace: true);
     nameSpaceBuilder.checkTypeParameterConflict(
@@ -536,13 +538,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     FunctionNode function =
@@ -561,12 +562,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
             ProcedureKind.Method,
             function,
             fileUri: fileUri,
-            reference: reference,
+            reference: references?.methodReference,
           )
           ..fileOffset = _fileOffset
           ..fileEndOffset = _fileOffset
           ..containsSuperCalls = true;
-    f(kind: BuiltMemberKind.Method, member: _procedure);
+    callback(kind: BuiltMemberKind.Method, member: _procedure);
   }
 
   @override
@@ -869,19 +870,14 @@ class _EnumValuesFieldDeclaration
   Uri get fileUri => _sourceEnumBuilder.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
   Initializer takePrimaryConstructorFieldInitializer() {
     throw new UnsupportedError(
       "${runtimeType}.takePrimaryConstructorFieldInitializer",
     );
   }
+
+  @override
+  String toString() => '$runtimeType($_sourceEnumBuilder)';
 }
 
 class _EnumValuesClassMember implements ClassMember {

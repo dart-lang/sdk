@@ -237,11 +237,11 @@ Future<void> testLockShared() {
   var raf = file.openSync();
   asyncStart();
   return Future.forEach<Function>([
-    () => raf.lock(FileLock.shared),
+    () => raf.lockSync(FileLock.shared),
     () => checkLocked(file.path),
     () => checkLocked(file.path, 0, 2),
     () => checkNotLocked(file.path, 0, 2, FileLock.shared),
-  ], (f) => f()).then((_) {
+  ], (f) => f()).whenComplete(() {
     raf.closeSync();
     directory.deleteSync(recursive: true);
     asyncEnd();
@@ -316,15 +316,15 @@ Future<void> testLockAfterLengthAsync() {
 
 main() async {
   asyncStart();
-  await testLockWholeFile();
-  await testLockWholeFileAsync();
-  await testLockRange();
-  await testLockRangeAsync();
-  await testLockEnd();
-  await testLockEndAsync();
-  await testLockShared();
-  await testLockSharedAsync();
-  await testLockAfterLength();
-  await testLockAfterLengthAsync();
+  await testLockWholeFile(); //# 01: ok
+  await testLockWholeFileAsync(); //# 02: ok
+  await testLockRange(); //# 03: ok
+  await testLockRangeAsync(); //# 04: ok
+  await testLockEnd(); //# 05: ok
+  await testLockEndAsync(); //# 06: ok
+  await testLockShared(); //# 07: ok
+  await testLockSharedAsync(); //# 08: ok
+  await testLockAfterLength(); //# 09: ok
+  await testLockAfterLengthAsync(); //# 10: ok
   asyncEnd();
 }

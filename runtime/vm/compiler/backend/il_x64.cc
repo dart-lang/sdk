@@ -4510,6 +4510,18 @@ DEFINE_EMIT(Int32x4AnyTrue, (Register out, XmmRegister value)) {
           compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
 }
 
+DEFINE_EMIT(Int32x4AllTrue,
+            (Register out, XmmRegister value, Temp<XmmRegister> temp)) {
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ pxor(temp, temp);
+  __ pcmpeqd(temp, value);
+  __ ptest(temp, temp);
+  __ setcc(NOT_EQUAL, ByteRegisterOf(out));
+  __ movzxb(out, out);
+  __ movq(out,
+          compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
+}
+
 DEFINE_EMIT(Int32x4WithLane,
             (SameAsFirstInput, XmmRegister value, Register newLaneValue)) {
   // TODO(dartbug.com/30949) avoid transfer through memory. SSE4.1 has pinsrd.
@@ -4635,6 +4647,7 @@ DEFINE_EMIT(Int32x4NotEqual,
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
   SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
   CASE(Int32x4WithX)                                                           \
   CASE(Int32x4WithY)                                                           \
   CASE(Int32x4WithZ)                                                           \

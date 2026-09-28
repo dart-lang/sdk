@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -22,6 +23,7 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
+import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
@@ -52,15 +54,19 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   @override
   final bool isOperator;
 
-  /// The declarations that introduces this method. Subsequent methods of the
-  /// same name must be augmentations.
-  final MethodDeclaration _introductory;
-  final List<MethodDeclaration> _augmentations;
+  /// The declarations of this method. The first is the introductory declaration
+  /// and subsequent declarations are augmentations.
+  final List<MethodDeclaration> _declarations;
+
+  /// The declaration used as the implementation of this method.
+  ///
+  /// This is the last non-abstract declaration, if any. Otherwise it is the
+  /// first declaration.
+  final MethodDeclaration _implementation;
 
   final Modifiers _modifiers;
 
-  final Reference _reference;
-  final Reference? _tearOffReference;
+  final MethodReferences _references;
 
   final MemberName _memberName;
 
@@ -76,18 +82,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     required this.isStatic,
     required Modifiers modifiers,
     required NameScheme nameScheme,
-    required MethodDeclaration introductory,
-    required List<MethodDeclaration> augmentations,
-    required Reference? reference,
-    required Reference? tearOffReference,
+    required this._declarations,
+    required this._implementation,
+    required this._references,
   }) : _nameScheme = nameScheme,
-       _introductory = introductory,
        _modifiers = modifiers,
-       isOperator = introductory.isOperator,
-       _reference = reference ?? new Reference(),
-       _tearOffReference = tearOffReference,
-       _memberName = nameScheme.getDeclaredName(name),
-       _augmentations = augmentations;
+       isOperator = _declarations.first.isOperator,
+       _memberName = nameScheme.getDeclaredName(name);
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
@@ -116,37 +117,20 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f) {
-    List<MethodDeclaration> augmentedFragments = [
-      _introductory,
-      ..._augmentations,
-    ];
-    // TODO(johnniwinther): Support augmenting a concrete method with an
-    //  abstract method.
-    MethodDeclaration lastFragment = augmentedFragments.removeLast();
-    lastFragment.buildOutlineNode(
-      libraryBuilder,
-      libraryBuilder,
-      _nameScheme,
-      f,
-      reference: _reference,
-      tearOffReference: _tearOffReference,
-      classTypeParameters: classBuilder?.cls.typeParameters,
-    );
-
-    for (MethodDeclaration augmented in augmentedFragments) {
-      augmented.buildOutlineNode(
-        libraryBuilder,
-        libraryBuilder,
-        _nameScheme,
-        noAddBuildNodesCallback,
-        reference: new Reference(),
-        tearOffReference: new Reference(),
+  void buildOutlineNodes(BuildNodesCallback callback) {
+    for (MethodDeclaration declaration in _declarations) {
+      bool isImplementation = declaration == _implementation;
+      declaration.buildOutlineNode(
+        libraryBuilder: libraryBuilder,
+        problemReporting: libraryBuilder,
+        nameScheme: _nameScheme,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
+        references: isImplementation ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
       );
     }
-    _invokeTarget = lastFragment.invokeTarget;
-    _readTarget = lastFragment.readTarget;
+    _invokeTarget = _implementation.invokeTarget;
+    _readTarget = _implementation.readTarget;
   }
 
   bool hasBuiltOutlineExpressions = false;
@@ -157,17 +141,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(
-        classHierarchy: classHierarchy,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        methodBuilder: this,
-        annotatable: _invokeTarget,
-        annotatableFileUri: _invokeTarget.fileUri,
-      );
-      for (int i = 0; i < _augmentations.length; i++) {
-        MethodDeclaration augmentation = _augmentations[i];
-        augmentation.buildOutlineExpressions(
+      for (int i = 0; i < _declarations.length; i++) {
+        _declarations[i].buildOutlineExpressions(
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
@@ -190,10 +165,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     // TODO(johnniwinther): Updated checks for default values to handle
     // default values declared on the introductory method and omitted on the
     // augmenting method.
-    _introductory.checkTypes(problemReporting, typeEnvironment);
-    for (int i = 0; i < _augmentations.length; i++) {
-      MethodDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(problemReporting, typeEnvironment);
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].checkTypes(problemReporting, typeEnvironment);
     }
   }
 
@@ -203,19 +176,19 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     TypeEnvironment typeEnvironment,
   ) {
     if (!isClassInstanceMember) return;
-    _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
-    for (int i = 0; i < _augmentations.length; i++) {
-      MethodDeclaration augmentation = _augmentations[i];
-      augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].checkVariance(sourceClassBuilder, typeEnvironment);
     }
   }
 
   @override
-  Iterable<Reference> get exportedMemberReferences => [_reference];
+  Iterable<Reference> get exportedMemberReferences => [
+    _references.methodReference,
+  ];
 
   List<ClassMember>? _localMembers;
 
-  UriOffsetLength get uriOffset => _introductory.uriOffset;
+  UriOffsetLength get uriOffset => _declarations.first.uriOffset;
 
   @override
   List<ClassMember> get localMembers =>
@@ -232,13 +205,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   // Coverage-ignore(suite): Not run.
-  Reference? get readTargetReference => _tearOffReference ?? _reference;
+  Reference? get readTargetReference => _references.tearOffReference;
 
   @override
   Member get invokeTarget => _invokeTarget;
 
   @override
-  Reference get invokeTargetReference => _reference;
+  Reference get invokeTargetReference => _references.methodReference;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -253,17 +226,17 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     ComputeDefaultTypeContext context, {
     required bool inErrorRecovery,
   }) {
-    int count = _introductory.computeDefaultTypes(context);
-    for (int i = 0; i < _augmentations.length; i++) {
-      MethodDeclaration augmentation = _augmentations[i];
-      count += augmentation.computeDefaultTypes(context);
+    int count = 0;
+    for (int i = 0; i < _declarations.length; i++) {
+      count += _declarations[i].computeDefaultTypes(context);
     }
     return count;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
+  Iterable<MetadataBuilder>? get metadataForTesting =>
+      _declarations.first.metadata;
 
   @override
   bool get isProperty => false;
@@ -292,7 +265,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     if (_typeEnsured) return;
     if (_classMembersBuilder != null) {
       assert(_overrideDependencies != null);
-      _introductory.ensureTypes(
+      _declarations.first.ensureTypes(
         _classMembersBuilder!,
         declarationBuilder as SourceClassBuilder,
         _overrideDependencies,
@@ -448,4 +421,97 @@ class _MethodClassMember implements ClassMember {
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
+}
+
+/// [Reference]s used for the [Member] nodes created for a method.
+class MethodReferences {
+  Reference? _methodReference;
+  Reference? _tearOffReference;
+
+  /// Whether there is an explicit tear off reference for this method.
+  ///
+  /// This is only needed for extension (type) methods whose lowering produce
+  /// a separate tear-off member.
+  final bool _hasTearOffReference;
+
+  /// Creates a [MethodReferences] object preloaded with the
+  /// [preExistingMethodReference] and [preExistingTearOffReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same method and tear-off in the previous compilation.
+  new _({
+    required Reference? preExistingMethodReference,
+    required Reference? preExistingTearOffReference,
+    required this._hasTearOffReference,
+  }) : _methodReference = preExistingMethodReference,
+       _tearOffReference = preExistingTearOffReference;
+
+  /// Creates a [MethodReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
+  factory(
+    String name,
+    NameScheme nameScheme,
+    IndexedContainer? indexedContainer, {
+    required ProcedureKind kind,
+  }) {
+    bool isExtensionMember =
+        nameScheme.containerType == ContainerType.Extension;
+    bool isExtensionTypeMember =
+        nameScheme.containerType == ContainerType.ExtensionType;
+    bool hasTearOffReference =
+        kind == ProcedureKind.Method &&
+        (isExtensionMember || isExtensionTypeMember);
+
+    Reference? preExistingReference;
+    Reference? preExistingTearOffReference;
+    if (indexedContainer != null) {
+      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
+      preExistingReference = indexedContainer.lookupGetterReference(
+        nameToLookup,
+      );
+      if (hasTearOffReference) {
+        preExistingTearOffReference = indexedContainer.lookupGetterReference(
+          nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name,
+        );
+      }
+    }
+    return new MethodReferences._(
+      preExistingMethodReference: preExistingReference,
+      preExistingTearOffReference: preExistingTearOffReference,
+      hasTearOffReference: hasTearOffReference,
+    );
+  }
+
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [MethodReferences._].
+  ///
+  /// This must be called before [methodReference] and [tearOffReference] are
+  /// accessed.
+  void registerReference(
+    ReferenceMap referenceMap,
+    SourceMethodBuilder builder,
+  ) {
+    if (_methodReference != null) {
+      referenceMap.registerNamedBuilder(_methodReference!, builder);
+    }
+    if (_tearOffReference != null) {
+      referenceMap.registerNamedBuilder(_tearOffReference!, builder);
+    }
+  }
+
+  /// The [Reference] used to refer the [Procedure] node created for this
+  /// method.
+  Reference get methodReference => _methodReference ??= new Reference();
+
+  /// The [Reference] used to refer to the [Procedure] node created for the
+  /// tear-off of this method.
+  ///
+  /// If the lowering does not produce an explicit tear-off procedure, this
+  /// is the same as [methodReference].
+  Reference get tearOffReference => _tearOffReference ??= _hasTearOffReference
+      ? new Reference()
+      :
+        // Coverage-ignore(suite): Not run.
+        methodReference;
 }

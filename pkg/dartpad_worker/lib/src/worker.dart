@@ -6,7 +6,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -404,9 +403,7 @@ class _Workspace {
       );
     }
 
-    return {
-      'bytes': Uint8List.fromList(await collectBytes(folder.createTarStream())),
-    };
+    return {'bytes': await collectBytes(folder.createTarStream())};
   }
 
   String _findPackageConfigFromEntrypoint(String entrypoint) {

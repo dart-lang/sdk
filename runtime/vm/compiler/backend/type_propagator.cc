@@ -1023,7 +1023,8 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
   } else if (is_exact_type()) {
     prefix = "==";
     type_name = type_->ScrubbedNameCString();
-  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
+  } else if (cid_ != kIllegalCid && cid_ != kDynamicCid &&
+             (cid_ != kRecordCid || type_ == nullptr)) {
     const Class& cls =
         Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = cls.ScrubbedNameCString();

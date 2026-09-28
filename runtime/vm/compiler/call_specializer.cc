@@ -2770,6 +2770,7 @@ class SimdLowering : public ValueObject {
         BoxVector(kUnboxedInt32, 4);
         return true;
       case MethodRecognizer::kInt32x4AnyTrue:
+      case MethodRecognizer::kInt32x4AllTrue:
         // TODO(riscv)
         return false;
       default:
@@ -3557,6 +3558,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
 
 #if !defined(TARGET_ARCH_IA32)
     case MethodRecognizer::kInt32x4AnyTrue:
+    case MethodRecognizer::kInt32x4AllTrue:
 #if defined(TARGET_ARCH_X64)
       // The inline emit uses PTEST, so fall back to the native when SSE4.1 is
       // unavailable.

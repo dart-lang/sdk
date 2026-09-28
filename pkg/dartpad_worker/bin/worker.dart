@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:dartpad/src/util/json_rpc_message_port_channel.dart';
 import 'package:dartpad_worker/src/util/log.dart';
@@ -64,7 +65,12 @@ Future<Worker> _createWorker(DartPadOptions options) async {
       logError('Failed to fetch sdk.tar from: "$sdkTar"');
       throw Exception('unable to fetch sdk.tar');
     }
-    return await Worker.create(r.stream, pubHostedUrl: options.pubHostedUrl);
+    return await Worker.create(
+      // Materialize JS typed-array views from Fetch into native Wasm Uint8Lists
+      // once per network chunk so TarReader doesn't slice across JS interop.
+      r.stream.map(Uint8List.fromList),
+      pubHostedUrl: options.pubHostedUrl,
+    );
   } finally {
     c.close();
   }

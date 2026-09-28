@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide ExtensionTypeDeclaration;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
@@ -14,7 +13,9 @@ import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/constructor/declaration.dart';
 import '../fragment/constructor/encoding.dart';
 import '../fragment/extension/declaration.dart';
@@ -984,10 +985,6 @@ class BuilderFactory {
         ? ProcedureKind.Operator
         : ProcedureKind.Method;
 
-    final bool isExtensionMember = _containerType == ContainerType.Extension;
-    final bool isExtensionTypeMember =
-        _containerType == ContainerType.ExtensionType;
-
     NameScheme nameScheme = new NameScheme(
       containerName: _containerName,
       containerType: _containerType,
@@ -997,33 +994,32 @@ class BuilderFactory {
           : _enclosingLibraryBuilder.libraryName,
     );
 
-    Reference? procedureReference;
-    Reference? tearOffReference;
-    IndexedContainer? indexedContainer = _indexedContainer ?? _indexedLibrary;
-
-    if (indexedContainer != null) {
-      Name nameToLookup = nameScheme.getProcedureMemberName(kind, name).name;
-      procedureReference = indexedContainer.lookupGetterReference(nameToLookup);
-      if ((isExtensionMember || isExtensionTypeMember) &&
-          kind == ProcedureKind.Method) {
-        tearOffReference = indexedContainer.lookupGetterReference(
-          nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name,
-        );
-      }
-    }
+    MethodReferences methodReferences = new MethodReferences(
+      name,
+      nameScheme,
+      _indexedContainer ?? _indexedLibrary,
+      kind: kind,
+    );
 
     Modifiers modifiers = fragment.modifiers;
     MethodDeclaration introductoryDeclaration = new MethodDeclarationImpl(
       fragment,
     );
+    List<MethodDeclaration> declarations = [introductoryDeclaration];
+    MethodDeclaration implementation = introductoryDeclaration;
 
-    List<MethodDeclaration> augmentationDeclarations = [];
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
         // Promote [augmentation] to [MethodFragment].
         augmentation as MethodFragment;
 
-        augmentationDeclarations.add(new MethodDeclarationImpl(augmentation));
+        MethodDeclaration augmentingDeclaration = new MethodDeclarationImpl(
+          augmentation,
+        );
+        declarations.add(augmentingDeclaration);
+        if (!augmentation.modifiers.isAbstract) {
+          implementation = augmentingDeclaration;
+        }
 
         _typeParameterFactory.createNominalParameterBuilders(
           augmentation.declaredTypeParameters,
@@ -1045,11 +1041,10 @@ class BuilderFactory {
       declarationBuilder: _declarationBuilder,
       isStatic: modifiers.isStatic,
       modifiers: modifiers,
-      introductory: introductoryDeclaration,
-      augmentations: augmentationDeclarations,
+      declarations: declarations,
+      implementation: implementation,
       nameScheme: nameScheme,
-      reference: procedureReference,
-      tearOffReference: tearOffReference,
+      references: methodReferences,
     );
     fragment.builder = methodBuilder;
     if (augmentations != null) {
@@ -1061,14 +1056,8 @@ class BuilderFactory {
       }
       augmentations.clear();
     }
-    introductoryDeclaration.createEncoding(
-      _problemReporting,
-      methodBuilder,
-      encodingStrategy,
-      _typeParameterFactory,
-    );
-    for (MethodDeclaration augmentation in augmentationDeclarations) {
-      augmentation.createEncoding(
+    for (MethodDeclaration declaration in declarations) {
+      declaration.createEncoding(
         _problemReporting,
         methodBuilder,
         encodingStrategy,
@@ -1076,12 +1065,7 @@ class BuilderFactory {
       );
     }
 
-    if (procedureReference != null) {
-      _loader.referenceMap.registerNamedBuilder(
-        procedureReference,
-        methodBuilder,
-      );
-    }
+    methodReferences.registerReference(_loader.referenceMap, methodBuilder);
     _builderRegistry.registerBuilder(
       declaration: methodBuilder,
       uriOffset: fragment.uriOffset,
@@ -1192,8 +1176,11 @@ class BuilderFactory {
     required String name,
     required UriOffsetLength uriOffset,
     required List<FieldDeclaration> fieldDeclarations,
+    required FieldDeclaration? fieldImplementation,
     required List<GetterDeclaration> getterDeclarations,
+    required GetterDeclaration? getterImplementation,
     required List<SetterDeclaration> setterDeclarations,
+    required SetterDeclaration? setterImplementation,
     required bool isStatic,
     required bool inPatch,
   }) {
@@ -1243,8 +1230,11 @@ class BuilderFactory {
       libraryBuilder: _enclosingLibraryBuilder,
       declarationBuilder: _declarationBuilder,
       fieldDeclarations: fieldDeclarations,
+      fieldImplementation: fieldImplementation,
       getterDeclarations: getterDeclarations,
+      getterImplementation: getterImplementation,
       setterDeclarations: setterDeclarations,
+      setterImplementation: setterImplementation,
       isStatic: isStatic,
       nameScheme: nameScheme,
       references: references,
@@ -2103,11 +2093,14 @@ class _PropertyPreBuilder extends _PreBuilder {
   final String name;
   final UriOffsetLength uriOffset;
   final bool isStatic;
-  _PropertyDeclaration? _getterDeclaration;
-  _PropertyDeclaration? _setterDeclaration;
-  List<FieldDeclaration> _fieldAugmentations = [];
-  List<GetterDeclaration> _getterAugmentations = [];
-  List<SetterDeclaration> _setterAugmentations = [];
+  _PropertyDeclaration? _introductoryGetterDeclaration;
+  _PropertyDeclaration? _introductorySetterDeclaration;
+  FieldDeclaration? _fieldImplementation;
+  List<FieldDeclaration> _fieldDeclarations = [];
+  GetterDeclaration? _getterImplementation;
+  List<GetterDeclaration> _getterDeclarations = [];
+  SetterDeclaration? _setterImplementation;
+  List<SetterDeclaration> _setterDeclarations = [];
 
   // TODO(johnniwinther): Report error if [field] is augmenting.
   new forField(_PropertyDeclaration field)
@@ -2115,8 +2108,8 @@ class _PropertyPreBuilder extends _PreBuilder {
       inPatch = field.inPatch,
       name = field.displayName,
       uriOffset = field.uriOffset,
-      _getterDeclaration = field,
-      _setterDeclaration = field.propertyKind == _PropertyKind.Field
+      _introductoryGetterDeclaration = field,
+      _introductorySetterDeclaration = field.propertyKind == _PropertyKind.Field
           ? field
           : null {
     _PropertyDeclarations declarations = field.declarations;
@@ -2130,9 +2123,10 @@ class _PropertyPreBuilder extends _PreBuilder {
     );
     assert(
       (declarations.setter != null) ==
-          (_getterDeclaration!.propertyKind == _PropertyKind.Field),
+          (_introductoryGetterDeclaration!.propertyKind == _PropertyKind.Field),
       "Unexpected setter declaration from field ${field}.",
     );
+    _absorbDeclarations(field.declarations);
   }
 
   // TODO(johnniwinther): Report error if [getter] is augmenting.
@@ -2141,7 +2135,7 @@ class _PropertyPreBuilder extends _PreBuilder {
       inPatch = getter.inPatch,
       name = getter.displayName,
       uriOffset = getter.uriOffset,
-      _getterDeclaration = getter {
+      _introductoryGetterDeclaration = getter {
     _PropertyDeclarations declarations = getter.declarations;
     assert(
       declarations.field == null,
@@ -2155,6 +2149,7 @@ class _PropertyPreBuilder extends _PreBuilder {
       declarations.setter == null,
       "Unexpected setter declaration from getter ${getter}.",
     );
+    _absorbDeclarations(getter.declarations);
   }
 
   // TODO(johnniwinther): Report error if [setter] is augmenting.
@@ -2163,7 +2158,7 @@ class _PropertyPreBuilder extends _PreBuilder {
       inPatch = setter.inPatch,
       name = setter.displayName,
       uriOffset = setter.uriOffset,
-      _setterDeclaration = setter {
+      _introductorySetterDeclaration = setter {
     _PropertyDeclarations declarations = setter.declarations;
     assert(
       declarations.field == null,
@@ -2177,6 +2172,36 @@ class _PropertyPreBuilder extends _PreBuilder {
       declarations.setter != null,
       "Unexpected setter declaration from setter ${setter}.",
     );
+    _absorbDeclarations(setter.declarations);
+  }
+
+  void _absorbDeclarations(_PropertyDeclarations declarations) {
+    FieldDeclaration? fieldDeclaration = declarations.field;
+    if (fieldDeclaration != null) {
+      _fieldDeclarations.add(fieldDeclaration);
+      if (_fieldImplementation == null ||
+          !fieldDeclaration.fieldQuality.impliesAbstract) {
+        _fieldImplementation = fieldDeclaration;
+      }
+    }
+
+    GetterDeclaration? getterDeclaration = declarations.getter;
+    if (getterDeclaration != null) {
+      _getterDeclarations.add(getterDeclaration);
+      if (_getterImplementation == null ||
+          !getterDeclaration.getterQuality.impliesAbstract) {
+        _getterImplementation = getterDeclaration;
+      }
+    }
+
+    SetterDeclaration? setterDeclaration = declarations.setter;
+    if (setterDeclaration != null) {
+      _setterDeclarations.add(setterDeclaration);
+      if (_setterImplementation == null ||
+          !setterDeclaration.setterQuality.impliesAbstract) {
+        _setterImplementation = setterDeclaration;
+      }
+    }
   }
 
   @override
@@ -2185,24 +2210,24 @@ class _PropertyPreBuilder extends _PreBuilder {
     _Declaration declaration,
   ) {
     if (declaration is! _PropertyDeclaration) {
-      if (_getterDeclaration != null) {
+      if (_introductoryGetterDeclaration != null) {
         // Example:
         //
         //    int get foo => 42;
         //    void foo() {}
         //
-        _getterDeclaration!.reportDuplicateDeclaration(
+        _introductoryGetterDeclaration!.reportDuplicateDeclaration(
           problemReporting,
           declaration,
         );
       } else {
-        assert(_setterDeclaration != null);
+        assert(_introductorySetterDeclaration != null);
         // Example:
         //
         //    void set foo(_) {}
         //    void foo() {}
         //
-        _setterDeclaration!.reportDuplicateDeclaration(
+        _introductorySetterDeclaration!.reportDuplicateDeclaration(
           problemReporting,
           declaration,
         );
@@ -2213,7 +2238,7 @@ class _PropertyPreBuilder extends _PreBuilder {
     _PropertyKind? propertyKind = declaration.propertyKind;
     switch (propertyKind) {
       case _PropertyKind.Getter:
-        if (_getterDeclaration == null) {
+        if (_introductoryGetterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
@@ -2242,7 +2267,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //      int get foo => 42;
             //    }
             //
-            _setterDeclaration!.reportStaticInstanceConflict(
+            _introductorySetterDeclaration!.reportStaticInstanceConflict(
               problemReporting,
               declaration,
             );
@@ -2259,7 +2284,15 @@ class _PropertyPreBuilder extends _PreBuilder {
               "Unexpected setter declaration from getter "
               "${declaration}.",
             );
-            _getterDeclaration = declaration;
+            _introductoryGetterDeclaration = declaration;
+            GetterDeclaration getterDeclaration = declarations.getter!;
+            _getterDeclarations.add(getterDeclaration);
+            assert(
+              _getterImplementation == null,
+              "Unexpected existing getter implementation "
+              "$_getterImplementation.",
+            );
+            _getterImplementation = getterDeclaration;
             return true;
           }
         } else {
@@ -2280,7 +2313,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               "Unexpected setter declaration from getter "
               "${declaration}.",
             );
-            _getterAugmentations.add(declarations.getter!);
+            _absorbDeclarations(declarations);
             return true;
           } else {
             // Example:
@@ -2288,7 +2321,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int get foo => 42;
             //    int get foo => 87;
             //
-            _getterDeclaration!.reportDuplicateDeclaration(
+            _introductoryGetterDeclaration!.reportDuplicateDeclaration(
               problemReporting,
               declaration,
             );
@@ -2296,7 +2329,7 @@ class _PropertyPreBuilder extends _PreBuilder {
           }
         }
       case _PropertyKind.Setter:
-        if (_setterDeclaration == null) {
+        if (_introductorySetterDeclaration == null) {
           // Examples:
           //
           //    int get foo => 42;
@@ -2328,7 +2361,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //      void set foo(_) {}
             //    }
             //
-            _getterDeclaration!.reportStaticInstanceConflict(
+            _introductoryGetterDeclaration!.reportStaticInstanceConflict(
               problemReporting,
               declaration,
             );
@@ -2345,7 +2378,8 @@ class _PropertyPreBuilder extends _PreBuilder {
               "Unexpected getter declaration from setter "
               "${declaration}.",
             );
-            _setterDeclaration = declaration;
+            _introductorySetterDeclaration = declaration;
+            _absorbDeclarations(declarations);
             return true;
           }
         } else {
@@ -2366,7 +2400,7 @@ class _PropertyPreBuilder extends _PreBuilder {
               "Unexpected getter declaration from setter "
               "${declaration}.",
             );
-            _setterAugmentations.add(declarations.setter!);
+            _absorbDeclarations(declarations);
             return true;
           } else {
             // Examples:
@@ -2379,7 +2413,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    void set foo(_) {}
             //    void set foo(_) {}
             //
-            _setterDeclaration!.reportDuplicateDeclaration(
+            _introductorySetterDeclaration!.reportDuplicateDeclaration(
               problemReporting,
               declaration,
             );
@@ -2387,20 +2421,23 @@ class _PropertyPreBuilder extends _PreBuilder {
           }
         }
       case _PropertyKind.Field:
-        if (_getterDeclaration == null) {
+        if (_introductoryGetterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
           //    int? foo;
           //
-          assert(_getterDeclaration == null && _setterDeclaration != null);
+          assert(
+            _introductoryGetterDeclaration == null &&
+                _introductorySetterDeclaration != null,
+          );
           // We have an explicit setter.
-          _setterDeclaration!.reportDuplicateDeclaration(
+          _introductorySetterDeclaration!.reportDuplicateDeclaration(
             problemReporting,
             declaration,
           );
           return false;
-        } else if (_setterDeclaration != null) {
+        } else if (_introductorySetterDeclaration != null) {
           // Examples:
           //
           //    int? foo;
@@ -2414,19 +2451,21 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    void set baz(_) {}
           //    int baz = 87;
           //
-          assert(_getterDeclaration != null && _setterDeclaration != null);
+          assert(
+            _introductoryGetterDeclaration != null &&
+                _introductorySetterDeclaration != null,
+          );
           // We have both getter and setter
           if (declaration.isAugment) {
-            if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
+            if (_introductoryGetterDeclaration!.propertyKind ==
+                declaration.propertyKind) {
               // Example:
               //
               //    int foo = 42;
               //    augment int foo = 87;
               //
               _PropertyDeclarations declarations = declaration.declarations;
-              _fieldAugmentations.add(declarations.field!);
-              _getterAugmentations.add(declarations.getter!);
-              _setterAugmentations.add(declarations.setter!);
+              _absorbDeclarations(declarations);
               return true;
             } else {
               // Example:
@@ -2450,7 +2489,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    void set bar(_) {}
             //    int? bar;
             //
-            _getterDeclaration!.reportDuplicateDeclaration(
+            _introductoryGetterDeclaration!.reportDuplicateDeclaration(
               problemReporting,
               declaration,
             );
@@ -2465,21 +2504,27 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    final int bar = 42;
           //    int? bar;
           //
-          assert(_getterDeclaration != null && _setterDeclaration == null);
-          _getterDeclaration!.reportDuplicateDeclaration(
+          assert(
+            _introductoryGetterDeclaration != null &&
+                _introductorySetterDeclaration == null,
+          );
+          _introductoryGetterDeclaration!.reportDuplicateDeclaration(
             problemReporting,
             declaration,
           );
           return false;
         }
       case _PropertyKind.FinalField:
-        if (_getterDeclaration == null) {
+        if (_introductoryGetterDeclaration == null) {
           // Example:
           //
           //    void set foo(_) {}
           //    final int foo = 42;
           //
-          assert(_getterDeclaration == null && _setterDeclaration != null);
+          assert(
+            _introductoryGetterDeclaration == null &&
+                _introductorySetterDeclaration != null,
+          );
           // We have an explicit setter.
           if (declaration.isAugment) {
             // Example:
@@ -2505,7 +2550,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //      final int foo = 42;
             //    }
             //
-            _setterDeclaration!.reportStaticInstanceConflict(
+            _introductorySetterDeclaration!.reportStaticInstanceConflict(
               problemReporting,
               declaration,
             );
@@ -2517,7 +2562,8 @@ class _PropertyPreBuilder extends _PreBuilder {
               "Unexpected setter declaration from field "
               "${declaration}.",
             );
-            _getterDeclaration = declaration;
+            _introductoryGetterDeclaration = declaration;
+            _absorbDeclarations(declarations);
             return true;
           }
         } else {
@@ -2530,7 +2576,8 @@ class _PropertyPreBuilder extends _PreBuilder {
           //    final int bar = 87;
           //
           if (declaration.isAugment) {
-            if (_getterDeclaration!.propertyKind == declaration.propertyKind) {
+            if (_introductoryGetterDeclaration!.propertyKind ==
+                declaration.propertyKind) {
               // Example:
               //
               //    final int foo = 42;
@@ -2542,8 +2589,7 @@ class _PropertyPreBuilder extends _PreBuilder {
                 "Unexpected setter declaration from final field "
                 "${declaration}.",
               );
-              _fieldAugmentations.add(declarations.field!);
-              _getterAugmentations.add(declarations.getter!);
+              _absorbDeclarations(declarations);
               return true;
             } else {
               // Example:
@@ -2565,7 +2611,7 @@ class _PropertyPreBuilder extends _PreBuilder {
             //    int get bar => 42;
             //    final int bar = 87;
             //
-            _getterDeclaration!.reportDuplicateDeclaration(
+            _introductoryGetterDeclaration!.reportDuplicateDeclaration(
               problemReporting,
               declaration,
             );
@@ -2582,7 +2628,7 @@ class _PropertyPreBuilder extends _PreBuilder {
   ) {
     // Check conflict with constructor.
     if (isStatic) {
-      if (_getterDeclaration != null) {
+      if (_introductoryGetterDeclaration != null) {
         // Examples:
         //
         //    class A {
@@ -2597,7 +2643,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         //      factory A.foo() => throw '';
         //    }
         //
-        _getterDeclaration!.reportConstructorConflict(
+        _introductoryGetterDeclaration!.reportConstructorConflict(
           problemReporting,
           constructorDeclaration,
         );
@@ -2617,7 +2663,7 @@ class _PropertyPreBuilder extends _PreBuilder {
         //      factory A.foo() => throw '';
         //    }
         //
-        _setterDeclaration!.reportConstructorConflict(
+        _introductorySetterDeclaration!.reportConstructorConflict(
           problemReporting,
           constructorDeclaration,
         );
@@ -2632,18 +2678,12 @@ class _PropertyPreBuilder extends _PreBuilder {
       inPatch: inPatch,
       isStatic: isStatic,
       uriOffset: uriOffset,
-      fieldDeclarations: [
-        ?_getterDeclaration?.declarations.field,
-        ..._fieldAugmentations,
-      ],
-      getterDeclarations: [
-        ?_getterDeclaration?.declarations.getter,
-        ..._getterAugmentations,
-      ],
-      setterDeclarations: [
-        ?_setterDeclaration?.declarations.setter,
-        ..._setterAugmentations,
-      ],
+      fieldDeclarations: _fieldDeclarations,
+      fieldImplementation: _fieldImplementation,
+      getterDeclarations: _getterDeclarations,
+      getterImplementation: _getterImplementation,
+      setterDeclarations: _setterDeclarations,
+      setterImplementation: _setterImplementation,
     );
   }
 }

@@ -56,11 +56,37 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   final NameScheme _nameScheme;
 
-  /// The declarations that introduces this property. Subsequent property of the
-  /// same name must be augmentations.
-  List<FieldDeclaration> _fieldDeclarations;
-  List<GetterDeclaration> _getterDeclarations;
-  List<SetterDeclaration> _setterDeclarations;
+  /// The field declarations of this property. The first is the introductory
+  /// declaration and subsequent declarations are augmentations.
+  final List<FieldDeclaration> _fieldDeclarations;
+
+  /// The declaration used as the field implementation of this property, if any.
+  ///
+  /// This is the last non-abstract field declaration, if any. Otherwise it is
+  /// the first field declaration, if any.
+  final FieldDeclaration? _fieldImplementation;
+
+  /// The getter declarations of this property. The first is the introductory
+  /// declaration and subsequent declarations are augmentations.
+  final List<GetterDeclaration> _getterDeclarations;
+
+  /// The declaration used as the getter implementation of this property,
+  /// if any.
+  ///
+  /// This is the last non-abstract getter declaration, if any. Otherwise it is
+  /// the first getter declaration, if any.
+  final GetterDeclaration? _getterImplementation;
+
+  /// The setter declarations of this property. The first is the introductory
+  /// declaration and subsequent declarations are augmentations.
+  final List<SetterDeclaration> _setterDeclarations;
+
+  /// The declaration used as the setter implementation of this property,
+  /// if any.
+  ///
+  /// This is the last non-abstract setter declaration, if any. Otherwise it is
+  /// the first setter declaration, if any.
+  final SetterDeclaration? _setterImplementation;
 
   final PropertyReferences _references;
 
@@ -74,13 +100,34 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     required this.declarationBuilder,
     required NameScheme nameScheme,
     required this._fieldDeclarations,
+    required this._fieldImplementation,
     required this._getterDeclarations,
+    required this._getterImplementation,
     required this._setterDeclarations,
+    required this._setterImplementation,
     required this.isStatic,
     required PropertyReferences references,
   }) : _nameScheme = nameScheme,
        _references = references,
-       _memberName = nameScheme.getDeclaredName(name);
+       _memberName = nameScheme.getDeclaredName(name),
+       assert(
+         _fieldImplementation == null && _fieldDeclarations.isEmpty ||
+             _fieldDeclarations.contains(_fieldImplementation),
+         "Field implementation $_fieldImplementation not found in "
+         "field declarations $_fieldDeclarations",
+       ),
+       assert(
+         _getterImplementation == null && _getterDeclarations.isEmpty ||
+             _getterDeclarations.contains(_getterImplementation),
+         "Getter implementation $_getterImplementation not found in "
+         "getter declarations $_getterDeclarations",
+       ),
+       assert(
+         _setterImplementation == null && _setterDeclarations.isEmpty ||
+             _setterDeclarations.contains(_setterImplementation),
+         "Setter implementation $_setterImplementation not found in "
+         "setter declarations $_setterDeclarations",
+       );
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
@@ -109,38 +156,41 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   @override
   void buildOutlineNodes(BuildNodesCallback callback) {
     for (int index = 0; index < _fieldDeclarations.length; index++) {
-      bool isLast = index == _fieldDeclarations.length - 1;
-      _fieldDeclarations[index].buildFieldOutlineNode(
+      FieldDeclaration fieldDeclaration = _fieldDeclarations[index];
+      bool isImplementation = fieldDeclaration == _fieldImplementation;
+      fieldDeclaration.buildFieldOutlineNode(
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
-        callback: isLast ? callback : noAddBuildNodesCallback,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
         // Augmented fields don't reuse references.
-        references: isLast ? _references : null,
+        references: isImplementation ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
       );
     }
 
     for (int index = 0; index < _getterDeclarations.length; index++) {
-      bool isLast = index == _getterDeclarations.length - 1;
-      _getterDeclarations[index].buildGetterOutlineNode(
+      GetterDeclaration getterDeclaration = _getterDeclarations[index];
+      bool isImplementation = getterDeclaration == _getterImplementation;
+      getterDeclaration.buildGetterOutlineNode(
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
-        callback: isLast ? callback : noAddBuildNodesCallback,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
         // Augmented getters don't reuse references.
-        references: isLast ? _references : null,
+        references: isImplementation ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
       );
     }
 
     for (int index = 0; index < _setterDeclarations.length; index++) {
-      bool isLast = index == _setterDeclarations.length - 1;
-      _setterDeclarations[index].buildSetterOutlineNode(
+      SetterDeclaration setterDeclaration = _setterDeclarations[index];
+      bool isImplementation = setterDeclaration == _setterImplementation;
+      setterDeclaration.buildSetterOutlineNode(
         libraryBuilder: libraryBuilder,
         problemReporting: libraryBuilder,
         nameScheme: _nameScheme,
-        callback: isLast ? callback : noAddBuildNodesCallback,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
         // Augmented setters don't reuse references.
-        references: isLast ? _references : null,
+        references: isImplementation ? _references : null,
         classTypeParameters: classBuilder?.cls.typeParameters,
       );
     }
@@ -266,10 +316,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   Iterable<Reference> get exportedMemberReferences => [
-    if (_getterDeclarations.isNotEmpty)
-      ..._getterDeclarations.last.getExportedGetterReferences(_references),
-    if (_setterDeclarations.isNotEmpty)
-      ..._setterDeclarations.last.getExportedSetterReferences(_references),
+    if (_getterImplementation != null) _references.getterReference,
+    if (_setterImplementation != null) _references.setterReference,
   ];
 
   // TODO(johnniwinther): Should fields and getters have an invoke target?
@@ -300,18 +348,14 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   Name get memberName => _memberName.name;
 
   @override
-  Member? get readTarget => _getterDeclarations.isNotEmpty
-      ? _getterDeclarations.last.readTarget
-      : null;
+  Member? get readTarget => _getterImplementation?.readTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
   Reference? get readTargetReference => _references.getterReference;
 
   @override
-  Member? get writeTarget => _setterDeclarations.isNotEmpty
-      ? _setterDeclarations.last.writeTarget
-      : null;
+  Member? get writeTarget => _setterImplementation?.writeTarget;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -483,7 +527,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ///
   /// This is only used for instance fields.
   void buildImplicitDefaultValue() {
-    _fieldDeclarations.last.buildImplicitDefaultValue();
+    _fieldImplementation!.buildImplicitDefaultValue();
   }
 
   /// Create the [Initializer] for the implicit initialization of this field
@@ -491,7 +535,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ///
   /// This is only used for instance fields.
   Initializer buildImplicitInitializer() {
-    return _fieldDeclarations.last.buildImplicitInitializer();
+    return _fieldImplementation!.buildImplicitInitializer();
   }
 
   /// Builds the [Initializer]s for each field used to encode this field
@@ -504,7 +548,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return _fieldDeclarations.last.buildInitializer(
+    return _fieldImplementation!.buildInitializer(
       fileOffset,
       value,
       isSynthetic: isSynthetic,
@@ -523,10 +567,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   ///     }
   ///
   Initializer takePrimaryConstructorFieldInitializer() {
-    return _fieldDeclarations.last.takePrimaryConstructorFieldInitializer();
+    return _fieldImplementation!.takePrimaryConstructorFieldInitializer();
   }
 
-  bool get hasInitializer => _fieldDeclarations.last.hasInitializer;
+  bool get hasInitializer => _fieldImplementation!.hasInitializer;
 
   /// Returns `true` if the field of this property is not a valid declaration.
   ///
@@ -546,25 +590,22 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   // Coverage-ignore(suite): Not run.
   shared.Expression? get initializerExpression =>
-      _fieldDeclarations.last.initializerExpression;
+      _fieldImplementation!.initializerExpression;
 
   @override
-  FieldQuality get fieldQuality => _fieldDeclarations.isNotEmpty
-      ? _fieldDeclarations.last.fieldQuality
-      : FieldQuality.Absent;
+  FieldQuality get fieldQuality =>
+      _fieldImplementation?.fieldQuality ?? FieldQuality.Absent;
 
   @override
-  GetterQuality get getterQuality => _getterDeclarations.isNotEmpty
-      ? _getterDeclarations.last.getterQuality
-      : GetterQuality.Absent;
+  GetterQuality get getterQuality =>
+      _getterImplementation?.getterQuality ?? GetterQuality.Absent;
 
   @override
-  SetterQuality get setterQuality => _setterDeclarations.isNotEmpty
-      ? _setterDeclarations.last.setterQuality
-      : SetterQuality.Absent;
+  SetterQuality get setterQuality =>
+      _setterImplementation?.setterQuality ?? SetterQuality.Absent;
 
   UriOffsetLength? get fieldUriOffset =>
-      _fieldDeclarations.isNotEmpty ? _fieldDeclarations.last.uriOffset : null;
+      _fieldDeclarations.isNotEmpty ? _fieldDeclarations.first.uriOffset : null;
 
   @override
   UriOffsetLength? get getterUriOffset => _getterDeclarations.isNotEmpty

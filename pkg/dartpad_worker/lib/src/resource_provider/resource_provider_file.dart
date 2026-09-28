@@ -297,7 +297,7 @@ class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
       _file.parent.create();
     }
     if (!_file.exists) {
-      _file.writeAsBytesSync([]);
+      _file.writeAsBytesSync(Uint8List(0));
     }
   }
 
@@ -662,12 +662,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
 class _ResourceProviderLink extends _ResourceProviderEntity implements f.Link {
   _ResourceProviderLink(super.fileSystem, super.path);
 
-  Link get _link => fileSystem._rp.getLink(_path);
+  Link get _link => fileSystem._rp.getLink(fileSystem._resolve(_path));
 
   @override
-  bool existsSync() =>
-      fileSystem.typeSync(path, followLinks: false) ==
-      io.FileSystemEntityType.link;
+  bool existsSync() => _link.exists;
 
   @override
   f.Link get absolute => fileSystem.link(fileSystem.path.absolute(_path));
