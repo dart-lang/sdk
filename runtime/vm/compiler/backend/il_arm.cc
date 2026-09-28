@@ -5184,6 +5184,19 @@ DEFINE_EMIT(Int32x4AnyTrue,
   __ LoadObject(result, Bool::False(), EQ);
 }
 
+DEFINE_EMIT(Int32x4AllTrue,
+            (Register result,
+             FixedQRegisterView<Q5> value,
+             Temp<QRegister> temp)) {
+  const DRegister dtemp = EvenDRegisterOf(temp);
+  __ vpminu(compiler::kFourBytes, dtemp, value.d(0), value.d(1));
+  __ vpminu(compiler::kFourBytes, dtemp, dtemp, dtemp);
+  __ vmovrs(result, EvenSRegisterOf(dtemp));
+  __ tst(result, compiler::Operand(result));
+  __ LoadObject(result, Bool::True(), NE);
+  __ LoadObject(result, Bool::False(), EQ);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (QRegister out,
              QRegister mask,
@@ -5336,6 +5349,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
   SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
   CASE(Int32x4WithX)                                                           \
   CASE(Int32x4WithY)                                                           \

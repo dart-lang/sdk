@@ -724,7 +724,7 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
 
   bool get anyTrue => _bits.anyTrue;
 
-  bool get allTrue => flagX && flagY && flagZ && flagW;
+  bool get allTrue => WasmI32x4(_bits).allTrue;
 
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255

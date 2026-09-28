@@ -536,6 +536,7 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, get:flagW, Int32x4GetFlagW, 0x5559f3ef)        \
   V(TypedDataLibrary, _Int32x4, get:signMask, Int32x4GetSignMask, 0x0eab247e)  \
   V(TypedDataLibrary, _Int32x4, get:anyTrue, Int32x4AnyTrue, 0xf39e0442)       \
+  V(TypedDataLibrary, _Int32x4, get:allTrue, Int32x4AllTrue, 0x9d9bd94b)       \
   V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x75cf0a33)           \
   V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x0d425838)     \
   V(TypedDataLibrary, _Int32x4, select, Int32x4Select, 0x68ad87e0)             \

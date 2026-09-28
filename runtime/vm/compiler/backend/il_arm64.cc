@@ -4297,6 +4297,15 @@ DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
   __ csel(out, TMP, out, EQ);
 }
 
+DEFINE_EMIT(Int32x4AllTrue, (Register out, VRegister value)) {
+  __ vuminv_4s(VTMP, value);
+  __ vmovrs(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
 DEFINE_EMIT(Int32x4NotEqual,
             (VRegister result, VRegister left, VRegister right)) {
   // Compare-equal, then invert to get not-equal.
@@ -4423,6 +4432,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
   SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
   CASE(Int32x4WithX)                                                           \
   CASE(Int32x4WithY)                                                           \

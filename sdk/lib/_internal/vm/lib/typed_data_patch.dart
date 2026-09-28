@@ -4125,6 +4125,7 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:recognized", "other")
   bool get anyTrue => (x | y | z | w) != 0;
 
+  @pragma("vm:recognized", "other")
   bool get allTrue => flagX && flagY && flagZ && flagW;
 
   @pragma("vm:prefer-inline")
