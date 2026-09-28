@@ -423,7 +423,7 @@ trace to find the place to insert the appropriate support.
                     '--no-source-maps',
             ]:
                 pass
-            else:
+            elif not arg.startswith('-'):
                 if arg.endswith('.dart'):
                     self.entry_points.add(self.rebase(arg))
                 elif arg.endswith('.wasm'):
@@ -432,6 +432,10 @@ trace to find the place to insert the appropriate support.
                     self.outputs.append(output.replace('.wasm', '.mjs'))
                     self.outputs.append(output.replace('.wasm', '.support.js'))
                     self.outputs.append(output + '.map')
+                else:
+                    self.unsupported('dart2wasm', arg)
+            else:
+                self.unsupported('dart2wasm', arg)
 
     def parse_compile(self):
         while self.has_next_arg:
