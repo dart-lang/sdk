@@ -349,6 +349,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitStoreExternalField(StoreExternalField instr) {}
+
+  @override
   void visitLoadArrayElement(LoadArrayElement instr) {
     _setNonConstant(instr);
   }
