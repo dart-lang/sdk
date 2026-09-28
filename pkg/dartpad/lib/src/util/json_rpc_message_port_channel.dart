@@ -11,8 +11,7 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web/web.dart' as web;
 
 import '../message_port/message_port.dart';
-
-const _isDart2Wasm = bool.fromEnvironment('dart.tool.dart2wasm');
+import 'environment.dart';
 
 final _nativeUint8ListType = Uint8List(0).runtimeType;
 
@@ -154,7 +153,7 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
 
   final jsPayload = jsonEncode(m).toJS;
   final jsBytes = bytes?.toJS;
-  if (_isDart2Wasm &&
+  if (isDart2Wasm &&
       jsBytes != null &&
       bytes.runtimeType == _nativeUint8ListType) {
     // On dart2wasm, `bytes.toJS` on a native WasmGC U8List allocates a fresh
@@ -205,7 +204,7 @@ Object? _dartifyMessage(JSAny? data) {
     // Materializing a native WasmGC U8List once at ingress prevents storing
     // JSUint8ArrayImpl in MemoryResourceProvider or slicing it in TarReader.
     final dartBytes = (rawBytes as JSUint8Array).toDart;
-    final bytes = _isDart2Wasm ? Uint8List.fromList(dartBytes) : dartBytes;
+    final bytes = isDart2Wasm ? Uint8List.fromList(dartBytes) : dartBytes;
     if (payload is! Map) {
       throw const FormatException('bytes not allowed in batch mode');
     }
