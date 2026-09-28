@@ -7894,6 +7894,10 @@ class _FlowAnalysisImpl<
     // and written to anywhere, but not declared in the current local function,
     // might potentially get written to, blowing away any promotions that are
     // currently in effect.
+    //
+    // Note: suspensions are *not* the only points at which enclosing functions
+    // may execute, so this demotion is not sufficient for soundness. See the
+    // comment in [_functionExpression_begin] for details.
     if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
       Set<PromotionKey> variablesToDemote = info.read
           .intersection(_assignedVariables.anywhere.written)
@@ -8671,6 +8675,30 @@ class _FlowAnalysisImpl<
     FlowModel current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(new _FunctionExpressionContext(current, _anonymousBlockContext));
     _anonymousBlockContext = null;
+    // Inside the function expression (or late initializer), any variable that
+    // is written *anywhere* has its promotions discarded, since the write
+    // might have happened before the function expression executes. But only
+    // variables that are written inside *some* function expression or late
+    // initializer are marked as write captured (and hence made ineligible for
+    // further promotion). Variables that are written solely by enclosing
+    // functions may still be promoted inside the function expression.
+    //
+    // That is based on the assumption that, while the function expression is
+    // executing, enclosing functions can only execute at points where the
+    // function expression itself suspends (`await` or `yield`); see
+    // [suspension], which discards promotions at those points. This
+    // assumption is known to be unsound:
+    //
+    // - A closure can resume an enclosing `sync*` function synchronously, by
+    //   calling `moveNext` on its iterator, allowing the enclosing function to
+    //   write to the variable while the promotion is in effect. See
+    //   https://github.com/dart-lang/language/issues/4779.
+    //
+    // - Under shared-memory multithreading, the enclosing function might
+    //   execute concurrently with the function expression. See
+    //   https://github.com/dart-lang/language/issues/4778, which proposes to
+    //   fix both problems by treating every non-final variable written
+    //   anywhere as write captured.
     _setCurrent(
       current.conservativeJoin(
         this,
