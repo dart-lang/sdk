@@ -6671,6 +6671,398 @@ ASSEMBLER_TEST_RUN(Vaddw, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vsshlw, assembler) {
+  __ LoadImmediate(R0, 1);
+  __ LoadImmediate(R1, 2);
+  __ LoadImmediate(R2, 3);
+  __ LoadImmediate(R3, 0x20000000);
+
+  __ vinsw(V1, 0, R0);
+  __ vinsw(V1, 1, R1);
+  __ vinsw(V1, 2, R2);
+  __ vinsw(V1, 3, R3);
+
+  __ LoadImmediate(R4, 2);
+  __ vdupw(V0, R4);
+
+  __ vsshlw(V2, V1, V0);
+
+  __ vmovrs(R4, V2, 0);
+  __ vmovrs(R5, V2, 1);
+  __ vmovrs(R6, V2, 2);
+  __ vmovrs(R7, V2, 3);
+
+  __ add(R0, R4, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ add(R0, R0, Operand(R7));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vsshlw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // Lanes shifted left by 2: {4, 8, 12, 0x80000000}.
+  EXPECT_EQ(0x80000018, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x3\n"
+      "mov r3, 0x20000000\n"
+      "vinss v1[0], r0\n"
+      "vinss v1[1], r1\n"
+      "vinss v1[2], r2\n"
+      "vinss v1[3], r3\n"
+      "movz r4, #0x2\n"
+      "vdups v0, r4\n"
+      "vsshlw v2, v1, v0\n"
+      "vmovrs r4, v2[0]\n"
+      "vmovrs r5, v2[1]\n"
+      "vmovrs r6, v2[2]\n"
+      "vmovrs r7, v2[3]\n"
+      "add r0, r4, r5\n"
+      "add r0, r0, r6\n"
+      "add r0, r0, r7\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlwNegativeCount, assembler) {
+  __ LoadImmediate(R0, -8);
+  __ LoadImmediate(R1, 8);
+  __ LoadImmediate(R2, 0x80000000);
+  __ LoadImmediate(R3, 0x40000000);
+
+  __ vinsw(V1, 0, R0);
+  __ vinsw(V1, 1, R1);
+  __ vinsw(V1, 2, R2);
+  __ vinsw(V1, 3, R3);
+
+  __ LoadImmediate(R4, -1);
+  __ vdupw(V0, R4);
+
+  __ vsshlw(V2, V1, V0);
+
+  __ vmovrs(R4, V2, 0);
+  __ sxtw(R4, R4);
+  __ vmovrs(R5, V2, 1);
+  __ sxtw(R5, R5);
+  __ vmovrs(R6, V2, 2);
+  __ sxtw(R6, R6);
+  __ vmovrs(R7, V2, 3);
+  __ sxtw(R7, R7);
+
+  __ add(R0, R4, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ add(R0, R0, Operand(R7));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlwNegativeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A count of -1 shifts right, sign-extending: {-4, 4, -0x40000000,
+  // 0x20000000}. A logical shift would leave every lane positive.
+  EXPECT_EQ(-0x20000000, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0xfffffffffffffff8\n"
+      "movz r1, #0x8\n"
+      "mov r2, 0x80000000\n"
+      "mov r3, 0x40000000\n"
+      "vinss v1[0], r0\n"
+      "vinss v1[1], r1\n"
+      "vinss v1[2], r2\n"
+      "vinss v1[3], r3\n"
+      "movn r4, #0x0\n"
+      "vdups v0, r4\n"
+      "vsshlw v2, v1, v0\n"
+      "vmovrs r4, v2[0]\n"
+      "sxtw r4, r4\n"
+      "vmovrs r5, v2[1]\n"
+      "sxtw r5, r5\n"
+      "vmovrs r6, v2[2]\n"
+      "sxtw r6, r6\n"
+      "vmovrs r7, v2[3]\n"
+      "sxtw r7, r7\n"
+      "add r0, r4, r5\n"
+      "add r0, r0, r6\n"
+      "add r0, r0, r7\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlwLargeCount, assembler) {
+  __ LoadImmediate(R0, 1);
+  __ LoadImmediate(R1, 2);
+  __ LoadImmediate(R2, 3);
+  __ LoadImmediate(R3, 0x20000000);
+
+  __ vinsw(V1, 0, R0);
+  __ vinsw(V1, 1, R1);
+  __ vinsw(V1, 2, R2);
+  __ vinsw(V1, 3, R3);
+
+  // Set the destination to -1, so a zero result must come from the shift.
+  __ LoadImmediate(R4, -1);
+  __ vdupw(V2, R4);
+
+  __ LoadImmediate(R4, 32);
+  __ vdupw(V0, R4);
+
+  __ vsshlw(V2, V1, V0);
+
+  __ vmovrs(R4, V2, 0);
+  __ vmovrs(R5, V2, 1);
+  __ vmovrs(R6, V2, 2);
+  __ vmovrs(R7, V2, 3);
+
+  __ add(R0, R4, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ add(R0, R0, Operand(R7));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlwLargeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A left shift of 32 or more shifts every bit out, so every lane is zero.
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x3\n"
+      "mov r3, 0x20000000\n"
+      "vinss v1[0], r0\n"
+      "vinss v1[1], r1\n"
+      "vinss v1[2], r2\n"
+      "vinss v1[3], r3\n"
+      "movn r4, #0x0\n"
+      "vdups v2, r4\n"
+      "movz r4, #0x20\n"
+      "vdups v0, r4\n"
+      "vsshlw v2, v1, v0\n"
+      "vmovrs r4, v2[0]\n"
+      "vmovrs r5, v2[1]\n"
+      "vmovrs r6, v2[2]\n"
+      "vmovrs r7, v2[3]\n"
+      "add r0, r4, r5\n"
+      "add r0, r0, r6\n"
+      "add r0, r0, r7\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlwLargeNegativeCount, assembler) {
+  __ LoadImmediate(R0, -8);
+  __ LoadImmediate(R1, 8);
+  __ LoadImmediate(R2, 0x80000000);
+  __ LoadImmediate(R3, 0x7FFFFFFF);
+
+  __ vinsw(V1, 0, R0);
+  __ vinsw(V1, 1, R1);
+  __ vinsw(V1, 2, R2);
+  __ vinsw(V1, 3, R3);
+
+  __ LoadImmediate(R4, -32);
+  __ vdupw(V0, R4);
+
+  __ vsshlw(V2, V1, V0);
+
+  __ vmovrs(R4, V2, 0);
+  __ sxtw(R4, R4);
+  __ vmovrs(R5, V2, 1);
+  __ sxtw(R5, R5);
+  __ vmovrs(R6, V2, 2);
+  __ sxtw(R6, R6);
+  __ vmovrs(R7, V2, 3);
+  __ sxtw(R7, R7);
+
+  __ add(R0, R4, Operand(R5));
+  __ add(R0, R0, Operand(R6));
+  __ add(R0, R0, Operand(R7));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlwLargeNegativeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A right shift of 32 or more leaves a copy of the sign bit everywhere, so
+  // the negative lanes become -1 and the non-negative lanes become 0.
+  EXPECT_EQ(-2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0xfffffffffffffff8\n"
+      "movz r1, #0x8\n"
+      "mov r2, 0x80000000\n"
+      "mov r3, 0x7fffffff\n"
+      "vinss v1[0], r0\n"
+      "vinss v1[1], r1\n"
+      "vinss v1[2], r2\n"
+      "vinss v1[3], r3\n"
+      "mov r4, 0xffffffffffffffe0\n"
+      "vdups v0, r4\n"
+      "vsshlw v2, v1, v0\n"
+      "vmovrs r4, v2[0]\n"
+      "sxtw r4, r4\n"
+      "vmovrs r5, v2[1]\n"
+      "sxtw r5, r5\n"
+      "vmovrs r6, v2[2]\n"
+      "sxtw r6, r6\n"
+      "vmovrs r7, v2[3]\n"
+      "sxtw r7, r7\n"
+      "add r0, r4, r5\n"
+      "add r0, r0, r6\n"
+      "add r0, r0, r7\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Vsshlx, assembler) {
+  __ LoadImmediate(R0, 2);
+  __ LoadImmediate(R1, 3);
+
+  __ vinsx(V1, 0, R0);
+  __ vinsx(V1, 1, R1);
+
+  __ LoadImmediate(R2, 2);
+  __ vdupx(V0, R2);
+
+  __ vsshlx(V2, V1, V0);
+
+  __ vmovrd(R2, V2, 0);
+  __ vmovrd(R3, V2, 1);
+
+  __ add(R0, R2, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vsshlx, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // Lanes shifted left by 2: {8, 12}.
+  EXPECT_EQ(20, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2\n"
+      "movz r1, #0x3\n"
+      "vinsd v1[0], r0\n"
+      "vinsd v1[1], r1\n"
+      "movz r2, #0x2\n"
+      "vdupd v0, r2\n"
+      "vsshlx v2, v1, v0\n"
+      "vmovrd r2, v2[0]\n"
+      "vmovrd r3, v2[1]\n"
+      "add r0, r2, r3\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlxNegativeCount, assembler) {
+  __ LoadImmediate(R0, -8);
+  __ LoadImmediate(R1, 0x4000000000000000);
+
+  __ vinsx(V1, 0, R0);
+  __ vinsx(V1, 1, R1);
+
+  __ LoadImmediate(R2, -1);
+  __ vdupx(V0, R2);
+
+  __ vsshlx(V2, V1, V0);
+
+  __ vmovrd(R2, V2, 0);
+  __ vmovrd(R3, V2, 1);
+
+  __ add(R0, R2, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlxNegativeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A count of -1 shifts right, sign-extending: {-4, 0x2000000000000000}.
+  EXPECT_EQ(0x2000000000000000 - 4,
+            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0xfffffffffffffff8\n"
+      "mov r1, 0x4000000000000000\n"
+      "vinsd v1[0], r0\n"
+      "vinsd v1[1], r1\n"
+      "movn r2, #0x0\n"
+      "vdupd v0, r2\n"
+      "vsshlx v2, v1, v0\n"
+      "vmovrd r2, v2[0]\n"
+      "vmovrd r3, v2[1]\n"
+      "add r0, r2, r3\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlxLargeCount, assembler) {
+  __ LoadImmediate(R0, 2);
+  __ LoadImmediate(R1, 3);
+
+  __ vinsx(V1, 0, R0);
+  __ vinsx(V1, 1, R1);
+
+  // Set the destination to -1, so a zero result must come from the shift.
+  __ LoadImmediate(R2, -1);
+  __ vdupx(V2, R2);
+
+  __ LoadImmediate(R2, 64);
+  __ vdupx(V0, R2);
+
+  __ vsshlx(V2, V1, V0);
+
+  __ vmovrd(R2, V2, 0);
+  __ vmovrd(R3, V2, 1);
+
+  __ add(R0, R2, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlxLargeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A left shift of 64 or more shifts every bit out, so every lane is zero.
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2\n"
+      "movz r1, #0x3\n"
+      "vinsd v1[0], r0\n"
+      "vinsd v1[1], r1\n"
+      "movn r2, #0x0\n"
+      "vdupd v2, r2\n"
+      "movz r2, #0x40\n"
+      "vdupd v0, r2\n"
+      "vsshlx v2, v1, v0\n"
+      "vmovrd r2, v2[0]\n"
+      "vmovrd r3, v2[1]\n"
+      "add r0, r2, r3\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(VsshlxLargeNegativeCount, assembler) {
+  __ LoadImmediate(R0, -8);
+  __ LoadImmediate(R1, 0x7FFFFFFFFFFFFFFF);
+
+  __ vinsx(V1, 0, R0);
+  __ vinsx(V1, 1, R1);
+
+  __ LoadImmediate(R2, -64);
+  __ vdupx(V0, R2);
+
+  __ vsshlx(V2, V1, V0);
+
+  __ vmovrd(R2, V2, 0);
+  __ vmovrd(R3, V2, 1);
+
+  __ add(R0, R2, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(VsshlxLargeNegativeCount, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // A right shift of 64 or more leaves a copy of the sign bit everywhere, so
+  // the negative lane becomes -1 and the positive lane becomes 0.
+  EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0xfffffffffffffff8\n"
+      "mov r1, 0x7fffffffffffffff\n"
+      "vinsd v1[0], r0\n"
+      "vinsd v1[1], r1\n"
+      "mov r2, 0xffffffffffffffc0\n"
+      "vdupd v0, r2\n"
+      "vsshlx v2, v1, v0\n"
+      "vmovrd r2, v2[0]\n"
+      "vmovrd r3, v2[1]\n"
+      "add r0, r2, r3\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
   __ LoadImmediate(R4, 31);
   __ LoadImmediate(R5, 10);
