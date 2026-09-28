@@ -8,10 +8,9 @@
   };
 
   self.$dartpadSandboxScripts = [
-    './ddc_module_loader.js',
-    './dart_stack_trace_mapper.js',
-    './flutter.js',
+    './sandbox_runtime.js',
     './dart_sdk.js',
+    './flutter.js',
     './flutter_web.js',
   ];
 

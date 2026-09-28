@@ -480,8 +480,7 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
   // Copy worker from Dart DartPad SDK.
   print('Copying worker...');
   for (final f in [
-    'dart_stack_trace_mapper.js',
-    'ddc_module_loader.js',
+    'sandbox_runtime.js',
     'worker.js',
     'worker.mjs',
     'worker.support.js',

@@ -11,8 +11,7 @@
 (function () {
   // Scripts to load into the sandbox at startup
   self.$dartpadSandboxScripts = self.$dartpadSandboxScripts || [
-    './ddc_module_loader.js',
-    './dart_stack_trace_mapper.js',
+    './sandbox_runtime.js',
     './dart_sdk.js',
   ];
   // Execution modes
