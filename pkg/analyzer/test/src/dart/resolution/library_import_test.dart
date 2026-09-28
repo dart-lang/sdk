@@ -908,6 +908,43 @@ ImportDirective
 ''');
   }
 
+  test_inPart_nested_library() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+    newFile('$testPackageLibPath/d.dart', '');
+
+    var results = await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+import 'd.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'd.dart'.
+''',
+    });
+
+    var result = results[c]!;
+
+    var node = result.findNode.import('d.dart');
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'd.dart'
+  semicolon: ;
+  libraryImport: LibraryImport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/d.dart
+''');
+  }
+
   test_inPart_noRelativeUri() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');

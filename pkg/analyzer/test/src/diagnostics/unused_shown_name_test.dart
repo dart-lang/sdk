@@ -55,6 +55,55 @@ f() {
 ''');
   }
 
+  test_part_nested_unreferenced() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+import 'lib1.dart' show A, B;
+//                         ^
+// [diag.unusedShownName] The name B is shown, but isn't used.
+A a = A();
+''',
+    });
+  }
+
+  test_part_unreferenced() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'lib1.dart' show A, B;
+//                         ^
+// [diag.unusedShownName] The name B is shown, but isn't used.
+A a = A();
+''',
+    });
+  }
+
   test_referenced_prefixed_assignmentExpression() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
