@@ -191,7 +191,8 @@ abstract class _ResourceProviderEntity implements f.FileSystemEntity {
 
   _ResourceProviderEntity(this.fileSystem, this._path);
 
-  Resource get _resource => fileSystem._rp.getResource(_path);
+  Resource get _resource =>
+      fileSystem._rp.getResource(fileSystem._resolve(_path));
 
   @override
   String get path => _path;
@@ -256,11 +257,10 @@ abstract class _ResourceProviderEntity implements f.FileSystemEntity {
 class _ResourceProviderFile extends _ResourceProviderEntity implements f.File {
   _ResourceProviderFile(super.fileSystem, super.path);
 
-  File get _file => fileSystem._rp.getFile(_path);
+  File get _file => fileSystem._rp.getFile(fileSystem._resolve(_path));
 
   @override
-  bool existsSync() =>
-      fileSystem.typeSync(path) == io.FileSystemEntityType.file;
+  bool existsSync() => _file.exists;
 
   @override
   f.File get absolute => fileSystem.file(fileSystem.path.absolute(_path));
@@ -492,11 +492,10 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
     implements f.Directory {
   _ResourceProviderDirectory(super.fileSystem, super.path);
 
-  Folder get _folder => fileSystem._rp.getFolder(_path);
+  Folder get _folder => fileSystem._rp.getFolder(fileSystem._resolve(_path));
 
   @override
-  bool existsSync() =>
-      fileSystem.typeSync(path) == io.FileSystemEntityType.directory;
+  bool existsSync() => _folder.exists;
 
   @override
   f.Directory get absolute =>
@@ -511,20 +510,7 @@ class _ResourceProviderDirectory extends _ResourceProviderEntity
   @override
   void createSync({bool recursive = false}) {
     try {
-      if (recursive) {
-        var current = _folder;
-        while (!current.exists && !current.isRoot) {
-          current = current.parent;
-        }
-        var pathParts = fileSystem.path.split(_path);
-        var currPath = pathParts[0];
-        for (var i = 1; i < pathParts.length; i++) {
-          currPath = fileSystem.path.join(currPath, pathParts[i]);
-          fileSystem._rp.getFolder(currPath).create();
-        }
-      } else {
-        _folder.create();
-      }
+      _folder.create();
     } catch (e) {
       throw io.FileSystemException(e.toString(), path);
     }
