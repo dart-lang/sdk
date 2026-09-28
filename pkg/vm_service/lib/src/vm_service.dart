@@ -4254,6 +4254,19 @@ class FfiStructField {
   @optional
   String? arrayElementType;
 
+  /// Whether the nested compound described by `fields` is a struct or a union.
+  ///
+  /// Provided if `fields` is provided. Either "struct" or "union".
+  @optional
+  String? kind;
+
+  /// The layout of the nested compound in this field.
+  ///
+  /// Provided if this field is itself a compound, or if this field is an inline
+  /// Array whose element type is a compound.
+  @optional
+  List<FfiStructField>? fields;
+
   FfiStructField({
     this.name,
     this.nativeType,
@@ -4261,6 +4274,8 @@ class FfiStructField {
     this.size,
     this.length,
     this.arrayElementType,
+    this.kind,
+    this.fields,
   });
 
   FfiStructField._fromJson(Map<String, dynamic> json)
@@ -4269,7 +4284,10 @@ class FfiStructField {
         offset = json['offset'] ?? -1,
         size = json['size'] ?? -1,
         length = json['length'],
-        arrayElementType = json['arrayElementType'];
+        arrayElementType = json['arrayElementType'],
+        kind = json['kind'],
+        fields = _createServiceObjectListOrNull<FfiStructField>(
+            json['fields'], const ['FfiStructField']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -4279,6 +4297,9 @@ class FfiStructField {
         if (length case final lengthValue?) 'length': lengthValue,
         if (arrayElementType case final arrayElementTypeValue?)
           'arrayElementType': arrayElementTypeValue,
+        if (kind case final kindValue?) 'kind': kindValue,
+        if (fields?.map((f) => f.toJson()).toList() case final fieldsValue?)
+          'fields': fieldsValue,
       };
 
   @override
@@ -4294,30 +4315,39 @@ class FfiStructLayout {
   static FfiStructLayout? parse(Map<String, dynamic>? json) =>
       json == null ? null : FfiStructLayout._fromJson(json);
 
-  /// The total size of the struct in bytes, including padding.
+  /// The total size of the compound in bytes, including padding.
   int? size;
 
-  /// The ordered list of fields in the struct layout.
+  /// Whether this compound is a struct or a union. Either "struct" or "union".
+  ///
+  /// The members of a union all have the same offset.
+  String? kind;
+
+  /// The ordered list of fields in the compound layout.
   List<FfiStructField>? fields;
 
   FfiStructLayout({
     this.size,
+    this.kind,
     this.fields,
   });
 
   FfiStructLayout._fromJson(Map<String, dynamic> json)
       : size = json['size'] ?? -1,
+        kind = json['kind'] ?? '',
         fields = _createServiceObjectListOrNull<FfiStructField>(
                 json['fields'], const ['FfiStructField']) ??
             [];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'size': size ?? -1,
+        'kind': kind ?? '',
         'fields': fields?.map((f) => f.toJson()).toList(),
       };
 
   @override
-  String toString() => '[FfiStructLayout size: $size, fields: $fields]';
+  String toString() =>
+      '[FfiStructLayout size: $size, kind: $kind, fields: $fields]';
 }
 
 /// An `FieldRef` is a reference to a `Field`.

@@ -2857,6 +2857,17 @@ class FfiStructField {
 
   // The element type name if this field is an inline Array (e.g. "uint8", "InnerStruct").
   string arrayElementType [optional];
+
+  // Whether the nested compound described by `fields` is a struct or a union.
+  //
+  // Provided if `fields` is provided. Either "struct" or "union".
+  string kind [optional];
+
+  // The layout of the nested compound in this field.
+  //
+  // Provided if this field is itself a compound, or if this field is an inline
+  // Array whose element type is a compound.
+  FfiStructField[] fields [optional];
 }
 ```
 
@@ -2867,10 +2878,15 @@ An _FfiStructField_ describes a single member of an
 
 ```
 class FfiStructLayout {
-  // The total size of the struct in bytes, including padding.
+  // The total size of the compound in bytes, including padding.
   int size;
 
-  // The ordered list of fields in the struct layout.
+  // Whether this compound is a struct or a union. Either "struct" or "union".
+  //
+  // The members of a union all have the same offset.
+  string kind;
+
+  // The ordered list of fields in the compound layout.
   FfiStructField[] fields;
 }
 ```
