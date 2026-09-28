@@ -1417,7 +1417,10 @@ class Intrinsifier {
             );
             codeGen.translateExpression(index, w.NumType.i64);
             b.i32_wrap_i64();
-            codeGen.translateExpression(value, typeOfExp(value));
+            // Coerce to the array's element type rather than the expression's
+            // own type: storing e.g. an `int` into a `WasmArray<Object?>` has
+            // to box the value.
+            codeGen.translateExpression(value, wasmType.unpacked);
             b.array_set(arrayType);
             b.ref_null(w.HeapType.none);
             return translator.topType;
