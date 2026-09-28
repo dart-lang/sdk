@@ -445,10 +445,14 @@ class MigrationRunner({
       return null;
     }
 
-    // A constraint that can't be bumped automatically stops the package
-    // without recording a reason, which is what the migration has always done.
     var bumpEdit = computeEdit(package.file, round.toSdkVersion);
-    if (bumpEdit == null) return null;
+    if (bumpEdit == null) {
+      versionSummary.recordSkipped(
+        "The SDK constraint in 'pubspec.yaml' isn't in a format the migration "
+        "tool can raise. Change it to '^${round.fromSdkVersion}' to continue.",
+      );
+      return null;
+    }
 
     var incompatibleDependencies = _getIncompatibleDependencies(
       context,
