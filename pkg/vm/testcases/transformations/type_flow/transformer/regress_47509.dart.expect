@@ -23,7 +23,7 @@ static method main() → void {
   core::print(list8);
   core::List<dynamic> list9 = [@vm.direct-call.metadata=dart.core::_GrowableList.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] list1.{core::Iterable::toList}(){({growable: core::bool}) → core::List<dynamic>};
   core::print(list9);
-  core::List<dynamic> list10 = [@vm.direct-call.metadata=dart.core::_Array.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList (skip check)] list2.{core::Iterable::toList}(){({growable: core::bool}) → core::List<dynamic>};
+  core::List<dynamic> list10 = [@vm.direct-call.metadata=dart.core::_Array.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] list2.{core::Iterable::toList}(){({growable: core::bool}) → core::List<dynamic>};
   core::print(list10);
 }
 constants  {

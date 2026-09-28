@@ -42,12 +42,14 @@ class TFClass {
   /// any extra attributes.
   late final ConcreteType concreteType = ConcreteType._(this, null, null);
 
-  /// Returns ConcreteType corresponding to this class and
-  /// [constant] value.
-  ConcreteType constantConcreteType(Constant constant) =>
-      _concreteTypeWithAttributes(
-        TypeAttributes._(constant, _closureForConstant(constant)),
-      );
+  /// Returns ConcreteType corresponding to this class,
+  /// [constant] value and [typeArgs].
+  ConcreteType constantConcreteType(Constant constant, [List<Type>? typeArgs]) {
+    final attr = TypeAttributes._(constant, _closureForConstant(constant));
+    return typeArgs == null
+        ? _concreteTypeWithAttributes(attr)
+        : ConcreteType._(this, typeArgs, attr);
+  }
 
   /// Returns ConcreteType corresponding to this class and
   /// given [function] in [member].

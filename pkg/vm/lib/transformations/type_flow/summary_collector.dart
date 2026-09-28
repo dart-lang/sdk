@@ -3141,6 +3141,25 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
         false,
       );
 
+  ConcreteType _getConstantConcreteType(
+    Class concreteClass,
+    Constant constant, [
+    List<DartType> typeArgs = const <DartType>[],
+  ]) {
+    final concreteType =
+        summaryCollector._translator.instantiateConcreteType(
+              summaryCollector._entryPointsListener.addAllocatedClass(
+                concreteClass,
+              ),
+              typeArgs,
+            )
+            as ConcreteType;
+    return concreteType.cls.constantConcreteType(
+      constant,
+      concreteType.typeArgs,
+    );
+  }
+
   @override
   Type visitNullConstant(NullConstant constant) {
     return summaryCollector._nullType;
@@ -3173,10 +3192,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
           summaryCollector._environment.coreTypes,
         );
     if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass)
-          .cls
-          .constantConcreteType(constant);
+      return _getConstantConcreteType(concreteClass, constant);
     }
     return summaryCollector._symbolType;
   }
@@ -3189,10 +3205,9 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass)
-          .cls
-          .constantConcreteType(constant);
+      return _getConstantConcreteType(concreteClass, constant, [
+        constant.typeArgument,
+      ]);
     }
     return _getStaticType(constant);
   }
@@ -3206,10 +3221,10 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstMapLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass)
-          .cls
-          .constantConcreteType(constant);
+      return _getConstantConcreteType(concreteClass, constant, [
+        constant.keyType,
+        constant.valueType,
+      ]);
     }
     return _getStaticType(constant);
   }
@@ -3222,10 +3237,9 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstSetLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass)
-          .cls
-          .constantConcreteType(constant);
+      return _getConstantConcreteType(concreteClass, constant, [
+        constant.typeArgument,
+      ]);
     }
     return _getStaticType(constant);
   }
@@ -3255,18 +3269,20 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
 
   @override
   Type visitInstanceConstant(InstanceConstant constant) {
-    final resultClass = summaryCollector._entryPointsListener.addAllocatedClass(
+    final resultType = _getConstantConcreteType(
       constant.classNode,
+      constant,
+      constant.typeArguments,
     );
     constant.fieldValues.forEach((Reference fieldReference, Constant value) {
       assert(!fieldReference.asField.isCovariantByClass);
       summaryCollector._entryPointsListener.addFieldUsedInConstant(
         fieldReference.asField,
-        resultClass,
+        resultType,
         typeFor(value),
       );
     });
-    return resultClass.cls.constantConcreteType(constant);
+    return resultType;
   }
 
   Type _visitTearOffConstant(TearOffConstant constant) {
@@ -3284,10 +3300,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
       summaryCollector._environment.coreTypes,
     );
     if (concreteClass != null) {
-      return summaryCollector._entryPointsListener
-          .addAllocatedClass(concreteClass)
-          .cls
-          .constantConcreteType(constant);
+      return _getConstantConcreteType(concreteClass, constant);
     }
     return _getStaticType(constant);
   }
