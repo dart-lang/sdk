@@ -10,14 +10,22 @@ export class Worker {
   }
 
   static async create(options) {
+    const sdkTarUrl = new URL('./sdk.tar', import.meta.url);
+    let initialSdkTar = fetch(sdkTarUrl);
+    initialSdkTar.catch(() => {});
+
     const wasmUrl = new URL('./worker.wasm', import.meta.url);
     const compiledApp = await compileStreaming(fetch(wasmUrl));
     const instantiatedApp = await compiledApp.instantiate({});
 
     let { promise, resolve, reject } = Promise.withResolvers();
     self._workerOptions = {
-      assetBaseUrl: new URL('./', import.meta.url).toString(),
       ...options,
+      fetchSdkTar: () => {
+        const p = initialSdkTar;
+        initialSdkTar = null;
+        return p ?? fetch(sdkTarUrl);
+      },
       resolve,
       reject,
     };
