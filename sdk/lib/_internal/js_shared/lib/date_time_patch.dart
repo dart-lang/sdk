@@ -25,9 +25,38 @@ class DateTime {
     int millisecondsSinceEpoch,
     int microsecond, {
     required bool isUtc,
-  }) : _value = _validate(millisecondsSinceEpoch, microsecond, isUtc),
+  }) : _value = _validate(millisecondsSinceEpoch, microsecond),
        _microsecond = microsecond,
        this.isUtc = isUtc;
+
+  /// Throws an error if the millisecondsSinceEpoch and microsecond components
+  /// are out of range.
+  ///
+  /// Returns the millisecondsSinceEpoch component.
+  static int _validate(int millisecondsSinceEpoch, int microsecond) {
+    if (microsecond < 0 || microsecond > 999) {
+      throw RangeError.range(microsecond, 0, 999, "microsecond");
+    }
+    if (millisecondsSinceEpoch < -_maxMillisecondsSinceEpoch ||
+        millisecondsSinceEpoch > _maxMillisecondsSinceEpoch) {
+      throw RangeError.range(
+        millisecondsSinceEpoch,
+        -_maxMillisecondsSinceEpoch,
+        _maxMillisecondsSinceEpoch,
+        "millisecondsSinceEpoch",
+      );
+    }
+    if (millisecondsSinceEpoch == _maxMillisecondsSinceEpoch &&
+        microsecond != 0) {
+      throw ArgumentError.value(
+        microsecond,
+        "microsecond",
+        "Time including microseconds is outside valid range",
+      );
+    }
+
+    return millisecondsSinceEpoch;
+  }
 
   @patch
   DateTime.fromMillisecondsSinceEpoch(
