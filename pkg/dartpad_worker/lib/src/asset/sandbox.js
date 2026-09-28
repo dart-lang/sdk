@@ -434,9 +434,7 @@
   rpcMethods.loadModules = async (params) => {
     const modules = validateModules(params.modules);
 
-    for (const module of modules) {
-      await loadModule(module);
-    }
+    await Promise.all(modules.map(loadModule));
 
     return {};
   };
