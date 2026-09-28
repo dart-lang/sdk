@@ -14,6 +14,12 @@ import '../message_port/message_port.dart';
 
 const _isDart2Wasm = bool.fromEnvironment('dart.tool.dart2wasm');
 
+final _nativeUint8ListType = Uint8List(0).runtimeType;
+
+extension on JSUint8Array {
+  external JSArrayBuffer get buffer;
+}
+
 extension type _RpcMessage._(JSObject _) implements JSObject {
   external factory _RpcMessage({
     required JSString payload,
@@ -148,6 +154,14 @@ JSAny? _jsifyMessage(Object? m, List<JSObject> transferables) {
 
   final jsPayload = jsonEncode(m).toJS;
   final jsBytes = bytes?.toJS;
+  if (_isDart2Wasm &&
+      jsBytes != null &&
+      bytes.runtimeType == _nativeUint8ListType) {
+    // On dart2wasm, `bytes.toJS` on a native WasmGC U8List allocates a fresh
+    // JSArrayBuffer copy; transferring it avoids a second structured-clone copy
+    // across MessagePort without detaching caller-owned JS buffers.
+    transferables.add(jsBytes.buffer);
+  }
   if (port == null && jsBytes == null) {
     return _RpcMessage(payload: jsPayload);
   }
