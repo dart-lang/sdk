@@ -210,6 +210,9 @@ final class Simplification extends Pass
   Instruction visitLoadExternalField(LoadExternalField instr) => instr;
 
   @override
+  Instruction visitStoreExternalField(StoreExternalField instr) => instr;
+
+  @override
   Instruction visitLoadArrayElement(LoadArrayElement instr) => instr;
 
   @override

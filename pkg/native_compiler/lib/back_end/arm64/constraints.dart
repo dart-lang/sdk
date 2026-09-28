@@ -279,6 +279,13 @@ final class Arm64Constraints extends Constraints {
       ]);
 
   @override
+  InstructionConstraints? visitStoreExternalField(StoreExternalField instr) =>
+      InstructionConstraints(null, [
+        if (instr.hasObject) anyCpuRegister,
+        anyCpuRegister,
+      ]);
+
+  @override
   InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
       switch (instr.kind) {
         .float32List ||

@@ -250,7 +250,6 @@ class _Workspace {
     final text = params['text'].asString;
     try {
       final file = _rp.getFile(path);
-      file.parent.createRecursively();
       file.writeAsStringSync(text);
     } on FileSystemException catch (e) {
       throw FileWriteConflictException(
@@ -266,7 +265,6 @@ class _Workspace {
     final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
-      file.parent.createRecursively();
       file.writeAsBytesSync(bytes);
     } on FileSystemException catch (e) {
       throw FileWriteConflictException(
@@ -335,7 +333,7 @@ class _Workspace {
   Object? _createFolder(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
     try {
-      _rp.getFolder(path).createRecursively();
+      _rp.getFolder(path).create();
     } on FileSystemException catch (e) {
       throw FileWriteConflictException(
         e.message,

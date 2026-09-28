@@ -398,6 +398,13 @@ class ObjectLayout {
     _coreTypes.listNonNullableRawType,
     vmOffsets.Thread_thread_locals_offset,
   );
+  late final CField Thread_nextTaskId = _createBuiltInField(
+    _threadClass,
+    'nextTaskId',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.Thread_next_task_id_offset,
+    isUnboxed: true,
+  );
   late final CField Thread_predefined_symbols_address = _createBuiltInField(
     _threadClass,
     'predefinedSymbolsAddress',

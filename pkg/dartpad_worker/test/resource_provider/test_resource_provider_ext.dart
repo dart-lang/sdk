@@ -22,28 +22,6 @@ void main() {
     target = provider.getFolder('/extract')..create();
   });
 
-  group('FolderExt.createRecursively', () {
-    test('creates nested folders', () {
-      final folder = target.getFolder('a/b/c');
-      check(folder).doesNotExist;
-
-      folder.createRecursively();
-
-      check(folder).exists;
-      check(target).folder('a/b').exists;
-      check(target).folder('a').exists;
-    });
-
-    test('does nothing if folder exists', () {
-      final folder = target.getFolder('a')..create();
-      check(folder).exists;
-
-      folder.createRecursively();
-
-      check(folder).exists;
-    });
-  });
-
   group('FolderExt.extractTarStream', () {
     Stream<List<int>> tarStream(List<TarEntry> entries) =>
         Stream.fromIterable(entries).transform(tarWriter);

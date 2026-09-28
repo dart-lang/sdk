@@ -431,6 +431,24 @@ void buildTypedDataMemMove(FlowGraphBuilder builder, ArrayKind kind) {
   builder.addNullConstant();
 }
 
+/// Build IR for dart:developer::_getNextTaskId.
+void buildTimelineGetNextTaskId(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final id = builder.addLoadExternalField(
+    objectLayout.Thread_nextTaskId,
+    hasObject: false,
+  );
+  builder.push(id);
+  builder.addIntConstant(1);
+  builder.addBinaryIntOp(.add);
+  builder.addStoreExternalField(
+    objectLayout.Thread_nextTaskId,
+    hasObject: false,
+  );
+}
+
 /// Build IR for ThreadLocal._hasValue.
 void buildThreadLocalHasValue(
   FlowGraphBuilder builder,
@@ -1524,6 +1542,14 @@ final class VmRecognizedMethods(
       ): (FlowGraphBuilder builder) {
         buildTypedDataMemMove(builder, arrayKind);
       },
+
+    // dart:developer
+    index.getTopLevelProcedure(
+      'dart:developer',
+      '_getNextTaskId',
+    ): (FlowGraphBuilder builder) {
+      buildTimelineGetNextTaskId(builder, objectLayout);
+    },
 
     // dart:_vm
     index.getProcedure(

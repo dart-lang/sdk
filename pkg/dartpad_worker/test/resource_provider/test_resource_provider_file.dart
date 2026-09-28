@@ -143,4 +143,17 @@ void main() {
       io.FileSystemEntityType.link,
     );
   });
+
+  test('resolves unnormalized paths', () {
+    final dir = fs.directory('/unnorm_dir/../unnorm_dir/');
+    expect(dir.existsSync(), isFalse);
+    dir.createSync(recursive: true);
+    expect(dir.existsSync(), isTrue);
+
+    final file = fs.file('/unnorm_dir/./file.txt');
+    expect(file.existsSync(), isFalse);
+    file.writeAsStringSync('hello');
+    expect(file.existsSync(), isTrue);
+    expect(fs.file('/unnorm_dir/file.txt').readAsStringSync(), 'hello');
+  });
 }

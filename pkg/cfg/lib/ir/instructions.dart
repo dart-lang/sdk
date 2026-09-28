@@ -1970,10 +1970,35 @@ final class LoadExternalField extends LoadField with BackendInstruction {
   }
 
   bool get hasObject => inputCount > 0;
-  Definition? get object => inputDefAt(0);
+  Definition? get object => hasObject ? inputDefAt(0) : null;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
+/// Store value to a field of a non-Dart object.
+final class StoreExternalField extends StoreField with BackendInstruction {
+  StoreExternalField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition? object,
+    Definition value,
+  ) : super(inputCount: object != null ? 2 : 1, checkNotInitialized: false) {
+    if (object != null) {
+      setInputAt(0, object);
+      setInputAt(1, value);
+    } else {
+      setInputAt(0, value);
+    }
+  }
+
+  bool get hasObject => inputCount > 1;
+  Definition? get object => hasObject ? inputDefAt(0) : null;
+  Definition get value => inputDefAt(inputCount - 1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreExternalField(this);
 }
 
 /// Load value from an element of a non-Dart array.

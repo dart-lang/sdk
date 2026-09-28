@@ -1217,6 +1217,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
     );
   }
 
+  @override
+  void visitStoreExternalField(StoreExternalField instr) {
+    final objectReg = instr.hasObject ? inputReg(instr, 0) : threadReg;
+    final valueReg = instr.hasObject ? inputReg(instr, 1) : inputReg(instr, 0);
+    _asm.str(
+      valueReg,
+      _asm.address(objectReg, objectLayout.getFieldOffset(instr.field)),
+    );
+  }
+
   Address _computeArrayElementAddress(
     ArrayKind kind,
     Register baseReg,

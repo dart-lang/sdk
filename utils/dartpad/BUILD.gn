@@ -7,7 +7,31 @@ import("compile_wasm.gni")
 
 compile_dart2wasm("worker") {
   main_dart = "../../pkg/dartpad_worker/bin/worker.dart"
-  output = "$root_out_dir/dartpad/worker.wasm"
+  output = "$target_gen_dir/worker.wasm"
+}
+
+copy("copy_worker_wasm") {
+  deps = [ ":worker" ]
+  sources = [
+    "$target_gen_dir/worker.wasm",
+    "$target_gen_dir/worker.wasm.map",
+  ]
+  outputs = [ "$root_out_dir/dartpad/{{source_file_part}}" ]
+}
+
+action("build_worker_js") {
+  deps = [ ":worker" ]
+  script = "concat_files.py"
+
+  inputs = [
+    "../../pkg/dartpad_worker/lib/src/asset/worker.js",
+    "$target_gen_dir/worker.mjs",
+  ]
+  output = "$root_out_dir/dartpad/worker.js"
+  outputs = [ output ]
+
+  args = [ "--output=" + rebase_path(output, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
 }
 
 # Action to build the sdk.tar file
@@ -34,11 +58,6 @@ copy("copy_sandbox_js") {
   outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
 }
 
-copy("copy_worker_js") {
-  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.js" ]
-  outputs = [ "$root_out_dir/dartpad/worker.js" ]
-}
-
 copy("copy_dart_sdk_js") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js" ]
@@ -51,28 +70,31 @@ copy("copy_dart_sdk_js_map") {
   outputs = [ "$root_out_dir/dartpad/dart_sdk.js.map" ]
 }
 
-copy("copy_ddc_module_loader") {
-  sources = [ "../../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js" ]
-  outputs = [ "$root_out_dir/dartpad/ddc_module_loader.js" ]
-}
-
-copy("copy_stack_trace_mapper") {
+action("build_sandbox_runtime") {
   deps = [ "../../utils/ddc:stack_trace_mapper" ]
+  script = "concat_files.py"
+
   dart_out =
       get_label_info("../../utils/ddc:stack_trace_mapper", "root_out_dir")
-  sources = [ "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js" ]
-  outputs = [ "$root_out_dir/dartpad/dart_stack_trace_mapper.js" ]
+  inputs = [
+    "../../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js",
+    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+  ]
+  output = "$root_out_dir/dartpad/sandbox_runtime.js"
+  outputs = [ output ]
+
+  args = [ "--output=" + rebase_path(output, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
 }
 
 group("dartpad") {
   deps = [
+    ":build_sandbox_runtime",
     ":build_sdk_tar",
+    ":build_worker_js",
     ":copy_dart_sdk_js",
     ":copy_dart_sdk_js_map",
-    ":copy_ddc_module_loader",
     ":copy_sandbox_js",
-    ":copy_stack_trace_mapper",
-    ":copy_worker_js",
-    ":worker",
+    ":copy_worker_wasm",
   ]
 }

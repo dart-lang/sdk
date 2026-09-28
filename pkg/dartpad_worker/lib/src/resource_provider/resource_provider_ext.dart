@@ -10,15 +10,6 @@ import 'package:path/path.dart' as p;
 import 'package:tar/tar.dart';
 
 extension FolderExt on Folder {
-  /// Create represented folder and parents recursively (if not exists).
-  void createRecursively() {
-    if (exists || isRoot) {
-      return;
-    }
-    parent.createRecursively();
-    create();
-  }
-
   /// Extract [tarStream] into this [Folder].
   Future<void> extractTarStream(Stream<List<int>> tarStream) async {
     final reader = TarReader(tarStream);
@@ -34,11 +25,10 @@ extension FolderExt on Folder {
       }
 
       if (entry.header.typeFlag == TypeFlag.dir) {
-        getFolder(relPath).createRecursively();
+        getFolder(relPath).create();
       } else if (entry.header.typeFlag == TypeFlag.reg ||
           entry.header.typeFlag == TypeFlag.regA) {
         final file = getFile(relPath);
-        file.parent.createRecursively();
 
         // Pre-allocate exact entry size to copy once from TarReader's shared
         // block buffer instead of copying twice via BytesBuilder(copy: true).
