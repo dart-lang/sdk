@@ -54,8 +54,11 @@ class SemiSpace : public MallocAllocated {
   intptr_t gc_threshold_in_words() const { return gc_threshold_in_words_; }
 
   Page* head() const { return head_; }
+  Page* free_head() const { return free_head_; }
+  void set_free_head(Page* head) { free_head_ = head; }
 
   void AddList(Page* head, Page* tail);
+  void AddFree(Page* page);
 
  private:
   // Size of Pages in this semi-space.
@@ -67,6 +70,7 @@ class SemiSpace : public MallocAllocated {
 
   Page* head_ = nullptr;
   Page* tail_ = nullptr;
+  Page* free_head_ = nullptr;
 
   Cage* const cage_;
 };
