@@ -507,6 +507,7 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       }
     }
   }
+  signature.FinalizeNameArray();
 
   type ^= ReadObject();
   signature.set_result_type(type);
@@ -2298,6 +2299,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         }
       }
     }
+    signature.FinalizeNameArray();
 
     type ^= ReadObject();
     signature.set_result_type(type);

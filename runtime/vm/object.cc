@@ -9026,7 +9026,7 @@ bool FunctionType::IsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::SetIsRequiredAt(intptr_t index) const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   intptr_t flag_mask;
@@ -9041,7 +9041,7 @@ void FunctionType::SetIsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::FinalizeNameArray() const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   const intptr_t num_named_parameters = NumOptionalNamedParameters();
