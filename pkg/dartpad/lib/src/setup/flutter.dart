@@ -648,7 +648,12 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
   tar.addDirectory(
     target: '/sdk/bin/cache/pkg/sky_engine',
     source: p.join(ctx.flutterRoot, 'bin/cache/pkg/sky_engine'),
-    where: (f) => f.endsWith('pubspec.yaml') || f.startsWith('lib/'),
+    where: (f) {
+      if (excludedInternalDirs.any((d) => f.startsWith('lib/$d'))) {
+        return false;
+      }
+      return f.endsWith('pubspec.yaml') || f.startsWith('lib/');
+    },
   );
 
   await tar.close();
