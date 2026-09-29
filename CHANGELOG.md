@@ -1,5 +1,7 @@
 ## 3.13.5
 
+**Released on:** 2026-09-29
+
 This is a patch release that:
 
 - Fixes an issue in dart2wasm where tree-shaking (TFA) erroneously removed
