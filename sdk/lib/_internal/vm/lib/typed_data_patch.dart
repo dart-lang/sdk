@@ -3974,6 +3974,8 @@ final class _Float32x4 implements Float32x4 {
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_reciprocalSqrt")
   external Float32x4 reciprocalSqrt();
+
+  String toString() => 'V128';
 }
 
 @patch
@@ -4211,6 +4213,8 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Int32x4_select")
   external Float32x4 select(Float32x4 trueValue, Float32x4 falseValue);
+
+  String toString() => 'V128';
 }
 
 @patch
@@ -4326,6 +4330,8 @@ final class _Float64x2 implements Float64x2 {
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_sqrt")
   external Float64x2 sqrt();
+
+  String toString() => 'V128';
 }
 
 final class _TypedListIterator<E> implements Iterator<E> {

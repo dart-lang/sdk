@@ -26004,12 +26004,7 @@ uint32_t Float32x4::CanonicalizeHash() const {
 }
 
 const char* Float32x4::ToCString() const {
-  float _x = x();
-  float _y = y();
-  float _z = z();
-  float _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f, %f, %f]", _x, _y, _z,
-                     _w);
+  return "V128";
 }
 
 Int32x4Ptr Int32x4::New(int32_t v0,
@@ -26089,12 +26084,7 @@ uint32_t Int32x4::CanonicalizeHash() const {
 }
 
 const char* Int32x4::ToCString() const {
-  int32_t _x = x();
-  int32_t _y = y();
-  int32_t _z = z();
-  int32_t _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%08x, %08x, %08x, %08x]", _x,
-                     _y, _z, _w);
+  return "V128";
 }
 
 Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
@@ -26150,9 +26140,7 @@ uint32_t Float64x2::CanonicalizeHash() const {
 }
 
 const char* Float64x2::ToCString() const {
-  double _x = x();
-  double _y = y();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
+  return "V128";
 }
 
 const intptr_t

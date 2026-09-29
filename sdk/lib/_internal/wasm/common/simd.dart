@@ -360,14 +360,6 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   double get z => WasmF32x4(_bits).extractLane(2).toDouble();
   double get w => WasmF32x4(_bits).extractLane(3).toDouble();
 
-  @override
-  String toString() {
-    return '[${x.toStringAsFixed(6)}, '
-        '${y.toStringAsFixed(6)}, '
-        '${z.toStringAsFixed(6)}, '
-        '${w.toStringAsFixed(6)}]';
-  }
-
   Float32x4 operator +(Float32x4 other) =>
       F32x4.fromV128(WasmF32x4(_bits) + WasmF32x4((other as F32x4)._bits));
 
@@ -504,6 +496,9 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   Float32x4 reciprocalSqrt() => F32x4.fromV128(
     (WasmF32x4.splat(WasmF32.fromDouble(1.0)) / WasmF32x4(_bits)).sqrt(),
   );
+
+  @override
+  String toString() => 'V128';
 }
 
 /// Exposes the raw [WasmV128] backing an [F32x4] to the SIMD-backed
@@ -534,8 +529,6 @@ final class F64x2 extends WasmTypedDataBase implements Float64x2 {
 
   double get x => WasmF64x2(_bits).extractLane(0).toDouble();
   double get y => WasmF64x2(_bits).extractLane(1).toDouble();
-
-  String toString() => '[$x, $y]';
 
   Float64x2 operator +(Float64x2 other) =>
       F64x2.fromV128(WasmF64x2(_bits) + WasmF64x2((other as F64x2)._bits));
@@ -586,6 +579,8 @@ final class F64x2 extends WasmTypedDataBase implements Float64x2 {
       F64x2(x > other.x ? x : other.x, y > other.y ? y : other.y);
 
   Float64x2 sqrt() => F64x2.fromV128(WasmF64x2(_bits).sqrt());
+
+  String toString() => 'V128';
 }
 
 /// Exposes the raw [WasmV128] backing an [F64x2] to the SIMD-backed
@@ -630,10 +625,6 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   int get y => WasmI32x4(_bits).extractLane(1).toIntSigned();
   int get z => WasmI32x4(_bits).extractLane(2).toIntSigned();
   int get w => WasmI32x4(_bits).extractLane(3).toIntSigned();
-
-  String toString() =>
-      '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
-      '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
   Int32x4 operator |(Int32x4 other) =>
       I32x4.fromV128(_bits | (other as I32x4)._bits);
@@ -795,6 +786,8 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Float32x4 select(Float32x4 trueValue, Float32x4 falseValue) => F32x4.fromV128(
     _bits.bitSelect((trueValue as F32x4)._bits, (falseValue as F32x4)._bits),
   );
+
+  String toString() => 'V128';
 }
 
 /// Exposes the raw [WasmV128] backing an [I32x4] to the SIMD-backed
@@ -803,5 +796,3 @@ extension I32x4Ext on I32x4 {
   @pragma("wasm:prefer-inline")
   WasmV128 get bits => _bits;
 }
-
-String _int32ToHex(int i) => i.toRadixString(16).padLeft(8, '0');
