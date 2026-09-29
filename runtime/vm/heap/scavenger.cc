@@ -1907,9 +1907,12 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     ReverseScavenge(&from);
     bytes_promoted = 0;
   } else {
-    if ((ThresholdInWords() - UsedInWords()) < 32 * KBInWords) {
-      // Don't scavenge again until the next old-space GC has occurred. Prevents
-      // performing one scavenge per allocation as the heap limit is approached.
+    if (failed_to_promote_ &&
+        ((ThresholdInWords() - UsedInWords()) < 32 * KBInWords)) {
+      // If we don't have much room in new-space, and this is because of
+      // promotion failure (not just a copy-everything scavenge), don't scavenge
+      // again until the next old-space GC has occurred. This avoids performing
+      // one scavenge per allocation as the heap limit is approached.
       heap_->assume_scavenge_will_fail_ = true;
     }
   }
