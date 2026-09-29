@@ -110,11 +110,11 @@ class MigrateHandler
     );
   }
 
-  /// Validates that all provided [uris] are directories and each directory
-  /// contains a `pubspec.yaml` file.
+  /// Validates that [uris] point to directories containing a valid
+  /// `pubspec.yaml` map.
   ///
-  /// Returns an error if any URI points to a file, does not exist, or does
-  /// not contain a `pubspec.yaml` file.
+  /// Returns an error if any URI is invalid, does not exist, is not a
+  /// directory, or lacks a parsable `pubspec.yaml` map.
   ErrorOr<List<PubspecTarget>> _validateMigrationTargets(
     List<DocumentUri> uris,
   ) {
@@ -155,16 +155,22 @@ class MigrateHandler
           pubspecContent,
           sourceUrl: pubspecFile.toUri(),
         );
-        if (pubspec is YamlMap) {
-          if (pubspec['resolution'] == 'workspace') {
-            return error(
-              ErrorCodes.InvalidParams,
-              "The directory '$path' is part of a workspace and can't be"
-              ' migrated independently.',
-            );
-          }
-          targets.add(PubspecTarget(file: pubspecFile, pubspec: pubspec));
+        if (pubspec is! YamlMap) {
+          return error(
+            ErrorCodes.InvalidParams,
+            "The 'pubspec.yaml' file in '$path' doesn't contain a map of"
+            ' values.',
+          );
         }
+
+        if (pubspec['resolution'] == 'workspace') {
+          return error(
+            ErrorCodes.InvalidParams,
+            "The directory '$path' is part of a workspace and can't be"
+            ' migrated independently.',
+          );
+        }
+        targets.add(PubspecTarget(file: pubspecFile, pubspec: pubspec));
       } catch (e) {
         return error(
           ErrorCodes.InvalidParams,
