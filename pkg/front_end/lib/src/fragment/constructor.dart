@@ -36,6 +36,8 @@ class ConstructorFragment implements Fragment, FunctionFragment {
 
   ConstructorFragmentDeclaration? _declaration;
 
+  final bool isComplete;
+
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(
     fileUri,
@@ -60,10 +62,11 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.forAbstractClassOrEnumOrMixin,
     required this.buildInitializersForOutline,
-    required Token? beginInitializers,
+    required this._beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _beginInitializers = beginInitializers;
+    required this.isComplete,
+  });
 
   Token? get initializersStartToken {
     Token? result = _beginInitializers;

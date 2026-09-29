@@ -93,7 +93,7 @@ class CompiledApp {
     const dart2wasm = {
             B: s => printToConsole(s),
       C: Function.prototype.call.bind(Number.prototype.toString),
-      D: Function.prototype.call.bind(BigInt.prototype.toString),
+      D: Function.prototype.call.bind(String.prototype.indexOf),
       E: (exn) => {
         let stackString = exn.toString();
         let frames = stackString.split('\n');
@@ -106,7 +106,7 @@ class CompiledApp {
       F: () => new Error().stack,
       G: s => JSON.stringify(s),
       H: Function.prototype.call.bind(Number.prototype.toString),
-      I: Function.prototype.call.bind(String.prototype.indexOf),
+      I: Function.prototype.call.bind(BigInt.prototype.toString),
       J: (exn) => {
         if (exn instanceof Error) {
           return exn.stack;

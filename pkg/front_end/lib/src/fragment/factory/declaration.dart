@@ -47,6 +47,9 @@ abstract class FactoryDeclaration {
 
   ConstructorReferenceBuilder? get redirectionTarget;
 
+  /// Returns `true` if this factory constructor declaration is complete.
+  bool get isComplete;
+
   void createEncoding({
     required ProblemReporting problemReporting,
     required DeclarationBuilder declarationBuilder,
@@ -67,7 +70,7 @@ abstract class FactoryDeclaration {
   void buildOutlineNodes({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required NameScheme nameScheme,
     required FactoryReferences? factoryReferences,
     required bool isConst,
@@ -121,6 +124,9 @@ class FactoryDeclarationImpl
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isComplete => _fragment.isComplete;
 
   @override
   void createEncoding({
@@ -260,7 +266,7 @@ class FactoryDeclarationImpl
   void buildOutlineNodes({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required NameScheme nameScheme,
     required FactoryReferences? factoryReferences,
     required bool isConst,
@@ -268,7 +274,7 @@ class FactoryDeclarationImpl
     _encoding.buildOutlineNodes(
       libraryBuilder: libraryBuilder,
       factoryBuilder: factoryBuilder,
-      f: f,
+      f: callback,
       name: _fragment.name,
       nameScheme: nameScheme,
       factoryReferences: factoryReferences,

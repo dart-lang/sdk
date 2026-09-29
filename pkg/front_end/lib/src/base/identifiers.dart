@@ -242,7 +242,7 @@ void flattenQualifiedNameOn(
   buffer.write(name.name);
 }
 
-String flattenName(Identifier name, int charOffset, Uri? fileUri) {
+String flattenName(Identifier name, int charOffset, Uri fileUri) {
   if (name is QualifiedName) {
     StringBuffer buffer = new StringBuffer();
     flattenQualifiedNameOn(name, buffer, charOffset, fileUri);

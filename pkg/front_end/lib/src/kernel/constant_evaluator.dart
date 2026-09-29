@@ -2746,7 +2746,7 @@ class ConstantEvaluator
     );
   }
 
-  LocatedMessage createLocatedMessage(TreeNode? node, Message message) {
+  LocatedMessage createLocatedMessage(TreeNode node, Message message) {
     Uri? uri = getFileUri(node);
     if (uri == null) {
       // TODO(johnniwinther): Ensure that we always have a uri.
@@ -2757,7 +2757,7 @@ class ConstantEvaluator
   }
 
   LocatedMessage createLocatedMessageWithOffset(
-    TreeNode? node,
+    TreeNode node,
     int offset,
     Message message,
   ) {
@@ -3618,8 +3618,8 @@ class ConstantEvaluator
     DartTypeList typeArguments = convertTypes(types);
 
     if (typeArguments.length < klass.typeParameters.length) {
-      // Fill in any missing type arguments with "dynamic".
       // Coverage-ignore-block(suite): Not run.
+      // Fill in any missing type arguments with "dynamic".
       typeArguments = new DartTypeList.generate(
         klass.typeParameters.length,
         (int i) =>

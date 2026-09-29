@@ -63,8 +63,8 @@ abstract class ConstructorEncoding {
   /// members and to avoid reporting cascading errors.
   void markAsErroneous();
 
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required covariant DeclarationBuilder declarationBuilder,
@@ -210,8 +210,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder declarationBuilder,
@@ -251,7 +251,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.Constructor,
@@ -957,8 +957,8 @@ class ExtensionTypeConstructorEncoding
   }
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionTypeDeclarationBuilder declarationBuilder,
@@ -997,7 +997,7 @@ class ExtensionTypeConstructorEncoding
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.ExtensionTypeConstructor,
@@ -1055,8 +1055,8 @@ class ExtensionConstructorEncoding
   new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionBuilder declarationBuilder,

@@ -9,7 +9,7 @@
     (field $#classId i32)
     (field $classId i32)
     (field $typeArguments (ref $Array<_Type>)))))
-  (table $dtable0 773 funcref)
+  (table $dtable0 767 funcref)
   (elem $dtable0 <...>)
   (func $_getMasqueradedRuntimeType (param $var0 (ref $#Top)) (result (ref $#Top)) <...>)
   (func $sink (param $var0 i32) <...>)
@@ -47,7 +47,7 @@
     call $_getMasqueradedRuntimeType
     local.get $var2
     struct.get $#Top $#classId
-    i32.const 119
+    i32.const 118
     i32.add
     call_indirect (param (ref $#Top) (ref $#Top)) (result i32)
   )

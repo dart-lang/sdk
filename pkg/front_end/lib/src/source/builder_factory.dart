@@ -444,13 +444,30 @@ class BuilderFactory {
   }
 
   void _createConstructorBuilderFromDeclarations(
-    ConstructorDeclaration constructorDeclaration,
-    List<ConstructorDeclaration> augmentationDeclarations, {
+    ConstructorDeclaration introductory,
+    List<ConstructorDeclaration> augmentations, {
     required String name,
     required UriOffsetLength uriOffset,
     required bool isConst,
     required bool inPatch,
   }) {
+    List<ConstructorDeclaration> declarations = [introductory];
+    ConstructorDeclaration implementation = introductory;
+    if (augmentations.isNotEmpty) {
+      declarations.addAll(augmentations);
+      for (ConstructorDeclaration augmentation in augmentations) {
+        // TODO(johnniwinther): Support implementing an external constructor
+        // with an incomplete patch constructor like
+        //
+        //     class C { external new(); }
+        //     @patch class C { @patch new(); }
+        //
+        if (augmentation.isComplete) {
+          implementation = augmentation;
+        }
+      }
+    }
+
     NameScheme nameScheme = new NameScheme(
       isInstanceMember: false,
       containerName: _containerName,
@@ -483,8 +500,8 @@ class BuilderFactory {
       fileOffset: uriOffset.fileOffset,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: constructorDeclaration,
-      augmentations: augmentationDeclarations,
+      declarations: declarations,
+      implementation: implementation,
       isConst: isConst,
     );
     constructorReferences.registerReference(
@@ -492,16 +509,8 @@ class BuilderFactory {
       constructorBuilder,
     );
 
-    constructorDeclaration.createEncoding(
-      problemReporting: _problemReporting,
-      loader: _loader,
-      declarationBuilder: _declarationBuilder,
-      constructorBuilder: constructorBuilder,
-      typeParameterFactory: _typeParameterFactory,
-      encodingStrategy: encodingStrategy,
-    );
-    for (ConstructorDeclaration augmentation in augmentationDeclarations) {
-      augmentation.createEncoding(
+    for (ConstructorDeclaration declaration in declarations) {
+      declaration.createEncoding(
         problemReporting: _problemReporting,
         loader: _loader,
         declarationBuilder: _declarationBuilder,
@@ -894,6 +903,17 @@ class BuilderFactory {
     required UriOffsetLength uriOffset,
     required bool inPatch,
   }) {
+    List<FactoryDeclaration> declarations = [introductory];
+    FactoryDeclaration implementation = introductory;
+    if (augmentations.isNotEmpty) {
+      declarations.addAll(augmentations);
+      for (FactoryDeclaration augmentation in augmentations) {
+        if (augmentation.isComplete) {
+          implementation = augmentation;
+        }
+      }
+    }
+
     FactoryEncodingStrategy encodingStrategy = new FactoryEncodingStrategy(
       _declarationBuilder!,
     );
@@ -915,12 +935,7 @@ class BuilderFactory {
       declarationBuilder: _declarationBuilder,
     );
 
-    bool isRedirectingFactory = introductory.isRedirectingFactory;
-    for (FactoryDeclaration augmentation in augmentations) {
-      if (augmentation.isRedirectingFactory) {
-        isRedirectingFactory = true;
-      }
-    }
+    bool isRedirectingFactory = implementation.isRedirectingFactory;
 
     SourceFactoryBuilder factoryBuilder = new SourceFactoryBuilder(
       name: name,
@@ -930,10 +945,11 @@ class BuilderFactory {
       fileOffset: uriOffset.fileOffset,
       factoryReferences: factoryReferences,
       nameScheme: nameScheme,
-      introductory: introductory,
-      augmentations: augmentations,
+      declarations: declarations,
+      implementation: implementation,
       isConst: isConst,
     );
+
     if (isRedirectingFactory) {
       (_enclosingLibraryBuilder.redirectingFactoryBuilders ??= []).add(
         factoryBuilder,

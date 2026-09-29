@@ -14,6 +14,12 @@
 
 #### `dart:typed_data`
 
+- **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
+  `Int32x4` and `Float64x2` now returns `'V128'` instead of a list of the lane
+  values. The old per-lane output was inconsistent across platforms and was
+  never specified. On the VM this also covers `Error.safeToString` and the
+  values shown by the debugger and the VM service.
+  For more details, see SDK issue [#63847][]
 - Added `rangeEquals` extension methods on all integer typed data lists
   (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
   `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
@@ -50,6 +56,8 @@
   compared as signed 32-bit integers.
 - Added `Int32x4.max`, which selects the larger of each pair of lanes,
   compared as signed 32-bit integers.
+
+[#63847]: https://github.com/dart-lang/sdk/issues/63847
 
 #### `dart:js_interop`
 

@@ -7464,10 +7464,10 @@ class ParenthesizedExpressionGenerator extends AbstractReadOnlyAccessGenerator {
   }
 }
 
-int adjustForImplicitCall(String? name, int offset) {
+int adjustForImplicitCall(String name, int offset) {
   // Normally the offset is at the start of the token, but in this case,
   // because we insert a '.call', we want it at the end instead.
-  return offset + (name?.length ?? 0);
+  return offset + name.length;
 }
 
 bool isFieldOrGetter(Member? member) {

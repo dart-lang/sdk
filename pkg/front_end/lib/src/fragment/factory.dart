@@ -27,6 +27,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
   final ConstructorReferenceBuilder? redirectionTarget;
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
+  final bool isComplete;
 
   SourceFactoryBuilder? _builder;
 
@@ -56,6 +57,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
     required this.redirectionTarget,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this.isComplete,
   });
 
   @override

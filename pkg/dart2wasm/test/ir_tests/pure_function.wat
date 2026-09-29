@@ -30,12 +30,12 @@
   (func $print (param $var0 (ref $#Top)) <...>)
   (@binaryen.inline 0)
   (func $runApp
-    i32.const 101
+    i32.const 58
     global.get $"\"3\""
     call $foo
     struct.new $BoxedInt
     call $print
-    i32.const 101
+    i32.const 58
     global.get $"\"4\""
     call $foo
     struct.new $BoxedInt

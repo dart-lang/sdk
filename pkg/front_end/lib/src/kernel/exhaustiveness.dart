@@ -779,67 +779,60 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     return createUnknownSpace(path);
   }
 
-  Space convertConstantToSpace(Constant? constant, {required Path path}) {
-    if (constant != null) {
-      EnumValue? enumValue = constantToEnumValue(
-        cache.typeEnvironment.coreTypes,
-        constant,
+  Space convertConstantToSpace(Constant constant, {required Path path}) {
+    EnumValue? enumValue = constantToEnumValue(
+      cache.typeEnvironment.coreTypes,
+      constant,
+    );
+    if (enumValue != null) {
+      return new Space(
+        path,
+        cache.getEnumElementStaticType(enumValue.enumClass, enumValue),
       );
-      if (enumValue != null) {
-        return new Space(
-          path,
-          cache.getEnumElementStaticType(enumValue.enumClass, enumValue),
+    } else if (constant is NullConstant) {
+      return new Space(path, StaticType.nullType);
+    } else if (constant is BoolConstant) {
+      return new Space(path, cache.getBoolValueStaticType(constant.value));
+    } else if (constant is RecordConstant) {
+      Map<Key, Space> properties = {};
+      for (
+        int index = 0;
+        index < constant.positional.length;
+        // Coverage-ignore(suite): Not run.
+        index++
+      ) {
+        // Coverage-ignore-block(suite): Not run.
+        Key key = new RecordIndexKey(index);
+        properties[key] = convertConstantToSpace(
+          constant.positional[index],
+          path: path.add(key),
         );
-      } else if (constant is NullConstant) {
-        return new Space(path, StaticType.nullType);
-      } else if (constant is BoolConstant) {
-        return new Space(path, cache.getBoolValueStaticType(constant.value));
-      } else if (constant is RecordConstant) {
-        Map<Key, Space> properties = {};
-        for (
-          int index = 0;
-          index < constant.positional.length;
-          // Coverage-ignore(suite): Not run.
-          index++
-        ) {
-          // Coverage-ignore-block(suite): Not run.
-          Key key = new RecordIndexKey(index);
-          properties[key] = convertConstantToSpace(
-            constant.positional[index],
-            path: path.add(key),
-          );
-        }
-        for (MapEntry<String, Constant> entry in constant.named.entries) {
-          // Coverage-ignore-block(suite): Not run.
-          Key key = new RecordNameKey(entry.key);
-          properties[key] = convertConstantToSpace(
-            entry.value,
-            path: path.add(key),
-          );
-        }
-        return new Space(
-          path,
-          cache.getStaticType(constant.recordType),
-          properties: properties,
-        );
-      } else if (hasPrimitiveEquality(constant)) {
-        // Only if [constant] has primitive equality can we tell if it is equal
-        // to itself.
-        return new Space(
-          path,
-          cache.getUniqueStaticType<Constant>(
-            constant.getType(context),
-            constant,
-            constant.toText(textStrategy),
-          ),
-        );
-      } else {
-        return new Space(path, cache.getUnknownStaticType());
       }
+      for (MapEntry<String, Constant> entry in constant.named.entries) {
+        // Coverage-ignore-block(suite): Not run.
+        Key key = new RecordNameKey(entry.key);
+        properties[key] = convertConstantToSpace(
+          entry.value,
+          path: path.add(key),
+        );
+      }
+      return new Space(
+        path,
+        cache.getStaticType(constant.recordType),
+        properties: properties,
+      );
+    } else if (hasPrimitiveEquality(constant)) {
+      // Only if [constant] has primitive equality can we tell if it is equal
+      // to itself.
+      return new Space(
+        path,
+        cache.getUniqueStaticType<Constant>(
+          constant.getType(context),
+          constant,
+          constant.toText(textStrategy),
+        ),
+      );
     } else {
-      // Coverage-ignore-block(suite): Not run.
-      // TODO(johnniwinther): Assert that constant value is available when the
-      // exhaustiveness checking is complete.
       return new Space(path, cache.getUnknownStaticType());
     }
   }

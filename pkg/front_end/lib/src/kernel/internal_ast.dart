@@ -1836,14 +1836,14 @@ sealed class InternalFunctionParameter extends InternalVariable
 
   InternalExpression? get defaultValue => _defaultValue;
 
-  void updateDefaultValue(InternalExpression? value) {
+  void updateDefaultValue(InternalExpression value) {
     _defaultValue = value;
   }
 
   Expression? get inferredDefaultValue => _astVariable.defaultValue;
 
-  void setInferredDefaultValue(Expression? value) {
-    _astVariable.defaultValue = value?..parent = _astVariable;
+  void setInferredDefaultValue(Expression value) {
+    _astVariable.defaultValue = value..parent = _astVariable;
   }
 
   @override

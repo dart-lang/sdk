@@ -6216,10 +6216,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   InternalExpression evaluateArgumentsBefore(
-    ActualArguments? arguments,
+    ActualArguments arguments,
     InternalExpression expression,
   ) {
-    if (arguments == null) return expression;
     for (Argument argument in arguments.argumentList.reversed) {
       expression = intern.createLetForEffect(
         effect: argument.expression,

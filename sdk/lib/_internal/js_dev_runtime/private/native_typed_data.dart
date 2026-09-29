@@ -1281,10 +1281,6 @@ final class NativeFloat32x4 implements Float32x4 {
   /// either.
   NativeFloat32x4._truncated(this.x, this.y, this.z, this.w);
 
-  String toString() {
-    return '[$x, $y, $z, $w]';
-  }
-
   /// Addition operator.
   Float32x4 operator +(Float32x4 other) {
     double _x = x + other.x;
@@ -1578,6 +1574,8 @@ final class NativeFloat32x4 implements Float32x4 {
     double _w = Math.sqrt(1.0 / w);
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
+
+  String toString() => 'V128';
 }
 
 /// Interface of Dart Int32x4 and operations.
@@ -1629,8 +1627,6 @@ final class NativeInt32x4 implements Int32x4 {
   }
 
   NativeInt32x4._truncated(this.x, this.y, this.z, this.w);
-
-  String toString() => '[$x, $y, $z, $w]';
 
   /// The bit-wise or operator.
   Int32x4 operator |(Int32x4 other) {
@@ -1981,6 +1977,8 @@ final class NativeInt32x4 implements Int32x4 {
       floatList[3],
     );
   }
+
+  String toString() => 'V128';
 }
 
 final class NativeFloat64x2 implements Float64x2 {
@@ -2000,8 +1998,6 @@ final class NativeFloat64x2 implements Float64x2 {
 
   /// Arguments [x] and [y] must be doubles.
   NativeFloat64x2._doubles(this.x, this.y);
-
-  String toString() => '[$x, $y]';
 
   /// Addition operator.
   Float64x2 operator +(Float64x2 other) {
@@ -2096,6 +2092,8 @@ final class NativeFloat64x2 implements Float64x2 {
   Float64x2 sqrt() {
     return NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }
+
+  String toString() => 'V128';
 }
 
 /// Checks that the value is a Uint32. If not, it's not valid as an array

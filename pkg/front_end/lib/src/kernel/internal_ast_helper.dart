@@ -585,14 +585,13 @@ ForInElement createForInElement({
 /// Return a representation of a for statement.
 InternalLoopStatement createForStatement(
   int fileOffset,
-  List<InternalVariableDeclaration>? variables,
+  List<InternalVariableDeclaration> variables,
   InternalExpression? condition,
   List<InternalExpression> updaters,
   InternalStatement body,
 ) {
   return new InternalForStatement(
-    variables ?? // Coverage-ignore(suite): Not run.
-        [],
+    variables,
     condition,
     updaters,
     body,
