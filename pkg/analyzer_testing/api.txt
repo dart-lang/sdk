@@ -30,6 +30,14 @@ package:analyzer_testing/configuration_files_mixin.dart:
     testPackageRootPath (getter: String)
     writePackageConfig2 (method: void Function(String, {PackageConfigFileBuilder? config, String? languageVersion, String? packageName}))
     writeTestPackageConfig2 (method: void Function({PackageConfigFileBuilder? config, String? languageVersion}))
+package:analyzer_testing/correction/assist_processor.dart:
+  AssistProcessorTest (class extends SingleUnitTest with SelectionMixin, abstract):
+    new (constructor: AssistProcessorTest Function())
+    kind (getter: AssistKind)
+    workspace (getter: Future<ChangeWorkspace>)
+    addTestSource (method: void Function(String))
+    assertHasAssist (method: Future<SourceChange> Function(String, {int index}))
+    assertNoAssist (method: Future<void> Function([int]))
 package:analyzer_testing/experiments/experiments.dart:
   experimentalFeaturesForTests (static getter: List<Feature>)
 package:analyzer_testing/mock_packages/mock_packages.dart:
@@ -87,6 +95,10 @@ package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart:
   ExpectedContextMessage (non-public)
   ExpectedDiagnostic (non-public)
   PubPackageResolutionTest (non-public)
+package:analyzer_testing/src/selection_mixin.dart:
+  SelectionMixin (non-public)
+package:analyzer_testing/src/single_unit.dart:
+  SingleUnitTest (non-public)
 package:analyzer_testing/utilities/extensions/diagnostic_code.dart:
   DiagnosticCodeExtension (extension on DiagnosticCode):
     constantName (getter: String)
@@ -127,5 +139,11 @@ package:analyzer/file_system/file_system.dart:
   ResourceProvider (referenced)
 package:analyzer/src/analysis_rule/analysis_rule.dart:
   AbstractAnalysisRule (referenced)
+package:analyzer_plugin/protocol/protocol_common.dart:
+  SourceChange (referenced)
+package:analyzer_plugin/utilities/assist/assist.dart:
+  AssistKind (referenced)
+package:analyzer_plugin/utilities/change_builder/change_workspace.dart:
+  ChangeWorkspace (referenced)
 package:path/src/context.dart:
   Context (referenced)

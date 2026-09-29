@@ -11,7 +11,9 @@ resolution: workspace
 dependencies:
   # See the release policy for managing this dependency at
   # pkg/analyzer/doc/implementation/releasing.md.
+  analysis_server_plugin: 0.3.24-dev
   analyzer: 14.5.0-dev
+  analyzer_plugin: 0.14.18-dev
   meta: ^1.10.0
   path: ^1.9.0
   test: ^1.25.0
