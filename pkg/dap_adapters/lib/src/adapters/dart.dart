@@ -334,7 +334,7 @@ abstract class DartDebugAdapter<
   TA extends AttachRequestArguments
 >
     extends BaseDebugAdapter<TL, TA>
-    with FileUtils {
+    with FileUtils, ColorUtils {
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,
@@ -354,6 +354,8 @@ abstract class DartDebugAdapter<
     isolateManager = IsolateManager(this);
     _converter = ProtocolConverter(this);
   }
+
+  @override
   late final DartCommonLaunchAttachRequestArguments args;
   final _debuggerInitializedCompleter = Completer<void>();
   final _configurationDoneCompleter = Completer<void>();
@@ -2724,7 +2726,6 @@ abstract class DartDebugAdapter<
       }),
     );
 
-    final supportsAnsiColors = args.allowAnsiColorOutput ?? false;
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
       final frameLocation = frameLocations[i];
@@ -2746,19 +2747,13 @@ abstract class DartDebugAdapter<
                 : uri.toString())
           : null;
 
-      // If this is non-user code, fade out the stack frame line so that user
-      // lines are more visible.
-      final linePrefix = !isUserProject && supportsAnsiColors
-          ? '\u001B[2m'
-          : ''; // 2=dim
-      final lineSuffix = !isUserProject && supportsAnsiColors
-          ? '\u001B[0m'
-          : ''; // 0=reset
+      // Fade out non-user stack frames so user lines are more visible.
+      final lineText = !isUserProject ? dim(line) : line;
 
       // Because we split on newlines, all items except the last one need to
       // have their trailing newlines added back.
       final lineEnd = i != lines.length - 1 ? '\n' : '';
-      final output = '$linePrefix$line$lineSuffix$lineEnd';
+      final output = '$lineText$lineEnd';
 
       // If the output is empty (for example the output ended with \n so after
       // splitting by \n, the last iteration is empty) then we don't need

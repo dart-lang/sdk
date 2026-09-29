@@ -74,6 +74,125 @@ void main() {
       expectStandardSimpleTestResults(outputEvents);
     });
 
+    test('uses ANSI colors for test statuses and failing summaries', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+
+      final outputEvents = await client.collectTestOutput(
+        launch: () => client.launch(
+          testFile.path,
+          noDebug: true,
+          allowAnsiColorOutput: true,
+        ),
+      );
+
+      expectLines(outputEvents.consoleOutputText, [
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ': ${ansi(32, '✓')} group 1 passing test\$',
+        ),
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ' ${ansi(31, '-1')}'
+          ': ${ansi(31, '✖')} group 1 failing test\$',
+        ),
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ' ${ansi(33, '~1')}'
+          ' ${ansi(31, '-1')}'
+          ': ${ansi(33, '!')} group 1 skipped test\$',
+        ),
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ' ${ansi(33, '~1')}'
+          ' ${ansi(31, '-1')}'
+          ': ${ansi(33, r'1 skipped test\.')}\$',
+        ),
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ' ${ansi(33, '~1')}'
+          ' ${ansi(31, '-1')}'
+          ': ${ansi(31, r'Some tests failed\.')}\$',
+        ),
+        '',
+        'Exited (1).',
+      ]);
+    });
+
+    test('reports "all tests passed" when all passed', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+
+      final outputEvents = await client.collectTestOutput(
+        launch: () => client.launch(
+          testFile.path,
+          noDebug: true,
+          allowAnsiColorOutput: true,
+          args: ['--plain-name', 'passing test'],
+        ),
+      );
+
+      expectLines(outputEvents.consoleOutputText, [
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          ': ${ansi(32, '✓')} group 1 passing test\$',
+        ),
+        matches(
+          r'^\d\d:\d\d'
+          ' ${ansi(32, r'\+1')}'
+          r': All tests passed!$',
+        ),
+        '',
+        'Exited.',
+      ]);
+    });
+
+    test(
+      'reports skipped and "all other tests passed" when some tests skipped',
+      () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile(simpleTestProgram);
+
+        final outputEvents = await client.collectTestOutput(
+          launch: () => client.launch(
+            testFile.path,
+            noDebug: true,
+            allowAnsiColorOutput: true,
+            args: ['--plain-name', 'skipped test'],
+          ),
+        );
+
+        expectLines(outputEvents.consoleOutputText, [
+          matches(
+            r'^\d\d:\d\d'
+            ' ${ansi(32, r'\+0')}'
+            ' ${ansi(33, '~1')}'
+            ': ${ansi(33, '!')} group 1 skipped test\$',
+          ),
+          matches(
+            r'^\d\d:\d\d'
+            ' ${ansi(32, r'\+0')}'
+            ' ${ansi(33, '~1')}'
+            ': ${ansi(33, r'1 skipped test\.')}\$',
+          ),
+          matches(
+            r'^\d\d:\d\d'
+            ' ${ansi(32, r'\+0')}'
+            ' ${ansi(33, '~1')}'
+            r': All other tests passed!$',
+          ),
+          '',
+          'Exited.',
+        ]);
+      },
+    );
+
     test('sends an exited event with the exit code', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleTestProgram);
