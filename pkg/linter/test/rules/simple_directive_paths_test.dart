@@ -27,6 +27,24 @@ export '//localhost/a.dart';
     );
   }
 
+  Future<void> test_export_inPart_relative_minimal() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
+    await assertNoDiagnosticsInFileName('src/part.dart', r'''
+part of 'lib.dart';
+export '../a.dart';
+''');
+  }
+
+  Future<void> test_export_inPart_relative_nonMinimal() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
+    await assertDiagnosticsInFileNameFromMarkup('src/part.dart', r'''
+part of 'lib.dart';
+export [!'./../a.dart'!];
+''');
+  }
+
   Future<void> test_export_package_minimal() async {
     newFile('$testPackageLibPath/a.dart', '');
     await assertNoDiagnostics(r'''
@@ -116,12 +134,23 @@ export 'a.dart#frag';
     );
   }
 
-  Future<void> test_import_in_part_relative_nonMinimal() async {
+  Future<void> test_import_inPart_relative_minimal() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
+    await assertNoDiagnosticsInFileName('src/part.dart', r'''
+part of 'lib.dart';
+import '../a.dart';
+// ignore_for_file: unused_import
+''');
+  }
+
+  Future<void> test_import_inPart_relative_nonMinimal() async {
     newFile('$testPackageLibPath/a.dart', '');
     newFile('$testPackageLibPath/src/lib.dart', "part 'part.dart';");
     await assertDiagnosticsInFileNameFromMarkup('src/part.dart', r'''
 part of 'lib.dart';
-export [!'./../a.dart'!];
+import [!'./../a.dart'!];
+// ignore_for_file: unused_import
 ''');
   }
 
@@ -203,10 +232,64 @@ part [!'./a.dart'!];
 ''');
   }
 
+  Future<void> test_part_inPart_minimal() async {
+    newFile('$testPackageLibPath/a.dart', "part 'src/b.dart';");
+    newFile('$testPackageLibPath/src/c.dart', "part of 'b.dart';");
+    await assertNoDiagnosticsInFileName('src/b.dart', r'''
+part of '../a.dart';
+part 'c.dart';
+''');
+  }
+
+  Future<void> test_part_inPart_nonMinimal() async {
+    newFile('$testPackageLibPath/a.dart', "part 'src/b.dart';");
+    newFile('$testPackageLibPath/src/c.dart', "part of 'b.dart';");
+    await assertDiagnosticsInFileNameFromMarkup('src/b.dart', r'''
+part of '../a.dart';
+part [!'./c.dart'!];
+''');
+  }
+
+  Future<void> test_part_minimal() async {
+    newFile('$testPackageLibPath/a.dart', 'part of "test.dart";');
+    await assertNoDiagnostics(r'''
+part 'a.dart';
+''');
+  }
+
   Future<void> test_partOf() async {
     newFile('$testPackageLibPath/lib.dart', 'part "test.dart";');
     await assertDiagnosticsFromMarkup(r'''
 part of [!'./lib.dart'!];
+''');
+  }
+
+  Future<void> test_partOf_inSubpart_minimal() async {
+    newFile('$testPackageLibPath/a.dart', "part 'src/b.dart';");
+    newFile('$testPackageLibPath/src/b.dart', r'''
+part of '../a.dart';
+part 'c.dart';
+''');
+    await assertNoDiagnosticsInFileName('src/c.dart', r'''
+part of 'b.dart';
+''');
+  }
+
+  Future<void> test_partOf_inSubpart_nonMinimal() async {
+    newFile('$testPackageLibPath/a.dart', "part 'src/b.dart';");
+    newFile('$testPackageLibPath/src/b.dart', r'''
+part of '../a.dart';
+part 'c.dart';
+''');
+    await assertDiagnosticsInFileNameFromMarkup('src/c.dart', r'''
+part of [!'./b.dart'!];
+''');
+  }
+
+  Future<void> test_partOf_minimal() async {
+    newFile('$testPackageLibPath/lib.dart', 'part "test.dart";');
+    await assertNoDiagnostics(r'''
+part of 'lib.dart';
 ''');
   }
 
