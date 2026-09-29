@@ -4587,6 +4587,27 @@ DEFINE_EMIT(Int32x4NotEqual,
   __ notps(left, left);
 }
 
+DEFINE_EMIT(Int32x4Shift,
+            (SameAsFirstInput,
+             XmmRegister value,
+             Register shift,
+             Temp<Register> count,
+             Temp<XmmRegister> count_xmm)) {
+  __ movl(count, shift);
+  __ AndImmediate(count, compiler::Immediate(31));
+  __ movd(count_xmm, count);
+  switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4Shl:
+      __ pslld(value, count_xmm);
+      break;
+    case SimdOpInstr::kInt32x4ShrS:
+      __ psrad(value, count_xmm);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -4594,6 +4615,9 @@ DEFINE_EMIT(Int32x4NotEqual,
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Int32x4Shl)                                                             \
+  CASE(Int32x4ShrS)                                                            \
+  ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
