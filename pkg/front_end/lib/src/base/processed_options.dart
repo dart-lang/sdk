@@ -370,7 +370,7 @@ class ProcessedOptions {
   ///
   /// If `CompilerOptions.omitOsMessageForTesting` is `true, the message will
   /// be a fixed string, otherwise the toString of [error] will be returned.
-  String osErrorMessage(Object? error) {
+  String osErrorMessage(Object error) {
     if (_raw.omitOsMessageForTesting) return '<os-message>';
     return '$error';
   }

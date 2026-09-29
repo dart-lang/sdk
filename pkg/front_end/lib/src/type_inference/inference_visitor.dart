@@ -273,8 +273,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ///      // relative to the stack base.
   ///      assert(checkStack(node, [ValuesKind.Expression]));
   ///
-  bool checkStackBase(InternalNode? node, int base) {
-    return checkStackBaseStateForAssert(fileUri, node?.fileOffset, base);
+  bool checkStackBase(InternalNode node, int base) {
+    return checkStackBaseStateForAssert(fileUri, node.fileOffset, base);
   }
 
   /// Checks the top of the current stack against [kinds]. If a mismatch is
@@ -293,10 +293,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ///
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
-  bool checkStack(InternalNode? node, int? base, List<ValueKind> kinds) {
+  bool checkStack(InternalNode node, int? base, List<ValueKind> kinds) {
     return checkStackStateForAssert(
       fileUri,
-      node?.fileOffset,
+      node.fileOffset,
       kinds,
       base: base,
     );
@@ -2876,8 +2876,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ///    transformation needed has been performed); and
   /// b) The library is correctly marked as being used to allow for proper
   ///    'dependency pruning'.
-  void _ensureLoaded(Member? member) {
-    if (member == null) return;
+  void _ensureLoaded(Member member) {
     Library ensureLibraryLoaded = member.enclosingLibrary;
     LibraryBuilder? builder =
         libraryBuilder.loader.lookupLoadedLibraryBuilder(

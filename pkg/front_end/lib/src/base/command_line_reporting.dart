@@ -216,7 +216,7 @@ String formatErrorMessage(
   String? sourceLine,
   Location? location,
   int squigglyLength,
-  String? path,
+  String path,
   String messageText,
 ) {
   if (sourceLine == null || location == null) {

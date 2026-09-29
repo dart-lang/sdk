@@ -2746,7 +2746,7 @@ class ConstantEvaluator
     );
   }
 
-  LocatedMessage createLocatedMessage(TreeNode? node, Message message) {
+  LocatedMessage createLocatedMessage(TreeNode node, Message message) {
     Uri? uri = getFileUri(node);
     if (uri == null) {
       // TODO(johnniwinther): Ensure that we always have a uri.
@@ -2757,7 +2757,7 @@ class ConstantEvaluator
   }
 
   LocatedMessage createLocatedMessageWithOffset(
-    TreeNode? node,
+    TreeNode node,
     int offset,
     Message message,
   ) {

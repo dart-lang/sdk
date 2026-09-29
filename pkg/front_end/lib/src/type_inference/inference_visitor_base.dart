@@ -217,7 +217,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
   /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+  ExpressionInfo? getExpressionInfo(Expression expression) =>
       _expressionInfoMap[expression];
 
   /// Returns [CaptureKind] for the given [variable].

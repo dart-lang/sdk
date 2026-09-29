@@ -395,10 +395,10 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<DillNominalParameterBuilder>? computeTypeParameterBuilders(
-  List<TypeParameter>? typeParameters,
+  List<TypeParameter> typeParameters,
   Loader loader,
 ) {
-  if (typeParameters == null || typeParameters.length == 0) return null;
+  if (typeParameters.length == 0) return null;
   return <DillNominalParameterBuilder>[
     for (TypeParameter typeParameter in typeParameters)
       new DillNominalParameterBuilder(typeParameter, loader: loader),
