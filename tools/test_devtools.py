@@ -192,16 +192,16 @@ def main():
             }
         })
 
-        # TODO(srawlins): Enable devtools_app integration tests.
-        # for bot in ['integration_dart2js', 'integration_dart2wasm']:
-        #     jobs.append({
-        #         'script': 'tool/ci/bots.sh',
-        #         'env': {
-        #             'BOT': bot,
-        #             'DEVICE': 'flutter',
-        #             'DEVTOOLS_PACKAGE': 'devtools_app'
-        #         }
-        #     })
+        for bot in ['integration_dart2js', 'integration_dart2wasm']:
+            jobs.append({
+                'script': 'tool/ci/bots.sh',
+                'env': {
+                    'BOT': bot,
+                    'DEVICE': 'flutter',
+                    'DEVTOOLS_PACKAGE': 'devtools_app'
+                }
+            })
+        # TODO(srawlins): Enable more devtools_app integration tests.
         #     jobs.append({
         #         'script': 'tool/ci/bots.sh',
         #         'env': {
