@@ -227,6 +227,7 @@ class Deserializer : public ThreadStackResource {
   void Deserialize();
 
   DeserializationCluster* ReadCluster();
+  void ReadRoots();
 
   uword instructions() const {
     return reinterpret_cast<uword>(instructions_buffer_);
@@ -742,7 +743,11 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       func->untag()->entry_point_ = 0;
       func->untag()->unchecked_entry_point_ = 0;
       func->untag()->name_ = static_cast<StringPtr>(d.ReadRef());
-      func->untag()->owner_ = d.ReadRef();
+      ObjectPtr owner = d.ReadRef();
+      if (owner->IsLibrary()) {
+        owner = static_cast<LibraryPtr>(owner)->untag()->toplevel_class();
+      }
+      func->untag()->owner_ = owner;
       func->untag()->signature_ = static_cast<FunctionTypePtr>(d.ReadRef());
       func->untag()->data_ = d.ReadRef();
       func->untag()->positional_parameter_names_ =
@@ -1600,7 +1605,7 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             ++j;
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry2 = pool->untag()->data()[j];
-            entry2.raw_obj_ = StubCode::OneArgOptimizedCheckInlineCache().ptr();
+            entry2.raw_obj_ = d.ReadRef();
             break;
           }
           case ModuleSnapshot::kUnboxedInt: {
@@ -1960,6 +1965,17 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return nullptr;
 }
 
+void Deserializer::ReadRoots() {
+  Deserializer* d = this;
+
+  const intptr_t stub_count = d->ReadUnsigned();
+  for (intptr_t i = 0; i < stub_count; ++i) {
+    const intptr_t stub_index = d->ReadUnsigned();
+    CodePtr stub_code = static_cast<CodePtr>(d->ReadRef());
+    StubCode::EntryAtPut(stub_index, stub_code);
+  }
+}
+
 class HeapLocker : public StackResource {
  public:
   HeapLocker(Thread* thread, PageSpace* page_space)
@@ -2072,6 +2088,8 @@ void Deserializer::Deserialize() {
       }
     }
 
+    ReadRoots();
+
     refs_ = nullptr;
   }
 
@@ -2102,6 +2120,11 @@ char* ReadModuleSnapshot(Thread* thread,
   ASSERT(snapshot->kind() == Snapshot::kModule);
   if (!FLAG_modular_aot_mode) {
     FATAL("Module snapshots can be loaded only if using --modular_aot");
+  }
+  if (!thread->isolate_group()->modular_aot_mode()) {
+    FATAL(
+        "Module snapshots can be loaded only if "
+        "Dart_IsolateFlags::modular_aot_mode was set");
   }
 
   Deserializer deserializer(thread, snapshot->Addr(), snapshot->length(),

@@ -1122,6 +1122,9 @@ void RunMainIsolate(const char* script_name,
   }
 #endif
   flags.snapshot_is_dontneed_safe = dontneed_safe;
+  if (!Options::load_module_snapshots().is_empty()) {
+    flags.modular_aot_mode = true;
+  }
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, asset_resolution_base, "main",

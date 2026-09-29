@@ -227,11 +227,23 @@ abstract class TypeInferenceEngine {
     Member? member,
     ClassHierarchyBase hierarchy,
   ) {
-    // TODO(johnniwinther): Can we remove this now?
+    // TODO(johnniwinther): Use [toBeInferred] for this.
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
         type.inferType(hierarchy);
+      }
+    } else if (member is Procedure) {
+      if (member.kind == ProcedureKind.Getter) {
+        DartType type = member.getterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
+      } else if (member.kind == ProcedureKind.Setter) {
+        DartType type = member.setterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
       }
     }
     return member;

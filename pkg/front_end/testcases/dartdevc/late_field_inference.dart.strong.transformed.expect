@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+extension E on core::int {
+  static impl field b2 = self::_#E|b2;
+  static impl field b2 = self::_#E|b2#isSet;
+  static get b2 = get self::E|b2;
+  static field d2 = self::E|d2;
+  static impl field e2 = self::_#E|e2;
+  static impl field e2 = self::_#E|e2#isSet;
+  static get e2 = get self::E|e2;
+  static set e2 = set self::E|e2;
+}
+static final field core::int a1 = self::a2;
+static field core::int? _#a2 = null;
+static field core::bool _#a2#isSet = false;
+static final field core::int b1 = self::E|b2;
+static final field () → Null c1 = () → Null {
+  self::c2 = 0;
+};
+static field core::int? _#c2 = null;
+static field core::bool _#c2#isSet = false;
+static final field core::int d1 = self::E|d2;
+static final field () → Null e1 = () → Null {
+  self::E|e2 = 0;
+};
+static field core::int? _#E|b2 = null;
+static field core::bool _#E|b2#isSet = false;
+static final field core::int E|d2 = 0;
+static field core::int? _#E|e2 = null;
+static field core::bool _#E|e2#isSet = false;
+static get a2() → core::int
+  return let final core::int? #t1 = self::_#a2 in #t1 == null ?{core::int} let final core::int #t2 = 0 in self::_#a2 == null ?{core::int} self::_#a2 = #t2 : throw{for-error-handling} new _in::LateError::fieldADI("a2") : #t1{core::int};
+static get c2() → core::int
+  return let final core::int? #t3 = self::_#c2 in #t3 == null ?{core::int} self::_#c2 = 0 : #t3{core::int};
+static set c2(core::int c2#param) → void
+  self::_#c2 = c2#param;
+static extension-member get E|b2() → core::int
+  return let final core::int? #t4 = self::_#E|b2 in #t4 == null ?{core::int} let final core::int #t5 = 0 in self::_#E|b2 == null ?{core::int} self::_#E|b2 = #t5 : throw{for-error-handling} new _in::LateError::fieldADI("b2") : #t4{core::int};
+static extension-member get E|e2() → core::int
+  return let final core::int? #t6 = self::_#E|e2 in #t6 == null ?{core::int} self::_#E|e2 = 0 : #t6{core::int};
+static extension-member set E|e2(core::int e2#param) → void
+  self::_#E|e2 = e2#param;
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///late_field_inference.dart:7:12 -> DoubleConstant(0.0)
+Evaluated: VariableGet @ org-dartlang-testcase:///late_field_inference.dart:31:21 -> DoubleConstant(0.0)
+Extra constant evaluation: evaluated: 53, effectively constant: 2

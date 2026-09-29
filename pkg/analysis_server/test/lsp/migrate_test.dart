@@ -2097,6 +2097,24 @@ environment:
     );
   }
 
+  Future<void> test_bump_exactVersion() async {
+    await _setupProject(
+      pubspecContent: '''
+name: test_project
+environment:
+  sdk: '3.2.0'
+''',
+    );
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.2.0 -> 3.3.0: Skipped
+    The SDK constraint in 'pubspec.yaml' isn't in a format the migration tool can raise. Change it to '^3.2.0' to continue.''',
+    );
+  }
+
   Future<void> test_bump_multiplePackages() async {
     var project1Path = pathContext.join(projectFolderPath, 'project1');
     var project2Path = pathContext.join(projectFolderPath, 'project2');

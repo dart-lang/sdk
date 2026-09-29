@@ -3338,6 +3338,19 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 1) && (opcode == 0x11)) {
         // Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
         res = (vn_val == vm_val) ? 0xffffffff : 0;
+      } else if ((U == 0) && (opcode == 0x8)) {
+        // Format(instr, "vsshl'vsz 'vd, 'vn, 'vm");
+        const int8_t shift = static_cast<int8_t>(vm_val & 0xff);
+        if (shift >= 0) {
+          // A left shift of the element width or more shifts every bit out.
+          res = shift >= 32 ? 0
+                            : static_cast<int32_t>(static_cast<uint32_t>(vn_val)
+                                                   << shift);
+        } else {
+          // An arithmetic right shift saturates at the element width, leaving
+          // a copy of the sign bit in every position.
+          res = vn_val >> (-shift >= 32 ? 31 : -shift);
+        }
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
         res = vn_val + vm_val;
@@ -3412,6 +3425,19 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 1) && (opcode == 0x3)) {
         // Format(instr, "veor 'vd, 'vn, 'vm");
         res = vn_val ^ vm_val;
+      } else if ((U == 0) && (opcode == 0x8)) {
+        // Format(instr, "vsshl'vsz 'vd, 'vn, 'vm");
+        const int8_t shift = static_cast<int8_t>(vm_val & 0xff);
+        if (shift >= 0) {
+          // A left shift of the element width or more shifts every bit out.
+          res = shift >= 64 ? 0
+                            : static_cast<int64_t>(static_cast<uint64_t>(vn_val)
+                                                   << shift);
+        } else {
+          // An arithmetic right shift saturates at the element width, leaving
+          // a copy of the sign bit in every position.
+          res = vn_val >> (-shift >= 64 ? 63 : -shift);
+        }
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
         res = vn_val + vm_val;

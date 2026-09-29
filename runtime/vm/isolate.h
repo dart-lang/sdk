@@ -140,6 +140,7 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     FLAG_use_field_guards)                                                     \
   V(PRODUCT, should_load_vmservice_library, ShouldLoadVmService,               \
     load_vmservice_library, false)                                             \
+  V(PRODUCT, modular_aot_mode, ModularAotMode, modular_aot_mode, false)        \
   V(PRODUCT, use_osr, UseOsr, use_osr, FLAG_use_osr)                           \
   V(NONPRODUCT, snapshot_is_dontneed_safe, SnapshotIsDontNeedSafe,             \
     snapshot_is_dontneed_safe, false)                                          \
@@ -874,6 +875,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   V(EnableAsserts)                                                             \
   V(HasAttemptedReload)                                                        \
   V(HasSeenOOM)                                                                \
+  V(ModularAotMode)                                                            \
   V(RemappingCids)                                                             \
   V(ShouldLoadVmService)                                                       \
   V(Obfuscate)                                                                 \

@@ -1059,6 +1059,8 @@ enum SIMDThreeSameOp {
   VMIND = SIMDThreeSameFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VRECPSS = SIMDThreeSameFixed | B30 | B15 | B14 | B13 | B12 | B11,
   VRSQRTSS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B13 | B12 | B11,
+  VSSHLW = SIMDThreeSameFixed | B30 | B23 | B14,
+  VSSHLX = SIMDThreeSameFixed | B30 | B23 | B22 | B14,
 };
 
 // C.3.6.17

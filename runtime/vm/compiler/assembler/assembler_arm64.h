@@ -1503,6 +1503,12 @@ class Assembler : public AssemblerBase {
   void vrsqrtss(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VRSQRTSS, vd, vn, vm);
   }
+  void vsshlw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSSHLW, vd, vn, vm);
+  }
+  void vsshlx(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VSSHLX, vd, vn, vm);
+  }
   void vnot(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VNOT, vd, vn); }
   void vabss(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VABSS, vd, vn); }
   void vabsd(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VABSD, vd, vn); }

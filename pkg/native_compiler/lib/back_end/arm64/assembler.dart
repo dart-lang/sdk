@@ -1009,6 +1009,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register result,
     Register object, {
     required bool canBeSmi,
+    bool asTagged = false,
     Register scratch = temp2Reg,
   }) {
     final done = Label();
@@ -1018,7 +1019,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         mov(scratch, object);
         object = scratch;
       }
-      loadImmediate(result, ClassId.SmiCid.index);
+      loadImmediate(result, ClassId.SmiCid.index << (asTagged ? smiShift : 0));
       branchIfSmi(object, done);
     }
     ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
@@ -1028,6 +1029,9 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
+    if (asTagged) {
+      smiTag(result);
+    }
     bind(done);
   }
 

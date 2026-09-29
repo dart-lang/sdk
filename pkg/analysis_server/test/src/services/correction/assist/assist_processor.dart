@@ -40,26 +40,16 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
   }
 
   /// Asserts that there is an assist of the given [kind] at [offset] which
-  /// produces the [expected] code when applied to [testCode]. The map of
-  /// [additionallyChangedFiles] can be used to test assists that can modify
-  /// more than the test file. The keys are expected to be the paths to the
-  /// files that are modified (other than the test file) and the values are
-  /// pairs of source code: the states of the code before and after the edits
-  /// have been applied.
+  /// produces the [expected] code when applied to [testCode].
+  ///
+  /// If [index] is provided, selects the position or range marker at [index] in
+  /// [parsedTestCode] before computing assists.
   ///
   /// Returns the [SourceChange] for the matching assist.
-  Future<SourceChange> assertHasAssist(
-    String expected, {
-    Map<String, List<String>>? additionallyChangedFiles,
-    int index = 0,
-  }) async {
+  Future<SourceChange> assertHasAssist(String expected, {int index = 0}) async {
     setPositionOrRange(index);
 
     expected = normalizeNewlinesForPlatform(expected);
-    additionallyChangedFiles = additionallyChangedFiles?.map(
-      (key, value) =>
-          MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
-    );
 
     // Remove any marker in the expected code. We allow markers to prevent an
     // otherwise empty line from having the leading whitespace be removed.
@@ -67,26 +57,11 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
     var assist = await _assertHasAssist();
     var change = assist.change;
     expect(change.id, kind.id);
-    // apply to "file"
-    var fileEdits = change.edits;
-    if (additionallyChangedFiles == null) {
-      expect(fileEdits, hasLength(1));
-      expect(change.edits[0].file, testFile.path);
-      _resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
-      expect(_resultCode, expected);
-    } else {
-      expect(fileEdits, hasLength(additionallyChangedFiles.length + 1));
-      var fileEdit = change.getFileEdit(testFile.path)!;
-      _resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-      expect(_resultCode, expected);
-      for (var additionalEntry in additionallyChangedFiles.entries) {
-        var filePath = additionalEntry.key;
-        var pair = additionalEntry.value;
-        var fileEdit = change.getFileEdit(filePath)!;
-        var resultCode = SourceEdit.applySequence(pair[0], fileEdit.edits);
-        expect(resultCode, pair[1]);
-      }
-    }
+    // Apply to `testFile`.
+    var fileEdit = change.getFileEdit(testFile.path);
+    expect(fileEdit, isNotNull);
+    _resultCode = SourceEdit.applySequence(testCode, fileEdit!.edits);
+    expect(_resultCode, expected);
     return change;
   }
 
@@ -155,17 +130,41 @@ abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
     }
   }
 
+  /// Asserts that there is an assist of the given [kind] at [offset] which
+  /// produces the [expected] code when applied to [testCode].
+  ///
+  /// The map of [additionallyChangedFiles] can be used to test assists that can
+  /// modify more than the test file. The keys are expected to be the paths to
+  /// the files that are modified (other than the test file) and the values are
+  /// pairs of source code: the states of the code before and after the edits
+  /// have been applied.
+  ///
+  /// Returns the [SourceChange] for the matching assist.
   @override
   Future<SourceChange> assertHasAssist(
     String expected, {
     Map<String, List<String>>? additionallyChangedFiles,
     int index = 0,
   }) async {
-    return _change = await super.assertHasAssist(
-      expected,
-      additionallyChangedFiles: additionallyChangedFiles,
-      index: index,
-    );
+    _change = await super.assertHasAssist(expected, index: index);
+    var fileEdits = _change.edits;
+    if (additionallyChangedFiles == null) {
+      expect(fileEdits, hasLength(1));
+    } else {
+      additionallyChangedFiles = additionallyChangedFiles.map(
+        (key, value) =>
+            MapEntry(key, value.map(normalizeNewlinesForPlatform).toList()),
+      );
+      expect(fileEdits, hasLength(additionallyChangedFiles.length + 1));
+      for (var additionalEntry in additionallyChangedFiles.entries) {
+        var filePath = additionalEntry.key;
+        var pair = additionalEntry.value;
+        var fileEdit = _change.getFileEdit(filePath)!;
+        var resultCode = SourceEdit.applySequence(pair[0], fileEdit.edits);
+        expect(resultCode, pair[1]);
+      }
+    }
+    return _change;
   }
 
   void assertLinkedGroup(

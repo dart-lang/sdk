@@ -152,6 +152,15 @@ extension ComputedOffsets on VMOffsets {
             : 0) |
         (numElements << UntaggedClosure_kLengthBitsPos);
   }
+
+  int getICDataEntryLength([int numArgs = 1, bool trackingExactness = false]) =>
+      numArgs +
+      1 /* count */ +
+      1 /* target function */ +
+      (trackingExactness ? 1 : 0) /* exactness state */;
+  int getICDataClassIdIndex([int argIndex = 0]) => argIndex;
+  int getICDataCountIndex([int numArgs = 1]) => numArgs;
+  int getICDataTargetIndex([int numArgs = 1]) => numArgs + 1;
 }
 
 // Symbol names used in Dart snapshots.

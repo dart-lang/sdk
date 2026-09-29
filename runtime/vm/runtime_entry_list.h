@@ -41,6 +41,8 @@ namespace dart {
   V(InlineCacheMissHandlerTwoArgs)                                             \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
+  V(InlineCacheMissHandlerModAOT)                                              \
+  V(DynamicInvocationForwarderModAOT)                                          \
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \

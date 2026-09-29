@@ -1760,6 +1760,10 @@ void StubCodeCompiler::GenerateAsynchronousGapMarkerStub() {
   __ Breakpoint();  // Marker stub.
 }
 
+void StubCodeCompiler::GenerateDynamicInvocationForwarderStub() {
+  __ Breakpoint();  // Implemented in modular AOT.
+}
+
 void StubCodeCompiler::GenerateUnknownDartCodeStub() {
   // Enter frame to include caller into the backtrace.
   __ EnterStubFrame();

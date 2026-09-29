@@ -156,6 +156,13 @@ class MigrateCommand extends DartdevCommand {
           _printApplyTip(steps, rest, targetSdk);
         }
       }
+    } on LspRequestError catch (e) {
+      // Print only the server message without stack traces. These are errors
+      // that the user can fix and are not bugs to report.
+      progress?.cancel();
+      progress = null;
+      log.stderr(e.error.message);
+      return 1;
     } catch (e, st) {
       progress?.cancel();
       progress = null;

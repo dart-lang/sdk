@@ -18,6 +18,7 @@ import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -71,6 +72,7 @@ abstract base class CodeGenerator extends Pass
 
   VMOffsets get vmOffsets => backEndState.vmOffsets;
   ObjectLayout get objectLayout => backEndState.objectLayout;
+  StubFactory get stubFactory => backEndState.stubFactory;
   List<Block> get codeGenBlockOrder => backEndState.codeGenBlockOrder;
   StackFrame get stackFrame => backEndState.stackFrame;
 

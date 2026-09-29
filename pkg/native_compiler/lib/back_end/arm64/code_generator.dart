@@ -678,8 +678,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
       offset += wordSize;
     }
+    int numArgs = instr.inputCount;
+    if (instr is DynamicCall && !instr.hasTypeArguments) {
+      // Reserve extra slot to pass default type arguments (in case target method is generic).
+      // TODO: pass type arguments on register.
+      _asm.str(nullReg, RegOffsetAddress(stackPointerReg, offset));
+      offset += wordSize;
+      ++numArgs;
+    }
     assert(offset <= stackFrame.maxArgumentsStackSlots * wordSize);
-    recordOutgoingArgumentsAtSafepoint(.dartCall, instr.inputCount);
+    recordOutgoingArgumentsAtSafepoint(.dartCall, numArgs);
   }
 
   void _callFunction(CFunction function) {
@@ -731,6 +739,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
       InterfaceCallEntry(
         graph.function,
         instr.argumentsShape,
+        // TODO: monomorphic/table dispatcher
+        stubFactory.dynamicCallStub,
         instr.interfaceTarget,
       ),
     );
@@ -760,6 +770,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       DynamicCallEntry(
         graph.function,
         instr.argumentsShape,
+        stubFactory.dynamicCallStub,
         instr.kind,
         instr.selector,
       ),
@@ -962,11 +973,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final done = Label();
     Label slowPath = addSlowPath(() {
       _asm.callStub(
-        backEndState.stubFactory.getWriteBarrierStub(
-          objectReg,
-          valueReg,
-          isArray,
-        ),
+        stubFactory.getWriteBarrierStub(objectReg, valueReg, isArray),
       );
       _asm.b(done);
     });
@@ -1871,9 +1878,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         });
 
         _asm.loadFromPool(SubtypeTestCacheStub.subtypeTestCacheReg, stc);
-        final stub = backEndState.stubFactory.getSubtypeTestCacheStub(
-          stc.numInputs,
-        );
+        final stub = stubFactory.getSubtypeTestCacheStub(stc.numInputs);
         _asm.callStub(stub);
 
         _asm.cmp(SubtypeTestCacheStub.subtypeTestCacheResultReg, nullReg);
@@ -1966,7 +1971,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
+      _asm.callStub(stubFactory.getAllocationStub(cls));
       _asm.b(done);
     });
 
