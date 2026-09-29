@@ -42,9 +42,10 @@ log contains the context needed to reproduce the session.
    example, triggering code completion, typing code, applying a quick fix, or
    renaming a symbol).
 5. Return to the browser page and click **Stop capturing entries**.
-6. Click **Copy to Clipboard**.
-7. Paste the contents into a text editor and save it as a JSON file (e.g.
-   `session_log.json`), or attach it to your issue report.
+6. Click **Download** to save the log as a JSON file, or click
+   **Copy to Clipboard** to copy the log contents and paste into a
+   .json file.
+7. Attach the file to your issue report.
 
 ## Record via the `--session-log` command-line option
 
