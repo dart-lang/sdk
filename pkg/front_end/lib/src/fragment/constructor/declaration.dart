@@ -67,6 +67,9 @@ abstract class ConstructorDeclaration {
   List<FormalParameterBuilder>?
   get primaryConstructorInitializerScopeParameters;
 
+  /// Returns `true` if this constructor declaration is complete.
+  bool get isComplete;
+
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -76,8 +79,8 @@ abstract class ConstructorDeclaration {
     required ConstructorEncodingStrategy encodingStrategy,
   });
 
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
@@ -931,6 +934,9 @@ class RegularConstructorDeclaration
   }
 
   @override
+  bool get isComplete => _fragment.isComplete;
+
+  @override
   bool get _buildInitializersForOutline =>
       _fragment.buildInitializersForOutline;
 
@@ -1013,8 +1019,8 @@ class RegularConstructorDeclaration
   List<FormalParameterBuilder>? get formals => _formals;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
@@ -1022,7 +1028,7 @@ class RegularConstructorDeclaration
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     _encoding.buildOutlineNodes(
-      f,
+      callback: callback,
       constructorBuilder: constructorBuilder,
       libraryBuilder: libraryBuilder,
       declarationBuilder: constructorBuilder.declarationBuilder,
@@ -1131,6 +1137,10 @@ class DefaultEnumConstructorDeclaration
        _lookupScope = lookupScope;
 
   @override
+  // Coverage-ignore(suite): Not run.
+  bool get isComplete => true;
+
+  @override
   Token? get _initializersStartToken => null;
 
   @override
@@ -1178,8 +1188,8 @@ class DefaultEnumConstructorDeclaration
   bool get isExternal => false;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
@@ -1187,7 +1197,7 @@ class DefaultEnumConstructorDeclaration
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     _encoding.buildOutlineNodes(
-      f,
+      callback: callback,
       constructorBuilder: constructorBuilder,
       libraryBuilder: libraryBuilder,
       declarationBuilder: constructorBuilder.declarationBuilder,
@@ -1273,6 +1283,9 @@ class PrimaryConstructorDeclaration
     : _initializersStartToken = _bodyFragment?.beginInitializers {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isComplete => true;
 
   @override
   bool get _buildInitializersForOutline =>
@@ -1418,8 +1431,8 @@ class PrimaryConstructorDeclaration
   bool get isExternal => _fragment.modifiers.isExternal;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
@@ -1427,7 +1440,7 @@ class PrimaryConstructorDeclaration
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     _encoding.buildOutlineNodes(
-      f,
+      callback: callback,
       constructorBuilder: constructorBuilder,
       libraryBuilder: libraryBuilder,
       declarationBuilder: constructorBuilder.declarationBuilder,
@@ -1636,15 +1649,15 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   void buildBody() {}
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
     required ConstructorReferences? constructorReferences,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.Constructor,
@@ -1693,6 +1706,10 @@ class DefaultConstructorDeclaration
     required Procedure? constructorTearOff,
   }) : this._constructor = constructor,
        this._constructorTearOff = constructorTearOff;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isComplete => true;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -1765,6 +1782,10 @@ class ForwardingConstructorDeclaration
        _immediatelyDefiningConstructor = definingConstructor,
        _delayedDefaultValueCloner = delayedDefaultValueCloner,
        _typeDependency = typeDependency;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isComplete => true;
 
   @override
   // Coverage-ignore(suite): Not run.

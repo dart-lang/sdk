@@ -1232,7 +1232,8 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: isConst,
     );
 
@@ -1350,7 +1351,8 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: false,
     );
   }

@@ -4382,11 +4382,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       SharedTypeView? wrappedPromotedType;
       (promotedType: wrappedPromotedType, :expressionInfo) = flowAnalysis
           .thisExpression();
-      promotedType =
-          wrappedPromotedType
-                  // Coverage-ignore(suite): Not run.
-                  ?.unwrapTypeView()
-              as DartType?;
+      // Coverage-ignore-block(suite): Not run.
+      promotedType = wrappedPromotedType?.unwrapTypeView() as DartType?;
     } else if (variable is! InternalLocalFunctionVariable) {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;

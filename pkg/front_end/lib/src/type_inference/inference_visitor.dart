@@ -10498,11 +10498,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     var (:SharedTypeView? promotedType, :ExpressionInfo? expressionInfo) =
         flowAnalysis.thisExpression();
-    DartType? promotedTypeOfThis =
-        promotedType
-                // Coverage-ignore(suite): Not run.
-                ?.unwrapTypeView()
-            as DartType?;
+    // Coverage-ignore(suite): Not run.
+    DartType? promotedTypeOfThis = promotedType?.unwrapTypeView() as DartType?;
     DartType thisType = promotedTypeOfThis ?? this.thisType!;
     Expression loweredExpression;
     if (isClosureContextLoweringEnabled) {

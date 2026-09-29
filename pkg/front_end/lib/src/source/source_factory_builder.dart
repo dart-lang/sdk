@@ -56,13 +56,15 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
   final FactoryReferences _factoryReferences;
 
-  final FactoryDeclaration _introductory;
+  /// The declarations of this factory constructor. The first is the
+  /// introductory declaration and subsequent declarations are augmentations.
+  final List<FactoryDeclaration> _declarations;
 
-  final List<FactoryDeclaration> _augmentations;
-
-  late final FactoryDeclaration _lastDeclaration;
-
-  late final List<FactoryDeclaration> _augmentedDeclarations;
+  /// The declaration used as the implementation of this factory constructor.
+  ///
+  /// This is the last complete declaration, if any. Otherwise it is
+  /// the first declaration.
+  final FactoryDeclaration _implementation;
 
   @override
   final bool isConst;
@@ -73,31 +75,22 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     required this.declarationBuilder,
     required this.fileUri,
     required this.fileOffset,
-    required FactoryReferences factoryReferences,
-    required NameScheme nameScheme,
-    required FactoryDeclaration introductory,
-    required List<FactoryDeclaration> augmentations,
+    required this._factoryReferences,
+    required this._nameScheme,
+    required this._declarations,
+    required this._implementation,
     required this.isConst,
-  }) : _nameScheme = nameScheme,
-       _factoryReferences = factoryReferences,
-       _memberName = nameScheme.getDeclaredName(name),
-       _introductory = introductory,
-       _augmentations = augmentations {
-    if (augmentations.isEmpty) {
-      _augmentedDeclarations = augmentations;
-      _lastDeclaration = introductory;
-    } else {
-      _augmentedDeclarations = [introductory, ...augmentations];
-      _lastDeclaration = _augmentedDeclarations.removeLast();
-    }
-  }
+  }) : _memberName = _nameScheme.getDeclaredName(name);
+
+  // Coverage-ignore(suite): Not run.
+  FactoryDeclaration get _introductory => _declarations.first;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<MetadataBuilder>? get metadataForTesting => _introductory.metadata;
 
   ConstructorReferenceBuilder? get redirectionTarget =>
-      _lastDeclaration.redirectionTarget;
+      _implementation.redirectionTarget;
 
   @override
   bool get isStatic => true;
@@ -127,10 +120,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   bool get isSynthesized => false;
 
-  Procedure get _procedure => _lastDeclaration.procedure;
+  Procedure get _procedure => _implementation.procedure;
 
   @override
-  FunctionSignature get signature => _lastDeclaration.signature;
+  FunctionSignature get signature => _implementation.signature;
 
   @override
   Member get readTarget => readTargetReference.asMember;
@@ -176,12 +169,9 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     ComputeDefaultTypeContext context, {
     required bool inErrorRecovery,
   }) {
-    int count = _introductory.computeDefaultTypes(
-      context,
-      inErrorRecovery: inErrorRecovery,
-    );
-    for (FactoryDeclaration augmentation in _augmentations) {
-      count += augmentation.computeDefaultTypes(
+    int count = 0;
+    for (int i = 0; i < _declarations.length; i++) {
+      count += _declarations[i].computeDefaultTypes(
         context,
         inErrorRecovery: inErrorRecovery,
       );
@@ -203,9 +193,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    _introductory.checkTypes(problemReporting, nameSpace, typeEnvironment);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].checkTypes(problemReporting, nameSpace, typeEnvironment);
     }
   }
 
@@ -220,16 +209,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     if (!_hasBeenCheckedAsRedirectingFactory) {
       _hasBeenCheckedAsRedirectingFactory = true;
 
-      if (_introductory.redirectionTarget != null) {
-        _introductory.checkRedirectingFactory(
-          libraryBuilder: libraryBuilder,
-          factoryBuilder: this,
-          typeEnvironment: typeEnvironment,
-        );
-      }
-      for (FactoryDeclaration augmentation in _augmentations) {
-        if (augmentation.redirectionTarget != null) {
-          augmentation.checkRedirectingFactory(
+      for (int i = 0; i < _declarations.length; i++) {
+        FactoryDeclaration declaration = _declarations[i];
+        if (declaration.redirectionTarget != null) {
+          declaration.checkRedirectingFactory(
             libraryBuilder: libraryBuilder,
             factoryBuilder: this,
             typeEnvironment: typeEnvironment,
@@ -237,7 +220,7 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
         }
       }
     }
-    return _lastDeclaration.redirectingFactoryTargetErrorMessage;
+    return _implementation.redirectingFactoryTargetErrorMessage;
   }
 
   @override
@@ -251,25 +234,19 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   Iterable<Annotatable> get annotatables => [_procedure];
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f) {
-    for (FactoryDeclaration augmentedDeclaration in _augmentedDeclarations) {
-      augmentedDeclaration.buildOutlineNodes(
+  void buildOutlineNodes(BuildNodesCallback callback) {
+    for (int i = 0; i < _declarations.length; i++) {
+      FactoryDeclaration declaration = _declarations[i];
+      bool isImplementation = declaration == _implementation;
+      declaration.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         nameScheme: _nameScheme,
-        factoryReferences: null,
+        factoryReferences: isImplementation ? _factoryReferences : null,
         isConst: isConst,
-        f: noAddBuildNodesCallback,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
       );
     }
-    _lastDeclaration.buildOutlineNodes(
-      libraryBuilder: libraryBuilder,
-      factoryBuilder: this,
-      nameScheme: _nameScheme,
-      factoryReferences: _factoryReferences,
-      f: f,
-      isConst: isConst,
-    );
   }
 
   bool _hasInferredRedirectionTarget = false;
@@ -280,14 +257,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   ) {
     if (_hasInferredRedirectionTarget) return;
     _hasInferredRedirectionTarget = true;
-    _introductory.inferRedirectionTarget(
-      libraryBuilder: libraryBuilder,
-      factoryBuilder: this,
-      classHierarchy: classHierarchy,
-      delayedDefaultValueCloners: delayedDefaultValueCloners,
-    );
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.inferRedirectionTarget(
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].inferRedirectionTarget(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         classHierarchy: classHierarchy,
@@ -307,16 +278,8 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
     if (_hasBuiltOutlineExpressions) return;
     _hasBuiltOutlineExpressions = true;
 
-    _introductory.buildOutlineExpressions(
-      libraryBuilder: libraryBuilder,
-      factoryBuilder: this,
-      classHierarchy: classHierarchy,
-      delayedDefaultValueCloners: delayedDefaultValueCloners,
-      annotatables: annotatables,
-      annotatablesFileUri: _procedure.fileUri,
-    );
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.buildOutlineExpressions(
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].buildOutlineExpressions(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         classHierarchy: classHierarchy,
@@ -328,9 +291,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   void resolveRedirectingFactory() {
-    _introductory.resolveRedirectingFactory(libraryBuilder: libraryBuilder);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.resolveRedirectingFactory(libraryBuilder: libraryBuilder);
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].resolveRedirectingFactory(
+        libraryBuilder: libraryBuilder,
+      );
     }
   }
 }

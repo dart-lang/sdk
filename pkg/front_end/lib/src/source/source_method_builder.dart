@@ -88,7 +88,12 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   }) : _nameScheme = nameScheme,
        _modifiers = modifiers,
        isOperator = _declarations.first.isOperator,
-       _memberName = nameScheme.getDeclaredName(name);
+       _memberName = nameScheme.getDeclaredName(name),
+       assert(
+         _declarations.contains(_implementation),
+         "Method implementation $_implementation not found in "
+         "declarations $_declarations",
+       );
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;

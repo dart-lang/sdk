@@ -299,7 +299,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             constructorReferences: constructorReferences,
             nameScheme: nameScheme,
-            introductory: constructorDeclaration,
+            declarations: [constructorDeclaration],
+            implementation: constructorDeclaration,
             isConst: true,
           );
       constructorDeclaration.createEncoding(

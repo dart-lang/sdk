@@ -3618,8 +3618,8 @@ class ConstantEvaluator
     DartTypeList typeArguments = convertTypes(types);
 
     if (typeArguments.length < klass.typeParameters.length) {
-      // Fill in any missing type arguments with "dynamic".
       // Coverage-ignore-block(suite): Not run.
+      // Fill in any missing type arguments with "dynamic".
       typeArguments = new DartTypeList.generate(
         klass.typeParameters.length,
         (int i) =>

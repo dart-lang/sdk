@@ -2715,6 +2715,25 @@ class OutlineBuilder extends StackListenerImpl {
         kind == DeclarationKind.Mixin ||
         kind == DeclarationKind.Enum;
 
+    // A constructor declaration is incomplete if all of:
+    //   * It has no body.
+    //   * It is not marked external.
+    //   * There is no initializer list, initializing formals,
+    //     or super parameters.
+    // If a constructor is not incomplete then it is complete.
+    bool isIncomplete =
+        bodyKind == MethodBody.Abstract &&
+        !modifiers.isExternal &&
+        beginInitializers == null;
+    if (isIncomplete && formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          isIncomplete = false;
+          break;
+        }
+      }
+    }
+
     _builderFactory.addConstructor(
       offsetMap: _offsetMap,
       metadata: metadata,
@@ -2729,6 +2748,7 @@ class OutlineBuilder extends StackListenerImpl {
       initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+      isComplete: !isIncomplete,
     );
 
     nativeMethodName = null;
@@ -4697,6 +4717,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
       _builderFactory.endFactoryMethodForParserRecovery();
     } else {
+      // A factory constructor declaration is incomplete if all of:
+      //   * It has no body.
+      //   * It is not marked external.
+      //   * There is no redirection.
+      // If a factory constructor is not incomplete then it is complete.
+      bool isIncomplete = kind == MethodBody.Abstract && !modifiers.isExternal;
+
       _builderFactory.addFactoryMethod(
         offsetMap: _offsetMap,
         metadata: metadata,
@@ -4710,6 +4737,7 @@ class OutlineBuilder extends StackListenerImpl {
         endOffset: endToken.charOffset,
         nativeMethodName: nativeMethodName,
         asyncModifier: asyncModifier,
+        isComplete: !isIncomplete,
       );
     }
     nativeMethodName = null;
