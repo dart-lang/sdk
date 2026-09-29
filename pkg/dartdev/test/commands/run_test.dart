@@ -1975,11 +1975,11 @@ void main() async {
     expect(sawCFEMsg, false);
   });
 
-  for (bool resident in [false, true]) {
+  for (String? usedResidentFlag in [null, '--resident', '-r']) {
     for (bool relative in [false, true]) {
       test(
         'custom package_config path'
-        '${resident ? ' (resident)' : ''}'
+        '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}'
         '${relative ? ' (relative)' : ''}',
         () async {
           p = project(
@@ -2036,8 +2036,10 @@ cmd() {
           if (!relative) packagesPath = path.join(p.dirPath, packagesPath);
           final runResult1 = await p.run([
             'run',
-            if (resident) '--resident',
-            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
             '--packages=$packagesPath',
             p.relativeFilePath,
           ]);
@@ -2051,8 +2053,10 @@ cmd() {
           final runResult2 = await p.run([
             '--packages=$packagesPath',
             'run',
-            if (resident) '--resident',
-            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
             p.relativeFilePath,
           ]);
           expect(runResult2.stderr, isEmpty);
@@ -2063,9 +2067,10 @@ cmd() {
     }
   }
 
-  for (bool resident in [false, true]) {
+  for (String? usedResidentFlag in [null, '--resident', '-r']) {
     test(
-      'bad package config relative path${resident ? ' (resident)' : ''}',
+      'bad package config relative path'
+      '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}',
       () async {
         p = project(
           name: 'foo',
@@ -2080,8 +2085,10 @@ cmd() {
         for (int i = 0; i < 3; i++) {
           final runResult = await p.run([
             'run',
-            if (resident) '-r',
-            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
             '--packages=custom_packages1.json',
             p.relativeFilePath,
           ], workingDir: p.dirPath);
@@ -2093,8 +2100,10 @@ cmd() {
           final runResult = await p.run([
             '--packages=custom_packages1.json',
             'run',
-            if (resident) '-r',
-            if (resident) '--$residentCompilerInfoFileOption=$serverInfoFile',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
             p.relativeFilePath,
           ], workingDir: p.dirPath);
           expect(runResult.exitCode, 254);

@@ -129,6 +129,7 @@ bool Options::ProcessVMOptions(const char* arg,
   V("--print-dtd", arg)                                                        \
   V("--packages", arg)                                                         \
   V("--resident", arg)                                                         \
+  V("-r", arg)                                                                 \
   V("--resident-server-info-file", arg)                                        \
   V("--resident-compiler-info-file", arg)                                      \
   V("--observe", arg)                                                          \
