@@ -157,7 +157,6 @@ class FileStorage implements Storage {
 /// header alongside the active selector slot, so opening the store or observing an
 /// external commit does not require scanning allocation bitmaps to reconstruct it.
 ///
-
 /// An update writes new record pages, shadow allocation/table pages, and the
 /// shadow selectors, flushes them together, and then writes and flushes the
 /// complete header with its new slot. New pages become allocated and replaced pages
