@@ -1,0 +1,23 @@
+name: shadow_sources
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: ^3.14.0-0
+
+resolution: workspace
+
+dependencies:
+  _fe_analyzer_shared: any
+  args: any
+  build_integration: any
+  collection: any
+  front_end: any
+  meta: any
+  package_config: any
+  vm: any
+
+dev_dependencies:
+  file: any
+  path: any
+  test: any
