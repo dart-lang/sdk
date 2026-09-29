@@ -1,4 +1,8 @@
-## 1.0.2-wip
+## 1.1.0-wip
+
+- Output events for tests (generated when an adapter calls `sendTestEvents`) now
+  include timestamps and summary counts and are coloured if the client supports
+  ansii color codes.
 
 ## 1.0.1
 

@@ -75,6 +75,7 @@ workspace:
   - pkg/perf_witness
   - pkg/reload_test
   - pkg/scrape
+  - pkg/shadow_sources
   - pkg/shell_arg_splitter
   - pkg/smith
   - pkg/sourcemap_testing

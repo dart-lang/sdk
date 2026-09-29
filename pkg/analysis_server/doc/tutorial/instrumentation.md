@@ -132,7 +132,8 @@ To record a session from this page:
 4. In your IDE, perform the actions you want to capture (e.g., triggering code
    completion, editing a file, or renaming a symbol).
 5. Return to this page and click **Stop capturing entries**.
-6. Click **Copy to Clipboard** and save the captured JSON entries into a file.
+6. Click **Download** to save the log as a file, or click
+   **Copy to Clipboard** and save the captured JSON entries into a file.
 
 For more details and alternative command-line options, see
 [Recording a session communications log](session_log.md).

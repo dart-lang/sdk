@@ -64,6 +64,8 @@ void expectLinesStartWith(String actual, List<String> expected) {
   );
 }
 
+String ansi(int code, String text) => '\u001B\\[${code}m$text\u001B\\[0m';
+
 /// Expects [response] to fail with a `message` matching [messageMatcher].
 void expectResponseError<T>(Future<T> response, Matcher messageMatcher) {
   expect(

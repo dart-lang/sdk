@@ -1340,6 +1340,29 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
     );
   }
 
+  Future<void> test_error_emptyPubspec() async {
+    await initialize();
+
+    writePubspecFile(pubspecFilePath, '');
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "The 'pubspec.yaml' file in '$projectFolderPath' doesn't contain a "
+          'map of values.',
+        ),
+      ),
+    );
+  }
+
   Future<void> test_error_fileUri() async {
     await initialize();
 
@@ -1423,6 +1446,39 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
       isResponseError(
         ErrorCodes.InvalidParams,
         message: contains("doesn't exist"),
+      ),
+    );
+  }
+
+  /// A pubspec that isn't a map rejects the whole request, rather than being
+  /// left out while the other targets migrate.
+  Future<void> test_error_nonMapPubspec_multipleWithOneInvalid() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    writePubspecFile(join(otherPackagePath, 'pubspec.yaml'), '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    writePubspecFile(pubspecFilePath, '- test_project\n');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [toUri(otherPackagePath), projectFolderUri],
+        apply: true,
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "The 'pubspec.yaml' file in '$projectFolderPath' doesn't contain a "
+          'map of values.',
+        ),
       ),
     );
   }
@@ -2000,15 +2056,6 @@ test_project:
   3.12.0 -> 3.13.0:
     SDK constraint:
       Would bump ^3.12.0 -> ^3.13.0''',
-    );
-  }
-
-  Future<void> test_bump_emptyPubspec() async {
-    await _setupProject(pubspecContent: '');
-    await _assertMigrationResult(
-      apply: true,
-      steps: [MigrationStep.Bump],
-      expectedSummary: '',
     );
   }
 
