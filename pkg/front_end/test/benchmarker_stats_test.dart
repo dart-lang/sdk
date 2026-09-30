@@ -20,6 +20,15 @@ void main() {
   testLinearTrendPerfectLine();
   testLinearTrendNoTrend();
   testLinearTrendTooFewValues();
+  testStudentTCriticalValueKnownValues();
+  testStudentTCriticalValueMatchesTable();
+  testStudentTTwoSidedPValue();
+  testStudentTCriticalValueInvalid();
+  testCompareWithSmallerAlpha();
+  testRegularizedIncompleteBetaClosedForms();
+  testRegularizedIncompleteBetaInvalid();
+  testCountNonConstant();
+  testPerComparisonAlpha();
 }
 
 void expectClose(double expected, double actual, {double epsilon = 1e-9}) {
@@ -145,4 +154,155 @@ void testLinearTrendNoTrend() {
 
 void testLinearTrendTooFewValues() {
   Expect.throws<ArgumentError>(() => linearTrend([1, 2]));
+}
+
+void testStudentTCriticalValueKnownValues() {
+  // Reference values from R: qt(1 - alpha / 2, df).
+  expectClose(
+    12.706204736174698,
+    studentTCriticalValue(0.05, 1),
+    epsilon: 1e-9,
+  );
+  expectClose(4.302652729749464, studentTCriticalValue(0.05, 2), epsilon: 1e-9);
+  expectClose(
+    2.228138851986274,
+    studentTCriticalValue(0.05, 10),
+    epsilon: 1e-9,
+  );
+  expectClose(
+    2.042272456301238,
+    studentTCriticalValue(0.05, 30),
+    epsilon: 1e-9,
+  );
+  expectClose(
+    3.169272672616951,
+    studentTCriticalValue(0.01, 10),
+    epsilon: 1e-9,
+  );
+  expectClose(63.65674116287399, studentTCriticalValue(0.01, 1), epsilon: 1e-9);
+  // With many degrees of freedom this approaches the normal distribution's
+  // 1.959964.
+  expectClose(
+    1.960201263621,
+    studentTCriticalValue(0.05, 10000),
+    epsilon: 1e-8,
+  );
+  // Bonferroni-corrected levels (the main reason for this function). These
+  // reference values were computed independently, using the closed-form
+  // series for the t distribution's CDF with integer degrees of freedom
+  // (Abramowitz and Stegun 26.7.3 and 26.7.4).
+  expectClose(3.1104501783208036, studentTCriticalValue(0.05 / 12, 29));
+  expectClose(3.173724530792329, studentTCriticalValue(0.05 / 10, 19));
+  expectClose(4.145788828443232, studentTCriticalValue(0.05 / 20, 9));
+}
+
+void testStudentTCriticalValueMatchesTable() {
+  // For 1-20 degrees of freedom the table in SimpleTTestStat is exact (to
+  // the precision it's given with).
+  for (int df = 1; df <= 20; df++) {
+    expectClose(
+      SimpleTTestStat.tTableTwoTails_0_05(df),
+      studentTCriticalValue(0.05, df),
+      epsilon: 1e-8,
+    );
+  }
+}
+
+void testStudentTTwoSidedPValue() {
+  expectClose(0.05, studentTTwoSidedPValue(2.228138851986274, 10));
+  expectClose(1.0, studentTTwoSidedPValue(0, 5));
+  // For 1 degree of freedom (the Cauchy distribution), P(|T| > 1) = 0.5.
+  expectClose(0.5, studentTTwoSidedPValue(1, 1));
+}
+
+void testStudentTCriticalValueInvalid() {
+  Expect.throws<ArgumentError>(() => studentTCriticalValue(0.05, 0));
+  Expect.throws<ArgumentError>(() => studentTCriticalValue(0, 10));
+  Expect.throws<ArgumentError>(() => studentTCriticalValue(1, 10));
+}
+
+void testCompareWithSmallerAlpha() {
+  List<num> from = [100, 102, 98, 101, 99];
+  List<num> to = [103, 105, 101, 104, 102];
+  Comparison normal = compareUnpaired(from, to);
+  Comparison strict = compareUnpaired(from, to, alpha: 0.001);
+  Expect.isTrue(normal.significant);
+  Expect.isFalse(strict.significant);
+  expectClose(normal.diff, strict.diff);
+  Expect.isTrue(strict.confidence > normal.confidence);
+}
+
+void testRegularizedIncompleteBetaClosedForms() {
+  // The x values straddle (a + 1) / (a + b + 2) for each (a, b) below, so
+  // both branches of regularizedIncompleteBeta (direct continued fraction,
+  // and the I_x(a, b) = 1 - I_{1-x}(b, a) symmetry) are exercised.
+  for (double x in [0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 0.99]) {
+    // Uniform distribution.
+    expectClose(x, regularizedIncompleteBeta(x, 1, 1));
+    // I_x(a, 1) = x^a and I_x(1, b) = 1 - (1 - x)^b.
+    expectClose(x * x, regularizedIncompleteBeta(x, 2, 1));
+    expectClose(
+      math.pow(x, 3.5).toDouble(),
+      regularizedIncompleteBeta(x, 3.5, 1),
+    );
+    expectClose(1 - (1 - x) * (1 - x), regularizedIncompleteBeta(x, 1, 2));
+    // The arcsine distribution, with b = 0.5 as in the t-distribution.
+    expectClose(
+      2 / math.pi * math.asin(math.sqrt(x)),
+      regularizedIncompleteBeta(x, 0.5, 0.5),
+    );
+  }
+  Expect.equals(0.0, regularizedIncompleteBeta(0, 2, 3));
+  Expect.equals(1.0, regularizedIncompleteBeta(1, 2, 3));
+}
+
+void testRegularizedIncompleteBetaInvalid() {
+  Expect.throws<ArgumentError>(() => regularizedIncompleteBeta(0.5, 0.25, 1));
+  Expect.throws<ArgumentError>(() => regularizedIncompleteBeta(0.5, 1, 0.25));
+}
+
+void testCountNonConstant() {
+  Expect.equals(0, countNonConstant([]));
+  // A metric that is always zero (e.g. context-switches) doesn't count.
+  Expect.equals(
+    0,
+    countNonConstant([
+      [0, 0, 0, 0],
+    ]),
+  );
+  // Any variation counts, including when the "from" values are all the same
+  // and the "to" values are all the same, but they differ from each other.
+  Expect.equals(
+    2,
+    countNonConstant([
+      [5, 5, 5, 6, 6, 6],
+      [0, 0, 0, 0],
+      [1.0, 1.5, 1.2],
+    ]),
+  );
+  // An empty sample doesn't count.
+  Expect.equals(
+    1,
+    countNonConstant([
+      <num>[],
+      [1, 2],
+    ]),
+  );
+  // `int` and `double` values that are equal are the same value.
+  Expect.equals(
+    0,
+    countNonConstant([
+      [1, 1.0],
+    ]),
+  );
+}
+
+void testPerComparisonAlpha() {
+  expectClose(0.05, perComparisonAlpha(10, strict: false));
+  expectClose(0.05, perComparisonAlpha(1, strict: true));
+  expectClose(0.005, perComparisonAlpha(10, strict: true));
+  expectClose(0.05 / 12, perComparisonAlpha(12, strict: true));
+  // With nothing to compare, the value doesn't matter, but it must still be
+  // a valid significance level.
+  expectClose(0.05, perComparisonAlpha(0, strict: true));
 }

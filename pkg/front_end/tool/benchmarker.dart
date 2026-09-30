@@ -21,6 +21,7 @@ void main(List<String> args) {
   bool showAll = false;
   bool interleave = true;
   bool checkMachine = true;
+  bool strict = false;
   int? seed;
   int iterations = 5;
   int warmup = 1;
@@ -81,6 +82,8 @@ void main(List<String> args) {
       warmup = parsed;
     } else if (arg == "--no-machine-check") {
       checkMachine = false;
+    } else if (arg == "--strict") {
+      strict = true;
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -155,6 +158,7 @@ void main(List<String> args) {
     cacheBenchmarking: false,
     silent: silent,
     showAll: showAll,
+    strict: strict,
     gcRuns: gcRuns,
     rawOutput: rawOutput,
     random: random,
@@ -174,6 +178,7 @@ void main(List<String> args) {
       cacheBenchmarking: true,
       silent: silent,
       showAll: showAll,
+      strict: strict,
       gcRuns: gcRuns,
       rawOutput: rawOutput,
       random: random,
@@ -194,6 +199,7 @@ void main(List<String> args) {
       cacheBenchmarking: false,
       silent: silent,
       showAll: showAll,
+      strict: strict,
       gcRuns: 0,
       extraVmArguments: [
         "--new_gen_semi_initial_size=10000",
@@ -227,6 +233,7 @@ void _doRun(
   required bool cacheBenchmarking,
   required bool silent,
   required bool showAll,
+  required bool strict,
   required int gcRuns,
   List<String>? extraVmArguments,
   RawOutput? rawOutput,
@@ -421,6 +428,8 @@ void _doRun(
       compareToResults,
       showAll: showAll,
       paired: paired,
+      strict: strict,
+      printMetricCount: true,
     )) {
       print("No change.");
     }
@@ -448,7 +457,7 @@ void _doRun(
   }
 
   print("");
-  _checkDrift(runResults, interleaved: random != null);
+  _checkDrift(runResults, interleaved: random != null, strict: strict);
 
   if (warnings.scalingInEffect) {
     print("Be aware that the above was with scaling in effect.");
@@ -469,32 +478,41 @@ void _doRun(
 void _checkDrift(
   List<List<Map<String, num>>> runResults, {
   required bool interleaved,
+  required bool strict,
 }) {
   Set<String> allCaptions = {
     for (List<Map<String, num>> results in runResults)
       for (Map<String, num> entry in results) ...entry.keys,
   };
-  int checks = 0;
-  List<String> driftWarnings = [];
+  List<(String, int, List<num>)> series = [];
   for (String caption in allCaptions) {
     for (int i = 0; i < runResults.length; i++) {
       List<num> values = _extractDataForCaption(caption, runResults[i]);
       if (values.length < 3) continue;
-      checks++;
-      Trend trend = linearTrend(values);
-      if (!trend.significant) continue;
-      double? percentChange = trend.percentChangeOverSeries;
-      double? percentConfidence = trend.percentConfidenceOverSeries;
-      if (percentChange == null || percentConfidence == null) continue;
-      driftWarnings.add(
-        "$caption for snapshot #${i + 1} changed by "
-        "${percentChange.toStringAsFixed(4)}% +/- "
-        "${percentConfidence.toStringAsFixed(4)}% "
-        "from the first to the last run.",
-      );
+      // A metric with the exact same value in every run clearly hasn't
+      // drifted (and is probably constant for a structural reason), so it
+      // isn't checked, and doesn't count towards the Bonferroni correction.
+      if (values.every((v) => v == values.first)) continue;
+      series.add((caption, i, values));
     }
   }
+  int checks = series.length;
   if (checks == 0) return;
+  double alpha = perComparisonAlpha(checks, strict: strict);
+  List<String> driftWarnings = [];
+  for (var (caption, i, values) in series) {
+    Trend trend = linearTrend(values, alpha: alpha);
+    if (!trend.significant) continue;
+    double? percentChange = trend.percentChangeOverSeries;
+    double? percentConfidence = trend.percentConfidenceOverSeries;
+    if (percentChange == null || percentConfidence == null) continue;
+    driftWarnings.add(
+      "$caption for snapshot #${i + 1} changed by "
+      "${percentChange.toStringAsFixed(4)}% +/- "
+      "${percentConfidence.toStringAsFixed(4)}% "
+      "from the first to the last run.",
+    );
+  }
   if (driftWarnings.isEmpty) {
     print("Drift check: no significant drift detected.");
     return;
@@ -503,11 +521,18 @@ void _checkDrift(
   for (String warning in driftWarnings) {
     print("  $warning");
   }
-  print(
-    "  (With $checks checks at the 95% confidence level, about "
-    "${(checks * 0.05).toStringAsFixed(1)} false alarms are expected by "
-    "chance.)",
-  );
+  if (strict) {
+    print(
+      "  ($checks checks, each at the ${_formatConfidenceLevel(alpha)} "
+      "confidence level (Bonferroni correction).)",
+    );
+  } else {
+    print(
+      "  (With $checks checks at the 95% confidence level, about "
+      "${(checks * 0.05).toStringAsFixed(1)} false alarms are expected by "
+      "chance.)",
+    );
+  }
   if (interleaved) {
     print(
       "  Interleaving and the paired t-test compensate for slow drift, "
@@ -604,6 +629,16 @@ void _help() {
   print("    transparent huge pages, load, other processes on the benchmark");
   print("    core or its hyperthread sibling, running in a VM) and prints");
   print("    warnings. This option skips that check.");
+  print("");
+  print("  --strict");
+  print("    Many metrics are compared, so with the default 95% confidence");
+  print("    level about 1 in 20 unchanged metrics is still reported as");
+  print("    changed. With this option, the Bonferroni correction is used:");
+  print("    with k metrics, each is tested at the 1 - 0.05/k level, so the");
+  print("    chance of any false positive is at most 5%. (This also applies");
+  print("    to the drift check.) However, this increases the risk of false");
+  print("    negatives: a real change is less likely to be reported, so more");
+  print("    iterations may be needed to detect small changes.");
 }
 
 bool compare(
@@ -611,7 +646,14 @@ bool compare(
   List<Map<String, num>> to, {
   bool showAll = false,
 }) {
-  return _compare(from, to, showAll: showAll, paired: false);
+  return _compare(
+    from,
+    to,
+    showAll: showAll,
+    paired: false,
+    strict: false,
+    printMetricCount: false,
+  );
 }
 
 /// Compares the measurements in [from] and [to], printing the metrics that
@@ -621,18 +663,27 @@ bool compare(
 /// the same round, and a paired t-test is used. Otherwise the two lists are
 /// treated as independent samples.
 ///
+/// If [strict] is `true`, the Bonferroni correction is applied: with `k`
+/// metrics, each is tested at the `1 - 0.05 / k` confidence level, so that
+/// the chance of *any* false positive is at most 5%.
+///
+/// If [printMetricCount] is `true`, a line saying how many metrics were
+/// compared (and so how many false positives to expect) is printed.
+///
 /// Returns whether any metric changed significantly.
 bool _compare(
   List<Map<String, num>> from,
   List<Map<String, num>> to, {
   required bool showAll,
   required bool paired,
+  required bool strict,
+  required bool printMetricCount,
 }) {
-  bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
   for (Map<String, num> entry in [...from, ...to]) {
     allCaptions.addAll(entry.keys);
   }
+  List<(String, List<num>, List<num>)> metrics = [];
   for (String caption in allCaptions) {
     List<num> fromForCaption;
     List<num> toForCaption;
@@ -662,22 +713,64 @@ bool _compare(
     if (fromForCaption.isEmpty || toForCaption.isEmpty) continue;
     // A paired t-test needs at least two pairs to estimate the variance.
     if (paired && fromForCaption.length < 2) continue;
+    metrics.add((caption, fromForCaption, toForCaption));
+  }
+
+  // Metrics with the exact same value in every run don't count towards the
+  // number of comparisons for the Bonferroni correction (see
+  // [countNonConstant]).
+  int metricCount = countNonConstant([
+    for (var (_, fromForCaption, toForCaption) in metrics)
+      [...fromForCaption, ...toForCaption],
+  ]);
+  double alpha = perComparisonAlpha(metricCount, strict: strict);
+
+  bool somethingWasSignificant = false;
+  for (var (caption, fromForCaption, toForCaption) in metrics) {
     somethingWasSignificant |= _compareSingle(
       toForCaption,
       fromForCaption,
       caption,
       showAll: showAll,
       paired: paired,
+      alpha: alpha,
     );
   }
+  if (printMetricCount && metricCount > 0) {
+    if (strict) {
+      print(
+        "($metricCount metrics compared, each at the "
+        "${_formatConfidenceLevel(alpha)} confidence level "
+        "(Bonferroni correction), so the chance of any false positive "
+        "is at most 5%, but real changes are less likely to be "
+        "reported.)",
+      );
+    } else {
+      print(
+        "($metricCount metrics compared at the 95% confidence level, so "
+        "about ${(metricCount * 0.05).toStringAsFixed(1)} false positives "
+        "are expected by chance. Pass --strict to correct for this (at the "
+        "cost of more false negatives).)",
+      );
+    }
+  }
   return somethingWasSignificant;
+}
+
+/// Formats `1 - alpha` as a percentage, e.g. "99.58%".
+String _formatConfidenceLevel(double alpha) {
+  String percent = ((1 - alpha) * 100).toStringAsFixed(4);
+  // Remove trailing zeros (and a trailing decimal point).
+  percent = percent.replaceFirst(new RegExp(r"\.?0+$"), "");
+  return "$percent%";
 }
 
 /// Compares [to] against [from] for the metric [caption], printing the
 /// result if it is significant (or if [showAll] is `true`).
 ///
 /// If [paired] is `true`, `from[i]` and `to[i]` must have been measured in
-/// the same round, and a paired t-test is used.
+/// the same round, and a paired t-test is used. The test is done at the
+/// `1 - alpha` confidence level.
 ///
 /// Returns whether the result was significant.
 bool _compareSingle(
@@ -686,10 +779,11 @@ bool _compareSingle(
   String caption, {
   bool showAll = false,
   bool paired = false,
+  double alpha = 0.05,
 }) {
   Comparison comparison = paired
-      ? comparePaired(from, to)
-      : compareUnpaired(from, to);
+      ? comparePaired(from, to, alpha: alpha)
+      : compareUnpaired(from, to, alpha: alpha);
   if (comparison.significant || showAll) {
     StringBuffer line = new StringBuffer(
       "$caption: "

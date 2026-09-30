@@ -14,6 +14,7 @@ aaa
 aarhus
 ab
 abcompile
+abramowitz
 ac
 aci
 acn
@@ -53,15 +54,18 @@ aoo
 aotruntime
 apart
 applier
+approaches
 approval
 approve
 approximation
 arbitrarily
+arcsine
 area
 arglebargle
 arr
 arrive
 asdf
+asin
 asserter
 assure
 asterisk
@@ -103,6 +107,7 @@ benchmarkers
 besides
 beta
 bigger
+bisect
 bitmask
 bivariant
 bkonyi
@@ -113,6 +118,7 @@ bleeding
 bler
 blorp
 bold
+bonferroni
 boo
 boollist
 bools
@@ -150,11 +156,13 @@ captions
 carefully
 categorization
 categorize
+cauchy
 causal
 cb
 cc
 ccc
 cdee
+cdf
 cells
 center
 certificate
@@ -176,6 +184,7 @@ cmp
 cnn
 coded
 codepath
+coefficients
 coincidences
 cold
 collisions
@@ -204,6 +213,7 @@ constr
 constrains
 consts
 contract
+converges
 conversions
 coo
 cores
@@ -292,6 +302,8 @@ discrepancies
 dispatcher
 dispose
 dist
+distribution
+distribution's
 diterations
 div
 divergent
@@ -363,6 +375,7 @@ fac
 failsafe
 faking
 falling
+family
 fasta
 faults
 favors
@@ -541,6 +554,7 @@ ko
 koo
 la
 lambdas
+lanczos
 lat
 launch
 launching
@@ -549,6 +563,7 @@ le
 leftovers
 legs
 lengths
+lentz
 lightly
 likewise
 lily
@@ -561,6 +576,7 @@ ln
 loadavg
 locale
 locating
+logarithm
 logs
 loo
 lookahead
@@ -641,6 +657,7 @@ nq
 null'ed
 numbered
 numerator
+numerical
 nums
 ob
 obool
@@ -747,6 +764,10 @@ pv
 px
 py
 python
+qab
+qam
+qap
+qt
 quicker
 quit
 quot
@@ -756,6 +777,7 @@ ram
 rate
 reality
 recalculate
+recipes
 recompilation
 recompiles
 redir
@@ -765,6 +787,7 @@ reducer
 reenable
 reexport
 referential
+reflection
 refname
 refs
 refusing
@@ -772,6 +795,7 @@ regards
 regenerate
 regex
 regressions
+regularized
 reify
 reject
 relinked
@@ -853,6 +877,7 @@ sidebar
 sided
 sigint
 signalled
+significance
 significantly
 sigterm
 sigwinch
@@ -899,7 +924,9 @@ stay
 std
 steadily
 steal
+stegun
 stopwatches
+straddle
 streams
 stress
 stretch
@@ -908,6 +935,8 @@ strip
 strongest
 stub's
 stuck
+student
+student's
 stupid
 subcommand
 subdir
@@ -1048,6 +1077,7 @@ worse
 wrongly
 ws
 x's
+x^a
 xb
 xf
 xfq
