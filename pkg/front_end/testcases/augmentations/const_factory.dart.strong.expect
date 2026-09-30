@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object /*hasConstConstructor*/  {
+  final field core::int v;
+  const constructor named(initializing-formal core::int v) → self::C1
+    : self::C1::v = v, super core::Object::•()
+    ;
+  @#C1
+  static const factory fact(core::int v) → self::C1 /* redirection-target: self::C1::named */
+    return new self::C1::named(v);
+}
+class C2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int v;
+  const constructor foo(initializing-formal core::int v) → self::C2
+    : self::C2::v = v, super core::Object::•()
+    ;
+  @#C1
+  static const factory fact(core::int v) → self::C2 /* redirection-target: self::C2::foo */
+    return new self::C2::foo(v);
+}
+extension type ET1(core::int v) {
+  abstract extension-type-member representation-field get v() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  static redirecting-factory fact = self::ET1|constructor#fact;
+  static redirecting-factory tearoff fact = self::ET1|constructor#_#fact#tearOff;
+}
+extension type ET2(core::int v) {
+  abstract extension-type-member representation-field get v() → core::int;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+  static redirecting-factory fact = self::ET2|constructor#fact;
+  static redirecting-factory tearoff fact = self::ET2|constructor#_#fact#tearOff;
+}
+static const field core::int annotation = #C1;
+static extension-type-member const method ET1|constructor#(initializing-formal core::int v) → self::ET1% /* erasure=core::int, declared=! */ {
+  lowered final self::ET1% /* erasure=core::int, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(v);
+@#C1
+static extension-type-member const method ET1|constructor#fact(core::int v) → self::ET1% /* erasure=core::int, declared=! */ /* redirection-target: self::ET1|constructor# */
+  return self::ET1|constructor#(v);
+static extension-type-member synthetic method ET1|constructor#_#fact#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(v);
+static extension-type-member const method ET2|constructor#(initializing-formal core::int v) → self::ET2% /* erasure=core::int, declared=! */ {
+  lowered final self::ET2% /* erasure=core::int, declared=! */ #this = v;
+  return #this;
+}
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int v) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(v);
+@#C1
+static extension-type-member const method ET2|constructor#fact(core::int v) → self::ET2% /* erasure=core::int, declared=! */ /* redirection-target: self::ET2|constructor# */
+  return self::ET2|constructor#(v);
+static extension-type-member synthetic method ET2|constructor#_#fact#tearOff(core::int v) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(v);
+
+constants  {
+  #C1 = 0
+}

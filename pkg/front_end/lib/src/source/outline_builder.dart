@@ -4774,7 +4774,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryFeatures.constFunctions.isEnabled) {
+    if (!libraryFeatures.constFunctions.isEnabled &&
+        !libraryFeatures.augmentations.isEnabled) {
       handleRecoverableError(diag.constFactory, constKeyword, constKeyword);
     }
   }
