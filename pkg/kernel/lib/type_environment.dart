@@ -14,7 +14,7 @@ import 'src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 import 'src/types.dart';
 
-typedef void ErrorHandler(TreeNode node, String message);
+typedef ErrorHandler = void Function(TreeNode node, String message);
 
 abstract class TypeEnvironment extends Types {
   @override

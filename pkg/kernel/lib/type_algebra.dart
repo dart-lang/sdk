@@ -876,7 +876,7 @@ class _CombinedSubstitution extends Substitution {
   }
 }
 
-typedef bool TypeParameterFilter(TypeParameter P);
+typedef TypeParameterFilter = bool Function(TypeParameter P);
 
 class _InnerTypeSubstitutor extends _SubstitutorBase {
   final Map<StructuralParameter, DartType> substitution =

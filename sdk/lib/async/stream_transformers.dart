@@ -140,7 +140,7 @@ class _SinkTransformerStreamSubscription<S, T>
   }
 }
 
-typedef EventSink<S> _SinkMapper<S, T>(EventSink<T> output);
+typedef _SinkMapper<S, T> = EventSink<S> Function(EventSink<T> output);
 
 /// A [StreamTransformer] for [Sink]-mappers.
 ///
@@ -189,17 +189,17 @@ class _BoundSinkStream<S, T> extends Stream<T> {
 }
 
 /// Data-handler coming from [StreamTransformer.fromHandlers].
-typedef void _TransformDataHandler<S, T>(S data, EventSink<T> sink);
+typedef _TransformDataHandler<S, T> = void Function(S data, EventSink<T> sink);
 
 /// Error-handler coming from [StreamTransformer.fromHandlers].
-typedef void _TransformErrorHandler<T>(
+typedef _TransformErrorHandler<T> = void Function(
   Object error,
   StackTrace stackTrace,
   EventSink<T> sink,
 );
 
 /// Done-handler coming from [StreamTransformer.fromHandlers].
-typedef void _TransformDoneHandler<T>(EventSink<T> sink);
+typedef _TransformDoneHandler<T> = void Function(EventSink<T> sink);
 
 /// Wraps handlers (from [StreamTransformer.fromHandlers]) into an `EventSink`.
 ///
@@ -291,7 +291,7 @@ class _StreamBindTransformer<S, T> extends StreamTransformerBase<S, T> {
 }
 
 /// A closure mapping a stream and cancelOnError to a StreamSubscription.
-typedef StreamSubscription<T> _SubscriptionTransformer<S, T>(
+typedef _SubscriptionTransformer<S, T> = StreamSubscription<T> Function(
   Stream<S> stream,
   bool cancelOnError,
 );

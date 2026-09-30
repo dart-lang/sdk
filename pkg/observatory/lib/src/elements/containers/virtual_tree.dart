@@ -12,12 +12,17 @@ import 'virtual_collection.dart';
 import '../helpers/custom_element.dart';
 import '../helpers/rendering_scheduler.dart';
 
-typedef HTMLElement VirtualTreeCreateCallback(
-  toggle({bool autoToggleSingleChildNodes, bool autoToggleWholeTree}),
-);
-typedef void VirtualTreeUpdateCallback(HTMLElement el, dynamic item, int depth);
-typedef Iterable<dynamic> VirtualTreeGetChildrenCallback(dynamic value);
-typedef bool VirtualTreeSearchCallback(Pattern pattern, dynamic item);
+typedef VirtualTreeCreateCallback =
+    HTMLElement Function(
+      void Function({bool autoToggleSingleChildNodes, bool autoToggleWholeTree})
+      toggle,
+    );
+typedef VirtualTreeUpdateCallback =
+    void Function(HTMLElement el, dynamic item, int depth);
+typedef VirtualTreeGetChildrenCallback =
+    Iterable<dynamic> Function(dynamic value);
+typedef VirtualTreeSearchCallback =
+    bool Function(Pattern pattern, dynamic item);
 
 void virtualTreeUpdateLines(HTMLSpanElement element, int n) {
   n = Math.max(0, n);

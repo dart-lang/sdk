@@ -9,7 +9,7 @@ library kernel.test.type_parser;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/text/ast_to_text.dart';
 
-typedef TreeNode TypeEnvironment(String name);
+typedef TypeEnvironment = TreeNode Function(String name);
 
 /// [lookupType] should return a [Class] or [TypeParameter].
 DartType parseDartType(String type, TreeNode lookupType(String name)) {

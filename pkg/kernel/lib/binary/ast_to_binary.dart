@@ -3604,7 +3604,7 @@ class BinaryPrinter
   }
 }
 
-typedef bool LibraryFilter(Library _);
+typedef LibraryFilter = bool Function(Library _);
 
 class VariableIndexer {
   Map<Variable, int>? index;

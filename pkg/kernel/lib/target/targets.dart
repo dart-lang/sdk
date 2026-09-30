@@ -68,7 +68,7 @@ class TargetFlags {
   }
 }
 
-typedef Target _TargetBuilder(TargetFlags flags);
+typedef _TargetBuilder = Target Function(TargetFlags flags);
 
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),

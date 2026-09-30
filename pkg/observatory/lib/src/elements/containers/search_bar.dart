@@ -17,7 +17,7 @@ class SearchResultSelected {
   SearchResultSelected(this.element, this.item);
 }
 
-typedef Iterable<dynamic> SearchBarSearchCallback(Pattern pattern);
+typedef SearchBarSearchCallback = Iterable<dynamic> Function(Pattern pattern);
 
 class SearchBarElement extends CustomElement implements Renderable {
   late RenderingScheduler<SearchBarElement> _r;
