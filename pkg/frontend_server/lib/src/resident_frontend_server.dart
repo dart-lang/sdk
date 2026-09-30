@@ -938,22 +938,25 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
             await _currentlyHandling!.future;
           }
           _currentlyHandling = new Completer();
+          bool restartShutdownTimer = true;
           try {
+            shutdownTimer.cancel();
             String result = await ResidentFrontendServer.handleRequest(
               utf8.decode(data),
             );
             client.write(result);
-            shutdownTimer.cancel();
             if (result == ResidentFrontendServer._shutdownJsonResponse) {
+              restartShutdownTimer = false;
               await residentServerCleanup(server, serverInfoFile);
-            } else {
+            }
+          } finally {
+            if (restartShutdownTimer) {
               shutdownTimer = startShutdownTimer(
                 inactivityTimeout,
                 server,
                 serverInfoFile,
               );
             }
-          } finally {
             Completer<dynamic> currentlyHandlingLocal = _currentlyHandling!;
             _currentlyHandling = null;
             currentlyHandlingLocal.complete();
