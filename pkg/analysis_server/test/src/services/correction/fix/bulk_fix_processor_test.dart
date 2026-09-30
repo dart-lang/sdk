@@ -532,6 +532,29 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
+  Future<void> test_conditionalImportsAndExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+  d: any
+''';
+    updateTestPubspecFile(content);
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+import 'package:a/a.dart' if (dart.library.io) 'package:b/b.dart';
+export 'package:c/c.dart' if (dart.library.html) 'package:d/d.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_dedupe_devPackages_against_packages() async {
     var content = '''
 name: test
@@ -681,6 +704,58 @@ void bad() {
   }
 }
 ''');
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_libraryWithExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+export 'package:a/a.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_mixedAcrossPartHierarchy() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+import 'package:c/c.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+export 'package:b/b.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+import 'package:a/a.dart';
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
   }
 
@@ -864,6 +939,136 @@ dependencies:
     updateTestPubspecFile(content);
 
     await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithExports_inLib() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+export 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithImports_inLib() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+import 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithImports_inTest() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dev_dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageTestPath/test_part.dart', '''
+part of 'test.dart';
+import 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageTestPath/test.dart', '''
+part 'test_part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithParts_andExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+export 'package:a/a.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithParts_andImports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+import 'package:a/a.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
   }
 }
