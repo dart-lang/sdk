@@ -8,6 +8,7 @@ import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
 import 'add_call_super_test.dart' as add_call_super;
 import 'add_class_modifier_test.dart' as add_class_modifier;
+import 'add_closure_test.dart' as add_closure_parameters;
 import 'add_const_test.dart' as add_const;
 import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_diagnostic_property_reference_test.dart'
@@ -347,6 +348,7 @@ void main() {
     add_await.main();
     add_call_super.main();
     add_class_modifier.main();
+    add_closure_parameters.main();
     add_const.main();
     add_curly_braces.main();
     add_diagnostic_property_reference.main();

@@ -297,6 +297,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     DartType? type,
     String? typeGroupName,
     bool isRequiredType = false,
+    bool onClosure = false,
   }) {
     bool writeType() {
       if (typeGroupName != null) {
@@ -334,8 +335,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (isRequiredNamed) {
       write('required ');
     }
-    type ??= _typeProvider.objectQuestionType;
-    var hasType = writeType();
+    // In a closure the parameter type is inferred from the context, so it is
+    // only written when `always_specify_types` asks for it.
+    var hasType = false;
+    if (!onClosure || _codeStyleOptions.specifyTypes) {
+      type ??= _typeProvider.objectQuestionType;
+      hasType = writeType();
+    }
     if (name.isNotEmpty) {
       if (hasType) {
         write(' ');

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_call_super.dart';
 import 'package:analysis_server/src/services/correction/dart/add_class_modifier.dart';
+import 'package:analysis_server/src/services/correction/dart/add_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_empty_argument_list.dart';
@@ -541,6 +542,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     WrapInText.new,
     AddAwait.argumentType,
+    AddMissingClosureParameters.parameters,
   ],
   diag.asyncForInWrongContext: [AddAsync.new],
   diag.augmentationModifierExtra: [RemoveLexeme.modifier],
@@ -654,6 +656,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
     AddAwait.assignment,
+    AddMissingClosureParameters.parameters,
   ],
   diag.invalidConstant: [RemoveConst.new],
   diag.invalidCovariantModifierInPrimaryConstructor: [
@@ -741,6 +744,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.nonExhaustiveSwitchStatementPrivate: [AddMissingSwitchCases.new],
   diag.nonFinalFieldInEnum: [MakeFinal.new],
   diag.notAType: [ChangeTo.classOrMixin],
+  diag.notEnoughPositionalArgumentsNamePlural: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsNameSingular: [
+    AddMissingClosureParameters.positional,
+  ],
   diag.notInitializedNonNullableInstanceField: [
     AddLate.new,
     CreateConstructorForFinalFields.requiredNamed,
@@ -769,12 +778,15 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
   diag.returnOfInvalidTypeFromMethod: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
+  diag.returnWithoutValue: [AddMissingClosureParameters.expression],
   diag.setElementFromDeferredLibrary: [RemoveConst.new],
   diag.setElementTypeNotAssignableNullability: [
     ConvertToNullAwareSetElement.new,
@@ -984,6 +996,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.missingConstFinalVarOrType: [AddTypeAnnotation.new],
   diag.missingEnumBody: [InsertBody.new],
   diag.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
+  diag.missingIdentifier: [
+    AddMissingClosureParameters.named,
+    AddMissingClosureParameters.expression,
+  ],
   diag.missingTypedefParameters: [AddEmptyArgumentList.new],
   diag.mixinDeclaresConstructor: [RemoveConstructor.new],
   diag.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
