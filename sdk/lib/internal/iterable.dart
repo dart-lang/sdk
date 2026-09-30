@@ -375,7 +375,7 @@ class ListIterator<E> implements Iterator<E> {
   }
 }
 
-typedef T _Transformation<S, T>(S value);
+typedef _Transformation<S, T> = T Function(S value);
 
 class MappedIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;
@@ -443,7 +443,7 @@ base class MappedListIterable<S, T> extends ListIterable<T> {
   T elementAt(int index) => _f(_source.elementAt(index));
 }
 
-typedef bool _ElementPredicate<E>(E element);
+typedef _ElementPredicate<E> = bool Function(E element);
 
 class WhereIterable<E> extends Iterable<E> {
   final Iterable<E> _iterable;
@@ -476,7 +476,7 @@ class WhereIterator<E> implements Iterator<E> {
   E get current => _iterator.current;
 }
 
-typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
+typedef _ExpandFunction<S, T> = Iterable<T> Function(S sourceElement);
 
 class ExpandIterable<S, T> extends Iterable<T> {
   final Iterable<S> _iterable;

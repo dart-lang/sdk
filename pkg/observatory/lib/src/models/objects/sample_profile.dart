@@ -38,7 +38,7 @@ abstract class ProfileFunction extends Profile {
   Map<ProfileFunction, int> get callees;
 }
 
-typedef bool CallTreeNodeFilter(CallTreeNode);
+typedef CallTreeNodeFilter = bool Function(dynamic CallTreeNode);
 
 abstract class CallTree {
   CallTree filtered(CallTreeNodeFilter filter);

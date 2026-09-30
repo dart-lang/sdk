@@ -12,14 +12,12 @@ import '../helpers/custom_element.dart';
 import '../helpers/element_utils.dart';
 import '../helpers/rendering_scheduler.dart';
 
-typedef HTMLElement VirtualCollectionCreateCallback();
-typedef List<HTMLElement> VirtualCollectionHeaderCallback();
-typedef void VirtualCollectionUpdateCallback(
-  HTMLElement el,
-  dynamic item,
-  int index,
-);
-typedef bool VirtualCollectionSearchCallback(Pattern pattern, dynamic item);
+typedef VirtualCollectionCreateCallback = HTMLElement Function();
+typedef VirtualCollectionHeaderCallback = List<HTMLElement> Function();
+typedef VirtualCollectionUpdateCallback =
+    void Function(HTMLElement el, dynamic item, int index);
+typedef VirtualCollectionSearchCallback =
+    bool Function(Pattern pattern, dynamic item);
 
 class VirtualCollectionElement extends CustomElement implements Renderable {
   late RenderingScheduler<VirtualCollectionElement> _r;

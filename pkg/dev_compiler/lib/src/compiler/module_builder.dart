@@ -585,7 +585,8 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
     }
     var body = <ModuleItem>[];
     // Collect imports/exports/statements.
-    for (var library in module.libraries) {
+    for (var i = 0; i < module.libraries.length; i++) {
+      var library = module.libraries[i];
       // Handle each library separately.
       imports.clear();
       statements.clear();
@@ -617,7 +618,11 @@ class DdcLibraryBundleBuilder extends _ModuleBuilder {
           js.string(library.name!),
           initFunction,
           js.number(library.dartSize!),
-          LibraryCompiler.metricsLocationID,
+          // `metricsLocationID` is replaced in command.dart via a backwards
+          // scan, so we place it at the last library.
+          i == module.libraries.length - 1
+              ? LibraryCompiler.metricsLocationID
+              : js.number(0),
         ],
       );
       body.add(resultModule);

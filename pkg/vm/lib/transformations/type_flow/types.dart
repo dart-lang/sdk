@@ -673,7 +673,7 @@ class SetType extends Type {
         types[newLength++] = t2;
         ++i2;
       } else {
-        types[newLength++] = t1.raw;
+        types[newLength++] = t1.unionSameClass(t2);
         ++i1;
         ++i2;
       }
@@ -736,6 +736,9 @@ class SetType extends Type {
         ++i2;
       } else if (t1.cls.id > t2.cls.id) {
         ++i2;
+      } else if (t1.cls.id == t2.cls.id && t2.unionSameClass(t1) == t2) {
+        ++i1;
+        ++i2;
       } else {
         return false;
       }
@@ -762,16 +765,12 @@ class SetType extends Type {
       return SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
       // Use binary search since types is sorted by class id.
-      // [ConcreteType.compareTo] doesn't take into account type arguments for a
-      // given class so we still have to check equality for any types with a
-      // matching class.
       int index = binarySearch(types, other);
-      if (index == -1) {
-        return SetType(_unionLists(types, <ConcreteType>[other]));
-      }
-      while (index < types.length && types[index].cls.id == other.cls.id) {
-        if (types[index] == other) return this;
-        ++index;
+      if (index != -1) {
+        final type = types[index];
+        final unioned = type.unionSameClass(other);
+        if (unioned == type) return this;
+        return SetType(List<ConcreteType>.of(types)..[index] = unioned);
       }
       return SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
@@ -1346,25 +1345,27 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   }
 
   @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is ConcreteType) {
-      if (!identical(this.cls, other.cls) ||
-          this.numImmediateTypeArgs != other.numImmediateTypeArgs ||
-          !identical(this.attributes, other.attributes)) {
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is ConcreteType &&
+          identical(this.cls, other.cls) &&
+          identical(this.attributes, other.attributes) &&
+          _hasSameTypeArgs(other));
+
+  bool _hasSameTypeArgs(ConcreteType other) {
+    assert(identical(this.cls, other.cls));
+    final thisTypeArgs = this.typeArgs;
+    final otherTypeArgs = other.typeArgs;
+    if (thisTypeArgs == null || otherTypeArgs == null) {
+      return identical(thisTypeArgs, otherTypeArgs);
+    }
+    assert(this.numImmediateTypeArgs == other.numImmediateTypeArgs);
+    for (int i = 0; i < numImmediateTypeArgs; ++i) {
+      if (thisTypeArgs[i] != otherTypeArgs[i]) {
         return false;
       }
-      if (this.typeArgs != null) {
-        for (int i = 0; i < numImmediateTypeArgs; ++i) {
-          if (this.typeArgs![i] != other.typeArgs![i]) {
-            return false;
-          }
-        }
-      }
-      return true;
-    } else {
-      return false;
     }
+    return true;
   }
 
   // Note that this may return 0 for concrete types which are not equal if the
@@ -1398,25 +1399,36 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       return other.union(this, typeHierarchy);
     }
     if (other is ConcreteType) {
-      if (this == other) {
-        return this;
-      } else if (!identical(this.cls, other.cls)) {
+      if (!identical(this.cls, other.cls)) {
         final types = (this.cls.id < other.cls.id)
             ? <ConcreteType>[this, other]
             : <ConcreteType>[other, this];
         return SetType(types);
-      } else {
-        assert(
-          typeArgs != null ||
-              attributes != null ||
-              other.typeArgs != null ||
-              other.attributes != null,
-        );
-        return raw;
       }
+      return unionSameClass(other);
     } else {
       throw 'Unexpected type $other';
     }
+  }
+
+  ConcreteType unionSameClass(ConcreteType other) {
+    assert(identical(this.cls, other.cls));
+    if (this == other) return this;
+    if (this.isRaw) return this;
+    if (other.isRaw) return other;
+
+    if (identical(attributes, other.attributes)) {
+      // Since the attributes are the same (possibly both null), and
+      // `this != other` we know that the type arguments must differ,.
+      return raw;
+    }
+
+    if (typeArgs != null && _hasSameTypeArgs(other)) {
+      if (attributes == null) return this;
+      if (other.attributes == null) return other;
+      return ConcreteType(cls, typeArgs!);
+    }
+    return raw;
   }
 
   @override
@@ -1425,35 +1437,30 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       return other.intersection(this, typeHierarchy);
     }
     if (other is ConcreteType) {
-      if (this == other) {
-        return this;
-      }
-      if (!identical(this.cls, other.cls)) {
+      if (this == other) return this;
+      if (!identical(this.cls, other.cls)) return emptyType;
+      if (this.isRaw) return other;
+      if (other.isRaw) return this;
+
+      if (attributes != null &&
+          other.attributes != null &&
+          attributes != other.attributes) {
         return emptyType;
       }
-      if (attributes != null) {
-        if (other.attributes == null) {
-          return this;
-        }
-        assert(attributes != other.attributes);
-        return emptyType;
-      } else if (other.attributes != null) {
-        return other;
-      }
+      final mergedAttributes = attributes ?? other.attributes;
 
       final thisTypeArgs = this.typeArgs;
       final otherTypeArgs = other.typeArgs;
+      assert(thisTypeArgs != null || otherTypeArgs != null);
+
+      List<Type> mergedTypeArgs;
       if (thisTypeArgs == null) {
-        return other;
+        mergedTypeArgs = otherTypeArgs!;
       } else if (otherTypeArgs == null) {
-        return this;
+        mergedTypeArgs = thisTypeArgs;
       } else {
         assert(thisTypeArgs.length == otherTypeArgs.length);
-        final mergedTypeArgs = List<Type>.filled(
-          thisTypeArgs.length,
-          emptyType,
-        );
-        bool hasRuntimeType = false;
+        mergedTypeArgs = List<Type>.filled(thisTypeArgs.length, emptyType);
         for (int i = 0; i < thisTypeArgs.length; ++i) {
           final merged = thisTypeArgs[i].intersection(
             otherTypeArgs[i],
@@ -1461,16 +1468,11 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           );
           if (merged is EmptyType) {
             return emptyType;
-          } else if (merged is RuntimeType) {
-            hasRuntimeType = true;
           }
           mergedTypeArgs[i] = merged;
         }
-        if (!hasRuntimeType) {
-          return cls.concreteType;
-        }
-        return ConcreteType(cls, mergedTypeArgs);
       }
+      return ConcreteType._(cls, mergedTypeArgs, mergedAttributes);
     } else {
       throw 'Unexpected type $other';
     }

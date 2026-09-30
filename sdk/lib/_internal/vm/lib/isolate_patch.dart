@@ -104,7 +104,7 @@ final class _ReceivePortImpl extends Stream implements ReceivePort {
   final StreamController _controller;
 }
 
-typedef void _ImmediateCallback();
+typedef _ImmediateCallback = void Function();
 
 /// The callback that has been registered through `scheduleImmediate`.
 _ImmediateCallback? _pendingImmediateCallback;
@@ -258,8 +258,8 @@ final class _SendPort implements SendPort {
   external void _sendInternal(message);
 }
 
-typedef _UnaryFunction(Never args);
-typedef _BinaryFunction(Never args, Never message);
+typedef _UnaryFunction = Function(Never args);
+typedef _BinaryFunction = Function(Never args, Never message);
 
 /**
  * Takes the real entry point as argument and schedules it to run in the message

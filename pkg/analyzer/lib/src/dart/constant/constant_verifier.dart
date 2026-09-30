@@ -692,8 +692,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// error code to be reported.
   Constant _evaluateAndReportError(
     Expression expression,
-    DiagnosticCode diagnosticCode,
-  ) {
+    DiagnosticCode diagnosticCode, {
+    TypeImpl? implicitCastType,
+  }) {
     var diagnosticListener = RecordingDiagnosticListener();
     var subDiagnosticReporter = DiagnosticReporter(
       diagnosticListener,
@@ -704,7 +705,10 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       _currentLibrary,
       subDiagnosticReporter,
     );
-    var result = constantVisitor.evaluateConstant(expression);
+    var result = constantVisitor.evaluateConstant(
+      expression,
+      implicitCastType: implicitCastType,
+    );
     if (result is InvalidConstant) {
       _reportError(result, diagnosticCode);
     }
@@ -914,6 +918,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     for (var formalParameter in parameters.allFormalParameters) {
       if (formalParameter.defaultClause case var defaultClause?) {
         var defaultValue = defaultClause.value2;
+        var element = formalParameter.declaredFragment!.element;
         Constant? result;
         if (defaultValue.typeOrThrow is InvalidType) {
           // We have already reported an error.
@@ -921,9 +926,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           result = _evaluateAndReportError(
             defaultValue,
             diag.nonConstantDefaultValue,
+            implicitCastType: element.type,
           );
         }
-        var element = formalParameter.declaredFragment!.element;
         element.evaluationResult = result;
       }
     }

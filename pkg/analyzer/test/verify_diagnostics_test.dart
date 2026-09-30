@@ -312,6 +312,7 @@ class DocumentationValidator {
     required List<String> experiments,
     required List<String> ignores,
     required String? languageVersion,
+    required List<String> messageExperiments,
   }) {
     // TODO(brianwilkerson): This doesn't check to ensure that there are no
     //  ranges specified in fixes (when `errorRequired` is `false`), but it
@@ -330,6 +331,19 @@ class DocumentationValidator {
         experimentalFeatures.add(feature);
       } else if (!onlyValidateFormatting) {
         _reportProblem("Unknown experiment '$experiment' in $section $index");
+      }
+    }
+    // Experiments listed in the message's `experiments` entry apply to every
+    // snippet. These names have already been validated by the message decoder.
+    // Unlike `%experiments=` directives, these aren't reported if they're
+    // enabled by default (doing so would make it harder to flip an experiment
+    // to on-by-default); they're simply skipped.
+    for (var experiment in messageExperiments) {
+      var feature = ExperimentStatus.knownFeatures[experiment];
+      if (feature != null &&
+          !feature.isEnabledByDefault &&
+          !experimentalFeatures.contains(feature)) {
+        experimentalFeatures.add(feature);
       }
     }
 
@@ -390,11 +404,15 @@ class DocumentationValidator {
 
   /// Extract the snippets of Dart code from [documentationParts] that are
   /// tagged as belonging to the given [blockSection].
+  ///
+  /// The experiments in [messageExperiments] (taken from the message's
+  /// `experiments` entry) are enabled for every snippet.
   List<_SnippetData> _extractSnippets(
     List<ErrorCodeDocumentationPart> documentationParts,
     BlockSection blockSection,
-    bool onlyValidateFormatting,
-  ) {
+    bool onlyValidateFormatting, {
+    required List<String> messageExperiments,
+  }) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
     for (var documentationPart in documentationParts) {
@@ -417,6 +435,7 @@ class DocumentationValidator {
                 experiments: documentationPart.experiments,
                 ignores: documentationPart.ignores,
                 languageVersion: documentationPart.languageVersion,
+                messageExperiments: messageExperiments,
               ),
             );
           }
@@ -458,7 +477,13 @@ class DocumentationValidator {
     var ignoreFormatting = snippet.ignores.contains('formatting');
     String? formattedContent;
     try {
-      var formatter = DartFormatter(languageVersion: Version(3, 13, 0));
+      var formatter = DartFormatter(
+        languageVersion: Version(3, 13, 0),
+        experimentFlags: [
+          for (var feature in snippet.experimentalFeatures)
+            ?feature.experimentalFlag,
+        ],
+      );
       formattedContent = formatter.format(snippet.content).trimRight();
       if (formattedContent != snippet.content) {
         if (!ignoreFormatting) {
@@ -517,6 +542,7 @@ Formatted content is:
           docs,
           BlockSection.examples,
           onlyValidateFormatting,
+          messageExperiments: message.experiments,
         );
         _SnippetData? firstExample;
         if (exampleSnippets.isEmpty) {
@@ -541,6 +567,7 @@ Formatted content is:
           docs,
           BlockSection.commonFixes,
           onlyValidateFormatting,
+          messageExperiments: message.experiments,
         );
         for (int i = 0; i < fixesSnippets.length; i++) {
           _SnippetData snippet = fixesSnippets[i];

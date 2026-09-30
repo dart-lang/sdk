@@ -8,7 +8,7 @@ part of "dart:async";
 // Core Stream types
 // -------------------------------------------------------------------
 
-typedef void _TimerCallback();
+typedef _TimerCallback = void Function();
 
 /// A source of asynchronous data events.
 ///

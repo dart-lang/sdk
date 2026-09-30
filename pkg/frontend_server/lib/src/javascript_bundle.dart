@@ -410,7 +410,9 @@ class IncrementalJavaScriptBundler {
         packageConfig: useDebuggerModuleNames ? null : packageConfig,
       );
       final Uint8List codeBytes = utf8.encode(code.code);
-      final Uint8List sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
+      final Uint8List sourceMapBytes = utf8.encode(
+        code.encodedSourceMap ?? 'null',
+      );
       final Uint8List? metadataBytes = emitDebugMetadata
           ? utf8.encode(json.encode(code.metadata))
           : null;

@@ -684,7 +684,9 @@ class _PendingEvents<T> {
   }
 }
 
-typedef void _BroadcastCallback<T>(StreamSubscription<T> subscription);
+typedef _BroadcastCallback<T> = void Function(
+  StreamSubscription<T> subscription,
+);
 
 /// Done subscription that will send one done event as soon as possible.
 class _DoneStreamSubscription<T> implements StreamSubscription<T> {

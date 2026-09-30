@@ -15,6 +15,9 @@ const String kind = 'kind';
 /// The key used in an entry to access the message associated with the entry.
 const String message = 'message';
 
+/// The key used in an entry to access the exception within a [CaughtException].
+const String nestedException = 'nestedException';
+
 /// The key used in an entry to access the receiver of a message.
 const String receiver = 'receiver';
 

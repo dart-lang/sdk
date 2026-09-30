@@ -553,10 +553,9 @@ Future<CompilerResult> _compile(
     );
 
     outFiles.add(file.writeAsString(jsCode.code));
-    if (jsCode.sourceMap != null) {
-      outFiles.add(
-        File('$output.map').writeAsString('${json.encode(jsCode.sourceMap)}\n'),
-      );
+    var encodedSourceMap = jsCode.encodedSourceMap;
+    if (encodedSourceMap != null) {
+      outFiles.add(File('$output.map').writeAsString('$encodedSourceMap\n'));
     }
     if (jsCode.metadata != null) {
       outFiles.add(
@@ -713,10 +712,9 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     );
 
     outFiles.add(file.writeAsString(jsCode.code));
-    if (jsCode.sourceMap != null) {
-      outFiles.add(
-        File('$output.map').writeAsString(json.encode(jsCode.sourceMap)),
-      );
+    var encodedSourceMap = jsCode.encodedSourceMap;
+    if (encodedSourceMap != null) {
+      outFiles.add(File('$output.map').writeAsString(encodedSourceMap));
     }
   }
   await Future.wait(outFiles);
@@ -741,11 +739,16 @@ class JSCode {
   /// comment at end of the file.
   final String code;
 
-  /// The JSON of the source map, if generated, otherwise `null`.
+  /// The JSON-encoded source map, if generated, otherwise `null`.
+  final String? encodedSourceMap;
+
+  /// The decoded JSON of [encodedSourceMap], if generated, otherwise `null`.
   ///
-  /// The source paths will initially be absolute paths. They can be adjusted
-  /// using [placeSourceMap].
-  final Map<String, Object?>? sourceMap;
+  /// Decoded lazily on first access. Prefer [encodedSourceMap] to avoid
+  /// unnecessary decoding.
+  late final Map<String, Object?>? sourceMap = encodedSourceMap == null
+      ? null
+      : json.decode(encodedSourceMap!) as Map<String, Object?>;
 
   /// Module and library information
   ///
@@ -760,7 +763,7 @@ class JSCode {
   /// helping the debugger map between dart and JS objects.
   final ModuleSymbols? symbols;
 
-  JSCode(this.code, this.sourceMap, {this.symbols, this.metadata});
+  JSCode(this.code, this.encodedSourceMap, {this.symbols, this.metadata});
 }
 
 /// Converts [moduleTree] to [JSCode], using [format].
@@ -829,10 +832,6 @@ JSCode jsProgramToCode(
 
   var text = printer.getText();
   var encodedMap = json.encode(builtMap);
-  var rawSourceMap = inlineSourceMap
-      ? js.escapedString(encodedMap, "'").value
-      : 'null';
-  text = text.replaceFirst(ProgramCompiler.sourceMapLocationID, rawSourceMap);
 
   // This is intended to be used by our build/debug tools to gather metrics.
   // See pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js for runtime code that
@@ -847,23 +846,29 @@ JSCode jsProgramToCode(
   // compilation server, not the browser.  We don't yet have the infra for that.
   if (ModuleFormat.ddcLibraryBundle == format) {
     // TODO(nshahan): Find a better solution for the size of the source map
-    // per library. For now we just use the size of the full source map and only
-    // count it once in the runtime when the first library gets defined.
-    text = text.replaceFirst(
-      ProgramCompiler.metricsLocationID,
+    // per library. For now we just use the size of the full source map and
+    // attach it to the last library in the bundle.
+    text = _replaceLast(
+      text,
+      LibraryCompiler.metricsLocationID,
       '${encodedMap.length}',
     );
-    text = text.replaceAll(LibraryCompiler.metricsLocationID, '0');
   } else {
     var compileTimeStatistics = {
       'dartSize': _computeDartSize(component!),
       'sourceMapSize': encodedMap.length,
     };
-    text = text.replaceFirst(
+    text = _replaceLast(
+      text,
       ProgramCompiler.metricsLocationID,
       '$compileTimeStatistics',
     );
   }
+
+  var rawSourceMap = inlineSourceMap
+      ? js.escapedString(encodedMap, "'").value
+      : 'null';
+  text = _replaceLast(text, ProgramCompiler.sourceMapLocationID, rawSourceMap);
 
   var debugMetadata = emitDebugMetadata
       ? _emitMetadata(moduleTree, component!, mapUrl!, jsUrl!, fullDillUri)
@@ -878,7 +883,19 @@ JSCode jsProgramToCode(
         )
       : null;
 
-  return JSCode(text, builtMap, symbols: debugSymbols, metadata: debugMetadata);
+  return JSCode(
+    text,
+    builtMap == null ? null : encodedMap,
+    symbols: debugSymbols,
+    metadata: debugMetadata,
+  );
+}
+
+/// Replaces the last occurrence of [from] with [to] in [text].
+String _replaceLast(String text, String from, String to) {
+  var index = text.lastIndexOf(from);
+  if (index == -1) return text;
+  return text.replaceRange(index, index + from.length, to);
 }
 
 /// Assembles symbol information describing the nodes from the AST [component]
