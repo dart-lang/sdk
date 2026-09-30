@@ -22,9 +22,9 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
         analyzeQuote,
-        unescape,
         unescapeFirstStringPart,
         unescapeLastStringPart,
+        unescapeMiddleStringPart,
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
@@ -4742,7 +4742,12 @@ class BodyBuilderImpl extends StackListenerImpl
         Object part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            String value = unescape(part.lexeme, quote, part, this);
+            String value = unescapeMiddleStringPart(
+              part.lexeme,
+              quote,
+              part,
+              this,
+            );
             expressions.add(
               intern.createStringLiteral(offsetForToken(part), value),
             );
